@@ -40,7 +40,7 @@
   },
   "INTERNAL": {
     "__type": "object",
-    "registerService": {
+    "registerComponent": {
       "__type": "function"
     },
     "extendNamespace": {
@@ -55,20 +55,8 @@
     "removeApp": {
       "__type": "function"
     },
-    "factories": {
-      "__type": "object",
-      "storage": {
-        "__type": "function"
-      },
-      "auth": {
-        "__type": "function"
-      },
-      "database": {
-        "__type": "function"
-      },
-      "messaging": {
-        "__type": "function"
-      }
+    "components": {
+      "__type": "Map"
     },
     "ErrorFactory": {
       "__type": "function"

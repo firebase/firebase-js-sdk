@@ -26,6 +26,9 @@ import {
 import { _errorForResponse, HttpsErrorImpl } from './error';
 import { ContextProvider } from '../context';
 import { Serializer } from '../serializer';
+import { Provider } from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 /**
  * The response to an http request.
@@ -80,9 +83,11 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   constructor(
     private app_: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>,
+    messagingProvider: Provider<FirebaseMessagingName>,
     private region_: string = 'us-central1'
   ) {
-    this.contextProvider = new ContextProvider(app_);
+    this.contextProvider = new ContextProvider(authProvider, messagingProvider);
     // Cancels all ongoing requests when resolved.
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {

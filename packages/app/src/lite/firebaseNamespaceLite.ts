@@ -19,46 +19,40 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
-  FirebaseServiceFactory,
-  AppHook,
   FirebaseServiceNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
 import { FirebaseAppLiteImpl } from './firebaseAppLite';
 import { createFirebaseNamespaceCore } from '../firebaseNamespaceCore';
+import { Component, ComponentType } from '@firebase/component';
 
 export function createFirebaseNamespaceLite(): FirebaseNamespace {
   const namespace = createFirebaseNamespaceCore(FirebaseAppLiteImpl);
 
   namespace.SDK_VERSION = `${namespace.SDK_VERSION}_LITE`;
 
-  const registerService = (namespace as _FirebaseNamespace).INTERNAL
-    .registerService;
-  (namespace as _FirebaseNamespace).INTERNAL.registerService = registerServiceForLite;
+  const registerComponent = (namespace as _FirebaseNamespace).INTERNAL
+    .registerComponent;
+  (namespace as _FirebaseNamespace).INTERNAL.registerComponent = registerComponentForLite;
 
   /**
    * This is a special implementation, so it only works with performance.
    * only allow performance SDK to register.
    */
-  function registerServiceForLite(
-    name: string,
-    createService: FirebaseServiceFactory,
-    serviceProperties?: { [prop: string]: unknown },
-    appHook?: AppHook,
-    allowMultipleInstances?: boolean
-  ): FirebaseServiceNamespace<FirebaseService> {
+  function registerComponentForLite(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component: Component<any>
+  ): FirebaseServiceNamespace<FirebaseService> | null {
     // only allow performance to register with firebase lite
-    if (name !== 'performance' && name !== 'installations') {
+    if (
+      component.type === ComponentType.PUBLIC &&
+      component.name !== 'performance' &&
+      component.name !== 'installations'
+    ) {
       throw Error(`${name} cannot register with the standalone perf instance`);
     }
 
-    return registerService(
-      name,
-      createService,
-      serviceProperties,
-      appHook,
-      allowMultipleInstances
-    );
+    return registerComponent(component);
   }
 
   return namespace;

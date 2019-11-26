@@ -26,7 +26,12 @@ import { Headers } from '../src/implementation/xhrio';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { UploadTask } from '../src/task';
-import { assertThrows, bind as fbsBind, makePool } from './testshared';
+import {
+  assertThrows,
+  bind as fbsBind,
+  makePool,
+  emptyAuthProvider
+} from './testshared';
 import { StringHeaders, TestingXhrIo } from './xhrio';
 
 const testLocation = new Location('bucket', 'object');
@@ -63,6 +68,7 @@ function authWrapperWithHandler(handler: RequestHandler): AuthWrapper {
 
   return new AuthWrapper(
     null,
+    emptyAuthProvider,
     () => {
       return {} as Reference;
     },

@@ -37,12 +37,13 @@ import { Deferred } from '@firebase/util';
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
+import * as types from '@firebase/database-types';
 
 export interface ReferenceConstructor {
   new (repo: Repo, path: Path): Reference;
 }
 
-export class Reference extends Query {
+export class Reference extends Query implements types.Reference {
   public then: (a?: any) => Promise<any>;
   public catch: (a?: Error) => Promise<any>;
 

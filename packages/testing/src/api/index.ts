@@ -16,12 +16,15 @@
  */
 
 import * as firebase from 'firebase';
+import { _FirebaseApp } from '@firebase/app-types/private';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
 import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
+import { Component, ComponentType } from '@firebase/component';
 
 export { database, firestore } from 'firebase';
 
@@ -126,8 +129,21 @@ function initializeApp(
   let app = firebase.initializeApp(appOptions, appName);
   // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
   if (accessToken) {
-    (app as any).INTERNAL.getToken = () =>
-      Promise.resolve({ accessToken: accessToken });
+    const mockAuthComponent = new Component(
+      'auth-internal',
+      () =>
+        ({
+          getToken: async () => ({ accessToken: accessToken }),
+          getUid: () => null,
+          addAuthTokenListener: () => {},
+          removeAuthTokenListener: () => {}
+        } as FirebaseAuthInternal),
+      ComponentType.PRIVATE
+    );
+
+    ((app as unknown) as _FirebaseApp)._addOrOverwriteComponent(
+      mockAuthComponent
+    );
   }
   if (databaseName) {
     // Toggle network connectivity to force a reauthentication attempt.

@@ -42,14 +42,18 @@ import {
   key,
   path as pathFrom
 } from './helpers';
+import { Provider, ComponentContainer } from '@firebase/component';
 
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore({
-  projectId: 'projectid',
-  database: 'database'
-});
+export const FIRESTORE = new Firestore(
+  {
+    projectId: 'projectid',
+    database: 'database'
+  },
+  new Provider('auth-internal', new ComponentContainer('default'))
+);
 
 export function firestore(): Firestore {
   return FIRESTORE;

@@ -26,7 +26,10 @@ import {
   wrapOrCreateGtag,
   findGtagScriptOnPage
 } from './helpers';
-import { getFakeApp } from '../testing/get-fake-app';
+import {
+  getFakeApp,
+  getFakeInstallations
+} from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
 
@@ -36,8 +39,9 @@ const mockFid = 'fid-1234-zyxw';
 describe('FirebaseAnalytics methods', () => {
   it('initializeGAId gets FID from installations and calls gtag config with it', async () => {
     const gtagStub: SinonStub = stub();
-    const app = getFakeApp(mockAnalyticsId, mockFid);
-    await initializeGAId(app, gtagStub);
+    const app = getFakeApp(mockAnalyticsId);
+    const installations = getFakeInstallations(mockFid);
+    await initializeGAId(app, installations, gtagStub);
     expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, mockAnalyticsId, {
       'firebase_id': mockFid,
       'origin': 'firebase',

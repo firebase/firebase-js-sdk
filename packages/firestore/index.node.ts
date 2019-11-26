@@ -14,12 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import firebase from '@firebase/app';
-import { FirebaseNamespace } from '@firebase/app-types';
 import * as types from '@firebase/firestore-types';
 import { configureForFirebase } from './src/platform/config';
 import './src/platform_node/node_init';
+import { FirebaseNamespace } from '@firebase/app-types';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
