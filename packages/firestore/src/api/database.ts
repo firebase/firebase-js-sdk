@@ -597,20 +597,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
     validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
-    return new CollectionReference(
-      ResourcePath.fromString(pathString),
-      this
-    );
+    return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
 
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
     validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
-    return DocumentReference.forPath(
-      ResourcePath.fromString(pathString),
-      this
-    );
+    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
   }
 
   collectionGroup(collectionId: string): firestore.Query {
@@ -878,12 +872,12 @@ export class WriteBatch implements firestore.WriteBatch {
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
-          functionName,
+            functionName,
             convertedValue,
             options.mergeFields
           )
         : this._firestore._dataConverter.parseSetData(
-          functionName,
+            functionName,
             convertedValue
           );
     this._mutations = this._mutations.concat(
@@ -1017,13 +1011,17 @@ export class DocumentReference<T = firestore.DocumentData>
   }
 
   get parent(): firestore.CollectionReference<T> {
-    return new CollectionReference(this._key.path.popLast(), this.firestore, this._converter);
+    return new CollectionReference(
+      this._key.path.popLast(),
+      this.firestore,
+      this._converter
+    );
   }
 
   get path(): string {
     return this._key.path.canonicalString();
   }
-  
+
   /**
    * Returns a default FirestoreDataConverter that is used when a converter
    * is not provided.
@@ -1049,15 +1047,22 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     }
     const path = ResourcePath.fromString(pathString);
-    return new CollectionReference(this._key.path.child(path), this.firestore, this._converter);
+    return new CollectionReference(
+      this._key.path.child(path),
+      this.firestore,
+      this._converter
+    );
   }
 
   isEqual(other: firestore.DocumentReference<T>): boolean {
     if (!(other instanceof DocumentReference)) {
       throw invalidClassError('isEqual', 'DocumentReference', 1, other);
     }
-    return this.firestore === other.firestore && this._key.isEqual(other._key)
-    && isEqualConverter(this._converter, other._converter);
+    return (
+      this.firestore === other.firestore &&
+      this._key.isEqual(other._key) &&
+      isEqualConverter(this._converter, other._converter)
+    );
   }
 
   set(
@@ -1475,8 +1480,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       this._key.isEqual(other._key) &&
       (this._document === null
         ? other._document === null
-        : this._document.isEqual(other._document)) && 
-        isEqualConverter(this._converter, other._converter)
+        : this._document.isEqual(other._document)) &&
+      isEqualConverter(this._converter, other._converter)
     );
   }
 
@@ -2677,14 +2682,16 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
   }
 }
 
-function isEqualConverter(first: firestore.FirestoreDataConverter<unknown> | undefined,
-  second: firestore.FirestoreDataConverter<unknown> | undefined): boolean {
-    if (first === undefined) {
-      return second === undefined;
-    } else {
-      return second !== undefined && first.toString() === second.toString();
-    }
+function isEqualConverter(
+  first: firestore.FirestoreDataConverter<unknown> | undefined,
+  second: firestore.FirestoreDataConverter<unknown> | undefined
+): boolean {
+  if (first === undefined) {
+    return second === undefined;
+  } else {
+    return second !== undefined && first.toString() === second.toString();
   }
+}
 // Export the classes with a private constructor (it will fail if invoked
 // at runtime). Note that this still allows instanceof checks.
 

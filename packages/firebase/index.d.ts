@@ -7093,6 +7093,37 @@ declare namespace firebase.firestore {
    *
    * Using the converter allows you to specify generic type arguments when
    * storing and retrieving objects from Firestore.
+   *
+   * @example
+   *  ```typescript
+   * class Post {
+   *   constructor(readonly title: string, readonly author: string) {}
+   *     byline(): string {
+   *     return this.title + ', by ' + this.author;
+   *   }
+   * }
+   *
+   * const PostConverter = {
+   *   toFirestore(post: Post): DocumentData {
+   *     return {title: post.title, author: post.author};
+   *   },
+   *   fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): Post
+   *     {const data = snapshot.data(options)!; 
+   *     return new Post(data.title, data.author);
+   *   }
+   * };
+   *
+   * const postSnap = await firebase.firestore()
+   *   .collection('posts')
+   *   .withConverter(PostConverter)
+   *   .doc().get();
+   * const post = postSnap.data();
+   * if (post !== undefined) {
+   *   post.title; // string 
+   *   post.byline(); // Should be defined
+   *   post.someNonExistentProperty; // TS error
+   * }
+   * ```
    */
   export interface FirestoreDataConverter<T> {
     /**
