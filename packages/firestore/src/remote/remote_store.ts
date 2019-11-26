@@ -263,8 +263,10 @@ export class RemoteStore implements TargetMetadataProvider {
    * not being listened to.
    */
   unlisten(targetId: TargetId): void {
-    assert(objUtils.contains(this.listenTargets, targetId),
-        `unlisten called on target no currently watched: ${targetId}`);
+    assert(
+      objUtils.contains(this.listenTargets, targetId),
+      `unlisten called on target no currently watched: ${targetId}`
+    );
 
     delete this.listenTargets[targetId];
     if (this.watchStream.isOpen()) {
