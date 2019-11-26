@@ -88,7 +88,7 @@ export class RemoteConfig implements RemoteConfigType {
     private readonly _storageCache: StorageCache,
     private readonly _storage: Storage,
     private readonly _logger: Logger
-  ) { }
+  ) {}
 
   async activate(): Promise<boolean> {
     const [lastSuccessfulFetchResponse, activeConfigEtag] = await Promise.all([
@@ -159,7 +159,7 @@ export class RemoteConfig implements RemoteConfigType {
         ? 'throttle'
         : 'failure';
       await this._storageCache.setLastFetchStatus(lastFetchStatus);
-      throw(e);
+      throw e;
     }
   }
 
@@ -194,7 +194,7 @@ export class RemoteConfig implements RemoteConfigType {
     if (!this._isInitializationComplete) {
       this._logger.debug(
         `A value was requested for key "${key}" before SDK initialization completed.` +
-        ' Await on ensureInitialized if the intent was to get a previously activated value.'
+          ' Await on ensureInitialized if the intent was to get a previously activated value.'
       );
     }
     const activeConfig = this._storageCache.getActiveConfig();
@@ -205,7 +205,7 @@ export class RemoteConfig implements RemoteConfigType {
     }
     this._logger.debug(
       `Returning static value for key "${key}".` +
-      ' Define a default or remote value if this is unintentional.'
+        ' Define a default or remote value if this is unintentional.'
     );
     return new Value('static');
   }
