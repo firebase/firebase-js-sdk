@@ -126,12 +126,9 @@ export class TargetChange {
   ) {}
 
   /**
-   * HACK: Views require TargetChanges in order to determine whether the view is
-   * CURRENT, but secondary tabs or new queries mapped to an active target don't
-   * receive remote events (yet). So this method is used to create a synthesized
-   * TargetChanges that can be used to apply a CURRENT status change to a View,
-   * for queries executed in a different tab, or for the new queries to raise
-   * snapshots with correct CURRENT status.
+   * This method is used to create a synthesized TargetChanges that can be used to
+   * apply a CURRENT status change to a View (for queries executed in a different
+   * tab) or for new queries (to raise snapshots with correct CURRENT status).
    */
   static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
