@@ -318,6 +318,7 @@ export class WindowController extends BaseController {
               message_time: data[FN_CAMPAIGN_TIME],
               message_device_time: Math.floor(Date.now() / 1000)
             }
+            /* eslint-enable camelcase */
           );
         }
       },

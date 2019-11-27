@@ -35,8 +35,9 @@ export class PlatformLoggerService {
           // TODO: We can use this check to whitelist strings when/if we set up
           // a good whitelist system.
           const platformString =
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (PLATFORM_LOG_STRING as any)[service.library] ?? service.library;
+            PLATFORM_LOG_STRING[
+              service.library as keyof typeof PLATFORM_LOG_STRING
+            ] ?? service.library;
           return `${platformString}/${service.version}`;
         } else {
           return null;
