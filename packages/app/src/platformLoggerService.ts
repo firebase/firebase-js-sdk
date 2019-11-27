@@ -16,7 +16,7 @@
  */
 
 import { ComponentContainer, ComponentType } from '@firebase/component';
-import { VersionService } from './version-service';
+import { VersionService } from './versionService';
 import { PLATFORM_LOG_STRING } from './constants';
 
 export class PlatformLoggerService {

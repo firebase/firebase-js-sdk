@@ -36,7 +36,7 @@ import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { logger } from './logger';
 import { PlatformLoggerService } from './platformLoggerService';
-import { VersionService } from './version-service';
+import { VersionService } from './versionService';
 
 import { version } from '../package.json';
 
