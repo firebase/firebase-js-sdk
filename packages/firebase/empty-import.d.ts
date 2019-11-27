@@ -15,4 +15,6 @@
  * limitations under the License.
  */
 
-export type _firebase_empty = void;
+declare namespace empty {}
+
+export = empty;
