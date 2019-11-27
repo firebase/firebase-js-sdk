@@ -67,7 +67,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     this._addComponent(
       new Component(
         'platform-logger',
-        (container) => new PlatformLoggerService(container),
+        container => new PlatformLoggerService(container),
         ComponentType.PRIVATE
       )
     );
