@@ -26,7 +26,7 @@ import {
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
-import { VersionService } from '../src/version-service';
+import { VersionService } from '../src/versionService';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
