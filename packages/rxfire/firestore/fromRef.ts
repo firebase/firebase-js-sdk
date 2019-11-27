@@ -25,7 +25,13 @@ function _fromRef(
 ): Observable<any> {
   /* eslint-enable @typescript-eslint/no-explicit-any */
   return new Observable(subscriber => {
-    const unsubscribe = ref.onSnapshot(options || {}, subscriber);
+    const unsubscribe = ref.onSnapshot(options || {
+      includeMetadataChanges: false
+    }, {
+      next: subscriber.next.bind(subscriber),
+      error: subscriber.error.bind(subscriber),
+      complete: subscriber.complete.bind(subscriber),
+    });
     return { unsubscribe };
   });
 }
