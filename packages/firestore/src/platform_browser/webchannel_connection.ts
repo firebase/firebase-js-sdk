@@ -98,9 +98,7 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // XhrIo doesn't have TS typings.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const xhr: any = new XhrIo();
+      const xhr = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
           switch (xhr.getLastErrorCode()) {
@@ -191,6 +189,7 @@ export class WebChannelConnection implements Connection {
 
       this.modifyHeadersForRequest(headers, token);
 
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }

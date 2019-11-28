@@ -15,14 +15,65 @@
  * limitations under the License.
  */
 
-// TODO(mikelehen): Flesh out proper types (or figure out how to generate via
-// clutz or something).
-export class XhrIo {}
-export const ErrorCode: any;
-export const EventType: any;
+export enum EventType {
+  OPEN = 'open',
+  CLOSE = 'close',
+  ERROR = 'error',
+  MESSAGE = 'message',
+  COMPLETE = 'complete'
+}
+
 export namespace WebChannel {
-  export type EventType = any;
-  export const EventType: any;
+  export enum EventType {
+    OPEN = 'open',
+    CLOSE = 'close',
+    ERROR = 'error',
+    MESSAGE = 'message',
+    COMPLETE = 'complete'
+  }
+}
+
+export enum ErrorCode {
+  NO_ERROR = 0,
+  ACCESS_DENIED,
+  FILE_NOT_FOUND,
+  FF_SILENT_ERROR,
+  CUSTOM_ERROR,
+  EXCEPTION,
+  HTTP_ERROR,
+  ABORT,
+  TIMEOUT,
+  OFFLINE
+}
+
+export interface Headers {
+  [name: string]: string | number;
+}
+
+export class XhrIo {
+  send(
+    url: string,
+    method?: string,
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers,
+    timeoutInterval?: number
+  ): Promise<XhrIo>;
+
+  getLastErrorCode(): ErrorCode;
+
+  getLastError(): string;
+
+  getStatus(): number;
+
+  getResponseText(): string;
+
+  getResponseJson(): Object | any;
+
+  abort(): void;
+
+  getResponseHeader(header: string): { [key: string]: string };
+
+  listenOnce<T>(type: EventType, cb: (param: T) => void): void;
 }
 
 type StringMap = { [key: string]: string };
@@ -31,7 +82,9 @@ export interface WebChannelOptions {
   messageHeaders?: StringMap;
   initMessageHeaders?: StringMap;
   messageContentType?: string;
-  messageUrlParams?: StringMap;
+  messageUrlParams?: {
+    database?: string;
+  };
   clientProtocolHeaderRequired?: boolean;
   concurrentRequestLimit?: number;
   supportsCrossDomainXhr?: boolean;
@@ -44,13 +97,23 @@ export interface WebChannelOptions {
   fastHandshake?: boolean;
   disableRedac?: boolean;
   clientProfile?: string;
-  internalChannelParams?: { [key: string]: boolean | number };
+  internalChannelParams?: {
+    forwardChannelRequestTimeoutMs?: number;
+  };
   xmlHttpFactory?: unknown;
   requestRefreshThresholds?: { [key: string]: number };
 }
 
+export interface WebChannel {
+  open(): void;
+  close(): void;
+  halfClose(): void;
+  listen<T>(type: EventType, cb: (param: T) => void): void;
+  send<T>(msg: T): void;
+}
+
 export interface WebChannelTransport {
-  createWebChannel(url: string, options: WebChannelOptions): any;
+  createWebChannel(url: string, options: WebChannelOptions): WebChannel;
 }
 
 export function createWebChannelTransport(): WebChannelTransport;
