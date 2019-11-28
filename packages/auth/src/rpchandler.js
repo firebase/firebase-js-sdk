@@ -2511,6 +2511,8 @@ fireauth.RpcHandler.getDeveloperError_ =
       fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
       fireauth.authenum.Error.INVALID_TENANT_ID;
+  errorMap[fireauth.RpcHandler.ServerError.TENANT_ID_MISMATCH] =
+      fireauth.authenum.Error.TENANT_ID_MISMATCH;
 
   // User actions (sign-up or deletion) disabled errors.
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
