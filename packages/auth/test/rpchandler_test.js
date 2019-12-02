@@ -2436,6 +2436,8 @@ function testVerifyCustomToken_serverCaughtError() {
       fireauth.authenum.Error.CREDENTIAL_MISMATCH;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
       fireauth.authenum.Error.INVALID_TENANT_ID;
+  errorMap[fireauth.RpcHandler.ServerError.TENANT_ID_MISMATCH] =
+      fireauth.authenum.Error.TENANT_ID_MISMATCH;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyCustomToken(token);

@@ -15,4 +15,6 @@
  * limitations under the License.
  */
 
-export = undefined;
+declare namespace empty {}
+
+export = empty;
