@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace, VersionService } from '@firebase/app-types';
 import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { expect } from 'chai';
@@ -26,7 +26,6 @@ import {
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
-import { VersionService } from '../src/versionService';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -43,14 +42,14 @@ describe('Platform Logger Service', () => {
       container.addComponent(
         new Component(
           'vs1',
-          () => new VersionService('vs1', '1.2.3'),
+          () => ({ library: 'vs1', version: '1.2.3'}),
           ComponentType.VERSION
         )
       );
       container.addComponent(
         new Component(
           'vs2',
-          () => new VersionService('vs2', '3.02.01'),
+          () => ({ library: 'vs2', version: '3.02.01'}),
           ComponentType.VERSION
         )
       );

@@ -64,7 +64,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
     new Component('analytics-internal', internalFactory, ComponentType.PRIVATE)
   );
 
-  instance.registerVersion('ANALYTICS_TYPE', version);
+  instance.registerVersion(ANALYTICS_TYPE, version);
 
   function internalFactory(
     container: ComponentContainer

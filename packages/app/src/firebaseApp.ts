@@ -35,10 +35,6 @@ import {
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { logger } from './logger';
-import { PlatformLoggerService } from './platformLoggerService';
-import { VersionService } from './versionService';
-
-import { version } from '../package.json';
 
 /**
  * Global context object for a collection of services using
@@ -64,28 +60,6 @@ export class FirebaseAppImpl implements FirebaseApp {
 
     // add itself to container
     this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
-    this._addComponent(
-      new Component(
-        'platform-logger',
-        container => new PlatformLoggerService(container),
-        ComponentType.PRIVATE
-      )
-    );
-    this._addComponent(
-      new Component(
-        'app-version',
-        () => new VersionService('app', version),
-        ComponentType.VERSION
-      )
-    );
-    this._addComponent(
-      new Component(
-        'platform-identifier',
-        // Adds a string identifying version header as belonging to JS SDK
-        () => new VersionService('fire-js', ''),
-        ComponentType.VERSION
-      )
-    );
     // populate ComponentContainer with existing components
     for (const component of this.firebase_.INTERNAL.components.values()) {
       this._addComponent(component);

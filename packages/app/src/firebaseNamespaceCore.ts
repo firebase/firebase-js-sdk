@@ -35,7 +35,6 @@ import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
 import { Component, ComponentType, Name } from '@firebase/component';
-import { VersionService } from './versionService';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -237,16 +236,32 @@ export function createFirebaseNamespaceCore(
   }
 
   function registerVersion(library: string, version: string): void {
-    if (library.match(/\s|\//) || version.match(/\s|\//)) {
-      logger.warn(
-        `Could not register ${library}/${version}: it contains illegal characters.`
-      );
+    const libraryMismatch = library.match(/\s|\//);
+    const versionMismatch = version.match(/\s|\//);
+    if (libraryMismatch || versionMismatch) {
+      const warning = [
+        `Unable to register library "${library}" with version "${version}":`
+      ];
+      if (libraryMismatch) {
+        warning.push(
+          `library name "${library}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      if (libraryMismatch && versionMismatch) {
+        warning.push('and');
+      }
+      if (versionMismatch) {
+        warning.push(
+          `version name "${version}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      logger.warn(warning.join(' '));
       return;
     }
     registerComponent(
       new Component(
         `${library}-version` as Name,
-        () => new VersionService(library, version),
+        () => ({ library, version }),
         ComponentType.VERSION
       )
     );

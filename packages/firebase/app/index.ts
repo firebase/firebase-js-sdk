@@ -16,9 +16,8 @@
  */
 
 import firebase from '@firebase/app';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 
-(firebase as _FirebaseNamespace).registerVersion(
+firebase.registerVersion(
   'fire-js-all-app',
   firebase.SDK_VERSION
 );

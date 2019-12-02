@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-import { ComponentContainer, ComponentType } from '@firebase/component';
-import { VersionService } from './versionService';
+import {
+  ComponentContainer,
+  ComponentType,
+  Provider,
+  Name
+} from '@firebase/component';
 import { PLATFORM_LOG_STRING } from './constants';
 
 export class PlatformLoggerService {
@@ -29,9 +33,8 @@ export class PlatformLoggerService {
     // version components.
     return providers
       .map(provider => {
-        const service = provider.getImmediate() as VersionService;
-        const component = provider.getComponent();
-        if (service && component?.type === ComponentType.VERSION) {
+        if (isVersionServiceProvider(provider)) {
+          const service = provider.getImmediate();
           // TODO: We can use this check to whitelist strings when/if we set up
           // a good whitelist system.
           const platformString =
@@ -46,4 +49,10 @@ export class PlatformLoggerService {
       .filter(logString => logString)
       .join(' ');
   }
+}
+function isVersionServiceProvider(
+  provider: Provider<Name>
+): provider is Provider<'app-version'> {
+  const component = provider.getComponent();
+  return component?.type === ComponentType.VERSION;
 }
