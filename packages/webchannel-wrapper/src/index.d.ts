@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-// WARNING: This is not a complete set of types exported by WebchannelWrapper.
+// WARNING: This is not a complete set of types exported by WebChannelWrapper.
 // It is merely meant to support the usage patterns of the Firestore SDK.
 
 export var EventType: {
