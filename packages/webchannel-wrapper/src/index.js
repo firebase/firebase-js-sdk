@@ -68,8 +68,6 @@ goog.net.XhrIo.prototype['getLastError'] =
 goog.net.XhrIo.prototype['getLastErrorCode'] =
   goog.net.XhrIo.prototype.getLastErrorCode;
 goog.net.XhrIo.prototype['getStatus'] = goog.net.XhrIo.prototype.getStatus;
-goog.net.XhrIo.prototype['getStatusText'] =
-  goog.net.XhrIo.prototype.getStatusText;
 goog.net.XhrIo.prototype['getResponseJson'] =
   goog.net.XhrIo.prototype.getResponseJson;
 goog.net.XhrIo.prototype['getResponseText'] =

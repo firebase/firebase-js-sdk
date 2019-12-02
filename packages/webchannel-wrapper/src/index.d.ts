@@ -15,51 +15,46 @@
  * limitations under the License.
  */
 
-export enum EventType {
-  OPEN = 'open',
-  CLOSE = 'close',
-  ERROR = 'error',
-  MESSAGE = 'message',
-  COMPLETE = 'complete'
-}
+// WARNING: This is not a complete set of types exported by WebchannelWrapper.
+// It is merely meant to support the usage patterns of the Firestore SDK.
+    
+export var EventType: {
+  COMPLETE: string
+};
 
 export namespace WebChannel {
-  export enum EventType {
-    OPEN = 'open',
-    CLOSE = 'close',
-    ERROR = 'error',
-    MESSAGE = 'message',
-    COMPLETE = 'complete'
-  }
+  export var EventType: {
+    OPEN: string,
+    CLOSE: string,
+    ERROR: string,
+    MESSAGE: string
+  };
 }
 
-export enum ErrorCode {
-  NO_ERROR = 0,
-  ACCESS_DENIED,
-  FILE_NOT_FOUND,
-  FF_SILENT_ERROR,
-  CUSTOM_ERROR,
-  EXCEPTION,
-  HTTP_ERROR,
-  ABORT,
-  TIMEOUT,
-  OFFLINE
-}
+export var ErrorCode : {
+  NO_ERROR: number,
+  HTTP_ERROR: number,
+  TIMEOUT: number,
+};
 
 export interface Headers {
   [name: string]: string | number;
+}
+
+export interface WebChannelError { 
+  error?: { status:string, message:string }
 }
 
 export class XhrIo {
   send(
     url: string,
     method?: string,
-    body?: ArrayBufferView | Blob | string | null,
+    body?: string,
     headers?: Headers,
     timeoutInterval?: number
-  ): Promise<XhrIo>;
+  ): void;
 
-  getLastErrorCode(): ErrorCode;
+  getLastErrorCode(): number;
 
   getLastError(): string;
 
@@ -67,20 +62,14 @@ export class XhrIo {
 
   getResponseText(): string;
 
-  getResponseJson(): Object | any;
+  getResponseJson(): WebChannelError | object;
 
-  abort(): void;
-
-  getResponseHeader(header: string): { [key: string]: string };
-
-  listenOnce<T>(type: EventType, cb: (param: T) => void): void;
+  listenOnce<T>(type: string, cb: (param: T) => void): void;
 }
 
-type StringMap = { [key: string]: string };
-
 export interface WebChannelOptions {
-  messageHeaders?: StringMap;
-  initMessageHeaders?: StringMap;
+  messageHeaders?: {};
+  initMessageHeaders?: {};
   messageContentType?: string;
   messageUrlParams?: {
     database?: string;
@@ -107,9 +96,8 @@ export interface WebChannelOptions {
 export interface WebChannel {
   open(): void;
   close(): void;
-  halfClose(): void;
-  listen<T>(type: EventType, cb: (param: T) => void): void;
-  send<T>(msg: T): void;
+  listen<T>(type: string, cb: (param: T) => void): void;
+  send(msg: unknown): void;
 }
 
 export interface WebChannelTransport {

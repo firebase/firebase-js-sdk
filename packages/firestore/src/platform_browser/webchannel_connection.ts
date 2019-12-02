@@ -20,6 +20,7 @@ import {
   ErrorCode,
   EventType,
   WebChannel,
+  WebChannelError,
   WebChannelOptions,
   XhrIo
 } from '@firebase/webchannel-wrapper';
@@ -123,7 +124,7 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const responseError = xhr.getResponseJson().error;
+                const responseError = (xhr.getResponseJson() as WebChannelError).error;
                 if (
                   !!responseError &&
                   !!responseError.status &&
@@ -189,7 +190,6 @@ export class WebChannelConnection implements Connection {
 
       this.modifyHeadersForRequest(headers, token);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
@@ -271,9 +271,7 @@ export class WebChannelConnection implements Connection {
 
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
-    // Use any because listen isn't defined on it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const channel = webchannelTransport.createWebChannel(url, request) as any;
+    const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
     // a network round trip. However, it will have to call send in the same
@@ -309,7 +307,7 @@ export class WebChannelConnection implements Connection {
     // Note that eventually this function could go away if we are confident
     // enough the code is exception free.
     const unguardedEventListen = <T>(
-      type: WebChannel.EventType,
+      type: string,
       fn: (param?: T) => void
     ): void => {
       // TODO(dimond): closure typing seems broken because WebChannel does
@@ -370,10 +368,9 @@ export class WebChannelConnection implements Connection {
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
           // Use any because msgData.error is not typed.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const msgDataAsAny: any = msgData;
-          const error =
-            msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);
+          const msgDataAsAny: WebChannelError | object  = msgData;
+          const error = 
+            msgDataAsAny.error || (msgDataAsAny as WebChannelError[])[0]?.error;
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
