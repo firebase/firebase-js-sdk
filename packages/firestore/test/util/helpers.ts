@@ -571,7 +571,7 @@ export function documentSet(...args: unknown[]): DocumentSet {
   }
   for (const doc of args) {
     assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
-    docSet = docSet.add(doc as Document);
+    docSet = docSet.add(doc);
   }
   return docSet;
 }

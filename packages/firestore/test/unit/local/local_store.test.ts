@@ -300,9 +300,9 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnChanged() without prior after()'
       );
-      expect(this.lastChanges!.size).to.equal(docs.length, 'number of changes');
+      expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
       for (const doc of docs) {
-        const returned = this.lastChanges!.get(doc.key);
+        const returned = this.lastChanges.get(doc.key);
         expectEqual(
           doc,
           returned,
@@ -322,12 +322,12 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnRemoved() without prior after()'
       );
-      expect(this.lastChanges!.size).to.equal(
+      expect(this.lastChanges.size).to.equal(
         keyStrings.length,
         'Number of actual changes mismatched number of expected changes'
       );
       for (const keyString of keyStrings) {
-        const returned = this.lastChanges!.get(key(keyString));
+        const returned = this.lastChanges.get(key(keyString));
         expect(returned).to.be.an.instanceof(NoDocument);
       }
       this.lastChanges = null;

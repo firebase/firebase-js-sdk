@@ -949,7 +949,7 @@ export class IndexedDbPersistence implements Persistence {
           typeof this.document.addEventListener === 'function',
         "Expected 'document.addEventListener' to be a function"
       );
-      this.document!.removeEventListener(
+      this.document.removeEventListener(
         'visibilitychange',
         this.documentVisibilityHandler
       );
