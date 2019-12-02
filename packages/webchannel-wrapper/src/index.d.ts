@@ -17,32 +17,32 @@
 
 // WARNING: This is not a complete set of types exported by WebchannelWrapper.
 // It is merely meant to support the usage patterns of the Firestore SDK.
-    
+
 export var EventType: {
-  COMPLETE: string
+  COMPLETE: string;
 };
 
 export namespace WebChannel {
   export var EventType: {
-    OPEN: string,
-    CLOSE: string,
-    ERROR: string,
-    MESSAGE: string
+    OPEN: string;
+    CLOSE: string;
+    ERROR: string;
+    MESSAGE: string;
   };
 }
 
-export var ErrorCode : {
-  NO_ERROR: number,
-  HTTP_ERROR: number,
-  TIMEOUT: number,
+export var ErrorCode: {
+  NO_ERROR: number;
+  HTTP_ERROR: number;
+  TIMEOUT: number;
 };
 
 export interface Headers {
   [name: string]: string | number;
 }
 
-export interface WebChannelError { 
-  error?: { status:string, message:string }
+export interface WebChannelError {
+  error?: { status: string; message: string };
 }
 
 export class XhrIo {

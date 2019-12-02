@@ -124,7 +124,8 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const responseError = (xhr.getResponseJson() as WebChannelError).error;
+                const responseError = (xhr.getResponseJson() as WebChannelError)
+                  .error;
                 if (
                   !!responseError &&
                   !!responseError.status &&
@@ -368,8 +369,8 @@ export class WebChannelConnection implements Connection {
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
           // Use any because msgData.error is not typed.
-          const msgDataAsAny: WebChannelError | object  = msgData;
-          const error = 
+          const msgDataAsAny: WebChannelError | object = msgData;
+          const error =
             msgDataAsAny.error || (msgDataAsAny as WebChannelError[])[0]?.error;
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
