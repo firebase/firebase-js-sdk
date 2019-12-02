@@ -17,9 +17,6 @@
 
 import firebase from '@firebase/app';
 
-firebase.registerVersion(
-  'fire-js-all-app',
-  firebase.SDK_VERSION
-);
+firebase.registerVersion('fire-js-all-app', firebase.SDK_VERSION);
 
 export default firebase;

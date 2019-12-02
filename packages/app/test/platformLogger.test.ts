@@ -42,14 +42,14 @@ describe('Platform Logger Service', () => {
       container.addComponent(
         new Component(
           'vs1',
-          () => ({ library: 'vs1', version: '1.2.3'}),
+          () => ({ library: 'vs1', version: '1.2.3' }),
           ComponentType.VERSION
         )
       );
       container.addComponent(
         new Component(
           'vs2',
-          () => ({ library: 'vs2', version: '3.02.01'}),
+          () => ({ library: 'vs2', version: '3.02.01' }),
           ComponentType.VERSION
         )
       );
