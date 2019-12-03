@@ -71,12 +71,12 @@ export interface WebChannelOptions {
   messageHeaders?: {
     // To ensure compatibility with property minifcation tools, keys need to
     // be listed explicity.
-    [k:string] : never;
+    [k: string]: never;
   };
   initMessageHeaders?: {
     // To ensure compatibility with property minifcation tools, keys need to
     // be listed explicity.
-    [k:string] : never;
+    [k: string]: never;
   };
   messageContentType?: string;
   messageUrlParams?: {

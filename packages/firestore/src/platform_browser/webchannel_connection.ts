@@ -371,7 +371,8 @@ export class WebChannelConnection implements Connection {
           // Use any because msgData.error is not typed.
           const msgDataOrError: WebChannelError | object = msgData;
           const error =
-            msgDataOrError.error || (msgDataOrError as WebChannelError[])[0]?.error;
+            msgDataOrError.error ||
+            (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
