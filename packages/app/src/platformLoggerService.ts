@@ -43,6 +43,14 @@ export class PlatformLoggerService {
       .join(' ');
   }
 }
+/**
+ *
+ * @param provider check if this provider provides a VersionService
+ *
+ * NOTE: Using Provider<'app-version'> is a hack to indicate that the provider
+ * provides VersionService. The provider is not necessarily a 'app-version'
+ * provider.
+ */
 function isVersionServiceProvider(
   provider: Provider<Name>
 ): provider is Provider<'app-version'> {

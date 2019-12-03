@@ -16,11 +16,11 @@
  */
 
 import { createFirebaseNamespaceLite } from './src/lite/firebaseNamespaceLite';
-import { registerPlatformLogger } from './src/registerPlatformLogger';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
 export const firebase = createFirebaseNamespaceLite();
 
-registerPlatformLogger(firebase);
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

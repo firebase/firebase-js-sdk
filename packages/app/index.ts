@@ -19,7 +19,7 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { firebase as firebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
 import { logger } from './src/logger';
-import { registerPlatformLogger } from './src/registerPlatformLogger';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,7 +68,7 @@ firebaseNamespace.initializeApp = function(...args: any) {
 
 export const firebase = firebaseNamespace;
 
-registerPlatformLogger(firebase);
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;
