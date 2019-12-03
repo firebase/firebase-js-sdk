@@ -66,7 +66,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       this.wrappedOnOpen !== undefined,
       'Cannot call onOpen because no callback was set'
     );
-    this.wrappedOnOpen!();
+    this.wrappedOnOpen();
   }
 
   callOnClose(err?: FirestoreError): void {
@@ -74,7 +74,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       this.wrappedOnClose !== undefined,
       'Cannot call onClose because no callback was set'
     );
-    this.wrappedOnClose!(err);
+    this.wrappedOnClose(err);
   }
 
   callOnMessage(msg: O): void {
@@ -82,6 +82,6 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       this.wrappedOnMessage !== undefined,
       'Cannot call onMessage because no callback was set'
     );
-    this.wrappedOnMessage!(msg);
+    this.wrappedOnMessage(msg);
   }
 }

@@ -82,7 +82,7 @@ export abstract class RemoteDocumentChangeBuffer {
       this._readTime !== undefined,
       'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
     );
-    return this._readTime!;
+    return this._readTime;
   }
 
   /**

@@ -963,7 +963,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   ): RemoteClientState | null {
     const clientId = this.fromWebStorageClientStateKey(key);
     assert(clientId !== null, `Cannot parse client state key '${key}'`);
-    return RemoteClientState.fromWebStorageEntry(clientId!, value);
+    return RemoteClientState.fromWebStorageEntry(clientId, value);
   }
 
   /**
@@ -977,8 +977,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.mutationBatchKeyRe.exec(key);
     assert(match !== null, `Cannot parse mutation batch key '${key}'`);
 
-    const batchId = Number(match![1]);
-    const userId = match![2] !== undefined ? match![2] : null;
+    const batchId = Number(match[1]);
+    const userId = match[2] !== undefined ? match[2] : null;
     return MutationMetadata.fromWebStorageEntry(
       new User(userId),
       batchId,
@@ -997,7 +997,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.queryTargetKeyRe.exec(key);
     assert(match !== null, `Cannot parse query target key '${key}'`);
 
-    const targetId = Number(match![1]);
+    const targetId = Number(match[1]);
     return QueryTargetMetadata.fromWebStorageEntry(targetId, value);
   }
 

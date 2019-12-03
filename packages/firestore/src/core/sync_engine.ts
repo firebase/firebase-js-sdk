@@ -980,7 +980,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           assert(!!queryView, `No query view found for ${query}`);
 
           const viewChange = await this.synchronizeViewAndComputeSnapshot(
-            queryView!
+            queryView
           );
           if (viewChange.snapshot) {
             newViewSnapshots.push(viewChange.snapshot);
@@ -995,7 +995,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         // allocate the target in LocalStore and initialize a new View.
         const target = await this.localStore.getTarget(targetId);
         assert(!!target, `Target for id ${targetId} not found`);
-        targetData = await this.localStore.allocateTarget(target!);
+        targetData = await this.localStore.allocateTarget(target);
         await this.initializeViewAndComputeSnapshot(
           this.synthesizeTargetToQuery(target!),
           targetId,
@@ -1097,9 +1097,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       const target = await this.localStore.getTarget(targetId);
       assert(!!target, `Query data for active target ${targetId} not found`);
-      const targetData = await this.localStore.allocateTarget(target!);
+      const targetData = await this.localStore.allocateTarget(target);
       await this.initializeViewAndComputeSnapshot(
-        this.synthesizeTargetToQuery(target!),
+        this.synthesizeTargetToQuery(target),
         targetData.targetId,
         /*current=*/ false
       );
@@ -1151,7 +1151,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
         assert(!!queryView, `No query view found for ${query}`);
-        keySet = keySet.unionWith(queryView!.view.syncedDocuments);
+        keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
       return keySet;
     }
