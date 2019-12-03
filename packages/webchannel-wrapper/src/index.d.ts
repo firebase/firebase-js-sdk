@@ -64,12 +64,20 @@ export class XhrIo {
 
   getResponseJson(): WebChannelError | object;
 
-  listenOnce<T>(type: string, cb: (param: T) => void): void;
+  listenOnce(type: string, cb: (param: unknown) => void): void;
 }
 
 export interface WebChannelOptions {
-  messageHeaders?: {};
-  initMessageHeaders?: {};
+  messageHeaders?: {
+    // To ensure compatibility with property minifcation tools, keys need to
+    // be listed explicity.
+    [k:string] : never;
+  };
+  initMessageHeaders?: {
+    // To ensure compatibility with property minifcation tools, keys need to
+    // be listed explicity.
+    [k:string] : never;
+  };
   messageContentType?: string;
   messageUrlParams?: {
     database?: string;
@@ -96,7 +104,7 @@ export interface WebChannelOptions {
 export interface WebChannel {
   open(): void;
   close(): void;
-  listen<T>(type: string, cb: (param: T) => void): void;
+  listen(type: string, cb: (param: unknown) => void): void;
   send(msg: unknown): void;
 }
 

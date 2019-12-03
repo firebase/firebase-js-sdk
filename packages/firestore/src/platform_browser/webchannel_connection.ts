@@ -313,9 +313,9 @@ export class WebChannelConnection implements Connection {
     ): void => {
       // TODO(dimond): closure typing seems broken because WebChannel does
       // not implement goog.events.Listenable
-      channel.listen(type, (param?: T) => {
+      channel.listen(type, (param: unknown) => {
         try {
-          fn(param);
+          fn(param as T);
         } catch (e) {
           setTimeout(() => {
             throw e;
@@ -369,9 +369,9 @@ export class WebChannelConnection implements Connection {
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
           // Use any because msgData.error is not typed.
-          const msgDataAsAny: WebChannelError | object = msgData;
+          const msgDataOrError: WebChannelError | object = msgData;
           const error =
-            msgDataAsAny.error || (msgDataAsAny as WebChannelError[])[0]?.error;
+            msgDataOrError.error || (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
