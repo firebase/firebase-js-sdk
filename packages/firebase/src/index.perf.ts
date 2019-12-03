@@ -18,4 +18,6 @@
 import firebase from '@firebase/app';
 import '@firebase/performance';
 
+firebase.registerVersion('fire-js-all-lite', firebase.SDK_VERSION);
+
 export default firebase;

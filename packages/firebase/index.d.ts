@@ -84,6 +84,13 @@ declare namespace firebase {
   var SDK_VERSION: string;
 
   /**
+   * Registers a library's name and version for platform logging purposes.
+   * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
+   * @param version Current version of that library.
+   */
+  function registerVersion(library: string, version: string): void;
+
+  /**
    * @hidden
    */
   type Unsubscribe = () => void;
@@ -7384,7 +7391,7 @@ declare namespace firebase.firestore {
      *     from 0 to 999,999,999 inclusive.
      */
     constructor(seconds: number, nanoseconds: number);
-    
+
     /**
      * Creates a new timestamp with the current date, with millisecond precision.
      *

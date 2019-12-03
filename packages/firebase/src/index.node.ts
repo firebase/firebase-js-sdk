@@ -22,4 +22,6 @@ import '../database';
 import '../firestore';
 import '../functions';
 
+firebase.registerVersion('fire-js-all-node', firebase.SDK_VERSION);
+
 export default firebase;

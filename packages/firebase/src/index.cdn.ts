@@ -39,4 +39,6 @@ import '../performance';
 import '../analytics';
 import '../remote-config';
 
+firebase.registerVersion('fire-js-all-cdn', firebase.SDK_VERSION);
+
 export default firebase;

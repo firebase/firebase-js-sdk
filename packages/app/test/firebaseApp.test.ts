@@ -121,6 +121,52 @@ function executeFirebaseTests(): void {
       );
     });
   });
+
+  describe('Firebase Version Registration', () => {
+    let firebase: FirebaseNamespace;
+
+    beforeEach(() => {
+      firebase = createFirebaseNamespace();
+    });
+
+    it('will register an official version component without warnings', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('@firebase/analytics', '1.2.3');
+      expect(components.get('fire-analytics-version')).to.exist;
+      expect(components.size).to.equal(initialSize + 1);
+
+      expect(warnStub.called).to.be.false;
+    });
+
+    it('will register an arbitrary version component without warnings', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('angularfire', '1.2.3');
+      expect(components.get('angularfire-version')).to.exist;
+      expect(components.size).to.equal(initialSize + 1);
+
+      expect(warnStub.called).to.be.false;
+    });
+
+    it('will do nothing if registerVersion() is given illegal characters', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('remote config', '1.2.3');
+      expect(warnStub.args[0][1]).to.include('library name "remote config"');
+      expect(components.size).to.equal(initialSize);
+
+      firebase.registerVersion('remote-config', '1.2/3');
+      expect(warnStub.args[1][1]).to.include('version name "1.2/3"');
+      expect(components.size).to.equal(initialSize);
+    });
+  });
 }
 
 function executeFirebaseLiteTests(): void {
