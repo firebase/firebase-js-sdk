@@ -751,16 +751,11 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    let functionName = 'Transaction.set';
-    let convertedValue;
-    if (ref._converter) {
-      convertedValue = ref._converter.toFirestore(value);
-      // Give the user a more specific error message if the set() fails later
-      // because of invalid data.
-      functionName = 'toFirestore() in Transaction.set';
-    } else {
-      convertedValue = ref.defaultConverter.toFirestore(value);
-    }
+    const [convertedValue, functionName] = applyFirestoreDataConverter(
+      ref._converter,
+      value,
+      'Transaction.set'
+    );
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
@@ -859,16 +854,11 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    let functionName = 'WriteBatch.set';
-    let convertedValue;
-    if (ref._converter) {
-      convertedValue = ref._converter.toFirestore(value);
-      // Give the user a more specific error message if the set() fails later
-      // because of invalid data.
-      functionName = 'toFirestore() in WriteBatch.set';
-    } else {
-      convertedValue = ref.defaultConverter.toFirestore(value);
-    }
+    const [convertedValue, functionName] = applyFirestoreDataConverter(
+      ref._converter,
+      value,
+      'WriteBatch.set'
+    );
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
@@ -1022,17 +1012,9 @@ export class DocumentReference<T = firestore.DocumentData>
     return this._key.path.canonicalString();
   }
 
-  /**
-   * Returns a default FirestoreDataConverter that is used when a converter
-   * is not provided.
-   */
-  get defaultConverter(): firestore.FirestoreDataConverter<T> {
-    return {
-      toFirestore: value => value,
-      fromFirestore: (snapshot, options) => snapshot.data(options) as T
-    };
-  }
-  collection(pathString: string): firestore.CollectionReference<T> {
+  collection(
+    pathString: string
+  ): firestore.CollectionReference<firestore.DocumentData> {
     validateExactNumberOfArgs('DocumentReference.collection', arguments, 1);
     validateArgType(
       'DocumentReference.collection',
@@ -1047,11 +1029,7 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     }
     const path = ResourcePath.fromString(pathString);
-    return new CollectionReference(
-      this._key.path.child(path),
-      this.firestore,
-      this._converter
-    );
+    return new CollectionReference(this._key.path.child(path), this.firestore);
   }
 
   isEqual(other: firestore.DocumentReference<T>): boolean {
@@ -1072,16 +1050,11 @@ export class DocumentReference<T = firestore.DocumentData>
   set(value: T, options?: firestore.SetOptions): Promise<void> {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
-    let functionName = 'DocumentReference.set';
-    let convertedValue;
-    if (this._converter) {
-      convertedValue = this._converter.toFirestore(value);
-      // Give the user a more specific error message if the set() fails later
-      // because of invalid data.
-      functionName = 'toFirestore() in DocumentReference.set';
-    } else {
-      convertedValue = this.defaultConverter.toFirestore(value);
-    }
+    const [convertedValue, functionName] = applyFirestoreDataConverter(
+      this._converter,
+      value,
+      'DocumentReference.set'
+    );
     const parsed =
       options.merge || options.mergeFields
         ? this.firestore._dataConverter.parseMergeData(
@@ -1398,14 +1371,6 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     if (!this._document) {
       return undefined;
     } else {
-      const documentData = this.convertObjectValue(
-        this._document.data(),
-        FieldValueOptions.fromSnapshotOptions(
-          options,
-          this._firestore._areTimestampsInSnapshotsEnabled()
-        )
-      );
-
       // We only want to use the converter and create a new DocumentSnapshot
       // if a converter has been provided.
       if (this._converter) {
@@ -1414,15 +1379,17 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._key,
           this._document,
           this._fromCache,
-          this._hasPendingWrites,
-          {
-            toFirestore: value => value,
-            fromFirestore: _snapshot => documentData as T
-          }
+          this._hasPendingWrites
         );
         return this._converter.fromFirestore(snapshot, options);
       } else {
-        return documentData as T;
+        return this.toJSObject(
+          this._document.data(),
+          FieldValueOptions.fromSnapshotOptions(
+            options,
+            this._firestore._areTimestampsInSnapshotsEnabled()
+          )
+        ) as T;
       }
     }
   }
@@ -1438,7 +1405,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         .data()
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
-        return this.convertValue(
+        return this.toJSValue(
           value,
           FieldValueOptions.fromSnapshotOptions(
             options,
@@ -1485,22 +1452,22 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     );
   }
 
-  private convertObjectValue(
+  private toJSObject(
     data: ObjectValue,
     options: FieldValueOptions
   ): firestore.DocumentData {
     const result: firestore.DocumentData = {};
     data.forEach((key, value) => {
-      result[key] = this.convertValue(value, options);
+      result[key] = this.toJSValue(value, options);
     });
     return result;
   }
 
-  private convertValue(value: FieldValue, options: FieldValueOptions): unknown {
+  private toJSValue(value: FieldValue, options: FieldValueOptions): unknown {
     if (value instanceof ObjectValue) {
-      return this.convertObjectValue(value, options);
+      return this.toJSObject(value, options);
     } else if (value instanceof ArrayValue) {
-      return this.convertArray(value, options);
+      return this.toJSArray(value, options);
     } else if (value instanceof RefValue) {
       const key = value.value(options);
       const database = this._firestore.ensureClientConfigured().databaseId();
@@ -1521,12 +1488,9 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     }
   }
 
-  private convertArray(
-    data: ArrayValue,
-    options: FieldValueOptions
-  ): unknown[] {
+  private toJSArray(data: ArrayValue, options: FieldValueOptions): unknown[] {
     return data.internalValue.map(value => {
-      return this.convertValue(value, options);
+      return this.toJSValue(value, options);
     });
   }
 }
@@ -2458,8 +2422,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     } else {
       return new DocumentReference<firestore.DocumentData>(
         new DocumentKey(parentPath),
-        this.firestore,
-        this._converter
+        this.firestore
       );
     }
   }
@@ -2692,6 +2655,31 @@ function isEqualConverter(
     return second !== undefined && first.toString() === second.toString();
   }
 }
+
+/**
+ * Converts custom model object of type T into DocumentData by applying the
+ * converter if it exists.
+ *
+ * This function is used when converting user objects to DocumentData
+ * because we want to provide the user with a more specific error message if
+ * their set() or fails due to invalid data originating from a toFirestore()
+ * call.
+ */
+function applyFirestoreDataConverter<T>(
+  converter: firestore.FirestoreDataConverter<T> | undefined,
+  value: T,
+  functionName: string
+): [firestore.DocumentData, string] {
+  let convertedValue;
+  if (converter) {
+    convertedValue = converter.toFirestore(value);
+    functionName = 'toFirestore() in Transaction.set';
+  } else {
+    convertedValue = value as firestore.DocumentData;
+  }
+  return [convertedValue, functionName];
+}
+
 // Export the classes with a private constructor (it will fail if invoked
 // at runtime). Note that this still allows instanceof checks.
 

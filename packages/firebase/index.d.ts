@@ -7080,7 +7080,7 @@ declare namespace firebase.firestore {
    *
    *   <ul>
    *     <li><code>debug</code> for the most verbose logging level, primarily for
-   *     dubugging.</li>
+   *     debugging.</li>
    *     <li><code>error</code> to log errors only.</li>
    *     <li><code>silent</code> to turn off logging.</li>
    *   </ul>
@@ -7107,8 +7107,8 @@ declare namespace firebase.firestore {
    *   toFirestore(post: Post): DocumentData {
    *     return {title: post.title, author: post.author};
    *   },
-   *   fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): Post
-   *     {const data = snapshot.data(options)!;
+   *   fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): Post {
+   *     const data = snapshot.data(options)!;
    *     return new Post(data.title, data.author);
    *   }
    * };
@@ -7128,19 +7128,17 @@ declare namespace firebase.firestore {
   export interface FirestoreDataConverter<T> {
     /**
      * Called by the Firestore SDK to convert a custom model object of type T
-     * into a plain Javacsript object (suitable for writing directly to the
+     * into a plain Javascript object (suitable for writing directly to the
      * Firestore database).
      */
     toFirestore(modelObject: T): DocumentData;
 
     /**
      * Called by the Firestore SDK to convert Firestore data into an object of
-     * type T. You can access your data by calling:
+     * type T. You can access your data by calling: `snapshot.data(options)`.
      *
-     * snapshot.data(options)
-     *
-     * @param snapshot A DocumentSnapshot containing your data and metadata.
-     * @param options The SnapshotOptions from the intial call to data().
+     * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
+     * @param options The SnapshotOptions from the initial call to data().
      */
     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
   }
@@ -8431,9 +8429,9 @@ declare namespace firebase.firestore {
 
     /**
      * Applies a custom data converter to this Query, allowing you to use your
-     * own custom model objects with Firestore. When you call data() on the
-     * underlying QueryDocumentSnapshot, it will use the provided converter to
-     * convert data to/from type U (your custom model object type).
+     * own custom model objects with Firestore. When you call get() on the
+     * returned Query, it will use the provided converter to convert data
+     * to/from type U (your custom model object type).
      *
      * @param converter Converts objects to and from Firestore
      * @return A Query<U> that uses the provided converter
@@ -8587,10 +8585,9 @@ declare namespace firebase.firestore {
 
     /**
      * Applies a custom data converter to this CollectionReference, allowing you
-     * to use your own custom model objects with Firestore. When you call
-     * set(), get(), etc. on the underlying DocumentReference instance, it will
-     * use the provided converter to convert data to/from type U (your custom
-     * model object type).
+     * to use your own custom model objects with Firestore. When you call add()
+     * on the returned CollectionReference instance, it will use the provided
+     * converter to convert data to/from type U (your custom model object type).
      *
      * @param converter Converts objects to and from Firestore
      * @return A CollectionReference<U> that uses the provided converter

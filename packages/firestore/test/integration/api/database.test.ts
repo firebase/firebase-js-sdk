@@ -38,6 +38,7 @@ import {
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
+import { DocumentReference } from '../../../src/api/database';
 
 // tslint:disable:no-floating-promises
 
@@ -1321,6 +1322,18 @@ apiDescribe('Database', (persistence: boolean) => {
         await docRef.set(new Post('post', 'author'));
         const postData = await docRef.get();
         postData.data({ serverTimestamps: 'estimate' });
+      });
+    });
+
+    it('drops the converter when calling CollectionReference<T>.parent()', () => {
+      return withTestDb(persistence, async db => {
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+
+        const usersCollection = postsCollection.parent;
+        expect((usersCollection as DocumentReference)._converter).to.be
+          .undefined;
       });
     });
   });
