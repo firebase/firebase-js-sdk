@@ -2652,6 +2652,9 @@ function isEqualConverter(
   if (first === undefined) {
     return second === undefined;
   } else {
+    // We compare the converters in string form since the standard `===` check
+    // is performed based on memory location, whereas we want to match as long
+    // as the underlying converter functions are the same.
     return second !== undefined && first.toString() === second.toString();
   }
 }
