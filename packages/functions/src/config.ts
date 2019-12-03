@@ -23,7 +23,7 @@ import {
 } from '@firebase/component';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 
-import { version } from '../package.json';
+import { name, version } from '../package.json';
 
 /**
  * Type constant for Firebase Functions.
@@ -50,5 +50,5 @@ export function registerFunctions(instance: _FirebaseNamespace): void {
       .setServiceProps(namespaceExports)
       .setMultipleInstances(true)
   );
-  instance.registerVersion(FUNCTIONS_TYPE, version);
+  instance.registerVersion(name, version);
 }

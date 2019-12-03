@@ -31,7 +31,7 @@ import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
-import { DEFAULT_ENTRY_NAME } from './constants';
+import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
 import { Component, ComponentType, Name } from '@firebase/component';
@@ -235,7 +235,11 @@ export function createFirebaseNamespaceCore(
       : null;
   }
 
-  function registerVersion(library: string, version: string): void {
+  function registerVersion(libraryKeyOrName: string, version: string): void {
+    // TODO: We can use this check to whitelist strings when/if we set up
+    // a good whitelist system.
+    const library =
+      PLATFORM_LOG_STRING[libraryKeyOrName] ?? libraryKeyOrName;
     const libraryMismatch = library.match(/\s|\//);
     const versionMismatch = version.match(/\s|\//);
     if (libraryMismatch || versionMismatch) {

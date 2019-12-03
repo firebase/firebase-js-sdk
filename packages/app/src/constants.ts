@@ -16,18 +16,28 @@
  */
 
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
+import { name as appName } from '../package.json';
+import { name as analyticsName } from '../../analytics/package.json';
+import { name as authName } from '../../auth/package.json';
+import { name as databaseName } from '../../database/package.json';
+import { name as functionsName } from '../../functions/package.json';
+import { name as messagingName } from '../../messaging/package.json';
+import { name as performanceName } from '../../performance/package.json';
+import { name as remoteConfigName } from '../../remote-config/package.json';
+import { name as storageName } from '../../storage/package.json';
+import { name as firestoreName } from '../../firestore/package.json';
 
 export const PLATFORM_LOG_STRING = {
-  'app': 'fire-core',
-  'analytics': 'fire-analytics',
-  'auth': 'fire-auth',
-  'database': 'fire-rtdb',
-  'functions': 'fire-fn',
-  'messaging': 'fire-fcm',
-  'performance': 'fire-perf',
-  'remote-config': 'fire-rc',
-  'storage': 'fire-gcs',
-  'firestore': 'fire-fst',
+  [appName]: 'fire-core',
+  [analyticsName]: 'fire-analytics',
+  [authName]: 'fire-auth',
+  [databaseName]: 'fire-rtdb',
+  [functionsName]: 'fire-fn',
+  [messagingName]: 'fire-fcm',
+  [performanceName]: 'fire-perf',
+  [remoteConfigName]: 'fire-rc',
+  [storageName]: 'fire-gcs',
+  [firestoreName]: 'fire-fst',
   'fire-js': 'fire-js', // Platform identifier for JS SDK.
   'fire-js-all-app': 'fire-js-all-app', // firebase/app import
   'fire-js-all': 'fire-js-all', // 'firebase' import

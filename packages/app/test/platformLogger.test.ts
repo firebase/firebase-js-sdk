@@ -21,11 +21,13 @@ import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { expect } from 'chai';
 import './setup';
 import { PlatformLoggerService } from '../src/platformLoggerService';
+import { registerPlatformLogger } from '../src/registerPlatformLogger';
 import {
   Component,
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
+import { version as appVersion } from '../package.json';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -69,6 +71,7 @@ describe('Platform Logger Service', () => {
 
     it(`logs core version`, () => {
       firebase.initializeApp({});
+      registerPlatformLogger(firebase);
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
@@ -78,18 +81,19 @@ describe('Platform Logger Service', () => {
             );
             const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
-            expect(platformInfoString).to.include('fire-core/');
-            expect(platformInfoString).to.include('fire-js/ ');
+            expect(platformInfoString).to.include(`fire-core/${appVersion}`);
+            expect(platformInfoString).to.include('fire-js/');
           },
           ComponentType.PUBLIC
         )
       );
-      (firebase as any)['test-shell']();
+      return (firebase as any)['test-shell']();
     });
 
     it(`logs other components' versions`, () => {
       firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).registerVersion('analytics', '1.2.3');
+      registerPlatformLogger(firebase);
+      (firebase as _FirebaseNamespace).registerVersion('@firebase/analytics', '1.2.3');
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
@@ -100,12 +104,12 @@ describe('Platform Logger Service', () => {
             const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
             expect(platformInfoString).to.include('fire-analytics/1.2.3');
-            expect(platformInfoString).to.include('fire-js/ ');
+            expect(platformInfoString).to.include('fire-js/');
           },
           ComponentType.PUBLIC
         )
       );
-      (firebase as any)['test-shell']();
+      return (firebase as any)['test-shell']();
     });
   });
 });

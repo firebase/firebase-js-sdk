@@ -28,7 +28,7 @@ import {
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
-import { version } from './package.json';
+import { name, version } from './package.json';
 
 declare global {
   interface Window {
@@ -64,7 +64,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
     new Component('analytics-internal', internalFactory, ComponentType.PRIVATE)
   );
 
-  instance.registerVersion(ANALYTICS_TYPE, version);
+  instance.registerVersion(name, version);
 
   function internalFactory(
     container: ComponentContainer

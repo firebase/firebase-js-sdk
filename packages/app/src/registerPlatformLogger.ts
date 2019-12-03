@@ -19,7 +19,7 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import { PlatformLoggerService } from './platformLoggerService';
-import { version } from '../package.json';
+import { name, version } from '../package.json';
 
 export function registerPlatformLogger(firebase: FirebaseNamespace): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
@@ -29,6 +29,8 @@ export function registerPlatformLogger(firebase: FirebaseNamespace): void {
       ComponentType.PRIVATE
     )
   );
-  firebase.registerVersion('app', version);
+  // Register `app` package.
+  firebase.registerVersion(name, version);
+  // Register platform SDK identifier (no version).
   firebase.registerVersion('fire-js', '');
 }

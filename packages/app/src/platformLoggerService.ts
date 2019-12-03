@@ -21,7 +21,6 @@ import {
   Provider,
   Name
 } from '@firebase/component';
-import { PLATFORM_LOG_STRING } from './constants';
 
 export class PlatformLoggerService {
   constructor(private readonly container: ComponentContainer) {}
@@ -35,13 +34,7 @@ export class PlatformLoggerService {
       .map(provider => {
         if (isVersionServiceProvider(provider)) {
           const service = provider.getImmediate();
-          // TODO: We can use this check to whitelist strings when/if we set up
-          // a good whitelist system.
-          const platformString =
-            PLATFORM_LOG_STRING[
-              service.library as keyof typeof PLATFORM_LOG_STRING
-            ] ?? service.library;
-          return `${platformString}/${service.version}`;
+          return `${service.library}/${service.version}`;
         } else {
           return null;
         }
