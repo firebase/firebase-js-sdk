@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { terser } from 'rollup-plugin-terser';
+import TERSER_OPTIONS from '../../../terser.json';
 /**
  * Firebase console uses firestore in its special way.
  * This file creates a build target for it.
@@ -23,7 +25,6 @@ const rollup = require('rollup');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
 const resolve = require('rollup-plugin-node-resolve');
-const { uglify } = require('rollup-plugin-uglify');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
@@ -33,11 +34,7 @@ const plugins = [
   typescriptPlugin({
     typescript
   }),
-  uglify({
-    output: {
-      ascii_only: true // escape unicode chars
-    }
-  })
+  terser(TERSER_OPTIONS)
 ];
 
 const EXPORTNAME = '__firestore_exports__';

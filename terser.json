@@ -1,0 +1,9 @@
+{
+  "compress": {
+    "ecma": 6,
+    "passes": 2
+  },
+  "output": {
+    "comments": false
+  }
+}

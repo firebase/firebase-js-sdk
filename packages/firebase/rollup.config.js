@@ -21,11 +21,12 @@ import commonjs from 'rollup-plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { uglify } from 'rollup-plugin-uglify';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
+
+import TERSER_OPTIONS from '../../terser.json';
 
 const plugins = [
   sourcemaps(),
@@ -70,7 +71,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify()]
+    plugins: [...plugins, terser(TERSER_OPTIONS)]
   }
 ];
 
@@ -129,7 +130,7 @@ const componentBuilds = pkg.components
               );
             }`
         },
-        plugins: [...plugins, uglify()],
+        plugins: [...plugins, terser(TERSER_OPTIONS)],
         external: ['@firebase/app']
       }
     ];
@@ -160,7 +161,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify()]
+    plugins: [...plugins, terser(TERSER_OPTIONS)]
   },
   /**
    * App Node.js Builds
@@ -200,7 +201,7 @@ const completeBuilds = [
         typescript
       }),
       commonjs(),
-      uglify()
+      terser(TERSER_OPTIONS)
     ]
   },
   /**
@@ -228,7 +229,7 @@ const completeBuilds = [
         }
       }),
       commonjs(),
-      terser()
+      terser(TERSER_OPTIONS)
     ]
   }
 ];

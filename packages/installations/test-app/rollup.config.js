@@ -19,8 +19,10 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
-import { uglify } from 'rollup-plugin-uglify';
 import typescript from 'typescript';
+import { terser } from 'rollup-plugin-terser';
+
+import TERSER_OPTIONS from '../../../terser.json';
 
 /**
  * Creates an iife build to run with the Test App.
@@ -42,7 +44,7 @@ export default [
       json(),
       resolve(),
       commonjs(),
-      uglify()
+      terser(TERSER_OPTIONS)
     ]
   }
 ];

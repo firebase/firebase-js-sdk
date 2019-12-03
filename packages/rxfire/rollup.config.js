@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'typescript';
 import pkg from './package.json';
 
@@ -28,6 +28,8 @@ import storagePkg from './storage/package.json';
 import functionsPkg from './functions/package.json';
 import firestorePkg from './firestore/package.json';
 import databasePkg from './database/package.json';
+
+import TERSER_OPTIONS from '../../terser.json';
 
 const pkgsByName = {
   auth: authPkg,
@@ -100,7 +102,7 @@ const componentBuilds = components
               }
             }
           }),
-          uglify()
+          terser(TERSER_OPTIONS)
         ],
         external
       }
