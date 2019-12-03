@@ -15,23 +15,73 @@
  * limitations under the License.
  */
 
-// TODO(mikelehen): Flesh out proper types (or figure out how to generate via
-// clutz or something).
-export class XhrIo {}
-export const ErrorCode: any;
-export const EventType: any;
+// WARNING: This is not a complete set of types exported by WebChannelWrapper.
+// It is merely meant to support the usage patterns of the Firestore SDK.
+
+export var EventType: {
+  COMPLETE: string;
+};
+
 export namespace WebChannel {
-  export type EventType = any;
-  export const EventType: any;
+  export var EventType: {
+    OPEN: string;
+    CLOSE: string;
+    ERROR: string;
+    MESSAGE: string;
+  };
 }
 
-type StringMap = { [key: string]: string };
+export var ErrorCode: {
+  NO_ERROR: number;
+  HTTP_ERROR: number;
+  TIMEOUT: number;
+};
+
+export interface Headers {
+  [name: string]: string | number;
+}
+
+export interface WebChannelError {
+  error?: { status: string; message: string };
+}
+
+export class XhrIo {
+  send(
+    url: string,
+    method?: string,
+    body?: string,
+    headers?: Headers,
+    timeoutInterval?: number
+  ): void;
+
+  getLastErrorCode(): number;
+
+  getLastError(): string;
+
+  getStatus(): number;
+
+  getResponseText(): string;
+
+  getResponseJson(): WebChannelError | object;
+
+  listenOnce(type: string, cb: (param: unknown) => void): void;
+}
 
 export interface WebChannelOptions {
-  messageHeaders?: StringMap;
-  initMessageHeaders?: StringMap;
+  messageHeaders?: {
+    // To ensure compatibility with property minifcation tools, keys need to
+    // be listed explicity.
+    [k: string]: never;
+  };
+  initMessageHeaders?: {
+    // To ensure compatibility with property minifcation tools, keys need to
+    // be listed explicity.
+    [k: string]: never;
+  };
   messageContentType?: string;
-  messageUrlParams?: StringMap;
+  messageUrlParams?: {
+    database?: string;
+  };
   clientProtocolHeaderRequired?: boolean;
   concurrentRequestLimit?: number;
   supportsCrossDomainXhr?: boolean;
@@ -44,13 +94,22 @@ export interface WebChannelOptions {
   fastHandshake?: boolean;
   disableRedac?: boolean;
   clientProfile?: string;
-  internalChannelParams?: { [key: string]: boolean | number };
+  internalChannelParams?: {
+    forwardChannelRequestTimeoutMs?: number;
+  };
   xmlHttpFactory?: unknown;
   requestRefreshThresholds?: { [key: string]: number };
 }
 
+export interface WebChannel {
+  open(): void;
+  close(): void;
+  listen(type: string, cb: (param: unknown) => void): void;
+  send(msg: unknown): void;
+}
+
 export interface WebChannelTransport {
-  createWebChannel(url: string, options: WebChannelOptions): any;
+  createWebChannel(url: string, options: WebChannelOptions): WebChannel;
 }
 
 export function createWebChannelTransport(): WebChannelTransport;
