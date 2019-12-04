@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:karma": "karma start --single-run",
