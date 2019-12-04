@@ -15,40 +15,36 @@
  * limitations under the License.
  */
 
-import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import {ERROR_FACTORY, ErrorCode} from '../utils/errors';
 
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
-    perfMetrics?: { onFirstInputDelay: Function };
+    perfMetrics?: {onFirstInputDelay: Function};
   }
 }
 
-let apiInstance: Api | undefined;
-let windowInstance: Window | undefined;
+let apiInstance: Api|undefined;
+let windowInstance: Window|undefined;
 
 export type EntryType =
-  | 'mark'
-  | 'measure'
-  | 'paint'
-  | 'resource'
-  | 'frame'
-  | 'navigation';
+    |'mark'|'measure'|'paint'|'resource'|'frame'|'navigation';
 
 /**
- * This class holds a reference to various browser related objects injected by set methods.
+ * This class holds a reference to various browser related objects injected by
+ * set methods.
  */
 export class Api {
-  private performance: Performance;
+  private readonly performance: Performance;
   /** PreformanceObserver constructor function. */
-  private PerformanceObserver: typeof PerformanceObserver;
-  private windowLocation: Location;
-  onFirstInputDelay?: Function;
-  localStorage!: Storage;
-  document: Document;
-  navigator: Navigator;
+  private readonly PerformanceObserver: typeof PerformanceObserver;
+  private readonly windowLocation: Location;
+  readonly onFirstInputDelay?: Function;
+  readonly localStorage?: Storage;
+  readonly document: Document;
+  readonly navigator: Navigator;
 
-  constructor(window?: Window) {
+  constructor(readonly window?: Window) {
     if (!window) {
       throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
     }
@@ -58,7 +54,8 @@ export class Api {
     this.navigator = window.navigator;
     this.document = window.document;
     if (this.navigator && this.navigator.cookieEnabled) {
-      // If user blocks cookies on the browser, accessing localStorage will throw an exception.
+      // If user blocks cookies on the browser, accessing localStorage will
+      // throw an exception.
       this.localStorage = window.localStorage;
     }
     if (window.perfMetrics && window.perfMetrics.onFirstInputDelay) {
@@ -102,9 +99,9 @@ export class Api {
   getTimeOrigin(): number {
     // Polyfill the time origin with performance.timing.navigationStart.
     return (
-      this.performance &&
-      (this.performance.timeOrigin || this.performance.timing.navigationStart)
-    );
+        this.performance &&
+        (this.performance.timeOrigin ||
+         this.performance.timing.navigationStart));
   }
 
   requiredApisAvailable(): boolean {
@@ -115,9 +112,7 @@ export class Api {
   }
 
   setupObserver(
-    entryType: EntryType,
-    callback: (entry: PerformanceEntry) => void
-  ): void {
+      entryType: EntryType, callback: (entry: PerformanceEntry) => void): void {
     if (!this.PerformanceObserver) {
       return;
     }
@@ -129,7 +124,7 @@ export class Api {
     });
 
     // Start observing the entry types you care about.
-    observer.observe({ entryTypes: [entryType] });
+    observer.observe({entryTypes: [entryType]});
   }
 
   static getInstance(): Api {

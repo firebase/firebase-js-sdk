@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-import { SettingsService } from './settings_service';
-import {
-  SDK_VERSION,
-  CONFIG_LOCAL_STORAGE_KEY,
-  CONFIG_EXPIRY_LOCAL_STORAGE_KEY
-} from '../constants';
-import { Api } from './api_service';
-import { getAuthTokenPromise } from './iid_service';
-import { consoleLogger } from '../utils/console_logger';
-import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import {CONFIG_EXPIRY_LOCAL_STORAGE_KEY, CONFIG_LOCAL_STORAGE_KEY, SDK_VERSION} from '../constants';
+import {consoleLogger} from '../utils/console_logger';
+import {ERROR_FACTORY, ErrorCode} from '../utils/errors';
+
+import {Api} from './api_service';
+import {getAuthTokenPromise} from './iid_service';
+import {SettingsService} from './settings_service';
 
 const REMOTE_CONFIG_SDK_VERSION = '0.0.1';
 
@@ -68,15 +65,18 @@ export function getConfig(iid: string): Promise<void> {
   }
 
   return getRemoteConfig(iid)
-    .then(config => processConfig(config))
-    .then(
-      config => storeConfig(config),
-      /** Do nothing for error, use defaults set in settings service. */ () => {}
-    );
+      .then(config => processConfig(config))
+      .then(
+          config => storeConfig(config),
+          /** Do nothing for error, use defaults set in settings service. */
+          () => {});
 }
 
-function getStoredConfig(): RemoteConfigResponse | undefined {
+function getStoredConfig(): RemoteConfigResponse|undefined {
   const localStorage = Api.getInstance().localStorage;
+  if (!localStorage) {
+    return;
+  }
   const expiryString = localStorage.getItem(CONFIG_EXPIRY_LOCAL_STORAGE_KEY);
   if (!expiryString || !configValid(expiryString)) {
     return;
@@ -94,59 +94,57 @@ function getStoredConfig(): RemoteConfigResponse | undefined {
   }
 }
 
-function storeConfig(config: RemoteConfigResponse | undefined): void {
-  if (!config) {
+function storeConfig(config: RemoteConfigResponse|undefined): void {
+  const localStorage = Api.getInstance().localStorage;
+  if (!config || !localStorage) {
     return;
   }
-  const localStorage = Api.getInstance().localStorage;
+
   localStorage.setItem(CONFIG_LOCAL_STORAGE_KEY, JSON.stringify(config));
   localStorage.setItem(
-    CONFIG_EXPIRY_LOCAL_STORAGE_KEY,
-    String(
-      Date.now() +
-        SettingsService.getInstance().configTimeToLive * 60 * 60 * 1000
-    )
-  );
+      CONFIG_EXPIRY_LOCAL_STORAGE_KEY,
+      String(
+          Date.now() +
+          SettingsService.getInstance().configTimeToLive * 60 * 60 * 1000));
 }
 
 const COULD_NOT_GET_CONFIG_MSG =
-  'Could not fetch config, will use default configs';
+    'Could not fetch config, will use default configs';
 
-function getRemoteConfig(
-  iid: string
-): Promise<RemoteConfigResponse | undefined> {
+function getRemoteConfig(iid: string): Promise<RemoteConfigResponse|undefined> {
   // Perf needs auth token only to retrieve remote config.
   return getAuthTokenPromise()
-    .then(authToken => {
-      const projectId = SettingsService.getInstance().getProjectId();
-      const configEndPoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/namespaces/fireperf:fetch?key=${SettingsService.getInstance().getApiKey()}`;
-      const request = new Request(configEndPoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `${FIS_AUTH_PREFIX} ${authToken}`
-        },
-        /* eslint-disable camelcase */
-        body: JSON.stringify({
-          app_instance_id: iid,
-          app_instance_id_token: authToken,
-          app_id: SettingsService.getInstance().getAppId(),
-          app_version: SDK_VERSION,
-          sdk_version: REMOTE_CONFIG_SDK_VERSION
-        })
-        /* eslint-enable camelcase */
+      .then(authToken => {
+        const projectId = SettingsService.getInstance().getProjectId();
+        const configEndPoint =
+            `https://firebaseremoteconfig.googleapis.com/v1/projects/${
+                projectId}/namespaces/fireperf:fetch?key=${
+                SettingsService.getInstance().getApiKey()}`;
+        const request = new Request(configEndPoint, {
+          method: 'POST',
+          headers: {Authorization: `${FIS_AUTH_PREFIX} ${authToken}`},
+          /* eslint-disable camelcase */
+          body: JSON.stringify({
+            app_instance_id: iid,
+            app_instance_id_token: authToken,
+            app_id: SettingsService.getInstance().getAppId(),
+            app_version: SDK_VERSION,
+            sdk_version: REMOTE_CONFIG_SDK_VERSION
+          })
+          /* eslint-enable camelcase */
+        });
+        return fetch(request).then(response => {
+          if (response.ok) {
+            return response.json() as RemoteConfigResponse;
+          }
+          // In case response is not ok. This will be caught by catch.
+          throw ERROR_FACTORY.create(ErrorCode.RC_NOT_OK);
+        });
+      })
+      .catch(() => {
+        consoleLogger.info(COULD_NOT_GET_CONFIG_MSG);
+        return undefined;
       });
-      return fetch(request).then(response => {
-        if (response.ok) {
-          return response.json() as RemoteConfigResponse;
-        }
-        // In case response is not ok. This will be caught by catch.
-        throw ERROR_FACTORY.create(ErrorCode.RC_NOT_OK);
-      });
-    })
-    .catch(() => {
-      consoleLogger.info(COULD_NOT_GET_CONFIG_MSG);
-      return undefined;
-    });
 }
 
 /**
@@ -154,18 +152,18 @@ function getRemoteConfig(
  * This method only runs if call is successful or config in storage
  * is valie.
  */
-function processConfig(
-  config: RemoteConfigResponse | undefined
-): RemoteConfigResponse | undefined {
+function processConfig(config: RemoteConfigResponse|
+                       undefined): RemoteConfigResponse|undefined {
   if (!config) {
     return config;
   }
   const settingsServiceInstance = SettingsService.getInstance();
   const entries = config.entries || {};
   if (entries.fpr_enabled !== undefined) {
-    // TODO: Change the assignment of loggingEnabled once the received type is known.
+    // TODO: Change the assignment of loggingEnabled once the received type is
+    // known.
     settingsServiceInstance.loggingEnabled =
-      String(entries.fpr_enabled) === 'true';
+        String(entries.fpr_enabled) === 'true';
   } else if (SECONDARY_CONFIGS.loggingEnabled !== undefined) {
     // Config retrieved successfully, but there is no fpr_enabled in template.
     // Use secondary configs value.
@@ -182,28 +180,24 @@ function processConfig(
     settingsServiceInstance.logEndPointUrl = SECONDARY_CONFIGS.logEndPointUrl;
   }
   if (entries.fpr_vc_network_request_sampling_rate !== undefined) {
-    settingsServiceInstance.networkRequestsSamplingRate = Number(
-      entries.fpr_vc_network_request_sampling_rate
-    );
+    settingsServiceInstance.networkRequestsSamplingRate =
+        Number(entries.fpr_vc_network_request_sampling_rate);
   } else if (SECONDARY_CONFIGS.networkRequestsSamplingRate !== undefined) {
     settingsServiceInstance.networkRequestsSamplingRate =
-      SECONDARY_CONFIGS.networkRequestsSamplingRate;
+        SECONDARY_CONFIGS.networkRequestsSamplingRate;
   }
   if (entries.fpr_vc_trace_sampling_rate !== undefined) {
-    settingsServiceInstance.tracesSamplingRate = Number(
-      entries.fpr_vc_trace_sampling_rate
-    );
+    settingsServiceInstance.tracesSamplingRate =
+        Number(entries.fpr_vc_trace_sampling_rate);
   } else if (SECONDARY_CONFIGS.tracesSamplingRate !== undefined) {
     settingsServiceInstance.tracesSamplingRate =
-      SECONDARY_CONFIGS.tracesSamplingRate;
+        SECONDARY_CONFIGS.tracesSamplingRate;
   }
   // Set the per session trace and network logging flags.
-  settingsServiceInstance.logTraceAfterSampling = shouldLogAfterSampling(
-    settingsServiceInstance.tracesSamplingRate
-  );
+  settingsServiceInstance.logTraceAfterSampling =
+      shouldLogAfterSampling(settingsServiceInstance.tracesSamplingRate);
   settingsServiceInstance.logNetworkAfterSampling = shouldLogAfterSampling(
-    settingsServiceInstance.networkRequestsSamplingRate
-  );
+      settingsServiceInstance.networkRequestsSamplingRate);
   return config;
 }
 
