@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Api} from '../services/api_service';
+import { Api } from '../services/api_service';
 
 // The values and orders of the following enums should not be changed.
 const enum ServiceWorkerStatus {
@@ -39,14 +39,13 @@ const enum EffectiveConnectionType {
   CONNECTION_4G = 4
 }
 
-
 /**
  * NetworkInformation
  *
  * ref: https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
  */
 interface NetworkInformation {
-  readonly effectiveType?: 'slow-2g'|'2g'|'3g'|'4g';
+  readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
 }
 
 interface NavigatorWithConnection extends Navigator {
@@ -88,7 +87,7 @@ export function getEffectiveConnectionType(): EffectiveConnectionType {
   const navigator = Api.getInstance().navigator;
   const navigatorConnection = (navigator as NavigatorWithConnection).connection;
   const effectiveType =
-      navigatorConnection && navigatorConnection.effectiveType;
+    navigatorConnection && navigatorConnection.effectiveType;
   switch (effectiveType) {
     case 'slow-2g':
       return EffectiveConnectionType.CONNECTION_SLOW_2G;
@@ -107,8 +106,9 @@ export function isValidCustomAttributeName(name: string): boolean {
   if (name.length === 0 || name.length > MAX_ATTRIBUTE_NAME_LENGTH) {
     return false;
   }
-  const matchesReservedPrefix =
-      RESERVED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix));
+  const matchesReservedPrefix = RESERVED_ATTRIBUTE_PREFIXES.some(prefix =>
+    name.startsWith(prefix)
+  );
   return !matchesReservedPrefix && !!name.match(ATTRIBUTE_FORMAT_REGEX);
 }
 

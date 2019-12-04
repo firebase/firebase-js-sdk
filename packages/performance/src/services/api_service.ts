@@ -15,20 +15,25 @@
  * limitations under the License.
  */
 
-import {ERROR_FACTORY, ErrorCode} from '../utils/errors';
+import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
-    perfMetrics?: {onFirstInputDelay: Function};
+    perfMetrics?: { onFirstInputDelay: Function };
   }
 }
 
-let apiInstance: Api|undefined;
-let windowInstance: Window|undefined;
+let apiInstance: Api | undefined;
+let windowInstance: Window | undefined;
 
 export type EntryType =
-    |'mark'|'measure'|'paint'|'resource'|'frame'|'navigation';
+  | 'mark'
+  | 'measure'
+  | 'paint'
+  | 'resource'
+  | 'frame'
+  | 'navigation';
 
 /**
  * This class holds a reference to various browser related objects injected by
@@ -99,9 +104,9 @@ export class Api {
   getTimeOrigin(): number {
     // Polyfill the time origin with performance.timing.navigationStart.
     return (
-        this.performance &&
-        (this.performance.timeOrigin ||
-         this.performance.timing.navigationStart));
+      this.performance &&
+      (this.performance.timeOrigin || this.performance.timing.navigationStart)
+    );
   }
 
   requiredApisAvailable(): boolean {
@@ -112,7 +117,9 @@ export class Api {
   }
 
   setupObserver(
-      entryType: EntryType, callback: (entry: PerformanceEntry) => void): void {
+    entryType: EntryType,
+    callback: (entry: PerformanceEntry) => void
+  ): void {
     if (!this.PerformanceObserver) {
       return;
     }
@@ -124,7 +131,7 @@ export class Api {
     });
 
     // Start observing the entry types you care about.
-    observer.observe({entryTypes: [entryType]});
+    observer.observe({ entryTypes: [entryType] });
   }
 
   static getInstance(): Api {
