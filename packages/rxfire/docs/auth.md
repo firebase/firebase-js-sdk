@@ -62,7 +62,7 @@ The `idToken()` function creates an observable that emits the `idToken` refreshe
 | **function**    | `idToken()`                                 |
 | **params**      | `auth.Auth`                              |
 | **import path** | `rxfire/auth`                            |
-| **return**      | `Observable<string or null>`              |
+| **return**      | `Observable<string\|null>`              |
 
 #### TypeScript Example
 ```ts
