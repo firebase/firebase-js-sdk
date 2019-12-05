@@ -7098,7 +7098,7 @@ declare namespace firebase.firestore {
    * ```typescript
    * class Post {
    *   constructor(readonly title: string, readonly author: string) {}
-   * 
+   *
    *   toString(): string {
    *     return this.title + ', by ' + this.author;
    *   }
