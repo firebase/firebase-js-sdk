@@ -7984,8 +7984,8 @@ declare namespace firebase.firestore {
      * use the provided converter to convert data to/from type U (your custom
      * model object type).
      *
-     * @param converter Converts objects to and from Firestore
-     * @return A DocumentReference<U> that uses the provided converter
+     * @param converter Converts objects to and from Firestore.
+     * @return A DocumentReference<U> that uses the provided converter.
      */
     withConverter<U>(
       converter: FirestoreDataConverter<U>
@@ -8437,8 +8437,8 @@ declare namespace firebase.firestore {
      * returned Query, it will use the provided converter to convert data
      * to/from type U (your custom model object type).
      *
-     * @param converter Converts objects to and from Firestore
-     * @return A Query<U> that uses the provided converter
+     * @param converter Converts objects to and from Firestore.
+     * @return A Query<U> that uses the provided converter.
      */
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   }
@@ -8593,8 +8593,8 @@ declare namespace firebase.firestore {
      * on the returned CollectionReference instance, it will use the provided
      * converter to convert data to/from type U (your custom model object type).
      *
-     * @param converter Converts objects to and from Firestore
-     * @return A CollectionReference<U> that uses the provided converter
+     * @param converter Converts objects to and from Firestore.
+     * @return A CollectionReference<U> that uses the provided converter.
      */
     withConverter<U>(
       converter: FirestoreDataConverter<U>
