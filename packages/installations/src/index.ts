@@ -23,6 +23,8 @@ import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
 import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 
+import { name, version } from '../package.json';
+
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
 
@@ -51,6 +53,8 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
       ComponentType.PUBLIC
     )
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerInstallations(firebase as _FirebaseNamespace);

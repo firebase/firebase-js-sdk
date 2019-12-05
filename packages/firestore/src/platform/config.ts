@@ -38,6 +38,8 @@ import { Timestamp } from '../api/timestamp';
 import { shallowCopy } from '../util/obj';
 import { Component, ComponentType } from '@firebase/component';
 
+import { name, version } from '../../package.json';
+
 const firestoreNamespace = {
   Firestore: PublicFirestore,
   GeoPoint,
@@ -71,6 +73,8 @@ export function configureForFirebase(firebase: FirebaseNamespace): void {
       ComponentType.PUBLIC
     ).setServiceProps(shallowCopy(firestoreNamespace))
   );
+
+  firebase.registerVersion(name, version);
 }
 
 /**

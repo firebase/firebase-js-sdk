@@ -29,6 +29,8 @@ import {
 } from '@firebase/component';
 import { FirebaseInternalServices } from './src/interfaces/internal-services';
 
+import { name, version } from './package.json';
+
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
@@ -68,6 +70,8 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
       ComponentType.PUBLIC
     ).setServiceProps(namespaceExports)
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerMessaging(firebase as _FirebaseNamespace);
