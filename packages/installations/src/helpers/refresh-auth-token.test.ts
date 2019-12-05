@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as generateAuthTokenModule from '../api/generate-auth-token';
+import * as generateAuthTokenRequestModule from '../api/generate-auth-token-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   CompletedAuthToken,
@@ -39,7 +39,7 @@ const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 describe('refreshAuthToken', () => {
   let appConfig: AppConfig;
-  let generateAuthTokenSpy: SinonStub<
+  let generateAuthTokenRequestSpy: SinonStub<
     [AppConfig, RegisteredInstallationEntry],
     Promise<CompletedAuthToken>
   >;
@@ -47,9 +47,9 @@ describe('refreshAuthToken', () => {
   beforeEach(() => {
     appConfig = getFakeAppConfig();
 
-    generateAuthTokenSpy = stub(
-      generateAuthTokenModule,
-      'generateAuthToken'
+    generateAuthTokenRequestSpy = stub(
+      generateAuthTokenRequestModule,
+      'generateAuthTokenRequest'
     ).callsFake(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
@@ -99,7 +99,7 @@ describe('refreshAuthToken', () => {
 
     it('does not call any server APIs', async () => {
       await refreshAuthToken(appConfig);
-      expect(generateAuthTokenSpy).not.to.be.called;
+      expect(generateAuthTokenRequestSpy).not.to.be.called;
     });
 
     it('works even if the app is offline', async () => {
@@ -142,7 +142,7 @@ describe('refreshAuthToken', () => {
       const token2 = await refreshAuthToken(appConfig);
       await expect(token2.token).to.equal(AUTH_TOKEN);
       await expect(token2.token).not.to.equal(DB_AUTH_TOKEN);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
   });
 
@@ -165,7 +165,7 @@ describe('refreshAuthToken', () => {
     it('does not call generateAuthToken twice on subsequent calls', async () => {
       await refreshAuthToken(appConfig);
       await refreshAuthToken(appConfig);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
@@ -173,14 +173,14 @@ describe('refreshAuthToken', () => {
         refreshAuthToken(appConfig),
         refreshAuthToken(appConfig)
       ]);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('returns a new token', async () => {
       const { token } = await refreshAuthToken(appConfig);
       await expect(token).to.equal(AUTH_TOKEN);
       await expect(token).not.to.equal(DB_AUTH_TOKEN);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {

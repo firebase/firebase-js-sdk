@@ -18,8 +18,8 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as createInstallationModule from '../api/create-installation';
-import * as generateAuthTokenModule from '../api/generate-auth-token';
+import * as createInstallationRequestModule from '../api/create-installation-request';
+import * as generateAuthTokenRequestModule from '../api/generate-auth-token-request';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { get, set } from '../helpers/idb-manager';
 import { AppConfig } from '../interfaces/app-config';
@@ -174,11 +174,11 @@ const setupInstallationEntryMap: Map<
 describe('getToken', () => {
   let app: FirebaseApp;
   let appConfig: AppConfig;
-  let createInstallationSpy: SinonStub<
+  let createInstallationRequestSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
-  let generateAuthTokenSpy: SinonStub<
+  let generateAuthTokenRequestSpy: SinonStub<
     [AppConfig, RegisteredInstallationEntry],
     Promise<CompletedAuthToken>
   >;
@@ -187,9 +187,9 @@ describe('getToken', () => {
     app = getFakeApp();
     appConfig = extractAppConfig(app);
 
-    createInstallationSpy = stub(
-      createInstallationModule,
-      'createInstallation'
+    createInstallationRequestSpy = stub(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).callsFake(async (_, installationEntry) => {
       await sleep(100); // Request would take some time
       const result: RegisteredInstallationEntry = {
@@ -205,9 +205,9 @@ describe('getToken', () => {
       };
       return result;
     });
-    generateAuthTokenSpy = stub(
-      generateAuthTokenModule,
-      'generateAuthToken'
+    generateAuthTokenRequestSpy = stub(
+      generateAuthTokenRequestModule,
+      'generateAuthTokenRequest'
     ).callsFake(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
@@ -259,14 +259,14 @@ describe('getToken', () => {
   describe('when there is no FID in the DB', () => {
     it('gets the token by registering a new FID', async () => {
       await getToken(app);
-      expect(createInstallationSpy).to.be.called;
-      expect(generateAuthTokenSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).to.be.called;
+      expect(generateAuthTokenRequestSpy).not.to.be.called;
     });
 
     it('does not register a new FID on subsequent calls', async () => {
       await getToken(app);
       await getToken(app);
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
@@ -293,19 +293,19 @@ describe('getToken', () => {
 
     it('gets the token by calling generateAuthToken', async () => {
       await getToken(app);
-      expect(generateAuthTokenSpy).to.be.called;
-      expect(createInstallationSpy).not.to.be.called;
+      expect(generateAuthTokenRequestSpy).to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
 
     it('does not call generateAuthToken twice on subsequent calls', async () => {
       await getToken(app);
       await getToken(app);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
       await Promise.all([getToken(app), getToken(app)]);
-      expect(generateAuthTokenSpy).to.be.calledOnce;
+      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
@@ -316,7 +316,7 @@ describe('getToken', () => {
 
     describe('and the server returns an error', () => {
       it('removes the FID from the DB if the server returns a 401 response', async () => {
-        generateAuthTokenSpy.callsFake(async () => {
+        generateAuthTokenRequestSpy.callsFake(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 401,
@@ -330,7 +330,7 @@ describe('getToken', () => {
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
-        generateAuthTokenSpy.callsFake(async () => {
+        generateAuthTokenRequestSpy.callsFake(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 404,
@@ -344,7 +344,7 @@ describe('getToken', () => {
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
-        generateAuthTokenSpy.callsFake(async () => {
+        generateAuthTokenRequestSpy.callsFake(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 500,
@@ -379,14 +379,14 @@ describe('getToken', () => {
 
     it('does not call any server APIs', async () => {
       await getToken(app);
-      expect(createInstallationSpy).not.to.be.called;
-      expect(generateAuthTokenSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(generateAuthTokenRequestSpy).not.to.be.called;
     });
 
     it('refreshes the token if forceRefresh is true', async () => {
       const token = await getToken(app, true);
       expect(token).to.equal(NEW_AUTH_TOKEN);
-      expect(generateAuthTokenSpy).to.be.called;
+      expect(generateAuthTokenRequestSpy).to.be.called;
     });
 
     it('works even if the app is offline', async () => {
@@ -456,7 +456,7 @@ describe('getToken', () => {
     it('returns a different token', async () => {
       const token = await getToken(app);
       expect(token).to.equal(NEW_AUTH_TOKEN);
-      expect(generateAuthTokenSpy).to.be.called;
+      expect(generateAuthTokenRequestSpy).to.be.called;
     });
 
     it('throws if the app is offline', async () => {

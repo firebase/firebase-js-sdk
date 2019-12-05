@@ -34,11 +34,11 @@ import {
   PACKAGE_VERSION
 } from '../util/constants';
 import { ErrorResponse } from './common';
-import { generateAuthToken } from './generate-auth-token';
+import { generateAuthTokenRequest } from './generate-auth-token-request';
 
 const FID = 'evil-has-no-boundaries';
 
-describe('generateAuthToken', () => {
+describe('generateAuthTokenRequest', () => {
   let appConfig: AppConfig;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
@@ -71,7 +71,7 @@ describe('generateAuthToken', () => {
     });
 
     it('fetches a new Authentication Token', async () => {
-      const completedAuthToken: CompletedAuthToken = await generateAuthToken(
+      const completedAuthToken: CompletedAuthToken = await generateAuthTokenRequest(
         appConfig,
         registeredInstallationEntry
       );
@@ -99,7 +99,7 @@ describe('generateAuthToken', () => {
       };
       const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}/authTokens:generate`;
 
-      await generateAuthToken(appConfig, registeredInstallationEntry);
+      await generateAuthTokenRequest(appConfig, registeredInstallationEntry);
 
       expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
       const actualHeaders = fetchSpy.lastCall.lastArg.headers;
@@ -122,7 +122,7 @@ describe('generateAuthToken', () => {
       );
 
       await expect(
-        generateAuthToken(appConfig, registeredInstallationEntry)
+        generateAuthTokenRequest(appConfig, registeredInstallationEntry)
       ).to.be.rejectedWith(FirebaseError);
     });
 
@@ -140,8 +140,9 @@ describe('generateAuthToken', () => {
         .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
       fetchSpy.onCall(1).resolves(new Response(JSON.stringify(response)));
 
-      await expect(generateAuthToken(appConfig, registeredInstallationEntry)).to
-        .be.fulfilled;
+      await expect(
+        generateAuthTokenRequest(appConfig, registeredInstallationEntry)
+      ).to.be.fulfilled;
       expect(fetchSpy).to.be.calledTwice;
     });
   });

@@ -18,7 +18,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
-import * as deleteInstallationModule from '../api/delete-installation';
+import * as deleteInstallationRequestModule from '../api/delete-installation-request';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { get, set } from '../helpers/idb-manager';
 import { AppConfig } from '../interfaces/app-config';
@@ -39,7 +39,7 @@ const FID = 'children-of-the-damned';
 describe('deleteInstallation', () => {
   let app: FirebaseApp;
   let appConfig: AppConfig;
-  let deleteInstallationSpy: SinonStub<
+  let deleteInstallationRequestSpy: SinonStub<
     [AppConfig, RegisteredInstallationEntry],
     Promise<void>
   >;
@@ -48,9 +48,9 @@ describe('deleteInstallation', () => {
     app = getFakeApp();
     appConfig = extractAppConfig(app);
 
-    deleteInstallationSpy = stub(
-      deleteInstallationModule,
-      'deleteInstallation'
+    deleteInstallationRequestSpy = stub(
+      deleteInstallationRequestModule,
+      'deleteInstallationRequest'
     ).callsFake(
       () => sleep(100) // Request would take some time
     );
@@ -58,7 +58,7 @@ describe('deleteInstallation', () => {
 
   it('resolves without calling server API if there is no installation', async () => {
     await expect(deleteInstallation(app)).to.be.fulfilled;
-    expect(deleteInstallationSpy).not.to.have.been.called;
+    expect(deleteInstallationRequestSpy).not.to.have.been.called;
   });
 
   it('deletes and resolves without calling server API if the installation is unregistered', async () => {
@@ -69,7 +69,7 @@ describe('deleteInstallation', () => {
     await set(appConfig, entry);
 
     await expect(deleteInstallation(app)).to.be.fulfilled;
-    expect(deleteInstallationSpy).not.to.have.been.called;
+    expect(deleteInstallationRequestSpy).not.to.have.been.called;
     await expect(get(appConfig)).to.eventually.be.undefined;
   });
 
@@ -84,7 +84,7 @@ describe('deleteInstallation', () => {
     await expect(deleteInstallation(app)).to.be.rejectedWith(
       ErrorCode.DELETE_PENDING_REGISTRATION
     );
-    expect(deleteInstallationSpy).not.to.have.been.called;
+    expect(deleteInstallationRequestSpy).not.to.have.been.called;
   });
 
   it('rejects without calling server API if the installation is registered and app is offline', async () => {
@@ -105,7 +105,7 @@ describe('deleteInstallation', () => {
     await expect(deleteInstallation(app)).to.be.rejectedWith(
       ErrorCode.APP_OFFLINE
     );
-    expect(deleteInstallationSpy).not.to.have.been.called;
+    expect(deleteInstallationRequestSpy).not.to.have.been.called;
   });
 
   it('deletes and resolves after calling server API if the installation is registered', async () => {
@@ -123,7 +123,10 @@ describe('deleteInstallation', () => {
     await set(appConfig, entry);
 
     await expect(deleteInstallation(app)).to.be.fulfilled;
-    expect(deleteInstallationSpy).to.have.been.calledOnceWith(appConfig, entry);
+    expect(deleteInstallationRequestSpy).to.have.been.calledOnceWith(
+      appConfig,
+      entry
+    );
     await expect(get(appConfig)).to.eventually.be.undefined;
   });
 });

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { generateAuthToken } from '../api/generate-auth-token';
+import { generateAuthTokenRequest } from '../api/generate-auth-token-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   AuthToken,
@@ -133,7 +133,10 @@ async function fetchAuthTokenFromServer(
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   try {
-    const authToken = await generateAuthToken(appConfig, installationEntry);
+    const authToken = await generateAuthTokenRequest(
+      appConfig,
+      installationEntry
+    );
     const updatedInstallationEntry: RegisteredInstallationEntry = {
       ...installationEntry,
       authToken

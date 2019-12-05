@@ -31,7 +31,7 @@ import {
   retryIfServerError
 } from './common';
 
-export async function createInstallation(
+export async function createInstallationRequest(
   appConfig: AppConfig,
   { fid }: InProgressInstallationEntry
 ): Promise<RegisteredInstallationEntry> {
