@@ -38,7 +38,6 @@ import {
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
-import { DocumentReference } from '../../../src/api/database';
 
 // tslint:disable:no-floating-promises
 
@@ -1332,8 +1331,7 @@ apiDescribe('Database', (persistence: boolean) => {
           .withConverter(postConverter);
 
         const usersCollection = postsCollection.parent;
-        expect((usersCollection as DocumentReference)._converter).to.be
-          .undefined;
+        expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
       });
     });
   });

@@ -7095,19 +7095,23 @@ declare namespace firebase.firestore {
    * storing and retrieving objects from Firestore.
    *
    * @example
-   *  ```typescript
+   * ```typescript
    * class Post {
    *   constructor(readonly title: string, readonly author: string) {}
-   *     byline(): string {
+   * 
+   *   toString(): string {
    *     return this.title + ', by ' + this.author;
    *   }
    * }
    *
-   * const PostConverter = {
-   *   toFirestore(post: Post): DocumentData {
+   * const postConverter = {
+   *   toFirestore(post: Post): firebase.firestore.DocumentData {
    *     return {title: post.title, author: post.author};
    *   },
-   *   fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): Post {
+   *   fromFirestore(
+   *     snapshot: firebase.firestore.QueryDocumentSnapshot,
+   *     options: firebase.firestore.SnapshotOptions
+   *   ): Post {
    *     const data = snapshot.data(options)!;
    *     return new Post(data.title, data.author);
    *   }
@@ -7115,12 +7119,12 @@ declare namespace firebase.firestore {
    *
    * const postSnap = await firebase.firestore()
    *   .collection('posts')
-   *   .withConverter(PostConverter)
+   *   .withConverter(postConverter)
    *   .doc().get();
    * const post = postSnap.data();
    * if (post !== undefined) {
    *   post.title; // string
-   *   post.byline(); // Should be defined
+   *   post.toString(); // Should be defined
    *   post.someNonExistentProperty; // TS error
    * }
    * ```

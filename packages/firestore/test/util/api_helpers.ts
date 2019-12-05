@@ -36,12 +36,7 @@ import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
-import {
-  defaultDocumentDataConverter,
-  doc,
-  key,
-  path as pathFrom
-} from './helpers';
+import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 
 /**
@@ -60,19 +55,11 @@ export function firestore(): Firestore {
 }
 
 export function collectionReference(path: string): CollectionReference {
-  return new CollectionReference(
-    pathFrom(path),
-    firestore(),
-    defaultDocumentDataConverter()
-  );
+  return new CollectionReference(pathFrom(path), firestore());
 }
 
 export function documentReference(path: string): DocumentReference {
-  return new DocumentReference(
-    key(path),
-    firestore(),
-    defaultDocumentDataConverter()
-  );
+  return new DocumentReference(key(path), firestore());
 }
 
 export function documentSnapshot(
@@ -86,8 +73,7 @@ export function documentSnapshot(
       key(path),
       doc(path, 1, data),
       fromCache,
-      /* hasPendingWrites= */ false,
-      defaultDocumentDataConverter()
+      /* hasPendingWrites= */ false
     );
   } else {
     return new DocumentSnapshot(
@@ -95,18 +81,13 @@ export function documentSnapshot(
       key(path),
       null,
       fromCache,
-      /* hasPendingWrites= */ false,
-      defaultDocumentDataConverter()
+      /* hasPendingWrites= */ false
     );
   }
 }
 
 export function query(path: string): Query {
-  return new Query(
-    InternalQuery.atPath(pathFrom(path)),
-    firestore(),
-    defaultDocumentDataConverter()
-  );
+  return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
 }
 
 /**
@@ -152,10 +133,5 @@ export function querySnapshot(
     syncStateChanged,
     false
   );
-  return new QuerySnapshot(
-    firestore(),
-    query,
-    viewSnapshot,
-    defaultDocumentDataConverter()
-  );
+  return new QuerySnapshot(firestore(), query, viewSnapshot);
 }

@@ -773,12 +773,3 @@ export function size(obj: JsonObject<unknown>): number {
 export function expectFirestoreError(err: Error): void {
   expect(err.name).to.equal('FirebaseError');
 }
-
-export function defaultDocumentDataConverter<
-  T
->(): firestore.FirestoreDataConverter<T> {
-  return {
-    toFirestore: value => value,
-    fromFirestore: (snapshot, options) => snapshot.data(options)! as T
-  };
-}

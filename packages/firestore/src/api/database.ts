@@ -1501,10 +1501,10 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
     assert(
-      typeof data === 'object',
+      data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
     );
-    return data as T;
+    return data;
   }
 }
 
@@ -1512,7 +1512,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    protected readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {}
 
   where(
@@ -2249,10 +2249,10 @@ export class QuerySnapshot<T = firestore.DocumentData>
   readonly metadata: firestore.SnapshotMetadata;
 
   constructor(
-    private _firestore: Firestore,
-    private _originalQuery: InternalQuery,
-    private _snapshot: ViewSnapshot,
-    private _converter?: firestore.FirestoreDataConverter<T>
+    private readonly _firestore: Firestore,
+    private readonly _originalQuery: InternalQuery,
+    private readonly _snapshot: ViewSnapshot,
+    private readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
@@ -2341,7 +2341,8 @@ export class QuerySnapshot<T = firestore.DocumentData>
     return (
       this._firestore === other._firestore &&
       this._originalQuery.isEqual(other._originalQuery) &&
-      this._snapshot.isEqual(other._snapshot)
+      this._snapshot.isEqual(other._snapshot) &&
+      isEqualConverter(this._converter, other._converter)
     );
   }
 
@@ -2398,7 +2399,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     readonly _path: ResourcePath,
     firestore: Firestore,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    _converter?: firestore.FirestoreDataConverter<T>
   ) {
     super(InternalQuery.atPath(_path), firestore, _converter);
     if (_path.length % 2 !== 1) {

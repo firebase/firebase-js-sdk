@@ -28,7 +28,6 @@ import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   applyDocChanges,
-  defaultDocumentDataConverter,
   doc,
   documentSetAsArray,
   key,
@@ -54,12 +53,7 @@ describe('DocumentChange:', () => {
     const expected = documentSetAsArray(updatedSnapshot.docs);
     const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const changes = changesFromSnapshot(
-      {} as Firestore,
-      true,
-      updatedSnapshot,
-      defaultDocumentDataConverter()
-    );
+    const changes = changesFromSnapshot({} as Firestore, true, updatedSnapshot);
 
     for (const change of changes) {
       if (change.type !== 'added') {
