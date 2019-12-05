@@ -63,7 +63,9 @@ export class OAuthToken implements Token {
   type = 'OAuth' as TokenType;
   authHeaders: { [header: string]: string };
   constructor(value: string, public user: User) {
-    this.authHeaders = { Authorization: `Bearer ${value}` };
+    this.authHeaders = {};
+    // Set the headers using Object Literal notation to avoid minification
+    this.authHeaders['Authorization'] = `Bearer ${value}`;
   }
 }
 

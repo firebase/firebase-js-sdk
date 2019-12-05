@@ -518,8 +518,8 @@ export class ObjectValue extends FieldValue {
       const it1 = this.internalValue.getIterator();
       const it2 = other.internalValue.getIterator();
       while (it1.hasNext() && it2.hasNext()) {
-        const next1: { key: string; value: FieldValue } = it1.getNext();
-        const next2: { key: string; value: FieldValue } = it2.getNext();
+        const next1 = it1.getNext();
+        const next2 = it2.getNext();
         if (next1.key !== next2.key || !next1.value.isEqual(next2.value)) {
           return false;
         }
