@@ -209,6 +209,7 @@ export class SimpleDb {
   static isMockPersistence(): boolean {
     return (
       typeof process !== 'undefined' &&
+      typeof process.env !== 'undefined' &&
       process.env.USE_MOCK_PERSISTENCE === 'YES'
     );
   }
