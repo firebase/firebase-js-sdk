@@ -1039,7 +1039,7 @@ export class DocumentReference<T = firestore.DocumentData>
     return (
       this.firestore === other.firestore &&
       this._key.isEqual(other._key) &&
-      isEqualConverter(this._converter, other._converter)
+      this._converter === other._converter
     );
   }
 
@@ -1448,7 +1448,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       (this._document === null
         ? other._document === null
         : this._document.isEqual(other._document)) &&
-      isEqualConverter(this._converter, other._converter)
+      this._converter === other._converter
     );
   }
 
@@ -2342,7 +2342,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
       this._firestore === other._firestore &&
       this._originalQuery.isEqual(other._originalQuery) &&
       this._snapshot.isEqual(other._snapshot) &&
-      isEqualConverter(this._converter, other._converter)
+      this._converter === other._converter
     );
   }
 
@@ -2643,20 +2643,6 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
       return 'removed';
     default:
       return fail('Unknown change type: ' + type);
-  }
-}
-
-function isEqualConverter(
-  first: firestore.FirestoreDataConverter<unknown> | undefined,
-  second: firestore.FirestoreDataConverter<unknown> | undefined
-): boolean {
-  if (first === undefined) {
-    return second === undefined;
-  } else {
-    // We compare the converters in string form since the standard `===` check
-    // is performed based on memory location, whereas we want to match as long
-    // as the underlying converter functions are the same.
-    return second !== undefined && first.toString() === second.toString();
   }
 }
 
