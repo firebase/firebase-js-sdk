@@ -207,11 +207,7 @@ export class SimpleDb {
    * (see https://github.com/axemclion/IndexedDBShim).
    */
   static isMockPersistence(): boolean {
-    return (
-      typeof process !== 'undefined' &&
-      typeof process.env !== 'undefined' &&
-      process.env.USE_MOCK_PERSISTENCE === 'YES'
-    );
+    return process?.env?.USE_MOCK_PERSISTENCE === 'YES';
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
