@@ -62,10 +62,11 @@ export class IndexedDbIndexManager implements IndexManager {
         this.collectionParentsCache.add(collectionPath);
       });
 
-      return collectionParentsStore(transaction).put({
+      const collectionParent : DbCollectionParent = {
         collectionId,
         parent: encode(parentPath)
-      });
+      };
+      return collectionParentsStore(transaction).put(collectionParent);
     }
     return PersistencePromise.resolve();
   }
