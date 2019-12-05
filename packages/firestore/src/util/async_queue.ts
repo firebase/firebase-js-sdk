@@ -283,7 +283,7 @@ export class AsyncQueue {
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
       return op()
-        .catch((error:FirestoreError) => {
+        .catch((error: FirestoreError) => {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';

@@ -48,13 +48,13 @@ const LOG_TAG = 'Connection';
 const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 const RPC_URL_VERSION = 'v1';
 
-/** 
- * Maps RPC names to the corresponding REST endpoint name. 
+/**
+ * Maps RPC names to the corresponding REST endpoint name.
  * Uses Object Literal notation to avoid renaming.
  */
 const RPC_NAME_REST_MAPPING: { [key: string]: string } = {};
-RPC_NAME_REST_MAPPING['BatchGetDocuments'] =  'batchGet';
-RPC_NAME_REST_MAPPING['Commit'] =  'commit';
+RPC_NAME_REST_MAPPING['BatchGetDocuments'] = 'batchGet';
+RPC_NAME_REST_MAPPING['Commit'] = 'commit';
 
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we

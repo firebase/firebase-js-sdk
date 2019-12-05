@@ -62,7 +62,7 @@ export class IndexedDbIndexManager implements IndexManager {
         this.collectionParentsCache.add(collectionPath);
       });
 
-      const collectionParent : DbCollectionParent = {
+      const collectionParent: DbCollectionParent = {
         collectionId,
         parent: encode(parentPath)
       };
