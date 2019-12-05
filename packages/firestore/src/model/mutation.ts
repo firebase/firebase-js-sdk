@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
@@ -121,7 +121,8 @@ export enum MutationType {
   Set,
   Patch,
   Transform,
-  Delete
+  Delete,
+  Verify
 }
 
 /**
@@ -586,27 +587,8 @@ export class TransformMutation extends Mutation {
     baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
-    this.verifyKeyMatches(maybeDoc);
-
-    if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
-    }
-
-    const doc = this.requireDocument(maybeDoc);
-    const transformResults = this.localTransformResults(
-      localWriteTime,
-      maybeDoc,
-      baseDoc
-    );
-    const newData = this.transformObject(doc.data(), transformResults);
-    return new Document(
-      this.key,
-      doc.version,
-      {
-        hasLocalMutations: true
-      },
-      newData
-    );
+    fail('This operation is not supported');
+    return null;
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
@@ -764,6 +746,67 @@ export class DeleteMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Delete;
+
+  applyToRemoteDocument(
+    maybeDoc: MaybeDocument | null,
+    mutationResult: MutationResult
+  ): MaybeDocument {
+    this.verifyKeyMatches(maybeDoc);
+
+    assert(
+      mutationResult.transformResults == null,
+      'Transform results received by DeleteMutation.'
+    );
+
+    // Unlike applyToLocalView, if we're applying a mutation to a remote
+    // document the server has accepted the mutation so the precondition must
+    // have held.
+
+    return new NoDocument(this.key, mutationResult.version, {
+      hasCommittedMutations: true
+    });
+  }
+
+  applyToLocalView(
+    maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
+    localWriteTime: Timestamp
+  ): MaybeDocument | null {
+    this.verifyKeyMatches(maybeDoc);
+
+    if (!this.precondition.isValidFor(maybeDoc)) {
+      return maybeDoc;
+    }
+
+    if (maybeDoc) {
+      assert(
+        maybeDoc.key.isEqual(this.key),
+        'Can only apply mutation to document with same key'
+      );
+    }
+    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
+  }
+
+  extractBaseValue(maybeDoc: MaybeDocument | null): null {
+    return null;
+  }
+
+  isEqual(other: Mutation): boolean {
+    return (
+      other instanceof DeleteMutation &&
+      this.key.isEqual(other.key) &&
+      this.precondition.isEqual(other.precondition)
+    );
+  }
+}
+
+/** A mutation that verifies the existence of the document at the given key. */
+export class VerifyMutation extends Mutation {
+  constructor(readonly key: DocumentKey, readonly precondition: Precondition) {
+    super();
+  }
+
+  readonly type: MutationType = MutationType.Verify;
 
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
