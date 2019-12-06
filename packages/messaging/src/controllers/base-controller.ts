@@ -70,14 +70,16 @@ export abstract class BaseController
     this.tokenDetailsModel = new TokenDetailsModel(services);
   }
 
-  async getToken(): Promise<string | null> {
-    // Check with permissions
-    const currentPermission = this.getNotificationPermission_();
-    if (currentPermission === 'denied') {
+  async getToken(): Promise<string> {
+    // Check notification permission.
+    let permission = this.getNotificationPermission();
+    if (permission === 'default') {
+      // The user hasn't allowed or denied notifications yet. Ask them.
+      permission = await this.requestNotificationPermission();
+    }
+
+    if (permission !== 'granted') {
       throw errorFactory.create(ErrorCode.NOTIFICATIONS_BLOCKED);
-    } else if (currentPermission !== 'granted') {
-      // We must wait for permission to be granted
-      return null;
     }
 
     const swReg = await this.getSWRegistration_();
@@ -327,8 +329,23 @@ export abstract class BaseController
   /**
    * Returns the current Notification Permission state.
    */
-  getNotificationPermission_(): NotificationPermission {
+  private getNotificationPermission(): NotificationPermission {
     return Notification.permission;
+  }
+
+  /**
+   * Requests notification permission from the user.
+   */
+  private async requestNotificationPermission(): Promise<
+    NotificationPermission
+  > {
+    if (!Notification.requestPermission) {
+      // Notification.requestPermission() is not available in web workers.
+      // Return the current permission.
+      return Notification.permission;
+    }
+
+    return Notification.requestPermission();
   }
 
   getTokenDetailsModel(): TokenDetailsModel {
