@@ -24,7 +24,7 @@ import {
   RequestStatus
 } from '../interfaces/installation-entry';
 import { compareHeaders } from '../testing/compare-headers';
-import { getFakeAppConfig } from '../testing/get-fake-app';
+import { getFakeAppConfig } from '../testing/fake-generators';
 import '../testing/setup';
 import {
   INSTALLATIONS_API_URL,

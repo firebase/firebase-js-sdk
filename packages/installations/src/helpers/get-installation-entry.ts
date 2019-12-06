@@ -20,8 +20,8 @@ import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
-  RequestStatus,
-  RegisteredInstallationEntry
+  RegisteredInstallationEntry,
+  RequestStatus
 } from '../interfaces/installation-entry';
 import { PENDING_TIMEOUT_MS } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';

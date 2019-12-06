@@ -25,7 +25,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
-import { getFakeAppConfig } from '../testing/get-fake-app';
+import { getFakeAppConfig } from '../testing/fake-generators';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';

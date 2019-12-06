@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as createInstallationRequestModule from '../api/create-installation-request';
 import * as generateAuthTokenRequestModule from '../api/generate-auth-token-request';
-import { extractAppConfig } from '../helpers/extract-app-config';
 import { get, set } from '../helpers/idb-manager';
 import { AppConfig } from '../interfaces/app-config';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import {
   CompletedAuthToken,
   InProgressInstallationEntry,
@@ -30,7 +29,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
-import { getFakeApp } from '../testing/get-fake-app';
+import { getFakeDependencies } from '../testing/fake-generators';
 import '../testing/setup';
 import { TOKEN_EXPIRATION_BUFFER } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
@@ -172,20 +171,18 @@ const setupInstallationEntryMap: Map<
 ]);
 
 describe('getToken', () => {
-  let app: FirebaseApp;
-  let appConfig: AppConfig;
+  let dependencies: FirebaseDependencies;
   let createInstallationRequestSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
   let generateAuthTokenRequestSpy: SinonStub<
-    [AppConfig, RegisteredInstallationEntry],
+    [FirebaseDependencies, RegisteredInstallationEntry],
     Promise<CompletedAuthToken>
   >;
 
   beforeEach(() => {
-    app = getFakeApp();
-    appConfig = extractAppConfig(app);
+    dependencies = getFakeDependencies();
 
     createInstallationRequestSpy = stub(
       createInstallationRequestModule,
@@ -223,17 +220,17 @@ describe('getToken', () => {
   describe('basic functionality', () => {
     for (const [title, setup] of setupInstallationEntryMap.entries()) {
       describe(`when ${title} in the DB`, () => {
-        beforeEach(() => setup(appConfig));
+        beforeEach(() => setup(dependencies.appConfig));
 
         it('resolves with an auth token', async () => {
-          const token = await getToken(app);
+          const token = await getToken(dependencies);
           expect(token).to.be.oneOf([AUTH_TOKEN, NEW_AUTH_TOKEN]);
         });
 
         it('saves the token in the DB', async () => {
-          const token = await getToken(app);
+          const token = await getToken(dependencies);
           const installationEntry = (await get(
-            appConfig
+            dependencies.appConfig
           )) as RegisteredInstallationEntry;
           expect(installationEntry).not.to.be.undefined;
           expect(installationEntry.registrationStatus).to.equal(
@@ -248,8 +245,8 @@ describe('getToken', () => {
         });
 
         it('returns the same token on subsequent calls', async () => {
-          const token1 = await getToken(app);
-          const token2 = await getToken(app);
+          const token1 = await getToken(dependencies);
+          const token2 = await getToken(dependencies);
           expect(token1).to.equal(token2);
         });
       });
@@ -258,21 +255,21 @@ describe('getToken', () => {
 
   describe('when there is no FID in the DB', () => {
     it('gets the token by registering a new FID', async () => {
-      await getToken(app);
+      await getToken(dependencies);
       expect(createInstallationRequestSpy).to.be.called;
       expect(generateAuthTokenRequestSpy).not.to.be.called;
     });
 
     it('does not register a new FID on subsequent calls', async () => {
-      await getToken(app);
-      await getToken(app);
+      await getToken(dependencies);
+      await getToken(dependencies);
       expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.be.rejected;
+      await expect(getToken(dependencies)).to.be.rejected;
     });
   });
 
@@ -288,30 +285,30 @@ describe('getToken', () => {
           requestStatus: RequestStatus.NOT_STARTED
         }
       };
-      await set(appConfig, installationEntry);
+      await set(dependencies.appConfig, installationEntry);
     });
 
     it('gets the token by calling generateAuthToken', async () => {
-      await getToken(app);
+      await getToken(dependencies);
       expect(generateAuthTokenRequestSpy).to.be.called;
       expect(createInstallationRequestSpy).not.to.be.called;
     });
 
     it('does not call generateAuthToken twice on subsequent calls', async () => {
-      await getToken(app);
-      await getToken(app);
+      await getToken(dependencies);
+      await getToken(dependencies);
       expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
-      await Promise.all([getToken(app), getToken(app)]);
+      await Promise.all([getToken(dependencies), getToken(dependencies)]);
       expect(generateAuthTokenRequestSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.be.rejected;
+      await expect(getToken(dependencies)).to.be.rejected;
     });
 
     describe('and the server returns an error', () => {
@@ -325,8 +322,8 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.be.rejected;
-        await expect(get(appConfig)).to.eventually.be.undefined;
+        await expect(getToken(dependencies)).to.be.rejected;
+        await expect(get(dependencies.appConfig)).to.eventually.be.undefined;
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
@@ -339,8 +336,8 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.be.rejected;
-        await expect(get(appConfig)).to.eventually.be.undefined;
+        await expect(getToken(dependencies)).to.be.rejected;
+        await expect(get(dependencies.appConfig)).to.eventually.be.undefined;
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
@@ -353,8 +350,8 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.be.rejected;
-        await expect(get(appConfig)).to.eventually.deep.equal(
+        await expect(getToken(dependencies)).to.be.rejected;
+        await expect(get(dependencies.appConfig)).to.eventually.deep.equal(
           installationEntry
         );
       });
@@ -374,17 +371,17 @@ describe('getToken', () => {
           creationTime: Date.now()
         }
       };
-      await set(appConfig, installationEntry);
+      await set(dependencies.appConfig, installationEntry);
     });
 
     it('does not call any server APIs', async () => {
-      await getToken(app);
+      await getToken(dependencies);
       expect(createInstallationRequestSpy).not.to.be.called;
       expect(generateAuthTokenRequestSpy).not.to.be.called;
     });
 
     it('refreshes the token if forceRefresh is true', async () => {
-      const token = await getToken(app, true);
+      const token = await getToken(dependencies, true);
       expect(token).to.equal(NEW_AUTH_TOKEN);
       expect(generateAuthTokenRequestSpy).to.be.called;
     });
@@ -392,14 +389,14 @@ describe('getToken', () => {
     it('works even if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      const token = await getToken(app);
+      const token = await getToken(dependencies);
       expect(token).to.equal(AUTH_TOKEN);
     });
 
     it('throws if the app is offline and forceRefresh is true', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app, true)).to.be.rejected;
+      await expect(getToken(dependencies, true)).to.be.rejected;
     });
   });
 
@@ -421,17 +418,17 @@ describe('getToken', () => {
             Date.now() - ONE_WEEK_MS + TOKEN_EXPIRATION_BUFFER + 10 * 60 * 1000
         }
       };
-      await set(appConfig, installationEntry);
+      await set(dependencies.appConfig, installationEntry);
     });
 
     it('returns a different token after expiration', async () => {
-      const token1 = await getToken(app);
+      const token1 = await getToken(dependencies);
       expect(token1).to.equal(AUTH_TOKEN);
 
       // Wait 30 minutes.
       clock.tick('30:00');
 
-      const token2 = await getToken(app);
+      const token2 = await getToken(dependencies);
       await expect(token2).to.equal(NEW_AUTH_TOKEN);
       await expect(token2).not.to.equal(token1);
     });
@@ -450,11 +447,11 @@ describe('getToken', () => {
           creationTime: Date.now() - 2 * ONE_WEEK_MS
         }
       };
-      await set(appConfig, installationEntry);
+      await set(dependencies.appConfig, installationEntry);
     });
 
     it('returns a different token', async () => {
-      const token = await getToken(app);
+      const token = await getToken(dependencies);
       expect(token).to.equal(NEW_AUTH_TOKEN);
       expect(generateAuthTokenRequestSpy).to.be.called;
     });
@@ -462,7 +459,7 @@ describe('getToken', () => {
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.be.rejected;
+      await expect(getToken(dependencies)).to.be.rejected;
     });
   });
 });
