@@ -21,7 +21,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@firebase/util": "0.2.34",
+    "@firebase/util": "0.2.35",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
