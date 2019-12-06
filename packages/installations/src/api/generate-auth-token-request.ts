@@ -30,7 +30,7 @@ import {
   retryIfServerError
 } from './common';
 
-export async function generateAuthToken(
+export async function generateAuthTokenRequest(
   appConfig: AppConfig,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {

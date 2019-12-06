@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { deleteInstallation as deleteInstallationRequest } from '../api/delete-installation';
+import { deleteInstallationRequest } from '../api/delete-installation-request';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { remove, update } from '../helpers/idb-manager';
 import { RequestStatus } from '../interfaces/installation-entry';

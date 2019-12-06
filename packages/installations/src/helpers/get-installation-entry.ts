@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { createInstallation } from '../api/create-installation';
+import { createInstallationRequest } from '../api/create-installation-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
@@ -132,7 +132,7 @@ async function registerInstallation(
   installationEntry: InProgressInstallationEntry
 ): Promise<RegisteredInstallationEntry> {
   try {
-    const registeredInstallationEntry = await createInstallation(
+    const registeredInstallationEntry = await createInstallationRequest(
       appConfig,
       installationEntry
     );
