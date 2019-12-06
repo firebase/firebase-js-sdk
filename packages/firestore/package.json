@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -30,11 +30,11 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.8.0",
-    "@firebase/logger": "0.1.31",
-    "@firebase/webchannel-wrapper": "0.2.32",
+    "@firebase/firestore-types": "1.8.1",
+    "@firebase/logger": "0.1.32",
+    "@firebase/webchannel-wrapper": "0.2.33",
     "@grpc/proto-loader": "^0.5.0",
-    "@firebase/util": "0.2.34",
+    "@firebase/util": "0.2.35",
     "@firebase/component": "0.1.0",
     "grpc": "1.24.2",
     "tslib": "1.10.0"
