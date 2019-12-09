@@ -21,7 +21,10 @@ import { Component, ComponentType } from '@firebase/component';
 import { PlatformLoggerService } from './platformLoggerService';
 import { name, version } from '../package.json';
 
-export function registerCoreComponents(firebase: FirebaseNamespace, variant?: string): void {
+export function registerCoreComponents(
+  firebase: FirebaseNamespace,
+  variant?: string
+): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'platform-logger',

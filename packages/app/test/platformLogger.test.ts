@@ -102,7 +102,9 @@ describe('Platform Logger Service', () => {
             );
             const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
-            expect(platformInfoString).to.include(`fire-core-node/${appVersion}`);
+            expect(platformInfoString).to.include(
+              `fire-core-node/${appVersion}`
+            );
             expect(platformInfoString).to.include('fire-js/');
           },
           ComponentType.PUBLIC

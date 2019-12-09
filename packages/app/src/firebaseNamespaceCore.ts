@@ -235,7 +235,11 @@ export function createFirebaseNamespaceCore(
       : null;
   }
 
-  function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void {
+  function registerVersion(
+    libraryKeyOrName: string,
+    version: string,
+    variant?: string
+  ): void {
     // TODO: We can use this check to whitelist strings when/if we set up
     // a good whitelist system.
     let library = PLATFORM_LOG_STRING[libraryKeyOrName] ?? libraryKeyOrName;

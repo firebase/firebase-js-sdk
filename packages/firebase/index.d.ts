@@ -89,7 +89,11 @@ declare namespace firebase {
    * @param version Current version of that library.
    * @param variant Bundle variant, e.g., node, rn, etc.
    */
-  function registerVersion(library: string, version: string, variant?: string): void;
+  function registerVersion(
+    library: string,
+    version: string,
+    variant?: string
+  ): void;
 
   /**
    * @hidden
