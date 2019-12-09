@@ -1,4 +1,9 @@
-# Unreleased (1.8.0)
+# Unreleased
+- [feature] Added support for strongly typed collections, documents, and
+  queries. You can now use `withConverter()` to supply a custom data
+  converter that will convert between Firestore data and your custom type.
+
+# 1.8.0
 - [changed] Improved the performance of repeatedly executed queries when
   persistence is enabled. Recently executed queries should see dramatic
   improvements. This benefit is reduced if changes accumulate while the query
