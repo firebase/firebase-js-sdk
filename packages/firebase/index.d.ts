@@ -7593,10 +7593,7 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    update(
-      documentRef: DocumentReference<any>,
-      data: UpdateData
-    ): Transaction;
+    update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -7670,10 +7667,7 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    update(
-      documentRef: DocumentReference<any>,
-      data: UpdateData
-    ): WriteBatch;
+    update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.

@@ -140,10 +140,7 @@ export class Transaction {
     options?: SetOptions
   ): Transaction;
 
-  update(
-    documentRef: DocumentReference<any>,
-    data: UpdateData
-  ): Transaction;
+  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
   update(
     documentRef: DocumentReference<any>,
     field: string | FieldPath,
