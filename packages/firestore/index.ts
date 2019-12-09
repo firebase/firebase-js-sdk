@@ -22,8 +22,11 @@ import './src/platform_browser/browser_init';
 import * as types from '@firebase/firestore-types';
 import { FirebaseNamespace } from '@firebase/app-types';
 
+import { name, version } from './package.json';
+
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
+  instance.registerVersion(name, version);
 }
 
 registerFirestore(firebase);

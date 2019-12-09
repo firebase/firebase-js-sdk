@@ -103,7 +103,7 @@ export interface FirebaseNamespace {
    * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
    * @param version Current version of that library.
    */
-  registerVersion(library: string, version: string): void;
+  registerVersion(library: string, version: string, variant?: string): void;
 
   // The current SDK version.
   SDK_VERSION: string;

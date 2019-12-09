@@ -38,6 +38,8 @@ import {
 } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
+import { name, version } from './package.json';
+
 setWebSocketImpl(Client);
 
 const ServerValue = Database.ServerValue;
@@ -130,6 +132,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
       )
       .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version, 'node');
 
   if (isNodeSdk()) {
     module.exports = Object.assign({}, namespace, { initStandalone });

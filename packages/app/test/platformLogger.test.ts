@@ -90,6 +90,27 @@ describe('Platform Logger Service', () => {
       return (firebase as any)['test-shell']();
     });
 
+    it(`logs core version with bundle variant`, () => {
+      firebase.initializeApp({});
+      registerCoreComponents(firebase, 'node');
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        new Component(
+          'test-shell',
+          async (container: ComponentContainer) => {
+            const platformLoggerProvider = container.getProvider(
+              'platform-logger'
+            );
+            const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
+            const platformInfoString = platformLogger.getPlatformInfoString();
+            expect(platformInfoString).to.include(`fire-core-node/${appVersion}`);
+            expect(platformInfoString).to.include('fire-js/');
+          },
+          ComponentType.PUBLIC
+        )
+      );
+      return (firebase as any)['test-shell']();
+    });
+
     it(`logs other components' versions`, () => {
       firebase.initializeApp({});
       registerCoreComponents(firebase);

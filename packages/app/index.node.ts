@@ -37,7 +37,7 @@ import { registerCoreComponents } from './src/registerCoreComponents';
 
 export const firebase = _firebase as FirebaseNamespace;
 
-registerCoreComponents(firebase);
+registerCoreComponents(firebase, 'node');
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;
