@@ -7088,8 +7088,8 @@ declare namespace firebase.firestore {
   export function setLogLevel(logLevel: LogLevel): void;
 
   /**
-   * Converter used by `withConverter()` to transform user objects into
-   * Firestore data.
+   * Converter used by `withConverter()` to transform user objects of type T
+   * into Firestore data.
    *
    * Using the converter allows you to specify generic type arguments when
    * storing and retrieving objects from Firestore.
@@ -7142,7 +7142,7 @@ declare namespace firebase.firestore {
      * type T. You can access your data by calling: `snapshot.data(options)`.
      *
      * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
-     * @param options The SnapshotOptions from the initial call to data().
+     * @param options The SnapshotOptions from the initial call to `data()`.
      */
     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
   }
@@ -7594,7 +7594,7 @@ declare namespace firebase.firestore {
      * @return This `Transaction` instance. Used for chaining method calls.
      */
     update(
-      documentRef: DocumentReference<unknown>,
+      documentRef: DocumentReference<any>,
       data: UpdateData
     ): Transaction;
 
@@ -7614,7 +7614,7 @@ declare namespace firebase.firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-      documentRef: DocumentReference<unknown>,
+      documentRef: DocumentReference<any>,
       field: string | FieldPath,
       value: any,
       ...moreFieldsAndValues: any[]
@@ -7626,7 +7626,7 @@ declare namespace firebase.firestore {
      * @param documentRef A reference to the document to be deleted.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    delete(documentRef: DocumentReference<unknown>): Transaction;
+    delete(documentRef: DocumentReference<any>): Transaction;
   }
 
   /**
@@ -7671,7 +7671,7 @@ declare namespace firebase.firestore {
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
     update(
-      documentRef: DocumentReference<unknown>,
+      documentRef: DocumentReference<any>,
       data: UpdateData
     ): WriteBatch;
 
@@ -7690,7 +7690,7 @@ declare namespace firebase.firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-      documentRef: DocumentReference<unknown>,
+      documentRef: DocumentReference<any>,
       field: string | FieldPath,
       value: any,
       ...moreFieldsAndValues: any[]
@@ -7702,7 +7702,7 @@ declare namespace firebase.firestore {
      * @param documentRef A reference to the document to be deleted.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    delete(documentRef: DocumentReference<unknown>): WriteBatch;
+    delete(documentRef: DocumentReference<any>): WriteBatch;
 
     /**
      * Commits all of the writes in this write batch as a single atomic unit.
@@ -7980,9 +7980,9 @@ declare namespace firebase.firestore {
     /**
      * Applies a custom data converter to this DocumentReference, allowing you
      * to use your own custom model objects with Firestore. When you call
-     * set(), get(), etc. on the returned DocumentReference instance, it will
-     * use the provided converter to convert data to/from type U (your custom
-     * model object type).
+     * set(), get(), etc. on the returned DocumentReference instance, the
+     * provided converter will convert between Firestore data and your custom
+     * type U.
      *
      * @param converter Converts objects to and from Firestore.
      * @return A DocumentReference<U> that uses the provided converter.
@@ -8246,7 +8246,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to start at.
      * @return The created Query.
      */
-    startAt(snapshot: DocumentSnapshot<unknown>): Query<T>;
+    startAt(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that starts at the provided fields
@@ -8268,7 +8268,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to start after.
      * @return The created Query.
      */
-    startAfter(snapshot: DocumentSnapshot<unknown>): Query<T>;
+    startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that starts after the provided fields
@@ -8290,7 +8290,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to end before.
      * @return The created Query.
      */
-    endBefore(snapshot: DocumentSnapshot<unknown>): Query<T>;
+    endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that ends before the provided fields
@@ -8312,7 +8312,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to end at.
      * @return The created Query.
      */
-    endAt(snapshot: DocumentSnapshot<unknown>): Query<T>;
+    endAt(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that ends at the provided fields
@@ -8434,8 +8434,8 @@ declare namespace firebase.firestore {
     /**
      * Applies a custom data converter to this Query, allowing you to use your
      * own custom model objects with Firestore. When you call get() on the
-     * returned Query, it will use the provided converter to convert data
-     * to/from type U (your custom model object type).
+     * returned Query, the provided converter will convert between Firestore
+     * data and your custom type U.
      *
      * @param converter Converts objects to and from Firestore.
      * @return A Query<U> that uses the provided converter.
@@ -8590,8 +8590,8 @@ declare namespace firebase.firestore {
     /**
      * Applies a custom data converter to this CollectionReference, allowing you
      * to use your own custom model objects with Firestore. When you call add()
-     * on the returned CollectionReference instance, it will use the provided
-     * converter to convert data to/from type U (your custom model object type).
+     * on the returned CollectionReference instance, the provided converter will
+     * convert between Firestore data and your custom type U.
      *
      * @param converter Converts objects to and from Firestore.
      * @return A CollectionReference<U> that uses the provided converter.

@@ -141,17 +141,17 @@ export class Transaction {
   ): Transaction;
 
   update(
-    documentRef: DocumentReference<unknown>,
+    documentRef: DocumentReference<any>,
     data: UpdateData
   ): Transaction;
   update(
-    documentRef: DocumentReference<unknown>,
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
   ): Transaction;
 
-  delete(documentRef: DocumentReference<unknown>): Transaction;
+  delete(documentRef: DocumentReference<any>): Transaction;
 }
 
 export class WriteBatch {
@@ -163,15 +163,15 @@ export class WriteBatch {
     options?: SetOptions
   ): WriteBatch;
 
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+  update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
   update(
-    documentRef: DocumentReference<unknown>,
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
   ): WriteBatch;
 
-  delete(documentRef: DocumentReference<unknown>): WriteBatch;
+  delete(documentRef: DocumentReference<any>): WriteBatch;
 
   commit(): Promise<void>;
 }
@@ -308,16 +308,16 @@ export class Query<T = DocumentData> {
 
   limitToLast(limit: number): Query<T>;
 
-  startAt(snapshot: DocumentSnapshot<unknown>): Query<T>;
+  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
   startAt(...fieldValues: any[]): Query<T>;
 
-  startAfter(snapshot: DocumentSnapshot<unknown>): Query<T>;
+  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
   startAfter(...fieldValues: any[]): Query<T>;
 
-  endBefore(snapshot: DocumentSnapshot<unknown>): Query<T>;
+  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
   endBefore(...fieldValues: any[]): Query<T>;
 
-  endAt(snapshot: DocumentSnapshot<unknown>): Query<T>;
+  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
   endAt(...fieldValues: any[]): Query<T>;
 
   isEqual(other: Query<T>): boolean;

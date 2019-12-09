@@ -772,17 +772,20 @@ export class Transaction implements firestore.Transaction {
   }
 
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     value: firestore.UpdateData
   ): Transaction;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Transaction;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -823,7 +826,8 @@ export class Transaction implements firestore.Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): Transaction {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete(documentRef: firestore.DocumentReference<any>): Transaction {
     validateExactNumberOfArgs('Transaction.delete', arguments, 1);
     const ref = validateReference(
       'Transaction.delete',
@@ -877,17 +881,20 @@ export class WriteBatch implements firestore.WriteBatch {
   }
 
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     value: firestore.UpdateData
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    documentRef: firestore.DocumentReference<any>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -932,7 +939,8 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete(documentRef: firestore.DocumentReference<any>): WriteBatch {
     validateExactNumberOfArgs('WriteBatch.delete', arguments, 1);
     this.verifyNotCommitted();
     const ref = validateReference(
@@ -1652,7 +1660,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   startAt(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    docOrField: unknown | firestore.DocumentSnapshot<any>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
@@ -1670,7 +1679,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   startAfter(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    docOrField: unknown | firestore.DocumentSnapshot<any>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
@@ -1688,7 +1698,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   endBefore(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    docOrField: unknown | firestore.DocumentSnapshot<any>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
@@ -1706,7 +1717,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   endAt(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    docOrField: unknown | firestore.DocumentSnapshot<any>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
@@ -2663,7 +2675,7 @@ function applyFirestoreDataConverter<T>(
   let convertedValue;
   if (converter) {
     convertedValue = converter.toFirestore(value);
-    functionName = 'toFirestore() in Transaction.set';
+    functionName = 'toFirestore() in ' + functionName;
   } else {
     convertedValue = value as firestore.DocumentData;
   }
