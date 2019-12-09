@@ -340,7 +340,7 @@ export abstract class BaseController
     NotificationPermission
   > {
     if (!Notification.requestPermission) {
-      // Notification.requestPermission() is not available in web workers.
+      // Notification.requestPermission() is not available in service workers.
       // Return the current permission.
       return Notification.permission;
     }
