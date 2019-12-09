@@ -127,7 +127,6 @@ function initializeApp(
   }
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
   let app = firebase.initializeApp(appOptions, appName);
-  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
   if (accessToken) {
     const mockAuthComponent = new Component(
       'auth-internal',
@@ -135,7 +134,10 @@ function initializeApp(
         ({
           getToken: async () => ({ accessToken: accessToken }),
           getUid: () => null,
-          addAuthTokenListener: () => {},
+          addAuthTokenListener: (listener) => {
+            // Call listener once immediately with predefined accessToken.
+            listener(accessToken);
+          },
           removeAuthTokenListener: () => {}
         } as FirebaseAuthInternal),
       ComponentType.PRIVATE
