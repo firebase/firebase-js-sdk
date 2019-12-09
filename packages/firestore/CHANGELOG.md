@@ -1,5 +1,6 @@
 # Unreleased
-- [feature] Added support for strongly typed collections, documents, and
+- [feature] Added support for storing and retrieving custom types in Firestore.
+  Added support for strongly typed collections, documents, and
   queries. You can now use `withConverter()` to supply a custom data
   converter that will convert between Firestore data and your custom type.
 
