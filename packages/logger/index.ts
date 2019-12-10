@@ -15,4 +15,10 @@
  * limitations under the License.
  */
 
-export { setLogLevel, Logger, LogLevel, LogHandler, addLogCallback } from './src/logger';
+export {
+  setLogLevel,
+  Logger,
+  LogLevel,
+  LogHandler,
+  addLogCallback
+} from './src/logger';

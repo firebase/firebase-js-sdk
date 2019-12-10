@@ -158,34 +158,19 @@ export class Logger {
    * The functions below are all based on the `console` interface
    */
 
-  debug(
-    message: string,
-    source?: FirebaseService | FirebaseApp
-  ): void {
+  debug(message: string, source?: FirebaseService | FirebaseApp): void {
     this._logHandler(this, LogLevel.DEBUG, message, source);
   }
-  log(
-    message: string,
-    source?: FirebaseService | FirebaseApp
-  ): void {
+  log(message: string, source?: FirebaseService | FirebaseApp): void {
     this._logHandler(this, LogLevel.VERBOSE, message, source);
   }
-  info(
-    message: string,
-    source?: FirebaseService | FirebaseApp
-  ): void {
+  info(message: string, source?: FirebaseService | FirebaseApp): void {
     this._logHandler(this, LogLevel.INFO, message, source);
   }
-  warn(
-    message: string,
-    source?: FirebaseService | FirebaseApp
-  ): void {
+  warn(message: string, source?: FirebaseService | FirebaseApp): void {
     this._logHandler(this, LogLevel.WARN, message, source);
   }
-  error(
-    message: string,
-    source?: FirebaseService | FirebaseApp
-  ): void {
+  error(message: string, source?: FirebaseService | FirebaseApp): void {
     this._logHandler(this, LogLevel.ERROR, message, source);
   }
 }
