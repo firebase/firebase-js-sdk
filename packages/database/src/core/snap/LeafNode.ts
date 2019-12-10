@@ -172,11 +172,11 @@ export class LeafNode implements Node {
    */
   val(exportFormat?: boolean): Object {
     if (exportFormat && !this.getPriority().isEmpty())
-      return {
+      {return {
         '.value': this.getValue(),
         '.priority': this.getPriority().val()
-      };
-    else return this.getValue();
+      };}
+    else {return this.getValue();}
   }
 
   /** @inheritDoc */
@@ -184,10 +184,10 @@ export class LeafNode implements Node {
     if (this.lazyHash_ === null) {
       let toHash = '';
       if (!this.priorityNode_.isEmpty())
-        toHash +=
+        {toHash +=
           'priority:' +
           priorityHashText(this.priorityNode_.val() as number | string) +
-          ':';
+          ':';}
 
       const type = typeof this.value_;
       toHash += type + ':';

@@ -105,7 +105,7 @@ export class IndexedFilter implements NodeFilter {
   ): Node {
     if (optChangeAccumulator != null) {
       if (!oldSnap.isLeafNode()) {
-        oldSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+        oldSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (!newSnap.hasChild(key)) {
             optChangeAccumulator.trackChildChange(
               Change.childRemovedChange(key, childNode)
@@ -114,7 +114,7 @@ export class IndexedFilter implements NodeFilter {
         });
       }
       if (!newSnap.isLeafNode()) {
-        newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+        newSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (oldSnap.hasChild(key)) {
             const oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {

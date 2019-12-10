@@ -32,7 +32,7 @@ export abstract class EventEmitter {
   /**
    * @param {!Array.<string>} allowedEvents_
    */
-  constructor(private allowedEvents_: Array<string>) {
+  constructor(private allowedEvents_: string[]) {
     assert(
       Array.isArray(allowedEvents_) && allowedEvents_.length > 0,
       'Requires a non-empty array'
@@ -91,7 +91,7 @@ export abstract class EventEmitter {
 
   private validateEventType_(eventType: string) {
     assert(
-      this.allowedEvents_.find(function(et) {
+      this.allowedEvents_.find((et) => {
         return et === eventType;
       }),
       'Unknown event: ' + eventType

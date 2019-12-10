@@ -158,7 +158,7 @@ export class SyncTree {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
-        each(write.children, function(pathString: string, node: Node) {
+        each(write.children, (pathString: string, node: Node) => {
           affectedTree = affectedTree.set(new Path(pathString), node);
         });
       }
@@ -297,7 +297,7 @@ export class SyncTree {
     let foundAncestorDefaultView = false;
     // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
-    this.syncPointTree_.foreachOnPath(path, function(pathToSyncPoint, sp) {
+    this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
       const relativePath = Path.relativePath(pathToSyncPoint, path);
       serverCache = serverCache || sp.getCompleteServerCache(relativePath);
       foundAncestorDefaultView =
@@ -320,7 +320,7 @@ export class SyncTree {
       serverCacheComplete = false;
       serverCache = ChildrenNode.EMPTY_NODE;
       const subtree = this.syncPointTree_.subtree(path);
-      subtree.foreachChild(function(childName, childSyncPoint) {
+      subtree.foreachChild((childName, childSyncPoint) => {
         const completeCache = childSyncPoint.getCompleteServerCache(Path.Empty);
         if (completeCache) {
           serverCache = serverCache.updateImmediateChild(
@@ -406,13 +406,13 @@ export class SyncTree {
       // queryId === 'default'
       const removingDefault =
         -1 !==
-        removed.findIndex(function(query) {
+        removed.findIndex((query) => {
           return query.getQueryParams().loadsAllData();
         });
-      const covered = this.syncPointTree_.findOnPath(path, function(
+      const covered = this.syncPointTree_.findOnPath(path, (
         relativePath,
         parentSyncPoint
-      ) {
+      ) => {
         return parentSyncPoint.hasCompleteView();
       });
 
@@ -487,10 +487,10 @@ export class SyncTree {
   calcCompleteEventCache(path: Path, writeIdsToExclude?: number[]): Node {
     const includeHiddenSets = true;
     const writeTree = this.pendingWriteTree_;
-    const serverCache = this.syncPointTree_.findOnPath(path, function(
+    const serverCache = this.syncPointTree_.findOnPath(path, (
       pathSoFar,
       syncPoint
-    ) {
+    ) => {
       const relativePath = Path.relativePath(pathSoFar, path);
       const serverCache = syncPoint.getCompleteServerCache(relativePath);
       if (serverCache) {
@@ -523,7 +523,7 @@ export class SyncTree {
           if (maybeChildSyncPoint) {
             views = maybeChildSyncPoint.getQueryViews();
           }
-          each(childMap, function(_key: string, childViews: View[]) {
+          each(childMap, (_key: string, childViews: View[]) => {
             views = views.concat(childViews);
           });
           return views;
@@ -591,11 +591,11 @@ export class SyncTree {
       );
     } else {
       // Shadow everything at or below this location, this is a default listener.
-      const queriesToStop = subtree.fold<Query[]>(function(
+      const queriesToStop = subtree.fold<Query[]>((
         relativePath,
         maybeChildSyncPoint,
         childMap
-      ) {
+      ) => {
         if (
           !relativePath.isEmpty() &&
           maybeChildSyncPoint &&
@@ -610,7 +610,7 @@ export class SyncTree {
               maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
             );
           }
-          each(childMap, function(_key: string, childQueries: Query[]) {
+          each(childMap, (_key: string, childQueries: Query[]) => {
             queries = queries.concat(childQueries);
           });
           return queries;

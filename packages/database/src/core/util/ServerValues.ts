@@ -120,7 +120,7 @@ export const resolveDeferredValueTree = function(
   serverValues: Object
 ): SparseSnapshotTree {
   const resolvedTree = new SparseSnapshotTree();
-  tree.forEachTree(new Path(''), function(path, node) {
+  tree.forEachTree(new Path(''), (path, node) => {
     const existing = syncTree.calcCompleteEventCache(path);
     assert(
       existing !== null && typeof existing !== 'undefined',
@@ -181,7 +181,7 @@ export const resolveDeferredValueSnapshot = function(
     if (priority !== childrenNode.getPriority().val()) {
       newNode = newNode.updatePriority(new LeafNode(priority));
     }
-    childrenNode.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
+    childrenNode.forEachChild(PRIORITY_INDEX, (childName, childNode) => {
       const newChildNode = resolveDeferredValueSnapshot(
         childNode,
         existing.getImmediateChild(childName),

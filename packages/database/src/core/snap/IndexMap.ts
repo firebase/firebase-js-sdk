@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert , contains, map, safeGet } from '@firebase/util';
 import { buildChildSet } from './childSet';
-import { contains, map, safeGet } from '@firebase/util';
+
 import { NamedNode, Node } from './Node';
 import { PRIORITY_INDEX } from './indexes/PriorityIndex';
 import { KEY_INDEX } from './indexes/KeyIndex';
@@ -55,7 +55,7 @@ export class IndexMap {
 
   get(indexKey: string): SortedMap<NamedNode, Node> | null {
     const sortedMap = safeGet(this.indexes_, indexKey);
-    if (!sortedMap) throw new Error('No index defined for ' + indexKey);
+    if (!sortedMap) {throw new Error('No index defined for ' + indexKey);}
 
     if (sortedMap instanceof SortedMap) {
       return sortedMap;
@@ -155,9 +155,9 @@ export class IndexMap {
     namedNode: NamedNode,
     existingChildren: SortedMap<string, Node>
   ): IndexMap {
-    const newIndexes = map(this.indexes_, function(
+    const newIndexes = map(this.indexes_, (
       indexedChildren: SortedMap<NamedNode, Node>
-    ) {
+    ) => {
       if (indexedChildren === fallbackObject) {
         // This is the fallback. Just return it, nothing to do in this case
         return indexedChildren;

@@ -17,8 +17,8 @@
 
 import { DataSnapshot } from '../../api/DataSnapshot';
 import { DataEvent, CancelEvent, Event } from './Event';
-import { contains } from '@firebase/util';
-import { assert } from '@firebase/util';
+import { contains , assert } from '@firebase/util';
+
 import { Path } from '../util/Path';
 import { Change } from './Change';
 import { Query } from '../../api/Query';

@@ -20,116 +20,116 @@ import firebase from '@firebase/app';
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../index';
 
-describe('Database Tests', function() {
+describe('Database Tests', () => {
   let defaultApp;
 
-  beforeEach(function() {
+  beforeEach(() => {
     defaultApp = createTestApp();
   });
 
-  afterEach(function() {
+  afterEach(() => {
     return defaultApp.delete();
   });
 
-  it('Can get database.', function() {
+  it('Can get database.', () => {
     const db = (firebase as any).database();
     expect(db).to.not.be.undefined;
     expect(db).not.to.be.null;
   });
 
-  it('Illegal to call constructor', function() {
-    expect(function() {
+  it('Illegal to call constructor', () => {
+    expect(() => {
       const db = new (firebase as any).database.Database('url');
     }).to.throw(/don't call new Database/i);
   });
 
-  it('Can get database with custom URL', function() {
-    var db = defaultApp.database('http://foo.bar.com');
+  it('Can get database with custom URL', () => {
+    const db = defaultApp.database('http://foo.bar.com');
     expect(db).to.be.ok;
     // The URL is assumed to be secure if no port is specified.
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');
   });
 
-  it('Can get database with custom URL and port', function() {
-    var db = defaultApp.database('http://foo.bar.com:80');
+  it('Can get database with custom URL and port', () => {
+    const db = defaultApp.database('http://foo.bar.com:80');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('http://foo.bar.com:80/');
   });
 
-  it('Can get database with https URL', function() {
-    var db = defaultApp.database('https://foo.bar.com');
+  it('Can get database with https URL', () => {
+    const db = defaultApp.database('https://foo.bar.com');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');
   });
 
-  it('Can get database with localhost URL and port', function() {
-    var db = defaultApp.database('http://localhost:80');
+  it('Can get database with localhost URL and port', () => {
+    const db = defaultApp.database('http://localhost:80');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('http://localhost:80/');
   });
 
-  it('Can get database with localhost URL', function() {
-    var db = defaultApp.database('http://localhost');
+  it('Can get database with localhost URL', () => {
+    const db = defaultApp.database('http://localhost');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
-  it('Can read ns query param', function() {
-    var db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
+  it('Can read ns query param', () => {
+    const db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('http://localhost:80/');
   });
 
-  it('Reads ns query param even when subdomain is set', function() {
-    var db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
+  it('Reads ns query param even when subdomain is set', () => {
+    const db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
   });
 
-  it('Interprets FIREBASE_DATABASE_EMULATOR_HOST var correctly', function() {
+  it('Interprets FIREBASE_DATABASE_EMULATOR_HOST var correctly', () => {
     process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
-    var db = defaultApp.database('https://bar.firebaseio.com');
+    const db = defaultApp.database('https://bar.firebaseio.com');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('bar');
     expect(db.repo_.repoInfo_.host).to.equal('localhost:9000');
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
-  it('Different instances for different URLs', function() {
-    var db1 = defaultApp.database('http://foo1.bar.com');
-    var db2 = defaultApp.database('http://foo2.bar.com');
+  it('Different instances for different URLs', () => {
+    const db1 = defaultApp.database('http://foo1.bar.com');
+    const db2 = defaultApp.database('http://foo2.bar.com');
     expect(db1.ref().toString()).to.equal('https://foo1.bar.com/');
     expect(db2.ref().toString()).to.equal('https://foo2.bar.com/');
   });
 
-  it('Cannot use same URL twice', function() {
+  it('Cannot use same URL twice', () => {
     defaultApp.database('http://foo.bar.com');
-    expect(function() {
+    expect(() => {
       defaultApp.database('http://foo.bar.com/');
     }).to.throw(/Database initialized multiple times/i);
   });
 
-  it('Databases with invalid custom URLs', function() {
-    expect(function() {
+  it('Databases with invalid custom URLs', () => {
+    expect(() => {
       defaultApp.database('not-a-url');
     }).to.throw(/Cannot parse Firebase url/i);
-    expect(function() {
+    expect(() => {
       defaultApp.database('http://fblocal.com');
     }).to.throw(/Cannot parse Firebase url/i);
-    expect(function() {
+    expect(() => {
       defaultApp.database('http://x.fblocal.com:9000/paths/are/bad');
     }).to.throw(/Database URL must point to the root of a Firebase Database/i);
   });
 
-  it('Can get app', function() {
+  it('Can get app', () => {
     const db = (firebase as any).database();
     expect(db.app).to.not.be.undefined;
     expect((db.app as any) instanceof firebase.app.App);
   });
 
-  it('Can get root ref', function() {
+  it('Can get root ref', () => {
     const db = (firebase as any).database();
 
     const ref = db.ref();
@@ -138,7 +138,7 @@ describe('Database Tests', function() {
     expect(ref.key).to.be.null;
   });
 
-  it('Can get child ref', function() {
+  it('Can get child ref', () => {
     const db = (firebase as any).database();
 
     const ref = db.ref('child');
@@ -147,7 +147,7 @@ describe('Database Tests', function() {
     expect(ref.key).to.equal('child');
   });
 
-  it('Can get deep child ref', function() {
+  it('Can get deep child ref', () => {
     const db = (firebase as any).database();
 
     const ref = db.ref('child/grand-child');
@@ -156,7 +156,7 @@ describe('Database Tests', function() {
     expect(ref.key).to.equal('grand-child');
   });
 
-  it('Can get ref from ref', function() {
+  it('Can get ref from ref', () => {
     const db1 = (firebase as any).database();
     const db2 = (firebase as any).database();
 
@@ -167,42 +167,42 @@ describe('Database Tests', function() {
     expect(ref2.key).to.equal('child');
   });
 
-  it('ref() validates arguments', function() {
+  it('ref() validates arguments', () => {
     const db = (firebase as any).database();
-    expect(function() {
+    expect(() => {
       const ref = (db as any).ref('path', 'extra');
     }).to.throw(/Expects no more than 1/);
   });
 
-  it('ref() validates project', function() {
+  it('ref() validates project', () => {
     const db1 = defaultApp.database('http://bar.foo.com');
     const db2 = defaultApp.database('http://foo.bar.com');
 
     const ref1 = db1.ref('child');
 
-    expect(function() {
+    expect(() => {
       db2.ref(ref1);
     }).to.throw(/does not match.*database/i);
   });
 
-  it('Can get refFromURL()', function() {
+  it('Can get refFromURL()', () => {
     const db = (firebase as any).database();
     const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
     expect(ref.key).to.equal('data');
   });
 
-  it('refFromURL() validates domain', function() {
+  it('refFromURL() validates domain', () => {
     const db = (firebase as any).database();
-    expect(function() {
+    expect(() => {
       const ref = db.refFromURL(
         'https://thisisnotarealfirebase.firebaseio.com/path/to/data'
       );
     }).to.throw(/does not match.*database/i);
   });
 
-  it('refFromURL() validates argument', function() {
+  it('refFromURL() validates argument', () => {
     const db = (firebase as any).database();
-    expect(function() {
+    expect(() => {
       const ref = (db as any).refFromURL();
     }).to.throw(/Expects at least 1/);
   });

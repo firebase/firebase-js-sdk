@@ -19,7 +19,7 @@ import { RepoInfo } from '../core/RepoInfo';
 
 declare const MozWebSocket: any;
 
-import { assert, CONSTANTS as ENV_CONSTANTS } from '@firebase/util';
+import { assert, CONSTANTS as ENV_CONSTANTS , jsonEval, stringify , isNodeSdk } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
 import {
@@ -33,8 +33,8 @@ import {
   WEBSOCKET
 } from './Constants';
 import { PersistentStorage } from '../core/storage/storage';
-import { jsonEval, stringify } from '@firebase/util';
-import { isNodeSdk } from '@firebase/util';
+
+
 import { Transport } from './Transport';
 import { StatsCollection } from '../core/stats/StatsCollection';
 import { SDK_VERSION } from '../core/version';
@@ -309,7 +309,7 @@ export class WebSocketConnection implements Transport {
    * @param mess The frame data
    */
   handleIncomingFrame(mess: { [k: string]: any }) {
-    if (this.mySock === null) return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+    if (this.mySock === null) {return;} // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
     const data = mess['data'] as string;
     this.bytesReceived += data.length;
     this.stats_.incrementCounter('bytes_received', data.length);

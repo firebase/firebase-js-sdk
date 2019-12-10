@@ -177,7 +177,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
       pathAndEvent[0] = rawPath(path);
 
-      if (pathAndEvent[1][0] === 'value') pathAndEvent[1][1] = path.key;
+      if (pathAndEvent[1][0] === 'value') {pathAndEvent[1][1] = path.key;}
 
       expectedPathAndEvents.push(pathAndEvent);
     }
@@ -194,11 +194,11 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     // Notice the 3rd and 4th events are swapped.
     // To mitigate this, we re-ordeer your event registrations and do them in order of shortest path to longest.
 
-    pathsToListenOn.sort(function(a, b) {
+    pathsToListenOn.sort((a, b) => {
       return a.toString().length - b.toString().length;
     });
     for (let i = 0; i < pathsToListenOn.length; i++) {
-      let path = pathsToListenOn[i];
+      const path = pathsToListenOn[i];
       if (!pathEventListeners[path.toString()]) {
         pathEventListeners[path.toString()] = {};
         pathEventListeners[path.toString()].initialized = false;
@@ -215,8 +215,8 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   addExpectedEvents(pathAndEvents);
 
   const watchesInitializedWaiter = function() {
-    for (let path in pathEventListeners) {
-      if (!pathEventListeners[path].initialized) return false;
+    for (const path in pathEventListeners) {
+      if (!pathEventListeners[path].initialized) {return false;}
     }
 
     // Remove any initialization events.
@@ -231,7 +231,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   };
 
   const unregister = function() {
-    for (let path in pathEventListeners) {
+    for (const path in pathEventListeners) {
       if (pathEventListeners.hasOwnProperty(path)) {
         pathEventListeners[path].unlisten();
       }
@@ -246,7 +246,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     watchesInitializedWaiter,
     unregister,
 
-    addExpectedEvents: function(moreEvents) {
+    addExpectedEvents(moreEvents) {
       addExpectedEvents(moreEvents);
     }
   };

@@ -36,8 +36,8 @@ import {
   TRANSPORT_SESSION_PARAM,
   VERSION_PARAM
 } from './Constants';
-import { base64Encode, stringify } from '@firebase/util';
-import { isNodeSdk } from '@firebase/util';
+import { base64Encode, stringify , isNodeSdk } from '@firebase/util';
+
 import { Transport } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
 import { StatsCollection } from '../core/stats/StatsCollection';
@@ -143,14 +143,14 @@ export class BrowserPollConnection implements Transport {
 
     // Ensure we delay the creation of the iframe until the DOM is loaded.
     executeWhenDOMReady(() => {
-      if (this.isClosed_) return;
+      if (this.isClosed_) {return;}
 
       //Set up a callback that gets triggered once a connection is set up.
       this.scriptTagHolder = new FirebaseIFrameScriptHolder(
         (...args) => {
           const [command, arg1, arg2, arg3, arg4] = args;
           this.incrementIncomingBytes_(args);
-          if (!this.scriptTagHolder) return; // we closed the connection.
+          if (!this.scriptTagHolder) {return;} // we closed the connection.
 
           if (this.connectTimeoutTimer_) {
             clearTimeout(this.connectTimeoutTimer_);
@@ -198,9 +198,9 @@ export class BrowserPollConnection implements Transport {
         Math.random() * 100000000
       );
       if (this.scriptTagHolder.uniqueCallbackIdentifier)
-        urlParams[
+        {urlParams[
           FIREBASE_LONGPOLL_CALLBACK_ID_PARAM
-        ] = this.scriptTagHolder.uniqueCallbackIdentifier;
+        ] = this.scriptTagHolder.uniqueCallbackIdentifier;}
       urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
       if (this.transportSessionId) {
         urlParams[TRANSPORT_SESSION_PARAM] = this.transportSessionId;
@@ -361,7 +361,7 @@ export class BrowserPollConnection implements Transport {
    * @param {!string} pw
    */
   addDisconnectPingFrame(id: string, pw: string) {
-    if (isNodeSdk()) return;
+    if (isNodeSdk()) {return;}
     this.myDisconnFrame = document.createElement('iframe');
     const urlParams: { [k: string]: string } = {};
     urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_REQUEST_PARAM] = 't';
@@ -400,7 +400,7 @@ export class FirebaseIFrameScriptHolder {
   outstandingRequests = new Set<number>();
 
   //A queue of the pending segments waiting for transmission to the server.
-  pendingSegs: { seg: number; ts: number; d: any }[] = [];
+  pendingSegs: Array<{ seg: number; ts: number; d: any }> = [];
 
   //A serial number. We use this for two things:
   // 1) A way to ensure the browser doesn't cache responses to polls
@@ -697,7 +697,7 @@ export class FirebaseIFrameScriptHolder {
       setTimeout(() => {
         try {
           // if we're already closed, don't add this poll
-          if (!this.sendNewPolls) return;
+          if (!this.sendNewPolls) {return;}
           const newScript = this.myIFrame.doc.createElement('script');
           newScript.type = 'text/javascript';
           newScript.async = true;

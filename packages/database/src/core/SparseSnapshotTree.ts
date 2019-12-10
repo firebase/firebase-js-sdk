@@ -96,7 +96,7 @@ export class SparseSnapshotTree {
           this.value = null;
 
           const self = this;
-          value.forEachChild(PRIORITY_INDEX, function(key, tree) {
+          value.forEachChild(PRIORITY_INDEX, (key, tree) => {
             self.remember(new Path(key), tree);
           });
 

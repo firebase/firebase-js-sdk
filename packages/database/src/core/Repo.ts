@@ -25,9 +25,9 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
-import { stringify } from '@firebase/util';
+import { stringify , map, isEmpty } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
-import { map, isEmpty } from '@firebase/util';
+
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
@@ -563,12 +563,12 @@ export class Repo {
   }
 
   stats(showDelta: boolean = false) {
-    if (typeof console === 'undefined') return;
+    if (typeof console === 'undefined') {return;}
 
     let stats: { [k: string]: any };
     if (showDelta) {
       if (!this.statsListener_)
-        this.statsListener_ = new StatsListener(this.stats_);
+        {this.statsListener_ = new StatsListener(this.stats_);}
       stats = this.statsListener_.get();
     } else {
       stats = this.stats_.get();
@@ -609,13 +609,13 @@ export class Repo {
     errorReason?: string | null
   ) {
     if (callback) {
-      exceptionGuard(function() {
+      exceptionGuard(() => {
         if (status == 'ok') {
           callback(null);
         } else {
           const code = (status || 'error').toUpperCase();
           let message = code;
-          if (errorReason) message += ': ' + errorReason;
+          if (errorReason) {message += ': ' + errorReason;}
 
           const error = new Error(message);
           (error as any).code = code;

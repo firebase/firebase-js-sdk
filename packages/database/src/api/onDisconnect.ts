@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { validateArgCount, validateCallback } from '@firebase/util';
+import { validateArgCount, validateCallback , Deferred } from '@firebase/util';
 import {
   validateWritablePath,
   validateFirebaseDataArg,
@@ -23,7 +23,7 @@ import {
   validateFirebaseMergeDataArg
 } from '../core/util/validation';
 import { warn } from '../core/util/util';
-import { Deferred } from '@firebase/util';
+
 import { Repo } from '../core/Repo';
 import { Path } from '../core/util/Path';
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert , contains, safeGet } from '@firebase/util';
 import { Reference } from '../api/Reference';
 import { DataSnapshot } from '../api/DataSnapshot';
 import { Path } from './util/Path';
@@ -25,7 +25,7 @@ import { Node } from './snap/Node';
 import { LUIDGenerator, warn, exceptionGuard } from './util/util';
 import { resolveDeferredValueSnapshot } from './util/ServerValues';
 import { isValidPriority, validateFirebaseData } from './util/validation';
-import { contains, safeGet } from '@firebase/util';
+
 import { nodeFromJSON } from './snap/nodeFromJSON';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { Repo } from './Repo';
@@ -87,7 +87,7 @@ export enum TransactionStatus {
  *   currentOutputSnapshotResolved: ?Node
  * }}
  */
-type Transaction = {
+interface Transaction {
   path: Path;
   update: (a: any) => any;
   onComplete: (a: Error | null, b: boolean, c: DataSnapshot | null) => void;
@@ -101,7 +101,7 @@ type Transaction = {
   currentInputSnapshot: Node | null;
   currentOutputSnapshotRaw: Node | null;
   currentOutputSnapshotResolved: Node | null;
-};
+}
 
 /**
  * Setup the transaction data structures
@@ -165,7 +165,7 @@ Repo.prototype.startTransaction = function(
     order: LUIDGenerator(),
 
     // Whether to raise local events for this transaction.
-    applyLocally: applyLocally,
+    applyLocally,
 
     // Count of how many times we've retried the transaction.
     retryCount: 0,
@@ -326,10 +326,10 @@ Repo.prototype.startTransaction = function(
  */
 (Repo.prototype as any).sendTransactionQueue_ = function(
   path: Path,
-  queue: Array<Transaction>
+  queue: Transaction[]
 ) {
   // Mark transactions as sent and increment retry count!
-  const setsToIgnore = queue.map(function(txn) {
+  const setsToIgnore = queue.map((txn) => {
     return txn.currentWriteId;
   });
   const latestState = this.getLatestState_(path, setsToIgnore);
@@ -404,8 +404,8 @@ Repo.prototype.startTransaction = function(
         if (status === 'datastale') {
           for (let i = 0; i < queue.length; i++) {
             if (queue[i].status === TransactionStatus.SENT_NEEDS_ABORT)
-              queue[i].status = TransactionStatus.NEEDS_ABORT;
-            else queue[i].status = TransactionStatus.RUN;
+              {queue[i].status = TransactionStatus.NEEDS_ABORT;}
+            else {queue[i].status = TransactionStatus.RUN;}
           }
         } else {
           warn(
@@ -454,7 +454,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 (Repo.prototype as any).rerunTransactionQueue_ = function(
-  queue: Array<Transaction>,
+  queue: Transaction[],
   path: Path
 ) {
   if (queue.length === 0) {
@@ -466,10 +466,10 @@ Repo.prototype.startTransaction = function(
   const callbacks = [];
   let events: Event[] = [];
   // Ignore all of the sets we're going to re-run.
-  const txnsToRerun = queue.filter(function(q) {
+  const txnsToRerun = queue.filter((q) => {
     return q.status === TransactionStatus.RUN;
   });
-  const setsToIgnore = txnsToRerun.map(function(q) {
+  const setsToIgnore = txnsToRerun.map((q) => {
     return q.currentWriteId;
   });
   for (let i = 0; i < queue.length; i++) {
@@ -627,13 +627,13 @@ Repo.prototype.startTransaction = function(
  */
 (Repo.prototype as any).buildTransactionQueue_ = function(
   transactionNode: Tree<Transaction[]>
-): Array<Transaction> {
+): Transaction[] {
   // Walk any child transaction queues and aggregate them into a single queue.
   const transactionQueue: Transaction[] = [];
   this.aggregateTransactionQueuesForNode_(transactionNode, transactionQueue);
 
   // Sort them by the order the transactions were created.
-  transactionQueue.sort(function(a, b) {
+  transactionQueue.sort((a, b) => {
     return a.order - b.order;
   });
 
@@ -647,7 +647,7 @@ Repo.prototype.startTransaction = function(
  */
 (Repo.prototype as any).aggregateTransactionQueuesForNode_ = function(
   node: Tree<Transaction[]>,
-  queue: Array<Transaction>
+  queue: Transaction[]
 ) {
   const nodeQueue = node.getValue();
   if (nodeQueue !== null) {

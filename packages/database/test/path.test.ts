@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { Path } from '../src/core/util/Path';
 
-describe('Path Tests', function() {
+describe('Path Tests', () => {
   const expectGreater = function(left, right) {
     expect(
       Path.comparePaths(new Path(left), new Path(right))
@@ -32,7 +32,7 @@ describe('Path Tests', function() {
     expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(0);
   };
 
-  it('contains() contains the path and any child path.', function() {
+  it('contains() contains the path and any child path.', () => {
     expect(new Path('/').contains(new Path('/a/b/c'))).to.equal(true);
     expect(new Path('/a').contains(new Path('/a/b/c'))).to.equal(true);
     expect(new Path('/a/b').contains(new Path('/a/b/c'))).to.equal(true);
@@ -63,7 +63,7 @@ describe('Path Tests', function() {
     );
   });
 
-  it('popFront() returns the parent', function() {
+  it('popFront() returns the parent', () => {
     expect(new Path('/a/b/c').popFront().toString()).to.equal('/b/c');
     expect(
       new Path('/a/b/c')
@@ -88,7 +88,7 @@ describe('Path Tests', function() {
     ).to.equal('/');
   });
 
-  it('parent() returns the parent', function() {
+  it('parent() returns the parent', () => {
     expect(new Path('/a/b/c').parent().toString()).to.equal('/a/b');
     expect(
       new Path('/a/b/c')
@@ -112,7 +112,7 @@ describe('Path Tests', function() {
     ).to.equal(null);
   });
 
-  it('comparePaths() works as expected', function() {
+  it('comparePaths() works as expected', () => {
     expectEqual('/', '');
     expectEqual('/a', '/a');
     expectEqual('/a', '/a//');

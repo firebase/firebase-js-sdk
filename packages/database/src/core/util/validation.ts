@@ -16,10 +16,10 @@
  */
 
 import { Path, ValidationPath } from './Path';
-import { contains, safeGet } from '@firebase/util';
+import { contains, safeGet , errorPrefix as errorPrefixFxn , stringLength } from '@firebase/util';
 import { isInvalidJSONNumber, each } from './util';
-import { errorPrefix as errorPrefixFxn } from '@firebase/util';
-import { stringLength } from '@firebase/util';
+
+
 import { RepoInfo } from '../RepoInfo';
 
 /**
@@ -108,7 +108,7 @@ export const validateFirebaseDataArg = function(
   path: Path,
   optional: boolean
 ) {
-  if (optional && data === undefined) return;
+  if (optional && data === undefined) {return;}
 
   validateFirebaseData(
     errorPrefixFxn(fnName, argumentNumber, optional),
@@ -173,7 +173,7 @@ export const validateFirebaseData = function(
   if (data && typeof data === 'object') {
     let hasDotValue = false;
     let hasActualChild = false;
-    each(data, function(key: string, value: any) {
+    each(data, (key: string, value: any) => {
       if (key === '.value') {
         hasDotValue = true;
       } else if (key !== '.priority' && key !== '.sv') {
@@ -275,7 +275,7 @@ export const validateFirebaseMergeDataArg = function(
   path: Path,
   optional: boolean
 ) {
-  if (optional && data === undefined) return;
+  if (optional && data === undefined) {return;}
 
   const errorPrefix = errorPrefixFxn(fnName, argumentNumber, optional);
 
@@ -286,7 +286,7 @@ export const validateFirebaseMergeDataArg = function(
   }
 
   const mergePaths: Path[] = [];
-  each(data, function(key: string, value: any) {
+  each(data, (key: string, value: any) => {
     const curPath = new Path(key);
     validateFirebaseData(errorPrefix, value, path.child(curPath));
     if (curPath.getBack() === '.priority') {
@@ -311,22 +311,22 @@ export const validatePriority = function(
   priority: any,
   optional: boolean
 ) {
-  if (optional && priority === undefined) return;
+  if (optional && priority === undefined) {return;}
   if (isInvalidJSONNumber(priority))
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'is ' +
         priority.toString() +
         ', but must be a valid Firebase priority (a string, finite number, ' +
         'server value, or null).'
-    );
+    );}
   // Special case to allow importing data with a .sv.
   if (!isValidPriority(priority))
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'must be a valid Firebase priority ' +
         '(a string, finite number, server value, or null).'
-    );
+    );}
 };
 
 export const validateEventType = function(
@@ -335,7 +335,7 @@ export const validateEventType = function(
   eventType: string,
   optional: boolean
 ) {
-  if (optional && eventType === undefined) return;
+  if (optional && eventType === undefined) {return;}
 
   switch (eventType) {
     case 'value':
@@ -359,15 +359,15 @@ export const validateKey = function(
   key: string,
   optional: boolean
 ) {
-  if (optional && key === undefined) return;
+  if (optional && key === undefined) {return;}
   if (!isValidKey(key))
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'was an invalid key = "' +
         key +
         '".  Firebase keys must be non-empty strings and ' +
         'can\'t contain ".", "#", "$", "/", "[", or "]").'
-    );
+    );}
 };
 
 export const validatePathString = function(
@@ -376,16 +376,16 @@ export const validatePathString = function(
   pathString: string,
   optional: boolean
 ) {
-  if (optional && pathString === undefined) return;
+  if (optional && pathString === undefined) {return;}
 
   if (!isValidPathString(pathString))
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'was an invalid path = "' +
         pathString +
         '". Paths must be non-empty strings and ' +
         'can\'t contain ".", "#", "$", "[", or "]"'
-    );
+    );}
 };
 
 export const validateRootPathString = function(
@@ -436,12 +436,12 @@ export const validateCredential = function(
   cred: any,
   optional: boolean
 ) {
-  if (optional && cred === undefined) return;
+  if (optional && cred === undefined) {return;}
   if (!(typeof cred === 'string'))
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'must be a valid credential (a string).'
-    );
+    );}
 };
 
 export const validateBoolean = function(
@@ -450,11 +450,11 @@ export const validateBoolean = function(
   bool: any,
   optional: boolean
 ) {
-  if (optional && bool === undefined) return;
+  if (optional && bool === undefined) {return;}
   if (typeof bool !== 'boolean')
-    throw new Error(
+    {throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) + 'must be a boolean.'
-    );
+    );}
 };
 
 export const validateString = function(
@@ -463,7 +463,7 @@ export const validateString = function(
   string: any,
   optional: boolean
 ) {
-  if (optional && string === undefined) return;
+  if (optional && string === undefined) {return;}
   if (!(typeof string === 'string')) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
@@ -478,7 +478,7 @@ export const validateObject = function(
   obj: any,
   optional: boolean
 ) {
-  if (optional && obj === undefined) return;
+  if (optional && obj === undefined) {return;}
   if (!(obj && typeof obj === 'object') || obj === null) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +

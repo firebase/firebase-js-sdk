@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { contains, isEmpty, safeGet, CONSTANTS } from '@firebase/util';
-import { stringify } from '@firebase/util';
-import { assert } from '@firebase/util';
+import { contains, isEmpty, safeGet, CONSTANTS , stringify , assert , isAdmin, isValidFormat , isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
+
+
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
 import { Path } from './util/Path';
 import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { OnlineMonitor } from './util/OnlineMonitor';
-import { isAdmin, isValidFormat } from '@firebase/util';
+
 import { Connection } from '../realtime/Connection';
-import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
+
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
@@ -196,10 +196,10 @@ export class PersistentConnection extends ServerActions {
       'listen() called twice for same path/queryId.'
     );
     const listenSpec: ListenSpec = {
-      onComplete: onComplete,
+      onComplete,
       hashFn: currentHashFn,
-      query: query,
-      tag: tag
+      query,
+      tag
     };
     this.listens.get(pathString)!.set(queryId, listenSpec);
 
@@ -440,7 +440,7 @@ export class PersistentConnection extends ServerActions {
     this.log_('onDisconnect ' + action, request);
     this.sendRequest(action, request, (response: { [k: string]: any }) => {
       if (onComplete) {
-        setTimeout(function() {
+        setTimeout(() => {
           onComplete(response[/*status*/ 's'], response[/* data */ 'd']);
         }, Math.floor(0));
       }
@@ -483,7 +483,7 @@ export class PersistentConnection extends ServerActions {
       /*data*/ d: data
     };
 
-    if (hash !== undefined) request[/*hash*/ 'h'] = hash;
+    if (hash !== undefined) {request[/*hash*/ 'h'] = hash;}
 
     // TODO: Only keep track of the most recent put for a given path?
     this.outstandingPuts_.push({
@@ -520,7 +520,7 @@ export class PersistentConnection extends ServerActions {
       }
 
       if (onComplete)
-        onComplete(message[/*status*/ 's'], message[/* data */ 'd']);
+        {onComplete(message[/*status*/ 's'], message[/* data */ 'd']);}
     });
   }
 
@@ -564,33 +564,33 @@ export class PersistentConnection extends ServerActions {
   private onDataPush_(action: string, body: { [k: string]: any }) {
     this.log_('handleServerMessage', action, body);
     if (action === 'd')
-      this.onDataUpdate_(
+      {this.onDataUpdate_(
         body[/*path*/ 'p'],
         body[/*data*/ 'd'],
         /*isMerge*/ false,
         body['t']
-      );
+      );}
     else if (action === 'm')
-      this.onDataUpdate_(
+      {this.onDataUpdate_(
         body[/*path*/ 'p'],
         body[/*data*/ 'd'],
         /*isMerge=*/ true,
         body['t']
-      );
+      );}
     else if (action === 'c')
-      this.onListenRevoked_(body[/*path*/ 'p'], body[/*query*/ 'q']);
+      {this.onListenRevoked_(body[/*path*/ 'p'], body[/*query*/ 'q']);}
     else if (action === 'ac')
-      this.onAuthRevoked_(
+      {this.onAuthRevoked_(
         body[/*status code*/ 's'],
         body[/* explanation */ 'd']
-      );
-    else if (action === 'sd') this.onSecurityDebugPacket_(body);
+      );}
+    else if (action === 'sd') {this.onSecurityDebugPacket_(body);}
     else
-      error(
+      {error(
         'Unrecognized action received from server: ' +
           stringify(action) +
           '\nAre you using the latest client?'
-      );
+      );}
   }
 
   private onReady_(timestamp: number, sessionId: string) {
@@ -679,7 +679,7 @@ export class PersistentConnection extends ServerActions {
         const timeSinceLastConnectSucceeded =
           new Date().getTime() - this.lastConnectionEstablishedTime_;
         if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT)
-          this.reconnectDelay_ = RECONNECT_MIN_DELAY;
+          {this.reconnectDelay_ = RECONNECT_MIN_DELAY;}
         this.lastConnectionEstablishedTime_ = null;
       }
 
@@ -743,7 +743,7 @@ export class PersistentConnection extends ServerActions {
       // First fetch auth token, and establish connection after fetching the token was successful
       this.authTokenProvider_
         .getToken(forceRefresh)
-        .then(function(result) {
+        .then((result) => {
           if (!canceled) {
             log('getToken() completed. Creating connection.');
             self.authToken_ = result && result.accessToken;
@@ -753,17 +753,17 @@ export class PersistentConnection extends ServerActions {
               onDataMessage,
               onReady,
               onDisconnect,
-              /* onKill= */ function(reason) {
+              /* onKill= */ ((reason) => {
                 warn(reason + ' (' + self.repoInfo_.toString() + ')');
                 self.interrupt(SERVER_KILL_INTERRUPT_REASON);
-              },
+              }),
               lastSessionId
             );
           } else {
             log('getToken() completed but was canceled');
           }
         })
-        .then(null, function(error) {
+        .then(null, (error) => {
           self.log_('Failed to get token: ' + error);
           if (!canceled) {
             if (CONSTANTS.NODE_ADMIN) {
@@ -814,7 +814,7 @@ export class PersistentConnection extends ServerActions {
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
       const put = this.outstandingPuts_[i];
       if (put && /*hash*/ 'h' in put.request && put.queued) {
-        if (put.onComplete) put.onComplete('disconnect');
+        if (put.onComplete) {put.onComplete('disconnect');}
 
         delete this.outstandingPuts_[i];
         this.outstandingPutCount_--;
@@ -822,7 +822,7 @@ export class PersistentConnection extends ServerActions {
     }
 
     // Clean up array occasionally.
-    if (this.outstandingPutCount_ === 0) this.outstandingPuts_ = [];
+    if (this.outstandingPutCount_ === 0) {this.outstandingPuts_ = [];}
   }
 
   private onListenRevoked_(pathString: string, query?: any[]) {
@@ -834,7 +834,7 @@ export class PersistentConnection extends ServerActions {
       queryId = query.map(q => ObjectToUniqueKey(q)).join('$');
     }
     const listen = this.removeListen_(pathString, queryId);
-    if (listen && listen.onComplete) listen.onComplete('permission_denied');
+    if (listen && listen.onComplete) {listen.onComplete('permission_denied');}
   }
 
   private removeListen_(pathString: string, queryId: string): ListenSpec {
@@ -898,7 +898,7 @@ export class PersistentConnection extends ServerActions {
     }
 
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
-      if (this.outstandingPuts_[i]) this.sendPut_(i);
+      if (this.outstandingPuts_[i]) {this.sendPut_(i);}
     }
 
     while (this.onDisconnectRequestQueue_.length) {

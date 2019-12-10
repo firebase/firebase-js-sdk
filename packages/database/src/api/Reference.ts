@@ -32,8 +32,8 @@ import {
   validateFirebaseDataArg,
   validateWritablePath
 } from '../core/util/validation';
-import { validateArgCount, validateCallback } from '@firebase/util';
-import { Deferred } from '@firebase/util';
+import { validateArgCount, validateCallback , Deferred } from '@firebase/util';
+
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
@@ -73,8 +73,8 @@ export class Reference extends Query {
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (this.path.isEmpty()) return null;
-    else return this.path.getBack();
+    if (this.path.isEmpty()) {return null;}
+    else {return this.path.getBack();}
   }
 
   /**
@@ -87,8 +87,8 @@ export class Reference extends Query {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
       if (this.path.getFront() === null)
-        validateRootPathString('Reference.child', 1, pathString, false);
-      else validatePathString('Reference.child', 1, pathString, false);
+        {validateRootPathString('Reference.child', 1, pathString, false);}
+      else {validatePathString('Reference.child', 1, pathString, false);}
     }
 
     return new Reference(this.repo, this.path.child(pathString));
@@ -205,9 +205,9 @@ export class Reference extends Query {
     validateCallback('Reference.setWithPriority', 3, onComplete, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Reference.setWithPriority failed: ' +
+      {throw 'Reference.setWithPriority failed: ' +
         this.getKey() +
-        ' is a read-only object.';
+        ' is a read-only object.';}
 
     const deferred = new Deferred();
     this.repo.setWithPriority(
@@ -251,11 +251,11 @@ export class Reference extends Query {
     validateBoolean('Reference.transaction', 3, applyLocally, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Reference.transaction failed: ' +
+      {throw 'Reference.transaction failed: ' +
         this.getKey() +
-        ' is a read-only object.';
+        ' is a read-only object.';}
 
-    if (applyLocally === undefined) applyLocally = true;
+    if (applyLocally === undefined) {applyLocally = true;}
 
     const deferred = new Deferred<TransactionResult>();
     if (typeof onComplete === 'function') {

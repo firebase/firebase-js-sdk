@@ -20,13 +20,13 @@ import { Query } from '../../api/Query';
 declare const window: any;
 declare const Windows: any;
 
-import { assert } from '@firebase/util';
-import { base64 } from '@firebase/util';
-import { Sha1 } from '@firebase/util';
-import { stringToByteArray } from '@firebase/util';
-import { stringify } from '@firebase/util';
+import { assert , base64 , Sha1 , stringToByteArray , stringify , isNodeSdk } from '@firebase/util';
+
+
+
+
 import { SessionStorage } from '../storage/storage';
-import { isNodeSdk } from '@firebase/util';
+
 import { Logger, LogLevel } from '@firebase/logger';
 
 const logClient = new Logger('@firebase/database');
@@ -110,7 +110,7 @@ export const enableLogging = function(
   if (logger_ === true) {
     logClient.logLevel = LogLevel.VERBOSE;
     logger = logClient.log.bind(logClient);
-    if (persistent) SessionStorage.set('logging_enabled', true);
+    if (persistent) {SessionStorage.set('logging_enabled', true);}
   } else if (typeof logger_ === 'function') {
     logger = logger_;
   } else {
@@ -127,7 +127,7 @@ export const log = function(...var_args: string[]) {
   if (firstLog_ === true) {
     firstLog_ = false;
     if (logger === null && SessionStorage.get('logging_enabled') === true)
-      enableLogging(true);
+      {enableLogging(true);}
   }
 
   if (logger) {
@@ -228,7 +228,7 @@ export const executeWhenDOMReady = function(fn: () => void) {
     // fire before onload), but fall back to onload.
 
     let called = false;
-    let wrappedFn = function() {
+    const wrappedFn = function() {
       if (!document.body) {
         setTimeout(wrappedFn, Math.floor(10));
         return;
@@ -246,8 +246,8 @@ export const executeWhenDOMReady = function(fn: () => void) {
       window.addEventListener('load', wrappedFn, false);
     } else if ((document as any).attachEvent) {
       // IE.
-      (document as any).attachEvent('onreadystatechange', function() {
-        if (document.readyState === 'complete') wrappedFn();
+      (document as any).attachEvent('onreadystatechange', () => {
+        if (document.readyState === 'complete') {wrappedFn();}
       });
       // fallback to onload.
       (window as any).attachEvent('onload', wrappedFn);
@@ -340,10 +340,10 @@ export const requireKey = function(
  * @return {string}
  */
 export const ObjectToUniqueKey = function(obj: any): string {
-  if (typeof obj !== 'object' || obj === null) return stringify(obj);
+  if (typeof obj !== 'object' || obj === null) {return stringify(obj);}
 
   const keys = [];
-  for (let k in obj) {
+  for (const k in obj) {
     keys.push(k);
   }
 
@@ -351,7 +351,7 @@ export const ObjectToUniqueKey = function(obj: any): string {
   keys.sort();
   let key = '{';
   for (let i = 0; i < keys.length; i++) {
-    if (i !== 0) key += ',';
+    if (i !== 0) {key += ',';}
     key += stringify(keys[i]);
     key += ':';
     key += ObjectToUniqueKey(obj[keys[i]]);
@@ -476,7 +476,7 @@ export const doubleToIEEE754String = function(v: number): string {
   let hexByteString = '';
   for (i = 0; i < 64; i += 8) {
     let hexByte = parseInt(str.substr(i, 8), 2).toString(16);
-    if (hexByte.length === 1) hexByte = '0' + hexByte;
+    if (hexByte.length === 1) {hexByte = '0' + hexByte;}
     hexByteString = hexByteString + hexByte;
   }
   return hexByteString.toLowerCase();
@@ -574,7 +574,7 @@ export const exceptionGuard = function(fn: () => void) {
     fn();
   } catch (e) {
     // Re-throw exception when it's safe.
-    setTimeout(function() {
+    setTimeout(() => {
       // It used to be that "throw e" would result in a good console error with
       // relevant context, but as of Chrome 39, you just get the firebase.js
       // file/line number where we re-throw it, which is useless. So we log
@@ -599,7 +599,7 @@ export const callUserCallback = function(
   ...var_args: any[]
 ) {
   if (typeof callback === 'function') {
-    exceptionGuard(function() {
+    exceptionGuard(() => {
       callback(...var_args);
     });
   }

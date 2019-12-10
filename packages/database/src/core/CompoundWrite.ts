@@ -55,7 +55,7 @@ export class CompoundWrite {
 
   addWrites(path: Path, updates: { [name: string]: Node }): CompoundWrite {
     let newWrite = this as CompoundWrite;
-    each(updates, function(childKey: string, node: Node) {
+    each(updates, (childKey: string, node: Node) => {
       newWrite = newWrite.addWrite(path.child(childKey), node);
     });
     return newWrite;
@@ -113,19 +113,19 @@ export class CompoundWrite {
    */
   getCompleteChildren(): NamedNode[] {
     const children: NamedNode[] = [];
-    let node = this.writeTree_.value;
+    const node = this.writeTree_.value;
     if (node != null) {
       // If it's a leaf node, it has no children; so nothing to do.
       if (!node.isLeafNode()) {
-        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, function(
+        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, (
           childName,
           childNode
-        ) {
+        ) => {
           children.push(new NamedNode(childName, childNode));
         });
       }
     } else {
-      this.writeTree_.children.inorderTraversal(function(childName, childTree) {
+      this.writeTree_.children.inorderTraversal((childName, childTree) => {
         if (childTree.value != null) {
           children.push(new NamedNode(childName, childTree.value));
         }
@@ -176,7 +176,7 @@ function applySubtreeWrite(
     return node.updateChild(relativePath, writeTree.value);
   } else {
     let priorityWrite = null;
-    writeTree.children.inorderTraversal(function(childKey, childTree) {
+    writeTree.children.inorderTraversal((childKey, childTree) => {
       if (childKey === '.priority') {
         // Apply priorities at the end so we don't update priorities for either empty nodes or forget
         // to apply priorities to empty nodes that are later filled

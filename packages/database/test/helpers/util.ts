@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-declare var MozWebSocket: WebSocket;
+declare let MozWebSocket: WebSocket;
 
 import firebase from '@firebase/app';
 import '../../index';
@@ -99,7 +99,7 @@ export function getRootNode(i = 0, ref?: string) {
  * @param {int=} numNodes
  * @return {Reference|Array<Reference>}
  */
-export function getRandomNode(numNodes?): Reference | Array<Reference> {
+export function getRandomNode(numNodes?): Reference | Reference[] {
   if (numNodes === undefined) {
     return <Reference>getRandomNode(1)[0];
   }
@@ -115,7 +115,7 @@ export function getRandomNode(numNodes?): Reference | Array<Reference> {
     nodeList[i] = ref.child(child);
   }
 
-  return <Array<Reference>>nodeList;
+  return <Reference[]>nodeList;
 }
 
 export function getQueryValue(query: Query) {
@@ -195,7 +195,7 @@ export function buildObjFromKey(key) {
 export function testRepoInfo(url) {
   const regex = /https?:\/\/(.*).firebaseio.com/;
   const match = url.match(regex);
-  if (!match) throw new Error('Couldnt get Namespace from passed URL');
+  if (!match) {throw new Error('Couldnt get Namespace from passed URL');}
   const [, ns] = match;
   return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
 }

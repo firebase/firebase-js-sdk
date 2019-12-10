@@ -190,12 +190,12 @@ export class LimitedFilter implements NodeFilter {
         let count = 0;
         let foundStartPost = false;
         while (iterator.hasNext()) {
-          let next = iterator.getNext();
+          const next = iterator.getNext();
           if (!foundStartPost && cmp(startPost, next) <= 0) {
             // start adding
             foundStartPost = true;
           }
-          let inRange =
+          const inRange =
             foundStartPost && count < this.limit_ && cmp(next, endPost) <= 0;
           if (inRange) {
             count++;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert , stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
@@ -24,7 +24,7 @@ import { PathIndex } from '../snap/indexes/PathIndex';
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';
 import { RangedFilter } from './filter/RangedFilter';
-import { stringify } from '@firebase/util';
+
 import { NodeFilter } from './filter/NodeFilter';
 import { Index } from '../snap/indexes/Index';
 

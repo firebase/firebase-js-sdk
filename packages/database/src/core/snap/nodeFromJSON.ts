@@ -18,8 +18,8 @@
 import { ChildrenNode } from './ChildrenNode';
 import { LeafNode } from './LeafNode';
 import { NamedNode, Node } from './Node';
-import { contains } from '@firebase/util';
-import { assert } from '@firebase/util';
+import { contains , assert } from '@firebase/util';
+
 import { buildChildSet } from './childSet';
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
 import { IndexMap } from './IndexMap';
@@ -120,7 +120,7 @@ export function nodeFromJSON(
           // ignore metadata nodes.
           const childNode = nodeFromJSON(childData);
           if (childNode.isLeafNode() || !childNode.isEmpty())
-            node = node.updateImmediateChild(key, childNode);
+            {node = node.updateImmediateChild(key, childNode);}
         }
       }
     });

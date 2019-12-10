@@ -59,9 +59,9 @@ export class TransportManager {
 
     if (repoInfo.webSocketOnly) {
       if (!isWebSocketsAvailable)
-        warn(
+        {warn(
           "wss:// URL used, but browser isn't known to support websockets.  Trying anyway."
-        );
+        );}
 
       isSkipPollConnection = true;
     }
