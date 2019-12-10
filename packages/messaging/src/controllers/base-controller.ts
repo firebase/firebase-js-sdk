@@ -238,7 +238,12 @@ export abstract class BaseController
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
     const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
-    await this.subscriptionManager.deleteToken(this.services, tokenDetails);
+    try {
+      await this.subscriptionManager.deleteToken(this.services, tokenDetails);
+    } catch (e) {
+      // A failed server-side delete does not need to break the app.
+      console.error(e);
+    }
   }
 
   // Visible for testing
