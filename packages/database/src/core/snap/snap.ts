@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert , contains } from '@firebase/util';
+import { assert, contains } from '@firebase/util';
 import { doubleToIEEE754String } from '../util/util';
 
 import { Node } from './Node';
@@ -31,9 +31,11 @@ export function setMaxNode(val: Node) {
  * @return {!string}
  */
 export const priorityHashText = function(priority: string | number): string {
-  if (typeof priority === 'number')
-    {return 'number:' + doubleToIEEE754String(priority);}
-  else {return 'string:' + priority;}
+  if (typeof priority === 'number') {
+    return 'number:' + doubleToIEEE754String(priority);
+  } else {
+    return 'string:' + priority;
+  }
 };
 
 /**

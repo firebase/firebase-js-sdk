@@ -117,12 +117,12 @@ export class CompoundWrite {
     if (node != null) {
       // If it's a leaf node, it has no children; so nothing to do.
       if (!node.isLeafNode()) {
-        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, (
-          childName,
-          childNode
-        ) => {
-          children.push(new NamedNode(childName, childNode));
-        });
+        (node as ChildrenNode).forEachChild(
+          PRIORITY_INDEX,
+          (childName, childNode) => {
+            children.push(new NamedNode(childName, childNode));
+          }
+        );
       }
     } else {
       this.writeTree_.children.inorderTraversal((childName, childTree) => {

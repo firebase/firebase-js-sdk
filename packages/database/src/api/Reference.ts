@@ -32,7 +32,7 @@ import {
   validateFirebaseDataArg,
   validateWritablePath
 } from '../core/util/validation';
-import { validateArgCount, validateCallback , Deferred } from '@firebase/util';
+import { validateArgCount, validateCallback, Deferred } from '@firebase/util';
 
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
@@ -73,8 +73,11 @@ export class Reference extends Query {
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (this.path.isEmpty()) {return null;}
-    else {return this.path.getBack();}
+    if (this.path.isEmpty()) {
+      return null;
+    } else {
+      return this.path.getBack();
+    }
   }
 
   /**
@@ -86,9 +89,11 @@ export class Reference extends Query {
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
-      if (this.path.getFront() === null)
-        {validateRootPathString('Reference.child', 1, pathString, false);}
-      else {validatePathString('Reference.child', 1, pathString, false);}
+      if (this.path.getFront() === null) {
+        validateRootPathString('Reference.child', 1, pathString, false);
+      } else {
+        validatePathString('Reference.child', 1, pathString, false);
+      }
     }
 
     return new Reference(this.repo, this.path.child(pathString));
@@ -204,10 +209,11 @@ export class Reference extends Query {
     validatePriority('Reference.setWithPriority', 2, newPriority, false);
     validateCallback('Reference.setWithPriority', 3, onComplete, true);
 
-    if (this.getKey() === '.length' || this.getKey() === '.keys')
-      {throw 'Reference.setWithPriority failed: ' +
+    if (this.getKey() === '.length' || this.getKey() === '.keys') {
+      throw 'Reference.setWithPriority failed: ' +
         this.getKey() +
-        ' is a read-only object.';}
+        ' is a read-only object.';
+    }
 
     const deferred = new Deferred();
     this.repo.setWithPriority(
@@ -250,12 +256,15 @@ export class Reference extends Query {
     // to expose it.
     validateBoolean('Reference.transaction', 3, applyLocally, true);
 
-    if (this.getKey() === '.length' || this.getKey() === '.keys')
-      {throw 'Reference.transaction failed: ' +
+    if (this.getKey() === '.length' || this.getKey() === '.keys') {
+      throw 'Reference.transaction failed: ' +
         this.getKey() +
-        ' is a read-only object.';}
+        ' is a read-only object.';
+    }
 
-    if (applyLocally === undefined) {applyLocally = true;}
+    if (applyLocally === undefined) {
+      applyLocally = true;
+    }
 
     const deferred = new Deferred<TransactionResult>();
     if (typeof onComplete === 'function') {

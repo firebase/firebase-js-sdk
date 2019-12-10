@@ -66,7 +66,9 @@ export class SortedMapIterator<K, V, T> {
       node = node as LLRBNode<K, V>;
       cmp = startKey ? comparator(node.key, startKey) : 1;
       // flip the comparison if we're going in reverse
-      if (isReverse_) {cmp *= -1;}
+      if (isReverse_) {
+        cmp *= -1;
+      }
 
       if (cmp < 0) {
         // This node is less than our start key. ignore it
@@ -92,13 +94,17 @@ export class SortedMapIterator<K, V, T> {
   }
 
   getNext(): T {
-    if (this.nodeStack_.length === 0) {return null;}
+    if (this.nodeStack_.length === 0) {
+      return null;
+    }
 
     let node = this.nodeStack_.pop();
     let result: T;
-    if (this.resultGenerator_)
-      {result = this.resultGenerator_(node.key, node.value);}
-    else {result = { key: node.key, value: node.value } as any;}
+    if (this.resultGenerator_) {
+      result = this.resultGenerator_(node.key, node.value);
+    } else {
+      result = { key: node.key, value: node.value } as any;
+    }
 
     if (this.isReverse_) {
       node = node.left;
@@ -122,7 +128,9 @@ export class SortedMapIterator<K, V, T> {
   }
 
   peek(): T {
-    if (this.nodeStack_.length === 0) {return null;}
+    if (this.nodeStack_.length === 0) {
+      return null;
+    }
 
     const node = this.nodeStack_[this.nodeStack_.length - 1];
     if (this.resultGenerator_) {
@@ -305,7 +313,9 @@ export class LLRBNode<K, V> {
       return SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
     }
     let n: LLRBNode<K, V> = this;
-    if (!n.left.isRed_() && !n.left.left.isRed_()) {n = n.moveRedLeft_();}
+    if (!n.left.isRed_() && !n.left.left.isRed_()) {
+      n = n.moveRedLeft_();
+    }
     n = n.copy(null, null, null, (n.left as LLRBNode<K, V>).removeMin_(), null);
     return n.fixUp_();
   }
@@ -327,7 +337,9 @@ export class LLRBNode<K, V> {
       }
       n = n.copy(null, null, null, n.left.remove(key, comparator), null);
     } else {
-      if (n.left.isRed_()) {n = n.rotateRight_();}
+      if (n.left.isRed_()) {
+        n = n.rotateRight_();
+      }
       if (!n.right.isEmpty() && !n.right.isRed_() && !n.right.left.isRed_()) {
         n = n.moveRedRight_();
       }
@@ -364,9 +376,15 @@ export class LLRBNode<K, V> {
    */
   private fixUp_(): LLRBNode<K, V> {
     let n = this as any;
-    if (n.right.isRed_() && !n.left.isRed_()) {n = n.rotateLeft_();}
-    if (n.left.isRed_() && n.left.left.isRed_()) {n = n.rotateRight_();}
-    if (n.left.isRed_() && n.right.isRed_()) {n = n.colorFlip_();}
+    if (n.right.isRed_() && !n.left.isRed_()) {
+      n = n.rotateLeft_();
+    }
+    if (n.left.isRed_() && n.left.left.isRed_()) {
+      n = n.rotateRight_();
+    }
+    if (n.left.isRed_() && n.right.isRed_()) {
+      n = n.colorFlip_();
+    }
     return n;
   }
 
@@ -675,7 +693,9 @@ export class SortedMap<K, V> {
       if (cmp === 0) {
         if (!node.left.isEmpty()) {
           node = node.left;
-          while (!node.right.isEmpty()) {node = node.right;}
+          while (!node.right.isEmpty()) {
+            node = node.right;
+          }
           return node.key;
         } else if (rightParent) {
           return rightParent.key;

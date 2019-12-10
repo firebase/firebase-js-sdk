@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert , contains, safeGet } from '@firebase/util';
+import { assert, contains, safeGet } from '@firebase/util';
 import { Reference } from '../api/Reference';
 import { DataSnapshot } from '../api/DataSnapshot';
 import { Path } from './util/Path';
@@ -330,7 +330,7 @@ Repo.prototype.startTransaction = function(
   queue: Transaction[]
 ) {
   // Mark transactions as sent and increment retry count!
-  const setsToIgnore = queue.map((txn) => {
+  const setsToIgnore = queue.map(txn => {
     return txn.currentWriteId;
   });
   const latestState = this.getLatestState_(path, setsToIgnore);
@@ -404,9 +404,11 @@ Repo.prototype.startTransaction = function(
         // transactions are no longer sent.  Update their status appropriately.
         if (status === 'datastale') {
           for (let i = 0; i < queue.length; i++) {
-            if (queue[i].status === TransactionStatus.SENT_NEEDS_ABORT)
-              {queue[i].status = TransactionStatus.NEEDS_ABORT;}
-            else {queue[i].status = TransactionStatus.RUN;}
+            if (queue[i].status === TransactionStatus.SENT_NEEDS_ABORT) {
+              queue[i].status = TransactionStatus.NEEDS_ABORT;
+            } else {
+              queue[i].status = TransactionStatus.RUN;
+            }
           }
         } else {
           warn(
@@ -467,10 +469,10 @@ Repo.prototype.startTransaction = function(
   const callbacks = [];
   let events: Event[] = [];
   // Ignore all of the sets we're going to re-run.
-  const txnsToRerun = queue.filter((q) => {
+  const txnsToRerun = queue.filter(q => {
     return q.status === TransactionStatus.RUN;
   });
-  const setsToIgnore = txnsToRerun.map((q) => {
+  const setsToIgnore = txnsToRerun.map(q => {
     return q.currentWriteId;
   });
   for (let i = 0; i < queue.length; i++) {
@@ -609,10 +611,7 @@ Repo.prototype.startTransaction = function(
   // Start at the root and walk deeper into the tree towards path until we find a node with pending transactions.
   let transactionNode = this.transactionQueueTree_;
   front = path.getFront();
-  while (
-    front !== null &&
-    transactionNode.getValue() === null
-  ) {
+  while (front !== null && transactionNode.getValue() === null) {
     transactionNode = transactionNode.subTree(front);
     path = path.popFront();
     front = path.getFront();

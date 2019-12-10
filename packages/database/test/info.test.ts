@@ -77,8 +77,10 @@ describe('.info Tests', function() {
   it('Can watch .info/connected.', () => {
     return new Promise(resolve => {
       const f = (getRandomNode() as Reference).root;
-      f.child('.info/connected').on('value', (snap) => {
-        if (snap.val() === true) {resolve();}
+      f.child('.info/connected').on('value', snap => {
+        if (snap.val() === true) {
+          resolve();
+        }
       });
     });
   });
@@ -89,10 +91,14 @@ describe('.info Tests', function() {
     let connectHistory = '';
 
     const ea = new EventAccumulator(() => everConnected);
-    f.child('.info/connected').on('value', (snap) => {
-      if (snap.val() === true) {everConnected = true;}
+    f.child('.info/connected').on('value', snap => {
+      if (snap.val() === true) {
+        everConnected = true;
+      }
 
-      if (everConnected) {connectHistory += snap.val() + ',';}
+      if (everConnected) {
+        connectHistory += snap.val() + ',';
+      }
       ea.addEvent();
     });
 
@@ -115,7 +121,7 @@ describe('.info Tests', function() {
 
     const ea = new EventAccumulator(() => offsets.length === 1);
 
-    ref.child('.info/serverTimeOffset').on('value', (snap) => {
+    ref.child('.info/serverTimeOffset').on('value', snap => {
       offsets.push(snap.val());
       ea.addEvent();
     });
@@ -176,7 +182,7 @@ describe('.info Tests', function() {
     runs(() => {
       ready = 0;
       const refDup = ref.database.ref();
-      refDup.child('.info/connected').on('value', (snap) => {
+      refDup.child('.info/connected').on('value', snap => {
         ready = snap.val() === true || ready;
       });
       setTimeout(() => {

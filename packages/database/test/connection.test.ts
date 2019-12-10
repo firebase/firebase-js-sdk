@@ -20,7 +20,7 @@ import { repoInfoForConnectionTest } from './helpers/util';
 import { Connection } from '../src/realtime/Connection';
 
 describe('Connection', () => {
-  it('return the session id', (done) => {
+  it('return the session id', done => {
     new Connection(
       '1',
       repoInfoForConnectionTest(),
@@ -38,7 +38,7 @@ describe('Connection', () => {
   // TODO(koss) - Flakey Test.  When Dev Tools is closed on my Mac, this test
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
-  it.skip('disconnect old session on new connection', (done) => {
+  it.skip('disconnect old session on new connection', done => {
     const info = repoInfoForConnectionTest();
     new Connection(
       '1',

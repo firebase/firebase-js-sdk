@@ -177,7 +177,9 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
       pathAndEvent[0] = rawPath(path);
 
-      if (pathAndEvent[1][0] === 'value') {pathAndEvent[1][1] = path.key;}
+      if (pathAndEvent[1][0] === 'value') {
+        pathAndEvent[1][1] = path.key;
+      }
 
       expectedPathAndEvents.push(pathAndEvent);
     }
@@ -216,7 +218,9 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
   const watchesInitializedWaiter = function() {
     for (const path in pathEventListeners) {
-      if (!pathEventListeners[path].initialized) {return false;}
+      if (!pathEventListeners[path].initialized) {
+        return false;
+      }
     }
 
     // Remove any initialization events.

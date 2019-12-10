@@ -406,15 +406,15 @@ export class SyncTree {
       // queryId === 'default'
       const removingDefault =
         -1 !==
-        removed.findIndex((query) => {
+        removed.findIndex(query => {
           return query.getQueryParams().loadsAllData();
         });
-      const covered = this.syncPointTree_.findOnPath(path, (
-        relativePath,
-        parentSyncPoint
-      ) => {
-        return parentSyncPoint.hasCompleteView();
-      });
+      const covered = this.syncPointTree_.findOnPath(
+        path,
+        (relativePath, parentSyncPoint) => {
+          return parentSyncPoint.hasCompleteView();
+        }
+      );
 
       if (removingDefault && !covered) {
         const subtree = this.syncPointTree_.subtree(path);
@@ -487,16 +487,16 @@ export class SyncTree {
   calcCompleteEventCache(path: Path, writeIdsToExclude?: number[]): Node {
     const includeHiddenSets = true;
     const writeTree = this.pendingWriteTree_;
-    const serverCache = this.syncPointTree_.findOnPath(path, (
-      pathSoFar,
-      syncPoint
-    ) => {
-      const relativePath = Path.relativePath(pathSoFar, path);
-      const serverCache = syncPoint.getCompleteServerCache(relativePath);
-      if (serverCache) {
-        return serverCache;
+    const serverCache = this.syncPointTree_.findOnPath(
+      path,
+      (pathSoFar, syncPoint) => {
+        const relativePath = Path.relativePath(pathSoFar, path);
+        const serverCache = syncPoint.getCompleteServerCache(relativePath);
+        if (serverCache) {
+          return serverCache;
+        }
       }
-    });
+    );
     return writeTree.calcCompleteEventCache(
       path,
       serverCache,
@@ -591,31 +591,29 @@ export class SyncTree {
       );
     } else {
       // Shadow everything at or below this location, this is a default listener.
-      const queriesToStop = subtree.fold<Query[]>((
-        relativePath,
-        maybeChildSyncPoint,
-        childMap
-      ) => {
-        if (
-          !relativePath.isEmpty() &&
-          maybeChildSyncPoint &&
-          maybeChildSyncPoint.hasCompleteView()
-        ) {
-          return [maybeChildSyncPoint.getCompleteView().getQuery()];
-        } else {
-          // No default listener here, flatten any deeper queries into an array
-          let queries: Query[] = [];
-          if (maybeChildSyncPoint) {
-            queries = queries.concat(
-              maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
-            );
+      const queriesToStop = subtree.fold<Query[]>(
+        (relativePath, maybeChildSyncPoint, childMap) => {
+          if (
+            !relativePath.isEmpty() &&
+            maybeChildSyncPoint &&
+            maybeChildSyncPoint.hasCompleteView()
+          ) {
+            return [maybeChildSyncPoint.getCompleteView().getQuery()];
+          } else {
+            // No default listener here, flatten any deeper queries into an array
+            let queries: Query[] = [];
+            if (maybeChildSyncPoint) {
+              queries = queries.concat(
+                maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
+              );
+            }
+            each(childMap, (_key: string, childQueries: Query[]) => {
+              queries = queries.concat(childQueries);
+            });
+            return queries;
           }
-          each(childMap, (_key: string, childQueries: Query[]) => {
-            queries = queries.concat(childQueries);
-          });
-          return queries;
         }
-      });
+      );
       for (let i = 0; i < queriesToStop.length; ++i) {
         const queryToStop = queriesToStop[i];
         this.listenProvider_.stopListening(

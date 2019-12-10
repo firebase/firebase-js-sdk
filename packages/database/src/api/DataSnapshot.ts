@@ -138,7 +138,9 @@ export class DataSnapshot {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 1, action, false);
 
-    if (this.node_.isLeafNode()) {return false;}
+    if (this.node_.isLeafNode()) {
+      return false;
+    }
 
     const childrenNode = this.node_ as ChildrenNode;
     // Sanitize the return value to a boolean. ChildrenNode.forEachChild has a weird return type...
@@ -156,8 +158,11 @@ export class DataSnapshot {
   hasChildren(): boolean {
     validateArgCount('DataSnapshot.hasChildren', 0, 0, arguments.length);
 
-    if (this.node_.isLeafNode()) {return false;}
-    else {return !this.node_.isEmpty();}
+    if (this.node_.isLeafNode()) {
+      return false;
+    } else {
+      return !this.node_.isEmpty();
+    }
   }
 
   get key() {

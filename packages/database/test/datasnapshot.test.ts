@@ -132,7 +132,7 @@ describe('DataSnapshot Tests', () => {
       e: 5
     });
     let out = '';
-    snap.forEach((child) => {
+    snap.forEach(child => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
@@ -151,7 +151,7 @@ describe('DataSnapshot Tests', () => {
     });
 
     let out = '';
-    snap.forEach((child) => {
+    snap.forEach(child => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
@@ -170,7 +170,7 @@ describe('DataSnapshot Tests', () => {
     });
 
     let out = '';
-    snap.forEach((child) => {
+    snap.forEach(child => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
@@ -189,7 +189,7 @@ describe('DataSnapshot Tests', () => {
     });
 
     let out = '';
-    snap.forEach((child) => {
+    snap.forEach(child => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
@@ -221,7 +221,7 @@ describe('DataSnapshot Tests', () => {
 
     const snap = snapshotForJSON(json);
     let out = '';
-    snap.forEach((child) => {
+    snap.forEach(child => {
       out = out + child.key + ', ';
     });
 

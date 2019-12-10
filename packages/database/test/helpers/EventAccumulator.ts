@@ -45,7 +45,9 @@ export class EventAccumulator {
   }
   addEvent(eventData?: any) {
     this.eventData = [...this.eventData, eventData];
-    if (typeof this.onEventFxn === 'function') {this.onEventFxn();}
+    if (typeof this.onEventFxn === 'function') {
+      this.onEventFxn();
+    }
     if (this._testCondition()) {
       this.resolve(this.eventData);
     }
@@ -56,8 +58,12 @@ export class EventAccumulator {
       this.resolve = resolve;
       this.reject = reject;
     });
-    if (typeof this.onResetFxn === 'function') {this.onResetFxn();}
-    if (typeof condition === 'function') {this.condition = condition;}
+    if (typeof this.onResetFxn === 'function') {
+      this.onResetFxn();
+    }
+    if (typeof condition === 'function') {
+      this.condition = condition;
+    }
   }
   onEvent(cb: Function) {
     this.onEventFxn = cb;

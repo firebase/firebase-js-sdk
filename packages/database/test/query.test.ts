@@ -270,7 +270,7 @@ describe('Query Tests', () => {
       'thing/'
     ];
     // Changed from basic array iteration to avoid closure issues accessing mutable state
-    _.each(badKeys, (badKey) => {
+    _.each(badKeys, badKey => {
       expect(() => {
         f.startAt(null, badKey);
       }).to.throw();
@@ -652,7 +652,7 @@ describe('Query Tests', () => {
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are kept.', () => {
     const node = getRandomNode() as Reference;
     let snap = null;
-    node.limitToLast(5).on('value', (s) => {
+    node.limitToLast(5).on('value', s => {
       snap = s;
     });
 
@@ -662,7 +662,7 @@ describe('Query Tests', () => {
     }
 
     let expected = 5;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -693,7 +693,7 @@ describe('Query Tests', () => {
 
     let expected = 5;
 
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -836,10 +836,10 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     let added = '',
       removed = '';
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
     node.set({ a: 1, b: 2, c: 3 });
@@ -862,11 +862,11 @@ describe('Query Tests', () => {
 
     let added = '',
       removed = '';
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
       ea.addEvent();
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
 
@@ -890,13 +890,13 @@ describe('Query Tests', () => {
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         added += snap.key + ' ';
       });
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removed += snap.key + ' ';
       });
     node.set({ a: 1, b: 2, c: 3 });
@@ -920,14 +920,14 @@ describe('Query Tests', () => {
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         added += snap.key + ' ';
         ea.addEvent();
       });
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removed += snap.key + ' ';
       });
 
@@ -951,13 +951,13 @@ describe('Query Tests', () => {
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         added += snap.key + ' ';
       });
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removed += snap.key + ' ';
       });
     node.set({ c: 3 });
@@ -982,14 +982,14 @@ describe('Query Tests', () => {
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         added += snap.key + ' ';
         ea.addEvent();
       });
     node
       .startAt(null, 'a')
       .limitToFirst(2)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removed += snap.key + ' ';
       });
 
@@ -1011,11 +1011,11 @@ describe('Query Tests', () => {
 
     let added = '',
       removed = '';
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
       ea.addEvent();
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
     node.set({ a: 1, b: 2, c: 3 });
@@ -1037,11 +1037,11 @@ describe('Query Tests', () => {
     let ea = EventAccumulatorFactory.waitsForCount(2);
     let added = '',
       removed = '';
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
       ea.addEvent();
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
 
@@ -1066,10 +1066,10 @@ describe('Query Tests', () => {
 
     let added = '',
       removed = '';
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
     node.set({ b: 2, c: 3 });
@@ -1091,11 +1091,11 @@ describe('Query Tests', () => {
     let removed = '';
     await node.set({ b: 2, c: 3 });
 
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       added += snap.key + ' ';
       ea.addEvent();
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       removed += snap.key + ' ';
     });
 
@@ -1435,10 +1435,10 @@ describe('Query Tests', () => {
     node.set({});
     let eventHistory = '';
 
-    node.limitToLast(2).on('child_added', (snap) => {
+    node.limitToLast(2).on('child_added', snap => {
       eventHistory = eventHistory + snap.val() + ' added, ';
     });
-    node.limitToLast(2).on('child_removed', (snap) => {
+    node.limitToLast(2).on('child_removed', snap => {
       eventHistory = eventHistory + snap.val() + ' removed, ';
     });
 
@@ -1466,11 +1466,11 @@ describe('Query Tests', () => {
     });
     let eventHistory = '';
 
-    readNode.limitToLast(2).on('child_added', (snap) => {
+    readNode.limitToLast(2).on('child_added', snap => {
       eventHistory = eventHistory + snap.val() + ' added, ';
       ea.addEvent();
     });
-    readNode.limitToLast(2).on('child_removed', (snap) => {
+    readNode.limitToLast(2).on('child_removed', snap => {
       eventHistory = eventHistory.replace(snap.val() + ' added, ', '');
       /**
        * This test expects this code NOT to fire, so by adding this
@@ -1496,7 +1496,7 @@ describe('Query Tests', () => {
     expect(ret).to.equal(callback);
   });
 
-  it("Limit on unsynced node fires 'value'.", (done) => {
+  it("Limit on unsynced node fires 'value'.", done => {
     const f = getRandomNode() as Reference;
     f.limitToLast(1).on('value', () => {
       done();
@@ -1507,7 +1507,7 @@ describe('Query Tests', () => {
     const f = getRandomNode() as Reference;
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    f.root.child('.info/connected').on('value', (snap) => {
+    f.root.child('.info/connected').on('value', snap => {
       ea.addEvent();
     });
 
@@ -1732,7 +1732,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
 
     const children = [];
-    node.limitToLast(5).on('child_added', (childSnap) => {
+    node.limitToLast(5).on('child_added', childSnap => {
       children.push(childSnap.key);
     });
 
@@ -1762,7 +1762,7 @@ describe('Query Tests', () => {
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(5);
-    node.limitToLast(5).on('child_added', (childSnap) => {
+    node.limitToLast(5).on('child_added', childSnap => {
       children.push(childSnap.key);
       ea.addEvent();
     });
@@ -1820,7 +1820,7 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
 
     const snaps = [];
-    ref.limitToLast(2).on('value', (snap) => {
+    ref.limitToLast(2).on('value', snap => {
       snaps.push(snap.val());
     });
 
@@ -1844,12 +1844,12 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
 
     let parent = null;
-    ref.limitToLast(1).on('value', (snap) => {
+    ref.limitToLast(1).on('value', snap => {
       parent = snap.val();
     });
 
     let child = null;
-    ref.child('a').on('value', (snap) => {
+    ref.child('a').on('value', snap => {
       child = snap.val();
     });
 
@@ -1866,12 +1866,12 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
 
     let parent = null;
-    ref.limitToLast(1).on('value', (snap) => {
+    ref.limitToLast(1).on('value', snap => {
       parent = snap.val();
     });
 
     let child = null;
-    ref.child('a').on('value', (snap) => {
+    ref.child('a').on('value', snap => {
       child = snap.val();
     });
 
@@ -1893,7 +1893,7 @@ describe('Query Tests', () => {
     ref
       .limitToLast(1)
       .endAt(null, 'c')
-      .on('value', (snap) => {
+      .on('value', snap => {
         c = snap.val();
       });
 
@@ -1901,7 +1901,7 @@ describe('Query Tests', () => {
     ref
       .limitToLast(1)
       .endAt(null, 'd')
-      .on('value', (snap) => {
+      .on('value', snap => {
         d = snap.val();
       });
 
@@ -1918,7 +1918,7 @@ describe('Query Tests', () => {
 
     let val;
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    ref.limitToLast(1).on('child_added', (snap) => {
+    ref.limitToLast(1).on('child_added', snap => {
       val = snap.val();
       ea.addEvent();
     });
@@ -1933,7 +1933,7 @@ describe('Query Tests', () => {
     expect(val).to.equal(1);
   });
 
-  it('.startAt().limitToFirst(1) works.', (done) => {
+  it('.startAt().limitToFirst(1) works.', done => {
     const ref = getRandomNode() as Reference;
     ref.set({ a: 1, b: 2 });
 
@@ -1941,7 +1941,7 @@ describe('Query Tests', () => {
     ref
       .startAt()
       .limitToFirst(1)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         val = snap.val();
         if (val === 1) {
           done();
@@ -1958,7 +1958,7 @@ describe('Query Tests', () => {
     ref
       .startAt()
       .limitToFirst(1)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         val = snap.val();
         ea.addEvent();
       });
@@ -1973,7 +1973,7 @@ describe('Query Tests', () => {
     expect(val).to.equal(2);
   });
 
-  it('.startAt() with two arguments works properly (case 1169).', (done) => {
+  it('.startAt() with two arguments works properly (case 1169).', done => {
     const ref = getRandomNode() as Reference;
     const data = {
       Walker: {
@@ -1991,9 +1991,9 @@ describe('Query Tests', () => {
       ref
         .startAt(20, 'Walker')
         .limitToFirst(2)
-        .on('value', (s) => {
+        .on('value', s => {
           const childNames = [];
-          s.forEach((node) => {
+          s.forEach(node => {
             childNames.push(node.key);
           });
           expect(childNames).to.deep.equal(['Walker', 'Michael']);
@@ -2017,7 +2017,7 @@ describe('Query Tests', () => {
     const ea = EventAccumulatorFactory.waitsForCount(1);
 
     let firstListen = false;
-    ref.limitToLast(2).on('value', (snap) => {
+    ref.limitToLast(2).on('value', snap => {
       // This shouldn't get called twice, we don't update the values here
       expect(firstListen).to.be.false;
       firstListen = true;
@@ -2047,7 +2047,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     // Setup value listener
-    ref.on('value', (snap) => {
+    ref.on('value', snap => {
       ea.addEvent();
     });
 
@@ -2070,7 +2070,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     // Setup value listener
-    ref.on('value', (snap) => {
+    ref.on('value', snap => {
       ea.addEvent();
     });
 
@@ -2082,7 +2082,7 @@ describe('Query Tests', () => {
     expect(val).to.deep.equal({ a: 1, b: 2, c: 3 });
   });
 
-  it('Remote remove triggers events.', (done) => {
+  it('Remote remove triggers events.', done => {
     const refPair = getRandomNode(2),
       writeRef = refPair[0],
       readRef = refPair[1];
@@ -2090,7 +2090,7 @@ describe('Query Tests', () => {
     writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, () => {
       // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
       let count = 0;
-      readRef.limitToLast(5).on('value', (s) => {
+      readRef.limitToLast(5).on('value', s => {
         count++;
         if (count === 1) {
           expect(s.val()).to.deep.equal({
@@ -2110,7 +2110,7 @@ describe('Query Tests', () => {
     });
   });
 
-  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", (done) => {
+  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", done => {
     const ref = getRandomNode() as Reference;
     ref.set(
       { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
@@ -2118,7 +2118,7 @@ describe('Query Tests', () => {
         ref
           .endAt(null, 'f')
           .limitToLast(5)
-          .on('value', (s) => {
+          .on('value', s => {
             expect(s.val()).to.deep.equal({
               b: 'b',
               c: 'c',
@@ -2132,7 +2132,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('complex update() at query root raises correct value event', (done) => {
+  it('complex update() at query root raises correct value event', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2145,7 +2145,7 @@ describe('Query Tests', () => {
           .child('foo')
           .startAt()
           .limitToFirst(4)
-          .on('value', (snapshot) => {
+          .on('value', snapshot => {
             const val = snapshot.val();
             if (!readerLoaded) {
               readerLoaded = true;
@@ -2172,7 +2172,7 @@ describe('Query Tests', () => {
       });
   });
 
-  it('update() at query root raises correct value event', (done) => {
+  it('update() at query root raises correct value event', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2184,7 +2184,7 @@ describe('Query Tests', () => {
         reader
           .child('foo')
           .limitToLast(10)
-          .on('value', (snapshot) => {
+          .on('value', snapshot => {
             const val = snapshot.val();
             if (!readerLoaded) {
               readerLoaded = true;
@@ -2203,7 +2203,7 @@ describe('Query Tests', () => {
       });
   });
 
-  it('set() at query root raises correct value event', (done) => {
+  it('set() at query root raises correct value event', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2215,7 +2215,7 @@ describe('Query Tests', () => {
         reader
           .child('foo')
           .limitToLast(10)
-          .on('value', (snapshot) => {
+          .on('value', snapshot => {
             const val = snapshot.val();
             if (!readerLoaded) {
               readerLoaded = true;
@@ -2234,7 +2234,7 @@ describe('Query Tests', () => {
       });
   });
 
-  it('listen for child_added events with limit and different types fires properly', (done) => {
+  it('listen for child_added events with limit and different types fires properly', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2248,7 +2248,7 @@ describe('Query Tests', () => {
         writer
           .child('c')
           .set({ deep: 'path', of: { stuff: true } }, (error, dummy) => {
-            reader.limitToLast(3).on('child_added', (snap) => {
+            reader.limitToLast(3).on('child_added', snap => {
               const val = snap.val();
               switch (snap.key) {
                 case 'a':
@@ -2269,14 +2269,16 @@ describe('Query Tests', () => {
               }
               numEventsReceived += 1;
               expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {done();}
+              if (gotA && gotB && gotC) {
+                done();
+              }
             });
           });
       });
     });
   });
 
-  it('listen for child_changed events with limit and different types fires properly', (done) => {
+  it('listen for child_changed events with limit and different types fires properly', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2286,48 +2288,50 @@ describe('Query Tests', () => {
       gotB = false,
       gotC = false,
       readerLoaded = false;
-    writer.set({ a: 'something', b: "we'll", c: 'overwrite ' }, (
-      error,
-      dummy
-    ) => {
-      reader.limitToLast(3).on('value', (snapshot) => {
-        if (!readerLoaded) {
-          readerLoaded = true;
-          // Set up listener for upcoming change events
-          reader.limitToLast(3).on('child_changed', (snap) => {
-            const val = snap.val();
-            switch (snap.key) {
-              case 'a':
-                gotA = true;
-                expect(val).to.equal(1);
-                break;
-              case 'b':
-                gotB = true;
-                expect(val).to.equal('b');
-                break;
-              case 'c':
-                gotC = true;
-                expect(val.deep).to.equal('path');
-                expect(val.of.stuff).to.be.true;
-                break;
-              default:
-                expect(false).to.be.true;
-            }
-            numEventsReceived += 1;
-            expect(numEventsReceived).to.be.lessThan(4);
-            if (gotA && gotB && gotC) {done();}
-          });
+    writer.set(
+      { a: 'something', b: "we'll", c: 'overwrite ' },
+      (error, dummy) => {
+        reader.limitToLast(3).on('value', snapshot => {
+          if (!readerLoaded) {
+            readerLoaded = true;
+            // Set up listener for upcoming change events
+            reader.limitToLast(3).on('child_changed', snap => {
+              const val = snap.val();
+              switch (snap.key) {
+                case 'a':
+                  gotA = true;
+                  expect(val).to.equal(1);
+                  break;
+                case 'b':
+                  gotB = true;
+                  expect(val).to.equal('b');
+                  break;
+                case 'c':
+                  gotC = true;
+                  expect(val.deep).to.equal('path');
+                  expect(val.of.stuff).to.be.true;
+                  break;
+                default:
+                  expect(false).to.be.true;
+              }
+              numEventsReceived += 1;
+              expect(numEventsReceived).to.be.lessThan(4);
+              if (gotA && gotB && gotC) {
+                done();
+              }
+            });
 
-          // Begin changing every key
-          writer.child('a').set(1);
-          writer.child('b').set('b');
-          writer.child('c').set({ deep: 'path', of: { stuff: true } });
-        }
-      });
-    });
+            // Begin changing every key
+            writer.child('a').set(1);
+            writer.child('b').set('b');
+            writer.child('c').set({ deep: 'path', of: { stuff: true } });
+          }
+        });
+      }
+    );
   });
 
-  it('listen for child_remove events with limit and different types fires properly', (done) => {
+  it('listen for child_remove events with limit and different types fires properly', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2340,12 +2344,12 @@ describe('Query Tests', () => {
     writer.set(
       { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
       (error, dummy) => {
-        reader.limitToLast(3).on('value', (snapshot) => {
+        reader.limitToLast(3).on('value', snapshot => {
           if (!readerLoaded) {
             readerLoaded = true;
 
             // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', (snap) => {
+            reader.limitToLast(3).on('child_removed', snap => {
               const val = snap.val();
               switch (snap.key) {
                 case 'a':
@@ -2366,7 +2370,9 @@ describe('Query Tests', () => {
               }
               numEventsReceived += 1;
               expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {done();}
+              if (gotA && gotB && gotC) {
+                done();
+              }
             });
 
             // Begin removing every key
@@ -2379,7 +2385,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('listen for child_remove events when parent removed', (done) => {
+  it('listen for child_remove events when parent removed', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2392,12 +2398,12 @@ describe('Query Tests', () => {
     writer.set(
       { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
       (error, dummy) => {
-        reader.limitToLast(3).on('value', (snapshot) => {
+        reader.limitToLast(3).on('value', snapshot => {
           if (!readerLoaded) {
             readerLoaded = true;
 
             // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', (snap) => {
+            reader.limitToLast(3).on('child_removed', snap => {
               const val = snap.val();
               switch (snap.key) {
                 case 'a':
@@ -2418,7 +2424,9 @@ describe('Query Tests', () => {
               }
               numEventsReceived += 1;
               expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {done();}
+              if (gotA && gotB && gotC) {
+                done();
+              }
             });
 
             // Remove the query parent
@@ -2429,7 +2437,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('listen for child_remove events when parent set to scalar', (done) => {
+  it('listen for child_remove events when parent set to scalar', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2442,12 +2450,12 @@ describe('Query Tests', () => {
     writer.set(
       { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
       (error, dummy) => {
-        reader.limitToLast(3).on('value', (snapshot) => {
+        reader.limitToLast(3).on('value', snapshot => {
           if (!readerLoaded) {
             readerLoaded = true;
 
             // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', (snap) => {
+            reader.limitToLast(3).on('child_removed', snap => {
               const val = snap.val();
               switch (snap.key) {
                 case 'a':
@@ -2468,7 +2476,9 @@ describe('Query Tests', () => {
               }
               numEventsReceived += 1;
               expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {done();}
+              if (gotA && gotB && gotC) {
+                done();
+              }
             });
 
             // Set the parent to a scalar
@@ -2520,25 +2530,25 @@ describe('Query Tests', () => {
     ref
       .startAt(0)
       .endAt(10)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         addedFirst.push(snap.key);
       });
     ref
       .startAt(0)
       .endAt(10)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removedFirst.push(snap.key);
       });
     ref
       .startAt(10)
       .endAt(20)
-      .on('child_added', (snap) => {
+      .on('child_added', snap => {
         addedSecond.push(snap.key);
       });
     ref
       .startAt(10)
       .endAt(20)
-      .on('child_removed', (snap) => {
+      .on('child_removed', snap => {
         removedSecond.push(snap.key);
       });
 
@@ -2567,7 +2577,7 @@ describe('Query Tests', () => {
 
     let childCount = 0;
 
-    reader.child('a/b').on('value', (snap) => {
+    reader.child('a/b').on('value', snap => {
       const val = snap.val();
       childCount++;
       if (childCount === 1) {
@@ -2580,7 +2590,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let count = 0;
-    reader.limitToLast(2).on('value', (snap) => {
+    reader.limitToLast(2).on('value', snap => {
       ea.addEvent();
       const val = snap.val();
       count++;
@@ -2606,7 +2616,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let readVal;
-    readRef.limitToLast(2).on('value', (s) => {
+    readRef.limitToLast(2).on('value', s => {
       readVal = s.val();
       if (readVal) {
         ea.addEvent();
@@ -2628,7 +2638,7 @@ describe('Query Tests', () => {
     expect(readVal).to.deep.equal({ a: 1, c: 3 });
   });
 
-  it('Server: Test re-listen', (done) => {
+  it('Server: Test re-listen', done => {
     const refPair = getRandomNode(2) as Reference[],
       ref = refPair[0],
       ref2 = refPair[1];
@@ -2646,7 +2656,7 @@ describe('Query Tests', () => {
     ref
       .startAt(null, 'a')
       .endAt(null, 'b')
-      .on('value', (b) => {
+      .on('value', b => {
         before = b.val();
       });
 
@@ -2654,14 +2664,14 @@ describe('Query Tests', () => {
       ref2
         .startAt(null, 'a')
         .endAt(null, 'b')
-        .on('value', (b) => {
+        .on('value', b => {
           expect(b.val()).to.deep.equal(before);
           done();
         });
     });
   });
 
-  it('Server: Test re-listen 2', (done) => {
+  it('Server: Test re-listen 2', done => {
     const refPair = getRandomNode(2),
       ref = refPair[0],
       ref2 = refPair[1];
@@ -2679,24 +2689,22 @@ describe('Query Tests', () => {
     ref
       .startAt(null, 'b')
       .limitToFirst(3)
-      .on('value', (b) => {
+      .on('value', b => {
         before = b.val();
       });
 
-    ref
-      .child('aa')
-      .update({ a: 5, aa: 4, b: 7, c: 4, d: 4, dd: 3 }, () => {
-        ref2
-          .startAt(null, 'b')
-          .limitToFirst(3)
-          .on('value', (b) => {
-            expect(b.val()).to.deep.equal(before);
-            done();
-          });
-      });
+    ref.child('aa').update({ a: 5, aa: 4, b: 7, c: 4, d: 4, dd: 3 }, () => {
+      ref2
+        .startAt(null, 'b')
+        .limitToFirst(3)
+        .on('value', b => {
+          expect(b.val()).to.deep.equal(before);
+          done();
+        });
+    });
   });
 
-  it('Server: Test re-listen 3', (done) => {
+  it('Server: Test re-listen 3', done => {
     const refPair = getRandomNode(2),
       ref = refPair[0],
       ref2 = refPair[1];
@@ -2711,12 +2719,12 @@ describe('Query Tests', () => {
     });
 
     let before;
-    ref.limitToLast(3).on('value', (b) => {
+    ref.limitToLast(3).on('value', b => {
       before = b.val();
     });
 
     ref.child('h').set('h', () => {
-      ref2.limitToLast(3).on('value', (b) => {
+      ref2.limitToLast(3).on('value', b => {
         expect(b.val()).to.deep.equal(before);
         done();
       });
@@ -2736,7 +2744,7 @@ describe('Query Tests', () => {
       }
     });
 
-    readRef.limitToLast(1).on('value', (s) => {
+    readRef.limitToLast(1).on('value', s => {
       expect(s.val()).to.deep.equal({ a: { aa: 1, ab: 1 } });
     });
 
@@ -2745,7 +2753,7 @@ describe('Query Tests', () => {
       .child('a')
       .startAt(1)
       .endAt(1)
-      .on('value', (s) => {
+      .on('value', s => {
         childData = s.val();
         if (childData) {
           ea.addEvent();
@@ -2777,7 +2785,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     const snaps = [];
-    ref2.limitToLast(1).on('value', (s) => {
+    ref2.limitToLast(1).on('value', s => {
       const val = s.val();
       if (val !== null) {
         snaps.push(val);
@@ -2811,7 +2819,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     const snaps = [];
-    ref2.limitToLast(1).on('value', (s) => {
+    ref2.limitToLast(1).on('value', s => {
       const val = s.val();
       if (val !== null) {
         snaps.push(val);
@@ -2843,7 +2851,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let snap;
-    ref2.limitToLast(1).on('value', (s) => {
+    ref2.limitToLast(1).on('value', s => {
       snap = s.val();
       ea.addEvent();
     });
@@ -2869,7 +2877,7 @@ describe('Query Tests', () => {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let readVal;
-    readRef.limitToLast(2).on('value', (s) => {
+    readRef.limitToLast(2).on('value', s => {
       readVal = s.val();
       if (readVal) {
         ea.addEvent();
@@ -2902,7 +2910,7 @@ describe('Query Tests', () => {
     readRef
       .endAt(50)
       .limitToLast(2)
-      .on('value', (s) => {
+      .on('value', s => {
         readVal = s.val();
         if (readVal) {
           ea.addEvent();
@@ -2928,7 +2936,7 @@ describe('Query Tests', () => {
   it('Latency compensation works with limit and pushed object.', () => {
     const ref = getRandomNode() as Reference;
     const events = [];
-    ref.limitToLast(3).on('child_added', (s) => {
+    ref.limitToLast(3).on('child_added', s => {
       events.push(s.val());
     });
 
@@ -2946,7 +2954,7 @@ describe('Query Tests', () => {
 
     let ea = EventAccumulatorFactory.waitsForCount(1);
     let readVal;
-    readRef.limitToLast(2).on('value', (s) => {
+    readRef.limitToLast(2).on('value', s => {
       readVal = s.val();
       ea.addEvent();
     });
@@ -2982,13 +2990,13 @@ describe('Query Tests', () => {
       c: { '.priority': 30, '.value': 3 }
     });
 
-    reader.child('b/d').on('value', (snap) => {
+    reader.child('b/d').on('value', snap => {
       expect(snap.val()).to.equal(4);
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let val;
-    reader.limitToLast(2).on('value', (snap) => {
+    reader.limitToLast(2).on('value', snap => {
       val = snap.val();
       if (val) {
         ea.addEvent();
@@ -3005,7 +3013,7 @@ describe('Query Tests', () => {
     expect(val).to.deep.equal({ c: 3, a: 1 });
   });
 
-  it('Integer keys behave numerically 1.', (done) => {
+  it('Integer keys behave numerically 1.', done => {
     const ref = getRandomNode() as Reference;
     ref.set(
       {
@@ -3019,7 +3027,7 @@ describe('Query Tests', () => {
         80: true
       },
       () => {
-        ref.startAt(null, '80').once('value', (s) => {
+        ref.startAt(null, '80').once('value', s => {
           expect(s.val()).to.deep.equal({ 80: true, 550: true, 600: true });
           done();
         });
@@ -3027,7 +3035,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('Integer keys behave numerically 2.', (done) => {
+  it('Integer keys behave numerically 2.', done => {
     const ref = getRandomNode() as Reference;
     ref.set(
       {
@@ -3041,7 +3049,7 @@ describe('Query Tests', () => {
         80: true
       },
       () => {
-        ref.endAt(null, '50').once('value', (s) => {
+        ref.endAt(null, '50').once('value', s => {
           expect(s.val()).to.deep.equal({
             1: true,
             6: true,
@@ -3054,7 +3062,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('Integer keys behave numerically 3.', (done) => {
+  it('Integer keys behave numerically 3.', done => {
     const ref = getRandomNode() as Reference;
     ref.set(
       {
@@ -3071,7 +3079,7 @@ describe('Query Tests', () => {
         ref
           .startAt(null, '50')
           .endAt(null, '80')
-          .once('value', (s) => {
+          .once('value', s => {
             expect(s.val()).to.deep.equal({ 50: true, 70: true, 80: true });
             done();
           });
@@ -3079,10 +3087,10 @@ describe('Query Tests', () => {
     );
   });
 
-  it('.limitToLast() on node with priority.', (done) => {
+  it('.limitToLast() on node with priority.', done => {
     const ref = getRandomNode() as Reference;
     ref.set({ a: 'blah', '.priority': 'priority' }, () => {
-      ref.limitToLast(2).once('value', (s) => {
+      ref.limitToLast(2).once('value', s => {
         expect(s.exportVal()).to.deep.equal({ a: 'blah' });
         done();
       });
@@ -3118,7 +3126,7 @@ describe('Query Tests', () => {
 
     const children = [];
 
-    ref.orderByChild('foo').on('child_added', (snap) => {
+    ref.orderByChild('foo').on('child_added', snap => {
       children.push(snap.key);
     });
 
@@ -3142,7 +3150,7 @@ describe('Query Tests', () => {
     await writerRef.set({ a: 1, b: 2, c: 3 });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    queryRef.limitToLast(3).on('value', (s) => {
+    queryRef.limitToLast(3).on('value', s => {
       readSnapshot = s;
       if (readSnapshot) {
         ea.addEvent();
@@ -3165,7 +3173,7 @@ describe('Query Tests', () => {
     expect(readSnapshot.child('b').val()).to.be.null;
   });
 
-  it('Snapshot children respect default ordering', (done) => {
+  it('Snapshot children respect default ordering', done => {
     const refPair = getRandomNode(2);
     const queryRef = refPair[0],
       writerRef = refPair[1];
@@ -3189,23 +3197,23 @@ describe('Query Tests', () => {
     };
 
     writerRef.set(list, () => {
-      queryRef.orderByChild('name').once('value', (snap) => {
+      queryRef.orderByChild('name').once('value', snap => {
         const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
         const expectedNames = ['Jonny', 'Michael', 'Rob'];
 
         // Validate that snap.child() resets order to default for child snaps
         const orderedKeys = [];
-        snap.child('b').forEach((childSnap) => {
+        snap.child('b').forEach(childSnap => {
           orderedKeys.push(childSnap.key);
         });
         expect(orderedKeys).to.deep.equal(expectedKeys);
 
         // Validate that snap.forEach() resets ordering to default for child snaps
         const orderedNames = [];
-        snap.forEach((childSnap) => {
+        snap.forEach(childSnap => {
           orderedNames.push(childSnap.child('name').val());
           const orderedKeys = [];
-          childSnap.forEach((grandchildSnap) => {
+          childSnap.forEach(grandchildSnap => {
             orderedKeys.push(grandchildSnap.key);
           });
           expect(orderedKeys).to.deep.equal([
@@ -3220,7 +3228,7 @@ describe('Query Tests', () => {
     });
   });
 
-  it('Adding listens for the same paths does not check fail', (done) => {
+  it('Adding listens for the same paths does not check fail', done => {
     // This bug manifests itself if there's a hierarchy of query listener, default listener and one-time listener
     // underneath. During one-time listener registration, sync-tree traversal stopped as soon as it found a complete
     // server cache (this is the case for not indexed query view). The problem is that the same traversal was
@@ -3234,16 +3242,16 @@ describe('Query Tests', () => {
       ref
         .orderByChild('name')
         .equalTo('John')
-        .on('value', (snap) => {
-          ref.child('child').on('value', (snap) => {
+        .on('value', snap => {
+          ref.child('child').on('value', snap => {
             ref
               .child('child')
               .child('favoriteToy')
-              .once('value', (snap) => {
+              .once('value', snap => {
                 ref
                   .child('child')
                   .child('favoriteToy')
-                  .once('value', (snap) => {
+                  .once('value', snap => {
                     done();
                   });
               });

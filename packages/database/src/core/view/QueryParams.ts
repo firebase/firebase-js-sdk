@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert , stringify } from '@firebase/util';
+import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';

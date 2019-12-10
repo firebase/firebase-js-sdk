@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { LLRBNode , SortedMap } from '../util/SortedMap';
+import { LLRBNode, SortedMap } from '../util/SortedMap';
 
 import { NamedNode } from './Node';
 

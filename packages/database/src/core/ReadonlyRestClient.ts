@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import { assert , jsonEval , safeGet , querystring } from '@firebase/util';
+import { assert, jsonEval, safeGet, querystring } from '@firebase/util';
 import { logWrapper, warn } from './util/util';
-
-
 
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';

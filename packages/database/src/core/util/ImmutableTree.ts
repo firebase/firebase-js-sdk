@@ -273,12 +273,11 @@ export class ImmutableTree<T> {
     fn: (path: Path, value: T | null, children: { [k: string]: V }) => V
   ): V {
     const accum: { [k: string]: V } = {};
-    this.children.inorderTraversal((
-      childKey: string,
-      childTree: ImmutableTree<T>
-    ) => {
-      accum[childKey] = childTree.fold_(pathSoFar.child(childKey), fn);
-    });
+    this.children.inorderTraversal(
+      (childKey: string, childTree: ImmutableTree<T>) => {
+        accum[childKey] = childTree.fold_(pathSoFar.child(childKey), fn);
+      }
+    );
     return fn(pathSoFar, this.value, accum);
   }
 

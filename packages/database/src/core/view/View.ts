@@ -166,7 +166,7 @@ export class View {
         'A cancel should cancel all event registrations.'
       );
       const path = this.query_.path;
-      this.eventRegistrations_.forEach((registration) => {
+      this.eventRegistrations_.forEach(registration => {
         cancelError /** @type {!Error} */ = cancelError;
         const maybeEvent = registration.createCancelEvent(cancelError, path);
         if (maybeEvent) {

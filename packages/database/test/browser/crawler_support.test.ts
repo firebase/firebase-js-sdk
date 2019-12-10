@@ -26,7 +26,7 @@ describe('Crawler Support', () => {
   let normalRef;
   let restRef;
 
-  beforeEach((done) => {
+  beforeEach(done => {
     normalRef = getRandomNode();
 
     forceRestClient(true);
@@ -69,8 +69,8 @@ describe('Crawler Support', () => {
     });
   }
 
-  it('set() is a no-op', (done) => {
-    normalRef.child('leaf').on('value', (s) => {
+  it('set() is a no-op', done => {
+    normalRef.child('leaf').on('value', s => {
       expect(s.val()).to.equal(42);
     });
 
@@ -79,10 +79,10 @@ describe('Crawler Support', () => {
     // We need to wait long enough to be sure that our 'hello' didn't actually get set, but there's
     // no good way to do that.  So we just do a couple round-trips via the REST client and assume
     // that's good enough.
-    restRef.child('obj').once('value', (s) => {
+    restRef.child('obj').once('value', s => {
       expect(s.val()).to.deep.equal(initialData.obj);
 
-      restRef.child('obj').once('value', (s) => {
+      restRef.child('obj').once('value', s => {
         expect(s.val()).to.deep.equal(initialData.obj);
 
         normalRef.child('leaf').off();
@@ -95,7 +95,7 @@ describe('Crawler Support', () => {
     // This test mostly exists to make sure restRef really is using ReadonlyRestClient
     // and we're not accidentally testing a normal Firebase connection.
 
-    normalRef.child('leaf').on('value', (s) => {
+    normalRef.child('leaf').on('value', s => {
       expect(s.val()).to.equal(42);
     });
 
@@ -107,33 +107,33 @@ describe('Crawler Support', () => {
     return restRef
       .child('obj')
       .once('value')
-      .then((s) => {
+      .then(s => {
         expect(s.val()).to.deep.equal(initialData.obj);
 
         return restRef.child('obj').once('value');
       })
       .then(
-        (s) => {
+        s => {
           expect(s.val()).to.deep.equal(initialData.obj);
           normalRef.child('leaf').off();
         },
-        (reason) => {
+        reason => {
           normalRef.child('leaf').off();
           return Promise.reject(reason);
         }
       );
   });
 
-  it('.info/connected fires with true', (done) => {
-    restRef.root.child('.info/connected').on('value', (s) => {
+  it('.info/connected fires with true', done => {
+    restRef.root.child('.info/connected').on('value', s => {
       if (s.val() === true) {
         done();
       }
     });
   });
 
-  it('Leaf read works.', (done) => {
-    restRef.child('leaf').once('value', (s) => {
+  it('Leaf read works.', done => {
+    restRef.child('leaf').once('value', s => {
       expect(s.val()).to.equal(initialData.leaf);
       done();
     });
@@ -143,13 +143,13 @@ describe('Crawler Support', () => {
     return restRef
       .child('leaf')
       .once('value')
-      .then((s) => {
+      .then(s => {
         expect(s.val()).to.equal(initialData.leaf);
       });
   });
 
-  it('Object read works.', (done) => {
-    restRef.child('obj').once('value', (s) => {
+  it('Object read works.', done => {
+    restRef.child('obj').once('value', s => {
       expect(s.val()).to.deep.equal(initialData.obj);
       done();
     });
@@ -159,13 +159,13 @@ describe('Crawler Support', () => {
     return restRef
       .child('obj')
       .once('value')
-      .then((s) => {
+      .then(s => {
         expect(s.val()).to.deep.equal(initialData.obj);
       });
   });
 
-  it('Leaf with priority read works.', (done) => {
-    restRef.child('leafWithPriority').once('value', (s) => {
+  it('Leaf with priority read works.', done => {
+    restRef.child('leafWithPriority').once('value', s => {
       expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
       done();
     });
@@ -175,13 +175,13 @@ describe('Crawler Support', () => {
     return restRef
       .child('leafWithPriority')
       .once('value')
-      .then((s) => {
+      .then(s => {
         expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
       });
   });
 
-  it('Null read works.', (done) => {
-    restRef.child('nonexistent').once('value', (s) => {
+  it('Null read works.', done => {
+    restRef.child('nonexistent').once('value', s => {
       expect(s.val()).to.equal(null);
       done();
     });
@@ -191,13 +191,13 @@ describe('Crawler Support', () => {
     return restRef
       .child('nonexistent')
       .once('value')
-      .then((s) => {
+      .then(s => {
         expect(s.val()).to.equal(null);
       });
   });
 
-  it('on works.', (done) => {
-    restRef.child('leaf').on('value', (s) => {
+  it('on works.', done => {
+    restRef.child('leaf').on('value', s => {
       expect(s.val()).to.equal(initialData.leaf);
       restRef.child('leaf').off();
       done();

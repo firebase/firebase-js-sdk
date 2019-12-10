@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import { assert ,
+import {
+  assert,
   errorPrefix,
   validateArgCount,
   validateCallback,
-  validateContextObject
-, Deferred } from '@firebase/util';
+  validateContextObject,
+  Deferred
+} from '@firebase/util';
 import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
@@ -347,7 +349,9 @@ export class Query {
       /*cancel=*/ err => {
         this.off(eventType, onceCallback);
 
-        if (ret.cancel) {ret.cancel.bind(ret.context)(err);}
+        if (ret.cancel) {
+          ret.cancel.bind(ret.context)(err);
+        }
         deferred.reject(err);
       }
     );

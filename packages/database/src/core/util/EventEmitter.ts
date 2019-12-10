@@ -91,7 +91,7 @@ export abstract class EventEmitter {
 
   private validateEventType_(eventType: string) {
     assert(
-      this.allowedEvents_.find((et) => {
+      this.allowedEvents_.find(et => {
         return et === eventType;
       }),
       'Unknown event: ' + eventType

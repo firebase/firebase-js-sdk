@@ -20,10 +20,14 @@ import { Query } from '../../api/Query';
 declare const window: any;
 declare const Windows: any;
 
-import { assert , base64 , Sha1 , stringToByteArray , stringify , isNodeSdk } from '@firebase/util';
-
-
-
+import {
+  assert,
+  base64,
+  Sha1,
+  stringToByteArray,
+  stringify,
+  isNodeSdk
+} from '@firebase/util';
 
 import { SessionStorage } from '../storage/storage';
 
@@ -110,7 +114,9 @@ export const enableLogging = function(
   if (logger_ === true) {
     logClient.logLevel = LogLevel.VERBOSE;
     logger = logClient.log.bind(logClient);
-    if (persistent) {SessionStorage.set('logging_enabled', true);}
+    if (persistent) {
+      SessionStorage.set('logging_enabled', true);
+    }
   } else if (typeof logger_ === 'function') {
     logger = logger_;
   } else {
@@ -126,8 +132,9 @@ export const enableLogging = function(
 export const log = function(...varArgs: string[]) {
   if (firstLog_ === true) {
     firstLog_ = false;
-    if (logger === null && SessionStorage.get('logging_enabled') === true)
-      {enableLogging(true);}
+    if (logger === null && SessionStorage.get('logging_enabled') === true) {
+      enableLogging(true);
+    }
   }
 
   if (logger) {
@@ -247,7 +254,9 @@ export const executeWhenDOMReady = function(fn: () => void) {
     } else if ((document as any).attachEvent) {
       // IE.
       (document as any).attachEvent('onreadystatechange', () => {
-        if (document.readyState === 'complete') {wrappedFn();}
+        if (document.readyState === 'complete') {
+          wrappedFn();
+        }
       });
       // fallback to onload.
       (window as any).attachEvent('onload', wrappedFn);
@@ -340,7 +349,9 @@ export const requireKey = function(
  * @return {string}
  */
 export const ObjectToUniqueKey = function(obj: any): string {
-  if (typeof obj !== 'object' || obj === null) {return stringify(obj);}
+  if (typeof obj !== 'object' || obj === null) {
+    return stringify(obj);
+  }
 
   const keys = [];
   // eslint-disable-next-line guard-for-in
@@ -352,7 +363,9 @@ export const ObjectToUniqueKey = function(obj: any): string {
   keys.sort();
   let key = '{';
   for (let i = 0; i < keys.length; i++) {
-    if (i !== 0) {key += ',';}
+    if (i !== 0) {
+      key += ',';
+    }
     key += stringify(keys[i]);
     key += ':';
     key += ObjectToUniqueKey(obj[keys[i]]);
@@ -429,11 +442,7 @@ export const doubleToIEEE754String = function(v: number): string {
   const ebits = 11,
     fbits = 52;
   const bias = (1 << (ebits - 1)) - 1;
-  let  s,
-    e,
-    f,
-    ln,
-    i;
+  let s, e, f, ln, i;
 
   // Compute sign, exponent, fraction
   // Skip NaN / Infinity handling --MJL.
@@ -475,7 +484,9 @@ export const doubleToIEEE754String = function(v: number): string {
   let hexByteString = '';
   for (i = 0; i < 64; i += 8) {
     let hexByte = parseInt(str.substr(i, 8), 2).toString(16);
-    if (hexByte.length === 1) {hexByte = '0' + hexByte;}
+    if (hexByte.length === 1) {
+      hexByte = '0' + hexByte;
+    }
     hexByteString = hexByteString + hexByte;
   }
   return hexByteString.toLowerCase();

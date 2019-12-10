@@ -349,11 +349,15 @@ describe('SortedMap Tests', () => {
     const verifyTraversal = function(tree, max) {
       const keys = [];
       // eslint-disable-next-line guard-for-in
-      for (const k in tree) {keys.push(k);}
+      for (const k in tree) {
+        keys.push(k);
+      }
 
       keys.sort();
       expect(keys.length).to.equal(max);
-      for (let i = 0; i < max; i++) {expect(tree[i]).to.equal(i);}
+      for (let i = 0; i < max; i++) {
+        expect(tree[i]).to.equal(i);
+      }
     };
 
     for (let N = 10; N <= 100000; N *= 10) {
@@ -394,11 +398,15 @@ describe('SortedMap Tests', () => {
 
   it('SortedMapIterator test with 10 items.', () => {
     const items = [];
-    for (let i = 0; i < 10; i++) {items.push(i);}
+    for (let i = 0; i < 10; i++) {
+      items.push(i);
+    }
     shuffle(items);
 
     let map = new SortedMap(defaultCmp);
-    for (let i = 0; i < 10; i++) {map = map.insert(items[i], items[i]);}
+    for (let i = 0; i < 10; i++) {
+      map = map.insert(items[i], items[i]);
+    }
 
     const iterator = map.getIterator();
     let n = iterator.getNext() as any,

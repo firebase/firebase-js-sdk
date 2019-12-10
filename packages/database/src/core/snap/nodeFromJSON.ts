@@ -18,7 +18,7 @@
 import { ChildrenNode } from './ChildrenNode';
 import { LeafNode } from './LeafNode';
 import { NamedNode, Node } from './Node';
-import { contains , assert } from '@firebase/util';
+import { contains, assert } from '@firebase/util';
 
 import { buildChildSet } from './childSet';
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
@@ -119,8 +119,9 @@ export function nodeFromJSON(
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
           const childNode = nodeFromJSON(childData);
-          if (childNode.isLeafNode() || !childNode.isEmpty())
-            {node = node.updateImmediateChild(key, childNode);}
+          if (childNode.isLeafNode() || !childNode.isEmpty()) {
+            node = node.updateImmediateChild(key, childNode);
+          }
         }
       }
     });

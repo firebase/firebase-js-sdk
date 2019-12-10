@@ -30,9 +30,11 @@ describe('Order Tests', () => {
     return new Promise(resolve => {
       const ref = getRandomNode() as Reference;
       let connected = false;
-      ref.root.child('.info/connected').on('value', (s) => {
+      ref.root.child('.info/connected').on('value', s => {
         connected = s.val() === true;
-        if (connected) {resolve();}
+        if (connected) {
+          resolve();
+        }
       });
     });
   });
@@ -46,7 +48,7 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
 
     let expected = 0;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -67,7 +69,7 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
 
     let expected = 0;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -90,7 +92,7 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
 
     expected = 0;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -99,7 +101,7 @@ describe('Order Tests', () => {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', (snap) => {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
@@ -107,7 +109,7 @@ describe('Order Tests', () => {
     await ea.promise;
 
     expected = 0;
-    readSnap.forEach((child) => {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -130,7 +132,7 @@ describe('Order Tests', () => {
     // read it back locally and make sure it's correct.
     const snap = await node.once('value');
     expected = 9;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -142,14 +144,14 @@ describe('Order Tests', () => {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', (snap) => {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
     await ea.promise;
 
     expected = 9;
-    readSnap.forEach((child) => {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -176,7 +178,7 @@ describe('Order Tests', () => {
     // read it back locally and make sure it's correct.
     const snap = await node.once('value');
     expected = 9;
-    snap.forEach((child) => {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -185,7 +187,7 @@ describe('Order Tests', () => {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', (snap) => {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
@@ -193,7 +195,7 @@ describe('Order Tests', () => {
     await ea.promise;
 
     expected = 9;
-    readSnap.forEach((child) => {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -207,7 +209,7 @@ describe('Order Tests', () => {
 
     let items = 0;
     const snap = await node.once('value');
-    snap.forEach((child) => {
+    snap.forEach(child => {
       items++;
       expect(child.key).to.equal('bar');
     });
@@ -276,7 +278,7 @@ describe('Order Tests', () => {
     const node = getRandomNode() as Reference;
 
     let snap = null;
-    node.on('value', (s) => {
+    node.on('value', s => {
       snap = s;
     });
 
@@ -342,7 +344,7 @@ describe('Order Tests', () => {
     const snap = await nodePair[0].once('value');
 
     let output = '';
-    snap.forEach((n) => {
+    snap.forEach(n => {
       output += n.key + ', ';
     });
 
@@ -350,8 +352,8 @@ describe('Order Tests', () => {
 
     let eventsFired = false;
     output = '';
-    nodePair[1].on('value', (snap) => {
-      snap.forEach((n) => {
+    nodePair[1].on('value', snap => {
+      snap.forEach(n => {
         output += n.key + ', ';
       });
       expect(output).to.equal(expectedOutput);
@@ -375,7 +377,7 @@ describe('Order Tests', () => {
 
     const snap = await ref.once('value');
     let output = '';
-    snap.forEach((n) => {
+    snap.forEach(n => {
       output += n.key + ', ';
     });
 
@@ -523,7 +525,7 @@ describe('Order Tests', () => {
     const f = getRandomNode() as Reference;
 
     let snap = null;
-    f.on('value', (s) => {
+    f.on('value', s => {
       snap = s;
     });
 
@@ -536,7 +538,7 @@ describe('Order Tests', () => {
     const f = getRandomNode() as Reference;
 
     let snap = null;
-    f.on('value', (s) => {
+    f.on('value', s => {
       snap = s;
     });
 
@@ -548,7 +550,7 @@ describe('Order Tests', () => {
   it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering.', () => {
     const f = getRandomNode() as Reference;
     const moved = [];
-    f.on('child_moved', (snap) => {
+    f.on('child_moved', snap => {
       moved.push(snap.key);
     });
     f.set({
@@ -566,7 +568,7 @@ describe('Order Tests', () => {
   it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering (2).', () => {
     const f = getRandomNode() as Reference;
     const moved = [];
-    f.on('child_moved', (snap) => {
+    f.on('child_moved', snap => {
       moved.push(snap.key);
     });
     f.set({

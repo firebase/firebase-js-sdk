@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert , contains, safeGet } from '@firebase/util';
+import { assert, contains, safeGet } from '@firebase/util';
 import { Path } from './Path';
 
 import { each } from './util';
@@ -139,13 +139,17 @@ export class Tree<T> {
     includeSelf?: boolean,
     childrenFirst?: boolean
   ) {
-    if (includeSelf && !childrenFirst) {action(this);}
+    if (includeSelf && !childrenFirst) {
+      action(this);
+    }
 
-    this.forEachChild((child) => {
+    this.forEachChild(child => {
       child.forEachDescendant(action, /*includeSelf=*/ true, childrenFirst);
     });
 
-    if (includeSelf && childrenFirst) {action(this);}
+    if (includeSelf && childrenFirst) {
+      action(this);
+    }
   }
 
   /**
@@ -178,9 +182,12 @@ export class Tree<T> {
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
   forEachImmediateDescendantWithValue(action: (tree: Tree<T>) => void) {
-    this.forEachChild((child) => {
-      if (child.getValue() !== null) {action(child);}
-      else {child.forEachImmediateDescendantWithValue(action);}
+    this.forEachChild(child => {
+      if (child.getValue() !== null) {
+        action(child);
+      } else {
+        child.forEachImmediateDescendantWithValue(action);
+      }
     });
   }
 
@@ -215,7 +222,9 @@ export class Tree<T> {
    * @private
    */
   private updateParents_() {
-    if (this.parent_ !== null) {this.parent_.updateChild_(this.name_, this);}
+    if (this.parent_ !== null) {
+      this.parent_.updateChild_(this.name_, this);
+    }
   }
 
   /**

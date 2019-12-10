@@ -63,7 +63,9 @@ export class Path {
   }
 
   getFront(): string | null {
-    if (this.pieceNum_ >= this.pieces_.length) {return null;}
+    if (this.pieceNum_ >= this.pieces_.length) {
+      return null;
+    }
 
     return this.pieces_[this.pieceNum_];
   }
@@ -90,8 +92,9 @@ export class Path {
    * @return {?string}
    */
   getBack(): string | null {
-    if (this.pieceNum_ < this.pieces_.length)
-      {return this.pieces_[this.pieces_.length - 1];}
+    if (this.pieceNum_ < this.pieces_.length) {
+      return this.pieces_[this.pieces_.length - 1];
+    }
 
     return null;
   }
@@ -99,7 +102,9 @@ export class Path {
   toString(): string {
     let pathString = '';
     for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
-      if (this.pieces_[i] !== '') {pathString += '/' + this.pieces_[i];}
+      if (this.pieces_[i] !== '') {
+        pathString += '/' + this.pieces_[i];
+      }
     }
 
     return pathString || '/';
@@ -108,8 +113,9 @@ export class Path {
   toUrlEncodedString(): string {
     let pathString = '';
     for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
-      if (this.pieces_[i] !== '')
-        {pathString += '/' + encodeURIComponent(String(this.pieces_[i]));}
+      if (this.pieces_[i] !== '') {
+        pathString += '/' + encodeURIComponent(String(this.pieces_[i]));
+      }
     }
 
     return pathString || '/';
@@ -129,11 +135,14 @@ export class Path {
    * @return {?Path}
    */
   parent(): Path | null {
-    if (this.pieceNum_ >= this.pieces_.length) {return null;}
+    if (this.pieceNum_ >= this.pieces_.length) {
+      return null;
+    }
 
     const pieces = [];
-    for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++)
-      {pieces.push(this.pieces_[i]);}
+    for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++) {
+      pieces.push(this.pieces_[i]);
+    }
 
     return new Path(pieces, 0);
   }
@@ -144,8 +153,9 @@ export class Path {
    */
   child(childPathObj: string | Path): Path {
     const pieces = [];
-    for (let i = this.pieceNum_; i < this.pieces_.length; i++)
-      {pieces.push(this.pieces_[i]);}
+    for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
+      pieces.push(this.pieces_[i]);
+    }
 
     if (childPathObj instanceof Path) {
       for (
@@ -158,7 +168,9 @@ export class Path {
     } else {
       const childPieces = childPathObj.split('/');
       for (let i = 0; i < childPieces.length; i++) {
-        if (childPieces[i].length > 0) {pieces.push(childPieces[i]);}
+        if (childPieces[i].length > 0) {
+          pieces.push(childPieces[i]);
+        }
       }
     }
 
@@ -206,9 +218,13 @@ export class Path {
     const rightKeys = right.slice();
     for (let i = 0; i < leftKeys.length && i < rightKeys.length; i++) {
       const cmp = nameCompare(leftKeys[i], rightKeys[i]);
-      if (cmp !== 0) {return cmp;}
+      if (cmp !== 0) {
+        return cmp;
+      }
     }
-    if (leftKeys.length === rightKeys.length) {return 0;}
+    if (leftKeys.length === rightKeys.length) {
+      return 0;
+    }
     return leftKeys.length < rightKeys.length ? -1 : 1;
   }
 
