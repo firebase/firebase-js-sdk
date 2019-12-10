@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.4.25",
+  "version": "0.4.26",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -26,9 +26,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-types": "0.4.8",
-    "@firebase/util": "0.2.34",
-    "@firebase/logger": "0.1.31",
+    "@firebase/app-types": "0.4.9",
+    "@firebase/util": "0.2.35",
+    "@firebase/logger": "0.1.32",
     "@firebase/component": "0.1.0",
     "tslib": "1.10.0",
     "dom-storage": "2.1.0",
@@ -39,7 +39,7 @@
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.25.2",
-    "typescript": "3.7.2"
+    "typescript": "3.7.3"
   },
   "repository": {
     "directory": "packages/app",

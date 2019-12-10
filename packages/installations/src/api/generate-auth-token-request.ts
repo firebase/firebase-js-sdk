@@ -17,6 +17,7 @@
 
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
 import { AppConfig } from '../interfaces/app-config';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry
@@ -30,13 +31,22 @@ import {
   retryIfServerError
 } from './common';
 
-export async function generateAuthToken(
-  appConfig: AppConfig,
+export async function generateAuthTokenRequest(
+  { appConfig, platformLoggerProvider }: FirebaseDependencies,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   const endpoint = getGenerateAuthTokenEndpoint(appConfig, installationEntry);
 
   const headers = getHeadersWithAuth(appConfig, installationEntry);
+
+  // If platform logger exists, add the platform info string to the header.
+  const platformLogger = platformLoggerProvider.getImmediate({
+    optional: true
+  });
+  if (platformLogger) {
+    headers.append('x-firebase-client', platformLogger.getPlatformInfoString());
+  }
+
   const body = {
     installation: {
       sdkVersion: PACKAGE_VERSION

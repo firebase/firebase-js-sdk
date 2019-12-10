@@ -355,4 +355,44 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         });
     });
   });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('for Writebatch.set<T>()', () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options);
+              return new Post(data.title, data.author);
+            }
+          });
+        return docRef.firestore
+          .batch()
+          .set(docRef, new Post('post', 'author'))
+          .commit()
+          .then(() => docRef.get())
+          .then(snapshot => {
+            expect(snapshot.exists).to.equal(true);
+            expect(snapshot.data()!.byline()).to.deep.equal('post, by author');
+          });
+      });
+    });
+  });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import { Provider } from '@firebase/component';
+import { AppConfig } from './app-config';
 
-firebase.registerVersion('fire-js-all-app', firebase.SDK_VERSION);
-
-export default firebase;
+export interface FirebaseDependencies {
+  readonly appConfig: AppConfig;
+  readonly platformLoggerProvider: Provider<'platform-logger'>;
+}

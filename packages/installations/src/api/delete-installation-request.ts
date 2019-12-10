@@ -24,7 +24,7 @@ import {
   retryIfServerError
 } from './common';
 
-export async function deleteInstallation(
+export async function deleteInstallationRequest(
   appConfig: AppConfig,
   installationEntry: RegisteredInstallationEntry
 ): Promise<void> {

@@ -17,11 +17,11 @@
 
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-
 import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
-import { Component, ComponentType } from '@firebase/component';
+import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
@@ -31,14 +31,21 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
       installationsName,
       container => {
         const app = container.getProvider('app').getImmediate();
+
         // Throws if app isn't configured properly.
-        extractAppConfig(app);
+        const appConfig = extractAppConfig(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        const dependencies: FirebaseDependencies = {
+          appConfig,
+          platformLoggerProvider
+        };
 
         return {
           app,
-          getId: () => getId(app),
-          getToken: (forceRefresh?: boolean) => getToken(app, forceRefresh),
-          delete: () => deleteInstallation(app)
+          getId: () => getId(dependencies),
+          getToken: (forceRefresh?: boolean) =>
+            getToken(dependencies, forceRefresh),
+          delete: () => deleteInstallation(dependencies)
         };
       },
       ComponentType.PUBLIC

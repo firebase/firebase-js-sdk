@@ -78,7 +78,7 @@ export class WindowController extends BaseController {
    * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
    */
   async requestPermission(): Promise<void> {
-    if (this.getNotificationPermission_() === 'granted') {
+    if (Notification.permission === 'granted') {
       return;
     }
 

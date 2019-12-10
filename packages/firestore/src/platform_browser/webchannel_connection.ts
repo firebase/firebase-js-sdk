@@ -20,6 +20,7 @@ import {
   ErrorCode,
   EventType,
   WebChannel,
+  WebChannelError,
   WebChannelOptions,
   XhrIo
 } from '@firebase/webchannel-wrapper';
@@ -47,11 +48,13 @@ const LOG_TAG = 'Connection';
 const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 const RPC_URL_VERSION = 'v1';
 
-/** Maps RPC names to the corresponding REST endpoint name. */
-const RPC_NAME_REST_MAPPING: { [key: string]: string } = {
-  BatchGetDocuments: 'batchGet',
-  Commit: 'commit'
-};
+/**
+ * Maps RPC names to the corresponding REST endpoint name.
+ * Uses Object Literal notation to avoid renaming.
+ */
+const RPC_NAME_REST_MAPPING: { [key: string]: string } = {};
+RPC_NAME_REST_MAPPING['BatchGetDocuments'] = 'batchGet';
+RPC_NAME_REST_MAPPING['Commit'] = 'commit';
 
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we
@@ -98,9 +101,7 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // XhrIo doesn't have TS typings.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const xhr: any = new XhrIo();
+      const xhr = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
           switch (xhr.getLastErrorCode()) {
@@ -125,7 +126,8 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const responseError = xhr.getResponseJson().error;
+                const responseError = (xhr.getResponseJson() as WebChannelError)
+                  .error;
                 if (
                   !!responseError &&
                   !!responseError.status &&
@@ -272,9 +274,7 @@ export class WebChannelConnection implements Connection {
 
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
-    // Use any because listen isn't defined on it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const channel = webchannelTransport.createWebChannel(url, request) as any;
+    const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
     // a network round trip. However, it will have to call send in the same
@@ -310,14 +310,14 @@ export class WebChannelConnection implements Connection {
     // Note that eventually this function could go away if we are confident
     // enough the code is exception free.
     const unguardedEventListen = <T>(
-      type: WebChannel.EventType,
+      type: string,
       fn: (param?: T) => void
     ): void => {
       // TODO(dimond): closure typing seems broken because WebChannel does
       // not implement goog.events.Listenable
-      channel.listen(type, (param?: T) => {
+      channel.listen(type, (param: unknown) => {
         try {
-          fn(param);
+          fn(param as T);
         } catch (e) {
           setTimeout(() => {
             throw e;
@@ -371,10 +371,10 @@ export class WebChannelConnection implements Connection {
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
           // Use any because msgData.error is not typed.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const msgDataAsAny: any = msgData;
+          const msgDataOrError: WebChannelError | object = msgData;
           const error =
-            msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);
+            msgDataOrError.error ||
+            (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.

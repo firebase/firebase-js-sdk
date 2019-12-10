@@ -16,8 +16,14 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import {
+  Component,
+  ComponentContainer,
+  ComponentType
+} from '@firebase/component';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { AppConfig } from '../interfaces/app-config';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -41,4 +47,20 @@ export function getFakeApp(): FirebaseApp {
 
 export function getFakeAppConfig(): AppConfig {
   return extractAppConfig(getFakeApp());
+}
+
+export function getFakeDependencies(): FirebaseDependencies {
+  const container = new ComponentContainer('test');
+  container.addComponent(
+    new Component(
+      'platform-logger',
+      () => ({ getPlatformInfoString: () => 'a/1.2.3 b/2.3.4' }),
+      ComponentType.PRIVATE
+    )
+  );
+
+  return {
+    appConfig: getFakeAppConfig(),
+    platformLoggerProvider: container.getProvider('platform-logger')
+  };
 }

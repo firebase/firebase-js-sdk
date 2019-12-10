@@ -23,6 +23,7 @@ import { firebase as _firebase } from './src/firebaseNamespace';
 import Storage from 'dom-storage';
 // @ts-ignore
 import { XMLHttpRequest } from 'xmlhttprequest';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
 (_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
   INTERNAL: {
@@ -35,6 +36,8 @@ import { XMLHttpRequest } from 'xmlhttprequest';
 });
 
 export const firebase = _firebase as FirebaseNamespace;
+
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

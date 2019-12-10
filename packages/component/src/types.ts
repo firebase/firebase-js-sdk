@@ -32,7 +32,8 @@ export const enum InstantiationMode {
  */
 export const enum ComponentType {
   PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE'
+  PRIVATE = 'PRIVATE',
+  VERSION = 'VERSION'
 }
 
 /**

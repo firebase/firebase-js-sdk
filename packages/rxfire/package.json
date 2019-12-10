@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.9.2",
+  "version": "3.9.4",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -41,13 +41,13 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "7.5.0",
+    "firebase": "7.5.2",
     "rollup": "1.27.2",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.25.2",
     "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.7.2"
+    "typescript": "3.7.3"
   },
   "typings": "dist/index.d.ts",
   "files": [

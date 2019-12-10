@@ -18,6 +18,8 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
+import { registerCoreComponents } from './src/registerCoreComponents';
+
 /**
  * To avoid having to include the @types/react-native package, which breaks
  * some of our tests because of duplicate symbols, we are using require syntax
@@ -35,6 +37,8 @@ const { AsyncStorage } = require('react-native');
 });
 
 export const firebase = _firebase as FirebaseNamespace;
+
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

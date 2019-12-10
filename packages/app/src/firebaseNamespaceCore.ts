@@ -31,10 +31,10 @@ import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
-import { DEFAULT_ENTRY_NAME } from './constants';
+import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, Name } from '@firebase/component';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -59,6 +59,7 @@ export function createFirebaseNamespaceCore(
     initializeApp,
     // @ts-ignore
     app,
+    registerVersion,
     // @ts-ignore
     apps: null,
     SDK_VERSION: version,
@@ -232,6 +233,41 @@ export function createFirebaseNamespaceCore(
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (namespace as any)[componentName]
       : null;
+  }
+
+  function registerVersion(libraryKeyOrName: string, version: string): void {
+    // TODO: We can use this check to whitelist strings when/if we set up
+    // a good whitelist system.
+    const library = PLATFORM_LOG_STRING[libraryKeyOrName] ?? libraryKeyOrName;
+    const libraryMismatch = library.match(/\s|\//);
+    const versionMismatch = version.match(/\s|\//);
+    if (libraryMismatch || versionMismatch) {
+      const warning = [
+        `Unable to register library "${library}" with version "${version}":`
+      ];
+      if (libraryMismatch) {
+        warning.push(
+          `library name "${library}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      if (libraryMismatch && versionMismatch) {
+        warning.push('and');
+      }
+      if (versionMismatch) {
+        warning.push(
+          `version name "${version}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      logger.warn(warning.join(' '));
+      return;
+    }
+    registerComponent(
+      new Component(
+        `${library}-version` as Name,
+        () => ({ library, version }),
+        ComponentType.VERSION
+      )
+    );
   }
 
   // Map the requested service to a registered service name
