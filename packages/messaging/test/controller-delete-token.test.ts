@@ -210,7 +210,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       );
     });
 
-    it(`should handle error on deleteToken ${serviceClass.name}`, () => {
+    it(`should handle error on deleteToken ${serviceClass.name}`, async () => {
       const fakeSubscription: any = {
         endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
         unsubscribe: async () => {}
@@ -233,15 +233,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         throw new Error(errorMsg);
       });
 
+      const consoleStub = stub(console, 'error');
+
       messagingService = new serviceClass(firebaseInternalServices);
-      return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
-        () => {
-          throw new Error('Expected this to reject');
-        },
-        err => {
-          assert.equal(errorMsg, err.message);
-        }
-      );
+      await messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
+      assert.equal(consoleStub.callCount, 1);
     });
 
     it(`should delete with valid unsubscribe ${serviceClass.name}`, () => {
