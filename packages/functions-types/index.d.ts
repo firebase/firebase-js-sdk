@@ -133,3 +133,9 @@ export interface HttpsError extends Error {
    */
   readonly details?: any;
 }
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'functions': FirebaseFunctions;
+  }
+}

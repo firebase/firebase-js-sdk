@@ -172,3 +172,9 @@ export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
  * Defines levels of Remote Config logging.
  */
 export type LogLevel = 'debug' | 'error' | 'silent';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'remoteConfig': RemoteConfig;
+  }
+}

@@ -48,7 +48,7 @@ export class Query {
   private memoizedOrderBy: OrderBy[] | null = null;
 
   // The corresponding `Target` of this `Query` instance.
-  private memorizedTarget: Target | null = null;
+  private memoizedTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -343,9 +343,9 @@ export class Query {
    * representation.
    */
   toTarget(): Target {
-    if (!this.memorizedTarget) {
+    if (!this.memoizedTarget) {
       if (this.limitType === LimitType.First) {
-        this.memorizedTarget = new Target(
+        this.memoizedTarget = new Target(
           this.path,
           this.collectionGroup,
           this.orderBy,
@@ -374,7 +374,7 @@ export class Query {
           : null;
 
         // Now return as a LimitType.First query.
-        this.memorizedTarget = new Target(
+        this.memoizedTarget = new Target(
           this.path,
           this.collectionGroup,
           orderBys,
@@ -385,7 +385,7 @@ export class Query {
         );
       }
     }
-    return this.memorizedTarget!;
+    return this.memoizedTarget!;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
@@ -524,12 +524,12 @@ export class FieldFilter extends Filter {
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
         assert(
-          (value as ArrayValue).internalValue.every(elem => {
+          value.internalValue.every(elem => {
             return elem instanceof RefValue;
           }),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
-        return new KeyFieldInFilter(field, value as ArrayValue);
+        return new KeyFieldInFilter(field, value);
       } else {
         assert(
           value instanceof RefValue,
@@ -539,7 +539,7 @@ export class FieldFilter extends Filter {
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
-        return new KeyFieldFilter(field, op, value as RefValue);
+        return new KeyFieldFilter(field, op, value);
       }
     } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
@@ -564,13 +564,13 @@ export class FieldFilter extends Filter {
         value instanceof ArrayValue,
         'IN filter has invalid value: ' + value.toString()
       );
-      return new InFilter(field, value as ArrayValue);
+      return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
       assert(
         value instanceof ArrayValue,
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
-      return new ArrayContainsAnyFilter(field, value as ArrayValue);
+      return new ArrayContainsAnyFilter(field, value);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -764,17 +764,14 @@ export class Bound {
           component instanceof RefValue,
           'Bound has a non-key value where the key path is being used.'
         );
-        comparison = DocumentKey.comparator(
-          (component as RefValue).key,
-          doc.key
-        );
+        comparison = DocumentKey.comparator(component.key, doc.key);
       } else {
         const docValue = doc.field(orderByComponent.field);
         assert(
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = component.compareTo(docValue!);
+        comparison = component.compareTo(docValue);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;

@@ -17,7 +17,7 @@
 
 import { AssertionError, expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as createInstallationModule from '../api/create-installation';
+import * as createInstallationRequestModule from '../api/create-installation-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
@@ -25,7 +25,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
-import { getFakeAppConfig } from '../testing/get-fake-app';
+import { getFakeAppConfig } from '../testing/fake-generators';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
@@ -38,7 +38,7 @@ const FID = 'cry-of-the-black-birds';
 describe('getInstallationEntry', () => {
   let clock: SinonFakeTimers;
   let appConfig: AppConfig;
-  let createInstallationSpy: SinonStub<
+  let createInstallationRequestSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
@@ -46,9 +46,9 @@ describe('getInstallationEntry', () => {
   beforeEach(() => {
     clock = useFakeTimers();
     appConfig = getFakeAppConfig();
-    createInstallationSpy = stub(
-      createInstallationModule,
-      'createInstallation'
+    createInstallationRequestSpy = stub(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(100); // Request would take some time
@@ -112,7 +112,7 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
-    createInstallationSpy.callsFake(async () => {
+    createInstallationRequestSpy.callsFake(async () => {
       await sleep(100); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
@@ -142,7 +142,7 @@ describe('getInstallationEntry', () => {
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
-    createInstallationSpy.callsFake(async () => {
+    createInstallationRequestSpy.callsFake(async () => {
       await sleep(100); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
@@ -205,7 +205,7 @@ describe('getInstallationEntry', () => {
         registrationTime: installationEntry.registrationTime
       });
       expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationSpy).to.be.called;
+      expect(createInstallationRequestSpy).to.be.called;
     });
 
     it('returns a new unregistered InstallationEntry if app is offline', async () => {
@@ -218,14 +218,14 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.NOT_STARTED
       });
       expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
 
     it('does not trigger createInstallation REST call on subsequent calls', async () => {
       await getInstallationEntry(appConfig);
       await getInstallationEntry(appConfig);
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('returns a registrationPromise on subsequent calls before initial promise resolves', async () => {
@@ -236,7 +236,7 @@ describe('getInstallationEntry', () => {
         appConfig
       );
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
       expect(promise1).to.be.an.instanceOf(Promise);
       expect(promise2).to.be.an.instanceOf(Promise);
     });
@@ -255,7 +255,7 @@ describe('getInstallationEntry', () => {
       );
       expect(promise2).to.be.undefined;
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('waits for the FID from the server if FID generation fails', async () => {
@@ -304,7 +304,7 @@ describe('getInstallationEntry', () => {
         // https://github.com/chaijs/chai/issues/644
         registrationTime: installationEntry.registrationTime
       });
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('returns the same InstallationEntry if the app is offline', async () => {
@@ -316,7 +316,7 @@ describe('getInstallationEntry', () => {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 
@@ -340,7 +340,7 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_000_000
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation if the request timed out', async () => {
@@ -353,7 +353,7 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_015_000
       });
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('returns a new unregistered InstallationEntry if the request timed out and the app is offline', async () => {
@@ -366,7 +366,7 @@ describe('getInstallationEntry', () => {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 
@@ -390,7 +390,7 @@ describe('getInstallationEntry', () => {
         refreshToken: 'refreshToken',
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 });

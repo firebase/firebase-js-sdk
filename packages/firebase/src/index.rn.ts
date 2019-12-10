@@ -21,4 +21,6 @@ import '../auth';
 import '../database';
 import '../storage';
 
+firebase.registerVersion('fire-js-all-rn', firebase.SDK_VERSION);
+
 export default firebase;

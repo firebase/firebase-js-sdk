@@ -16,30 +16,44 @@
  */
 
 import firebase from '@firebase/app';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import '@firebase/installations';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
-
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
 import { ErrorCode, errorFactory } from './src/models/errors';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
+import { FirebaseInternalServices } from './src/interfaces/internal-services';
 
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
-  const factoryMethod: FirebaseServiceFactory = app => {
+  const factoryMethod = (container: ComponentContainer): FirebaseMessaging => {
+    /* Dependencies */
+    const app = container.getProvider('app').getImmediate();
+    const installations = container.getProvider('installations').getImmediate();
+    const analyticsProvider = container.getProvider('analytics-internal');
+
+    const firebaseServices: FirebaseInternalServices = {
+      app,
+      installations,
+      analyticsProvider
+    };
+
     if (!isSupported()) {
       throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SwController(app);
+      return new SwController(firebaseServices);
     } else {
       // Assume we are in the window context.
-      return new WindowController(app);
+      return new WindowController(firebaseServices);
     }
   };
 
@@ -47,10 +61,12 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
     isSupported
   };
 
-  instance.INTERNAL.registerService(
-    messagingName,
-    factoryMethod,
-    namespaceExports
+  instance.INTERNAL.registerComponent(
+    new Component(
+      messagingName,
+      factoryMethod,
+      ComponentType.PUBLIC
+    ).setServiceProps(namespaceExports)
   );
 }
 

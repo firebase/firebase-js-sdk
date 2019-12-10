@@ -21,7 +21,8 @@ import { ANALYTICS_ID_FIELD } from './constants';
 export const enum AnalyticsError {
   NO_GA_ID = 'no-ga-id',
   ALREADY_EXISTS = 'already-exists',
-  ALREADY_INITIALIZED = 'already-initialized'
+  ALREADY_INITIALIZED = 'already-initialized',
+  INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -36,11 +37,14 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.ALREADY_INITIALIZED]:
     'Firebase Analytics has already been initialized.' +
     'settings() must be called before initializing any Analytics instance' +
-    'or it will have no effect.'
+    'or it will have no effect.',
+  [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
+    'Firebase Analytics Interop Component failed to instantiate'
 };
 
 interface ErrorParams {
   [AnalyticsError.ALREADY_EXISTS]: { id: string };
+  [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]: { reason: Error };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(

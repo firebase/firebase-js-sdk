@@ -1,6 +1,6 @@
 {
   "name": "@firebase/remote-config",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "description": "The Remote Config package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -11,8 +11,8 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
@@ -26,30 +26,18 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.3.4",
-    "@firebase/logger": "0.1.29",
-    "@firebase/remote-config-types": "0.1.2",
-    "@firebase/util": "0.2.32",
+    "@firebase/installations": "0.3.7",
+    "@firebase/logger": "0.1.32",
+    "@firebase/remote-config-types": "0.1.4",
+    "@firebase/util": "0.2.35",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/chai": "4.2.4",
-    "@types/mocha": "5.2.7",
-    "@types/sinon": "7.5.0",
-    "@typescript-eslint/eslint-plugin": "2.6.1",
-    "@typescript-eslint/eslint-plugin-tslint": "2.6.1",
-    "@typescript-eslint/parser": "2.6.1",
-    "chai": "4.2.0",
-    "chai-as-promised": "7.1.1",
-    "eslint": "6.6.0",
-    "eslint-plugin-import": "2.18.2",
-    "mocha": "6.2.2",
-    "rollup": "1.26.3",
+    "rollup": "1.27.2",
     "rollup-plugin-typescript2": "0.25.2",
-    "sinon": "7.5.0",
-    "sinon-chai": "3.3.0",
-    "typescript": "3.6.4"
+    "typescript": "3.7.3"
   },
   "repository": {
     "directory": "packages/remote-config",

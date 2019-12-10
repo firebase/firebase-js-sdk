@@ -17,16 +17,15 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseNamespace';
+import { firebase as _firebase } from './src/firebaseNamespace';
 // Node specific packages.
 // @ts-ignore
 import Storage from 'dom-storage';
 // @ts-ignore
 import { XMLHttpRequest } from 'xmlhttprequest';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
-const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
-
-_firebase.INTERNAL.extendNamespace({
+(_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
   INTERNAL: {
     node: {
       localStorage: new Storage(null, { strict: true }),
@@ -37,6 +36,8 @@ _firebase.INTERNAL.extendNamespace({
 });
 
 export const firebase = _firebase as FirebaseNamespace;
+
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

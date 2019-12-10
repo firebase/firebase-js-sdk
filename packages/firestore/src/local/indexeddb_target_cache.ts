@@ -421,7 +421,7 @@ function retrieveMetadata(
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
     assert(metadata !== null, 'Missing metadata row.');
-    return metadata!;
+    return metadata;
   });
 }
 

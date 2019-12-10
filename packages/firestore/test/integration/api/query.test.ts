@@ -143,7 +143,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // Since limitToLast() queries are sent to the backend with a modified
   // orderBy() clause, they can map to the same target representation as
   // limit() query, even if both queries appear separate to the user.
-  it('can listen to mirror queries', () => {
+  it('can listen/unlisten/relisten to mirror queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
       b: { k: 'b', sort: 1 },
@@ -151,105 +151,14 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { k: 'd', sort: 2 }
     };
     return withTestCollection(persistence, testDocs, async collection => {
-      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
-      collection
-        .orderBy('sort', 'asc')
-        .limit(2)
-        .onSnapshot(storeLimitEvent.storeEvent);
-
-      const storeLimitToLastEvent = new EventsAccumulator<
-        firestore.QuerySnapshot
-      >();
-      collection
-        .orderBy('sort', 'desc')
-        .limitToLast(2)
-        .onSnapshot(storeLimitToLastEvent.storeEvent);
-
-      let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
-      ]);
-
-      await collection.add({ k: 'e', sort: -1 });
-      snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'e', sort: -1 },
-        { k: 'a', sort: 0 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'e', sort: -1 }
-      ]);
-    });
-  });
-
-  it('can unlisten from mirror queries', () => {
-    const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
-    };
-    return withTestCollection(persistence, testDocs, async collection => {
-      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
-      const limitUnlisten = collection
-        .orderBy('sort', 'asc')
-        .limit(2)
-        .onSnapshot(storeLimitEvent.storeEvent);
-
-      const storeLimitToLastEvent = new EventsAccumulator<
-        firestore.QuerySnapshot
-      >();
-      const limitToLastUnlisten = collection
-        .orderBy('sort', 'desc')
-        .limitToLast(2)
-        .onSnapshot(storeLimitToLastEvent.storeEvent);
-
-      await storeLimitEvent.awaitEvent();
-      await storeLimitToLastEvent.awaitEvent();
-
-      limitUnlisten();
-
-      await collection.add({ k: 'e', sort: -1 });
-      await storeLimitEvent.assertNoAdditionalEvents();
-      const snapshot = await storeLimitToLastEvent.awaitEvent();
-      // Check the limitToLast query still functions after the mirroring
-      // limit query is un-listened.
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'e', sort: -1 }
-      ]);
-
-      limitToLastUnlisten();
-
-      await collection.add({ k: 'f', sort: -1 });
-      await storeLimitToLastEvent.assertNoAdditionalEvents();
-    });
-  });
-
-  it('can relisten to mirror queries', () => {
-    const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
-    };
-    return withTestCollection(persistence, testDocs, async collection => {
+      // Setup `limit` query
       const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
       let limitUnlisten = collection
         .orderBy('sort', 'asc')
         .limit(2)
         .onSnapshot(storeLimitEvent.storeEvent);
 
+      // Setup mirroring `limitToLast` query
       const storeLimitToLastEvent = new EventsAccumulator<
         firestore.QuerySnapshot
       >();
@@ -258,8 +167,17 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      await storeLimitEvent.awaitEvent();
-      await storeLimitToLastEvent.awaitEvent();
+      // Verify both queries get expected results.
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
 
       // Unlisten then relisten limit query.
       limitUnlisten();
@@ -267,20 +185,23 @@ apiDescribe('Queries', (persistence: boolean) => {
         .orderBy('sort', 'asc')
         .limit(2)
         .onSnapshot(storeLimitEvent.storeEvent);
-      let snapshot = await storeLimitEvent.awaitEvent();
+
+      // Verify `limit` query still works.
+      snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
         { k: 'b', sort: 1 }
       ]);
 
+      // Add a document that would change the result set.
       await collection.add({ k: 'e', sort: -1 });
-      // Verify limit query results.
+
+      // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'e', sort: -1 },
         { k: 'a', sort: 0 }
       ]);
-      // Verify limitToLast query results.
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
@@ -295,14 +216,12 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
+      // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
-      // Checking limit query is still functioning when the mirroring
-      // limitToLast query is un-listened.
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: -2 },
         { k: 'e', sort: -1 }
       ]);
-
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'e', sort: -1 },

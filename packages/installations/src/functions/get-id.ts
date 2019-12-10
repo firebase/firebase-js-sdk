@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { extractAppConfig } from '../helpers/extract-app-config';
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 
-export async function getId(app: FirebaseApp): Promise<string> {
-  const appConfig = extractAppConfig(app);
+export async function getId(
+  dependencies: FirebaseDependencies
+): Promise<string> {
   const { installationEntry, registrationPromise } = await getInstallationEntry(
-    appConfig
+    dependencies.appConfig
   );
 
   if (registrationPromise) {
@@ -31,7 +31,7 @@ export async function getId(app: FirebaseApp): Promise<string> {
   } else {
     // If the installation is already registered, update the authentication
     // token if needed.
-    refreshAuthToken(appConfig).catch(console.error);
+    refreshAuthToken(dependencies).catch(console.error);
   }
 
   return installationEntry.fid;

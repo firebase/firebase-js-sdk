@@ -44,6 +44,8 @@ import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -79,9 +81,10 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
-    public app: FirebaseApp
+    public app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    const authTokenProvider = new AuthTokenProvider(app);
+    const authTokenProvider = new AuthTokenProvider(app, authProvider);
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
@@ -307,8 +310,10 @@ export class Repo {
     // (b) store unresolved paths on JSON parse
     const serverValues = this.generateServerValues();
     const newNodeUnresolved = nodeFromJSON(newVal, newPriority);
+    const existing = this.serverSyncTree_.calcCompleteEventCache(path);
     const newNode = resolveDeferredValueSnapshot(
       newNodeUnresolved,
+      existing,
       serverValues
     );
 
@@ -359,6 +364,7 @@ export class Repo {
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
         newNodeUnresolved,
+        this.serverSyncTree_.calcCompleteEventCache(path),
         serverValues
       );
     });
@@ -413,6 +419,7 @@ export class Repo {
     const serverValues = this.generateServerValues();
     const resolvedOnDisconnectTree = resolveDeferredValueTree(
       this.onDisconnect_,
+      this.serverSyncTree_,
       serverValues
     );
     let events: Event[] = [];

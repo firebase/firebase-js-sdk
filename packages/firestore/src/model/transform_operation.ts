@@ -219,7 +219,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
       transformResult !== null,
       "Didn't receive transformResult for NUMERIC_ADD transform"
     );
-    return transformResult!;
+    return transformResult;
   }
 
   /**

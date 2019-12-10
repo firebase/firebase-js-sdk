@@ -133,12 +133,10 @@ apiDescribe('Database', (persistence: boolean) => {
       await writerRef
         .get({ source: 'cache' })
         .then(doc => expect(doc.exists).to.be.true);
-      await readerRef
-        .get({ source: 'cache' })
-        .then(
-          () => fail('Expected cache miss'),
-          err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
-        );
+      await readerRef.get({ source: 'cache' }).then(
+        () => fail('Expected cache miss'),
+        err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
+      );
       await writerRef
         .get()
         .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
@@ -450,7 +448,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .update({ owner: 'abc' })
         .then(
           () => Promise.reject('update should have failed.'),
-          (err: firestore.FirestoreError) => {
+          err => {
             expect(err.message).to.exist;
             // TODO: Change this to just match "no document to update" once the
             // backend response is consistent.
@@ -1229,6 +1227,112 @@ apiDescribe('Database', (persistence: boolean) => {
       // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
       // immediately even if we are offline.
       await firestore.waitForPendingWrites();
+    });
+  });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    const postConverter = {
+      toFirestore(post: Post): firestore.DocumentData {
+        return { title: post.title, author: post.author };
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot,
+        options: firestore.SnapshotOptions
+      ): Post {
+        const data = snapshot.data(options);
+        return new Post(data.title, data.author);
+      }
+    };
+
+    it('for DocumentReference.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverter);
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for CollectionReference.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .withConverter(postConverter)
+          .doc();
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for Query.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        await db
+          .doc('postings/post1')
+          .set({ title: 'post1', author: 'author1' });
+        await db
+          .doc('postings/post2')
+          .set({ title: 'post2', author: 'author2' });
+        const posts = await db
+          .collectionGroup('postings')
+          .withConverter(postConverter)
+          .get();
+        expect(posts.size).to.equal(2);
+        expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+      });
+    });
+
+    it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db.doc('some/doc').withConverter({
+          toFirestore(post: Post): firestore.DocumentData {
+            return { title: post.title, author: post.author };
+          },
+          fromFirestore(
+            snapshot: firestore.QueryDocumentSnapshot,
+            options: firestore.SnapshotOptions
+          ): Post {
+            // Check that options were passed in properly.
+            expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
+
+            const data = snapshot.data(options);
+            return new Post(data.title, data.author);
+          }
+        });
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        postData.data({ serverTimestamps: 'estimate' });
+      });
+    });
+
+    it('drops the converter when calling CollectionReference<T>.parent()', () => {
+      return withTestDb(persistence, async db => {
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+
+        const usersCollection = postsCollection.parent;
+        expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+      });
     });
   });
 });

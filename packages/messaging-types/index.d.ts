@@ -27,7 +27,7 @@ import {
 export class FirebaseMessaging {
   private constructor();
   deleteToken(token: string): Promise<boolean>;
-  getToken(): Promise<string | null>;
+  getToken(): Promise<string>;
   onMessage(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
@@ -48,4 +48,12 @@ export class FirebaseMessaging {
   ): void;
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
+}
+
+export type FirebaseMessagingName = 'messaging';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'messaging': FirebaseMessaging;
+  }
 }

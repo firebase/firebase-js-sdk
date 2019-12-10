@@ -95,7 +95,7 @@ export interface UploadTask {
       | null
       | ((a: UploadTaskSnapshot) => any),
     error?: ((a: Error) => any) | null,
-    complete?: (Unsubscribe) | null
+    complete?: Unsubscribe | null
   ): Function;
   pause(): boolean;
   resume(): boolean;
@@ -125,4 +125,10 @@ export class FirebaseStorage {
   refFromURL(url: string): Reference;
   setMaxOperationRetryTime(time: number): void;
   setMaxUploadRetryTime(time: number): void;
+}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'storage': FirebaseStorage;
+  }
 }

@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { createInstallation } from '../api/create-installation';
+import { createInstallationRequest } from '../api/create-installation-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
-  RequestStatus,
-  RegisteredInstallationEntry
+  RegisteredInstallationEntry,
+  RequestStatus
 } from '../interfaces/installation-entry';
 import { PENDING_TIMEOUT_MS } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
@@ -132,7 +132,7 @@ async function registerInstallation(
   installationEntry: InProgressInstallationEntry
 ): Promise<RegisteredInstallationEntry> {
   try {
-    const registeredInstallationEntry = await createInstallation(
+    const registeredInstallationEntry = await createInstallationRequest(
       appConfig,
       installationEntry
     );

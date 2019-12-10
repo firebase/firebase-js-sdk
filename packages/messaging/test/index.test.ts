@@ -19,27 +19,34 @@ import { expect } from 'chai';
 import { stub, restore, SinonStub } from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 
 import { registerMessaging } from '../index';
 import { ErrorCode } from '../src/models/errors';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import {
+  makeFakeApp,
+  makeFakeInstallations
+} from './testing-utils/make-fake-firebase-services';
+import {
+  InstanceFactory,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
+import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 describe('Firebase Messaging > registerMessaging', () => {
-  let registerService: SinonStub;
+  let registerComponent: SinonStub;
   let fakeFirebase: _FirebaseNamespace;
 
   beforeEach(() => {
-    registerService = stub();
+    registerComponent = stub();
 
     fakeFirebase = {
-      INTERNAL: { registerService }
+      INTERNAL: { registerComponent }
     } as any;
   });
 
@@ -47,28 +54,40 @@ describe('Firebase Messaging > registerMessaging', () => {
     restore();
   });
 
-  it('calls registerService', () => {
+  it('calls registerComponent', () => {
     registerMessaging(fakeFirebase);
-    expect(registerService.callCount).to.equal(1);
+    expect(registerComponent.callCount).to.equal(1);
   });
 
   describe('factoryMethod', () => {
-    let factoryMethod: FirebaseServiceFactory;
+    let factoryMethod: InstanceFactory<FirebaseMessagingName>;
     let fakeApp: FirebaseApp;
+    let fakeContainer: ComponentContainer;
 
     beforeEach(() => {
       registerMessaging(fakeFirebase);
-      factoryMethod = registerService.getCall(0).args[1];
+      factoryMethod = registerComponent.getCall(0).args[0].instanceFactory;
 
       fakeApp = makeFakeApp({
         messagingSenderId: '1234567890'
       });
+      fakeContainer = new ComponentContainer('test');
+      fakeContainer.addComponent(
+        new Component('app', () => fakeApp, ComponentType.PUBLIC)
+      );
+      fakeContainer.addComponent(
+        new Component(
+          'installations',
+          () => makeFakeInstallations(),
+          ComponentType.PUBLIC
+        )
+      );
     });
 
     describe('isSupported', () => {
       it('is a namespace export', () => {
-        const namespaceExports = registerService.getCall(0).args[2];
-        expect(namespaceExports.isSupported).to.be.a('function');
+        const component = registerComponent.getCall(0).args[0];
+        expect(component.serviceProps.isSupported).to.be.a('function');
       });
     });
 
@@ -84,7 +103,7 @@ describe('Firebase Messaging > registerMessaging', () => {
       });
 
       it('returns a SwController', () => {
-        const firebaseService = factoryMethod(fakeApp);
+        const firebaseService = factoryMethod(fakeContainer);
         expect(firebaseService).to.be.instanceOf(SwController);
       });
     });
@@ -95,7 +114,7 @@ describe('Firebase Messaging > registerMessaging', () => {
         stub(window, 'navigator').value({});
 
         try {
-          factoryMethod(fakeApp);
+          factoryMethod(fakeContainer);
         } catch (e) {
           expect(e.code).to.equal('messaging/' + ErrorCode.UNSUPPORTED_BROWSER);
           return;
@@ -104,7 +123,7 @@ describe('Firebase Messaging > registerMessaging', () => {
       });
 
       it('returns a WindowController', () => {
-        const firebaseService = factoryMethod(fakeApp);
+        const firebaseService = factoryMethod(fakeContainer);
         expect(firebaseService).to.be.instanceOf(WindowController);
       });
     });

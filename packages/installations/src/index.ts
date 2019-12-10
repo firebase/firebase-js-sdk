@@ -16,31 +16,41 @@
  */
 
 import firebase from '@firebase/app';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-
 import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
+import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
 
-  const factoryMethod: FirebaseServiceFactory = app => {
-    // Throws if app isn't configured properly.
-    extractAppConfig(app);
+  instance.INTERNAL.registerComponent(
+    new Component(
+      installationsName,
+      container => {
+        const app = container.getProvider('app').getImmediate();
 
-    return {
-      app,
-      getId: () => getId(app),
-      getToken: (forceRefresh?: boolean) => getToken(app, forceRefresh),
-      delete: () => deleteInstallation(app)
-    };
-  };
+        // Throws if app isn't configured properly.
+        const appConfig = extractAppConfig(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        const dependencies: FirebaseDependencies = {
+          appConfig,
+          platformLoggerProvider
+        };
 
-  instance.INTERNAL.registerService(installationsName, factoryMethod);
+        return {
+          app,
+          getId: () => getId(dependencies),
+          getToken: (forceRefresh?: boolean) =>
+            getToken(dependencies, forceRefresh),
+          delete: () => deleteInstallation(dependencies)
+        };
+      },
+      ComponentType.PUBLIC
+    )
+  );
 }
 
 registerInstallations(firebase as _FirebaseNamespace);

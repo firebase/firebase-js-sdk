@@ -432,8 +432,8 @@ export class LocalStore {
           .lookupMutationBatch(txn, batchId)
           .next((batch: MutationBatch | null) => {
             assert(batch !== null, 'Attempt to reject nonexistent batch!');
-            affectedKeys = batch!.keys();
-            return this.mutationQueue.removeMutationBatch(txn, batch!);
+            affectedKeys = batch.keys();
+            return this.mutationQueue.removeMutationBatch(txn, batch);
           })
           .next(() => {
             return this.mutationQueue.performConsistencyCheck(txn);
@@ -605,14 +605,10 @@ export class LocalStore {
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
-                  // TODO(index-free): Make this an assert when we enable
-                  // Index-Free queries
-                  if (SnapshotVersion.MIN.isEqual(remoteVersion)) {
-                    log.error(
-                      LOG_TAG,
-                      'Cannot add a document when the remote version is zero'
-                    );
-                  }
+                  assert(
+                    !SnapshotVersion.MIN.isEqual(remoteVersion),
+                    'Cannot add a document when the remote version is zero'
+                  );
                   documentBuffer.addEntry(doc, remoteVersion);
                   changedDocs = changedDocs.insert(key, doc);
                 } else {
@@ -750,8 +746,8 @@ export class LocalStore {
         );
 
         // Advance the last limbo free snapshot version
-        const lastLimboFreeSnapshotVersion = targetData!.snapshotVersion;
-        const updatedTargetData = targetData!.withLastLimboFreeSnapshotVersion(
+        const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
+        const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
           lastLimboFreeSnapshotVersion
         );
         this.targetDataByTarget = this.targetDataByTarget.insert(
@@ -894,9 +890,10 @@ export class LocalStore {
     keepPersistedTargetData: boolean
   ): Promise<void> {
     const targetData = this.targetDataByTarget.get(targetId);
-    if (!targetData) {
-      return Promise.resolve();
-    }
+    assert(
+      targetData !== null,
+      `Tried to release nonexistent target: ${targetId}`
+    );
 
     const mode = keepPersistedTargetData
       ? 'readwrite-idempotent'
@@ -921,7 +918,7 @@ export class LocalStore {
           return PersistencePromise.forEach(removed, (key: DocumentKey) =>
             this.persistence.referenceDelegate.removeReference(txn, key)
           ).next(() => {
-            this.persistence.referenceDelegate.removeTarget(txn, targetData);
+            this.persistence.referenceDelegate.removeTarget(txn, targetData!);
           });
         } else {
           return PersistencePromise.resolve();
@@ -929,7 +926,7 @@ export class LocalStore {
       })
       .then(() => {
         this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(targetData.target);
+        this.targetIdByTarget.delete(targetData!.target);
       });
   }
 

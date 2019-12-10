@@ -14,9 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import {
+  FirebaseMessaging,
+  FirebaseMessagingName
+} from '@firebase/messaging-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 /**
  * The metadata that should be supplied with function calls.
@@ -30,11 +37,43 @@ export interface Context {
  * Helper class to get metadata that should be included with a function call.
  */
 export class ContextProvider {
-  constructor(private readonly app: FirebaseApp) {}
+  private auth: FirebaseAuthInternal | null = null;
+  private messaging: FirebaseMessaging | null = null;
+  constructor(
+    authProvider: Provider<FirebaseAuthInternalName>,
+    messagingProvider: Provider<FirebaseMessagingName>
+  ) {
+    this.auth = authProvider.getImmediate({ optional: true });
+    this.messaging = messagingProvider.getImmediate({
+      optional: true
+    });
+
+    if (!this.auth) {
+      authProvider.get().then(
+        auth => (this.auth = auth),
+        () => {
+          /* get() never rejects */
+        }
+      );
+    }
+
+    if (!this.messaging) {
+      messagingProvider.get().then(
+        messaging => (this.messaging = messaging),
+        () => {
+          /* get() never rejects */
+        }
+      );
+    }
+  }
 
   async getAuthToken(): Promise<string | undefined> {
+    if (!this.auth) {
+      return undefined;
+    }
+
     try {
-      const token = await (this.app as _FirebaseApp).INTERNAL.getToken();
+      const token = await this.auth.getToken();
       if (!token) {
         return undefined;
       }
@@ -47,15 +86,11 @@ export class ContextProvider {
 
   async getInstanceIdToken(): Promise<string | undefined> {
     try {
-      // HACK: Until we have a separate instanceId package, this is a quick way
-      // to load in the messaging instance for this app.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!(this.app as any).messaging) {
+      if (!this.messaging) {
         return undefined;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const messaging = (this.app as any).messaging() as FirebaseMessaging;
-      const token = await messaging.getToken();
+
+      const token = await this.messaging.getToken();
       if (!token) {
         return undefined;
       }

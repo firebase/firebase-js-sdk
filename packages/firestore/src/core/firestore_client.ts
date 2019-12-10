@@ -18,10 +18,10 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
+import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { Persistence } from '../local/persistence';
-import { SimpleQueryEngine } from '../local/simple_query_engine';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -399,8 +399,7 @@ export class FirestoreClient {
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
-        // TODO(index-free): Use IndexFreeQueryEngine/IndexedQueryEngine as appropriate.
-        const queryEngine = new SimpleQueryEngine();
+        const queryEngine = new IndexFreeQueryEngine();
         this.localStore = new LocalStore(this.persistence, queryEngine, user);
         await this.localStore.start();
 

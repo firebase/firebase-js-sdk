@@ -73,6 +73,8 @@ var appId1 = 'appId1';
 var appId2 = 'appId2';
 var auth1 = null;
 var auth2 = null;
+var authInternal1 = null;
+var authInternal2 = null;
 var app1 = null;
 var app2 = null;
 var authUi1 = null;
@@ -1014,9 +1016,10 @@ function testGetUid_userSignedIn() {
     // Initialize App and Auth.
     app1 = firebase.initializeApp(config1, appId1);
     auth1 = app1.auth();
+    authInternal1 = app1.container.getProvider('auth-internal').getImmediate();
     // Initially getUid() should return null;
     assertNull(auth1.getUid());
-    assertNull(app1.INTERNAL.getUid());
+    assertNull(authInternal1.getUid());
     // Listen to Auth changes.
     var unsubscribe = auth1.onIdTokenChanged(function(currentUser) {
       // Unsubscribe of Auth state change listener.
@@ -1024,7 +1027,7 @@ function testGetUid_userSignedIn() {
       // Logged in test user should be detected.
       // Confirm getUid() returns expected UID.
       assertEquals(accountInfo1['uid'], auth1.getUid());
-      assertEquals(accountInfo1['uid'], app1.INTERNAL.getUid());
+      assertEquals(accountInfo1['uid'], authInternal1.getUid());
       goog.Timer.promise(10).then(function() {
         // Sign out.
         return auth1.signOut();
@@ -1033,7 +1036,7 @@ function testGetUid_userSignedIn() {
       }).then(function() {
         // getUid() should return null.
         assertNull(auth1.getUid());
-        assertNull(app1.INTERNAL.getUid());
+        assertNull(authInternal1.getUid());
         asyncTestCase.signal();
       });
     });
@@ -1065,19 +1068,20 @@ function testGetUid_noUserSignedIn() {
   // Initialize App and Auth.
   app1 = firebase.initializeApp(config1, appId1);
   auth1 = app1.auth();
+  authInternal1 = app1.container.getProvider('auth-internal').getImmediate();
   // Listen to Auth changes.
   var unsubscribe = auth1.onIdTokenChanged(function(currentUser) {
     // Unsubscribe of Auth state change listener.
     unsubscribe();
     // Initially getUid() should return null;
     assertNull(auth1.getUid());
-    assertNull(app1.INTERNAL.getUid());
+    assertNull(authInternal1.getUid());
     // Sign in with email and password.
     auth1.signInWithEmailAndPassword('user@example.com', 'password')
         .then(function(userCredential) {
           // getUid() should return the test user UID.
           assertEquals(accountInfo1['uid'], auth1.getUid());
-          assertEquals(accountInfo1['uid'], app1.INTERNAL.getUid());
+          assertEquals(accountInfo1['uid'], authInternal1.getUid());
           asyncTestCase.signal();
         });
   });
@@ -1118,11 +1122,13 @@ function testNotifyAuthListeners() {
       config1['apiKey'] + ':' + appId1);
   currentUserStorageManager.setCurrentUser(user).then(function() {
     app1 = firebase.initializeApp(config1, appId1);
-    app1.INTERNAL.addAuthTokenListener(app1AuthTokenListener);
     auth1 = app1.auth();
+    authInternal1 = app1.container.getProvider('auth-internal').getImmediate();
+    authInternal1.addAuthTokenListener(app1AuthTokenListener);
     app2 = firebase.initializeApp(config2, appId2);
-    app2.INTERNAL.addAuthTokenListener(app2AuthTokenListener);
     auth2 = app2.auth();
+    authInternal2 = app2.container.getProvider('auth-internal').getImmediate();
+    authInternal2.addAuthTokenListener(app2AuthTokenListener);
     // Confirm all listeners reset.
     assertEquals(0, listener1.getCallCount());
     assertEquals(0, listener2.getCallCount());
@@ -1170,7 +1176,7 @@ function testNotifyAuthListeners() {
         app1AuthTokenListener.reset();
         listener2.reset();
         auth1.removeAuthTokenListener(listener2);
-        app1.INTERNAL.removeAuthTokenListener(app1AuthTokenListener);
+        authInternal1.removeAuthTokenListener(app1AuthTokenListener);
         // Force token change.
         currentAccessToken = 'accessToken3';
         auth1['currentUser'].getIdToken().then(function(token) {
@@ -10077,7 +10083,7 @@ function testAuth_proactiveTokenRefresh_multipleUsers() {
   auth1 = app1.auth();
   var subscriber = function(token) {};
   // Simulate Firebase service added.
-  app1.INTERNAL.addAuthTokenListener(subscriber);
+  app1.container.getProvider('auth-internal').getImmediate().addAuthTokenListener(subscriber);
   // Simulate user1 signed in.
   auth1.signInWithIdTokenResponse(expectedTokenResponse).then(function() {
     // Current user should be set to user1.
@@ -10155,7 +10161,7 @@ function testAuth_proactiveTokenRefresh_firebaseServiceAddedAfterSignIn() {
       assertEquals(
           0, fireauth.AuthUser.prototype.startProactiveRefresh.getCallCount());
       // Simulate Firebase service added.
-      app1.INTERNAL.addAuthTokenListener(subscriber);
+      app1.container.getProvider('auth-internal').getImmediate().addAuthTokenListener(subscriber);
       // Confirm proactive refresh started on that user.
       assertEquals(
           1, fireauth.AuthUser.prototype.startProactiveRefresh.getCallCount());
@@ -10199,10 +10205,11 @@ function testAuth_proactiveTokenRefresh_firebaseServiceRemovedAfterSignIn() {
   auth1 = app1.auth();
   var subscriber = function(token) {};
   // Simulate Firebase service added.
-  app1.INTERNAL.addAuthTokenListener(subscriber);
+  authInternal1 = app1.container.getProvider('auth-internal').getImmediate();
+  authInternal1.addAuthTokenListener(subscriber);
   // Add same listener again to check that removing it once will ensure the
   // proactive refresh is stopped.
-  app1.INTERNAL.addAuthTokenListener(subscriber);
+  authInternal1.addAuthTokenListener(subscriber);
   // Simulate user signed in.
   auth1.signInWithIdTokenResponse(expectedTokenResponse).then(function() {
     // Current user should be set to user1.
@@ -10214,7 +10221,7 @@ function testAuth_proactiveTokenRefresh_firebaseServiceRemovedAfterSignIn() {
     assertEquals(
         0, fireauth.AuthUser.prototype.stopProactiveRefresh.getCallCount());
     // Simulate Firebase service removed.
-    app1.INTERNAL.removeAuthTokenListener(subscriber);
+    authInternal1.removeAuthTokenListener(subscriber);
     // Confirm proactive refresh stopped on that user.
     assertEquals(
         1, fireauth.AuthUser.prototype.stopProactiveRefresh.getCallCount());

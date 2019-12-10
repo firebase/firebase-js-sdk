@@ -27,8 +27,10 @@ import {
 } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
-import { assert } from 'chai';
+import { expect } from 'chai';
 import { stub } from 'sinon';
+import { Component, ComponentType } from '@firebase/component';
+import './setup';
 
 executeFirebaseTests();
 executeFirebaseLiteTests();
@@ -42,297 +44,61 @@ function executeFirebaseTests(): void {
     beforeEach(() => {
       firebase = createFirebaseNamespace();
     });
-    it('Register App Hook', done => {
-      const events = ['create', 'delete'];
-      let hookEvents = 0;
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp) => {
-          return new TestService(app);
-        },
-        undefined,
-        (event: string, _app: FirebaseApp) => {
-          assert.equal(event, events[hookEvents]);
-          hookEvents += 1;
-          if (hookEvents === events.length) {
-            done();
-          }
-        }
-      );
-      const app = firebase.initializeApp({});
-      // Ensure the hook is called synchronously
-      assert.equal(hookEvents, 1);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      app.delete();
-    });
 
-    it('Only calls createService on first use (per app).', () => {
-      let registrations = 0;
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp) => {
-          registrations += 1;
-          return new TestService(app);
-        }
-      );
-      let app = firebase.initializeApp({});
-      assert.equal(registrations, 0);
-      (firebase as any).test();
-      assert.equal(registrations, 1);
-      (firebase as any).test();
-      assert.equal(registrations, 1);
-      (firebase as any).test(app);
-      assert.equal(registrations, 1);
-      (app as any).test();
-      assert.equal(registrations, 1);
-
-      app = firebase.initializeApp({}, 'second');
-      assert.equal(registrations, 1);
-      (app as any).test();
-      assert.equal(registrations, 2);
-    });
-
-    it('Will do nothing if registerService is called again with the same name', () => {
+    it('will do nothing if registerComponent is called again with the same name', () => {
       const registerStub = stub(
         (firebase as _FirebaseNamespace).INTERNAL,
-        'registerService'
+        'registerComponent'
       ).callThrough();
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp) => new TestService(app)
+
+      const testComponent = createTestComponent('test');
+
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        testComponent
       );
       firebase.initializeApp({});
       const serviceNamespace = (firebase as any).test;
 
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp) => new TestService(app)
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        testComponent
       );
 
       const serviceNamespace2 = (firebase as any).test;
-      assert.strictEqual(serviceNamespace, serviceNamespace2);
-      assert.doesNotThrow(registerStub);
+
+      expect(serviceNamespace).to.eq(serviceNamespace2);
+      expect(registerStub).to.have.not.thrown();
     });
 
-    it('Can lazy load a service', () => {
-      let registrations = 0;
-
-      const app1 = firebase.initializeApp({});
-      assert.isUndefined((app1 as any).lazyService);
-
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'lazyService',
-        (app: FirebaseApp) => {
-          registrations += 1;
-          return new TestService(app);
-        }
-      );
-
-      assert.isDefined((app1 as any).lazyService);
-
-      // Initial service registration happens on first invocation
-      assert.equal(registrations, 0);
-
-      // Verify service has been registered
-      (firebase as any).lazyService();
-      assert.equal(registrations, 1);
-
-      // Service should only be created once
-      (firebase as any).lazyService();
-      assert.equal(registrations, 1);
-
-      // Service should only be created once... regardless of how you invoke the function
-      (firebase as any).lazyService(app1);
-      assert.equal(registrations, 1);
-
-      // Service should already be defined for the second app
-      const app2 = firebase.initializeApp({}, 'second');
-      assert.isDefined((app1 as any).lazyService);
-
-      // Service still should not have registered for the second app
-      assert.equal(registrations, 1);
-
-      // Service should initialize once called
-      (app2 as any).lazyService();
-      assert.equal(registrations, 2);
-    });
-
-    it('Can lazy register App Hook', done => {
-      const events = ['create', 'delete'];
-      let hookEvents = 0;
-      const app = firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'lazyServiceWithHook',
-        (app: FirebaseApp) => {
-          return new TestService(app);
-        },
-        undefined,
-        (event: string, _app: FirebaseApp) => {
-          assert.equal(event, events[hookEvents]);
-          hookEvents += 1;
-          if (hookEvents === events.length) {
-            done();
-          }
-        }
-      );
-      // Ensure the hook is called synchronously
-      assert.equal(hookEvents, 1);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      app.delete();
-    });
-
-    it('Can register multiple instances of some services', () => {
-      // Register Multi Instance Service
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'multiInstance',
-        (...args) => {
-          const [app, , instanceIdentifier] = args;
-          return new TestService(app, instanceIdentifier);
-        },
-        undefined,
-        undefined,
-        true
-      );
+    it('returns cached service instances', () => {
       firebase.initializeApp({});
-
-      // Capture a given service ref
-      const service = (firebase.app() as any).multiInstance();
-      assert.strictEqual(service, (firebase.app() as any).multiInstance());
-
-      // Capture a custom instance service ref
-      const serviceIdentifier = 'custom instance identifier';
-      const service2 = (firebase.app() as any).multiInstance(serviceIdentifier);
-      assert.strictEqual(
-        service2,
-        (firebase.app() as any).multiInstance(serviceIdentifier)
-      );
-
-      // Ensure that the two services **are not equal**
-      assert.notStrictEqual(
-        service.instanceIdentifier,
-        service2.instanceIdentifier,
-        '`instanceIdentifier` is not being set correctly'
-      );
-      assert.notStrictEqual(service, service2);
-      assert.notStrictEqual(
-        (firebase.app() as any).multiInstance(),
-        (firebase.app() as any).multiInstance(serviceIdentifier)
-      );
-    });
-
-    it(`Should return the same instance of a service if a service doesn't support multi instance`, () => {
-      // Register Multi Instance Service
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'singleInstance',
-        (...args) => {
-          const [app, , instanceIdentifier] = args;
-          return new TestService(app, instanceIdentifier);
-        },
-        undefined,
-        undefined,
-        false // <-- multi instance flag
-      );
-      firebase.initializeApp({});
-
-      // Capture a given service ref
-      const serviceIdentifier = 'custom instance identifier';
-      const service = (firebase.app() as any).singleInstance();
-      const service2 = (firebase.app() as any).singleInstance(
-        serviceIdentifier
-      );
-
-      // Ensure that the two services **are equal**
-      assert.strictEqual(
-        service.instanceIdentifier,
-        service2.instanceIdentifier,
-        '`instanceIdentifier` is not being set correctly'
-      );
-      assert.strictEqual(service, service2);
-    });
-
-    it(`Should pass null to the factory method if using default instance`, () => {
-      // Register Multi Instance Service
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'testService',
-        (...args) => {
-          const [app, , instanceIdentifier] = args;
-          assert.isUndefined(
-            instanceIdentifier,
-            '`instanceIdentifier` is not `undefined`'
-          );
-          return new TestService(app, instanceIdentifier);
-        }
-      );
-      firebase.initializeApp({});
-    });
-
-    it(`Should extend INTERNAL per app instance`, () => {
-      let counter: number = 0;
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp, extendApp: any) => {
-          const service = new TestService(app);
-          (service as any).token = 'tokenFor' + counter++;
-          extendApp({
-            INTERNAL: {
-              getToken: () => {
-                return Promise.resolve({
-                  accessToken: (service as any).token
-                });
-              }
-            }
-          });
-          return service;
-        }
-      );
-      // Initialize 2 apps and their corresponding services.
-      const app = firebase.initializeApp({});
-      (app as any).test();
-      const app2 = firebase.initializeApp({}, 'app2');
-      (app2 as any).test();
-      // Confirm extended INTERNAL getToken resolve with the corresponding
-      // service's value.
-      return (app as _FirebaseApp).INTERNAL.getToken()
-        .then(token => {
-          assert.isNotNull(token);
-          assert.equal('tokenFor0', token!.accessToken);
-          return (app2 as _FirebaseApp).INTERNAL.getToken();
-        })
-        .then(token => {
-          assert.isNotNull(token);
-          assert.equal('tokenFor1', token!.accessToken);
-        });
-    });
-
-    it(`Should create a new instance of a service after removing the existing instance`, () => {
-      const app = firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'test',
-        (app: FirebaseApp) => {
-          return new TestService(app);
-        }
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test')
       );
 
       const service = (firebase as any).test();
 
-      assert.equal(service, (firebase as any).test());
+      expect(service).to.eq((firebase as any).test());
+    });
+
+    it(`creates a new instance of a service after removing the existing instance`, () => {
+      const app = firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test')
+      );
+
+      const service = (firebase as any).test();
+
+      expect(service).to.eq((firebase as any).test());
 
       (app as _FirebaseApp)._removeServiceInstance('test');
 
-      assert.notEqual(service, (firebase as any).test());
+      expect(service, (firebase as any).test());
     });
 
-    it(`Should create a new instance of a service after removing the existing instance - for service that supports multiple instances`, () => {
+    it(`creates a new instance of a service after removing the existing instance - for service that supports multiple instances`, () => {
       const app = firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'multiInstance',
-        (...args) => {
-          const [app, , instanceIdentifier] = args;
-          return new TestService(app, instanceIdentifier);
-        },
-        undefined,
-        undefined,
-        true
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('multiInstance', true)
       );
 
       // default instance
@@ -348,12 +114,57 @@ function executeFirebaseTests(): void {
       );
 
       // default instance should not be changed
-      assert.equal(instance1, (firebase.app() as any).multiInstance());
+      expect(instance1).to.eq((firebase.app() as any).multiInstance());
 
-      assert.notEqual(
-        instance2,
+      expect(instance2).to.not.eq(
         (firebase.app() as any).multiInstance(serviceIdentifier)
       );
+    });
+  });
+
+  describe('Firebase Version Registration', () => {
+    let firebase: FirebaseNamespace;
+
+    beforeEach(() => {
+      firebase = createFirebaseNamespace();
+    });
+
+    it('will register an official version component without warnings', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('@firebase/analytics', '1.2.3');
+      expect(components.get('fire-analytics-version')).to.exist;
+      expect(components.size).to.equal(initialSize + 1);
+
+      expect(warnStub.called).to.be.false;
+    });
+
+    it('will register an arbitrary version component without warnings', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('angularfire', '1.2.3');
+      expect(components.get('angularfire-version')).to.exist;
+      expect(components.size).to.equal(initialSize + 1);
+
+      expect(warnStub.called).to.be.false;
+    });
+
+    it('will do nothing if registerVersion() is given illegal characters', () => {
+      const warnStub = stub(console, 'warn');
+      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
+      const initialSize = components.size;
+
+      firebase.registerVersion('remote config', '1.2.3');
+      expect(warnStub.args[0][1]).to.include('library name "remote config"');
+      expect(components.size).to.equal(initialSize);
+
+      firebase.registerVersion('remote-config', '1.2/3');
+      expect(warnStub.args[1][1]).to.include('version name "1.2/3"');
+      expect(components.size).to.equal(initialSize);
     });
   });
 }
@@ -368,27 +179,38 @@ function executeFirebaseLiteTests(): void {
       firebase = createFirebaseNamespaceLite();
     });
 
-    it('should allow Performance service to register', () => {
-      (firebase as _FirebaseNamespace).INTERNAL.registerService(
-        'performance',
-        (app: FirebaseApp) => {
-          return new TestService(app);
-        }
+    it('allows Performance service to register', () => {
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('performance')
       );
       const app = firebase.initializeApp({});
       const perf = (app as any).performance();
-      assert.isTrue(perf instanceof TestService);
+      expect(perf).to.be.instanceof(TestService);
     });
 
-    it('should NOT allow services other than Performance to register', () => {
-      assert.throws(() => {
-        (firebase as _FirebaseNamespace).INTERNAL.registerService(
-          'test',
-          (app: FirebaseApp) => {
-            return new TestService(app);
-          }
-        );
-      });
+    it('allows Installations service to register', () => {
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('installations')
+      );
+      const app = firebase.initializeApp({});
+      const perf = (app as any).installations();
+      expect(perf).to.be.instanceof(TestService);
+    });
+
+    it('does NOT allow services other than Performance and installations to register', () => {
+      expect(() =>
+        (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+          createTestComponent('auth')
+        )
+      ).to.throw();
+    });
+
+    it('allows any private component to register', () => {
+      expect(() =>
+        (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+          createTestComponent('auth-internal', false, ComponentType.PRIVATE)
+        )
+      ).to.not.throw();
     });
   });
 }
@@ -404,68 +226,65 @@ function firebaseAppTests(
       firebase = firebaseNamespaceFactory();
     });
 
-    it('No initial apps.', () => {
-      assert.equal(firebase.apps.length, 0);
-    });
-
-    it('Can initialize DEFAULT App.', () => {
-      const app = firebase.initializeApp({});
-      assert.equal(firebase.apps.length, 1);
-      assert.strictEqual(app, firebase.apps[0]);
-      assert.equal(app.name, '[DEFAULT]');
-      assert.strictEqual(firebase.app(), app);
-      assert.strictEqual(firebase.app('[DEFAULT]'), app);
-    });
-
-    it('Can get options of App.', () => {
-      const options: FirebaseOptions = { projectId: 'projectId' };
-      const app = firebase.initializeApp(options);
-      assert.deepEqual(app.options, options);
-    });
-
-    it('Can delete App.', () => {
-      const app = firebase.initializeApp({});
-      assert.equal(firebase.apps.length, 1);
-      return app.delete().then(() => {
-        assert.equal(firebase.apps.length, 0);
-      });
-    });
-
-    it('Can create named App.', () => {
-      const app = firebase.initializeApp({}, 'my-app');
-      assert.equal(firebase.apps.length, 1);
-      assert.equal(app.name, 'my-app');
-      assert.strictEqual(firebase.app('my-app'), app);
-    });
-
-    it('Can create named App and DEFAULT app.', () => {
-      firebase.initializeApp({}, 'my-app');
-      assert.equal(firebase.apps.length, 1);
-      firebase.initializeApp({});
-      assert.equal(firebase.apps.length, 2);
+    it(' has no initial apps.', () => {
+      expect(firebase.apps.length).to.eq(0);
     });
 
     it('Can get app via firebase namespace.', () => {
-      firebase.initializeApp({});
+      const app = firebase.initializeApp({});
+      expect(app).to.be.not.null;
     });
 
-    it('Duplicate DEFAULT initialize is an error.', () => {
-      firebase.initializeApp({});
-      assert.throws(() => {
-        firebase.initializeApp({});
-      }, /\[DEFAULT\].*exists/i);
+    it('can initialize DEFAULT App.', () => {
+      const app = firebase.initializeApp({});
+      expect(firebase.apps.length).to.eq(1);
+      expect(app).to.eq(firebase.apps[0]);
+      expect(app.name).to.eq('[DEFAULT]');
+      expect(firebase.app()).to.eq(app);
+      expect(firebase.app('[DEFAULT]')).to.eq(app);
     });
 
-    it('Duplicate named App initialize is an error.', () => {
+    it('can get options of App.', () => {
+      const options: FirebaseOptions = { projectId: 'projectId' };
+      const app = firebase.initializeApp(options);
+      expect(app.options).to.deep.eq(options);
+    });
+
+    it('can delete App.', async () => {
+      const app = firebase.initializeApp({});
+      expect(firebase.apps.length).to.eq(1);
+      await app.delete();
+      expect(firebase.apps.length).to.eq(0);
+    });
+
+    it('can create named App.', () => {
+      const app = firebase.initializeApp({}, 'my-app');
+      expect(firebase.apps.length).to.eq(1);
+      expect(app.name).to.eq('my-app');
+      expect(firebase.app('my-app')).to.eq(app);
+    });
+
+    it('can create named App and DEFAULT app.', () => {
+      firebase.initializeApp({}, 'my-app');
+      expect(firebase.apps.length).to.eq(1);
+      firebase.initializeApp({});
+      expect(firebase.apps.length).to.eq(2);
+    });
+
+    it('duplicate DEFAULT initialize is an error.', () => {
+      firebase.initializeApp({});
+      expect(() => firebase.initializeApp({})).throws(/\[DEFAULT\].*exists/i);
+    });
+
+    it('duplicate named App initialize is an error.', () => {
       firebase.initializeApp({}, 'abc');
-      assert.throws(() => {
-        firebase.initializeApp({}, 'abc');
-      }, /'abc'.*exists/i);
+
+      expect(() => firebase.initializeApp({}, 'abc')).throws(/'abc'.*exists/i);
     });
 
     it('automaticDataCollectionEnabled is `false` by default', () => {
       const app = firebase.initializeApp({}, 'my-app');
-      assert.equal(app.automaticDataCollectionEnabled, false);
+      expect(app.automaticDataCollectionEnabled).to.eq(false);
     });
 
     it('automaticDataCollectionEnabled can be set via the config object', () => {
@@ -473,7 +292,7 @@ function firebaseAppTests(
         {},
         { automaticDataCollectionEnabled: true }
       );
-      assert.equal(app.automaticDataCollectionEnabled, true);
+      expect(app.automaticDataCollectionEnabled).to.eq(true);
     });
 
     it('Modifying options object does not change options.', () => {
@@ -484,63 +303,57 @@ function firebaseAppTests(
       firebase.initializeApp(options);
       options.appId = 'changed';
       delete options.measurementId;
-      assert.deepEqual(firebase.app().options, {
+      expect(firebase.app().options).to.deep.eq({
         appId: 'original',
         measurementId: 'someId'
       });
     });
 
-    it('Error to use app after it is deleted.', () => {
+    it('Error to use app after it is deleted.', async () => {
       const app = firebase.initializeApp({});
-      return app.delete().then(() => {
-        assert.throws(() => {
-          console.log(app.name);
-        }, /already.*deleted/);
-      });
+      await app.delete();
+      expect(() => console.log(app.name)).throws(/already.*deleted/);
     });
 
-    it('OK to create same-name app after it is deleted.', () => {
+    it('OK to create same-name app after it is deleted.', async () => {
       const app = firebase.initializeApp({}, 'app-name');
-      return app.delete().then(() => {
-        const app2 = firebase.initializeApp({}, 'app-name');
-        assert.ok(app !== app2, 'Expect new instance.');
-        // But original app id still orphaned.
-        assert.throws(() => {
-          console.log(app.name);
-        }, /already.*deleted/);
-      });
+      await app.delete();
+
+      const app2 = firebase.initializeApp({}, 'app-name');
+      expect(app).to.not.eq(app2, 'Expect new instance.');
+      // But original app id still orphaned.
+      expect(() => console.log(app.name)).throws(/already.*deleted/);
     });
 
     it('OK to use Object.prototype member names as app name.', () => {
       const app = firebase.initializeApp({}, 'toString');
-      assert.equal(firebase.apps.length, 1);
-      assert.equal(app.name, 'toString');
-      assert.strictEqual(firebase.app('toString'), app);
+      expect(firebase.apps.length).to.eq(1);
+      expect(app.name).to.eq('toString');
+      expect(firebase.app('toString')).to.eq(app);
     });
 
     it('Error to get uninitialized app using Object.prototype member name.', () => {
-      assert.throws(() => {
-        firebase.app('toString');
-      }, /'toString'.*created/i);
+      expect(() => firebase.app('toString')).throws(/'toString'.*created/i);
     });
 
     describe('Check for bad app names', () => {
       const tests = ['', 123, false, null];
       for (const data of tests) {
         it("where name == '" + data + "'", () => {
-          assert.throws(() => {
-            firebase.initializeApp({}, data as string);
-          }, /Illegal app name/i);
+          expect(() => firebase.initializeApp({}, data as string)).throws(
+            /Illegal app name/i
+          );
         });
       }
     });
+
     describe('Check for bad app names, passed as an object', () => {
       const tests = ['', 123, false, null];
       for (const name of tests) {
         it("where name == '" + name + "'", () => {
-          assert.throws(() => {
-            firebase.initializeApp({}, { name: name as string });
-          }, /Illegal app name/i);
+          expect(() =>
+            firebase.initializeApp({}, { name: name as string })
+          ).throws(/Illegal app name/i);
         });
       }
     });
@@ -561,4 +374,19 @@ class TestService implements FirebaseService {
       setTimeout(() => resolve(), 10);
     });
   }
+}
+
+function createTestComponent(
+  name: string,
+  multiInstances = false,
+  type = ComponentType.PUBLIC
+): Component {
+  const component = new Component(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    name as any,
+    container => new TestService(container.getProvider('app').getImmediate()),
+    type
+  );
+  component.setMultipleInstances(multiInstances);
+  return component;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.2.24",
+  "version": "0.2.27",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -26,33 +26,19 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.1.29",
-    "@firebase/installations": "0.3.4",
-    "@firebase/util": "0.2.32",
-    "@firebase/performance-types": "0.0.5",
+    "@firebase/logger": "0.1.32",
+    "@firebase/installations": "0.3.7",
+    "@firebase/util": "0.2.35",
+    "@firebase/performance-types": "0.0.7",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/chai": "4.2.4",
-    "@types/chai-as-promised": "7.1.2",
-    "@types/mocha": "5.2.7",
-    "@types/sinon": "7.5.0",
-    "@types/sinon-chai": "3.2.3",
-    "chai": "4.2.0",
-    "mocha": "6.2.2",
-    "rollup": "1.26.3",
+    "rollup": "1.27.2",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.25.2",
-    "sinon": "7.5.0",
-    "sinon-chai": "3.3.0",
-    "chai-as-promised": "7.1.1",
-    "typescript": "3.6.4",
-    "eslint": "6.6.0",
-    "@typescript-eslint/parser": "2.6.1",
-    "@typescript-eslint/eslint-plugin": "2.6.1",
-    "@typescript-eslint/eslint-plugin-tslint": "2.6.1",
-    "eslint-plugin-import": "2.18.2"
+    "typescript": "3.7.3"
   },
   "repository": {
     "type": "git",

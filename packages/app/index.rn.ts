@@ -17,7 +17,8 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseNamespace';
+import { firebase as _firebase } from './src/firebaseNamespace';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
 /**
  * To avoid having to include the @types/react-native package, which breaks
@@ -27,9 +28,7 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { AsyncStorage } = require('react-native');
 
-const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
-
-_firebase.INTERNAL.extendNamespace({
+(_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
   INTERNAL: {
     reactNative: {
       AsyncStorage
@@ -38,6 +37,8 @@ _firebase.INTERNAL.extendNamespace({
 });
 
 export const firebase = _firebase as FirebaseNamespace;
+
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

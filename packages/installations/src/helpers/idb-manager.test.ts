@@ -17,13 +17,13 @@
 
 import { expect } from 'chai';
 import { AppConfig } from '../interfaces/app-config';
-import { getFakeAppConfig } from '../testing/get-fake-app';
-import '../testing/setup';
-import { clear, get, remove, set, update } from './idb-manager';
 import {
   InstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
+import { getFakeAppConfig } from '../testing/fake-generators';
+import '../testing/setup';
+import { clear, get, remove, set, update } from './idb-manager';
 
 const VALUE_A: InstallationEntry = {
   fid: 'VALUE_A',

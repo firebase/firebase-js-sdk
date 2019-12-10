@@ -889,4 +889,47 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         });
     });
   });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('for Transaction.set<T>() and Transaction.get<T>()', () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options);
+              return new Post(data.title, data.author);
+            }
+          });
+        return docRef.set(new Post('post', 'author')).then(() => {
+          return db
+            .runTransaction(async transaction => {
+              const snapshot = await transaction.get(docRef);
+              expect(snapshot.data()!.byline()).to.equal('post, by author');
+              transaction.set(docRef, new Post('new post', 'author'));
+            })
+            .then(async () => {
+              const snapshot = await docRef.get();
+              expect(snapshot.data()!.byline()).to.equal('new post, by author');
+            });
+        });
+      });
+    });
+  });
 });

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { stub, restore, spy } from 'sinon';
 
@@ -27,8 +26,9 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const controllersToTest = [WindowController, SwController];
 
@@ -47,10 +47,10 @@ class MockBaseController extends BaseController {
 }
 
 describe('Firebase Messaging > *BaseController', () => {
-  let app: FirebaseApp;
+  let firebaseInternalServices: FirebaseInternalServices;
 
   beforeEach(() => {
-    app = makeFakeApp({
+    firebaseInternalServices = makeFakeFirebaseInternalServices({
       messagingSenderId: '12345'
     });
   });
@@ -61,7 +61,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('INTERNAL.delete()', () => {
     it('should call delete()', async () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       const sinonSpy = spy(controller, 'delete');
       await controller.INTERNAL.delete();
       expect(sinonSpy.callCount).to.equal(1);
@@ -70,7 +70,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('requestPermission()', () => {
     it(`should throw`, async () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         await controller.requestPermission();
@@ -93,7 +93,7 @@ describe('Firebase Messaging > *BaseController', () => {
           }
         });
 
-        const controller = new controllerInTest(app);
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(
@@ -113,7 +113,7 @@ describe('Firebase Messaging > *BaseController', () => {
           getSubscription: async () => exampleSubscription
         });
 
-        const controller = new controllerInTest(app);
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
@@ -136,7 +136,7 @@ describe('Firebase Messaging > *BaseController', () => {
           }
         });
 
-        const controller = new controllerInTest(app);
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
@@ -148,7 +148,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('useServiceWorker()', () => {
     it(`should throw`, () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         controller.useServiceWorker(null as any);
@@ -162,7 +162,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('usePublicVapidKey()', () => {
     it(`should throw`, () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         controller.usePublicVapidKey(null as any);
@@ -176,7 +176,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('onMessage()', () => {
     it(`should throw`, () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         controller.onMessage(null as any, null as any, null as any);
@@ -190,7 +190,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('onTokenRefresh()', () => {
     it(`should throw`, () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         controller.onTokenRefresh(null as any, null as any, null as any);
@@ -204,7 +204,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('setBackgroundMessageHandler()', () => {
     it(`should throw`, () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       let thrownError;
       try {
         controller.setBackgroundMessageHandler(null as any);
@@ -216,18 +216,18 @@ describe('Firebase Messaging > *BaseController', () => {
     });
   });
 
-  describe('getNotificationPermission_', () => {
+  describe('getNotificationPermission', () => {
     it('should return current permission', () => {
-      stub(Notification as any, 'permission').value('test');
-      const controller = new MockBaseController(app);
-      const result = controller.getNotificationPermission_();
+      stub(Notification, 'permission').value('test');
+      const controller = new MockBaseController(firebaseInternalServices);
+      const result = (controller as any).getNotificationPermission();
       expect(result).to.equal('test');
     });
   });
 
   describe('getTokenDetailsModel', () => {
     it('should return an instance of TokenDetailsModel', () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       const result = controller.getTokenDetailsModel();
       expect(result).to.be.instanceof(TokenDetailsModel);
     });
@@ -235,7 +235,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('getVapidDetailsModel', () => {
     it('should return an instance of VapidDetailsModel', () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       const result = controller.getVapidDetailsModel();
       expect(result).to.be.instanceof(VapidDetailsModel);
     });
@@ -243,7 +243,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('getIidModel', () => {
     it('should return an instance of IidModel', () => {
-      const controller = new MockBaseController(app);
+      const controller = new MockBaseController(firebaseInternalServices);
       const result = controller.getSubscriptionManager();
       expect(result).to.be.instanceof(SubscriptionManager);
     });

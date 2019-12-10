@@ -104,7 +104,7 @@ export const enableLogging = function(
   persistent?: boolean
 ) {
   assert(
-    !persistent || (logger_ === true || logger_ === false),
+    !persistent || logger_ === true || logger_ === false,
     "Can't turn on custom loggers persistently."
   );
   if (logger_ === true) {

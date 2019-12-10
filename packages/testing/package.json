@@ -1,6 +1,6 @@
 {
   "name": "@firebase/testing",
-  "version": "0.15.0",
+  "version": "0.16.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -15,19 +15,15 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.3.0",
-    "@firebase/logger": "0.1.29",
-    "@firebase/util": "0.2.32",
+    "firebase": "7.5.2",
+    "@firebase/logger": "0.1.32",
+    "@firebase/util": "0.2.35",
     "@types/request": "2.48.3",
     "grpc": "1.24.2",
     "request": "2.88.0"
   },
   "devDependencies": {
-    "chai": "4.2.0",
-    "chai-as-promised": "7.1.1",
-    "mocha": "6.2.2",
-    "nyc": "14.1.1",
-    "rollup": "1.26.3",
+    "rollup": "1.27.2",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.25.2"

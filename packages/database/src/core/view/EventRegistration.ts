@@ -186,9 +186,9 @@ export class ChildEventRegistration implements EventRegistration {
    * @param {Object=} context_
    */
   constructor(
-    private callbacks_:
-      | ({ [k: string]: (d: DataSnapshot, s?: string | null) => void })
-      | null,
+    private callbacks_: {
+      [k: string]: (d: DataSnapshot, s?: string | null) => void;
+    } | null,
     private cancelCallback_: ((e: Error) => void) | null,
     private context_?: Object
   ) {}

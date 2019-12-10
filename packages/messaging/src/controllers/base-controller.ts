@@ -16,7 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceInternals } from '@firebase/app-types/private';
+import {
+  FirebaseServiceInternals,
+  FirebaseService
+} from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   CompleteFn,
@@ -33,6 +36,7 @@ import { ErrorCode, errorFactory } from '../models/errors';
 import { SubscriptionManager } from '../models/subscription-manager';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 export type BgMessageHandler = (
   payload: MessagePayload
@@ -41,13 +45,17 @@ export type BgMessageHandler = (
 // Token should be refreshed once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class BaseController implements FirebaseMessaging {
+export abstract class BaseController
+  implements FirebaseMessaging, FirebaseService {
   INTERNAL: FirebaseServiceInternals;
+  readonly app: FirebaseApp;
   private readonly tokenDetailsModel: TokenDetailsModel;
   private readonly vapidDetailsModel = new VapidDetailsModel();
   private readonly subscriptionManager = new SubscriptionManager();
 
-  constructor(readonly app: FirebaseApp) {
+  constructor(protected readonly services: FirebaseInternalServices) {
+    const { app } = services;
+    this.app = app;
     if (
       !app.options.messagingSenderId ||
       typeof app.options.messagingSenderId !== 'string'
@@ -59,17 +67,19 @@ export abstract class BaseController implements FirebaseMessaging {
       delete: () => this.delete()
     };
 
-    this.tokenDetailsModel = new TokenDetailsModel(app);
+    this.tokenDetailsModel = new TokenDetailsModel(services);
   }
 
-  async getToken(): Promise<string | null> {
-    // Check with permissions
-    const currentPermission = this.getNotificationPermission_();
-    if (currentPermission === 'denied') {
+  async getToken(): Promise<string> {
+    // Check notification permission.
+    let permission = this.getNotificationPermission();
+    if (permission === 'default') {
+      // The user hasn't allowed or denied notifications yet. Ask them.
+      permission = await this.requestNotificationPermission();
+    }
+
+    if (permission !== 'granted') {
       throw errorFactory.create(ErrorCode.NOTIFICATIONS_BLOCKED);
-    } else if (currentPermission !== 'granted') {
-      // We must wait for permission to be granted
-      return null;
     }
 
     const swReg = await this.getSWRegistration_();
@@ -147,7 +157,7 @@ export abstract class BaseController implements FirebaseMessaging {
     try {
       const updatedToken = await this.subscriptionManager.updateToken(
         tokenDetails,
-        this.app,
+        this.services,
         pushSubscription,
         publicVapidKey
       );
@@ -155,7 +165,7 @@ export abstract class BaseController implements FirebaseMessaging {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        fcmSenderId: this.app.options.messagingSenderId!,
+        fcmSenderId: this.services.app.options.messagingSenderId!,
         fcmToken: updatedToken,
         createTime: Date.now(),
         endpoint: pushSubscription.endpoint,
@@ -181,7 +191,7 @@ export abstract class BaseController implements FirebaseMessaging {
     publicVapidKey: Uint8Array
   ): Promise<string> {
     const newToken = await this.subscriptionManager.getToken(
-      this.app,
+      this.services,
       pushSubscription,
       publicVapidKey
     );
@@ -228,7 +238,7 @@ export abstract class BaseController implements FirebaseMessaging {
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
     const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
-    await this.subscriptionManager.deleteToken(this.app, tokenDetails);
+    await this.subscriptionManager.deleteToken(this.services, tokenDetails);
   }
 
   // Visible for testing
@@ -319,8 +329,23 @@ export abstract class BaseController implements FirebaseMessaging {
   /**
    * Returns the current Notification Permission state.
    */
-  getNotificationPermission_(): NotificationPermission {
+  private getNotificationPermission(): NotificationPermission {
     return Notification.permission;
+  }
+
+  /**
+   * Requests notification permission from the user.
+   */
+  private async requestNotificationPermission(): Promise<
+    NotificationPermission
+  > {
+    if (!Notification.requestPermission) {
+      // Notification.requestPermission() is not available in service workers.
+      // Return the current permission.
+      return Notification.permission;
+    }
+
+    return Notification.requestPermission();
   }
 
   getTokenDetailsModel(): TokenDetailsModel {

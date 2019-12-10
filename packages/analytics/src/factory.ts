@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAnalytics,
   Gtag,
@@ -28,7 +27,6 @@ import {
   setUserProperties,
   setAnalyticsCollectionEnabled
 } from './functions';
-import '@firebase/installations';
 import {
   initializeGAId,
   insertScriptTag,
@@ -38,6 +36,8 @@ import {
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -104,8 +104,7 @@ export function settings(options: SettingsOptions): void {
 
 export function factory(
   app: FirebaseApp,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extendApp: (props: { [prop: string]: any }) => void
+  installations: FirebaseInstallations
 ): FirebaseAnalytics {
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
@@ -139,7 +138,11 @@ export function factory(
     globalInitDone = true;
   }
   // Async but non-blocking.
-  initializedIdPromisesMap[analyticsId] = initializeGAId(app, gtagCoreFunction);
+  initializedIdPromisesMap[analyticsId] = initializeGAId(
+    app,
+    installations,
+    gtagCoreFunction
+  );
 
   const analyticsInstance: FirebaseAnalytics = {
     app,
@@ -160,14 +163,6 @@ export function factory(
     setAnalyticsCollectionEnabled: enabled =>
       setAnalyticsCollectionEnabled(analyticsId, enabled)
   };
-
-  extendApp({
-    INTERNAL: {
-      analytics: {
-        logEvent: analyticsInstance.logEvent
-      }
-    }
-  });
 
   return analyticsInstance;
 }
