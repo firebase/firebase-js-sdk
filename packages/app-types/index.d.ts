@@ -1,3 +1,5 @@
+import { FirebaseService } from './private';
+
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -30,6 +32,25 @@ export interface FirebaseAppConfig {
   name?: string;
   automaticDataCollectionEnabled?: boolean;
 }
+
+export type LogLevelString =
+  | 'debug'
+  | 'verbose'
+  | 'info'
+  | 'warn'
+  | 'error'
+  | 'silent';
+
+export interface LogOptions {
+  level: LogLevelString;
+}
+
+export type LogCallback = (callbackParams: {
+  level: LogLevelString;
+  message: string;
+  source: FirebaseService | FirebaseApp;
+  type: string;
+}) => void;
 
 export class FirebaseApp {
   /**
@@ -104,6 +125,12 @@ export interface FirebaseNamespace {
    * @param version Current version of that library.
    */
   registerVersion(library: string, version: string, variant?: string): void;
+
+  // Sets log level for all Firebase components.
+  setLogLevel(logLevel: LogLevelString): void;
+
+  // Sets log handler for all Firebase components.
+  onLog(logCallback: LogCallback, options: LogOptions): void;
 
   // The current SDK version.
   SDK_VERSION: string;

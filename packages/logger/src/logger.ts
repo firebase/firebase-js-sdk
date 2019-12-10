@@ -15,6 +15,14 @@
  * limitations under the License.
  */
 
+import {
+  LogCallback,
+  LogLevelString,
+  FirebaseApp,
+  LogOptions
+} from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
+
 /**
  * A container for all of the Logger instances
  */
@@ -40,6 +48,15 @@ export enum LogLevel {
   SILENT
 }
 
+const levelStringToEnum = {
+  'debug': LogLevel.DEBUG,
+  'verbose': LogLevel.VERBOSE,
+  'info': LogLevel.INFO,
+  'warn': LogLevel.WARN,
+  'error': LogLevel.ERROR,
+  'silent': LogLevel.SILENT
+};
+
 /**
  * The default log level
  */
@@ -53,45 +70,45 @@ const defaultLogLevel: LogLevel = LogLevel.INFO;
 export type LogHandler = (
   loggerInstance: Logger,
   logType: LogLevel,
+  message: string,
+  source?: FirebaseService | FirebaseApp,
   ...args: unknown[]
 ) => void;
+
+/**
+ * By default, `console.debug` is not displayed in the developer console (in
+ * chrome). To avoid forcing users to have to opt-in to these logs twice
+ * (i.e. once for firebase, and once in the console), we are sending `DEBUG`
+ * logs to the `console.log` function.
+ */
+const ConsoleMethod = {
+  [LogLevel.DEBUG]: 'log',
+  [LogLevel.VERBOSE]: 'log',
+  [LogLevel.INFO]: 'info',
+  [LogLevel.WARN]: 'warn',
+  [LogLevel.ERROR]: 'error'
+};
 
 /**
  * The default log handler will forward DEBUG, VERBOSE, INFO, WARN, and ERROR
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
-const defaultLogHandler: LogHandler = (instance, logType, ...args): void => {
+const defaultLogHandler: LogHandler = (instance, logType, message): void => {
   if (logType < instance.logLevel) {
     return;
   }
   const now = new Date().toISOString();
-  switch (logType) {
-    /**
-     * By default, `console.debug` is not displayed in the developer console (in
-     * chrome). To avoid forcing users to have to opt-in to these logs twice
-     * (i.e. once for firebase, and once in the console), we are sending `DEBUG`
-     * logs to the `console.log` function.
-     */
-    case LogLevel.DEBUG:
-      console.log(`[${now}]  ${instance.name}:`, ...args);
-      break;
-    case LogLevel.VERBOSE:
-      console.log(`[${now}]  ${instance.name}:`, ...args);
-      break;
-    case LogLevel.INFO:
-      console.info(`[${now}]  ${instance.name}:`, ...args);
-      break;
-    case LogLevel.WARN:
-      console.warn(`[${now}]  ${instance.name}:`, ...args);
-      break;
-    case LogLevel.ERROR:
-      console.error(`[${now}]  ${instance.name}:`, ...args);
-      break;
-    default:
-      throw new Error(
-        `Attempted to log a message with an invalid logType (value: ${logType})`
-      );
+  const method = ConsoleMethod[logType as keyof typeof ConsoleMethod];
+  if (method) {
+    console[method as 'log' | 'info' | 'warn' | 'error'](
+      `[${now}]  ${instance.name}:`,
+      message
+    );
+  } else {
+    throw new Error(
+      `Attempted to log a message with an invalid logType (value: ${logType})`
+    );
   }
 };
 
@@ -141,19 +158,67 @@ export class Logger {
    * The functions below are all based on the `console` interface
    */
 
-  debug(...args: unknown[]): void {
-    this._logHandler(this, LogLevel.DEBUG, ...args);
+  debug(
+    message: string,
+    source?: FirebaseService | FirebaseApp
+  ): void {
+    this._logHandler(this, LogLevel.DEBUG, message, source);
   }
-  log(...args: unknown[]): void {
-    this._logHandler(this, LogLevel.VERBOSE, ...args);
+  log(
+    message: string,
+    source?: FirebaseService | FirebaseApp
+  ): void {
+    this._logHandler(this, LogLevel.VERBOSE, message, source);
   }
-  info(...args: unknown[]): void {
-    this._logHandler(this, LogLevel.INFO, ...args);
+  info(
+    message: string,
+    source?: FirebaseService | FirebaseApp
+  ): void {
+    this._logHandler(this, LogLevel.INFO, message, source);
   }
-  warn(...args: unknown[]): void {
-    this._logHandler(this, LogLevel.WARN, ...args);
+  warn(
+    message: string,
+    source?: FirebaseService | FirebaseApp
+  ): void {
+    this._logHandler(this, LogLevel.WARN, message, source);
   }
-  error(...args: unknown[]): void {
-    this._logHandler(this, LogLevel.ERROR, ...args);
+  error(
+    message: string,
+    source?: FirebaseService | FirebaseApp
+  ): void {
+    this._logHandler(this, LogLevel.ERROR, message, source);
+  }
+}
+
+export function setLogLevel(level: LogLevelString | LogLevel): void {
+  const newLevel = typeof level === 'string' ? levelStringToEnum[level] : level;
+  instances.forEach(inst => {
+    inst.logLevel = newLevel;
+  });
+}
+
+export function addLogCallback(logCallback: LogCallback, options: LogOptions) {
+  for (const index in instances) {
+    const instance = instances[index];
+    let threshhold = instance.logLevel;
+    if (options && options.level) {
+      threshhold = levelStringToEnum[options.level];
+    }
+    instance.logHandler = (
+      instance: Logger,
+      level: LogLevel,
+      message: string,
+      source?: FirebaseService | FirebaseApp
+    ) => {
+      if (level >= threshhold && message && source) {
+        logCallback({
+          level: LogLevel[level].toLowerCase() as LogLevelString,
+          message,
+          type: instance.name,
+          source
+        });
+      }
+      defaultLogHandler(instance, level, message);
+    };
   }
 }
