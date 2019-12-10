@@ -49,7 +49,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/app/index.d.ts",
+  "typings": "dist/packages/app/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
