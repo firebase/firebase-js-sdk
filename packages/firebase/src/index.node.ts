@@ -16,12 +16,13 @@
  */
 
 import firebase from '../app';
+import { name, version } from '../package.json';
 
 import '../auth';
 import '../database';
 import '../firestore';
 import '../functions';
 
-firebase.registerVersion('fire-js-all-node', firebase.SDK_VERSION);
+firebase.registerVersion(name, version, 'node');
 
 export default firebase;

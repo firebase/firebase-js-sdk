@@ -28,6 +28,7 @@ https://www.gstatic.com/firebasejs/5.0.0/firebase-<PACKAGE>.js
 
 import '@firebase/polyfill';
 import firebase from '../app';
+import { name, version } from '../package.json';
 
 import '../auth';
 import '../database';
@@ -39,6 +40,6 @@ import '../performance';
 import '../analytics';
 import '../remote-config';
 
-firebase.registerVersion('fire-js-all-cdn', firebase.SDK_VERSION);
+firebase.registerVersion(name, version, 'cdn');
 
 export default firebase;

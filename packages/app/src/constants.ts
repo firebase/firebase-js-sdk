@@ -26,6 +26,7 @@ import { name as performanceName } from '../../performance/package.json';
 import { name as remoteConfigName } from '../../remote-config/package.json';
 import { name as storageName } from '../../storage/package.json';
 import { name as firestoreName } from '../../firestore/package.json';
+import { name as packageName } from '../../../package.json';
 
 export const PLATFORM_LOG_STRING = {
   [appName]: 'fire-core',
@@ -39,10 +40,5 @@ export const PLATFORM_LOG_STRING = {
   [storageName]: 'fire-gcs',
   [firestoreName]: 'fire-fst',
   'fire-js': 'fire-js', // Platform identifier for JS SDK.
-  'fire-js-all-app': 'fire-js-all-app', // firebase/app import
-  'fire-js-all': 'fire-js-all', // 'firebase' import
-  'fire-js-all-node': 'fire-js-all-node',
-  'fire-js-all-rn': 'fire-js-all-rn',
-  'fire-js-all-lite': 'fire-js-all-lite',
-  'fire-js-all-cdn': 'fire-js-all-cdn'
+  [packageName]: 'fire-js-all'
 } as const;

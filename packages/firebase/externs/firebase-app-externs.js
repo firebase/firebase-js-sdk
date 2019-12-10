@@ -284,3 +284,10 @@ firebase.CompleteFn;
 
 /** @typedef {function(): void} */
 firebase.Unsubscribe;
+
+/**
+ * @param {string} name
+ * @param {string} version
+ * @param {?string} variant
+ */
+firebase.registerVersion = function(name, version, variant) {};

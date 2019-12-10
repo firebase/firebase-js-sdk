@@ -23,6 +23,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import { terser } from 'rollup-plugin-terser';
+import json from 'rollup-plugin-json';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
@@ -33,6 +34,7 @@ const plugins = [
   typescriptPlugin({
     typescript
   }),
+  json(),
   commonjs()
 ];
 
@@ -199,6 +201,7 @@ const completeBuilds = [
       typescriptPlugin({
         typescript
       }),
+      json(),
       commonjs(),
       uglify()
     ]
@@ -226,6 +229,9 @@ const completeBuilds = [
             target: 'es2017'
           }
         }
+      }),
+      json({
+        preferConst: true
       }),
       commonjs(),
       terser()

@@ -19,4 +19,7 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { registerFunctions } from './src/config';
 import 'isomorphic-fetch';
 
+import { name, version } from './package.json';
+
 registerFunctions(firebase as _FirebaseNamespace);
+firebase.registerVersion(name, version, 'node');
