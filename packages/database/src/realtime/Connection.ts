@@ -94,7 +94,7 @@ export class Connection {
   constructor(
     public id: string,
     private repoInfo_: RepoInfo,
-    private onMessage_: (a: Object) => void,
+    private onMessage_: (a: {}) => void,
     private onReady_: (a: number, b: string) => void,
     private onDisconnect_: () => void,
     private onKill_: (a: string) => void,
@@ -110,7 +110,7 @@ export class Connection {
    * Starts a connection attempt
    * @private
    */
-  private start_() {
+  private start_(): void {
     const conn = this.transportManager_.initialTransport();
     this.conn_ = new conn(
       this.nextTransportId_(),
@@ -141,8 +141,8 @@ export class Connection {
       this.conn_ && this.conn_.open(onMessageReceived, onConnectionLost);
     }, Math.floor(0));
 
-    const healthyTimeout_ms = conn['healthyTimeout'] || 0;
-    if (healthyTimeout_ms > 0) {
+    const healthyTimeoutMS = conn['healthyTimeout'] || 0;
+    if (healthyTimeoutMS > 0) {
       this.healthyTimeout_ = setTimeoutNonBlocking(() => {
         this.healthyTimeout_ = null;
         if (!this.isHealthy_) {
@@ -173,7 +173,7 @@ export class Connection {
             this.close();
           }
         }
-      }, Math.floor(healthyTimeout_ms)) as any;
+      }, Math.floor(healthyTimeoutMS)) as any;
     }
   }
 
@@ -200,7 +200,7 @@ export class Connection {
 
   private connReceiver_(conn: Transport) {
     return (message: object) => {
-      if (this.state_ != RealtimeState.DISCONNECTED) {
+      if (this.state_ !== RealtimeState.DISCONNECTED) {
         if (conn === this.rx_) {
           this.onPrimaryMessageReceived_(message);
         } else if (conn === this.secondaryConn_) {
@@ -260,9 +260,9 @@ export class Connection {
   private onSecondaryMessageReceived_(parsedData: object) {
     const layer: string = requireKey('t', parsedData);
     const data: any = requireKey('d', parsedData);
-    if (layer == 'c') {
+    if (layer === 'c') {
       this.onSecondaryControl_(data);
-    } else if (layer == 'd') {
+    } else if (layer === 'd') {
       // got a data message, but we're still second connection. Need to buffer it up
       this.pendingDataMessages.push(data);
     } else {
@@ -303,9 +303,9 @@ export class Connection {
     // Must refer to parsedData properties in quotes, so closure doesn't touch them.
     const layer: string = requireKey('t', parsedData);
     const data: any = requireKey('d', parsedData);
-    if (layer == 'c') {
+    if (layer === 'c') {
       this.onControl_(data);
-    } else if (layer == 'd') {
+    } else if (layer === 'd') {
       this.onDataMessage_(data);
     }
   }
@@ -371,14 +371,14 @@ export class Connection {
     v: string;
     h: string;
     s: string;
-  }) {
+  }): void {
     const timestamp = handshake.ts;
     const version = handshake.v;
     const host = handshake.h;
     this.sessionId = handshake.s;
     this.repoInfo_.updateHost(host);
     // if we've already closed the connection, then don't bother trying to progress further
-    if (this.state_ == RealtimeState.CONNECTING) {
+    if (this.state_ === RealtimeState.CONNECTING) {
       this.conn_.start();
       this.onConnectionEstablished_(this.conn_, timestamp);
       if (PROTOCOL_VERSION !== version) {

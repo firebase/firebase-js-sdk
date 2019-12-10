@@ -67,7 +67,7 @@ export class RepoManager {
     }
     return _staticInstance;
   }
-
+  /* eslint-disable guard-for-in */
   // TODO(koss): Remove these functions unless used in tests?
   interrupt() {
     for (const appName in this.repos_) {
@@ -84,6 +84,8 @@ export class RepoManager {
       }
     }
   }
+
+  /* eslint-enable guard-for-in */
 
   /**
    * This function should only ever be called to CREATE a new database instance.

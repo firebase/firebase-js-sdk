@@ -51,15 +51,15 @@ export abstract class EventEmitter {
   /**
    * To be called by derived classes to trigger events.
    * @param {!string} eventType
-   * @param {...*} var_args
+   * @param {...*} varArgs
    */
-  protected trigger(eventType: string, ...var_args: any[]) {
+  protected trigger(eventType: string, ...varArgs: any[]) {
     if (Array.isArray(this.listeners_[eventType])) {
       // Clone the list, since callbacks could add/remove listeners.
       const listeners = [...this.listeners_[eventType]];
 
       for (let i = 0; i < listeners.length; i++) {
-        listeners[i].callback.apply(listeners[i].context, var_args);
+        listeners[i].callback.apply(listeners[i].context, varArgs);
       }
     }
   }

@@ -59,11 +59,12 @@ export class Tree<T> {
     // TODO: Require pathObj to be Path?
     let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
     let child = this as Tree<T>,
-      next;
-    while ((next = path.getFront()) !== null) {
+      next = path.getFront();
+    while (next !== null) {
       const childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
       path = path.popFront();
+      next = path.getFront();
     }
 
     return child;

@@ -73,13 +73,13 @@ export class Database implements FirebaseService {
   /**
    * Returns a reference to the root or to the path specified in the provided
    * argument.
-
+   *
    * @param {string|Reference=} path The relative string path or an existing
    * Reference to a database location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.
    * @return {!Reference} Firebase reference.
-   **/
+   */
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
   ref(path?: string | Reference): Reference {

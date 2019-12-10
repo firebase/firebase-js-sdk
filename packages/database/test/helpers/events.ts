@@ -67,7 +67,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
   // Listen on all of the required paths, with a callback function that just
   // appends to actualPathAndEvents.
-  const make_eventCallback = function(type) {
+  const makeEventCallback = function(type) {
     return function(snap) {
       // Get the ref of where the snapshot came from.
       const ref = type === 'value' ? snap.ref : snap.ref.parent;
@@ -118,9 +118,9 @@ export function eventTestHelper(pathAndEvents, helperName?) {
       const actual = actualPathAndEvents[i];
 
       if (
-        expected[0] != actual[0] ||
-        expected[1][0] != actual[1][0] ||
-        expected[1][1] != actual[1][1]
+        expected[0] !== actual[0] ||
+        expected[1][0] !== actual[1][0] ||
+        expected[1][1] !== actual[1][1]
       ) {
         throw helperName +
           'Event ' +
@@ -142,15 +142,15 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
     // If we haven't thrown and both arrays are the same length, then we're
     // done.
-    return expectedPathAndEvents.length == actualPathAndEvents.length;
+    return expectedPathAndEvents.length === actualPathAndEvents.length;
   };
 
   const listenOnPath = function(path) {
-    const valueCB = make_eventCallback('value');
-    const addedCB = make_eventCallback('child_added');
-    const removedCB = make_eventCallback('child_removed');
-    const movedCB = make_eventCallback('child_moved');
-    const changedCB = make_eventCallback('child_changed');
+    const valueCB = makeEventCallback('value');
+    const addedCB = makeEventCallback('child_added');
+    const removedCB = makeEventCallback('child_removed');
+    const movedCB = makeEventCallback('child_moved');
+    const changedCB = makeEventCallback('child_changed');
     path.on('child_removed', removedCB);
     path.on('child_added', addedCB);
     path.on('child_moved', movedCB);

@@ -809,9 +809,9 @@ describe('Transaction Tests', () => {
       return 'badhash';
     });
     const SETS = 4;
-    let events = [],
-      retries = 0,
-      setsDone = 0;
+    const events = [];
+    let retries = 0;
+    let  setsDone = 0;
 
     function txn1(next) {
       // Do a transaction on the first connection which will keep retrying (cause we hijacked the hash).

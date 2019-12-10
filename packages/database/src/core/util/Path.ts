@@ -347,7 +347,7 @@ export class ValidationPath {
    * @return {string}
    */
   toErrorString(): string {
-    if (this.parts_.length == 0) {
+    if (this.parts_.length === 0) {
       return '';
     }
     return "in property '" + this.parts_.join('.') + "'";

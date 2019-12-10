@@ -31,7 +31,7 @@ export class PacketReceiver {
   /**
    * @param onMessage_
    */
-  constructor(private onMessage_: (a: Object) => void) {}
+  constructor(private onMessage_: (a: {}) => void) {}
 
   closeAfter(responseNum: number, callback: () => void) {
     this.closeAfterResponse = responseNum;

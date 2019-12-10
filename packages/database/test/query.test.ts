@@ -24,8 +24,7 @@ import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
-
-const _ = require('lodash');
+import * as _ from 'lodash';
 
 type TaskList = Array<[Query, any]>;
 
@@ -911,7 +910,7 @@ describe('Query Tests', () => {
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async () => {
-    const node = <Reference>getRandomNode();
+    const node = getRandomNode() as Reference;
 
     await node.set({ a: 1, b: 2, c: 3 });
     const ea = EventAccumulatorFactory.waitsForCount(2);
@@ -1750,7 +1749,7 @@ describe('Query Tests', () => {
   });
 
   it('Limit with mix of null and non-null priorities using server data', async () => {
-    const node = <Reference>getRandomNode();
+    const node = getRandomNode() as Reference;
 
     const children = [];
     await node.set({
@@ -2061,7 +2060,7 @@ describe('Query Tests', () => {
   });
 
   it('handles once called on a node with a default listener and non-complete limit', async () => {
-    const ref = <Reference>getRandomNode();
+    const ref = getRandomNode() as Reference;
 
     await ref.set({
       a: 1,
@@ -2093,7 +2092,7 @@ describe('Query Tests', () => {
       let count = 0;
       readRef.limitToLast(5).on('value', (s) => {
         count++;
-        if (count == 1) {
+        if (count === 1) {
           expect(s.val()).to.deep.equal({
             a: 'a',
             b: 'b',
@@ -2138,8 +2137,7 @@ describe('Query Tests', () => {
     const writer = nodePair[0];
     const reader = nodePair[1];
 
-    let readerLoaded = false,
-      numEventsReceived = 0;
+    let readerLoaded = false;
     writer
       .child('foo')
       .set({ a: 1, b: 2, c: 3, d: 4, e: 5 }, (error, dummy) => {
@@ -2179,8 +2177,7 @@ describe('Query Tests', () => {
     const writer = nodePair[0];
     const reader = nodePair[1];
 
-    let readerLoaded = false,
-      numEventsReceived = 0;
+    let readerLoaded = false;
     writer
       .child('foo')
       .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
@@ -2211,8 +2208,7 @@ describe('Query Tests', () => {
     const writer = nodePair[0];
     const reader = nodePair[1];
 
-    let readerLoaded = false,
-      numEventsReceived = 0;
+    let readerLoaded = false;
     writer
       .child('foo')
       .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
@@ -2574,7 +2570,7 @@ describe('Query Tests', () => {
     reader.child('a/b').on('value', (snap) => {
       const val = snap.val();
       childCount++;
-      if (childCount == 1) {
+      if (childCount === 1) {
         expect(val).to.equal(1);
       } else {
         // fail this, nothing should have changed
@@ -2588,9 +2584,9 @@ describe('Query Tests', () => {
       ea.addEvent();
       const val = snap.val();
       count++;
-      if (count == 1) {
+      if (count === 1) {
         expect(val).to.deep.equal({ a: { b: 1, c: 2 }, e: 3 });
-      } else if (count == 2) {
+      } else if (count === 2) {
         expect(val).to.deep.equal({ d: 4, e: 3 });
       }
     });
@@ -2728,7 +2724,7 @@ describe('Query Tests', () => {
   });
 
   it('Server limit below limit works properly.', async () => {
-    const refPair = <Reference[]>getRandomNode(2),
+    const refPair = getRandomNode(2) as Reference[],
       readRef = refPair[0],
       writeRef = refPair[1];
     let childData;

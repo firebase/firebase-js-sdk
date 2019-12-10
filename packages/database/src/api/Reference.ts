@@ -145,7 +145,7 @@ export class Reference extends Query {
    * @return {!Promise}
    */
   update(
-    objectToMerge: Object,
+    objectToMerge: object,
     onComplete?: (a: Error | null) => void
   ): Promise<any> {
     validateArgCount('Reference.update', 1, 2, arguments.length);

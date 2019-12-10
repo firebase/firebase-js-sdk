@@ -66,7 +66,7 @@ export class WebSocketConnection implements Transport {
   bytesReceived = 0;
   connURL: string;
   onDisconnect: (a?: boolean) => void;
-  onMessage: (msg: Object) => void;
+  onMessage: (msg: {}) => void;
   mySock: any | null;
   private log_: (...a: any[]) => void;
   private stats_: StatsCollection;
@@ -133,7 +133,7 @@ export class WebSocketConnection implements Transport {
    * @param onMessage Callback when messages arrive
    * @param onDisconnect Callback with connection lost.
    */
-  open(onMessage: (msg: Object) => void, onDisconnect: (a?: boolean) => void) {
+  open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.onDisconnect = onDisconnect;
     this.onMessage = onMessage;
 
@@ -156,7 +156,7 @@ export class WebSocketConnection implements Transport {
         // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
         const env = process['env'];
         const proxy =
-          this.connURL.indexOf('wss://') == 0
+          this.connURL.indexOf('wss://') === 0
             ? env['HTTPS_PROXY'] || env['https_proxy']
             : env['HTTP_PROXY'] || env['http_proxy'];
 
@@ -208,7 +208,7 @@ export class WebSocketConnection implements Transport {
    */
   start() {}
 
-  static forceDisallow_: Boolean;
+  static forceDisallow_: boolean;
 
   static forceDisallow() {
     WebSocketConnection.forceDisallow_ = true;
@@ -264,7 +264,7 @@ export class WebSocketConnection implements Transport {
 
   private appendFrame_(data: string) {
     this.frames.push(data);
-    if (this.frames.length == this.totalFrames) {
+    if (this.frames.length === this.totalFrames) {
       const fullMess = this.frames.join('');
       this.frames = null;
       const jsonMess = jsonEval(fullMess) as object;
@@ -332,7 +332,7 @@ export class WebSocketConnection implements Transport {
    * Send a message to the server
    * @param {Object} data The JSON object to transmit
    */
-  send(data: Object) {
+  send(data: {}) {
     this.resetKeepAlive();
 
     const dataStr = stringify(data);

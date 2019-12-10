@@ -732,12 +732,12 @@ export class SyncTree {
    *
    * NOTES:
    * - Descendant SyncPoints will be visited first (since we raise events depth-first).
-
+   *
    * - We call applyOperation() on each SyncPoint passing three things:
    *   1. A version of the Operation that has been made relative to the SyncPoint location.
    *   2. A WriteTreeRef of any writes we have cached at the SyncPoint location.
    *   3. A snapshot Node with cached server data, if we have it.
-
+   *
    * - We concatenate all of the events returned by each SyncPoint and return the result.
    */
   private applyOperationToSyncPoints_(operation: Operation): Event[] {

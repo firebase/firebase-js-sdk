@@ -126,7 +126,7 @@ describe('Crawler Support', () => {
 
   it('.info/connected fires with true', (done) => {
     restRef.root.child('.info/connected').on('value', (s) => {
-      if (s.val() == true) {
+      if (s.val() === true) {
         done();
       }
     });

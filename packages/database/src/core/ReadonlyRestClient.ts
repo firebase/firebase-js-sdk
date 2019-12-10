@@ -44,7 +44,7 @@ export class ReadonlyRestClient extends ServerActions {
    *
    * @private {!Object.<string, !Object>}
    */
-  private listens_: { [k: string]: Object } = {};
+  private listens_: { [k: string]: object } = {};
 
   /**
    * @param {!Query} query
@@ -123,7 +123,7 @@ export class ReadonlyRestClient extends ServerActions {
           let status;
           if (!error) {
             status = 'ok';
-          } else if (error == 401) {
+          } else if (error === 401) {
             status = 'permission_denied';
           } else {
             status = 'rest_error:' + error;

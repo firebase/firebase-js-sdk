@@ -31,10 +31,10 @@ export const EventAccumulatorFactory = {
 };
 
 export class EventAccumulator {
-  public eventData = [];
-  public promise;
-  public resolve;
-  public reject;
+  eventData = [];
+  promise;
+  resolve;
+  reject;
   private onResetFxn;
   private onEventFxn;
   constructor(public condition: Function) {

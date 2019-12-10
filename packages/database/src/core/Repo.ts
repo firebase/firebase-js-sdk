@@ -63,6 +63,7 @@ export class Repo {
   private nextWriteId_ = 1;
   private server_: ServerActions;
   private statsReporter_: StatsReporter;
+  // eslint-disable-next-line camelcase
   private transactions_init_: () => void;
   private infoData_: SnapshotHolder;
   private abortTransactions_: (path: Path) => Path;
@@ -206,7 +207,7 @@ export class Repo {
   /**
    * Generate ServerValues using some variables from the repo object.
    */
-  generateServerValues(): Object {
+  generateServerValues(): object {
     return generateWithValues({
       timestamp: this.serverTime()
     });
@@ -276,7 +277,7 @@ export class Repo {
     }
   }
 
-  private onServerInfoUpdate_(updates: Object) {
+  private onServerInfoUpdate_(updates: object) {
     each(updates, (key: string, value: any) => {
       this.updateInfo_(key, value);
     });
@@ -595,12 +596,12 @@ export class Repo {
     this.statsReporter_.includeStat(metric);
   }
 
-  private log_(...var_args: any[]) {
+  private log_(...varArgs: any[]) {
     let prefix = '';
     if (this.persistentConnection_) {
       prefix = this.persistentConnection_.id + ':';
     }
-    log(prefix, ...var_args);
+    log(prefix, ...varArgs);
   }
 
   callOnCompleteCallback(
@@ -610,7 +611,7 @@ export class Repo {
   ) {
     if (callback) {
       exceptionGuard(() => {
-        if (status == 'ok') {
+        if (status === 'ok') {
           callback(null);
         } else {
           const code = (status || 'error').toUpperCase();

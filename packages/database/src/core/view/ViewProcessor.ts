@@ -278,9 +278,9 @@ export class ViewProcessor {
         }
       } else {
         const childKey = changePath.getFront();
-        if (childKey == '.priority') {
+        if (childKey === '.priority') {
           assert(
-            changePath.getLength() == 1,
+            changePath.getLength() === 1,
             "Can't have a priority with additional path components"
           );
           const oldEventNode = oldEventSnap.getNode();
@@ -404,7 +404,7 @@ export class ViewProcessor {
       const childChangePath = changePath.popFront();
       const childNode = oldServerSnap.getNode().getImmediateChild(childKey);
       const newChildNode = childNode.updateChild(childChangePath, changedSnap);
-      if (childKey == '.priority') {
+      if (childKey === '.priority') {
         newServerCache = serverFilter.updatePriority(
           oldServerSnap.getNode(),
           newChildNode

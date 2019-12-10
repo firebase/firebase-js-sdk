@@ -66,7 +66,7 @@ export interface Node {
    * @return {?string} The name of the predecessor child, or null if childNode is the first child.
    */
   getPredecessorChildName(
-    childName: String,
+    childName: string,
     childNode: Node,
     index: Index
   ): string | null;

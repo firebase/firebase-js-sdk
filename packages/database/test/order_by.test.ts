@@ -131,20 +131,17 @@ describe('.orderBy tests', () => {
     const ref = getRandomNode() as Reference;
 
     let reads = 0;
-    let fooCb;
-    let barCb;
-    let bazCb;
     const ea = EventAccumulatorFactory.waitsForCount(4);
 
-    fooCb = ref.orderByChild('foo').on('value', () => {
+    const fooCb = ref.orderByChild('foo').on('value', () => {
       reads++;
       ea.addEvent();
     });
-    barCb = ref.orderByChild('bar').on('value', () => {
+    const barCb = ref.orderByChild('bar').on('value', () => {
       reads++;
       ea.addEvent();
     });
-    bazCb = ref.orderByChild('baz').on('value', () => {
+    const bazCb = ref.orderByChild('baz').on('value', () => {
       reads++;
       ea.addEvent();
     });

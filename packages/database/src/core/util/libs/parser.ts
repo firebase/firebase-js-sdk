@@ -82,7 +82,7 @@ export const parseRepoInfo = function(
 
   // Catch common error of uninitialized namespace value.
   if (
-    (!namespace || namespace == 'undefined') &&
+    (!namespace || namespace === 'undefined') &&
     parsedUrl.domain !== 'localhost'
   ) {
     fatal(
@@ -103,7 +103,7 @@ export const parseRepoInfo = function(
       namespace,
       webSocketOnly,
       /*persistenceKey=*/ '',
-      /*includeNamespaceInQueryParams=*/ namespace != parsedUrl.subdomain
+      /*includeNamespaceInQueryParams=*/ namespace !== parsedUrl.subdomain
     ),
     path: new Path(parsedUrl.pathString)
   };

@@ -348,6 +348,7 @@ describe('SortedMap Tests', () => {
   xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = function(tree, max) {
       const keys = [];
+      // eslint-disable-next-line guard-for-in
       for (const k in tree) {keys.push(k);}
 
       keys.sort();
@@ -400,12 +401,13 @@ describe('SortedMap Tests', () => {
     for (let i = 0; i < 10; i++) {map = map.insert(items[i], items[i]);}
 
     const iterator = map.getIterator();
-    let n,
+    let n = iterator.getNext() as any,
       expected = 0;
-    while ((n = iterator.getNext()) !== null) {
+    while (n !== null) {
       expect(n.key).to.equal(expected);
       expect(n.value).to.equal(expected);
       expected++;
+      n = iterator.getNext();
     }
     expect(expected).to.equal(10);
   });

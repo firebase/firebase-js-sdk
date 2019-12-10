@@ -493,7 +493,7 @@ export const validateObjectContainsKey = function(
   obj: any,
   key: string,
   optional: boolean,
-  opt_type?: string
+  optType?: string
 ) {
   const objectContainsKey =
     obj && typeof obj === 'object' && contains(obj, key);
@@ -511,14 +511,14 @@ export const validateObjectContainsKey = function(
     }
   }
 
-  if (opt_type) {
+  if (optType) {
     const val = safeGet(obj, key);
     if (
-      (opt_type === 'number' && !(typeof val === 'number')) ||
-      (opt_type === 'string' && !(typeof val === 'string')) ||
-      (opt_type === 'boolean' && !(typeof val === 'boolean')) ||
-      (opt_type === 'function' && !(typeof val === 'function')) ||
-      (opt_type === 'object' && !(typeof val === 'object') && val)
+      (optType === 'number' && !(typeof val === 'number')) ||
+      (optType === 'string' && !(typeof val === 'string')) ||
+      (optType === 'boolean' && !(typeof val === 'boolean')) ||
+      (optType === 'function' && !(typeof val === 'function')) ||
+      (optType === 'object' && !(typeof val === 'object') && val)
     ) {
       if (optional) {
         throw new Error(
@@ -526,7 +526,7 @@ export const validateObjectContainsKey = function(
             'contains invalid value for key "' +
             key +
             '" (must be of type "' +
-            opt_type +
+            optType +
             '")'
         );
       } else {
@@ -535,7 +535,7 @@ export const validateObjectContainsKey = function(
             'must contain the key "' +
             key +
             '" with type "' +
-            opt_type +
+            optType +
             '"'
         );
       }

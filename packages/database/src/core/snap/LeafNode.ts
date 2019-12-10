@@ -111,7 +111,7 @@ export class LeafNode implements Node {
   }
 
   /** @inheritDoc */
-  getPredecessorChildName(childName: String, childNode: Node): null {
+  getPredecessorChildName(childName: string, childNode: Node): null {
     return null;
   }
 
@@ -170,7 +170,7 @@ export class LeafNode implements Node {
   /**
    * @inheritDoc
    */
-  val(exportFormat?: boolean): Object {
+  val(exportFormat?: boolean): {} {
     if (exportFormat && !this.getPriority().isEmpty())
       {return {
         '.value': this.getValue(),

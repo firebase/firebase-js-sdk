@@ -150,7 +150,7 @@ describe('.info Tests', function() {
       refAlt.child('.info/connected').on('value', eventHandler);
     });
     waitsFor(() => {
-      return ready == 2;
+      return ready === 2;
     });
 
     runs(() => {
@@ -169,7 +169,7 @@ describe('.info Tests', function() {
       refAlt.child('.info/connected').once('value', eventHandler);
     });
     waitsFor(() => {
-      return ready == 2;
+      return ready === 2;
     });
 
     // Ensure that we don't automatically reconnect upon Reference creation
@@ -186,7 +186,7 @@ describe('.info Tests', function() {
       }, 500);
     });
     waitsFor(() => {
-      return ready == -1;
+      return ready === -1;
     });
 
     runs(() => {
@@ -208,7 +208,7 @@ describe('.info Tests', function() {
     });
 
     waitsFor(() => {
-      return ready == 2;
+      return ready === 2;
     });
   });
 });

@@ -107,6 +107,7 @@ interface Transaction {
  * Setup the transaction data structures
  * @private
  */
+// eslint-disable-next-line camelcase
 (Repo.prototype as any).transactions_init_ = function() {
   /**
    * Stores queues of outstanding transactions for Firebase locations.
@@ -346,7 +347,7 @@ Repo.prototype.startTransaction = function(
     const relativePath = Path.relativePath(path, txn.path);
     // If we've gotten to this point, the output snapshot must be defined.
     snapToSend = snapToSend.updateChild(
-      relativePath /**@type {!Node} */,
+      relativePath /** @type {!Node} */,
       txn.currentOutputSnapshotRaw
     );
   }
@@ -607,12 +608,14 @@ Repo.prototype.startTransaction = function(
 
   // Start at the root and walk deeper into the tree towards path until we find a node with pending transactions.
   let transactionNode = this.transactionQueueTree_;
+  front = path.getFront();
   while (
-    (front = path.getFront()) !== null &&
+    front !== null &&
     transactionNode.getValue() === null
   ) {
     transactionNode = transactionNode.subTree(front);
     path = path.popFront();
+    front = path.getFront();
   }
 
   return transactionNode;

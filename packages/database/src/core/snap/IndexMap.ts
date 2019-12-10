@@ -122,7 +122,7 @@ export class IndexMap {
             const iter = existingChildren.getIterator(NamedNode.Wrap);
             let next = iter.getNext();
             while (next) {
-              if (next.name != namedNode.name) {
+              if (next.name !== namedNode.name) {
                 childList.push(next);
               }
               next = iter.getNext();

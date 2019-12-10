@@ -277,9 +277,9 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree, with the key/value added.
    */
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let cmp, n;
+    let n;
     n = this;
-    cmp = comparator(key, n.key);
+    const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
     } else if (cmp === 0) {
@@ -447,7 +447,6 @@ export class LLRBNode<K, V> {
    * @return {number} Not sure what this returns exactly. :-).
    */
   check_(): number {
-    let blackDepth;
     if (this.isRed_() && this.left.isRed_()) {
       throw new Error(
         'Red node has red child(' + this.key + ',' + this.value + ')'
@@ -458,7 +457,7 @@ export class LLRBNode<K, V> {
         'Right child of (' + this.key + ',' + this.value + ') is red'
       );
     }
-    blackDepth = this.left.check_();
+    const blackDepth = this.left.check_();
     if (blackDepth !== this.right.check_()) {
       throw new Error('Black depths differ');
     } else {

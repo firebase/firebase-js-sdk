@@ -128,7 +128,7 @@ export class BrowserPollConnection implements Transport {
    * @param {function(Object)} onMessage Callback when messages arrive
    * @param {function()} onDisconnect Callback with connection lost.
    */
-  open(onMessage: (msg: Object) => void, onDisconnect: (a?: boolean) => void) {
+  open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.curSegmentNum = 0;
     this.onDisconnect_ = onDisconnect;
     this.myPacketOrderer = new PacketReceiver(onMessage);
@@ -157,7 +157,7 @@ export class BrowserPollConnection implements Transport {
             this.connectTimeoutTimer_ = null;
           }
           this.everConnected_ = true;
-          if (command == FIREBASE_LONGPOLL_START_PARAM) {
+          if (command === FIREBASE_LONGPOLL_START_PARAM) {
             this.id = arg1;
             this.password = arg2;
           } else if (command === FIREBASE_LONGPOLL_CLOSE_COMMAND) {
@@ -329,7 +329,7 @@ export class BrowserPollConnection implements Transport {
    * broken into chunks (since URLs have a small maximum length).
    * @param {!Object} data The JSON data to transmit.
    */
-  send(data: Object) {
+  send(data: {}) {
     const dataStr = stringify(data);
     this.bytesSent += dataStr.length;
     this.stats_.incrementCounter('bytes_sent', dataStr.length);
@@ -386,7 +386,7 @@ export class BrowserPollConnection implements Transport {
   }
 }
 
-export interface IFrameElement extends HTMLIFrameElement {
+export interface FrameElement extends HTMLIFrameElement {
   doc: Document;
 }
 
@@ -414,7 +414,7 @@ export class FirebaseIFrameScriptHolder {
   sendNewPolls = true;
 
   uniqueCallbackIdentifier: number;
-  myIFrame: IFrameElement;
+  myIFrame: FrameElement;
   alive: boolean;
   myID: string;
   myPW: string;
@@ -484,8 +484,8 @@ export class FirebaseIFrameScriptHolder {
    * @private
    * @return {Element}
    */
-  private static createIFrame_(): IFrameElement {
-    const iframe = document.createElement('iframe') as IFrameElement;
+  private static createIFrame_(): FrameElement {
+    const iframe = document.createElement('iframe') as FrameElement;
     iframe.style.display = 'none';
 
     // This is necessary in order to initialize the document inside the iframe

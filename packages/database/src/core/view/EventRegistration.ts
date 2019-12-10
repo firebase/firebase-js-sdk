@@ -90,7 +90,7 @@ export class ValueEventRegistration implements EventRegistration {
   constructor(
     private callback_: ((d: DataSnapshot) => void) | null,
     private cancelCallback_: ((e: Error) => void) | null,
-    private context_: Object | null
+    private context_: {} | null
   ) {}
 
   /**
@@ -190,7 +190,7 @@ export class ChildEventRegistration implements EventRegistration {
       [k: string]: (d: DataSnapshot, s?: string | null) => void;
     } | null,
     private cancelCallback_: ((e: Error) => void) | null,
-    private context_?: Object
+    private context_?: {}
   ) {}
 
   /**

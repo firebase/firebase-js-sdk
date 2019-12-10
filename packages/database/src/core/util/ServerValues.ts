@@ -80,7 +80,7 @@ const resolveScalarDeferredValue = function(
 };
 
 const resolveComplexDeferredValue = function(
-  op: Object,
+  op: object,
   existing: Node,
   unused: { [k: string]: any }
 ): string | number | boolean {
@@ -117,7 +117,7 @@ const resolveComplexDeferredValue = function(
 export const resolveDeferredValueTree = function(
   tree: SparseSnapshotTree,
   syncTree: SyncTree,
-  serverValues: Object
+  serverValues: object
 ): SparseSnapshotTree {
   const resolvedTree = new SparseSnapshotTree();
   tree.forEachTree(new Path(''), (path, node) => {
@@ -145,7 +145,7 @@ export const resolveDeferredValueTree = function(
 export const resolveDeferredValueSnapshot = function(
   node: Node,
   existing: Node,
-  serverValues: Object
+  serverValues: object
 ): Node {
   const rawPri = node.getPriority().val() as
     | object

@@ -146,7 +146,7 @@ export class ChildrenNode implements Node {
       return this.updatePriority(newChildNode);
     } else {
       const namedNode = new NamedNode(childName, newChildNode);
-      let newChildren, newIndexMap, newPriority;
+      let newChildren, newIndexMap;
       if (newChildNode.isEmpty()) {
         newChildren = this.children_.remove(childName);
         newIndexMap = this.indexMap_.removeFromIndexes(
@@ -158,7 +158,7 @@ export class ChildrenNode implements Node {
         newIndexMap = this.indexMap_.addToIndexes(namedNode, this.children_);
       }
 
-      newPriority = newChildren.isEmpty() ? EMPTY_NODE : this.priorityNode_;
+      const newPriority = newChildren.isEmpty() ? EMPTY_NODE : this.priorityNode_;
       return new ChildrenNode(newChildren, newPriority, newIndexMap);
     }
   }
@@ -219,6 +219,7 @@ export class ChildrenNode implements Node {
     if (!exportFormat && allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.
       const array: unknown[] = [];
+      // eslint-disable-next-line guard-for-in
       for (const key in obj) {array[(key as any) as number] = obj[key];}
 
       return array;

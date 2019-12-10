@@ -82,7 +82,7 @@ export function nodeFromJSON(
       }
     });
 
-    if (children.length == 0) {
+    if (children.length === 0) {
       return ChildrenNode.EMPTY_NODE;
     }
 

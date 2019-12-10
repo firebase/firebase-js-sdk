@@ -31,7 +31,7 @@ describe('Order Tests', () => {
       const ref = getRandomNode() as Reference;
       let connected = false;
       ref.root.child('.info/connected').on('value', (s) => {
-        connected = s.val() == true;
+        connected = s.val() === true;
         if (connected) {resolve();}
       });
     });
@@ -250,10 +250,9 @@ describe('Order Tests', () => {
 
     node.child('a').setWithPriority('a', 1);
     node.child('b').setWithPriority('b', 2);
-    let eventHelper;
 
     // const ea = new EventAccumulator(() => eventHelper.waiter());
-    eventHelper = eventTestHelper([
+    const eventHelper = eventTestHelper([
       [node, ['child_added', 'a']],
       [node, ['child_added', 'b']],
       [node, ['value', '']]

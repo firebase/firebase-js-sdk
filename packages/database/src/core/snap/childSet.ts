@@ -83,9 +83,9 @@ export const buildChildSet = function<K, V>(
     const length = high - low;
     let namedNode: NamedNode;
     let key: K;
-    if (length == 0) {
+    if (length === 0) {
       return null;
-    } else if (length == 1) {
+    } else if (length === 1) {
       namedNode = childList[low];
       key = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
       return new LLRBNode(

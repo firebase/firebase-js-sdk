@@ -43,7 +43,7 @@ export const isWebSocketsAvailable = function(): boolean {
 
 export const setSecurityDebugCallback = function(
   ref: Reference,
-  callback: (a: Object) => void
+  callback: (a: object) => void
 ) {
   (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
 };

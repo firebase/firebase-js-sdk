@@ -59,7 +59,7 @@ interface OnDisconnectRequest {
 
 interface OutstandingPut {
   action: string;
-  request: Object;
+  request: object;
   queued?: boolean;
   onComplete: (a: string, b?: string) => void;
 }
@@ -87,7 +87,7 @@ export class PersistentConnection extends ServerActions {
   private connected_ = false;
   private reconnectDelay_ = RECONNECT_MIN_DELAY;
   private maxReconnectDelay_ = RECONNECT_MAX_DELAY_DEFAULT;
-  private securityDebugCallback_: ((a: Object) => void) | null = null;
+  private securityDebugCallback_: ((a: object) => void) | null = null;
   lastSessionId: string | null = null;
 
   private establishConnectionTimer_: number | null = null;
@@ -99,7 +99,7 @@ export class PersistentConnection extends ServerActions {
   private requestNumber_ = 0;
 
   private realtime_: {
-    sendRequest(a: Object): void;
+    sendRequest(a: object): void;
     close(): void;
   } | null = null;
 
@@ -134,7 +134,7 @@ export class PersistentConnection extends ServerActions {
     private onConnectStatus_: (a: boolean) => void,
     private onServerInfoUpdate_: (a: any) => void,
     private authTokenProvider_: AuthTokenProvider,
-    private authOverride_?: Object | null
+    private authOverride_?: object | null
   ) {
     super();
 
@@ -355,7 +355,7 @@ export class PersistentConnection extends ServerActions {
   private sendUnlisten_(
     pathString: string,
     queryId: string,
-    queryObj: Object,
+    queryObj: object,
     tag: number | null
   ) {
     this.log_('Unlisten on ' + pathString + ' for ' + queryId);
@@ -724,7 +724,7 @@ export class PersistentConnection extends ServerActions {
           onDisconnect();
         }
       };
-      const sendRequestFn = function(msg: Object) {
+      const sendRequestFn = function(msg: object) {
         assert(
           connection,
           "sendRequest call when we're not connected not allowed."

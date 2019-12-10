@@ -56,24 +56,24 @@ export const sha1 = function(str: string): string {
 };
 
 /**
- * @param {...*} var_args
+ * @param {...*} varArgs
  * @return {string}
  * @private
  */
-const buildLogMessage_ = function(...var_args: any[]): string {
+const buildLogMessage_ = function(...varArgs: any[]): string {
   let message = '';
-  for (let i = 0; i < var_args.length; i++) {
+  for (let i = 0; i < varArgs.length; i++) {
     if (
-      Array.isArray(var_args[i]) ||
-      (var_args[i] &&
-        typeof var_args[i] === 'object' &&
-        typeof var_args[i].length === 'number')
+      Array.isArray(varArgs[i]) ||
+      (varArgs[i] &&
+        typeof varArgs[i] === 'object' &&
+        typeof varArgs[i].length === 'number')
     ) {
-      message += buildLogMessage_.apply(null, var_args[i]);
-    } else if (typeof var_args[i] === 'object') {
-      message += stringify(var_args[i]);
+      message += buildLogMessage_.apply(null, varArgs[i]);
+    } else if (typeof varArgs[i] === 'object') {
+      message += stringify(varArgs[i]);
     } else {
-      message += var_args[i];
+      message += varArgs[i];
     }
     message += ' ';
   }
@@ -121,9 +121,9 @@ export const enableLogging = function(
 
 /**
  *
- * @param {...(string|Arguments)} var_args
+ * @param {...(string|Arguments)} varArgs
  */
-export const log = function(...var_args: string[]) {
+export const log = function(...varArgs: string[]) {
   if (firstLog_ === true) {
     firstLog_ = false;
     if (logger === null && SessionStorage.get('logging_enabled') === true)
@@ -131,7 +131,7 @@ export const log = function(...var_args: string[]) {
   }
 
   if (logger) {
-    const message = buildLogMessage_.apply(null, var_args);
+    const message = buildLogMessage_.apply(null, varArgs);
     logger(message);
   }
 };
@@ -142,34 +142,34 @@ export const log = function(...var_args: string[]) {
  */
 export const logWrapper = function(
   prefix: string
-): (...var_args: any[]) => void {
-  return function(...var_args: any[]) {
-    log(prefix, ...var_args);
+): (...varArgs: any[]) => void {
+  return function(...varArgs: any[]) {
+    log(prefix, ...varArgs);
   };
 };
 
 /**
- * @param {...string} var_args
+ * @param {...string} varArgs
  */
-export const error = function(...var_args: string[]) {
-  const message = 'FIREBASE INTERNAL ERROR: ' + buildLogMessage_(...var_args);
+export const error = function(...varArgs: string[]) {
+  const message = 'FIREBASE INTERNAL ERROR: ' + buildLogMessage_(...varArgs);
   logClient.error(message);
 };
 
 /**
- * @param {...string} var_args
+ * @param {...string} varArgs
  */
-export const fatal = function(...var_args: string[]) {
-  const message = `FIREBASE FATAL ERROR: ${buildLogMessage_(...var_args)}`;
+export const fatal = function(...varArgs: string[]) {
+  const message = `FIREBASE FATAL ERROR: ${buildLogMessage_(...varArgs)}`;
   logClient.error(message);
   throw new Error(message);
 };
 
 /**
- * @param {...*} var_args
+ * @param {...*} varArgs
  */
-export const warn = function(...var_args: any[]) {
-  const message = 'FIREBASE WARNING: ' + buildLogMessage_(...var_args);
+export const warn = function(...varArgs: any[]) {
+  const message = 'FIREBASE WARNING: ' + buildLogMessage_(...varArgs);
   logClient.warn(message);
 };
 
@@ -211,9 +211,9 @@ export const warnAboutUnsupportedMethod = function(methodName: string) {
 export const isInvalidJSONNumber = function(data: any): boolean {
   return (
     typeof data === 'number' &&
-    (data != data || // NaN
-      data == Number.POSITIVE_INFINITY ||
-      data == Number.NEGATIVE_INFINITY)
+    (data !== data || // NaN
+      data === Number.POSITIVE_INFINITY ||
+      data === Number.NEGATIVE_INFINITY)
   );
 };
 
@@ -290,7 +290,7 @@ export const nameCompare = function(a: string, b: string): number {
 
     if (aAsInt !== null) {
       if (bAsInt !== null) {
-        return aAsInt - bAsInt == 0 ? a.length - b.length : aAsInt - bAsInt;
+        return aAsInt - bAsInt === 0 ? a.length - b.length : aAsInt - bAsInt;
       } else {
         return -1;
       }
@@ -343,6 +343,7 @@ export const ObjectToUniqueKey = function(obj: any): string {
   if (typeof obj !== 'object' || obj === null) {return stringify(obj);}
 
   const keys = [];
+  // eslint-disable-next-line guard-for-in
   for (const k in obj) {
     keys.push(k);
   }
@@ -427,14 +428,12 @@ export const doubleToIEEE754String = function(v: number): string {
 
   const ebits = 11,
     fbits = 52;
-  let bias = (1 << (ebits - 1)) - 1,
-    s,
+  const bias = (1 << (ebits - 1)) - 1;
+  let  s,
     e,
     f,
     ln,
-    i,
-    bits,
-    str;
+    i;
 
   // Compute sign, exponent, fraction
   // Skip NaN / Infinity handling --MJL.
@@ -459,7 +458,7 @@ export const doubleToIEEE754String = function(v: number): string {
   }
 
   // Pack sign, exponent, fraction
-  bits = [];
+  const bits = [];
   for (i = fbits; i; i -= 1) {
     bits.push(f % 2 ? 1 : 0);
     f = Math.floor(f / 2);
@@ -470,7 +469,7 @@ export const doubleToIEEE754String = function(v: number): string {
   }
   bits.push(s ? 1 : 0);
   bits.reverse();
-  str = bits.join('');
+  const str = bits.join('');
 
   // Return the data as a hex string. --MJL
   let hexByteString = '';
@@ -517,9 +516,9 @@ export const errorForServerCode = function(code: string, query: Query): Error {
     reason =
       'The data requested exceeds the maximum size ' +
       'that can be accessed with a single request.';
-  } else if (code == 'permission_denied') {
+  } else if (code === 'permission_denied') {
     reason = "Client doesn't have permission to access the desired data.";
-  } else if (code == 'unavailable') {
+  } else if (code === 'unavailable') {
     reason = 'The service is unavailable';
   }
 
@@ -592,15 +591,15 @@ export const exceptionGuard = function(fn: () => void) {
  * 2. Wraps the call inside exceptionGuard to prevent exceptions from breaking our state.
  *
  * @param {?Function=} callback Optional onComplete callback.
- * @param {...*} var_args Arbitrary args to be passed to opt_onComplete
+ * @param {...*} varArgs Arbitrary args to be passed to opt_onComplete
  */
 export const callUserCallback = function(
   callback?: Function | null,
-  ...var_args: any[]
+  ...varArgs: any[]
 ) {
   if (typeof callback === 'function') {
     exceptionGuard(() => {
-      callback(...var_args);
+      callback(...varArgs);
     });
   }
 };
@@ -634,7 +633,7 @@ export const beingCrawled = function(): boolean {
  * @param {!function(): *} fnGet
  */
 export const exportPropGetter = function(
-  object: Object,
+  object: object,
   name: string,
   fnGet: () => any
 ) {
@@ -653,8 +652,8 @@ export const exportPropGetter = function(
 export const setTimeoutNonBlocking = function(
   fn: Function,
   time: number
-): number | Object {
-  const timeout: number | Object = setTimeout(fn, time);
+): number | object {
+  const timeout: number | object = setTimeout(fn, time);
   if (typeof timeout === 'object' && (timeout as any)['unref']) {
     (timeout as any)['unref']();
   }

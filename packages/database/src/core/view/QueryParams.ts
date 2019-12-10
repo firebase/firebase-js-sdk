@@ -313,7 +313,7 @@ export class QueryParams {
   /**
    * @return {!Object}
    */
-  getQueryObject(): Object {
+  getQueryObject(): {} {
     const WIRE_PROTOCOL_CONSTANTS = QueryParams.WIRE_PROTOCOL_CONSTANTS_;
     const obj: { [k: string]: any } = {};
     if (this.startSet_) {
@@ -358,7 +358,7 @@ export class QueryParams {
    * @return {boolean}
    */
   isDefault(): boolean {
-    return this.loadsAllData() && this.index_ == PRIORITY_INDEX;
+    return this.loadsAllData() && this.index_ === PRIORITY_INDEX;
   }
 
   /**

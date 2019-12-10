@@ -24,7 +24,7 @@ import { Query } from '../../src/api/Query';
 import { ConnectionTarget } from '../../src/api/test_access';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
-
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
 
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
@@ -83,13 +83,12 @@ export function getRootNode(i = 0, ref?: string) {
     numDatabases = i + 1;
   }
   let app;
-  let db;
   try {
     app = firebase.app('TEST-' + i);
   } catch (e) {
     app = firebase.initializeApp({ databaseURL: DATABASE_URL }, 'TEST-' + i);
   }
-  db = app.database();
+  const db = app.database();
   return db.ref(ref);
 }
 
@@ -101,7 +100,7 @@ export function getRootNode(i = 0, ref?: string) {
  */
 export function getRandomNode(numNodes?): Reference | Reference[] {
   if (numNodes === undefined) {
-    return <Reference>getRandomNode(1)[0];
+    return getRandomNode(1)[0] as Reference;
   }
 
   let child;
@@ -115,7 +114,7 @@ export function getRandomNode(numNodes?): Reference | Reference[] {
     nodeList[i] = ref.child(child);
   }
 
-  return <Reference[]>nodeList;
+  return nodeList as Reference[];
 }
 
 export function getQueryValue(query: Query) {

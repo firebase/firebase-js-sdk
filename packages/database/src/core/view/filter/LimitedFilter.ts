@@ -267,7 +267,7 @@ export class LimitedFilter implements NodeFilter {
       cmp = this.index_.getCompare();
     }
     const oldEventCache = snap as ChildrenNode;
-    assert(oldEventCache.numChildren() == this.limit_, '');
+    assert(oldEventCache.numChildren() === this.limit_, '');
     const newChildNamedNode = new NamedNode(childKey, childSnap);
     const windowBoundary = this.reverse_
       ? oldEventCache.getFirstChild(this.index_)
@@ -282,7 +282,7 @@ export class LimitedFilter implements NodeFilter {
       );
       while (
         nextChild != null &&
-        (nextChild.name == childKey || oldEventCache.hasChild(nextChild.name))
+        (nextChild.name === childKey || oldEventCache.hasChild(nextChild.name))
       ) {
         // There is a weird edge case where a node is updated as part of a merge in the write tree, but hasn't
         // been applied to the limited filter yet. Ignore this next child which will be updated later in

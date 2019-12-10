@@ -99,7 +99,7 @@ export class Query {
         'or equalTo() must be a string.';
       if (params.hasStart()) {
         const startName = params.getIndexStartName();
-        if (startName != MIN_NAME) {
+        if (startName !== MIN_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof startNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -107,7 +107,7 @@ export class Query {
       }
       if (params.hasEnd()) {
         const endName = params.getIndexEndName();
-        if (endName != MAX_NAME) {
+        if (endName !== MAX_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof endNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -198,8 +198,8 @@ export class Query {
   on(
     eventType: string,
     callback: SnapshotCallback,
-    cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
-    context?: Object | null
+    cancelCallbackOrContext?: ((a: Error) => any) | object | null,
+    context?: object | null
   ): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
     validateEventType('Query.on', 1, eventType, false);
@@ -230,7 +230,7 @@ export class Query {
   protected onValueEvent(
     callback: (a: DataSnapshot) => void,
     cancelCallback: ((a: Error) => void) | null,
-    context: Object | null
+    context: object | null
   ) {
     const container = new ValueEventRegistration(
       callback,
@@ -249,7 +249,7 @@ export class Query {
   onChildEvent(
     callbacks: { [k: string]: SnapshotCallback },
     cancelCallback: ((a: Error) => any) | null,
-    context: Object | null
+    context: object | null
   ) {
     const container = new ChildEventRegistration(
       callbacks,
@@ -267,7 +267,7 @@ export class Query {
   off(
     eventType?: string,
     callback?: SnapshotCallback,
-    context?: Object | null
+    context?: object | null
   ): void {
     validateArgCount('Query.off', 0, 3, arguments.length);
     validateEventType('Query.off', 1, eventType, true);
@@ -304,8 +304,8 @@ export class Query {
   once(
     eventType: string,
     userCallback?: SnapshotCallback,
-    failureCallbackOrContext?: ((a: Error) => void) | Object | null,
-    context?: Object | null
+    failureCallbackOrContext?: ((a: Error) => void) | object | null,
+    context?: object | null
   ): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
@@ -591,7 +591,7 @@ export class Query {
    * An object representation of the query parameters used by this Query.
    * @return {!Object}
    */
-  queryObject(): Object {
+  queryObject(): object {
     return this.queryParams_.getQueryObject();
   }
 
@@ -635,12 +635,12 @@ export class Query {
    */
   private static getCancelAndContextArgs_(
     fnName: string,
-    cancelOrContext?: ((a: Error) => void) | Object | null,
-    context?: Object | null
-  ): { cancel: ((a: Error) => void) | null; context: Object | null } {
+    cancelOrContext?: ((a: Error) => void) | object | null,
+    context?: object | null
+  ): { cancel: ((a: Error) => void) | null; context: object | null } {
     const ret: {
       cancel: ((a: Error) => void) | null;
-      context: Object | null;
+      context: object | null;
     } = { cancel: null, context: null };
     if (cancelOrContext && context) {
       ret.cancel = cancelOrContext as (a: Error) => void;
