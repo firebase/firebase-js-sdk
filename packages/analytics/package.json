@@ -26,6 +26,7 @@
   "dependencies": {
     "@firebase/analytics-types": "0.2.7",
     "@firebase/installations": "0.4.4",
+    "@firebase/logger": "0.1.36",
     "@firebase/util": "0.2.41",
     "@firebase/component": "0.1.6",
     "tslib": "1.11.1"
