@@ -195,13 +195,12 @@ export function setLogLevel(level: LogLevelString | LogLevel): void {
 export function setUserLogHandler(
   logCallback: LogCallback | null,
   options: LogOptions
-) {
+): void {
   if (typeof logCallback !== 'function') {
     console.warn('First argument to `onLog` must be a function.');
     return;
   }
-  for (const index in instances) {
-    const instance = instances[index];
+  for (const instance of instances) {
     let threshhold = instance.logLevel;
     if (options && options.level) {
       threshhold = levelStringToEnum[options.level];
