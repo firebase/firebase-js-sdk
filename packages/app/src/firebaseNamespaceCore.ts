@@ -34,7 +34,7 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
-import { addLogCallback, setLogLevel } from '@firebase/logger';
+import { setUserLogHandler, setLogLevel } from '@firebase/logger';
 import { Component, ComponentType, Name } from '@firebase/component';
 
 /**
@@ -62,7 +62,7 @@ export function createFirebaseNamespaceCore(
     app,
     registerVersion,
     setLogLevel,
-    onLog: addLogCallback,
+    onLog: setUserLogHandler,
     // @ts-ignore
     apps: null,
     SDK_VERSION: version,

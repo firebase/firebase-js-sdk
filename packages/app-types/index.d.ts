@@ -1,5 +1,3 @@
-import { FirebaseService } from './private';
-
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -48,7 +46,7 @@ export interface LogOptions {
 export type LogCallback = (callbackParams: {
   level: LogLevelString;
   message: string;
-  source: FirebaseService | FirebaseApp;
+  args: unknown[];
   type: string;
 }) => void;
 

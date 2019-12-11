@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  LogCallback,
-  LogLevelString,
-  FirebaseApp,
-  LogOptions
-} from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { LogCallback, LogLevelString, LogOptions } from '@firebase/app-types';
 
 /**
  * A container for all of the Logger instances
@@ -48,7 +42,7 @@ export enum LogLevel {
   SILENT
 }
 
-const levelStringToEnum = {
+const levelStringToEnum: { [key in LogLevelString]: LogLevel } = {
   'debug': LogLevel.DEBUG,
   'verbose': LogLevel.VERBOSE,
   'info': LogLevel.INFO,
@@ -70,8 +64,6 @@ const defaultLogLevel: LogLevel = LogLevel.INFO;
 export type LogHandler = (
   loggerInstance: Logger,
   logType: LogLevel,
-  message: string,
-  source?: FirebaseService | FirebaseApp,
   ...args: unknown[]
 ) => void;
 
@@ -141,7 +133,8 @@ export class Logger {
   }
 
   /**
-   * The log handler for the Logger instance.
+   * The main (internal) log handler for the Logger instance.
+   * Can be set to a new function in internal package code but not by user.
    */
   private _logHandler: LogHandler = defaultLogHandler;
   get logHandler(): LogHandler {
@@ -155,23 +148,40 @@ export class Logger {
   }
 
   /**
+   * The optional, additional, user-defined log handler for the Logger instance.
+   */
+  private _userLogHandler: LogHandler | null = null;
+  get userLogHandler(): LogHandler | null {
+    return this._userLogHandler;
+  }
+  set userLogHandler(val: LogHandler | null) {
+    this._userLogHandler = val;
+  }
+
+  /**
    * The functions below are all based on the `console` interface
    */
 
-  debug(message: string, source?: FirebaseService | FirebaseApp): void {
-    this._logHandler(this, LogLevel.DEBUG, message, source);
+  debug(...args: unknown[]): void {
+    this._userLogHandler && this._userLogHandler(this, LogLevel.DEBUG, ...args);
+    this._logHandler(this, LogLevel.DEBUG, ...args);
   }
-  log(message: string, source?: FirebaseService | FirebaseApp): void {
-    this._logHandler(this, LogLevel.VERBOSE, message, source);
+  log(...args: unknown[]): void {
+    this._userLogHandler &&
+      this._userLogHandler(this, LogLevel.VERBOSE, ...args);
+    this._logHandler(this, LogLevel.VERBOSE, ...args);
   }
-  info(message: string, source?: FirebaseService | FirebaseApp): void {
-    this._logHandler(this, LogLevel.INFO, message, source);
+  info(...args: unknown[]): void {
+    this._userLogHandler && this._userLogHandler(this, LogLevel.INFO, ...args);
+    this._logHandler(this, LogLevel.INFO, ...args);
   }
-  warn(message: string, source?: FirebaseService | FirebaseApp): void {
-    this._logHandler(this, LogLevel.WARN, message, source);
+  warn(...args: unknown[]): void {
+    this._userLogHandler && this._userLogHandler(this, LogLevel.WARN, ...args);
+    this._logHandler(this, LogLevel.WARN, ...args);
   }
-  error(message: string, source?: FirebaseService | FirebaseApp): void {
-    this._logHandler(this, LogLevel.ERROR, message, source);
+  error(...args: unknown[]): void {
+    this._userLogHandler && this._userLogHandler(this, LogLevel.ERROR, ...args);
+    this._logHandler(this, LogLevel.ERROR, ...args);
   }
 }
 
@@ -182,28 +192,38 @@ export function setLogLevel(level: LogLevelString | LogLevel): void {
   });
 }
 
-export function addLogCallback(logCallback: LogCallback, options: LogOptions) {
+export function setUserLogHandler(
+  logCallback: LogCallback | null,
+  options: LogOptions
+) {
+  if (typeof logCallback !== 'function') {
+    console.warn('First argument to `onLog` must be a function.');
+    return;
+  }
   for (const index in instances) {
     const instance = instances[index];
     let threshhold = instance.logLevel;
     if (options && options.level) {
       threshhold = levelStringToEnum[options.level];
     }
-    instance.logHandler = (
-      instance: Logger,
-      level: LogLevel,
-      message: string,
-      source?: FirebaseService | FirebaseApp
-    ) => {
-      if (level >= threshhold && message && source) {
-        logCallback({
-          level: LogLevel[level].toLowerCase() as LogLevelString,
-          message,
-          type: instance.name,
-          source
-        });
-      }
-      defaultLogHandler(instance, level, message);
-    };
+    if (logCallback === null) {
+      instance.userLogHandler = null;
+    } else {
+      instance.userLogHandler = (
+        instance: Logger,
+        level: LogLevel,
+        ...args: unknown[]
+      ) => {
+        const message = args.map(arg => (arg as object).toString()).join(' ');
+        if (level >= threshhold) {
+          logCallback({
+            level: LogLevel[level].toLowerCase() as LogLevelString,
+            message,
+            args,
+            type: instance.name
+          });
+        }
+      };
+    }
   }
 }

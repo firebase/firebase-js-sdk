@@ -20,5 +20,5 @@ export {
   Logger,
   LogLevel,
   LogHandler,
-  addLogCallback
+  setUserLogHandler
 } from './src/logger';
