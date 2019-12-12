@@ -100,6 +100,8 @@ toc:
     path: /docs/reference/node/firebase.firestore.FieldValue
   - title: "Firestore"
     path: /docs/reference/node/firebase.firestore.Firestore
+  - title: "FirestoreDataConverter"
+    path: /docs/reference/node/firebase.firestore.FirestoreDataConverter
   - title: "FirestoreError"
     path: /docs/reference/node/firebase.firestore.FirestoreError
   - title: "GeoPoint"
