@@ -6272,7 +6272,7 @@ declare namespace firebase.messaging {
    */
   interface Messaging {
     /**
-     * To forceably stop a registration token from being used, delete it
+     * To forcibly stop a registration token from being used, delete it
      * by calling this method.
      *
      * @param token The token to delete.
@@ -6281,14 +6281,16 @@ declare namespace firebase.messaging {
      */
     deleteToken(token: string): Promise<boolean>;
     /**
-     * After calling `requestPermission()` you can call this method to get an FCM
-     * registration token that can be used to send push messages to this user.
+     * Subscribes the user to push notifications and returns an FCM registration
+     * token that can be used to send push messages to the user.
      *
-     * @return The promise resolves if an FCM token can
-     *   be retrieved. This method returns null if the current origin does not have
-     *   permission to show notifications.
+     * If notification permission isn't already granted, this method asks the
+     * user for permission. The returned promise rejects if the user does not
+     * allow the app to show notifications.
+     *
+     * @return The promise resolves with the FCM token string.
      */
-    getToken(): Promise<string | null>;
+    getToken(): Promise<string>;
     /**
      * When a push message is received and the user is currently on a page
      * for your origin, the message is passed to the page and an `onMessage()`
@@ -6327,7 +6329,8 @@ declare namespace firebase.messaging {
     /**
      * Notification permissions are required to send a user push messages.
      * Calling this method displays the permission dialog to the user and
-     * resolves if the permission is granted.
+     * resolves if the permission is granted. It is not necessary to call this
+     * method, as `getToken()` will do this automatically if required.
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
