@@ -20,7 +20,12 @@ import { documentVersionMap } from '../model/collections';
 import { Document, NoDocument, MaybeDocument } from '../model/document';
 
 import { DocumentKey } from '../model/document_key';
-import { DeleteMutation, Mutation, Precondition, VerifyMutation } from '../model/mutation';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition,
+  VerifyMutation
+} from '../model/mutation';
 import { Datastore } from '../remote/datastore';
 import { fail, assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -100,22 +105,13 @@ export class Transaction {
     let unwritten = this.readVersions;
     // For each mutation, note that the doc was written.
     this.mutations.forEach(mutation => {
-      // console.log('readVersion', this.readVersions);
-      // console.log('mutation', this.mutations);
       unwritten = unwritten.remove(mutation.key);
     });
     // For each document that was read but not written to, we want to perform
-    // a `verify` operation. We append to the start of the transaction because
-    // verify calls are cheaper than writes.
+    // a `verify` operation.
     unwritten.forEach((key, _version) => {
-      this.mutations.unshift(new VerifyMutation(key, Precondition.NONE));
+      this.mutations.unshift(new VerifyMutation(key, this.precondition(key)));
     });
-    // if (!unwritten.isEmpty()) {
-    //   throw new FirestoreError(
-    //     Code.INVALID_ARGUMENT,
-    //     'Every document read in a transaction must also be written.'
-    //   );
-    // }
     await this.datastore.commit(this.mutations);
     this.committed = true;
   }

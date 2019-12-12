@@ -206,30 +206,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
   }
 
-  it('gets documents in a transaction', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('spaces').doc();
-      return doc
-        .set({
-          foo: 1,
-          desc: 'Stuff related to Firestore project...',
-          owner: 'Jonny'
-        })
-        .then(() => {
-          return (
-            db
-              .runTransaction(transaction => {
-                return transaction.get(doc);
-              })
-             .then((snapshot) => {
-                expect(snapshot).to.exist;
-                expect(snapshot.data()!['owner']).to.equal('Jonny');
-              })
-          );
-        });
-    });
-  });
-
   it('runs transactions after getting existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
@@ -589,42 +565,40 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it.only('handles reading one doc and writing another', () => {
+  it('retry when a document that was read without being written changes', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc1 = db.collection('counters').doc();
       const doc2 = db.collection('counters').doc();
       let tries = 0;
-      return (
-        doc1
-          .set({
-            count: 15
-          })
-          .then(() => {
-            return db.runTransaction(transaction => {
-              ++tries;
+      return doc1
+        .set({
+          count: 15
+        })
+        .then(() => {
+          return db.runTransaction(transaction => {
+            ++tries;
 
-              // Get the first doc.
-              return (
-                transaction
-                  .get(doc1)
-                  // Do a write outside of the transaction. The first time the
-                  // transaction is tried, this will bump the version, which
-                  // will cause the write to doc2 to fail. The second time, it
-                  // will be a no-op and not bump the version.
-                  .then(() => doc1.set({ count: 1234 }))
-                  // Now try to update the other doc from within the
-                  // transaction.
-                  // This should fail once, because we read 15 earlier.
-                  .then(() => transaction.set(doc2, { count: 16 }))
-              );
-            });
-          })
-          .then(async () => {
-            const snapshot = await doc1.get();
-            expect(tries).to.equal(2);
-            expect(snapshot.data()!['count']).to.equal(1234);
-          })
-      );
+            // Get the first doc.
+            return (
+              transaction
+                .get(doc1)
+                // Do a write outside of the transaction. The first time the
+                // transaction is tried, this will bump the version, which
+                // will cause the write to doc2 to fail. The second time, it
+                // will be a no-op and not bump the version.
+                .then(() => doc1.set({ count: 1234 }))
+                // Now try to update the other doc from within the
+                // transaction.
+                // This should fail once, because we read 15 earlier.
+                .then(() => transaction.set(doc2, { count: 16 }))
+            );
+          });
+        })
+        .then(async () => {
+          const snapshot = await doc1.get();
+          expect(tries).to.equal(2);
+          expect(snapshot.data()!['count']).to.equal(1234);
+        });
     });
   });
 
@@ -754,22 +728,22 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
   });
 
-  it('can have a get without mutations', () => {
+  it('can have gets without mutations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('foo').doc();
-      return (
-        docRef
-          .set({ foo: 'bar' })
-          .then(() => {
-            return db.runTransaction(txn => {
-              return txn.get(docRef);
-            });
-          })
-          .then((snapshot) => {
-            expect(snapshot).to.exist;
-            expect(snapshot.data()!['foo']).to.equal('bar');
-          })
-      );
+      const docRef2 = db.collection('foo').doc();
+      return docRef
+        .set({ foo: 'bar' })
+        .then(() => {
+          return db.runTransaction(async txn => {
+            await txn.get(docRef2);
+            return txn.get(docRef);
+          });
+        })
+        .then(snapshot => {
+          expect(snapshot).to.exist;
+          expect(snapshot.data()!['foo']).to.equal('bar');
+        });
     });
   });
 

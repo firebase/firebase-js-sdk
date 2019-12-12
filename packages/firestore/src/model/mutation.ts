@@ -188,7 +188,7 @@ export class Precondition {
  * A mutation describes a self-contained change to a document. Mutations can
  * create, replace, delete, and update subsets of documents.
  *
- * Mutations not only act on the value of the document but also it version.
+ * Mutations not only act on the value of the document but also its version.
  *
  * For local mutations (mutations that haven't been committed yet), we preserve
  * the existing version for Set, Patch, and Transform mutations. For Delete
@@ -284,7 +284,7 @@ export abstract class Mutation {
    *
    * The base value is a sparse object that consists of only the document
    * fields for which this mutation contains a non-idempotent transformation
-   * (e.g. a numeric increment). The provided alue guarantees consistent
+   * (e.g. a numeric increment). The provided value guarantees consistent
    * behavior for non-idempotent transforms and allow us to return the same
    * latency-compensated value even if the backend has already applied the
    * mutation. The base value is null for idempotent mutations, as they can be
@@ -587,8 +587,27 @@ export class TransformMutation extends Mutation {
     baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
-    fail('This operation is not supported');
-    return null;
+    this.verifyKeyMatches(maybeDoc);
+
+    if (!this.precondition.isValidFor(maybeDoc)) {
+      return maybeDoc;
+    }
+
+    const doc = this.requireDocument(maybeDoc);
+    const transformResults = this.localTransformResults(
+      localWriteTime,
+      maybeDoc,
+      baseDoc
+    );
+    const newData = this.transformObject(doc.data(), transformResults);
+    return new Document(
+      this.key,
+      doc.version,
+      {
+        hasLocalMutations: true
+      },
+      newData
+    );
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
@@ -800,7 +819,13 @@ export class DeleteMutation extends Mutation {
   }
 }
 
-/** A mutation that verifies the existence of the document at the given key. */
+/**
+ * A mutation that verifies the existence of the document at the given key with
+ * the provided precondition.
+ *
+ * The `verify` operation is only used in Transactions, and this class serves
+ * primarily to facilitate serialization into protos.
+ */
 export class VerifyMutation extends Mutation {
   constructor(readonly key: DocumentKey, readonly precondition: Precondition) {
     super();
@@ -812,20 +837,7 @@ export class VerifyMutation extends Mutation {
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
   ): MaybeDocument {
-    this.verifyKeyMatches(maybeDoc);
-
-    assert(
-      mutationResult.transformResults == null,
-      'Transform results received by DeleteMutation.'
-    );
-
-    // Unlike applyToLocalView, if we're applying a mutation to a remote
-    // document the server has accepted the mutation so the precondition must
-    // have held.
-
-    return new NoDocument(this.key, mutationResult.version, {
-      hasCommittedMutations: true
-    });
+    fail('VerifyMutation should only be used in Transactions.');
   }
 
   applyToLocalView(
@@ -833,28 +845,16 @@ export class VerifyMutation extends Mutation {
     baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
-    this.verifyKeyMatches(maybeDoc);
-
-    if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
-    }
-
-    if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(this.key),
-        'Can only apply mutation to document with same key'
-      );
-    }
-    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
+    fail('VerifyMutation should only be used in Transactions.');
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
-    return null;
+    fail('VerifyMutation should only be used in Transactions.');
   }
 
   isEqual(other: Mutation): boolean {
     return (
-      other instanceof DeleteMutation &&
+      other instanceof VerifyMutation &&
       this.key.isEqual(other.key) &&
       this.precondition.isEqual(other.precondition)
     );
