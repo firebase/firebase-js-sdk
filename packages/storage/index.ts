@@ -30,6 +30,8 @@ import {
   ComponentContainer
 } from '@firebase/component';
 
+import { name, version } from './package.json';
+
 /**
  * Type constant for Firebase Storage.
  */
@@ -65,6 +67,8 @@ export function registerStorage(instance: _FirebaseNamespace): void {
       .setServiceProps(namespaceExports)
       .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerStorage(firebase as _FirebaseNamespace);

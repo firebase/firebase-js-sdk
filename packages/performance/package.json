@@ -35,9 +35,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "1.27.2",
+    "rollup": "1.27.9",
     "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-typescript2": "0.25.2",
+    "rollup-plugin-typescript2": "0.25.3",
     "typescript": "3.7.3"
   },
   "repository": {

@@ -68,7 +68,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",
@@ -90,7 +90,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node / Persistence)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",
@@ -114,7 +114,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",
@@ -127,7 +127,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Browser)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",

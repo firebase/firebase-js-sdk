@@ -40,13 +40,16 @@ import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 describe('Firebase Messaging > registerMessaging', () => {
   let registerComponent: SinonStub;
+  let registerVersion: SinonStub;
   let fakeFirebase: _FirebaseNamespace;
 
   beforeEach(() => {
     registerComponent = stub();
+    registerVersion = stub();
 
     fakeFirebase = {
-      INTERNAL: { registerComponent }
+      INTERNAL: { registerComponent },
+      registerVersion
     } as any;
   });
 
@@ -54,9 +57,10 @@ describe('Firebase Messaging > registerMessaging', () => {
     restore();
   });
 
-  it('calls registerComponent', () => {
+  it('calls registerComponent and registerVersion', () => {
     registerMessaging(fakeFirebase);
     expect(registerComponent.callCount).to.equal(1);
+    expect(registerVersion.callCount).to.equal(1);
   });
 
   describe('factoryMethod', () => {
