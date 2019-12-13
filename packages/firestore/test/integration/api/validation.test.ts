@@ -18,9 +18,8 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import { Deferred } from '../../util/promise';
-import firebase from '../util/firebase_export';
+import * as firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
   apiDescribe,
@@ -32,8 +31,10 @@ import {
 
 // tslint:disable:no-floating-promises
 
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FieldPath = (firebase as any).firestore.FieldPath;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FieldValue = (firebase as any).firestore.FieldValue;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -159,7 +160,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      db.settings({
+        cacheSizeBytes: (firebase as any).firestore.CACHE_SIZE_UNLIMITED
+      });
     });
   });
 
@@ -958,10 +962,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const query = db
           .collection('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         const cgQuery = db
           .collectionGroup('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'

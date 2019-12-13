@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import firebase from '../util/firebase_export';
+import * as firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
@@ -28,8 +28,10 @@ import {
 } from '../util/helpers';
 import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldPath = firebase.firestore!.FieldPath;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Timestamp = (firebase as any).firestore.Timestamp;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FieldPath = (firebase as any).firestore.FieldPath;
 
 apiDescribe('Cursors', (persistence: boolean) => {
   it('can page through items', () => {

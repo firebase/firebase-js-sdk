@@ -19,14 +19,18 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
+import * as firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
 // tslint:disable:no-floating-promises
 
 const apiDescribe = integrationHelpers.apiDescribe;
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldValue = firebase.firestore!.FieldValue;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FieldPath = (firebase as any).firestore.FieldPath;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FieldValue = (firebase as any).firestore.FieldValue;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Timestamp = (firebase as any).firestore.Timestamp;
 
 apiDescribe('Database batch writes', (persistence: boolean) => {
   it('supports empty batches', () => {
@@ -108,13 +112,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
       return doc.firestore
         .batch()
         .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
+        .update(doc, 'owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .commit()
         .then(() => doc.get())
         .then(docSnapshot => {

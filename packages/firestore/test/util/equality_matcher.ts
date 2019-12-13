@@ -16,7 +16,11 @@
  */
 
 import { use } from 'chai';
-import { Equatable } from '../../src/util/misc';
+
+/** Duck-typed interface for objects that have an isEqual() method. */
+export interface Equatable<T> {
+  isEqual(other: T): boolean;
+}
 
 /**
  * @file This file provides a helper function to add a matcher that matches

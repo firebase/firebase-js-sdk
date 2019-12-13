@@ -56,8 +56,8 @@ function copyTests() {
          * It will handle variations in whitespace, single/double quote
          * differences, as well as different paths to a valid firebase_export
          */
-        /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        'declare var firebase;'
+        /import\s+\*\s+as\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
+        "import * as firebase from 'firebase';"
       )
     )
     .pipe(
