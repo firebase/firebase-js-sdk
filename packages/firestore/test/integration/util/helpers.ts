@@ -209,14 +209,12 @@ export async function withTestDbsSettings(
   for (let i = 0; i < numDbs; i++) {
     // TODO(dimond): Right now we create a new app and Firestore instance for
     // every test and never clean them up. We may need to revisit.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const app = (firebase as any).initializeApp(
+    const app = firebase.initializeApp(
       { apiKey: 'fake-api-key', projectId },
       'test-app-' + appCount++
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firestore = (firebase as any).firestore(app);
+    const firestore = firebase.firestore!(app);
     firestore.settings(settings);
 
     let ready: Promise<firestore.FirebaseFirestore>;

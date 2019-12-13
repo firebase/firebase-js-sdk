@@ -1023,10 +1023,8 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await app.delete();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const app2 = (firebase as any).initializeApp(options, name);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const firestore2 = (firebase as any).firestore(app2);
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         const docSnap2 = await docRef2.get({ source: 'cache' });
@@ -1048,10 +1046,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await app.delete();
         await firestore.clearPersistence();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const app2 = (firebase as any).initializeApp(options, name);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const firestore2 = (firebase as any).firestore(app2);
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         await expect(
@@ -1109,8 +1105,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const firestore = docRef.firestore;
       await firestore.terminate();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const newFirestore = (firebase as any).firestore(firestore.app);
+      const newFirestore = firebase.firestore!(firestore.app);
       expect(newFirestore).to.not.equal(firestore);
 
       // New instance functions.
