@@ -19,12 +19,11 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
 // tslint:disable-next-line:variable-name Type alias can be capitalized.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldValue = (firebase as any).firestore.FieldValue;
+const FieldValue = firebase.firestore!.FieldValue;
 
 /**
  * Note: Transforms are tested pretty thoroughly in server_timestamp.test.ts

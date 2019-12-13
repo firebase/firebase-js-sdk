@@ -21,7 +21,7 @@ import { expect } from 'chai';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toChangesArray,
@@ -32,14 +32,10 @@ import {
 
 // tslint:disable:no-floating-promises
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldPath = (firebase as any).firestore.FieldPath;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GeoPoint = (firebase as any).firestore.GeoPoint;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Timestamp = (firebase as any).firestore.Timestamp;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Blob = (firebase as any).firestore.Blob;
+const Blob = firebase.firestore!.Blob;
+const FieldPath = firebase.firestore!.FieldPath;
+const GeoPoint = firebase.firestore!.GeoPoint;
+const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();

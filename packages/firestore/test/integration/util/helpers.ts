@@ -16,7 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import * as firebase from './firebase_export';
+import firebase from './firebase_export';
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.

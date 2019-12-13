@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   DEFAULT_SETTINGS,
@@ -26,12 +26,9 @@ import {
   withTestDoc
 } from '../util/helpers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldPath = (firebase as any).firestore.FieldPath;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldValue = (firebase as any).firestore.FieldValue;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Timestamp = (firebase as any).firestore.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
+const FieldValue = firebase.firestore!.FieldValue;
+const Timestamp = firebase.firestore!.Timestamp;
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

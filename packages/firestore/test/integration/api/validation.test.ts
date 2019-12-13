@@ -19,7 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { Deferred } from '../../util/promise';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
   apiDescribe,
@@ -31,10 +31,8 @@ import {
 
 // tslint:disable:no-floating-promises
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldPath = (firebase as any).firestore.FieldPath;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldValue = (firebase as any).firestore.FieldValue;
+const FieldPath = firebase.firestore!.FieldPath;
+const FieldValue = firebase.firestore!.FieldValue;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -160,10 +158,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      db.settings({
-        cacheSizeBytes: (firebase as any).firestore.CACHE_SIZE_UNLIMITED
-      });
+      db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED */ -1 });
     });
   });
 

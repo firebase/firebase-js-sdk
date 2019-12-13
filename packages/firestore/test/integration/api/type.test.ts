@@ -18,15 +18,12 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Blob = (firebase as any).firestore.Blob;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GeoPoint = (firebase as any).firestore.GeoPoint;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Timestamp = (firebase as any).firestore.Timestamp;
+const Blob = firebase.firestore!.Blob;
+const GeoPoint = firebase.firestore!.GeoPoint;
+const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Firestore', (persistence: boolean) => {
   addEqualityMatcher();

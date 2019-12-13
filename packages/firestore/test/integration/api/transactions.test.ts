@@ -17,11 +17,10 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import * as firebase from '../util/firebase_export';
+import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FieldPath = (firebase as any).firestore.FieldPath;
+const FieldPath = firebase.firestore!.FieldPath;
 
 const apiDescribe = integrationHelpers.apiDescribe;
 apiDescribe('Database transactions', (persistence: boolean) => {
