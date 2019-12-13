@@ -17,8 +17,8 @@
 
 import { use } from 'chai';
 
-/** 
- * Duck-typed interface for objects that have an isEqual() method. 
+/**
+ * Duck-typed interface for objects that have an isEqual() method.
  *
  * Note: This is copied from src/util/misc.ts to avoid importing private types.
  */
