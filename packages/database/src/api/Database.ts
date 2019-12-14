@@ -32,7 +32,7 @@ import { FirebaseDatabase } from '@firebase/database-types';
  * Class representing a firebase database.
  * @implements {FirebaseService}
  */
-export class Database implements FirebaseService, FirebaseDatabase {
+export class Database implements FirebaseService {
   INTERNAL: DatabaseInternals;
   private root_: Reference;
 
