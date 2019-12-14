@@ -34,6 +34,7 @@ function copyTests() {
    * Therefore these tests and helpers cannot have any src/ dependencies.
    */
   const testBase = resolve(__dirname, '../../packages/firestore/test');
+  const firebaseSdk = resolve(__dirname, '../../packages/firebase/firebase.js');
   return gulp
     .src(
       [
@@ -57,7 +58,7 @@ function copyTests() {
          * differences, as well as different paths to a valid firebase_export
          */
         /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        "import * as firebase from 'firebase';"
+        `import * as firebase from '${firebaseSdk}';`
       )
     )
     .pipe(

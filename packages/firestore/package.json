@@ -11,7 +11,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-s lint test:all",
-    "test:all": "run-p test:browser test:travis",
+    "test:all": "run-p test:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "FIRESTORE_EMULATOR_PORT=8080 FIRESTORE_EMULATOR_PROJECT_ID=test-emulator TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
@@ -19,6 +19,7 @@
     "test:node:persistence": "FIRESTORE_EMULATOR_PORT=8080 FIRESTORE_EMULATOR_PROJECT_ID=test-emulator USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
+    "test:minified": "(cd ../../integration/firestore ; yarn test:manual)",
     "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
