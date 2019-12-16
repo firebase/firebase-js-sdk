@@ -348,8 +348,7 @@ describe('SortedMap Tests', () => {
   xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = function(tree, max) {
       const keys = [];
-      // eslint-disable-next-line guard-for-in
-      for (const k in tree) {
+      for (const k of Object.keys(tree)) {
         keys.push(k);
       }
 

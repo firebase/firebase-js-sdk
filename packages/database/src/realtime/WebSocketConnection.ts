@@ -16,9 +16,6 @@
  */
 
 import { RepoInfo } from '../core/RepoInfo';
-
-declare const MozWebSocket: any;
-
 import {
   assert,
   CONSTANTS as ENV_CONSTANTS,
@@ -39,10 +36,11 @@ import {
   WEBSOCKET
 } from './Constants';
 import { PersistentStorage } from '../core/storage/storage';
-
 import { Transport } from './Transport';
 import { StatsCollection } from '../core/stats/StatsCollection';
 import { SDK_VERSION } from '../core/version';
+
+declare const MozWebSocket: any;
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
@@ -315,8 +313,8 @@ export class WebSocketConnection implements Transport {
    */
   handleIncomingFrame(mess: { [k: string]: any }) {
     if (this.mySock === null) {
-      return;
-    } // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+      return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+    }
     const data = mess['data'] as string;
     this.bytesReceived += data.length;
     this.stats_.incrementCounter('bytes_received', data.length);

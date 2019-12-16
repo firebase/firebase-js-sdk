@@ -67,25 +67,23 @@ export class RepoManager {
     }
     return _staticInstance;
   }
-  /* eslint-disable guard-for-in */
+
   // TODO(koss): Remove these functions unless used in tests?
   interrupt() {
-    for (const appName in this.repos_) {
-      for (const dbUrl in this.repos_[appName]) {
+    for (const appName of Object.keys(this.repos_)) {
+      for (const dbUrl of Object.keys(this.repos_[appName])) {
         this.repos_[appName][dbUrl].interrupt();
       }
     }
   }
 
   resume() {
-    for (const appName in this.repos_) {
-      for (const dbUrl in this.repos_[appName]) {
+    for (const appName of Object.keys(this.repos_)) {
+      for (const dbUrl of Object.keys(this.repos_[appName])) {
         this.repos_[appName][dbUrl].resume();
       }
     }
   }
-
-  /* eslint-enable guard-for-in */
 
   /**
    * This function should only ever be called to CREATE a new database instance.

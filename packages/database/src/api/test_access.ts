@@ -58,12 +58,12 @@ export const hijackHash = function(newHash: () => string) {
     pathString,
     data,
     onComplete,
-    optHash
+    hash
   ) {
-    if (optHash !== undefined) {
-      optHash = newHash();
+    if (hash !== undefined) {
+      hash = newHash();
     }
-    oldPut.call(this, pathString, data, onComplete, optHash);
+    oldPut.call(this, pathString, data, onComplete, hash);
   };
   return function() {
     PersistentConnection.prototype.put = oldPut;

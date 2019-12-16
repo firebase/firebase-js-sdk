@@ -24,7 +24,6 @@ import { PathIndex } from '../snap/indexes/PathIndex';
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';
 import { RangedFilter } from './filter/RangedFilter';
-
 import { NodeFilter } from './filter/NodeFilter';
 import { Index } from '../snap/indexes/Index';
 

@@ -153,8 +153,8 @@ export class BrowserPollConnection implements Transport {
           const [command, arg1, arg2, arg3, arg4] = args;
           this.incrementIncomingBytes_(args);
           if (!this.scriptTagHolder) {
-            return;
-          } // we closed the connection.
+            return; // we closed the connection.
+          }
 
           if (this.connectTimeoutTimer_) {
             clearTimeout(this.connectTimeoutTimer_);
@@ -393,7 +393,8 @@ export class BrowserPollConnection implements Transport {
   }
 }
 
-export interface FrameElement extends HTMLIFrameElement {
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export interface IFrameElement extends HTMLIFrameElement {
   doc: Document;
 }
 
@@ -421,7 +422,7 @@ export class FirebaseIFrameScriptHolder {
   sendNewPolls = true;
 
   uniqueCallbackIdentifier: number;
-  myIFrame: FrameElement;
+  myIFrame: IFrameElement;
   alive: boolean;
   myID: string;
   myPW: string;
@@ -491,8 +492,8 @@ export class FirebaseIFrameScriptHolder {
    * @private
    * @return {Element}
    */
-  private static createIFrame_(): FrameElement {
-    const iframe = document.createElement('iframe') as FrameElement;
+  private static createIFrame_(): IFrameElement {
+    const iframe = document.createElement('iframe') as IFrameElement;
     iframe.style.display = 'none';
 
     // This is necessary in order to initialize the document inside the iframe

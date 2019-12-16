@@ -107,8 +107,7 @@ interface Transaction {
  * Setup the transaction data structures
  * @private
  */
-// eslint-disable-next-line camelcase
-(Repo.prototype as any).transactions_init_ = function() {
+(Repo.prototype as any).transactionsInit_ = function() {
   /**
    * Stores queues of outstanding transactions for Firebase locations.
    *

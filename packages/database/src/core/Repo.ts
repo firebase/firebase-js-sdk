@@ -63,8 +63,7 @@ export class Repo {
   private nextWriteId_ = 1;
   private server_: ServerActions;
   private statsReporter_: StatsReporter;
-  // eslint-disable-next-line camelcase
-  private transactions_init_: () => void;
+  private transactionsInit_: () => void;
   private infoData_: SnapshotHolder;
   private abortTransactions_: (path: Path) => Path;
   private rerunTransactions_: (changedPath: Path) => Path;
@@ -137,7 +136,7 @@ export class Repo {
       () => new StatsReporter(this.stats_, this.server_)
     );
 
-    this.transactions_init_();
+    this.transactionsInit_();
 
     // Used for .info.
     this.infoData_ = new SnapshotHolder();

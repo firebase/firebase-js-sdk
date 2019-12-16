@@ -285,8 +285,7 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree, with the key/value added.
    */
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let n;
-    n = this;
+    let n: LLRBNode<K, V> = this;
     const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
