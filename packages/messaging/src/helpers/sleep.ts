@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,9 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
-
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
+/** Returns a promise that resolves after given time passes. */
+export function sleep(ms: number): Promise<void> {
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

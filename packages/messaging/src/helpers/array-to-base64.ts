@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
-
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
+export function arrayToBase64(array: Uint8Array | ArrayBuffer): string {
+  const uint8Array = new Uint8Array(array);
+  const base64String = btoa(String.fromCharCode(...uint8Array));
+  return base64String
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
 }

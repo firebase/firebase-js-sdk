@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
+import { ConsoleMessageData } from '../interfaces/message-payload';
+import { CONSOLE_CAMPAIGN_ID } from '../util/constants';
 
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
+export function isConsoleMessage(data: unknown): data is ConsoleMessageData {
+  // This message has a campaign ID, meaning it was sent using the
+  // Firebase Console.
+  return typeof data === 'object' && !!data && CONSOLE_CAMPAIGN_ID in data;
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
+import { SinonStub, SinonSpy } from 'sinon';
 
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
-}
+// Helper types for Sinon stubs and spies.
+
+export type Stub<T extends (...args: any) => any> = SinonStub<
+  Parameters<T>,
+  ReturnType<T>
+>;
+
+export type Spy<T extends (...args: any) => any> = SinonSpy<
+  Parameters<T>,
+  ReturnType<T>
+>;

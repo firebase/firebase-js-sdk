@@ -14,8 +14,9 @@ module.exports = {
   },
   'overrides': [
     {
-      'files': ['**/*.test.ts', '**/test/**/*.ts'],
+      'files': ['**/*.test.ts', '**/{test,testing}/**/*.ts'],
       'rules': {
+        // TODO: Use https://www.npmjs.com/package/eslint-plugin-chai-friendly instead
         'no-unused-expressions': 'off',
         '@typescript-eslint/no-explicit-any': 'off'
       }

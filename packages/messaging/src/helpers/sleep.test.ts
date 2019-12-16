@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
+import { expect } from 'chai';
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
+import '../testing/setup';
+import { sleep } from './sleep';
 
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
-}
+describe('sleep', () => {
+  let clock: SinonFakeTimers;
+
+  beforeEach(() => {
+    clock = useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  it('returns a promise that resolves after a given amount of time', async () => {
+    const t0 = clock.now;
+    await sleep(100);
+    const t1 = clock.now;
+
+    expect(t1 - t0).to.equal(100);
+  });
+});
