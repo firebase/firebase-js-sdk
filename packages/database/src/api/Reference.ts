@@ -44,8 +44,8 @@ export interface ReferenceConstructor {
 }
 
 export class Reference extends Query {
-  then: Promise<Reference>["then"];
-  catch: Promise<Reference>["catch"];
+  then: Promise<Reference>['then'];
+  catch: Promise<Reference>['catch'];
 
   /**
    * Call options:
