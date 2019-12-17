@@ -846,10 +846,6 @@
   integrity sha512-M6q3MtHzk0NQPs1PB+SXSJtkDtK8WXJh+1B1WVJQp5HTURadzj9t1bUb/Fjhq+K57lKsOgL60r8WGmE7vks1eg==
   dependencies:
     semver "^6.2.0"
-"@firebase/auth-interop-types@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.npmjs.org/@firebase/auth-interop-types/-/auth-interop-types-0.1.1.tgz#b3e1bc5ea8b2df1c376b5fc14aae8a3572dbcace"
-  integrity sha512-rNpCOyCspZvNDoQVQLQQgWAGBMB2ClCWKN1c8cEFgLNFgnMJrjVB+tcL7KW2q2UjKa7l8Mxgwys7szTiEDAcvA==
 
 "@grpc/proto-loader@^0.5.0":
   version "0.5.2"
