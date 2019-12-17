@@ -40,6 +40,7 @@ import { Transport } from './Transport';
 import { StatsCollection } from '../core/stats/StatsCollection';
 import { SDK_VERSION } from '../core/version';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const MozWebSocket: any;
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
@@ -70,8 +71,8 @@ export class WebSocketConnection implements Transport {
   connURL: string;
   onDisconnect: (a?: boolean) => void;
   onMessage: (msg: {}) => void;
-  mySock: any | null;
-  private log_: (...a: any[]) => void;
+  mySock: WebSocket | null;
+  private log_: (...a: unknown[]) => void;
   private stats_: StatsCollection;
   private everConnected_: boolean;
   private isClosed_: boolean;
@@ -192,13 +193,14 @@ export class WebSocketConnection implements Transport {
       this.onClosed_();
     };
 
-    this.mySock.onmessage = (m: object) => {
-      this.handleIncomingFrame(m);
+    this.mySock.onmessage = (m) => {
+      this.handleIncomingFrame(m as {});
     };
 
-    this.mySock.onerror = (e: any) => {
+    this.mySock.onerror = (e) => {
       this.log_('WebSocket error.  Closing connection.');
-      const error = e.message || e.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = (e as any).message || (e as any).data;
       if (error) {
         this.log_(error);
       }
@@ -311,7 +313,7 @@ export class WebSocketConnection implements Transport {
    * Process a websocket frame that has arrived from the server.
    * @param mess The frame data
    */
-  handleIncomingFrame(mess: { [k: string]: any }) {
+  handleIncomingFrame(mess: { [k: string]: unknown }) {
     if (this.mySock === null) {
       return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
     }
@@ -409,6 +411,7 @@ export class WebSocketConnection implements Transport {
         this.sendString_('0');
       }
       this.resetKeepAlive();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, Math.floor(WEBSOCKET_KEEPALIVE_INTERVAL)) as any;
   }
 

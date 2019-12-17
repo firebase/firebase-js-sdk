@@ -68,7 +68,7 @@ export class Repo {
   private abortTransactions_: (path: Path) => Path;
   private rerunTransactions_: (changedPath: Path) => Path;
   private interceptServerDataCallback_:
-    | ((a: string, b: any) => void)
+    | ((a: string, b: unknown) => void)
     | null = null;
   private __database: Database;
 
@@ -217,7 +217,7 @@ export class Repo {
    */
   private onDataUpdate_(
     pathString: string,
-    data: any,
+    data: unknown,
     isMerge: boolean,
     tag: number | null
   ) {
@@ -230,7 +230,7 @@ export class Repo {
     let events = [];
     if (tag) {
       if (isMerge) {
-        const taggedChildren = map(data as { [k: string]: any }, (raw: any) =>
+        const taggedChildren = map(data as { [k: string]: unknown }, (raw: unknown) =>
           nodeFromJSON(raw)
         );
         events = this.serverSyncTree_.applyTaggedQueryMerge(
@@ -247,7 +247,7 @@ export class Repo {
         );
       }
     } else if (isMerge) {
-      const changedChildren = map(data as { [k: string]: any }, (raw: any) =>
+      const changedChildren = map(data as { [k: string]: unknown }, (raw: unknown) =>
         nodeFromJSON(raw)
       );
       events = this.serverSyncTree_.applyServerMerge(path, changedChildren);
@@ -265,7 +265,7 @@ export class Repo {
   }
 
   // TODO: This should be @private but it's used by test_access.js and internal.js
-  interceptServerData_(callback: ((a: string, b: any) => any) | null) {
+  interceptServerData_(callback: ((a: string, b: unknown) => unknown) | null) {
     this.interceptServerDataCallback_ = callback;
   }
 
@@ -277,12 +277,12 @@ export class Repo {
   }
 
   private onServerInfoUpdate_(updates: object) {
-    each(updates, (key: string, value: any) => {
+    each(updates, (key: string, value: unknown) => {
       this.updateInfo_(key, value);
     });
   }
 
-  private updateInfo_(pathString: string, value: any) {
+  private updateInfo_(pathString: string, value: unknown) {
     const path = new Path('/.info/' + pathString);
     const newNode = nodeFromJSON(value);
     this.infoData_.updateSnapshot(path, newNode);
@@ -296,7 +296,7 @@ export class Repo {
 
   setWithPriority(
     path: Path,
-    newVal: any,
+    newVal: unknown,
     newPriority: number | string | null,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
@@ -350,7 +350,7 @@ export class Repo {
 
   update(
     path: Path,
-    childrenToMerge: { [k: string]: any },
+    childrenToMerge: { [k: string]: unknown },
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     this.log_('update', { path: path.toString(), value: childrenToMerge });
@@ -359,7 +359,7 @@ export class Repo {
     let empty = true;
     const serverValues = this.generateServerValues();
     const changedChildren: { [k: string]: Node } = {};
-    each(childrenToMerge, (changedKey: string, changedValue: any) => {
+    each(childrenToMerge, (changedKey: string, changedValue: unknown) => {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
@@ -450,7 +450,7 @@ export class Repo {
 
   onDisconnectSet(
     path: Path,
-    value: any,
+    value: unknown,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     const newNode = nodeFromJSON(value);
@@ -468,8 +468,8 @@ export class Repo {
 
   onDisconnectSetWithPriority(
     path: Path,
-    value: any,
-    priority: any,
+    value: unknown,
+    priority: unknown,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     const newNode = nodeFromJSON(value, priority);
@@ -487,7 +487,7 @@ export class Repo {
 
   onDisconnectUpdate(
     path: Path,
-    childrenToMerge: { [k: string]: any },
+    childrenToMerge: { [k: string]: unknown },
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     if (isEmpty(childrenToMerge)) {
@@ -503,7 +503,7 @@ export class Repo {
       childrenToMerge,
       (status, errorReason) => {
         if (status === 'ok') {
-          each(childrenToMerge, (childName: string, childNode: any) => {
+          each(childrenToMerge, (childName: string, childNode: unknown) => {
             const newChildNode = nodeFromJSON(childNode);
             this.onDisconnect_.remember(path.child(childName), newChildNode);
           });
@@ -567,7 +567,7 @@ export class Repo {
       return;
     }
 
-    let stats: { [k: string]: any };
+    let stats: { [k: string]: unknown };
     if (showDelta) {
       if (!this.statsListener_) {
         this.statsListener_ = new StatsListener(this.stats_);
@@ -583,7 +583,7 @@ export class Repo {
       0
     );
 
-    each(stats, (stat: string, value: any) => {
+    each(stats, (stat: string, value: unknown) => {
       let paddedStat = stat;
       // pad stat names to be the same length (plus 2 extra spaces).
       for (let i = stat.length; i < longestName + 2; i++) {
@@ -598,7 +598,7 @@ export class Repo {
     this.statsReporter_.includeStat(metric);
   }
 
-  private log_(...varArgs: any[]) {
+  private log_(...varArgs: unknown[]) {
     let prefix = '';
     if (this.persistentConnection_) {
       prefix = this.persistentConnection_.id + ':';
@@ -623,6 +623,7 @@ export class Repo {
           }
 
           const error = new Error(message);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any).code = code;
           callback(error);
         }

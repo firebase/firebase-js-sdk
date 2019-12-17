@@ -52,7 +52,7 @@ export const MAX_LEAF_SIZE_ = 10 * 1024 * 1024;
  * @param {*} key
  * @return {boolean}
  */
-export const isValidKey = function(key: any): boolean {
+export const isValidKey = function(key: unknown): boolean {
   return (
     typeof key === 'string' && key.length !== 0 && !INVALID_KEY_REGEX_.test(key)
   );
@@ -87,12 +87,13 @@ export const isValidRootPathString = function(pathString: string): boolean {
  * @param {*} priority
  * @return {boolean}
  */
-export const isValidPriority = function(priority: any): boolean {
+export const isValidPriority = function(priority: unknown): boolean {
   return (
     priority === null ||
     typeof priority === 'string' ||
     (typeof priority === 'number' && !isInvalidJSONNumber(priority)) ||
-    (priority && typeof priority === 'object' && contains(priority, '.sv'))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (priority && typeof priority === 'object' && contains(priority as any, '.sv'))
   );
 };
 
@@ -108,7 +109,7 @@ export const isValidPriority = function(priority: any): boolean {
 export const validateFirebaseDataArg = function(
   fnName: string,
   argumentNumber: number,
-  data: any,
+  data: unknown,
   path: Path,
   optional: boolean
 ) {
@@ -132,7 +133,7 @@ export const validateFirebaseDataArg = function(
  */
 export const validateFirebaseData = function(
   errorPrefix: string,
-  data: any,
+  data: unknown,
   path_: Path | ValidationPath
 ) {
   const path =
@@ -179,7 +180,7 @@ export const validateFirebaseData = function(
   if (data && typeof data === 'object') {
     let hasDotValue = false;
     let hasActualChild = false;
-    each(data, (key: string, value: any) => {
+    each(data, (key: string, value: unknown) => {
       if (key === '.value') {
         hasDotValue = true;
       } else if (key !== '.priority' && key !== '.sv') {
@@ -277,7 +278,7 @@ export const validateFirebaseMergePaths = function(
 export const validateFirebaseMergeDataArg = function(
   fnName: string,
   argumentNumber: number,
-  data: any,
+  data: unknown,
   path: Path,
   optional: boolean
 ) {
@@ -294,7 +295,7 @@ export const validateFirebaseMergeDataArg = function(
   }
 
   const mergePaths: Path[] = [];
-  each(data, (key: string, value: any) => {
+  each(data, (key: string, value: unknown) => {
     const curPath = new Path(key);
     validateFirebaseData(errorPrefix, value, path.child(curPath));
     if (curPath.getBack() === '.priority') {
@@ -316,7 +317,7 @@ export const validateFirebaseMergeDataArg = function(
 export const validatePriority = function(
   fnName: string,
   argumentNumber: number,
-  priority: any,
+  priority: unknown,
   optional: boolean
 ) {
   if (optional && priority === undefined) {
@@ -453,7 +454,7 @@ export const validateUrl = function(
 export const validateCredential = function(
   fnName: string,
   argumentNumber: number,
-  cred: any,
+  cred: unknown,
   optional: boolean
 ) {
   if (optional && cred === undefined) {
@@ -470,7 +471,7 @@ export const validateCredential = function(
 export const validateBoolean = function(
   fnName: string,
   argumentNumber: number,
-  bool: any,
+  bool: unknown,
   optional: boolean
 ) {
   if (optional && bool === undefined) {
@@ -486,7 +487,7 @@ export const validateBoolean = function(
 export const validateString = function(
   fnName: string,
   argumentNumber: number,
-  string: any,
+  string: unknown,
   optional: boolean
 ) {
   if (optional && string === undefined) {
@@ -503,7 +504,7 @@ export const validateString = function(
 export const validateObject = function(
   fnName: string,
   argumentNumber: number,
-  obj: any,
+  obj: unknown,
   optional: boolean
 ) {
   if (optional && obj === undefined) {
@@ -520,13 +521,14 @@ export const validateObject = function(
 export const validateObjectContainsKey = function(
   fnName: string,
   argumentNumber: number,
-  obj: any,
+  obj: unknown,
   key: string,
   optional: boolean,
   optType?: string
 ) {
   const objectContainsKey =
-    obj && typeof obj === 'object' && contains(obj, key);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    obj && typeof obj === 'object' && contains(obj as any, key);
 
   if (!objectContainsKey) {
     if (optional) {
@@ -542,7 +544,8 @@ export const validateObjectContainsKey = function(
   }
 
   if (optType) {
-    const val = safeGet(obj, key);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const val = safeGet(obj as any, key);
     if (
       (optType === 'number' && !(typeof val === 'number')) ||
       (optType === 'string' && !(typeof val === 'string')) ||

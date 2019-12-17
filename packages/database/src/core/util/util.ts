@@ -17,7 +17,7 @@
 
 import { Query } from '../../api/Query';
 
-declare const window: any;
+declare const window: Window;
 declare const Windows: any;
 
 import {
@@ -64,20 +64,23 @@ export const sha1 = function(str: string): string {
  * @return {string}
  * @private
  */
-const buildLogMessage_ = function(...varArgs: any[]): string {
+const buildLogMessage_ = function(...varArgs: unknown[]): string {
   let message = '';
   for (let i = 0; i < varArgs.length; i++) {
+
+    const arg = varArgs[i];
     if (
-      Array.isArray(varArgs[i]) ||
-      (varArgs[i] &&
-        typeof varArgs[i] === 'object' &&
-        typeof varArgs[i].length === 'number')
+      Array.isArray(arg) ||
+      (arg &&
+        typeof arg === 'object' &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        typeof (arg as any).length === 'number')
     ) {
-      message += buildLogMessage_.apply(null, varArgs[i]);
-    } else if (typeof varArgs[i] === 'object') {
-      message += stringify(varArgs[i]);
+      message += buildLogMessage_.apply(null, arg);
+    } else if (typeof arg === 'object') {
+      message += stringify(arg);
     } else {
-      message += varArgs[i];
+      message += arg;
     }
     message += ' ';
   }
@@ -129,7 +132,7 @@ export const enableLogging = function(
  *
  * @param {...(string|Arguments)} varArgs
  */
-export const log = function(...varArgs: string[]) {
+export const log = function(...varArgs: unknown[]) {
   if (firstLog_ === true) {
     firstLog_ = false;
     if (logger === null && SessionStorage.get('logging_enabled') === true) {
@@ -149,8 +152,8 @@ export const log = function(...varArgs: string[]) {
  */
 export const logWrapper = function(
   prefix: string
-): (...varArgs: any[]) => void {
-  return function(...varArgs: any[]) {
+): (...varArgs: unknown[]) => void {
+  return function(...varArgs: unknown[]) {
     log(prefix, ...varArgs);
   };
 };
@@ -175,7 +178,7 @@ export const fatal = function(...varArgs: string[]) {
 /**
  * @param {...*} varArgs
  */
-export const warn = function(...varArgs: any[]) {
+export const warn = function(...varArgs: unknown[]) {
   const message = 'FIREBASE WARNING: ' + buildLogMessage_(...varArgs);
   logClient.warn(message);
 };
@@ -215,7 +218,7 @@ export const warnAboutUnsupportedMethod = function(methodName: string) {
  * @param {*} data
  * @return {boolean}
  */
-export const isInvalidJSONNumber = function(data: any): boolean {
+export const isInvalidJSONNumber = function(data: unknown): boolean {
   return (
     typeof data === 'number' &&
     (data !== data || // NaN
@@ -251,14 +254,17 @@ export const executeWhenDOMReady = function(fn: () => void) {
       document.addEventListener('DOMContentLoaded', wrappedFn, false);
       // fallback to onload.
       window.addEventListener('load', wrappedFn, false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } else if ((document as any).attachEvent) {
       // IE.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (document as any).attachEvent('onreadystatechange', () => {
         if (document.readyState === 'complete') {
           wrappedFn();
         }
       });
       // fallback to onload.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).attachEvent('onload', wrappedFn);
 
       // jQuery has an extra hack for IE that we could employ (based on
@@ -333,8 +339,8 @@ export const stringCompare = function(a: string, b: string): number {
  */
 export const requireKey = function(
   key: string,
-  obj: { [k: string]: any }
-): any {
+  obj: { [k: string]: unknown }
+): unknown {
   if (obj && key in obj) {
     return obj[key];
   } else {
@@ -348,7 +354,7 @@ export const requireKey = function(
  * @param {*} obj
  * @return {string}
  */
-export const ObjectToUniqueKey = function(obj: any): string {
+export const ObjectToUniqueKey = function(obj: unknown): string {
   if (typeof obj !== 'object' || obj === null) {
     return stringify(obj);
   }
@@ -408,7 +414,7 @@ export const splitStringBySize = function(
  * @param obj The object or array to iterate over
  * @param fn The function to apply
  */
-export function each(obj: object, fn: (k: string, v: any) => void) {
+export function each(obj: object, fn: (k: string, v: unknown) => void) {
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       fn(key, obj[key]);
@@ -423,7 +429,7 @@ export function each(obj: object, fn: (k: string, v: any) => void) {
  * @return {function(*)}
  */
 export const bindCallback = function(
-  callback: (a: any) => void,
+  callback: (a: unknown) => void,
   context?: object | null
 ): Function {
   return context ? callback.bind(context) : callback;
@@ -536,6 +542,7 @@ export const errorForServerCode = function(code: string, query: Query): Error {
   const error = new Error(
     code + ' at ' + query.path.toString() + ': ' + reason
   );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (error as any).code = code.toUpperCase();
   return error;
 };
@@ -606,7 +613,7 @@ export const exceptionGuard = function(fn: () => void) {
  */
 export const callUserCallback = function(
   callback?: Function | null,
-  ...varArgs: any[]
+  ...varArgs: unknown[]
 ) {
   if (typeof callback === 'function') {
     exceptionGuard(() => {
@@ -646,7 +653,7 @@ export const beingCrawled = function(): boolean {
 export const exportPropGetter = function(
   object: object,
   name: string,
-  fnGet: () => any
+  fnGet: () => unknown
 ) {
   Object.defineProperty(object, name, { get: fnGet });
 };
@@ -665,7 +672,9 @@ export const setTimeoutNonBlocking = function(
   time: number
 ): number | object {
   const timeout: number | object = setTimeout(fn, time);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof timeout === 'object' && (timeout as any)['unref']) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (timeout as any)['unref']();
   }
   return timeout;

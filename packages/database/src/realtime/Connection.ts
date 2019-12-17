@@ -67,13 +67,13 @@ const SERVER_HELLO = 'h';
  */
 export class Connection {
   connectionCount = 0;
-  pendingDataMessages: any[] = [];
+  pendingDataMessages: unknown[] = [];
   sessionId: string;
 
   private conn_: Transport;
   private healthyTimeout_: number;
   private isHealthy_: boolean;
-  private log_: (...args: any[]) => void;
+  private log_: (...args: unknown[]) => void;
   private primaryResponsesRequired_: number;
   private rx_: Transport;
   private secondaryConn_: Transport;
@@ -173,6 +173,7 @@ export class Connection {
             this.close();
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       }, Math.floor(healthyTimeoutMS)) as any;
     }
   }
@@ -199,7 +200,7 @@ export class Connection {
   }
 
   private connReceiver_(conn: Transport) {
-    return (message: object) => {
+    return (message: { [key: string]: unknown }) => {
       if (this.state_ !== RealtimeState.DISCONNECTED) {
         if (conn === this.rx_) {
           this.onPrimaryMessageReceived_(message);
@@ -233,7 +234,7 @@ export class Connection {
     }
   }
 
-  private onSecondaryControl_(controlData: { [k: string]: any }) {
+  private onSecondaryControl_(controlData: { [k: string]: unknown }) {
     if (MESSAGE_TYPE in controlData) {
       const cmd = controlData[MESSAGE_TYPE] as string;
       if (cmd === SWITCH_ACK) {
@@ -257,11 +258,11 @@ export class Connection {
     }
   }
 
-  private onSecondaryMessageReceived_(parsedData: object) {
-    const layer: string = requireKey('t', parsedData);
-    const data: any = requireKey('d', parsedData);
+  private onSecondaryMessageReceived_(parsedData: { [key: string]: unknown }) {
+    const layer: string = requireKey('t', parsedData) as string;
+    const data: unknown = requireKey('d', parsedData);
     if (layer === 'c') {
-      this.onSecondaryControl_(data);
+      this.onSecondaryControl_(data as { [key: string]: unknown });
     } else if (layer === 'd') {
       // got a data message, but we're still second connection. Need to buffer it up
       this.pendingDataMessages.push(data);
@@ -299,18 +300,18 @@ export class Connection {
     this.tryCleanupConnection();
   }
 
-  private onPrimaryMessageReceived_(parsedData: { [k: string]: any }) {
+  private onPrimaryMessageReceived_(parsedData: { [k: string]: unknown }) {
     // Must refer to parsedData properties in quotes, so closure doesn't touch them.
-    const layer: string = requireKey('t', parsedData);
-    const data: any = requireKey('d', parsedData);
+    const layer: string = requireKey('t', parsedData) as string;
+    const data: unknown = requireKey('d', parsedData);
     if (layer === 'c') {
-      this.onControl_(data);
+      this.onControl_(data as { [k: string]: unknown });
     } else if (layer === 'd') {
       this.onDataMessage_(data);
     }
   }
 
-  private onDataMessage_(message: any) {
+  private onDataMessage_(message: unknown) {
     this.onPrimaryResponse_();
 
     // We don't do anything with data messages, just kick them up a level
@@ -328,12 +329,17 @@ export class Connection {
     }
   }
 
-  private onControl_(controlData: { [k: string]: any }) {
-    const cmd: string = requireKey(MESSAGE_TYPE, controlData);
+  private onControl_(controlData: { [k: string]: unknown }) {
+    const cmd: string = requireKey(MESSAGE_TYPE, controlData) as string;
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
-        this.onHandshake_(payload);
+        this.onHandshake_(payload as {
+          ts: number;
+          v: string;
+          h: string;
+          s: string;
+        });
       } else if (cmd === END_TRANSMISSION) {
         this.log_('recvd end transmission on primary');
         this.rx_ = this.secondaryConn_;
@@ -345,10 +351,10 @@ export class Connection {
       } else if (cmd === CONTROL_SHUTDOWN) {
         // This was previously the 'onKill' callback passed to the lower-level connection
         // payload in this case is the reason for the shutdown. Generally a human-readable error
-        this.onConnectionShutdown_(payload);
+        this.onConnectionShutdown_(payload as string);
       } else if (cmd === CONTROL_RESET) {
         // payload in this case is the host we should contact
-        this.onReset_(payload);
+        this.onReset_(payload as string);
       } else if (cmd === CONTROL_ERROR) {
         error('Server Error: ' + payload);
       } else if (cmd === CONTROL_PONG) {

@@ -68,6 +68,7 @@ export enum TransactionStatus {
  * @const
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo as any).MAX_TRANSACTION_RETRIES_ = 25;
 
 /**
@@ -89,7 +90,7 @@ export enum TransactionStatus {
  */
 interface Transaction {
   path: Path;
-  update: (a: any) => any;
+  update: (a: unknown) => unknown;
   onComplete: (a: Error | null, b: boolean, c: DataSnapshot | null) => void;
   status: TransactionStatus;
   order: number;
@@ -107,6 +108,7 @@ interface Transaction {
  * Setup the transaction data structures
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).transactionsInit_ = function() {
   /**
    * Stores queues of outstanding transactions for Firebase locations.
@@ -121,7 +123,7 @@ declare module './Repo' {
   interface Repo {
     startTransaction(
       path: Path,
-      transactionUpdate: (a: any) => void,
+      transactionUpdate: (a: unknown) => void,
       onComplete: ((a: Error, b: boolean, c: DataSnapshot) => void) | null,
       applyLocally: boolean
     ): void;
@@ -138,7 +140,7 @@ declare module './Repo' {
  */
 Repo.prototype.startTransaction = function(
   path: Path,
-  transactionUpdate: (a: any) => any,
+  transactionUpdate: (a: unknown) => unknown,
   onComplete: ((a: Error, b: boolean, c: DataSnapshot) => void) | null,
   applyLocally: boolean
 ) {
@@ -227,7 +229,8 @@ Repo.prototype.startTransaction = function(
       newVal !== null &&
       contains(newVal, '.priority')
     ) {
-      priorityForNode = safeGet(newVal, '.priority');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      priorityForNode = safeGet(newVal as any, '.priority');
       assert(
         isValidPriority(priorityForNode),
         'Invalid priority returned by transaction. ' +
@@ -270,6 +273,7 @@ Repo.prototype.startTransaction = function(
  * @return {Node}
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).getLatestState_ = function(
   path: Path,
   excludeSets?: number[]
@@ -290,6 +294,7 @@ Repo.prototype.startTransaction = function(
  * @param {Tree.<Array.<Transaction>>=} node  transactionQueueTree node to start at.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).sendReadyTransactions_ = function(
   node: Tree<Transaction[]> = this.transactionQueueTree_
 ) {
@@ -324,6 +329,7 @@ Repo.prototype.startTransaction = function(
  * @param {!Array.<Transaction>} queue Queue of transactions under the specified location.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).sendTransactionQueue_ = function(
   path: Path,
   queue: Transaction[]
@@ -438,6 +444,7 @@ Repo.prototype.startTransaction = function(
  * @return {!Path} The rootmost path that was affected by rerunning transactions.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).rerunTransactions_ = function(changedPath: Path): Path {
   const rootMostTransactionNode = this.getAncestorTransactionNode_(changedPath);
   const path = rootMostTransactionNode.path();
@@ -455,6 +462,7 @@ Repo.prototype.startTransaction = function(
  * @param {!Path} path The path the queue is for.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).rerunTransactionQueue_ = function(
   queue: Transaction[],
   path: Path
@@ -491,6 +499,7 @@ Repo.prototype.startTransaction = function(
         this.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
       );
     } else if (transaction.status === TransactionStatus.RUN) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (transaction.retryCount >= (Repo as any).MAX_TRANSACTION_RETRIES_) {
         abortTransaction = true;
         abortReason = 'maxretry';
@@ -602,6 +611,7 @@ Repo.prototype.startTransaction = function(
  * @return {!Tree.<Array.<!Transaction>>} The rootmost node with a transaction.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).getAncestorTransactionNode_ = function(
   path: Path
 ): Tree<Transaction[]> {
@@ -626,6 +636,7 @@ Repo.prototype.startTransaction = function(
  * @return {Array.<Transaction>} The generated queue.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).buildTransactionQueue_ = function(
   transactionNode: Tree<Transaction[]>
 ): Transaction[] {
@@ -646,6 +657,7 @@ Repo.prototype.startTransaction = function(
  * @param {Array.<Transaction>} queue
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).aggregateTransactionQueuesForNode_ = function(
   node: Tree<Transaction[]>,
   queue: Transaction[]
@@ -668,6 +680,7 @@ Repo.prototype.startTransaction = function(
  * @param {!Tree.<Array.<!Transaction>>} node
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).pruneCompletedTransactionsBelowNode_ = function(
   node: Tree<Transaction[]>
 ) {
@@ -697,6 +710,7 @@ Repo.prototype.startTransaction = function(
  * @return {!Path}
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).abortTransactions_ = function(path: Path): Path {
   const affectedPath = this.getAncestorTransactionNode_(path).path();
 
@@ -721,6 +735,7 @@ Repo.prototype.startTransaction = function(
  * @param {!Tree.<Array.<Transaction>>} node Node to abort transactions for.
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Repo.prototype as any).abortTransactionsOnNode_ = function(
   node: Tree<Transaction[]>
 ) {

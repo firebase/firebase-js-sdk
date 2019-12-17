@@ -23,7 +23,7 @@ import { exceptionGuard } from '../../core/util/util';
  * @constructor
  */
 export class PacketReceiver {
-  pendingResponses: any[] = [];
+  pendingResponses: unknown[] = [];
   currentResponseNum = 0;
   closeAfterResponse = -1;
   onClose: (() => void) | null = null;
@@ -49,10 +49,10 @@ export class PacketReceiver {
    * @param {number} requestNum
    * @param {Array} data
    */
-  handleResponse(requestNum: number, data: any[]) {
+  handleResponse(requestNum: number, data: unknown[]) {
     this.pendingResponses[requestNum] = data;
     while (this.pendingResponses[this.currentResponseNum]) {
-      const toProcess = this.pendingResponses[this.currentResponseNum];
+      const toProcess = this.pendingResponses[this.currentResponseNum] as unknown[];
       delete this.pendingResponses[this.currentResponseNum];
       for (let i = 0; i < toProcess.length; ++i) {
         if (toProcess[i]) {

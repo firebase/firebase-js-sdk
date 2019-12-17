@@ -103,7 +103,7 @@ export class SortedMapIterator<K, V, T> {
     if (this.resultGenerator_) {
       result = this.resultGenerator_(node.key, node.value);
     } else {
-      result = { key: node.key, value: node.value } as any;
+      result = { key: node.key, value: node.value } as unknown as T;
     }
 
     if (this.isReverse_) {
@@ -136,7 +136,7 @@ export class SortedMapIterator<K, V, T> {
     if (this.resultGenerator_) {
       return this.resultGenerator_(node.key, node.value);
     } else {
-      return { key: node.key, value: node.value } as any;
+      return { key: node.key, value: node.value } as unknown as T;
     }
   }
 }
@@ -223,7 +223,7 @@ export class LLRBNode<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
     return (
       this.left.inorderTraversal(action) ||
       action(this.key, this.value) ||
@@ -374,7 +374,7 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree after performing any needed rotations.
    */
   private fixUp_(): LLRBNode<K, V> {
-    let n = this as any;
+    let n: LLRBNode<K, V> = this ;
     if (n.right.isRed_() && !n.left.isRed_()) {
       n = n.rotateLeft_();
     }
@@ -553,7 +553,7 @@ export class LLRBEmptyNode<K, V> {
    * node.  If it returns true, traversal is aborted.
    * @return {boolean} True if traversal was aborted.
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
     return false;
   }
 
@@ -751,7 +751,7 @@ export class SortedMap<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
     return this.root_.inorderTraversal(action);
   }
 

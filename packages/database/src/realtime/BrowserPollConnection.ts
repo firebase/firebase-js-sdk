@@ -96,7 +96,7 @@ export class BrowserPollConnection implements Transport {
   myPacketOrderer: PacketReceiver;
   id: string;
   password: string;
-  private log_: (...a: any[]) => void;
+  private log_: (...a: unknown[]) => void;
   private stats_: StatsCollection;
   private everConnected_ = false;
   private isClosed_: boolean;
@@ -139,6 +139,7 @@ export class BrowserPollConnection implements Transport {
       // Make sure we clear the host cache
       this.onClosed_();
       this.connectTimeoutTimer_ = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, Math.floor(LP_CONNECT_TIMEOUT)) as any;
 
     // Ensure we delay the creation of the iframe until the DOM is loaded.
@@ -162,8 +163,8 @@ export class BrowserPollConnection implements Transport {
           }
           this.everConnected_ = true;
           if (command === FIREBASE_LONGPOLL_START_PARAM) {
-            this.id = arg1;
-            this.password = arg2;
+            this.id = arg1 as string;
+            this.password = arg2 as string;
           } else if (command === FIREBASE_LONGPOLL_CLOSE_COMMAND) {
             // Don't clear the host cache. We got a response from the server, so we know it's reachable
             if (arg1) {
@@ -173,7 +174,7 @@ export class BrowserPollConnection implements Transport {
 
               // arg1 in this case is the last response number sent by the server. We should try to receive
               // all of the responses up to this one before closing
-              this.myPacketOrderer.closeAfter(arg1, () => {
+              this.myPacketOrderer.closeAfter(arg1 as number, () => {
                 this.onClosed_();
               });
             } else {
@@ -186,7 +187,7 @@ export class BrowserPollConnection implements Transport {
         (...args) => {
           const [pN, data] = args;
           this.incrementIncomingBytes_(args);
-          this.myPacketOrderer.handleResponse(pN, data);
+          this.myPacketOrderer.handleResponse(pN as number, data as unknown[]);
         },
         () => {
           this.onClosed_();
@@ -385,7 +386,7 @@ export class BrowserPollConnection implements Transport {
    * @param {*} args
    * @private
    */
-  private incrementIncomingBytes_(args: any) {
+  private incrementIncomingBytes_(args: unknown) {
     // TODO: This is an annoying perf hit just to track the number of incoming bytes.  Maybe it should be opt-in.
     const bytesReceived = stringify(args).length;
     this.bytesReceived += bytesReceived;
@@ -408,7 +409,7 @@ export class FirebaseIFrameScriptHolder {
   outstandingRequests = new Set<number>();
 
   //A queue of the pending segments waiting for transmission to the server.
-  pendingSegs: Array<{ seg: number; ts: number; d: any }> = [];
+  pendingSegs: Array<{ seg: number; ts: number; d: unknown }> = [];
 
   //A serial number. We use this for two things:
   // 1) A way to ensure the browser doesn't cache responses to polls
@@ -426,8 +427,8 @@ export class FirebaseIFrameScriptHolder {
   alive: boolean;
   myID: string;
   myPW: string;
-  commandCB: (command: string, ...args: any[]) => void;
-  onMessageCB: (...args: any[]) => void;
+  commandCB: (command: string, ...args: unknown[]) => void;
+  onMessageCB: (...args: unknown[]) => void;
 
   /**
    * @param commandCB - The callback to be called when control commands are recevied from the server.
@@ -436,8 +437,8 @@ export class FirebaseIFrameScriptHolder {
    * @param urlFn - A function that provides the URL of the endpoint to send data to.
    */
   constructor(
-    commandCB: (command: string, ...args: any[]) => void,
-    onMessageCB: (...args: any[]) => void,
+    commandCB: (command: string, ...args: unknown[]) => void,
+    onMessageCB: (...args: unknown[]) => void,
     public onDisconnect: () => void,
     public urlFn: (a: object) => string
   ) {
@@ -447,10 +448,10 @@ export class FirebaseIFrameScriptHolder {
       //   1) Command Callback - Triggered for control issues, like starting a connection.
       //   2) Message Callback - Triggered when new data arrives.
       this.uniqueCallbackIdentifier = LUIDGenerator();
-      (window as any)[
+      window[
         FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier
       ] = commandCB;
-      (window as any)[
+      window[
         FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier
       ] = onMessageCB;
 
@@ -523,11 +524,13 @@ export class FirebaseIFrameScriptHolder {
 
     // Get the document of the iframe in a browser-specific way.
     if (iframe.contentDocument) {
-      (iframe as any).doc = iframe.contentDocument; // Firefox, Opera, Safari
+      iframe.doc = iframe.contentDocument; // Firefox, Opera, Safari
     } else if (iframe.contentWindow) {
-      (iframe as any).doc = iframe.contentWindow.document; // Internet Explorer
+      iframe.doc = iframe.contentWindow.document; // Internet Explorer
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } else if ((iframe as any).document) {
-      (iframe as any).doc = (iframe as any).document; //others?
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      iframe.doc = (iframe as any).document; //others?
     }
 
     return iframe;
@@ -606,7 +609,7 @@ export class FirebaseIFrameScriptHolder {
         //first, lets see if the next segment will fit.
         const nextSeg = this.pendingSegs[0];
         if (
-          nextSeg.d.length + SEG_HEADER_SIZE + curDataString.length <=
+          (nextSeg.d as unknown[]).length + SEG_HEADER_SIZE + curDataString.length <=
           MAX_URL_DATA_SIZE
         ) {
           //great, the segment will fit. Lets append it.
@@ -649,7 +652,7 @@ export class FirebaseIFrameScriptHolder {
    * @param totalsegs - The total number of segments in this packet
    * @param data - The data for this segment.
    */
-  enqueueSegment(segnum: number, totalsegs: number, data: any) {
+  enqueueSegment(segnum: number, totalsegs: number, data: unknown) {
     //add this to the queue of segments to send.
     this.pendingSegs.push({ seg: segnum, ts: totalsegs, d: data });
 
@@ -700,6 +703,7 @@ export class FirebaseIFrameScriptHolder {
    */
   addTag(url: string, loadCB: () => void) {
     if (isNodeSdk()) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (this as any).doNodeLongPoll(url, loadCB);
     } else {
       setTimeout(() => {
@@ -712,9 +716,12 @@ export class FirebaseIFrameScriptHolder {
           newScript.type = 'text/javascript';
           newScript.async = true;
           newScript.src = url;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newScript.onload = (newScript as any).onreadystatechange = function() {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const rstate = (newScript as any).readyState;
             if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               newScript.onload = (newScript as any).onreadystatechange = null;
               if (newScript.parentNode) {
                 newScript.parentNode.removeChild(newScript);

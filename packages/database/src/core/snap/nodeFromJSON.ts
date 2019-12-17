@@ -37,8 +37,8 @@ const USE_HINZE = true;
  * @return {!Node}
  */
 export function nodeFromJSON(
-  json: any | null,
-  priority: string | number | null = null
+  json: unknown | null,
+  priority: unknown = null
 ): Node {
   if (json === null) {
     return ChildrenNode.EMPTY_NODE;
@@ -69,7 +69,7 @@ export function nodeFromJSON(
   if (!(json instanceof Array) && USE_HINZE) {
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
-    const hinzeJsonObj: { [k: string]: any } = json;
+    const hinzeJsonObj = json;
     each(hinzeJsonObj, (key, child) => {
       if (key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
@@ -114,8 +114,8 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    each(json, (key: string, childData: any) => {
-      if (contains(json, key)) {
+    each(json, (key: string, childData: unknown) => {
+      if (contains(json as object, key)) {
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
           const childNode = nodeFromJSON(childData);
