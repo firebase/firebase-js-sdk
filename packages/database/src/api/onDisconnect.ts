@@ -26,6 +26,7 @@ import { warn } from '../core/util/util';
 
 import { Repo } from '../core/Repo';
 import { Path } from '../core/util/Path';
+import { Indexable } from '../core/util/misc';
 
 /**
  * @constructor
@@ -74,7 +75,7 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  set(value: any, onComplete?: (a: Error | null) => void): Promise<void> {
+  set(value: unknown, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
     validateWritablePath('OnDisconnect.set', this.path_);
     validateFirebaseDataArg('OnDisconnect.set', 1, value, this.path_, false);
@@ -95,7 +96,7 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   setWithPriority(
-    value: any,
+    value: unknown,
     priority: number | string | null,
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
@@ -127,13 +128,13 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   update(
-    objectToMerge: object,
+    objectToMerge: Indexable,
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
     validateArgCount('OnDisconnect.update', 1, 2, arguments.length);
     validateWritablePath('OnDisconnect.update', this.path_);
     if (Array.isArray(objectToMerge)) {
-      const newObjectToMerge: { [k: string]: any } = {};
+      const newObjectToMerge: { [k: string]: unknown } = {};
       for (let i = 0; i < objectToMerge.length; ++i) {
         newObjectToMerge['' + i] = objectToMerge[i];
       }

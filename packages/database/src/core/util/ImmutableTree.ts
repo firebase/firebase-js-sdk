@@ -40,6 +40,7 @@ const EmptyChildren = (): SortedMap<string, ImmutableTree<null>> => {
  * A tree with immutable elements.
  */
 export class ImmutableTree<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static Empty = new ImmutableTree<any>(null);
 
   /**

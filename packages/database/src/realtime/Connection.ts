@@ -27,6 +27,7 @@ import { PROTOCOL_VERSION } from './Constants';
 import { TransportManager } from './TransportManager';
 import { RepoInfo } from '../core/RepoInfo';
 import { Transport, TransportConstructor } from './Transport';
+import { Indexable } from '../core/util/misc';
 
 // Abort upgrade attempt if it takes longer than 60s.
 const UPGRADE_TIMEOUT = 60000;
@@ -200,7 +201,7 @@ export class Connection {
   }
 
   private connReceiver_(conn: Transport) {
-    return (message: { [key: string]: unknown }) => {
+    return (message: Indexable) => {
       if (this.state_ !== RealtimeState.DISCONNECTED) {
         if (conn === this.rx_) {
           this.onPrimaryMessageReceived_(message);
@@ -258,11 +259,11 @@ export class Connection {
     }
   }
 
-  private onSecondaryMessageReceived_(parsedData: { [key: string]: unknown }) {
+  private onSecondaryMessageReceived_(parsedData: Indexable) {
     const layer: string = requireKey('t', parsedData) as string;
     const data: unknown = requireKey('d', parsedData);
     if (layer === 'c') {
-      this.onSecondaryControl_(data as { [key: string]: unknown });
+      this.onSecondaryControl_(data as Indexable);
     } else if (layer === 'd') {
       // got a data message, but we're still second connection. Need to buffer it up
       this.pendingDataMessages.push(data);

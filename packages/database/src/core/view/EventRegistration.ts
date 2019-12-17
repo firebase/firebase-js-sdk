@@ -16,7 +16,7 @@
  */
 
 import { DataSnapshot } from '../../api/DataSnapshot';
-import { DataEvent, CancelEvent, Event } from './Event';
+import { DataEvent, CancelEvent, Event, EventType } from './Event';
 import { contains, assert } from '@firebase/util';
 
 import { Path } from '../util/Path';
@@ -223,9 +223,9 @@ export class ChildEventRegistration implements EventRegistration {
     const ref = query.getRef().child(/** @type {!string} */ change.childName);
     const index = query.getQueryParams().getIndex();
     return new DataEvent(
-      change.type as any,
+      change.type as EventType,
       this,
-      new DataSnapshot(change.snapshotNode, ref, index as any),
+      new DataSnapshot(change.snapshotNode, ref, index),
       change.prevName
     );
   }

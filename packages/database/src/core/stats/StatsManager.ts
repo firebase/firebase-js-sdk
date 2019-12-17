@@ -20,7 +20,7 @@ import { RepoInfo } from '../RepoInfo';
 
 export class StatsManager {
   private static collections_: { [k: string]: StatsCollection } = {};
-  private static reporters_: { [k: string]: any } = {};
+  private static reporters_: { [k: string]: unknown } = {};
 
   static getCollection(repoInfo: RepoInfo): StatsCollection {
     const hashString = repoInfo.toString();
@@ -42,6 +42,6 @@ export class StatsManager {
       this.reporters_[hashString] = creatorFunction();
     }
 
-    return this.reporters_[hashString];
+    return this.reporters_[hashString] as T;
   }
 }

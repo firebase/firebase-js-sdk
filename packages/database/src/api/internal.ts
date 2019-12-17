@@ -45,6 +45,7 @@ export const setSecurityDebugCallback = function(
   ref: Reference,
   callback: (a: object) => void
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
 };
 
@@ -62,7 +63,7 @@ export const dataUpdateCount = function(ref: Reference): number {
 
 export const interceptServerData = function(
   ref: Reference,
-  callback: ((a: string, b: any) => void) | null
+  callback: ((a: string, b: unknown) => void) | null
 ) {
   return ref.repo.interceptServerData_(callback);
 };

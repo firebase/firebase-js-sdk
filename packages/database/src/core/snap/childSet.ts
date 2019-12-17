@@ -34,6 +34,7 @@ class Base12Num {
    */
   constructor(length: number) {
     const logBase2 = (num: number) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parseInt((Math.log(num) / LOG_2) as any, 10);
     const bitMask = (bits: number) => parseInt(Array(bits + 1).join('1'), 2);
     this.count = logBase2(length + 1);
@@ -87,23 +88,24 @@ export const buildChildSet = function<K, V>(
       return null;
     } else if (length === 1) {
       namedNode = childList[low];
-      key = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
+      key = keyFn ? keyFn(namedNode) : ((namedNode as unknown) as K);
       return new LLRBNode(
         key,
-        (namedNode.node as any) as V,
+        (namedNode.node as unknown) as V,
         LLRBNode.BLACK,
         null,
         null
       );
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const middle = parseInt((length / 2) as any, 10) + low;
       const left = buildBalancedTree(low, middle);
       const right = buildBalancedTree(middle + 1, high);
       namedNode = childList[middle];
-      key = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
+      key = keyFn ? keyFn(namedNode) : ((namedNode as unknown) as K);
       return new LLRBNode(
         key,
-        (namedNode.node as any) as V,
+        (namedNode.node as unknown) as V,
         LLRBNode.BLACK,
         left,
         right
@@ -122,9 +124,9 @@ export const buildChildSet = function<K, V>(
       index -= chunkSize;
       const childTree = buildBalancedTree(low + 1, high);
       const namedNode = childList[low];
-      const key: K = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
+      const key: K = keyFn ? keyFn(namedNode) : ((namedNode as unknown) as K);
       attachPennant(
-        new LLRBNode(key, (namedNode.node as any) as V, color, null, childTree)
+        new LLRBNode(key, (namedNode.node as unknown) as V, color, null, childTree)
       );
     };
 
@@ -155,6 +157,6 @@ export const buildChildSet = function<K, V>(
 
   const base12 = new Base12Num(childList.length);
   const root = buildFrom12Array(base12);
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new SortedMap<K, V>(mapSortFn || (cmp as any), root);
 };

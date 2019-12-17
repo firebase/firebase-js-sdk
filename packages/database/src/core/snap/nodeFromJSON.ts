@@ -26,6 +26,7 @@ import { IndexMap } from './IndexMap';
 import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
 import { SortedMap } from '../util/SortedMap';
 import { each } from '../util/util';
+import { Indexable } from '../util/misc';
 
 const USE_HINZE = true;
 
@@ -62,7 +63,7 @@ export function nodeFromJSON(
 
   // Valid leaf nodes include non-objects or server-value wrapper objects
   if (typeof json !== 'object' || '.sv' in json) {
-    const jsonLeaf = json as string | number | boolean | object;
+    const jsonLeaf = json as string | number | boolean | Indexable;
     return new LeafNode(jsonLeaf, nodeFromJSON(priority));
   }
 

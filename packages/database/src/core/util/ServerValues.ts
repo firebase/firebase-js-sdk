@@ -24,6 +24,7 @@ import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Node } from '../snap/Node';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { SyncTree } from '../SyncTree';
+import { Indexable } from './misc';
 
 /**
  * Generate placeholders for deferred values.
@@ -32,9 +33,9 @@ import { SyncTree } from '../SyncTree';
  */
 export const generateWithValues = function(
   values: {
-    [k: string]: any;
+    [k: string]: unknown;
   } | null
-): { [k: string]: any } {
+): { [k: string]: unknown } {
   values = values || {};
   values['timestamp'] = values['timestamp'] || new Date().getTime();
   return values;
@@ -48,9 +49,9 @@ export const generateWithValues = function(
  * @return {!(string|number|boolean)}
  */
 export const resolveDeferredValue = function(
-  value: { [k: string]: any } | string | number | boolean,
+  value: { [k: string]: unknown } | string | number | boolean,
   existing: Node,
-  serverValues: { [k: string]: any }
+  serverValues: { [k: string]: unknown }
 ): string | number | boolean {
   if (!value || typeof value !== 'object') {
     return value as string | number | boolean;
@@ -69,11 +70,11 @@ export const resolveDeferredValue = function(
 const resolveScalarDeferredValue = function(
   op: string,
   existing: Node,
-  serverValues: { [k: string]: any }
+  serverValues: { [k: string]: unknown }
 ): string | number | boolean {
   switch (op) {
     case 'timestamp':
-      return serverValues['timestamp'];
+      return serverValues['timestamp'] as string | number | boolean;
     default:
       assert(false, 'Unexpected server value: ' + op);
   }
@@ -82,7 +83,7 @@ const resolveScalarDeferredValue = function(
 const resolveComplexDeferredValue = function(
   op: object,
   existing: Node,
-  unused: { [k: string]: any }
+  unused: { [k: string]: unknown }
 ): string | number | boolean {
   if (!op.hasOwnProperty('increment')) {
     assert(false, 'Unexpected server value: ' + JSON.stringify(op, null, 2));
@@ -117,7 +118,7 @@ const resolveComplexDeferredValue = function(
 export const resolveDeferredValueTree = function(
   tree: SparseSnapshotTree,
   syncTree: SyncTree,
-  serverValues: object
+  serverValues: Indexable
 ): SparseSnapshotTree {
   const resolvedTree = new SparseSnapshotTree();
   tree.forEachTree(new Path(''), (path, node) => {
@@ -145,10 +146,10 @@ export const resolveDeferredValueTree = function(
 export const resolveDeferredValueSnapshot = function(
   node: Node,
   existing: Node,
-  serverValues: object
+  serverValues: Indexable
 ): Node {
   const rawPri = node.getPriority().val() as
-    | object
+    | Indexable
     | boolean
     | null
     | number

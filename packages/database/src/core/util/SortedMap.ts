@@ -223,10 +223,10 @@ export class LLRBNode<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return (
       this.left.inorderTraversal(action) ||
-      action(this.key, this.value) ||
+      !!action(this.key, this.value) ||
       this.right.inorderTraversal(action)
     );
   }
@@ -553,7 +553,7 @@ export class LLRBEmptyNode<K, V> {
    * node.  If it returns true, traversal is aborted.
    * @return {boolean} True if traversal was aborted.
    */
-  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return false;
   }
 
@@ -751,7 +751,7 @@ export class SortedMap<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return this.root_.inorderTraversal(action);
   }
 

@@ -637,7 +637,7 @@ describe('Transaction Tests', () => {
     const node = getRandomNode() as Reference;
     node.set(['cat', 'horse'], () => {
       node.transaction(
-        current => {
+        (current: string[] | null) => {
           if (current) {
             current.push('dog');
           } else {
@@ -911,7 +911,7 @@ describe('Transaction Tests', () => {
           if (current == null) {
             return 0;
           } else if (current < COUNT) {
-            return current + 1;
+            return (current as number) + 1;
           } else {
             shouldCommit = false;
           }
@@ -1101,14 +1101,14 @@ describe('Transaction Tests', () => {
     ref.child('a').transaction(() => {
       return 1;
     });
-    ref.child('a').transaction(current => {
+    ref.child('a').transaction((current: number) => {
       return current + 42;
     });
     ref.child('b').transaction(() => {
       return 7;
     });
     ref.transaction(
-      current => {
+      (current: {a?: number, b?: number} | null) => {
         if (current && current.a && current.b) {
           return current.a + current.b;
         } else {

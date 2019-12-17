@@ -19,6 +19,7 @@ import { assert, contains } from '@firebase/util';
 import { doubleToIEEE754String } from '../util/util';
 
 import { Node } from './Node';
+import { Indexable } from '../util/misc';
 
 let MAX_NODE: Node;
 
@@ -50,7 +51,7 @@ export const validatePriorityNode = function(priorityNode: Node) {
       typeof val === 'string' ||
         typeof val === 'number' ||
         (typeof val === 'object' &&
-          contains(val as { [key: string]: unknown }, '.sv')),
+          contains(val as Indexable, '.sv')),
       'Priority must be a string or number.'
     );
   } else {

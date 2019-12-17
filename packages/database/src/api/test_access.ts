@@ -27,9 +27,10 @@ export const DataConnection = PersistentConnection;
  * @param {!string} pathString
  * @param {function(*)} onComplete
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).simpleListen = function(
   pathString: string,
-  onComplete: (a: any) => void
+  onComplete: (a: unknown) => void
 ) {
   this.sendRequest('q', { p: pathString }, onComplete);
 };
@@ -38,9 +39,10 @@ export const DataConnection = PersistentConnection;
  * @param {*} data
  * @param {function(*)} onEcho
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).echo = function(
-  data: any,
-  onEcho: (a: any) => void
+  data: unknown,
+  onEcho: (a: unknown) => void
 ) {
   this.sendRequest('echo', { d: data }, onEcho);
 };

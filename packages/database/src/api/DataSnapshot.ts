@@ -46,7 +46,7 @@ export class DataSnapshot {
    *
    * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
    */
-  val(): any {
+  val(): unknown {
     validateArgCount('DataSnapshot.val', 0, 0, arguments.length);
     return this.node_.val();
   }
@@ -56,14 +56,14 @@ export class DataSnapshot {
    * the entire node contents.
    * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
    */
-  exportVal(): any {
+  exportVal(): unknown {
     validateArgCount('DataSnapshot.exportVal', 0, 0, arguments.length);
     return this.node_.val(true);
   }
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
   // for end-users
-  toJSON(): any {
+  toJSON(): unknown {
     // Optional spacer argument is unnecessary because we're depending on recursion rather than stringifying the content
     validateArgCount('DataSnapshot.toJSON', 0, 1, arguments.length);
     return this.exportVal();

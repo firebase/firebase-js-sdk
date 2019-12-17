@@ -50,7 +50,7 @@ export interface ListenProvider {
     query: Query,
     tag: number | null,
     hashFn: () => string,
-    onComplete: (a: string, b?: any) => Event[]
+    onComplete: (a: string, b?: unknown) => Event[]
   ): Event[];
 
   stopListening(a: Query, b: number | null): void;
@@ -627,7 +627,7 @@ export class SyncTree {
 
   private createListenerForView_(
     view: View
-  ): { hashFn(): string; onComplete(a: string, b?: any): Event[] } {
+  ): { hashFn(): string; onComplete(a: string, b?: unknown): Event[] } {
     const query = view.getQuery();
     const tag = this.tagForQuery_(query);
 

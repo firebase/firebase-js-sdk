@@ -16,10 +16,6 @@
  */
 
 import { Query } from '../../api/Query';
-
-declare const window: Window;
-declare const Windows: any;
-
 import {
   assert,
   base64,
@@ -28,10 +24,12 @@ import {
   stringify,
   isNodeSdk
 } from '@firebase/util';
-
 import { SessionStorage } from '../storage/storage';
-
 import { Logger, LogLevel } from '@firebase/logger';
+
+declare const window: Window;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const Windows: any;
 
 const logClient = new Logger('@firebase/database');
 

@@ -51,7 +51,7 @@ import { DataSnapshot } from './DataSnapshot';
 let __referenceConstructor: new (repo: Repo, path: Path) => Query;
 
 export interface SnapshotCallback {
-  (a: DataSnapshot, b?: string | null): any;
+  (a: DataSnapshot, b?: string | null): unknown;
 }
 
 /**
@@ -200,7 +200,7 @@ export class Query {
   on(
     eventType: string,
     callback: SnapshotCallback,
-    cancelCallbackOrContext?: ((a: Error) => any) | object | null,
+    cancelCallbackOrContext?: ((a: Error) => unknown) | object | null,
     context?: object | null
   ): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
@@ -250,7 +250,7 @@ export class Query {
    */
   onChildEvent(
     callbacks: { [k: string]: SnapshotCallback },
-    cancelCallback: ((a: Error) => any) | null,
+    cancelCallback: ((a: Error) => unknown) | null,
     context: object | null
   ) {
     const container = new ChildEventRegistration(

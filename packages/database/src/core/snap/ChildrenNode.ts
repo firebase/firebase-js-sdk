@@ -227,7 +227,7 @@ export class ChildrenNode implements Node {
       const array: unknown[] = [];
       // eslint-disable-next-line guard-for-in
       for (const key in obj) {
-        array[(key as any) as number] = obj[key];
+        array[(key as unknown) as number] = obj[key];
       }
 
       return array;
