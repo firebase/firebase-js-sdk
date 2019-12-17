@@ -43,7 +43,7 @@ export interface ReferenceConstructor {
   new (repo: Repo, path: Path): Reference;
 }
 
-export class Reference extends Query implements types.Reference {
+export class Reference extends Query {
   public then: (a?: any) => Promise<any>;
   public catch: (a?: Error) => Promise<any>;
 
