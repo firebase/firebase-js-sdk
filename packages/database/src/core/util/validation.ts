@@ -93,7 +93,9 @@ export const isValidPriority = function(priority: unknown): boolean {
     typeof priority === 'string' ||
     (typeof priority === 'number' && !isInvalidJSONNumber(priority)) ||
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (priority && typeof priority === 'object' && contains(priority as any, '.sv'))
+    (priority &&
+      typeof priority === 'object' &&
+      contains(priority as any, '.sv'))
   );
 };
 

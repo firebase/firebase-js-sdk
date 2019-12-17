@@ -231,8 +231,9 @@ export class Repo {
     let events = [];
     if (tag) {
       if (isMerge) {
-        const taggedChildren = map(data as { [k: string]: unknown }, (raw: unknown) =>
-          nodeFromJSON(raw)
+        const taggedChildren = map(
+          data as { [k: string]: unknown },
+          (raw: unknown) => nodeFromJSON(raw)
         );
         events = this.serverSyncTree_.applyTaggedQueryMerge(
           path,
@@ -248,8 +249,9 @@ export class Repo {
         );
       }
     } else if (isMerge) {
-      const changedChildren = map(data as { [k: string]: unknown }, (raw: unknown) =>
-        nodeFromJSON(raw)
+      const changedChildren = map(
+        data as { [k: string]: unknown },
+        (raw: unknown) => nodeFromJSON(raw)
       );
       events = this.serverSyncTree_.applyServerMerge(path, changedChildren);
     } else {

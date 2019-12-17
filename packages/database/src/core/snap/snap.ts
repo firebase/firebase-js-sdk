@@ -50,8 +50,7 @@ export const validatePriorityNode = function(priorityNode: Node) {
     assert(
       typeof val === 'string' ||
         typeof val === 'number' ||
-        (typeof val === 'object' &&
-          contains(val as Indexable, '.sv')),
+        (typeof val === 'object' && contains(val as Indexable, '.sv')),
       'Priority must be a string or number.'
     );
   } else {

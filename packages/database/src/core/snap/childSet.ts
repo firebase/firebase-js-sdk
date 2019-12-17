@@ -126,7 +126,13 @@ export const buildChildSet = function<K, V>(
       const namedNode = childList[low];
       const key: K = keyFn ? keyFn(namedNode) : ((namedNode as unknown) as K);
       attachPennant(
-        new LLRBNode(key, (namedNode.node as unknown) as V, color, null, childTree)
+        new LLRBNode(
+          key,
+          (namedNode.node as unknown) as V,
+          color,
+          null,
+          childTree
+        )
       );
     };
 

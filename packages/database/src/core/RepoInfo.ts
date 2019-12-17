@@ -47,7 +47,8 @@ export class RepoInfo {
   ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
-    this.internalHost = PersistentStorage.get('host:' + host) as string || this.host;
+    this.internalHost =
+      (PersistentStorage.get('host:' + host) as string) || this.host;
   }
 
   needsQueryParam(): boolean {

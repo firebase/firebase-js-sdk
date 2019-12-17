@@ -609,7 +609,9 @@ export class FirebaseIFrameScriptHolder {
         //first, lets see if the next segment will fit.
         const nextSeg = this.pendingSegs[0];
         if (
-          (nextSeg.d as unknown[]).length + SEG_HEADER_SIZE + curDataString.length <=
+          (nextSeg.d as unknown[]).length +
+            SEG_HEADER_SIZE +
+            curDataString.length <=
           MAX_URL_DATA_SIZE
         ) {
           //great, the segment will fit. Lets append it.

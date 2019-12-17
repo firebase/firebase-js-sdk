@@ -103,7 +103,7 @@ export class SortedMapIterator<K, V, T> {
     if (this.resultGenerator_) {
       result = this.resultGenerator_(node.key, node.value);
     } else {
-      result = { key: node.key, value: node.value } as unknown as T;
+      result = ({ key: node.key, value: node.value } as unknown) as T;
     }
 
     if (this.isReverse_) {
@@ -136,7 +136,7 @@ export class SortedMapIterator<K, V, T> {
     if (this.resultGenerator_) {
       return this.resultGenerator_(node.key, node.value);
     } else {
-      return { key: node.key, value: node.value } as unknown as T;
+      return ({ key: node.key, value: node.value } as unknown) as T;
     }
   }
 }
@@ -374,7 +374,7 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree after performing any needed rotations.
    */
   private fixUp_(): LLRBNode<K, V> {
-    let n: LLRBNode<K, V> = this ;
+    let n: LLRBNode<K, V> = this;
     if (n.right.isRed_() && !n.left.isRed_()) {
       n = n.rotateLeft_();
     }

@@ -128,7 +128,10 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  set(newVal: unknown, onComplete?: (a: Error | null) => void): Promise<unknown> {
+  set(
+    newVal: unknown,
+    onComplete?: (a: Error | null) => void
+  ): Promise<unknown> {
     validateArgCount('Reference.set', 1, 2, arguments.length);
     validateWritablePath('Reference.set', this.path);
     validateFirebaseDataArg('Reference.set', 1, newVal, this.path, false);
@@ -180,7 +183,7 @@ export class Reference extends Query {
     const deferred = new Deferred();
     this.repo.update(
       this.path,
-      objectToMerge as { [k: string]: unknown; },
+      objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
     );
     return deferred.promise;

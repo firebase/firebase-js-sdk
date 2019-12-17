@@ -52,7 +52,9 @@ export class PacketReceiver {
   handleResponse(requestNum: number, data: unknown[]) {
     this.pendingResponses[requestNum] = data;
     while (this.pendingResponses[this.currentResponseNum]) {
-      const toProcess = this.pendingResponses[this.currentResponseNum] as unknown[];
+      const toProcess = this.pendingResponses[
+        this.currentResponseNum
+      ] as unknown[];
       delete this.pendingResponses[this.currentResponseNum];
       for (let i = 0; i < toProcess.length; ++i) {
         if (toProcess[i]) {

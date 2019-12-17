@@ -328,19 +328,23 @@ export class PersistentConnection extends ServerActions {
       } else if (typeof this.authOverride_ === 'object') {
         requestData['authvar'] = this.authOverride_;
       }
-      this.sendRequest(authMethod, requestData, (res: { [k: string]: unknown }) => {
-        const status: string = res[/*status*/ 's'] as string;
-        const data: string = res[/*data*/ 'd'] as string || 'error';
+      this.sendRequest(
+        authMethod,
+        requestData,
+        (res: { [k: string]: unknown }) => {
+          const status: string = res[/*status*/ 's'] as string;
+          const data: string = (res[/*data*/ 'd'] as string) || 'error';
 
-        if (this.authToken_ === token) {
-          if (status === 'ok') {
-            this.invalidAuthTokenCount_ = 0;
-          } else {
-            // Triggers reconnect and force refresh for auth token
-            this.onAuthRevoked_(status, data);
+          if (this.authToken_ === token) {
+            if (status === 'ok') {
+              this.invalidAuthTokenCount_ = 0;
+            } else {
+              // Triggers reconnect and force refresh for auth token
+              this.onAuthRevoked_(status, data);
+            }
           }
         }
-      });
+      );
     }
   }
 
@@ -453,7 +457,10 @@ export class PersistentConnection extends ServerActions {
     this.sendRequest(action, request, (response: { [k: string]: unknown }) => {
       if (onComplete) {
         setTimeout(() => {
-          onComplete(response[/*status*/ 's'] as string, response[/* data */ 'd'] as string);
+          onComplete(
+            response[/*status*/ 's'] as string,
+            response[/* data */ 'd'] as string
+          );
         }, Math.floor(0));
       }
     });
@@ -534,7 +541,10 @@ export class PersistentConnection extends ServerActions {
       }
 
       if (onComplete) {
-        onComplete(message[/*status*/ 's'] as string, message[/* data */ 'd'] as string);
+        onComplete(
+          message[/*status*/ 's'] as string,
+          message[/* data */ 'd'] as string
+        );
       }
     });
   }
@@ -593,7 +603,10 @@ export class PersistentConnection extends ServerActions {
         body['t'] as number
       );
     } else if (action === 'c') {
-      this.onListenRevoked_(body[/*path*/ 'p'] as string, body[/*query*/ 'q'] as unknown[]);
+      this.onListenRevoked_(
+        body[/*path*/ 'p'] as string,
+        body[/*query*/ 'q'] as unknown[]
+      );
     } else if (action === 'ac') {
       this.onAuthRevoked_(
         body[/*status code*/ 's'] as string,
@@ -905,7 +918,9 @@ export class PersistentConnection extends ServerActions {
       this.securityDebugCallback_(body);
     } else {
       if ('msg' in body) {
-        console.log('FIREBASE: ' + (body['msg'] as string).replace('\n', '\nFIREBASE: '));
+        console.log(
+          'FIREBASE: ' + (body['msg'] as string).replace('\n', '\nFIREBASE: ')
+        );
       }
     }
   }

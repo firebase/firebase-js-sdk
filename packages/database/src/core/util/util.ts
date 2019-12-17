@@ -65,7 +65,6 @@ export const sha1 = function(str: string): string {
 const buildLogMessage_ = function(...varArgs: unknown[]): string {
   let message = '';
   for (let i = 0; i < varArgs.length; i++) {
-
     const arg = varArgs[i];
     if (
       Array.isArray(arg) ||

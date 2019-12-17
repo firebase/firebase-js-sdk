@@ -335,12 +335,14 @@ export class Connection {
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
-        this.onHandshake_(payload as {
-          ts: number;
-          v: string;
-          h: string;
-          s: string;
-        });
+        this.onHandshake_(
+          payload as {
+            ts: number;
+            v: string;
+            h: string;
+            s: string;
+          }
+        );
       } else if (cmd === END_TRANSMISSION) {
         this.log_('recvd end transmission on primary');
         this.rx_ = this.secondaryConn_;

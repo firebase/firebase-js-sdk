@@ -193,11 +193,11 @@ export class WebSocketConnection implements Transport {
       this.onClosed_();
     };
 
-    this.mySock.onmessage = (m) => {
+    this.mySock.onmessage = m => {
       this.handleIncomingFrame(m as {});
     };
 
-    this.mySock.onerror = (e) => {
+    this.mySock.onerror = e => {
       this.log_('WebSocket error.  Closing connection.');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = (e as any).message || (e as any).data;

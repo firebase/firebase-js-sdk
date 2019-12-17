@@ -1108,7 +1108,7 @@ describe('Transaction Tests', () => {
       return 7;
     });
     ref.transaction(
-      (current: {a?: number, b?: number} | null) => {
+      (current: { a?: number; b?: number } | null) => {
         if (current && current.a && current.b) {
           return current.a + current.b;
         } else {

@@ -1,3 +1,3 @@
 export interface Indexable {
-    [key: string]: unknown
+  [key: string]: unknown;
 }
