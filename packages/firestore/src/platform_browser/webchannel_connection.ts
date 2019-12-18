@@ -25,7 +25,7 @@ import {
   XhrIo
 } from '@firebase/webchannel-wrapper';
 
-import { isReactNative } from '@firebase/util';
+import { isReactNative, isElectron } from '@firebase/util';
 
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -268,7 +268,7 @@ export class WebChannelConnection implements Connection {
     // https://github.com/firebase/firebase-js-sdk/issues/703), this breaks
     // ReactNative and so we exclude it, which just means ReactNative may be
     // subject to the extra network roundtrip for CORS preflight.
-    if (!isReactNative()) {
+    if (!isReactNative() && !isElectron()) {
       request.httpHeadersOverwriteParam = '$httpHeaders';
     }
 

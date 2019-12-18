@@ -84,6 +84,16 @@ export function isReactNative(): boolean {
 }
 
 /**
+ * Detect Electron.
+ *
+ * @return true if Electron environment is detected.
+ */
+export function isElectron(): boolean {
+  const userAgent = navigator.userAgent.toLowerCase();
+  return (userAgent.indexOf(' electron/') > -1) 
+}
+
+/**
  * Detect whether the current SDK build is the Node version.
  *
  * @return true if it's the Node SDK build.
