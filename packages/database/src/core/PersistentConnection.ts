@@ -238,7 +238,7 @@ export class PersistentConnection extends ServerActions {
 
     this.sendRequest(action, req, (message: { [k: string]: unknown }) => {
       const payload: unknown = message[/*data*/ 'd'];
-      const status: string = message[/*status*/ 's'] as string;
+      const status = message[/*status*/ 's'] as string;
 
       // print warnings in any case...
       PersistentConnection.warnOnListenWarnings_(payload, query);
@@ -332,8 +332,8 @@ export class PersistentConnection extends ServerActions {
         authMethod,
         requestData,
         (res: { [k: string]: unknown }) => {
-          const status: string = res[/*status*/ 's'] as string;
-          const data: string = (res[/*data*/ 'd'] as string) || 'error';
+          const status = res[/*status*/ 's'] as string;
+          const data = (res[/*data*/ 'd'] as string) || 'error';
 
           if (this.authToken_ === token) {
             if (status === 'ok') {

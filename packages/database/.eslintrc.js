@@ -12,7 +12,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     'no-restricted-properties': 'off',
     'no-restricted-globals': 'off',
-    // '@typescript-eslint/no-explicit-any': 'off',
     'no-throw-literal': 'off',
     'id-blacklist': 'off'
   }
