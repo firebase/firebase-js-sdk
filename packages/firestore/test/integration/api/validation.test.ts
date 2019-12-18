@@ -158,7 +158,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED */ -1 });
+      db.settings({ cacheSizeBytes: firestore.CACHE_SIZE_UNLIMITED });
     });
   });
 

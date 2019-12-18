@@ -130,7 +130,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(doc => expect(doc.exists).to.be.true);
       await readerRef.get({ source: 'cache' }).then(
         () => {
-          throw new Error('Expected cache miss');
+          expect.fail('Expected cache miss');
         },
         err => expect(err.code).to.be.equal('unavailable')
       );
@@ -813,86 +813,75 @@ apiDescribe('Database', (persistence: boolean) => {
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
+    const queryForRejection = null as unknown as firestore.Query;
+
     it('will reject listens', () => {
-      return withTestCollection(persistence, {}, queryForRejection => {
-        const deferred = new Deferred<void>();
-        queryForRejection.onSnapshot(
-          () => {},
-          (err: Error) => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-            deferred.resolve();
-          }
-        );
-        return deferred.promise;
-      });
+      const deferred = new Deferred();
+      queryForRejection.onSnapshot(
+        () => {},
+        (err: Error) => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      );
+      return deferred.promise;
     });
 
     it('will reject same listens twice in a row', () => {
-      return withTestCollection(persistence, {}, queryForRejection => {
-        const deferred = new Deferred<void>();
-        queryForRejection.onSnapshot(
-          () => {},
-          (err: Error) => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-            queryForRejection.onSnapshot(
-              () => {},
-              (err2: Error) => {
-                expect(err2.name).to.exist;
-                expect(err2.message).to.exist;
-                deferred.resolve();
-              }
-            );
-          }
-        );
-        return deferred.promise;
-      });
+      const deferred = new Deferred();
+      queryForRejection.onSnapshot(
+        () => {},
+        (err: Error) => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          queryForRejection.onSnapshot(
+            () => {},
+            (err2: Error) => {
+              expect(err2.name).to.exist;
+              expect(err2.message).to.exist;
+              deferred.resolve();
+            }
+          );
+        }
+      );
+      return deferred.promise;
     });
 
     it('will reject gets', () => {
-      return withTestCollection(persistence, {}, queryForRejection => {
-        return queryForRejection.get().then(
+      return queryForRejection.get().then(
+        () => {
+          expect.fail('Promise resolved even though error was expected.');
+        },
+        err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+        }
+      );
+    });
+
+    it('will reject gets twice in a row', () => {
+      return queryForRejection
+        .get()
+        .then(
           () => {
-            throw new Error('Promise resolved even though error was expected.');
+            expect.fail('Promise resolved even though error was expected.');
+          },
+          err => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+          }
+        )
+        .then(() => queryForRejection.get())
+        .then(
+          () => {
+            expect.fail('Promise resolved even though error was expected.');
           },
           err => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
           }
         );
-      });
-    });
-
-    it('will reject gets twice in a row', () => {
-      return withTestCollection(persistence, {}, queryForRejection => {
-        return queryForRejection
-          .get()
-          .then(
-            () => {
-              throw new Error(
-                'Promise resolved even though error was expected.'
-              );
-            },
-            err => {
-              expect(err.name).to.exist;
-              expect(err.message).to.exist;
-            }
-          )
-          .then(() => queryForRejection.get())
-          .then(
-            () => {
-              throw new Error(
-                'Promise resolved even though error was expected.'
-              );
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err: any) => {
-              expect(err.name).to.exist;
-              expect(err.message).to.exist;
-            }
-          );
-      });
     });
   });
 
