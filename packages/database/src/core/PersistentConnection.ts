@@ -739,6 +739,22 @@ export class PersistentConnection extends ServerActions {
 
       const forceRefresh = this.forceTokenRefresh_;
       this.forceTokenRefresh_ = false;
+      
+      // Establish connection with RTDB ASAP (whilst we're getting our auth token)
+      // so any queries made after auth token is fetched are not delayed (as much)
+      // by the WebSocket setup (which can take 500ms or more)
+      connection = new Connection(
+        connId,
+        self.repoInfo_,
+        onDataMessage,
+        onReady,
+        onDisconnect,
+        /* onKill= */ function(reason) {
+          warn(reason + ' (' + self.repoInfo_.toString() + ')');
+          self.interrupt(SERVER_KILL_INTERRUPT_REASON);
+        },
+        lastSessionId
+      );
 
       // First fetch auth token, and establish connection after fetching the token was successful
       this.authTokenProvider_
@@ -747,18 +763,6 @@ export class PersistentConnection extends ServerActions {
           if (!canceled) {
             log('getToken() completed. Creating connection.');
             self.authToken_ = result && result.accessToken;
-            connection = new Connection(
-              connId,
-              self.repoInfo_,
-              onDataMessage,
-              onReady,
-              onDisconnect,
-              /* onKill= */ function(reason) {
-                warn(reason + ' (' + self.repoInfo_.toString() + ')');
-                self.interrupt(SERVER_KILL_INTERRUPT_REASON);
-              },
-              lastSessionId
-            );
           } else {
             log('getToken() completed but was canceled');
           }
