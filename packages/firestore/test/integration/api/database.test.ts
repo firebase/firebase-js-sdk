@@ -813,7 +813,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
-    const queryForRejection = null as unknown as firestore.Query;
+    const queryForRejection = (null as unknown) as firestore.Query;
 
     it('will reject listens', () => {
       const deferred = new Deferred();
