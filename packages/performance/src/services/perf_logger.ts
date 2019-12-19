@@ -30,7 +30,6 @@ import {
   isPerfInitialized,
   getInitializationPromise
 } from './initialization_service';
-import { Logger } from '@firebase/logger';
 import { ccHandler } from './cc_service';
 import { SDK_VERSION } from '../constants';
 
@@ -83,17 +82,22 @@ interface TraceMetric {
   counters?: Array<{ key: string; value: number }>;
   custom_attributes?: Array<{ key: string; value: string }>;
 }
+
+interface CCLogger {
+  log: (...args: unknown[]) => void
+}
+
 /* eslint-enble camelcase */
 
-let logger: Logger | undefined;
+let logger: CCLogger | undefined;
 // This method is not called before initialization.
-function getLogger(): Logger {
+function getLogger(): CCLogger {
   if (logger) {
     return logger;
   }
-  const ccLogger = ccHandler(serializer);
-  logger = new Logger('@firebase/performance/cc');
-  logger.logHandler = ccLogger;
+  logger = {
+    log: ccHandler(serializer)
+  };
   return logger;
 }
 

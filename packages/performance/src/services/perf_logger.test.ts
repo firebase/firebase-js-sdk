@@ -17,7 +17,6 @@
 
 import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { Trace } from '../resources/trace';
-import { LogHandler, Logger, LogLevel } from '@firebase/logger';
 import * as ccService from './cc_service';
 import * as iidService from './iid_service';
 import { expect } from 'chai';
@@ -49,8 +48,8 @@ describe('Performance Monitoring > perf_logger', () => {
   let getIidStub: SinonStub<[], string | undefined>;
   let clock: SinonFakeTimers;
 
-  function mockCcHandler(serializer: (...args: any[]) => string): LogHandler {
-    return (_loggerInstance: Logger, _level: LogLevel, ...args) => {
+  function mockCcHandler(serializer: (...args: any[]) => string): (...args: any[]) => void {
+    return (...args) => {
       const message = serializer(...args);
       addToQueueStub({
         message,
