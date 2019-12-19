@@ -808,12 +808,18 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  // TODO(mikelehen): We need a way to create a query that will pass
-  // client-side validation but fail remotely.  May need to wait until we
-  // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
-  describe.skip('Listens are rejected remotely:', () => {
-    const queryForRejection = (null as unknown) as firestore.Query;
+  describe('Listens are rejected remotely:', () => {
+    let queryForRejection: firestore.Query;
+    before(() => {
+      return withTestCollection(persistence, {}, col => {
+        // A query that requires an index
+        queryForRejection = col
+          .where('bar', '==', 'foo')
+          .where('foo', '>', 'bar');
+        return Promise.resolve();
+      });
+    });
 
     it('will reject listens', () => {
       const deferred = new Deferred();
