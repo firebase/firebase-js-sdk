@@ -86,14 +86,14 @@ interface TraceMetric {
 /* eslint-enble camelcase */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let logger: (...args: any[]) => void | undefined;
+let logger: (resource: {}, resourceType: ResourceType) => void | undefined;
 // This method is not called before initialization.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendLog(...args: any[]): void {
+function sendLog(resource: {}, resourceType: ResourceType): void {
   if (!logger) {
     logger = ccHandler(serializer);
   }
-  logger(...args);
+  logger(resource, resourceType);
 }
 
 export function logTrace(trace: Trace): void {
