@@ -48,7 +48,9 @@ describe('Performance Monitoring > perf_logger', () => {
   let getIidStub: SinonStub<[], string | undefined>;
   let clock: SinonFakeTimers;
 
-  function mockCcHandler(serializer: (...args: any[]) => string): (...args: any[]) => void {
+  function mockCcHandler(
+    serializer: (...args: any[]) => string
+  ): (...args: any[]) => void {
     return (...args) => {
       const message = serializer(...args);
       addToQueueStub({

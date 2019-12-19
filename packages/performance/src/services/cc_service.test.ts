@@ -67,7 +67,6 @@ describe('Firebase Performance > cc_service', () => {
     });
 
     it('attempts to log an event to clearcut after DEFAULT_SEND_INTERVAL_MS if queue not empty', () => {
-
       fetchStub.resolves(
         new Response('', {
           status: 200,
