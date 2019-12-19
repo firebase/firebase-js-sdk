@@ -89,7 +89,7 @@ export function isReactNative(): boolean {
  * @return true if Electron environment is detected.
  */
 export function isElectron(): boolean {
-  const userAgent = navigator.userAgent.toLowerCase();
+  const userAgent = getUA();
   return (userAgent.indexOf(' electron/') > -1) 
 }
 
