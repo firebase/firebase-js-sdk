@@ -136,7 +136,6 @@ export function ccHandler(
   serializer: (...args: any[]) => string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): (...args: any[]) => void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (...args) => {
     const message = serializer(...args);
     addToQueue({

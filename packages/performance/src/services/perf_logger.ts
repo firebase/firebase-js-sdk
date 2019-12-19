@@ -83,22 +83,17 @@ interface TraceMetric {
   custom_attributes?: Array<{ key: string; value: string }>;
 }
 
-interface CCLogger {
-  log: (...args: unknown[]) => void
-}
-
 /* eslint-enble camelcase */
 
-let logger: CCLogger | undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let logger: (...args: any[]) => void | undefined;
 // This method is not called before initialization.
-function getLogger(): CCLogger {
-  if (logger) {
-    return logger;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sendLog(...args: any[]): void {
+  if (!logger) {
+    logger = ccHandler(serializer);
   }
-  logger = {
-    log: ccHandler(serializer)
-  };
-  return logger;
+  logger(...args);
 }
 
 export function logTrace(trace: Trace): void {
@@ -141,7 +136,7 @@ export function logTrace(trace: Trace): void {
 
 function sendTraceLog(trace: Trace): void {
   if (getIid()) {
-    setTimeout(() => getLogger().log(trace, ResourceType.Trace), 0);
+    setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
   }
 }
 
@@ -164,7 +159,7 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   }
 
   setTimeout(
-    () => getLogger().log(networkRequest, ResourceType.NetworkRequest),
+    () => sendLog(networkRequest, ResourceType.NetworkRequest),
     0
   );
 }
