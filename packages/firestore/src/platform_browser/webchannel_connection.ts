@@ -25,7 +25,7 @@ import {
   XhrIo
 } from '@firebase/webchannel-wrapper';
 
-import { isReactNative } from '@firebase/util';
+import { isElectron, isIE, isReactNative, isUWP } from '@firebase/util';
 
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -264,11 +264,11 @@ export class WebChannelConnection implements Connection {
     // formally defined here:
     // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L32
     //
-    // But for some unclear reason (see
-    // https://github.com/firebase/firebase-js-sdk/issues/703), this breaks
-    // ReactNative and so we exclude it, which just means ReactNative may be
-    // subject to the extra network roundtrip for CORS preflight.
-    if (!isReactNative()) {
+    // TODO(b/145624756): There is a backend bug where $httpHeaders isn't respected if the request
+    // doesn't have an Origin header. So we have to exclude a few browser environments that are
+    // known to (sometimes) not include an Origin. See
+    // https://github.com/firebase/firebase-js-sdk/issues/1491.
+    if (!isReactNative() && !isElectron() && !isIE() && !isUWP()) {
       request.httpHeadersOverwriteParam = '$httpHeaders';
     }
 

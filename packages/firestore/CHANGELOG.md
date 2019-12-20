@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed an issue where auth credentials were not respected in certain
+  browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
+
+# 1.9.0
 - [feature] Added support for storing and retrieving custom types in Firestore.
   Added support for strongly typed collections, documents, and
   queries. You can now use `withConverter()` to supply a custom data
