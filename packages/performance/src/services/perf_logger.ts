@@ -85,11 +85,9 @@ interface TraceMetric {
 
 /* eslint-enble camelcase */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let logger: (resource: {}, resourceType: ResourceType) => void | undefined;
+let logger: (resource: unknown, resourceType: ResourceType) => void | undefined;
 // This method is not called before initialization.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendLog(resource: {}, resourceType: ResourceType): void {
+function sendLog(resource: unknown, resourceType: ResourceType): void {
   if (!logger) {
     logger = ccHandler(serializer);
   }
@@ -161,7 +159,7 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
 }
 
-function serializer(resource: {}, resourceType: ResourceType): string {
+function serializer(resource: unknown, resourceType: ResourceType): string {
   if (resourceType === ResourceType.NetworkRequest) {
     return serializeNetworkRequest(resource as NetworkRequest);
   }

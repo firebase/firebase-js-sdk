@@ -134,8 +134,7 @@ function addToQueue(evt: BatchEvent): void {
 export function ccHandler(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serializer: (...args: any[]) => string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): (...args: any[]) => void {
+): (...args: unknown[]) => void {
   return (...args) => {
     const message = serializer(...args);
     addToQueue({
