@@ -85,7 +85,7 @@ export function isReactNative(): boolean {
 
 /** Detects Electron apps. */
 export function isElectron(): boolean {
-  return getUA().indexOf('electron/') >= 0;
+  return getUA().indexOf('Electron/') >= 0;
 }
 
 /** Detects Internet Explorer. */
