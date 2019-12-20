@@ -110,7 +110,7 @@ export class Transaction {
     // For each document that was read but not written to, we want to perform
     // a `verify` operation.
     unwritten.forEach((key, _version) => {
-      this.mutations.unshift(new VerifyMutation(key, this.precondition(key)));
+      this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
     await this.datastore.commit(this.mutations);
     this.committed = true;
