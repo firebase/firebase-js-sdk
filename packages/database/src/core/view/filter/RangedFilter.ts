@@ -136,7 +136,7 @@ export class RangedFilter implements NodeFilter {
     // Don't support priorities on queries
     filtered = filtered.updatePriority(ChildrenNode.EMPTY_NODE);
     const self = this;
-    newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+    newSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
       if (!self.matches(new NamedNode(key, childNode))) {
         filtered = filtered.updateImmediateChild(key, ChildrenNode.EMPTY_NODE);
       }

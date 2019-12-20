@@ -27,9 +27,10 @@ export const DataConnection = PersistentConnection;
  * @param {!string} pathString
  * @param {function(*)} onComplete
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).simpleListen = function(
   pathString: string,
-  onComplete: (a: any) => void
+  onComplete: (a: unknown) => void
 ) {
   this.sendRequest('q', { p: pathString }, onComplete);
 };
@@ -38,9 +39,10 @@ export const DataConnection = PersistentConnection;
  * @param {*} data
  * @param {function(*)} onEcho
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).echo = function(
-  data: any,
-  onEcho: (a: any) => void
+  data: unknown,
+  onEcho: (a: unknown) => void
 ) {
   this.sendRequest('echo', { d: data }, onEcho);
 };
@@ -57,13 +59,13 @@ export const hijackHash = function(newHash: () => string) {
   PersistentConnection.prototype.put = function(
     pathString,
     data,
-    opt_onComplete,
-    opt_hash
+    onComplete,
+    hash
   ) {
-    if (opt_hash !== undefined) {
-      opt_hash = newHash();
+    if (hash !== undefined) {
+      hash = newHash();
     }
-    oldPut.call(this, pathString, data, opt_onComplete, opt_hash);
+    oldPut.call(this, pathString, data, onComplete, hash);
   };
   return function() {
     PersistentConnection.prototype.put = oldPut;

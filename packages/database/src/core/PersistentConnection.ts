@@ -15,16 +15,27 @@
  * limitations under the License.
  */
 
-import { contains, isEmpty, safeGet, CONSTANTS } from '@firebase/util';
-import { stringify } from '@firebase/util';
-import { assert } from '@firebase/util';
+import {
+  contains,
+  isEmpty,
+  safeGet,
+  CONSTANTS,
+  stringify,
+  assert,
+  isAdmin,
+  isValidFormat,
+  isMobileCordova,
+  isReactNative,
+  isNodeSdk
+} from '@firebase/util';
+
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
 import { Path } from './util/Path';
 import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { OnlineMonitor } from './util/OnlineMonitor';
-import { isAdmin, isValidFormat } from '@firebase/util';
+
 import { Connection } from '../realtime/Connection';
-import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
+
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
@@ -42,7 +53,7 @@ const SERVER_KILL_INTERRUPT_REASON = 'server_kill';
 const INVALID_AUTH_TOKEN_THRESHOLD = 3;
 
 interface ListenSpec {
-  onComplete(s: string, p?: any): void;
+  onComplete(s: string, p?: unknown): void;
 
   hashFn(): string;
 
@@ -53,13 +64,13 @@ interface ListenSpec {
 interface OnDisconnectRequest {
   pathString: string;
   action: string;
-  data: any;
+  data: unknown;
   onComplete?: (a: string, b: string) => void;
 }
 
 interface OutstandingPut {
   action: string;
-  request: Object;
+  request: object;
   queued?: boolean;
   onComplete: (a: string, b?: string) => void;
 }
@@ -87,7 +98,7 @@ export class PersistentConnection extends ServerActions {
   private connected_ = false;
   private reconnectDelay_ = RECONNECT_MIN_DELAY;
   private maxReconnectDelay_ = RECONNECT_MAX_DELAY_DEFAULT;
-  private securityDebugCallback_: ((a: Object) => void) | null = null;
+  private securityDebugCallback_: ((a: object) => void) | null = null;
   lastSessionId: string | null = null;
 
   private establishConnectionTimer_: number | null = null;
@@ -95,11 +106,11 @@ export class PersistentConnection extends ServerActions {
   private visible_: boolean = false;
 
   // Before we get connected, we keep a queue of pending messages to send.
-  private requestCBHash_: { [k: number]: (a: any) => void } = {};
+  private requestCBHash_: { [k: number]: (a: unknown) => void } = {};
   private requestNumber_ = 0;
 
   private realtime_: {
-    sendRequest(a: Object): void;
+    sendRequest(a: object): void;
     close(): void;
   } | null = null;
 
@@ -127,14 +138,14 @@ export class PersistentConnection extends ServerActions {
     private repoInfo_: RepoInfo,
     private onDataUpdate_: (
       a: string,
-      b: any,
+      b: unknown,
       c: boolean,
       d: number | null
     ) => void,
     private onConnectStatus_: (a: boolean) => void,
-    private onServerInfoUpdate_: (a: any) => void,
+    private onServerInfoUpdate_: (a: unknown) => void,
     private authTokenProvider_: AuthTokenProvider,
-    private authOverride_?: Object | null
+    private authOverride_?: object | null
   ) {
     super();
 
@@ -154,8 +165,8 @@ export class PersistentConnection extends ServerActions {
 
   protected sendRequest(
     action: string,
-    body: any,
-    onResponse?: (a: any) => void
+    body: unknown,
+    onResponse?: (a: unknown) => void
   ) {
     const curReqNum = ++this.requestNumber_;
 
@@ -178,7 +189,7 @@ export class PersistentConnection extends ServerActions {
     query: Query,
     currentHashFn: () => string,
     tag: number | null,
-    onComplete: (a: string, b: any) => void
+    onComplete: (a: string, b: unknown) => void
   ) {
     const queryId = query.queryIdentifier();
     const pathString = query.path.toString();
@@ -196,10 +207,10 @@ export class PersistentConnection extends ServerActions {
       'listen() called twice for same path/queryId.'
     );
     const listenSpec: ListenSpec = {
-      onComplete: onComplete,
+      onComplete,
       hashFn: currentHashFn,
-      query: query,
-      tag: tag
+      query,
+      tag
     };
     this.listens.get(pathString)!.set(queryId, listenSpec);
 
@@ -213,7 +224,7 @@ export class PersistentConnection extends ServerActions {
     const pathString = query.path.toString();
     const queryId = query.queryIdentifier();
     this.log_('Listen on ' + pathString + ' for ' + queryId);
-    const req: { [k: string]: any } = { /*path*/ p: pathString };
+    const req: { [k: string]: unknown } = { /*path*/ p: pathString };
 
     const action = 'q';
 
@@ -225,9 +236,9 @@ export class PersistentConnection extends ServerActions {
 
     req[/*hash*/ 'h'] = listenSpec.hashFn();
 
-    this.sendRequest(action, req, (message: { [k: string]: any }) => {
-      const payload: any = message[/*data*/ 'd'];
-      const status: string = message[/*status*/ 's'];
+    this.sendRequest(action, req, (message: { [k: string]: unknown }) => {
+      const payload: unknown = message[/*data*/ 'd'];
+      const status = message[/*status*/ 's'] as string;
 
       // print warnings in any case...
       PersistentConnection.warnOnListenWarnings_(payload, query);
@@ -250,9 +261,10 @@ export class PersistentConnection extends ServerActions {
     });
   }
 
-  private static warnOnListenWarnings_(payload: any, query: Query) {
+  private static warnOnListenWarnings_(payload: unknown, query: Query) {
     if (payload && typeof payload === 'object' && contains(payload, 'w')) {
-      const warnings = safeGet(payload, 'w');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const warnings = safeGet(payload as any, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
         const indexSpec =
           '".indexOn": "' +
@@ -310,25 +322,29 @@ export class PersistentConnection extends ServerActions {
     if (this.connected_ && this.authToken_) {
       const token = this.authToken_;
       const authMethod = isValidFormat(token) ? 'auth' : 'gauth';
-      const requestData: { [k: string]: any } = { cred: token };
+      const requestData: { [k: string]: unknown } = { cred: token };
       if (this.authOverride_ === null) {
         requestData['noauth'] = true;
       } else if (typeof this.authOverride_ === 'object') {
         requestData['authvar'] = this.authOverride_;
       }
-      this.sendRequest(authMethod, requestData, (res: { [k: string]: any }) => {
-        const status: string = res[/*status*/ 's'];
-        const data: string = res[/*data*/ 'd'] || 'error';
+      this.sendRequest(
+        authMethod,
+        requestData,
+        (res: { [k: string]: unknown }) => {
+          const status = res[/*status*/ 's'] as string;
+          const data = (res[/*data*/ 'd'] as string) || 'error';
 
-        if (this.authToken_ === token) {
-          if (status === 'ok') {
-            this.invalidAuthTokenCount_ = 0;
-          } else {
-            // Triggers reconnect and force refresh for auth token
-            this.onAuthRevoked_(status, data);
+          if (this.authToken_ === token) {
+            if (status === 'ok') {
+              this.invalidAuthTokenCount_ = 0;
+            } else {
+              // Triggers reconnect and force refresh for auth token
+              this.onAuthRevoked_(status, data);
+            }
           }
         }
-      });
+      );
     }
   }
 
@@ -355,12 +371,12 @@ export class PersistentConnection extends ServerActions {
   private sendUnlisten_(
     pathString: string,
     queryId: string,
-    queryObj: Object,
+    queryObj: object,
     tag: number | null
   ) {
     this.log_('Unlisten on ' + pathString + ' for ' + queryId);
 
-    const req: { [k: string]: any } = { /*path*/ p: pathString };
+    const req: { [k: string]: unknown } = { /*path*/ p: pathString };
     const action = 'n';
     // Only bother sending queryId if it's non-default.
     if (tag) {
@@ -376,7 +392,7 @@ export class PersistentConnection extends ServerActions {
    */
   onDisconnectPut(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {
     if (this.connected_) {
@@ -396,7 +412,7 @@ export class PersistentConnection extends ServerActions {
    */
   onDisconnectMerge(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {
     if (this.connected_) {
@@ -433,15 +449,18 @@ export class PersistentConnection extends ServerActions {
   private sendOnDisconnect_(
     action: string,
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete: (a: string, b: string) => void
   ) {
     const request = { /*path*/ p: pathString, /*data*/ d: data };
     this.log_('onDisconnect ' + action, request);
-    this.sendRequest(action, request, (response: { [k: string]: any }) => {
+    this.sendRequest(action, request, (response: { [k: string]: unknown }) => {
       if (onComplete) {
-        setTimeout(function() {
-          onComplete(response[/*status*/ 's'], response[/* data */ 'd']);
+        setTimeout(() => {
+          onComplete(
+            response[/*status*/ 's'] as string,
+            response[/* data */ 'd'] as string
+          );
         }, Math.floor(0));
       }
     });
@@ -452,7 +471,7 @@ export class PersistentConnection extends ServerActions {
    */
   put(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void,
     hash?: string
   ) {
@@ -464,7 +483,7 @@ export class PersistentConnection extends ServerActions {
    */
   merge(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete: (a: string, b: string | null) => void,
     hash?: string
   ) {
@@ -474,16 +493,18 @@ export class PersistentConnection extends ServerActions {
   putInternal(
     action: string,
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete: (a: string, b: string | null) => void,
     hash?: string
   ) {
-    const request: { [k: string]: any } = {
+    const request: { [k: string]: unknown } = {
       /*path*/ p: pathString,
       /*data*/ d: data
     };
 
-    if (hash !== undefined) request[/*hash*/ 'h'] = hash;
+    if (hash !== undefined) {
+      request[/*hash*/ 'h'] = hash;
+    }
 
     // TODO: Only keep track of the most recent put for a given path?
     this.outstandingPuts_.push({
@@ -508,7 +529,7 @@ export class PersistentConnection extends ServerActions {
     const onComplete = this.outstandingPuts_[index].onComplete;
     this.outstandingPuts_[index].queued = this.connected_;
 
-    this.sendRequest(action, request, (message: { [k: string]: any }) => {
+    this.sendRequest(action, request, (message: { [k: string]: unknown }) => {
       this.log_(action + ' response', message);
 
       delete this.outstandingPuts_[index];
@@ -519,15 +540,19 @@ export class PersistentConnection extends ServerActions {
         this.outstandingPuts_ = [];
       }
 
-      if (onComplete)
-        onComplete(message[/*status*/ 's'], message[/* data */ 'd']);
+      if (onComplete) {
+        onComplete(
+          message[/*status*/ 's'] as string,
+          message[/* data */ 'd'] as string
+        );
+      }
     });
   }
 
   /**
    * @inheritDoc
    */
-  reportStats(stats: { [k: string]: any }) {
+  reportStats(stats: { [k: string]: unknown }) {
     // If we're not connected, we just drop the stats.
     if (this.connected_) {
       const request = { /*counters*/ c: stats };
@@ -543,11 +568,11 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private onDataMessage_(message: { [k: string]: any }) {
+  private onDataMessage_(message: { [k: string]: unknown }) {
     if ('r' in message) {
       // this is a response
       this.log_('from server: ' + stringify(message));
-      const reqNum = message['r'];
+      const reqNum = message['r'] as string;
       const onResponse = this.requestCBHash_[reqNum];
       if (onResponse) {
         delete this.requestCBHash_[reqNum];
@@ -557,40 +582,45 @@ export class PersistentConnection extends ServerActions {
       throw 'A server-side error has occurred: ' + message['error'];
     } else if ('a' in message) {
       // a and b are action and body, respectively
-      this.onDataPush_(message['a'], message['b']);
+      this.onDataPush_(message['a'] as string, message['b'] as {});
     }
   }
 
-  private onDataPush_(action: string, body: { [k: string]: any }) {
+  private onDataPush_(action: string, body: { [k: string]: unknown }) {
     this.log_('handleServerMessage', action, body);
-    if (action === 'd')
+    if (action === 'd') {
       this.onDataUpdate_(
-        body[/*path*/ 'p'],
+        body[/*path*/ 'p'] as string,
         body[/*data*/ 'd'],
         /*isMerge*/ false,
-        body['t']
+        body['t'] as number
       );
-    else if (action === 'm')
+    } else if (action === 'm') {
       this.onDataUpdate_(
-        body[/*path*/ 'p'],
+        body[/*path*/ 'p'] as string,
         body[/*data*/ 'd'],
         /*isMerge=*/ true,
-        body['t']
+        body['t'] as number
       );
-    else if (action === 'c')
-      this.onListenRevoked_(body[/*path*/ 'p'], body[/*query*/ 'q']);
-    else if (action === 'ac')
+    } else if (action === 'c') {
+      this.onListenRevoked_(
+        body[/*path*/ 'p'] as string,
+        body[/*query*/ 'q'] as unknown[]
+      );
+    } else if (action === 'ac') {
       this.onAuthRevoked_(
-        body[/*status code*/ 's'],
-        body[/* explanation */ 'd']
+        body[/*status code*/ 's'] as string,
+        body[/* explanation */ 'd'] as string
       );
-    else if (action === 'sd') this.onSecurityDebugPacket_(body);
-    else
+    } else if (action === 'sd') {
+      this.onSecurityDebugPacket_(body);
+    } else {
       error(
         'Unrecognized action received from server: ' +
           stringify(action) +
           '\nAre you using the latest client?'
       );
+    }
   }
 
   private onReady_(timestamp: number, sessionId: string) {
@@ -623,6 +653,7 @@ export class PersistentConnection extends ServerActions {
     this.establishConnectionTimer_ = setTimeout(() => {
       this.establishConnectionTimer_ = null;
       this.establishConnection_();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, Math.floor(timeout)) as any;
   }
 
@@ -678,8 +709,9 @@ export class PersistentConnection extends ServerActions {
         // If we've been connected long enough, reset reconnect delay to minimum.
         const timeSinceLastConnectSucceeded =
           new Date().getTime() - this.lastConnectionEstablishedTime_;
-        if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT)
+        if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT) {
           this.reconnectDelay_ = RECONNECT_MIN_DELAY;
+        }
         this.lastConnectionEstablishedTime_ = null;
       }
 
@@ -724,7 +756,7 @@ export class PersistentConnection extends ServerActions {
           onDisconnect();
         }
       };
-      const sendRequestFn = function(msg: Object) {
+      const sendRequestFn = function(msg: object) {
         assert(
           connection,
           "sendRequest call when we're not connected not allowed."
@@ -743,7 +775,7 @@ export class PersistentConnection extends ServerActions {
       // First fetch auth token, and establish connection after fetching the token was successful
       this.authTokenProvider_
         .getToken(forceRefresh)
-        .then(function(result) {
+        .then(result => {
           if (!canceled) {
             log('getToken() completed. Creating connection.');
             self.authToken_ = result && result.accessToken;
@@ -753,7 +785,7 @@ export class PersistentConnection extends ServerActions {
               onDataMessage,
               onReady,
               onDisconnect,
-              /* onKill= */ function(reason) {
+              /* onKill= */ reason => {
                 warn(reason + ' (' + self.repoInfo_.toString() + ')');
                 self.interrupt(SERVER_KILL_INTERRUPT_REASON);
               },
@@ -763,7 +795,7 @@ export class PersistentConnection extends ServerActions {
             log('getToken() completed but was canceled');
           }
         })
-        .then(null, function(error) {
+        .then(null, error => {
           self.log_('Failed to get token: ' + error);
           if (!canceled) {
             if (CONSTANTS.NODE_ADMIN) {
@@ -814,7 +846,9 @@ export class PersistentConnection extends ServerActions {
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
       const put = this.outstandingPuts_[i];
       if (put && /*hash*/ 'h' in put.request && put.queued) {
-        if (put.onComplete) put.onComplete('disconnect');
+        if (put.onComplete) {
+          put.onComplete('disconnect');
+        }
 
         delete this.outstandingPuts_[i];
         this.outstandingPutCount_--;
@@ -822,10 +856,12 @@ export class PersistentConnection extends ServerActions {
     }
 
     // Clean up array occasionally.
-    if (this.outstandingPutCount_ === 0) this.outstandingPuts_ = [];
+    if (this.outstandingPutCount_ === 0) {
+      this.outstandingPuts_ = [];
+    }
   }
 
-  private onListenRevoked_(pathString: string, query?: any[]) {
+  private onListenRevoked_(pathString: string, query?: unknown[]) {
     // Remove the listen and manufacture a "permission_denied" error for the failed listen.
     let queryId;
     if (!query) {
@@ -834,7 +870,9 @@ export class PersistentConnection extends ServerActions {
       queryId = query.map(q => ObjectToUniqueKey(q)).join('$');
     }
     const listen = this.removeListen_(pathString, queryId);
-    if (listen && listen.onComplete) listen.onComplete('permission_denied');
+    if (listen && listen.onComplete) {
+      listen.onComplete('permission_denied');
+    }
   }
 
   private removeListen_(pathString: string, queryId: string): ListenSpec {
@@ -875,12 +913,14 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private onSecurityDebugPacket_(body: { [k: string]: any }) {
+  private onSecurityDebugPacket_(body: { [k: string]: unknown }) {
     if (this.securityDebugCallback_) {
       this.securityDebugCallback_(body);
     } else {
       if ('msg' in body) {
-        console.log('FIREBASE: ' + body['msg'].replace('\n', '\nFIREBASE: '));
+        console.log(
+          'FIREBASE: ' + (body['msg'] as string).replace('\n', '\nFIREBASE: ')
+        );
       }
     }
   }
@@ -898,7 +938,9 @@ export class PersistentConnection extends ServerActions {
     }
 
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
-      if (this.outstandingPuts_[i]) this.sendPut_(i);
+      if (this.outstandingPuts_[i]) {
+        this.sendPut_(i);
+      }
     }
 
     while (this.onDisconnectRequestQueue_.length) {

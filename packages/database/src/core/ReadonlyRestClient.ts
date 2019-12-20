@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, jsonEval, safeGet, querystring } from '@firebase/util';
 import { logWrapper, warn } from './util/util';
-import { jsonEval } from '@firebase/util';
-import { safeGet } from '@firebase/util';
-import { querystring } from '@firebase/util';
+
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
 import { AuthTokenProvider } from './AuthTokenProvider';
@@ -31,12 +29,12 @@ import { Query } from '../api/Query';
  * persistent connection (using WebSockets or long-polling)
  */
 export class ReadonlyRestClient extends ServerActions {
-  reportStats(stats: { [k: string]: any }): void {
+  reportStats(stats: { [k: string]: unknown }): void {
     throw new Error('Method not implemented.');
   }
 
   /** @private {function(...[*])} */
-  private log_: (...args: any[]) => void = logWrapper('p:rest:');
+  private log_: (...args: unknown[]) => void = logWrapper('p:rest:');
 
   /**
    * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
@@ -44,7 +42,7 @@ export class ReadonlyRestClient extends ServerActions {
    *
    * @private {!Object.<string, !Object>}
    */
-  private listens_: { [k: string]: Object } = {};
+  private listens_: { [k: string]: object } = {};
 
   /**
    * @param {!Query} query
@@ -74,7 +72,7 @@ export class ReadonlyRestClient extends ServerActions {
     private repoInfo_: RepoInfo,
     private onDataUpdate_: (
       a: string,
-      b: any,
+      b: unknown,
       c: boolean,
       d: number | null
     ) => void,
@@ -88,7 +86,7 @@ export class ReadonlyRestClient extends ServerActions {
     query: Query,
     currentHashFn: () => string,
     tag: number | null,
-    onComplete: (a: string, b: any) => void
+    onComplete: (a: string, b: unknown) => void
   ) {
     const pathString = query.path.toString();
     this.log_(
@@ -123,7 +121,7 @@ export class ReadonlyRestClient extends ServerActions {
           let status;
           if (!error) {
             status = 'ok';
-          } else if (error == 401) {
+          } else if (error === 401) {
             status = 'permission_denied';
           } else {
             status = 'rest_error:' + error;
@@ -157,8 +155,8 @@ export class ReadonlyRestClient extends ServerActions {
    */
   private restRequest_(
     pathString: string,
-    queryStringParameters: { [k: string]: any } = {},
-    callback: ((a: number | null, b?: any) => void) | null
+    queryStringParameters: { [k: string]: string | number } = {},
+    callback: ((a: number | null, b?: unknown) => void) | null
   ) {
     queryStringParameters['format'] = 'export';
 

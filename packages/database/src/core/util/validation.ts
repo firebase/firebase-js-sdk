@@ -16,10 +16,14 @@
  */
 
 import { Path, ValidationPath } from './Path';
-import { contains, safeGet } from '@firebase/util';
+import {
+  contains,
+  safeGet,
+  errorPrefix as errorPrefixFxn,
+  stringLength
+} from '@firebase/util';
 import { isInvalidJSONNumber, each } from './util';
-import { errorPrefix as errorPrefixFxn } from '@firebase/util';
-import { stringLength } from '@firebase/util';
+
 import { RepoInfo } from '../RepoInfo';
 
 /**
@@ -48,7 +52,7 @@ export const MAX_LEAF_SIZE_ = 10 * 1024 * 1024;
  * @param {*} key
  * @return {boolean}
  */
-export const isValidKey = function(key: any): boolean {
+export const isValidKey = function(key: unknown): boolean {
   return (
     typeof key === 'string' && key.length !== 0 && !INVALID_KEY_REGEX_.test(key)
   );
@@ -83,12 +87,15 @@ export const isValidRootPathString = function(pathString: string): boolean {
  * @param {*} priority
  * @return {boolean}
  */
-export const isValidPriority = function(priority: any): boolean {
+export const isValidPriority = function(priority: unknown): boolean {
   return (
     priority === null ||
     typeof priority === 'string' ||
     (typeof priority === 'number' && !isInvalidJSONNumber(priority)) ||
-    (priority && typeof priority === 'object' && contains(priority, '.sv'))
+    (priority &&
+      typeof priority === 'object' &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      contains(priority as any, '.sv'))
   );
 };
 
@@ -104,11 +111,13 @@ export const isValidPriority = function(priority: any): boolean {
 export const validateFirebaseDataArg = function(
   fnName: string,
   argumentNumber: number,
-  data: any,
+  data: unknown,
   path: Path,
   optional: boolean
 ) {
-  if (optional && data === undefined) return;
+  if (optional && data === undefined) {
+    return;
+  }
 
   validateFirebaseData(
     errorPrefixFxn(fnName, argumentNumber, optional),
@@ -126,7 +135,7 @@ export const validateFirebaseDataArg = function(
  */
 export const validateFirebaseData = function(
   errorPrefix: string,
-  data: any,
+  data: unknown,
   path_: Path | ValidationPath
 ) {
   const path =
@@ -173,7 +182,7 @@ export const validateFirebaseData = function(
   if (data && typeof data === 'object') {
     let hasDotValue = false;
     let hasActualChild = false;
-    each(data, function(key: string, value: any) {
+    each(data, (key: string, value: unknown) => {
       if (key === '.value') {
         hasDotValue = true;
       } else if (key !== '.priority' && key !== '.sv') {
@@ -271,11 +280,13 @@ export const validateFirebaseMergePaths = function(
 export const validateFirebaseMergeDataArg = function(
   fnName: string,
   argumentNumber: number,
-  data: any,
+  data: unknown,
   path: Path,
   optional: boolean
 ) {
-  if (optional && data === undefined) return;
+  if (optional && data === undefined) {
+    return;
+  }
 
   const errorPrefix = errorPrefixFxn(fnName, argumentNumber, optional);
 
@@ -286,7 +297,7 @@ export const validateFirebaseMergeDataArg = function(
   }
 
   const mergePaths: Path[] = [];
-  each(data, function(key: string, value: any) {
+  each(data, (key: string, value: unknown) => {
     const curPath = new Path(key);
     validateFirebaseData(errorPrefix, value, path.child(curPath));
     if (curPath.getBack() === '.priority') {
@@ -308,11 +319,13 @@ export const validateFirebaseMergeDataArg = function(
 export const validatePriority = function(
   fnName: string,
   argumentNumber: number,
-  priority: any,
+  priority: unknown,
   optional: boolean
 ) {
-  if (optional && priority === undefined) return;
-  if (isInvalidJSONNumber(priority))
+  if (optional && priority === undefined) {
+    return;
+  }
+  if (isInvalidJSONNumber(priority)) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'is ' +
@@ -320,13 +333,15 @@ export const validatePriority = function(
         ', but must be a valid Firebase priority (a string, finite number, ' +
         'server value, or null).'
     );
+  }
   // Special case to allow importing data with a .sv.
-  if (!isValidPriority(priority))
+  if (!isValidPriority(priority)) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'must be a valid Firebase priority ' +
         '(a string, finite number, server value, or null).'
     );
+  }
 };
 
 export const validateEventType = function(
@@ -335,7 +350,9 @@ export const validateEventType = function(
   eventType: string,
   optional: boolean
 ) {
-  if (optional && eventType === undefined) return;
+  if (optional && eventType === undefined) {
+    return;
+  }
 
   switch (eventType) {
     case 'value':
@@ -359,8 +376,10 @@ export const validateKey = function(
   key: string,
   optional: boolean
 ) {
-  if (optional && key === undefined) return;
-  if (!isValidKey(key))
+  if (optional && key === undefined) {
+    return;
+  }
+  if (!isValidKey(key)) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'was an invalid key = "' +
@@ -368,6 +387,7 @@ export const validateKey = function(
         '".  Firebase keys must be non-empty strings and ' +
         'can\'t contain ".", "#", "$", "/", "[", or "]").'
     );
+  }
 };
 
 export const validatePathString = function(
@@ -376,9 +396,11 @@ export const validatePathString = function(
   pathString: string,
   optional: boolean
 ) {
-  if (optional && pathString === undefined) return;
+  if (optional && pathString === undefined) {
+    return;
+  }
 
-  if (!isValidPathString(pathString))
+  if (!isValidPathString(pathString)) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'was an invalid path = "' +
@@ -386,6 +408,7 @@ export const validatePathString = function(
         '". Paths must be non-empty strings and ' +
         'can\'t contain ".", "#", "$", "[", or "]"'
     );
+  }
 };
 
 export const validateRootPathString = function(
@@ -433,37 +456,45 @@ export const validateUrl = function(
 export const validateCredential = function(
   fnName: string,
   argumentNumber: number,
-  cred: any,
+  cred: unknown,
   optional: boolean
 ) {
-  if (optional && cred === undefined) return;
-  if (!(typeof cred === 'string'))
+  if (optional && cred === undefined) {
+    return;
+  }
+  if (!(typeof cred === 'string')) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
         'must be a valid credential (a string).'
     );
+  }
 };
 
 export const validateBoolean = function(
   fnName: string,
   argumentNumber: number,
-  bool: any,
+  bool: unknown,
   optional: boolean
 ) {
-  if (optional && bool === undefined) return;
-  if (typeof bool !== 'boolean')
+  if (optional && bool === undefined) {
+    return;
+  }
+  if (typeof bool !== 'boolean') {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) + 'must be a boolean.'
     );
+  }
 };
 
 export const validateString = function(
   fnName: string,
   argumentNumber: number,
-  string: any,
+  string: unknown,
   optional: boolean
 ) {
-  if (optional && string === undefined) return;
+  if (optional && string === undefined) {
+    return;
+  }
   if (!(typeof string === 'string')) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
@@ -475,10 +506,12 @@ export const validateString = function(
 export const validateObject = function(
   fnName: string,
   argumentNumber: number,
-  obj: any,
+  obj: unknown,
   optional: boolean
 ) {
-  if (optional && obj === undefined) return;
+  if (optional && obj === undefined) {
+    return;
+  }
   if (!(obj && typeof obj === 'object') || obj === null) {
     throw new Error(
       errorPrefixFxn(fnName, argumentNumber, optional) +
@@ -490,13 +523,14 @@ export const validateObject = function(
 export const validateObjectContainsKey = function(
   fnName: string,
   argumentNumber: number,
-  obj: any,
+  obj: unknown,
   key: string,
   optional: boolean,
-  opt_type?: string
+  optType?: string
 ) {
   const objectContainsKey =
-    obj && typeof obj === 'object' && contains(obj, key);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    obj && typeof obj === 'object' && contains(obj as any, key);
 
   if (!objectContainsKey) {
     if (optional) {
@@ -511,14 +545,15 @@ export const validateObjectContainsKey = function(
     }
   }
 
-  if (opt_type) {
-    const val = safeGet(obj, key);
+  if (optType) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const val = safeGet(obj as any, key);
     if (
-      (opt_type === 'number' && !(typeof val === 'number')) ||
-      (opt_type === 'string' && !(typeof val === 'string')) ||
-      (opt_type === 'boolean' && !(typeof val === 'boolean')) ||
-      (opt_type === 'function' && !(typeof val === 'function')) ||
-      (opt_type === 'object' && !(typeof val === 'object') && val)
+      (optType === 'number' && !(typeof val === 'number')) ||
+      (optType === 'string' && !(typeof val === 'string')) ||
+      (optType === 'boolean' && !(typeof val === 'boolean')) ||
+      (optType === 'function' && !(typeof val === 'function')) ||
+      (optType === 'object' && !(typeof val === 'object') && val)
     ) {
       if (optional) {
         throw new Error(
@@ -526,7 +561,7 @@ export const validateObjectContainsKey = function(
             'contains invalid value for key "' +
             key +
             '" (must be of type "' +
-            opt_type +
+            optType +
             '")'
         );
       } else {
@@ -535,7 +570,7 @@ export const validateObjectContainsKey = function(
             'must contain the key "' +
             key +
             '" with type "' +
-            opt_type +
+            optType +
             '"'
         );
       }

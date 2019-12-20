@@ -73,13 +73,13 @@ export class Database implements FirebaseService {
   /**
    * Returns a reference to the root or to the path specified in the provided
    * argument.
-
+   *
    * @param {string|Reference=} path The relative string path or an existing
    * Reference to a database location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.
    * @return {!Reference} Firebase reference.
-   **/
+   */
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
   ref(path?: string | Reference): Reference {
@@ -109,14 +109,14 @@ export class Database implements FirebaseService {
     validateUrl(apiName, 1, parsedURL);
 
     const repoInfo = parsedURL.repoInfo;
-    if (repoInfo.host !== ((this.repo_ as any).repoInfo_ as RepoInfo).host) {
+    if (repoInfo.host !== (this.repo_.repoInfo_ as RepoInfo).host) {
       fatal(
         apiName +
           ': Host name does not match the current database: ' +
           '(found ' +
           repoInfo.host +
           ' but expected ' +
-          ((this.repo_ as any).repoInfo_ as RepoInfo).host +
+          (this.repo_.repoInfo_ as RepoInfo).host +
           ')'
       );
     }
@@ -153,10 +153,13 @@ export class DatabaseInternals {
 
   /** @return {Promise<void>} */
   async delete(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.database as any).checkDeleted_('delete');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     RepoManager.getInstance().deleteRepo((this.database as any).repo_ as Repo);
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.database as any).repo_ = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.database as any).root_ = null;
     this.database.INTERNAL = null;
     this.database = null;

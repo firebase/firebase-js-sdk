@@ -56,6 +56,7 @@ export interface CompleteChildSource {
  * @constructor
  * @implements CompleteChildSource
  */
+// eslint-disable-next-line @typescript-eslint/class-name-casing
 export class NoCompleteChildSource_ implements CompleteChildSource {
   /**
    * @inheritDoc

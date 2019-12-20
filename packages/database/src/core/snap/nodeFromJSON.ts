@@ -18,14 +18,15 @@
 import { ChildrenNode } from './ChildrenNode';
 import { LeafNode } from './LeafNode';
 import { NamedNode, Node } from './Node';
-import { contains } from '@firebase/util';
-import { assert } from '@firebase/util';
+import { contains, assert } from '@firebase/util';
+
 import { buildChildSet } from './childSet';
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
 import { IndexMap } from './IndexMap';
 import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
 import { SortedMap } from '../util/SortedMap';
 import { each } from '../util/util';
+import { Indexable } from '../util/misc';
 
 const USE_HINZE = true;
 
@@ -37,8 +38,8 @@ const USE_HINZE = true;
  * @return {!Node}
  */
 export function nodeFromJSON(
-  json: any | null,
-  priority: string | number | null = null
+  json: unknown | null,
+  priority: unknown = null
 ): Node {
   if (json === null) {
     return ChildrenNode.EMPTY_NODE;
@@ -62,14 +63,14 @@ export function nodeFromJSON(
 
   // Valid leaf nodes include non-objects or server-value wrapper objects
   if (typeof json !== 'object' || '.sv' in json) {
-    const jsonLeaf = json as string | number | boolean | object;
+    const jsonLeaf = json as string | number | boolean | Indexable;
     return new LeafNode(jsonLeaf, nodeFromJSON(priority));
   }
 
   if (!(json instanceof Array) && USE_HINZE) {
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
-    const hinzeJsonObj: { [k: string]: any } = json;
+    const hinzeJsonObj = json;
     each(hinzeJsonObj, (key, child) => {
       if (key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
@@ -82,7 +83,7 @@ export function nodeFromJSON(
       }
     });
 
-    if (children.length == 0) {
+    if (children.length === 0) {
       return ChildrenNode.EMPTY_NODE;
     }
 
@@ -114,13 +115,14 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    each(json, (key: string, childData: any) => {
-      if (contains(json, key)) {
+    each(json, (key: string, childData: unknown) => {
+      if (contains(json as object, key)) {
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
           const childNode = nodeFromJSON(childData);
-          if (childNode.isLeafNode() || !childNode.isEmpty())
+          if (childNode.isLeafNode() || !childNode.isEmpty()) {
             node = node.updateImmediateChild(key, childNode);
+          }
         }
       }
     });

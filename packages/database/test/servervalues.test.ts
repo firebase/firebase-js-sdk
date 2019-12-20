@@ -25,7 +25,7 @@ describe('ServerValue tests', () => {
   it('resolves timestamps locally', async () => {
     const node = getRandomNode() as Reference;
     const start = Date.now();
-    const values: Array<number> = [];
+    const values: number[] = [];
     node.on('value', snap => {
       expect(typeof snap.val()).to.equal('number');
       values.push(snap.val() as number);
@@ -60,8 +60,8 @@ describe('ServerValue tests', () => {
     // This also means we can't await node operations, which would block the test.
     node.database.goOffline();
     try {
-      const values: Array<any> = [];
-      const expected: Array<any> = [];
+      const values: any[] = [];
+      const expected: any[] = [];
       node.on('value', snap => values.push(snap.val()));
 
       // null -> increment(x) = x

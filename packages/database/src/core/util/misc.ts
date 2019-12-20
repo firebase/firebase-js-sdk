@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,6 @@
  * limitations under the License.
  */
 
-import { deepCopy, contains } from '@firebase/util';
-
-/**
- * Tracks a collection of stats.
- *
- * @constructor
- */
-export class StatsCollection {
-  private counters_: { [k: string]: number } = {};
-
-  incrementCounter(name: string, amount: number = 1) {
-    if (!contains(this.counters_, name)) {
-      this.counters_[name] = 0;
-    }
-
-    this.counters_[name] += amount;
-  }
-
-  get() {
-    return deepCopy(this.counters_);
-  }
+export interface Indexable {
+  [key: string]: unknown;
 }

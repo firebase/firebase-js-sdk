@@ -66,7 +66,7 @@ export interface Node {
    * @return {?string} The name of the predecessor child, or null if childNode is the first child.
    */
   getPredecessorChildName(
-    childName: String,
+    childName: string,
     childNode: Node,
     index: Index
   ): string | null;
@@ -113,7 +113,7 @@ export interface Node {
    * each child.  It's passed the child name and the child node.
    * @return {*} The first truthy value return by action, or the last falsey one
    */
-  forEachChild(index: Index, action: (a: string, b: Node) => void): any;
+  forEachChild(index: Index, action: (a: string, b: Node) => void): unknown;
 
   /**
    * @param exportFormat True for export format (also wire protocol format).

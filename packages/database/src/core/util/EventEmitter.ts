@@ -24,15 +24,15 @@ import { assert } from '@firebase/util';
 export abstract class EventEmitter {
   private listeners_: {
     [eventType: string]: Array<{
-      callback(...args: any[]): void;
-      context: any;
+      callback(...args: unknown[]): void;
+      context: unknown;
     }>;
   } = {};
 
   /**
    * @param {!Array.<string>} allowedEvents_
    */
-  constructor(private allowedEvents_: Array<string>) {
+  constructor(private allowedEvents_: string[]) {
     assert(
       Array.isArray(allowedEvents_) && allowedEvents_.length > 0,
       'Requires a non-empty array'
@@ -46,25 +46,25 @@ export abstract class EventEmitter {
    * @param {!string} eventType
    * @return {Array.<*>} Array of parameters to trigger initial event with.
    */
-  abstract getInitialEvent(eventType: string): any[];
+  abstract getInitialEvent(eventType: string): unknown[];
 
   /**
    * To be called by derived classes to trigger events.
    * @param {!string} eventType
-   * @param {...*} var_args
+   * @param {...*} varArgs
    */
-  protected trigger(eventType: string, ...var_args: any[]) {
+  protected trigger(eventType: string, ...varArgs: unknown[]) {
     if (Array.isArray(this.listeners_[eventType])) {
       // Clone the list, since callbacks could add/remove listeners.
       const listeners = [...this.listeners_[eventType]];
 
       for (let i = 0; i < listeners.length; i++) {
-        listeners[i].callback.apply(listeners[i].context, var_args);
+        listeners[i].callback.apply(listeners[i].context, varArgs);
       }
     }
   }
 
-  on(eventType: string, callback: (a: any) => void, context: any) {
+  on(eventType: string, callback: (a: unknown) => void, context: unknown) {
     this.validateEventType_(eventType);
     this.listeners_[eventType] = this.listeners_[eventType] || [];
     this.listeners_[eventType].push({ callback, context });
@@ -75,7 +75,7 @@ export abstract class EventEmitter {
     }
   }
 
-  off(eventType: string, callback: (a: any) => void, context: any) {
+  off(eventType: string, callback: (a: unknown) => void, context: unknown) {
     this.validateEventType_(eventType);
     const listeners = this.listeners_[eventType] || [];
     for (let i = 0; i < listeners.length; i++) {
@@ -91,7 +91,7 @@ export abstract class EventEmitter {
 
   private validateEventType_(eventType: string) {
     assert(
-      this.allowedEvents_.find(function(et) {
+      this.allowedEvents_.find(et => {
         return et === eventType;
       }),
       'Unknown event: ' + eventType
