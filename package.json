@@ -106,7 +106,7 @@
     "prettier": "1.19.1",
     "protractor": "5.4.2",
     "rxjs": "6.5.3",
-    "semver": "6.3.0",
+    "semver": "7.1.1",
     "simple-git": "1.128.0",
     "sinon": "7.5.0",
     "sinon-chai": "3.3.0",
