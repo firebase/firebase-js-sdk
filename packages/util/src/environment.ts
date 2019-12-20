@@ -83,6 +83,22 @@ export function isReactNative(): boolean {
   );
 }
 
+/** Detects Electron apps. */
+export function isElectron(): boolean {
+  return getUA().indexOf('electron/') >= 0;
+}
+
+/** Detects Internet Explorer. */
+export function isIE(): boolean {
+  const ua = getUA();
+  return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
+}
+
+/** Detects Universal Windows Platform apps. */
+export function isUWP(): boolean {
+  return getUA().indexOf('MSAppHost/') >= 0;
+}
+
 /**
  * Detect whether the current SDK build is the Node version.
  *
