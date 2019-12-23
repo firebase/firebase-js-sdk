@@ -17,7 +17,7 @@
 
 import { stub, useFakeTimers, SinonStub } from 'sinon';
 import { use, expect } from 'chai';
-import { Logger, LogLevel } from '@firebase/logger';
+import { Logger, LogLevel, LogHandler } from '@firebase/logger';
 import * as sinonChai from 'sinon-chai';
 
 use(sinonChai);
@@ -25,24 +25,23 @@ use(sinonChai);
 // We have to stub the clock before importing cc_service, otherwise we cannot deterministically
 // trigger fetches.
 // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
-const clock = useFakeTimers(1);
 import { ccHandler } from './cc_service';
-
-describe('Firebase Performance > cc_service', () => {
-  after(() => {
-    clock.restore();
-  });
+  // eslint-disable-next-line
+describe.only('Firebase Performance > cc_service', () => {
 
   describe('ccHandler', () => {
     let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+    let clock: sinon.SinonFakeTimers;
     const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
     const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
-    const testCCHandler = ccHandler((...args) => {
-      return args[0];
-    });
+    let testCCHandler: LogHandler;
 
     beforeEach(() => {
+      clock = useFakeTimers({now: 1});
       fetchStub = stub(window, 'fetch');
+      testCCHandler = ccHandler((...args) => {
+        return args[0];
+      });
     });
 
     afterEach(() => {
@@ -78,9 +77,17 @@ describe('Firebase Performance > cc_service', () => {
         })
       );
 
-      testCCHandler(logger, LogLevel.SILENT, 'someEvent');
-      clock.tick(DEFAULT_SEND_INTERVAL_MS);
+      testCCHandler(logger, LogLevel.DEBUG, 'someEvent');
+      clock.tick(20*DEFAULT_SEND_INTERVAL_MS);
+    
+
       expect(fetchStub).to.have.been.calledOnce;
+      expect(fetchStub).to.have.been.calledWith({
+        body: `{"request_time_ms": ,"client_info":{"client_type":1,\
+  "js_client_info":{}},"log_source":462,"log_event":[{"source_extension_json_proto3":"someEvent",\
+  "event_time_ms":${1}}]}`,
+        method: "POST"
+      });
     });
   });
 });
