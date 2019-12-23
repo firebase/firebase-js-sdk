@@ -214,7 +214,9 @@ export function setUserLogHandler(
   options: LogOptions
 ): void {
   if (logCallback !== null && typeof logCallback !== 'function') {
-    throw new TypeError('First argument to `onLog` must be null or a function.');
+    throw new TypeError(
+      'First argument to `onLog` must be null or a function.'
+    );
   }
   for (const instance of instances) {
     let threshhold = instance.logLevel;
@@ -229,25 +231,26 @@ export function setUserLogHandler(
         level: LogLevel,
         ...args: unknown[]
       ) => {
-        const message = args.map(arg => {
-          if (arg == null) {
-            return null;
-          } else if (typeof arg === 'string') {
-            return arg;
-          } else if (typeof arg === 'number' || typeof arg === 'boolean') {
-            return arg.toString();
-          } else if (arg instanceof Error) {
-            return arg.message;
-          } else {
-            try {
-              return JSON.stringify(arg);
-            } catch(ignored) {
+        const message = args
+          .map(arg => {
+            if (arg == null) {
               return null;
+            } else if (typeof arg === 'string') {
+              return arg;
+            } else if (typeof arg === 'number' || typeof arg === 'boolean') {
+              return arg.toString();
+            } else if (arg instanceof Error) {
+              return arg.message;
+            } else {
+              try {
+                return JSON.stringify(arg);
+              } catch (ignored) {
+                return null;
+              }
             }
-          }
-        })
-        .filter(arg => arg)
-        .join(' ');
+          })
+          .filter(arg => arg)
+          .join(' ');
         if (level >= threshhold) {
           logCallback({
             level: LogLevel[level].toLowerCase() as LogLevelString,
