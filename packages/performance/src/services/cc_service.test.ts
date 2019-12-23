@@ -26,9 +26,8 @@ use(sinonChai);
 // trigger fetches.
 // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
 import { ccHandler } from './cc_service';
-  // eslint-disable-next-line
+// eslint-disable-next-line
 describe.only('Firebase Performance > cc_service', () => {
-
   describe('ccHandler', () => {
     let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
     let clock: sinon.SinonFakeTimers;
@@ -37,7 +36,7 @@ describe.only('Firebase Performance > cc_service', () => {
     let testCCHandler: LogHandler;
 
     beforeEach(() => {
-      clock = useFakeTimers({now: 1});
+      clock = useFakeTimers({ now: 1 });
       fetchStub = stub(window, 'fetch');
       testCCHandler = ccHandler((...args) => {
         return args[0];
@@ -78,15 +77,14 @@ describe.only('Firebase Performance > cc_service', () => {
       );
 
       testCCHandler(logger, LogLevel.DEBUG, 'someEvent');
-      clock.tick(20*DEFAULT_SEND_INTERVAL_MS);
-    
+      clock.tick(20 * DEFAULT_SEND_INTERVAL_MS);
 
       expect(fetchStub).to.have.been.calledOnce;
       expect(fetchStub).to.have.been.calledWith({
         body: `{"request_time_ms": ,"client_info":{"client_type":1,\
   "js_client_info":{}},"log_source":462,"log_event":[{"source_extension_json_proto3":"someEvent",\
   "event_time_ms":${1}}]}`,
-        method: "POST"
+        method: 'POST'
       });
     });
   });

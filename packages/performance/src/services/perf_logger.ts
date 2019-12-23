@@ -226,4 +226,3 @@ function getApplicationInfo(): ApplicationInfo {
     application_process_state: 0
   };
 }
-
