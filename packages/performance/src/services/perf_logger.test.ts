@@ -89,11 +89,14 @@ describe('Performance Monitoring > perf_logger', () => {
 "page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0},"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
-"client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000}}}`;
+"client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
+"counters":{"counter1":3},"custom_attributes":{"attr":"val"}}}`;
       getIidStub.returns(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(TRACE_NAME);
+      trace.putAttribute('attr', 'val');
+      trace.putMetric('counter1', 3);
       trace.record(START_TIME, DURATION);
       clock.tick(1);
 
