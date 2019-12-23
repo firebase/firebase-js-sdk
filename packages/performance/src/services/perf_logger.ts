@@ -30,7 +30,6 @@ import {
   isPerfInitialized,
   getInitializationPromise
 } from './initialization_service';
-import { Logger } from '@firebase/logger';
 import { ccHandler } from './cc_service';
 import { SDK_VERSION } from '../constants';
 
@@ -83,18 +82,22 @@ interface TraceMetric {
   counters?: Array<{ key: string; value: number }>;
   custom_attributes?: Array<{ key: string; value: string }>;
 }
+
 /* eslint-enble camelcase */
 
-let logger: Logger | undefined;
+let logger: (
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+) => void | undefined;
 // This method is not called before initialization.
-function getLogger(): Logger {
-  if (logger) {
-    return logger;
+function sendLog(
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+): void {
+  if (!logger) {
+    logger = ccHandler(serializer);
   }
-  const ccLogger = ccHandler(serializer);
-  logger = new Logger('@firebase/performance/cc');
-  logger.logHandler = ccLogger;
-  return logger;
+  logger(resource, resourceType);
 }
 
 export function logTrace(trace: Trace): void {
@@ -137,7 +140,7 @@ export function logTrace(trace: Trace): void {
 
 function sendTraceLog(trace: Trace): void {
   if (getIid()) {
-    setTimeout(() => getLogger().log(trace, ResourceType.Trace), 0);
+    setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
   }
 }
 
@@ -159,13 +162,13 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
     return;
   }
 
-  setTimeout(
-    () => getLogger().log(networkRequest, ResourceType.NetworkRequest),
-    0
-  );
+  setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
 }
 
-function serializer(resource: {}, resourceType: ResourceType): string {
+function serializer(
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+): string {
   if (resourceType === ResourceType.NetworkRequest) {
     return serializeNetworkRequest(resource as NetworkRequest);
   }
