@@ -15,7 +15,24 @@
  * limitations under the License.
  */
 
-import { LogCallback, LogLevelString, LogOptions } from '@firebase/app-types';
+export type LogLevelString =
+  | 'debug'
+  | 'verbose'
+  | 'info'
+  | 'warn'
+  | 'error'
+  | 'silent';
+
+export interface LogOptions {
+  level: LogLevelString;
+}
+
+export type LogCallback = (callbackParams: {
+  level: LogLevelString;
+  message: string;
+  args: unknown[];
+  type: string;
+}) => void;
 
 /**
  * A container for all of the Logger instances
@@ -196,9 +213,8 @@ export function setUserLogHandler(
   logCallback: LogCallback | null,
   options: LogOptions
 ): void {
-  if (typeof logCallback !== 'function') {
-    console.warn('First argument to `onLog` must be a function.');
-    return;
+  if (logCallback !== null && typeof logCallback !== 'function') {
+    throw new TypeError('First argument to `onLog` must be null or a function.');
   }
   for (const instance of instances) {
     let threshhold = instance.logLevel;
@@ -213,7 +229,25 @@ export function setUserLogHandler(
         level: LogLevel,
         ...args: unknown[]
       ) => {
-        const message = args.map(arg => (arg as object).toString()).join(' ');
+        const message = args.map(arg => {
+          if (arg == null) {
+            return null;
+          } else if (typeof arg === 'string') {
+            return arg;
+          } else if (typeof arg === 'number' || typeof arg === 'boolean') {
+            return arg.toString();
+          } else if (arg instanceof Error) {
+            return arg.message;
+          } else {
+            try {
+              return JSON.stringify(arg);
+            } catch(ignored) {
+              return null;
+            }
+          }
+        })
+        .filter(arg => arg)
+        .join(' ');
         if (level >= threshhold) {
           logCallback({
             level: LogLevel[level].toLowerCase() as LogLevelString,

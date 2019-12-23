@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
 
 export type FirebaseOptions = {
   apiKey?: string;
@@ -30,25 +31,6 @@ export interface FirebaseAppConfig {
   name?: string;
   automaticDataCollectionEnabled?: boolean;
 }
-
-export type LogLevelString =
-  | 'debug'
-  | 'verbose'
-  | 'info'
-  | 'warn'
-  | 'error'
-  | 'silent';
-
-export interface LogOptions {
-  level: LogLevelString;
-}
-
-export type LogCallback = (callbackParams: {
-  level: LogLevelString;
-  message: string;
-  args: unknown[];
-  type: string;
-}) => void;
 
 export class FirebaseApp {
   /**
