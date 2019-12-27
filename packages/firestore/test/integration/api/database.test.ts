@@ -20,10 +20,6 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
-import { SimpleDb } from '../../../src/local/simple_db';
-import { fail } from '../../../src/util/assert';
-import { Code } from '../../../src/util/error';
-import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
@@ -34,16 +30,15 @@ import {
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  DEFAULT_SETTINGS,
-  withMockCredentialProviderTestDb
+  DEFAULT_SETTINGS
 } from '../util/helpers';
-import { User } from '../../../src/auth/user';
 
 // tslint:disable:no-floating-promises
 
 use(chaiAsPromised);
 
 const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database', (persistence: boolean) => {
@@ -134,8 +129,10 @@ apiDescribe('Database', (persistence: boolean) => {
         .get({ source: 'cache' })
         .then(doc => expect(doc.exists).to.be.true);
       await readerRef.get({ source: 'cache' }).then(
-        () => fail('Expected cache miss'),
-        err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
+        () => {
+          expect.fail('Expected cache miss');
+        },
+        err => expect(err.code).to.be.equal('unavailable')
       );
       await writerRef
         .get()
@@ -488,8 +485,6 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can update nested fields', () => {
-    const FieldPath = firebase.firestore!.FieldPath;
-
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
@@ -818,7 +813,8 @@ apiDescribe('Database', (persistence: boolean) => {
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
-    const queryForRejection = query('foo');
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryForRejection : firestore.Query = null as any;
 
     it('will reject listens', () => {
       const deferred = new Deferred();
@@ -856,7 +852,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject gets', () => {
       return queryForRejection.get().then(
         () => {
-          throw new Error('Promise resolved even though error was expected.');
+          expect.fail('Promise resolved even though error was expected.');
         },
         err => {
           expect(err.name).to.exist;
@@ -870,7 +866,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .get()
         .then(
           () => {
-            throw new Error('Promise resolved even though error was expected.');
+            expect.fail('Promise resolved even though error was expected.');
           },
           err => {
             expect(err.name).to.exist;
@@ -880,7 +876,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(() => queryForRejection.get())
         .then(
           () => {
-            throw new Error('Promise resolved even though error was expected.');
+            expect.fail('Promise resolved even though error was expected.');
           },
           err => {
             expect(err.name).to.exist;
@@ -1051,28 +1047,6 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
-  // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
-    'will reject the promise if clear persistence fails',
-    async () => {
-      await withTestDoc(persistence, async docRef => {
-        const oldDelete = SimpleDb.delete;
-        try {
-          SimpleDb.delete = (name: string): Promise<void> => {
-            return Promise.reject('Failed to delete the database.');
-          };
-          const firestore = docRef.firestore;
-          await firestore.app.delete();
-          await expect(
-            firestore.clearPersistence()
-          ).to.eventually.be.rejectedWith('Failed to delete the database.');
-        } finally {
-          SimpleDb.delete = oldDelete;
-        }
-      });
-    }
-  );
-
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
@@ -1197,25 +1171,6 @@ apiDescribe('Database', (persistence: boolean) => {
       await pendingWrites;
       await awaitPendingWrites;
     });
-  });
-
-  it('waiting for pending writes should fail when user changes', async () => {
-    await withMockCredentialProviderTestDb(
-      persistence,
-      async (db, mockCredentialsProvider) => {
-        // Prevent pending writes receiving acknowledgement.
-        await db.disableNetwork();
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        db.doc('abc/123').set({ foo: 'bar' });
-        const awaitPendingWrite = db.waitForPendingWrites();
-
-        mockCredentialsProvider.triggerUserChange(new User('user_1'));
-
-        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
-          "'waitForPendingWrites' promise is rejected due to a user change."
-        );
-      }
-    );
   });
 
   it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {

@@ -57,7 +57,7 @@ function copyTests() {
          * differences, as well as different paths to a valid firebase_export
          */
         /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        'declare var firebase;'
+        "import * as firebase from 'firebase';"
       )
     )
     .pipe(

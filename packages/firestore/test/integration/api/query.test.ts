@@ -18,9 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { querySnapshot } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { keys } from '../../util/helpers';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
@@ -787,18 +785,19 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   it('throws custom error when using docChanges as property', () => {
-    const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
-
-    const expectedError =
-      'QuerySnapshot.docChanges has been changed from a property into a method';
-    // We are testing invalid API usage.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docChange = querySnap.docChanges as any;
-    expect(() => docChange.length).to.throw(expectedError);
-    expect(() => {
-      for (const _ of docChange) {
-      }
-    }).to.throw(expectedError);
+    return withTestCollection(persistence, {}, async coll => {
+      const snapshot = await coll.get();
+      const expectedError =
+        'QuerySnapshot.docChanges has been changed from a property into a method';
+      // We are testing invalid API usage.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const docChange = snapshot.docChanges as any;
+      expect(() => docChange.length).to.throw(expectedError);
+      expect(() => {
+        for (const _ of docChange) {
+        }
+      }).to.throw(expectedError);
+    });
   });
 
   it('can query collection groups', async () => {

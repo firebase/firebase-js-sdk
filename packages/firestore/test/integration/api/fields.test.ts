@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { LogLevel, getLogLevel, setLogLevel } from '../../../src/util/log';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -354,18 +353,12 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
   };
 
   it('are returned as native dates if timestampsInSnapshots set to false', () => {
-    // Avoid the verbose log message triggered by timestampsInSnapshots ==
-    // false.
-    const logLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
-
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
 
     const timestamp = new Timestamp(100, 123456789);
     const testDocs = { a: testDataWithTimestamps(timestamp) };
     return withTestCollectionSettings(persistence, settings, testDocs, coll => {
-      setLogLevel(logLevel);
       return coll
         .doc('a')
         .get()
@@ -420,9 +413,6 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
   });
 
   it('timestampsInSnapshots affects server timestamps', () => {
-    const logLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
-
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
     const testDocs = {
@@ -430,7 +420,6 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
     };
 
     return withTestCollectionSettings(persistence, settings, testDocs, coll => {
-      setLogLevel(logLevel);
       return coll
         .doc('a')
         .get()

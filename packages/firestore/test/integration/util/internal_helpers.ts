@@ -21,13 +21,19 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
 import {
+  CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './helpers';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS,
+  withTestDbsSettings
+} from './helpers';
+import { User } from '../../../src/auth/user';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
@@ -65,4 +71,40 @@ export function withTestDatastore(
 
       return fn(datastore);
     });
+}
+
+export class MockCredentialsProvider extends EmptyCredentialsProvider {
+  private listener: CredentialChangeListener | null = null;
+
+  triggerUserChange(newUser: User): void {
+    this.listener!(newUser);
+  }
+
+  setChangeListener(listener: CredentialChangeListener): void {
+    super.setChangeListener(listener);
+    this.listener = listener;
+  }
+}
+
+export function withMockCredentialProviderTestDb(
+  persistence: boolean,
+  fn: (
+    db: firestore.FirebaseFirestore,
+    mockCredential: MockCredentialsProvider
+  ) => Promise<void>
+): Promise<void> {
+  const mockCredentialsProvider = new MockCredentialsProvider();
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    credentials: { client: mockCredentialsProvider, type: 'provider' }
+  };
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    settings,
+    1,
+    ([db]) => {
+      return fn(db, mockCredentialsProvider);
+    }
+  );
 }
