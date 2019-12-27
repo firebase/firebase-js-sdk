@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build": "gulp compile-tests",
+    "build": "(cd ../../ ; yarn build) ; gulp compile-tests",
     "pretest:manual": "yarn build",
     "pretest:debug": "yarn build",
     "test": "echo 'Automated tests temporarily disabled, run `yarn test:manual` to execute these tests'",
