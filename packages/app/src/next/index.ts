@@ -3,6 +3,7 @@ import { DEFAULT_ENTRY_NAME } from '../constants';
 import { ERROR_FACTORY, AppError } from '../errors';
 import { ComponentContainer, Component } from '@firebase/component';
 import { version } from '../../../firebase/package.json';
+import { FirebaseAppImplNext } from './firebaseApp';
 
 const apps = new Map<string, FirebaseAppNext>();
 
@@ -19,7 +20,8 @@ export function initializeApp(
 ): FirebaseAppNext;
 export function initializeApp(
     options: FirebaseOptionsNext,
-    name?: string): FirebaseAppNext;
+    name?: string
+): FirebaseAppNext;
 export function initializeApp(
     options: FirebaseOptionsNext,
     rawConfig = {}
@@ -29,13 +31,13 @@ export function initializeApp(
         rawConfig = { name };
     }
 
-    const config = rawConfig as FirebaseAppConfigNext;
+    const config: Required<FirebaseAppConfigNext> = {
+        name: DEFAULT_ENTRY_NAME,
+        automaticDataCollectionEnabled: false,
+        ...rawConfig
+    };
 
-    if (config.name === undefined) {
-        config.name = DEFAULT_ENTRY_NAME;
-    }
-
-    const { name, automaticDataCollectionEnabled } = config;
+    const name = config.name;
 
     if (typeof name !== 'string' || !name) {
         throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
@@ -51,13 +53,8 @@ export function initializeApp(
     for (const component of components.values()) {
         container.addComponent(component);
     }
-    
-    const newApp: FirebaseAppInternalNext = {
-        name,
-        options,
-        automaticDataCollectionEnabled: automaticDataCollectionEnabled ?? false,
-        container
-    };
+
+    const newApp = new FirebaseAppImplNext(options, config, container);
 
     apps.set(name, newApp);
 
@@ -78,7 +75,13 @@ export function getApps(): FirebaseAppNext[] {
     return Array.from(apps.values());
 }
 
-// What does it mean for other SDKs?
-export function deleteApp(): Promise<void> {
-    throw Error('Not implemented');
+export function deleteApp(app: FirebaseAppNext): Promise<void> {
+
+    if (apps.has(app.name)) {
+        (app as FirebaseAppInternalNext).isDeleted = true;
+        apps.delete(app.name);
+        // TODO: what to do with other SDKs?
+    }
+
+    return Promise.resolve();
 }

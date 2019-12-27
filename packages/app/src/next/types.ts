@@ -5,21 +5,23 @@ export interface FirebaseAppNext {
      * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
      * App.
      */
-    name: string;
+    readonly name: string;
 
     /**
      * The (read-only) configuration options from the app initialization.
      */
-    options: FirebaseOptionsNext;
+    readonly options: FirebaseOptionsNext;
 
     /**
      * The settable config flag for GDPR opt-in/opt-out
      */
     automaticDataCollectionEnabled: boolean;
+
 }
 
 export interface FirebaseAppInternalNext extends FirebaseAppNext{
-    container: ComponentContainer
+    container: ComponentContainer;
+    isDeleted: boolean;
 }
 
 export interface FirebaseOptionsNext {
