@@ -18,30 +18,34 @@
 import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
-import { AppConfig } from '../interfaces/app-config';
+import { GenerateAuthTokenResponse } from '../interfaces/api-response';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import {
+  CompletedAuthToken,
   RegisteredInstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
 import { compareHeaders } from '../testing/compare-headers';
-import { getFakeAppConfig } from '../testing/get-fake-app';
+import { getFakeDependencies } from '../testing/fake-generators';
 import '../testing/setup';
 import {
   INSTALLATIONS_API_URL,
-  INTERNAL_AUTH_VERSION
+  INTERNAL_AUTH_VERSION,
+  PACKAGE_VERSION
 } from '../util/constants';
 import { ErrorResponse } from './common';
-import { deleteInstallation } from './delete-installation';
+import { generateAuthTokenRequest } from './generate-auth-token-request';
 
-const FID = 'foreclosure-of-a-dream';
+const FID = 'evil-has-no-boundaries';
 
-describe('deleteInstallation', () => {
-  let appConfig: AppConfig;
+describe('generateAuthTokenRequest', () => {
+  let dependencies: FirebaseDependencies;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
+  let response: GenerateAuthTokenResponse;
 
   beforeEach(() => {
-    appConfig = getFakeAppConfig();
+    dependencies = getFakeDependencies();
 
     registeredInstallationEntry = {
       fid: FID,
@@ -52,28 +56,51 @@ describe('deleteInstallation', () => {
       }
     };
 
+    response = {
+      token:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      expiresIn: '604800s'
+    };
+
     fetchSpy = stub(self, 'fetch');
   });
 
   describe('successful request', () => {
     beforeEach(() => {
-      fetchSpy.resolves(new Response());
+      fetchSpy.resolves(new Response(JSON.stringify(response)));
     });
 
-    it('calls the deleteInstallation server API with correct parameters', async () => {
+    it('fetches a new Authentication Token', async () => {
+      const completedAuthToken: CompletedAuthToken = await generateAuthTokenRequest(
+        dependencies,
+        registeredInstallationEntry
+      );
+      expect(completedAuthToken.requestStatus).to.equal(
+        RequestStatus.COMPLETED
+      );
+    });
+
+    it('calls the generateAuthToken server API with correct parameters', async () => {
       const expectedHeaders = new Headers({
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-        'x-goog-api-key': 'apiKey'
+        'x-goog-api-key': 'apiKey',
+        'x-firebase-client': 'a/1.2.3 b/2.3.4'
       });
-      const expectedRequest: RequestInit = {
-        method: 'DELETE',
-        headers: expectedHeaders
+      const expectedBody = {
+        installation: {
+          sdkVersion: PACKAGE_VERSION
+        }
       };
-      const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}`;
+      const expectedRequest: RequestInit = {
+        method: 'POST',
+        headers: expectedHeaders,
+        body: JSON.stringify(expectedBody)
+      };
+      const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}/authTokens:generate`;
 
-      await deleteInstallation(appConfig, registeredInstallationEntry);
+      await generateAuthTokenRequest(dependencies, registeredInstallationEntry);
 
       expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
       const actualHeaders = fetchSpy.lastCall.lastArg.headers;
@@ -96,7 +123,7 @@ describe('deleteInstallation', () => {
       );
 
       await expect(
-        deleteInstallation(appConfig, registeredInstallationEntry)
+        generateAuthTokenRequest(dependencies, registeredInstallationEntry)
       ).to.be.rejectedWith(FirebaseError);
     });
 
@@ -112,10 +139,11 @@ describe('deleteInstallation', () => {
       fetchSpy
         .onCall(0)
         .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
-      fetchSpy.onCall(1).resolves(new Response());
+      fetchSpy.onCall(1).resolves(new Response(JSON.stringify(response)));
 
-      await expect(deleteInstallation(appConfig, registeredInstallationEntry))
-        .to.be.fulfilled;
+      await expect(
+        generateAuthTokenRequest(dependencies, registeredInstallationEntry)
+      ).to.be.fulfilled;
       expect(fetchSpy).to.be.calledTwice;
     });
   });

@@ -48,7 +48,7 @@ export class AuthTokenProvider {
       return Promise.resolve(null);
     }
 
-    return this.auth_.getToken(forceRefresh).catch(function(error) {
+    return this.auth_.getToken(forceRefresh).catch(error => {
       // TODO: Need to figure out all the cases this is raised and whether
       // this makes sense.
       if (error && error.code === 'auth/token-not-initialized') {

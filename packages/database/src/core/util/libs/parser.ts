@@ -43,7 +43,7 @@ function decodePath(pathString: string): string {
  * @return {!{[key:string]:string}} key value hash
  */
 function decodeQuery(queryString: string): { [key: string]: string } {
-  let results = {};
+  const results = {};
   if (queryString.charAt(0) === '?') {
     queryString = queryString.substring(1);
   }
@@ -82,7 +82,7 @@ export const parseRepoInfo = function(
 
   // Catch common error of uninitialized namespace value.
   if (
-    (!namespace || namespace == 'undefined') &&
+    (!namespace || namespace === 'undefined') &&
     parsedUrl.domain !== 'localhost'
   ) {
     fatal(
@@ -103,7 +103,7 @@ export const parseRepoInfo = function(
       namespace,
       webSocketOnly,
       /*persistenceKey=*/ '',
-      /*includeNamespaceInQueryParams=*/ namespace != parsedUrl.subdomain
+      /*includeNamespaceInQueryParams=*/ namespace !== parsedUrl.subdomain
     ),
     path: new Path(parsedUrl.pathString)
   };
@@ -161,7 +161,7 @@ export const parseDatabaseURL = function(
       // For pathString, questionMarkInd will always come after slashInd
       pathString = decodePath(dataURL.substring(slashInd, questionMarkInd));
     }
-    let queryParams = decodeQuery(
+    const queryParams = decodeQuery(
       dataURL.substring(Math.min(dataURL.length, questionMarkInd))
     );
 

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
@@ -29,7 +30,8 @@ const deps = Object.keys(
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
-  })
+  }),
+  json()
 ];
 
 const es5Builds = [
@@ -55,7 +57,8 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     }
-  })
+  }),
+  json({ preferConst: true })
 ];
 
 const es2017Builds = [

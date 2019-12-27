@@ -27,7 +27,7 @@ import { StorageCache } from './src/storage/storage_cache';
 import { ERROR_FACTORY, ErrorCode } from './src/errors';
 import { RetryingClient } from './src/client/retrying_client';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
-import { name as packageName } from './package.json';
+import { name as packageName, version } from './package.json';
 import {
   Component,
   ComponentType,
@@ -54,6 +54,8 @@ export function registerRemoteConfig(
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
   );
+
+  firebaseInstance.registerVersion(packageName, version);
 
   function remoteConfigFactory(
     container: ComponentContainer,

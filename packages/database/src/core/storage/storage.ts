@@ -18,7 +18,7 @@
 import { DOMStorageWrapper } from './DOMStorageWrapper';
 import { MemoryStorage } from './MemoryStorage';
 
-declare const window: any;
+declare const window: Window;
 
 /**
  * Helper to create a DOMStorageWrapper or else fall back to MemoryStorage.

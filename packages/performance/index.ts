@@ -27,6 +27,8 @@ import { FirebasePerformance } from '@firebase/performance-types';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
+import { name, version } from './package.json';
+
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 export function registerPerformance(instance: FirebaseNamespace): void {
@@ -64,6 +66,8 @@ export function registerPerformance(instance: FirebaseNamespace): void {
       ComponentType.PUBLIC
     )
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerPerformance(firebase);

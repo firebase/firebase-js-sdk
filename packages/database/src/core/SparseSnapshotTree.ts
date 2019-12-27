@@ -96,7 +96,7 @@ export class SparseSnapshotTree {
           this.value = null;
 
           const self = this;
-          value.forEachChild(PRIORITY_INDEX, function(key, tree) {
+          value.forEachChild(PRIORITY_INDEX, (key, tree) => {
             self.remember(new Path(key), tree);
           });
 
@@ -126,7 +126,7 @@ export class SparseSnapshotTree {
    * @param prefixPath Path to look up node for.
    * @param func The function to invoke for each tree.
    */
-  forEachTree(prefixPath: Path, func: (a: Path, b: Node) => any) {
+  forEachTree(prefixPath: Path, func: (a: Path, b: Node) => unknown) {
     if (this.value !== null) {
       func(prefixPath, this.value);
     } else {

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { LogHandler, Logger, LogLevel } from '@firebase/logger';
 import { SettingsService } from './settings_service';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { consoleLogger } from '../utils/console_logger';
@@ -135,10 +134,8 @@ function addToQueue(evt: BatchEvent): void {
 export function ccHandler(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serializer: (...args: any[]) => string
-): LogHandler {
-  // The underscores for loggerInstance and level parameters are added to avoid the
-  // noUnusedParameters related error.
-  return (_loggerInstance: Logger, _level: LogLevel, ...args) => {
+): (...args: unknown[]) => void {
+  return (...args) => {
     const message = serializer(...args);
     addToQueue({
       message,

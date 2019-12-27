@@ -19,7 +19,10 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import * as types from '@firebase/functions-types';
 import { registerFunctions } from './src/config';
 
+import { name, version } from './package.json';
+
 registerFunctions(firebase as _FirebaseNamespace);
+firebase.registerVersion(name, version);
 
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {

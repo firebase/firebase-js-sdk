@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import '@firebase/performance';
-import { name, version } from '../package.json';
+import { Provider } from '@firebase/component';
+import { AppConfig } from './app-config';
 
-firebase.registerVersion(name, version, 'lite');
-
-export default firebase;
+export interface FirebaseDependencies {
+  readonly appConfig: AppConfig;
+  readonly platformLoggerProvider: Provider<'platform-logger'>;
+}

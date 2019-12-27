@@ -216,11 +216,11 @@ describe('Firebase Messaging > *BaseController', () => {
     });
   });
 
-  describe('getNotificationPermission_', () => {
+  describe('getNotificationPermission', () => {
     it('should return current permission', () => {
-      stub(Notification as any, 'permission').value('test');
+      stub(Notification, 'permission').value('test');
       const controller = new MockBaseController(firebaseInternalServices);
-      const result = controller.getNotificationPermission_();
+      const result = (controller as any).getNotificationPermission();
       expect(result).to.equal('test');
     });
   });

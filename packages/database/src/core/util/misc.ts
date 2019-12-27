@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import '@firebase/performance';
-import { name, version } from '../package.json';
-
-firebase.registerVersion(name, version, 'lite');
-
-export default firebase;
+export interface Indexable {
+  [key: string]: unknown;
+}

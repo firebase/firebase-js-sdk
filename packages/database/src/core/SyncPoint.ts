@@ -219,7 +219,7 @@ export class SyncPoint {
       );
     }
 
-    return { removed: removed, events: cancelEvents };
+    return { removed, events: cancelEvents };
   }
 
   getQueryViews(): View[] {

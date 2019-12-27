@@ -129,7 +129,9 @@ export class ChildrenNode implements Node {
   /** @inheritDoc */
   getChild(path: Path): Node {
     const front = path.getFront();
-    if (front === null) return this;
+    if (front === null) {
+      return this;
+    }
 
     return this.getImmediateChild(front).getChild(path.popFront());
   }
@@ -146,7 +148,7 @@ export class ChildrenNode implements Node {
       return this.updatePriority(newChildNode);
     } else {
       const namedNode = new NamedNode(childName, newChildNode);
-      let newChildren, newIndexMap, newPriority;
+      let newChildren, newIndexMap;
       if (newChildNode.isEmpty()) {
         newChildren = this.children_.remove(childName);
         newIndexMap = this.indexMap_.removeFromIndexes(
@@ -158,7 +160,9 @@ export class ChildrenNode implements Node {
         newIndexMap = this.indexMap_.addToIndexes(namedNode, this.children_);
       }
 
-      newPriority = newChildren.isEmpty() ? EMPTY_NODE : this.priorityNode_;
+      const newPriority = newChildren.isEmpty()
+        ? EMPTY_NODE
+        : this.priorityNode_;
       return new ChildrenNode(newChildren, newPriority, newIndexMap);
     }
   }
@@ -199,13 +203,15 @@ export class ChildrenNode implements Node {
 
   /** @inheritDoc */
   val(exportFormat?: boolean): object {
-    if (this.isEmpty()) return null;
+    if (this.isEmpty()) {
+      return null;
+    }
 
     const obj: { [k: string]: unknown } = {};
     let numKeys = 0,
       maxKey = 0,
       allIntegerKeys = true;
-    this.forEachChild(PRIORITY_INDEX, function(key: string, childNode: Node) {
+    this.forEachChild(PRIORITY_INDEX, (key: string, childNode: Node) => {
       obj[key] = childNode.val(exportFormat);
 
       numKeys++;
@@ -219,7 +225,10 @@ export class ChildrenNode implements Node {
     if (!exportFormat && allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.
       const array: unknown[] = [];
-      for (let key in obj) array[(key as any) as number] = obj[key];
+      // eslint-disable-next-line guard-for-in
+      for (const key in obj) {
+        array[(key as unknown) as number] = obj[key];
+      }
 
       return array;
     } else {
@@ -234,15 +243,18 @@ export class ChildrenNode implements Node {
   hash(): string {
     if (this.lazyHash_ === null) {
       let toHash = '';
-      if (!this.getPriority().isEmpty())
+      if (!this.getPriority().isEmpty()) {
         toHash +=
           'priority:' +
           priorityHashText(this.getPriority().val() as string | number) +
           ':';
+      }
 
-      this.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+      this.forEachChild(PRIORITY_INDEX, (key, childNode) => {
         const childHash = childNode.hash();
-        if (childHash !== '') toHash += ':' + key + ':' + childHash;
+        if (childHash !== '') {
+          toHash += ':' + key + ':' + childHash;
+        }
       });
 
       this.lazyHash_ = toHash === '' ? '' : sha1(toHash);
@@ -331,7 +343,7 @@ export class ChildrenNode implements Node {
   ): boolean {
     const idx = this.resolveIndex_(index);
     if (idx) {
-      return idx.inorderTraversal(function(wrappedNode) {
+      return idx.inorderTraversal(wrappedNode => {
         return action(wrappedNode.name, wrappedNode.node);
       });
     } else {
@@ -400,7 +412,7 @@ export class ChildrenNode implements Node {
   ): SortedMapIterator<string | NamedNode, Node, NamedNode> {
     const idx = this.resolveIndex_(indexDefinition);
     if (idx) {
-      return idx.getReverseIteratorFrom(endPost, function(key) {
+      return idx.getReverseIteratorFrom(endPost, key => {
         return key;
       });
     } else {

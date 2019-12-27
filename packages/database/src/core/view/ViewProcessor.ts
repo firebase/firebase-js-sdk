@@ -278,9 +278,9 @@ export class ViewProcessor {
         }
       } else {
         const childKey = changePath.getFront();
-        if (childKey == '.priority') {
+        if (childKey === '.priority') {
           assert(
-            changePath.getLength() == 1,
+            changePath.getLength() === 1,
             "Can't have a priority with additional path components"
           );
           const oldEventNode = oldEventSnap.getNode();
@@ -404,7 +404,7 @@ export class ViewProcessor {
       const childChangePath = changePath.popFront();
       const childNode = oldServerSnap.getNode().getImmediateChild(childKey);
       const newChildNode = childNode.updateChild(childChangePath, changedSnap);
-      if (childKey == '.priority') {
+      if (childKey === '.priority') {
         newServerCache = serverFilter.updatePriority(
           oldServerSnap.getNode(),
           newChildNode
@@ -610,7 +610,7 @@ export class ViewProcessor {
    * @private
    */
   private applyMerge_(node: Node, merge: ImmutableTree<Node>): Node {
-    merge.foreach(function(relativePath, childNode) {
+    merge.foreach((relativePath, childNode) => {
       node = node.updateChild(relativePath, childNode);
     });
     return node;
@@ -752,7 +752,7 @@ export class ViewProcessor {
         // This is a goofy edge case where we are acking data at this location but don't have full data.  We
         // should just re-apply whatever we have in our cache as a merge.
         let changedChildren = ImmutableTree.Empty;
-        serverCache.getNode().forEachChild(KEY_INDEX, function(name, node) {
+        serverCache.getNode().forEachChild(KEY_INDEX, (name, node) => {
           changedChildren = changedChildren.set(new Path(name), node);
         });
         return this.applyServerMerge_(
@@ -770,7 +770,7 @@ export class ViewProcessor {
     } else {
       // This is a merge.
       let changedChildren = ImmutableTree.Empty;
-      affectedTree.foreach(function(mergePath, value) {
+      affectedTree.foreach((mergePath, value) => {
         const serverCachePath = ackPath.child(mergePath);
         if (serverCache.isCompleteForPath(serverCachePath)) {
           changedChildren = changedChildren.set(

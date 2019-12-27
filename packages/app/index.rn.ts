@@ -38,7 +38,7 @@ const { AsyncStorage } = require('react-native');
 
 export const firebase = _firebase as FirebaseNamespace;
 
-registerCoreComponents(firebase);
+registerCoreComponents(firebase, 'rn');
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

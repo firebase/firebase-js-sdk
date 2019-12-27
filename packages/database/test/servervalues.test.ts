@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode } from './helpers/util';
+import { getFreshRepoFromReference, getRandomNode } from './helpers/util';
 import { Database } from '../src/api/Database';
 import { Reference } from '../src/api/Reference';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
@@ -25,7 +25,7 @@ describe('ServerValue tests', () => {
   it('resolves timestamps locally', async () => {
     const node = getRandomNode() as Reference;
     const start = Date.now();
-    const values: Array<number> = [];
+    const values: number[] = [];
     node.on('value', snap => {
       expect(typeof snap.val()).to.equal('number');
       values.push(snap.val() as number);
@@ -46,50 +46,51 @@ describe('ServerValue tests', () => {
     // Ensure that increments don't explode when the SyncTree must return a null
     // node (i.e. ChildrenNode.EMPTY_NODE) because there is not yet any synced
     // data.
-    const node = getRandomNode() as Reference;
+    // TODO(b/146657568): Remove getFreshRepoFromReference() call and goOffline()
+    // once we have emulator support. We can also await the set() call.
+    const node = getFreshRepoFromReference(getRandomNode()) as Reference;
+    node.database.goOffline();
+
     const addOne = Database.ServerValue._increment(1);
 
     node.set(addOne);
   });
 
   it('handles increments locally', async () => {
-    const node = getRandomNode() as Reference;
+    // TODO(b/146657568): Remove getFreshRepoFromReference() call and goOffline()
+    // once we have emulator support. We can also await the set() calls.
+    const node = getFreshRepoFromReference(getRandomNode()) as Reference;
+    node.database.goOffline();
+
     const addOne = Database.ServerValue._increment(1);
 
-    // Must go offline because the latest emulator may not support this server op
-    // This also means we can't await node operations, which would block the test.
-    node.database.goOffline();
-    try {
-      const values: Array<any> = [];
-      const expected: Array<any> = [];
-      node.on('value', snap => values.push(snap.val()));
+    const values: any = [];
+    const expected: any = [];
+    node.on('value', snap => values.push(snap.val()));
 
-      // null -> increment(x) = x
-      node.set(addOne);
-      expected.push(1);
+    // null -> increment(x) = x
+    node.set(addOne);
+    expected.push(1);
 
-      // x -> increment(y) = x + y
-      node.set(5);
-      node.set(addOne);
-      expected.push(5);
-      expected.push(6);
+    // x -> increment(y) = x + y
+    node.set(5);
+    node.set(addOne);
+    expected.push(5);
+    expected.push(6);
 
-      // str -> increment(x) = x
-      node.set('hello');
-      node.set(addOne);
-      expected.push('hello');
-      expected.push(1);
+    // str -> increment(x) = x
+    node.set('hello');
+    node.set(addOne);
+    expected.push('hello');
+    expected.push(1);
 
-      // obj -> increment(x) = x
-      node.set({ 'hello': 'world' });
-      node.set(addOne);
-      expected.push({ 'hello': 'world' });
-      expected.push(1);
+    // obj -> increment(x) = x
+    node.set({ 'hello': 'world' });
+    node.set(addOne);
+    expected.push({ 'hello': 'world' });
+    expected.push(1);
 
-      node.off('value');
-      expect(values).to.deep.equal(expected);
-    } finally {
-      node.database.goOnline();
-    }
+    node.off('value');
+    expect(values).to.deep.equal(expected);
   });
 });

@@ -16,9 +16,9 @@
  */
 
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { FirebaseError } from '@firebase/util';
 import { AppConfig } from '../interfaces/app-config';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { FirebaseError } from '@firebase/util';
 
 export function extractAppConfig(app: FirebaseApp): AppConfig {
   if (!app || !app.options) {

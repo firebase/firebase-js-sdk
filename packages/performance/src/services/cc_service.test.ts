@@ -17,7 +17,6 @@
 
 import { stub, useFakeTimers, SinonStub } from 'sinon';
 import { use, expect } from 'chai';
-import { Logger, LogLevel } from '@firebase/logger';
 import * as sinonChai from 'sinon-chai';
 
 use(sinonChai);
@@ -50,9 +49,8 @@ describe('Firebase Performance > cc_service', () => {
     });
 
     it('throws an error when logging an empty message', () => {
-      const logger = new Logger('@firebase/performance/cc');
       expect(() => {
-        testCCHandler(logger, LogLevel.SILENT, '');
+        testCCHandler('');
       }).to.throw;
     });
 
@@ -69,8 +67,6 @@ describe('Firebase Performance > cc_service', () => {
     });
 
     it('attempts to log an event to clearcut after DEFAULT_SEND_INTERVAL_MS if queue not empty', () => {
-      const logger = new Logger('@firebase/performance/cc');
-
       fetchStub.resolves(
         new Response('', {
           status: 200,
@@ -78,7 +74,7 @@ describe('Firebase Performance > cc_service', () => {
         })
       );
 
-      testCCHandler(logger, LogLevel.SILENT, 'someEvent');
+      testCCHandler('someEvent');
       clock.tick(DEFAULT_SEND_INTERVAL_MS);
       expect(fetchStub).to.have.been.calledOnce;
     });

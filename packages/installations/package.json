@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.3.6",
+  "version": "0.3.8",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:karma": "karma start --single-run",
@@ -21,22 +21,22 @@
     "prepare": "yarn build"
   },
   "devDependencies": {
-    "rollup": "1.27.2",
+    "rollup": "1.27.9",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.25.2",
+    "rollup-plugin-typescript2": "0.25.3",
     "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.7.2"
+    "typescript": "3.7.3"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.2.2",
-    "@firebase/util": "0.2.34",
-    "@firebase/component": "0.1.0",
+    "@firebase/installations-types": "0.2.4",
+    "@firebase/util": "0.2.36",
+    "@firebase/component": "0.1.1",
     "idb": "3.0.2",
     "tslib": "1.10.0"
   }

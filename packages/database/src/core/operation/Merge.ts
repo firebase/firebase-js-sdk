@@ -34,9 +34,9 @@ export class Merge implements Operation {
   type = OperationType.MERGE;
 
   constructor(
-    /**@inheritDoc */ public source: OperationSource,
-    /**@inheritDoc */ public path: Path,
-    /**@inheritDoc */ public children: ImmutableTree<Node>
+    /** @inheritDoc */ public source: OperationSource,
+    /** @inheritDoc */ public path: Path,
+    /** @inheritDoc */ public children: ImmutableTree<Node>
   ) {}
 
   /**

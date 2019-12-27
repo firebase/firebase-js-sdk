@@ -24,9 +24,9 @@ import { contains } from '@firebase/util';
  * @constructor
  */
 export class MemoryStorage {
-  private cache_: { [k: string]: any } = {};
+  private cache_: { [k: string]: unknown } = {};
 
-  set(key: string, value: any | null) {
+  set(key: string, value: unknown | null) {
     if (value == null) {
       delete this.cache_[key];
     } else {
@@ -34,7 +34,7 @@ export class MemoryStorage {
     }
   }
 
-  get(key: string): any {
+  get(key: string): unknown {
     if (contains(this.cache_, key)) {
       return this.cache_[key];
     }

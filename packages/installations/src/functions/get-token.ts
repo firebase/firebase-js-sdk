@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { extractAppConfig } from '../helpers/extract-app-config';
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { AppConfig } from '../interfaces/app-config';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 
 export async function getToken(
-  app: FirebaseApp,
+  dependencies: FirebaseDependencies,
   forceRefresh = false
 ): Promise<string> {
-  const appConfig = extractAppConfig(app);
-
-  await completeInstallationRegistration(appConfig);
+  await completeInstallationRegistration(dependencies.appConfig);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
-  const authToken = await refreshAuthToken(appConfig, forceRefresh);
+  const authToken = await refreshAuthToken(dependencies, forceRefresh);
   return authToken.token;
 }
 

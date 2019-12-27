@@ -48,6 +48,8 @@ goog.require('fireauth.grecaptcha');
 goog.require('fireauth.idp.ProviderId');
 goog.require('goog.Promise');
 
+/** @define {string} */
+const AUTH_NPM_PACKAGE_VERSION = '';
 
 fireauth.exportlib.exportPrototypeMethods(
     fireauth.Auth.prototype, {
@@ -705,6 +707,7 @@ fireauth.exportlib.exportFunction(
   
     firebase.INTERNAL.registerComponent(authComponent);
     firebase.INTERNAL.registerComponent(authInteropComponent);
+    firebase.registerVersion('@firebase/auth', AUTH_NPM_PACKAGE_VERSION);
 
     // Expose User as firebase.User.
     firebase.INTERNAL.extendNamespace({

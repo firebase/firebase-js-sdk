@@ -50,7 +50,7 @@ export interface ListenProvider {
     query: Query,
     tag: number | null,
     hashFn: () => string,
-    onComplete: (a: string, b?: any) => Event[]
+    onComplete: (a: string, b?: unknown) => Event[]
   ): Event[];
 
   stopListening(a: Query, b: number | null): void;
@@ -158,7 +158,7 @@ export class SyncTree {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
-        each(write.children, function(pathString: string, node: Node) {
+        each(write.children, (pathString: string, node: Node) => {
           affectedTree = affectedTree.set(new Path(pathString), node);
         });
       }
@@ -297,7 +297,7 @@ export class SyncTree {
     let foundAncestorDefaultView = false;
     // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
-    this.syncPointTree_.foreachOnPath(path, function(pathToSyncPoint, sp) {
+    this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
       const relativePath = Path.relativePath(pathToSyncPoint, path);
       serverCache = serverCache || sp.getCompleteServerCache(relativePath);
       foundAncestorDefaultView =
@@ -320,7 +320,7 @@ export class SyncTree {
       serverCacheComplete = false;
       serverCache = ChildrenNode.EMPTY_NODE;
       const subtree = this.syncPointTree_.subtree(path);
-      subtree.foreachChild(function(childName, childSyncPoint) {
+      subtree.foreachChild((childName, childSyncPoint) => {
         const completeCache = childSyncPoint.getCompleteServerCache(Path.Empty);
         if (completeCache) {
           serverCache = serverCache.updateImmediateChild(
@@ -406,15 +406,15 @@ export class SyncTree {
       // queryId === 'default'
       const removingDefault =
         -1 !==
-        removed.findIndex(function(query) {
+        removed.findIndex(query => {
           return query.getQueryParams().loadsAllData();
         });
-      const covered = this.syncPointTree_.findOnPath(path, function(
-        relativePath,
-        parentSyncPoint
-      ) {
-        return parentSyncPoint.hasCompleteView();
-      });
+      const covered = this.syncPointTree_.findOnPath(
+        path,
+        (relativePath, parentSyncPoint) => {
+          return parentSyncPoint.hasCompleteView();
+        }
+      );
 
       if (removingDefault && !covered) {
         const subtree = this.syncPointTree_.subtree(path);
@@ -487,16 +487,16 @@ export class SyncTree {
   calcCompleteEventCache(path: Path, writeIdsToExclude?: number[]): Node {
     const includeHiddenSets = true;
     const writeTree = this.pendingWriteTree_;
-    const serverCache = this.syncPointTree_.findOnPath(path, function(
-      pathSoFar,
-      syncPoint
-    ) {
-      const relativePath = Path.relativePath(pathSoFar, path);
-      const serverCache = syncPoint.getCompleteServerCache(relativePath);
-      if (serverCache) {
-        return serverCache;
+    const serverCache = this.syncPointTree_.findOnPath(
+      path,
+      (pathSoFar, syncPoint) => {
+        const relativePath = Path.relativePath(pathSoFar, path);
+        const serverCache = syncPoint.getCompleteServerCache(relativePath);
+        if (serverCache) {
+          return serverCache;
+        }
       }
-    });
+    );
     return writeTree.calcCompleteEventCache(
       path,
       serverCache,
@@ -523,7 +523,7 @@ export class SyncTree {
           if (maybeChildSyncPoint) {
             views = maybeChildSyncPoint.getQueryViews();
           }
-          each(childMap, function(_key: string, childViews: View[]) {
+          each(childMap, (_key: string, childViews: View[]) => {
             views = views.concat(childViews);
           });
           return views;
@@ -591,31 +591,29 @@ export class SyncTree {
       );
     } else {
       // Shadow everything at or below this location, this is a default listener.
-      const queriesToStop = subtree.fold<Query[]>(function(
-        relativePath,
-        maybeChildSyncPoint,
-        childMap
-      ) {
-        if (
-          !relativePath.isEmpty() &&
-          maybeChildSyncPoint &&
-          maybeChildSyncPoint.hasCompleteView()
-        ) {
-          return [maybeChildSyncPoint.getCompleteView().getQuery()];
-        } else {
-          // No default listener here, flatten any deeper queries into an array
-          let queries: Query[] = [];
-          if (maybeChildSyncPoint) {
-            queries = queries.concat(
-              maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
-            );
+      const queriesToStop = subtree.fold<Query[]>(
+        (relativePath, maybeChildSyncPoint, childMap) => {
+          if (
+            !relativePath.isEmpty() &&
+            maybeChildSyncPoint &&
+            maybeChildSyncPoint.hasCompleteView()
+          ) {
+            return [maybeChildSyncPoint.getCompleteView().getQuery()];
+          } else {
+            // No default listener here, flatten any deeper queries into an array
+            let queries: Query[] = [];
+            if (maybeChildSyncPoint) {
+              queries = queries.concat(
+                maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
+              );
+            }
+            each(childMap, (_key: string, childQueries: Query[]) => {
+              queries = queries.concat(childQueries);
+            });
+            return queries;
           }
-          each(childMap, function(_key: string, childQueries: Query[]) {
-            queries = queries.concat(childQueries);
-          });
-          return queries;
         }
-      });
+      );
       for (let i = 0; i < queriesToStop.length; ++i) {
         const queryToStop = queriesToStop[i];
         this.listenProvider_.stopListening(
@@ -629,7 +627,7 @@ export class SyncTree {
 
   private createListenerForView_(
     view: View
-  ): { hashFn(): string; onComplete(a: string, b?: any): Event[] } {
+  ): { hashFn(): string; onComplete(a: string, b?: unknown): Event[] } {
     const query = view.getQuery();
     const tag = this.tagForQuery_(query);
 
@@ -732,12 +730,12 @@ export class SyncTree {
    *
    * NOTES:
    * - Descendant SyncPoints will be visited first (since we raise events depth-first).
-
+   *
    * - We call applyOperation() on each SyncPoint passing three things:
    *   1. A version of the Operation that has been made relative to the SyncPoint location.
    *   2. A WriteTreeRef of any writes we have cached at the SyncPoint location.
    *   3. A snapshot Node with cached server data, if we have it.
-
+   *
    * - We concatenate all of the events returned by each SyncPoint and return the result.
    */
   private applyOperationToSyncPoints_(operation: Operation): Event[] {

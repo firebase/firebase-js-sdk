@@ -20,8 +20,11 @@ import { configureForFirebase } from './src/platform/config';
 import './src/platform_node/node_init';
 import { FirebaseNamespace } from '@firebase/app-types';
 
+import { name, version } from './package.json';
+
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
+  instance.registerVersion(name, version, 'node');
 }
 
 registerFirestore(firebase);
