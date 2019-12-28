@@ -222,7 +222,7 @@ function firebaseAppTests(
   firebaseNamespaceFactory: () => FirebaseNamespace
 ): void {
   describe(testName, () => {
-    let firebase: FirebaseNamespace = firebaseNamespaceFactory();;
+    let firebase: FirebaseNamespace = firebaseNamespaceFactory();
 
     afterEach(() => {
       for (const app of firebase.apps) {
@@ -365,7 +365,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?

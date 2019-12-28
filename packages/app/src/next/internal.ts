@@ -21,62 +21,66 @@ export const components = new Map<string, Component<any>>();
  * @internal
  */
 export function removeServiceInstance(
-    app: FirebaseAppInternalNext,
-    name: string,
-    instanceIdentifier: string = DEFAULT_ENTRY_NAME
+  app: FirebaseAppInternalNext,
+  name: string,
+  instanceIdentifier: string = DEFAULT_ENTRY_NAME
 ): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    app.container.getProvider(name as any).clearInstance(instanceIdentifier);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app.container.getProvider(name as any).clearInstance(instanceIdentifier);
 }
 
 /**
  * @param component the component being added to this app's container
  */
-export function addComponent(app: FirebaseAppInternalNext, component: Component): void {
-    try {
-        app.container.addComponent(component);
-    } catch (e) {
-        logger.debug(
-            `Component ${component.name} failed to register with FirebaseApp ${app.name}`,
-            e
-        );
-    }
+export function addComponent(
+  app: FirebaseAppInternalNext,
+  component: Component
+): void {
+  try {
+    app.container.addComponent(component);
+  } catch (e) {
+    logger.debug(
+      `Component ${component.name} failed to register with FirebaseApp ${app.name}`,
+      e
+    );
+  }
 }
 
-export function addOrOverwriteComponent(app: FirebaseAppInternalNext, component: Component): void {
-    app.container.addOrOverwriteComponent(component);
+export function addOrOverwriteComponent(
+  app: FirebaseAppInternalNext,
+  component: Component
+): void {
+  app.container.addOrOverwriteComponent(component);
 }
 
 /**
- * 
- * @param component 
+ *
+ * @param component
  * @returns whether or not the component is registered successfully
  */
-export function registerComponent(
-    component: Component
-): boolean {
-    const componentName = component.name;
-    if (components.has(componentName)) {
-        logger.debug(
-            `There were multiple attempts to register component ${componentName}.`
-        );
+export function registerComponent(component: Component): boolean {
+  const componentName = component.name;
+  if (components.has(componentName)) {
+    logger.debug(
+      `There were multiple attempts to register component ${componentName}.`
+    );
 
-        return false;
-    }
+    return false;
+  }
 
-    components.set(componentName, component);
+  components.set(componentName, component);
 
-    // add the component to existing app instances
-    for (const app of apps.values()) {
-        addComponent(app as FirebaseAppInternalNext, component);
-    }
+  // add the component to existing app instances
+  for (const app of apps.values()) {
+    addComponent(app as FirebaseAppInternalNext, component);
+  }
 
-    return true;
+  return true;
 }
 
 /**
  * Test only
  */
-export function clearComponents():void {
-    components.clear();
+export function clearComponents(): void {
+  components.clear();
 }

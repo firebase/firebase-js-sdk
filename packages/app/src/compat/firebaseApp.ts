@@ -15,32 +15,28 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseApp,
-  FirebaseOptions
-} from '@firebase/app-types';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import {
-  Component,
-  ComponentType,
-  Name
-} from '@firebase/component';
+import { Component, ComponentType, Name } from '@firebase/component';
 import { AppError, ERROR_FACTORY } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { FirebaseAppInternalNext } from '../next/types';
 import { deleteApp } from '../next';
-import { addComponent, removeServiceInstance, addOrOverwriteComponent } from '../next/internal';
+import {
+  addComponent,
+  removeServiceInstance,
+  addOrOverwriteComponent
+} from '../next/internal';
 
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
-
   constructor(
     private readonly app: FirebaseAppInternalNext,
     private readonly firebase: _FirebaseNamespace
@@ -98,7 +94,9 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   private checkDestroyed_(): void {
     if (this.app.isDeleted) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.app.name });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, {
+        appName: this.app.name
+      });
     }
   }
 
@@ -131,7 +129,6 @@ export class FirebaseAppImpl implements FirebaseApp {
     addOrOverwriteComponent(this.app, component);
   }
 }
-
 
 // TODO: investigate why the following needs to be commented out
 // Prevent dead-code elimination of these methods w/o invalid property

@@ -22,10 +22,7 @@ import { name, version } from '../../package.json';
 import { registerComponent } from './internal';
 import { registerVersion } from '.';
 
-export function registerCoreComponents(
-  variant?: string
-): void {
-
+export function registerCoreComponents(variant?: string): void {
   registerComponent(
     new Component(
       'platform-logger',

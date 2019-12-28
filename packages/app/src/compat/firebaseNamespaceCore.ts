@@ -136,7 +136,10 @@ export function createFirebaseNamespaceCore(
     component: Component
   ): FirebaseServiceNamespace<FirebaseService> | null {
     const componentName = component.name;
-    if (registerComponent(component) && component.type === ComponentType.PUBLIC) {
+    if (
+      registerComponent(component) &&
+      component.type === ComponentType.PUBLIC
+    ) {
       // create service namespace for public components
       // The Service namespace is an accessor function ...
       const serviceNamespace = (
@@ -170,7 +173,7 @@ export function createFirebaseNamespaceCore(
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function (...args: any) {
+        function(...args: any) {
           const serviceFxn = this._getService.bind(this, componentName);
           return serviceFxn.apply(
             this,
@@ -179,10 +182,9 @@ export function createFirebaseNamespaceCore(
         };
     }
 
-
     return component.type === ComponentType.PUBLIC
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (namespace as any)[componentName]
+        (namespace as any)[componentName]
       : null;
   }
 
