@@ -1,7 +1,14 @@
-import { FirebaseAppInternalNext } from './types';
+import { FirebaseAppInternalNext, FirebaseAppNext } from './types';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { Component } from '@firebase/component';
 import { logger } from '../logger';
+
+export const apps = new Map<string, FirebaseAppNext>();
+
+// Registered components. Private Components only. Public components are not needed any more because
+// the public APIs are directly exported from the respective packages.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const components = new Map<string, Component<any>>();
 
 /**
  * Remove a service instance from the cache, so we will create a new instance for this service
@@ -28,7 +35,7 @@ export function removeServiceInstance(
 export function addComponent(app: FirebaseAppInternalNext, component: Component): void {
     try {
         app.container.addComponent(component);
-    } catch(e) {
+    } catch (e) {
         logger.debug(
             `Component ${component.name} failed to register with FirebaseApp ${app.name}`,
             e
@@ -38,4 +45,38 @@ export function addComponent(app: FirebaseAppInternalNext, component: Component)
 
 export function addOrOverwriteComponent(app: FirebaseAppInternalNext, component: Component): void {
     app.container.addOrOverwriteComponent(component);
+}
+
+/**
+ * 
+ * @param component 
+ * @returns whether or not the component is registered successfully
+ */
+export function registerComponent(
+    component: Component
+): boolean {
+    const componentName = component.name;
+    if (components.has(componentName)) {
+        logger.debug(
+            `There were multiple attempts to register component ${componentName}.`
+        );
+
+        return false;
+    }
+
+    components.set(componentName, component);
+
+    // add the component to existing app instances
+    for (const app of apps.values()) {
+        addComponent(app as FirebaseAppInternalNext, component);
+    }
+
+    return true;
+}
+
+/**
+ * Test only
+ */
+export function clearComponents():void {
+    components.clear();
 }

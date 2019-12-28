@@ -141,11 +141,6 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      */
     removeApp(name: string): void;
 
-    /**
-     * registered components.
-     */
-    components: Map<string, Component>;
-
     /*
      * Convert service name to factory name to use.
      */

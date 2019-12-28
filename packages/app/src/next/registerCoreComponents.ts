@@ -15,25 +15,27 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
-import { PlatformLoggerService } from './platformLoggerService';
-import { name, version } from '../package.json';
+import { PlatformLoggerService } from '../platformLoggerService';
+import { name, version } from '../../package.json';
+import { registerComponent } from './internal';
+import { registerVersion } from '.';
 
 export function registerCoreComponents(
-  firebase: FirebaseNamespace,
   variant?: string
 ): void {
-  (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+
+  registerComponent(
     new Component(
       'platform-logger',
       container => new PlatformLoggerService(container),
       ComponentType.PRIVATE
     )
   );
+
   // Register `app` package.
-  firebase.registerVersion(name, version, variant);
+  registerVersion(name, version, variant);
   // Register platform SDK identifier (no version).
-  firebase.registerVersion('fire-js', '');
+  registerVersion('fire-js', '');
 }

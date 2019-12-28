@@ -18,8 +18,7 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseNamespace,
-  FirebaseAppConfig
+  FirebaseNamespace
 } from '@firebase/app-types';
 import {
   _FirebaseApp,
@@ -29,12 +28,13 @@ import {
 } from '@firebase/app-types/private';
 import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
-import { ERROR_FACTORY, AppError } from './errors';
+import { ERROR_FACTORY, AppError } from '../errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
-import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
-import { version } from '../../firebase/package.json';
-import { logger } from './logger';
-import { Component, ComponentType, Name } from '@firebase/component';
+import { DEFAULT_ENTRY_NAME } from '../constants';
+import { Component, ComponentType } from '@firebase/component';
+import { SDK_VERSION, initializeApp, registerVersion } from '../next';
+import { FirebaseAppInternalNext } from '../next/types';
+import { registerComponent } from '../next/internal';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -47,8 +47,8 @@ export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
 ): FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const components = new Map<string, Component<any>>();
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // const components = new Map<string, Component<any>>();
 
   // A namespace is a plain JavaScript Object.
   const namespace: FirebaseNamespace = {
@@ -56,17 +56,16 @@ export function createFirebaseNamespaceCore(
     // as the firebase namespace.
     // @ts-ignore
     __esModule: true,
-    initializeApp,
+    initializeApp: initializeAppCompat,
     // @ts-ignore
     app,
     registerVersion,
     // @ts-ignore
     apps: null,
-    SDK_VERSION: version,
+    SDK_VERSION,
     INTERNAL: {
-      registerComponent,
+      registerComponent: registerComponentCompat,
       removeApp,
-      components,
       useAsService
     }
   };
@@ -110,50 +109,19 @@ export function createFirebaseNamespaceCore(
 
   // @ts-ignore
   app['App'] = firebaseAppImpl;
+
   /**
    * Create a new App instance (name must be unique).
    */
-  function initializeApp(
-    options: FirebaseOptions,
-    config?: FirebaseAppConfig
-  ): FirebaseApp;
-  function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
-  function initializeApp(
+  function initializeAppCompat(
     options: FirebaseOptions,
     rawConfig = {}
   ): FirebaseApp {
-    if (typeof rawConfig !== 'object' || rawConfig === null) {
-      const name = rawConfig;
-      rawConfig = { name };
-    }
-
-    const config = rawConfig as FirebaseAppConfig;
-
-    if (config.name === undefined) {
-      config.name = DEFAULT_ENTRY_NAME;
-    }
-
-    const { name } = config;
-
-    if (typeof name !== 'string' || !name) {
-      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
-        appName: String(name)
-      });
-    }
-
-    if (contains(apps, name)) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
-    }
-
-    const app = new firebaseAppImpl(
-      options,
-      config,
-      namespace as _FirebaseNamespace
-    );
-
-    apps[name] = app;
-
-    return app;
+    const app = initializeApp(options, rawConfig) as FirebaseAppInternalNext;
+    // TODO: initialize using FirebaseAppImpl or FirebaseAppLiteImpl
+    const appCompat = new FirebaseAppImpl(app, namespace as _FirebaseNamespace);
+    apps[app.name] = appCompat;
+    return appCompat;
   }
 
   /*
@@ -164,25 +132,12 @@ export function createFirebaseNamespaceCore(
     return Object.keys(apps).map(name => apps[name]);
   }
 
-  function registerComponent(
+  function registerComponentCompat(
     component: Component
   ): FirebaseServiceNamespace<FirebaseService> | null {
     const componentName = component.name;
-    if (components.has(componentName)) {
-      logger.debug(
-        `There were multiple attempts to register component ${componentName}.`
-      );
-
-      return component.type === ComponentType.PUBLIC
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (namespace as any)[componentName]
-        : null;
-    }
-
-    components.set(componentName, component);
-
-    // create service namespace for public components
-    if (component.type === ComponentType.PUBLIC) {
+    if (registerComponent(component) && component.type === ComponentType.PUBLIC) {
+      // create service namespace for public components
       // The Service namespace is an accessor function ...
       const serviceNamespace = (
         appArg: FirebaseApp = app()
@@ -215,7 +170,7 @@ export function createFirebaseNamespaceCore(
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function(...args: any) {
+        function (...args: any) {
           const serviceFxn = this._getService.bind(this, componentName);
           return serviceFxn.apply(
             this,
@@ -224,57 +179,11 @@ export function createFirebaseNamespaceCore(
         };
     }
 
-    // add the component to existing app instances
-    for (const appName of Object.keys(apps)) {
-      (apps[appName] as _FirebaseApp)._addComponent(component);
-    }
 
     return component.type === ComponentType.PUBLIC
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (namespace as any)[componentName]
+      (namespace as any)[componentName]
       : null;
-  }
-
-  function registerVersion(
-    libraryKeyOrName: string,
-    version: string,
-    variant?: string
-  ): void {
-    // TODO: We can use this check to whitelist strings when/if we set up
-    // a good whitelist system.
-    let library = PLATFORM_LOG_STRING[libraryKeyOrName] ?? libraryKeyOrName;
-    if (variant) {
-      library += `-${variant}`;
-    }
-    const libraryMismatch = library.match(/\s|\//);
-    const versionMismatch = version.match(/\s|\//);
-    if (libraryMismatch || versionMismatch) {
-      const warning = [
-        `Unable to register library "${library}" with version "${version}":`
-      ];
-      if (libraryMismatch) {
-        warning.push(
-          `library name "${library}" contains illegal characters (whitespace or "/")`
-        );
-      }
-      if (libraryMismatch && versionMismatch) {
-        warning.push('and');
-      }
-      if (versionMismatch) {
-        warning.push(
-          `version name "${version}" contains illegal characters (whitespace or "/")`
-        );
-      }
-      logger.warn(warning.join(' '));
-      return;
-    }
-    registerComponent(
-      new Component(
-        `${library}-version` as Name,
-        () => ({ library, version }),
-        ComponentType.VERSION
-      )
-    );
   }
 
   // Map the requested service to a registered service name

@@ -14,7 +14,7 @@ export class FirebaseAppImplNext implements FirebaseAppNext {
         config: Required<FirebaseAppConfigNext>,
         container: ComponentContainer
     ) {
-        this.options_ = options;
+        this.options_ = { ...options };
         this.name_ = config.name;
         this.automaticDataCollectionEnabled_ = config.automaticDataCollectionEnabled;
         this.container = container;

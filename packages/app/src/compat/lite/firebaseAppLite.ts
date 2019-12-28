@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +26,35 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy } from '@firebase/util';
+import { ERROR_FACTORY, AppError } from '../../errors';
+import { DEFAULT_ENTRY_NAME } from '../../constants';
 import {
   ComponentContainer,
   Component,
   ComponentType,
   Name
 } from '@firebase/component';
-import { AppError, ERROR_FACTORY } from './errors';
-import { DEFAULT_ENTRY_NAME } from './constants';
-import { logger } from './logger';
 
+interface ServicesCache {
+  [name: string]: {
+    [serviceName: string]: FirebaseService;
+  };
+}
+
+// TODO: refactor to use @firebase/app@next
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppImpl implements FirebaseApp {
+export class FirebaseAppLiteImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private isDeleted_ = false;
   private automaticDataCollectionEnabled_: boolean;
   private container: ComponentContainer;
+
+  // lite version has an empty INTERNAL namespace
+  readonly INTERNAL = {};
 
   constructor(
     options: FirebaseOptions,
@@ -59,11 +68,13 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.container = new ComponentContainer(config.name!);
 
     // add itself to container
-    this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
+    this.container.addComponent(
+      new Component('app', () => this, ComponentType.PUBLIC)
+    );
     // populate ComponentContainer with existing components
-    for (const component of this.firebase_.INTERNAL.components.values()) {
-      this._addComponent(component);
-    }
+    // for (const component of this.firebase_.INTERNAL.components.values()) {
+    //   this.container.addComponent(component);
+    // }
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -107,7 +118,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    * Return a service instance associated with this app (creating it
    * on demand), identified by the passed instanceIdentifier.
    *
-   * NOTE: Currently storage and functions are the only ones that are leveraging this
+   * NOTE: Currently storage is the only one that is leveraging this
    * functionality. They invoke it by calling:
    *
    * ```javascript
@@ -128,41 +139,6 @@ export class FirebaseAppImpl implements FirebaseApp {
       identifier: instanceIdentifier
     }) as unknown) as FirebaseService;
   }
-  /**
-   * Remove a service instance from the cache, so we will create a new instance for this service
-   * when people try to get this service again.
-   *
-   * NOTE: currently only firestore is using this functionality to support firestore shutdown.
-   *
-   * @param name The service name
-   * @param instanceIdentifier instance identifier in case multiple instances are allowed
-   * @internal
-   */
-  _removeServiceInstance(
-    name: string,
-    instanceIdentifier: string = DEFAULT_ENTRY_NAME
-  ): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.container.getProvider(name as any).clearInstance(instanceIdentifier);
-  }
-
-  /**
-   * @param component the component being added to this app's container
-   */
-  _addComponent(component: Component): void {
-    try {
-      this.container.addComponent(component);
-    } catch (e) {
-      logger.debug(
-        `Component ${component.name} failed to register with FirebaseApp ${this.name}`,
-        e
-      );
-    }
-  }
-
-  _addOrOverwriteComponent(component: Component): void {
-    this.container.addOrOverwriteComponent(component);
-  }
 
   /**
    * This function will throw an Error if the App has already been deleted -
@@ -174,9 +150,3 @@ export class FirebaseAppImpl implements FirebaseApp {
     }
   }
 }
-
-// Prevent dead-code elimination of these methods w/o invalid property
-// copying.
-(FirebaseAppImpl.prototype.name && FirebaseAppImpl.prototype.options) ||
-  FirebaseAppImpl.prototype.delete ||
-  console.log('dc');

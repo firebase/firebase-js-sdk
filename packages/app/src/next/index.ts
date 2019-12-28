@@ -1,16 +1,11 @@
 import { FirebaseAppNext, FirebaseOptionsNext, FirebaseAppConfigNext, FirebaseAppInternalNext } from './types';
-import { DEFAULT_ENTRY_NAME } from '../constants';
+import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from '../constants';
 import { ERROR_FACTORY, AppError } from '../errors';
-import { ComponentContainer, Component } from '@firebase/component';
+import { ComponentContainer, Component, Name, ComponentType } from '@firebase/component';
 import { version } from '../../../firebase/package.json';
 import { FirebaseAppImplNext } from './firebaseApp';
-
-const apps = new Map<string, FirebaseAppNext>();
-
-// Registered components. Private Components only. Public components are not needed any more because
-// the public APIs are directly exported from the respective packages.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const components = new Map<string, Component<any>>();
+import { apps, components, registerComponent } from './internal';
+import { logger } from '../logger';
 
 export const SDK_VERSION = version;
 
@@ -36,7 +31,6 @@ export function initializeApp(
         automaticDataCollectionEnabled: false,
         ...rawConfig
     };
-
     const name = config.name;
 
     if (typeof name !== 'string' || !name) {
@@ -76,12 +70,54 @@ export function getApps(): FirebaseAppNext[] {
 }
 
 export function deleteApp(app: FirebaseAppNext): Promise<void> {
-
-    if (apps.has(app.name)) {
+    const name = app.name;
+    if (apps.has(name)) {
+        apps.delete(name);
         (app as FirebaseAppInternalNext).isDeleted = true;
-        apps.delete(app.name);
         // TODO: what to do with other SDKs?
     }
 
     return Promise.resolve();
 }
+
+export function registerVersion(
+    libraryKeyOrName: string,
+    version: string,
+    variant?: string
+  ): void {
+    // TODO: We can use this check to whitelist strings when/if we set up
+    // a good whitelist system.
+    let library = PLATFORM_LOG_STRING[libraryKeyOrName] ?? libraryKeyOrName;
+    if (variant) {
+      library += `-${variant}`;
+    }
+    const libraryMismatch = library.match(/\s|\//);
+    const versionMismatch = version.match(/\s|\//);
+    if (libraryMismatch || versionMismatch) {
+      const warning = [
+        `Unable to register library "${library}" with version "${version}":`
+      ];
+      if (libraryMismatch) {
+        warning.push(
+          `library name "${library}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      if (libraryMismatch && versionMismatch) {
+        warning.push('and');
+      }
+      if (versionMismatch) {
+        warning.push(
+          `version name "${version}" contains illegal characters (whitespace or "/")`
+        );
+      }
+      logger.warn(warning.join(' '));
+      return;
+    }
+    registerComponent(
+      new Component(
+        `${library}-version` as Name,
+        () => ({ library, version }),
+        ComponentType.VERSION
+      )
+    );
+  }

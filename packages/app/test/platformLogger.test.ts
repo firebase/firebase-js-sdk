@@ -17,11 +17,11 @@
 
 import { FirebaseNamespace, VersionService } from '@firebase/app-types';
 import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from '../src/firebaseNamespace';
+import { createFirebaseNamespace } from '../src/compat/firebaseNamespace';
 import { expect } from 'chai';
 import './setup';
 import { PlatformLoggerService } from '../src/platformLoggerService';
-import { registerCoreComponents } from '../src/registerCoreComponents';
+import { registerCoreComponents } from '../src/next/registerCoreComponents';
 import {
   Component,
   ComponentType,
@@ -63,15 +63,17 @@ describe('Platform Logger Service', () => {
   });
 
   describe('Integration Tests', () => {
-    let firebase: FirebaseNamespace;
+    let firebase: FirebaseNamespace = createFirebaseNamespace();
 
-    beforeEach(() => {
-      firebase = createFirebaseNamespace();
+    afterEach(() => {
+      for (const app of firebase.apps) {
+        app.delete();
+      }
     });
 
     it(`logs core version`, () => {
       firebase.initializeApp({});
-      registerCoreComponents(firebase);
+      registerCoreComponents();
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
@@ -92,7 +94,7 @@ describe('Platform Logger Service', () => {
 
     it(`logs core version with bundle variant`, () => {
       firebase.initializeApp({});
-      registerCoreComponents(firebase, 'node');
+      registerCoreComponents('node');
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
@@ -115,7 +117,7 @@ describe('Platform Logger Service', () => {
 
     it(`logs other components' versions`, () => {
       firebase.initializeApp({});
-      registerCoreComponents(firebase);
+      registerCoreComponents();
       (firebase as _FirebaseNamespace).registerVersion(
         '@firebase/analytics',
         '1.2.3'

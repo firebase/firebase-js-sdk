@@ -25,11 +25,12 @@ import {
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from '../src/firebaseNamespace';
-import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
+import { createFirebaseNamespace } from '../src/compat/firebaseNamespace';
+import { createFirebaseNamespaceLite } from '../src/compat/lite/firebaseNamespaceLite';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { Component, ComponentType } from '@firebase/component';
+import { components, clearComponents } from '../src/next/internal';
 import './setup';
 
 executeFirebaseTests();
@@ -39,10 +40,12 @@ function executeFirebaseTests(): void {
   firebaseAppTests('Firebase App Tests', createFirebaseNamespace);
 
   describe('Firebase Service Registration', () => {
-    let firebase: FirebaseNamespace;
+    let firebase: FirebaseNamespace = createFirebaseNamespace();
 
-    beforeEach(() => {
-      firebase = createFirebaseNamespace();
+    afterEach(() => {
+      for (const app of firebase.apps) {
+        app.delete();
+      }
     });
 
     it('will do nothing if registerComponent is called again with the same name', () => {
@@ -123,15 +126,14 @@ function executeFirebaseTests(): void {
   });
 
   describe('Firebase Version Registration', () => {
-    let firebase: FirebaseNamespace;
+    let firebase: FirebaseNamespace = createFirebaseNamespace();
 
-    beforeEach(() => {
-      firebase = createFirebaseNamespace();
+    afterEach(() => {
+      clearComponents();
     });
 
     it('will register an official version component without warnings', () => {
       const warnStub = stub(console, 'warn');
-      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
       const initialSize = components.size;
 
       firebase.registerVersion('@firebase/analytics', '1.2.3');
@@ -143,7 +145,6 @@ function executeFirebaseTests(): void {
 
     it('will register an arbitrary version component without warnings', () => {
       const warnStub = stub(console, 'warn');
-      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
       const initialSize = components.size;
 
       firebase.registerVersion('angularfire', '1.2.3');
@@ -155,7 +156,6 @@ function executeFirebaseTests(): void {
 
     it('will do nothing if registerVersion() is given illegal characters', () => {
       const warnStub = stub(console, 'warn');
-      const { components } = (firebase as _FirebaseNamespace).INTERNAL;
       const initialSize = components.size;
 
       firebase.registerVersion('remote config', '1.2.3');
@@ -173,10 +173,12 @@ function executeFirebaseLiteTests(): void {
   firebaseAppTests('Firebase App Lite Tests', createFirebaseNamespaceLite);
 
   describe('Firebase Lite Service Registration', () => {
-    let firebase: FirebaseNamespace;
+    let firebase: FirebaseNamespace = createFirebaseNamespaceLite();
 
-    beforeEach(() => {
-      firebase = createFirebaseNamespaceLite();
+    afterEach(() => {
+      for (const app of firebase.apps) {
+        app.delete();
+      }
     });
 
     it('allows Performance service to register', () => {
@@ -220,10 +222,12 @@ function firebaseAppTests(
   firebaseNamespaceFactory: () => FirebaseNamespace
 ): void {
   describe(testName, () => {
-    let firebase: FirebaseNamespace;
+    let firebase: FirebaseNamespace = firebaseNamespaceFactory();;
 
-    beforeEach(() => {
-      firebase = firebaseNamespaceFactory();
+    afterEach(() => {
+      for (const app of firebase.apps) {
+        app.delete();
+      }
     });
 
     it(' has no initial apps.', () => {
@@ -337,7 +341,7 @@ function firebaseAppTests(
     });
 
     describe('Check for bad app names', () => {
-      const tests = ['', 123, false, null];
+      const tests = ['', 123, false];
       for (const data of tests) {
         it("where name == '" + data + "'", () => {
           expect(() => firebase.initializeApp({}, data as string)).throws(
@@ -361,7 +365,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { createFirebaseNamespaceLite } from './src/lite/firebaseNamespaceLite';
-import { registerCoreComponents } from './src/registerCoreComponents';
+import { createFirebaseNamespaceLite } from './src/compat/lite/firebaseNamespaceLite';
+import { registerCoreComponents } from './src/next/registerCoreComponents';
 
 export const firebase = createFirebaseNamespaceLite();
 
-registerCoreComponents(firebase, 'lite');
+registerCoreComponents('lite');
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;
