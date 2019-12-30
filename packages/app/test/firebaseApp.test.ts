@@ -40,12 +40,14 @@ function executeFirebaseTests(): void {
   firebaseAppTests('Firebase App Tests', createFirebaseNamespace);
 
   describe('Firebase Service Registration', () => {
-    let firebase: FirebaseNamespace = createFirebaseNamespace();
+    const firebase: FirebaseNamespace = createFirebaseNamespace();
 
     afterEach(() => {
+      const deleteTasks = [];
       for (const app of firebase.apps) {
-        app.delete();
+        deleteTasks.push(app.delete());
       }
+      return Promise.all(deleteTasks);
     });
 
     it('will do nothing if registerComponent is called again with the same name', () => {
@@ -126,7 +128,7 @@ function executeFirebaseTests(): void {
   });
 
   describe('Firebase Version Registration', () => {
-    let firebase: FirebaseNamespace = createFirebaseNamespace();
+    const firebase: FirebaseNamespace = createFirebaseNamespace();
 
     afterEach(() => {
       clearComponents();
@@ -173,12 +175,14 @@ function executeFirebaseLiteTests(): void {
   firebaseAppTests('Firebase App Lite Tests', createFirebaseNamespaceLite);
 
   describe('Firebase Lite Service Registration', () => {
-    let firebase: FirebaseNamespace = createFirebaseNamespaceLite();
+    const firebase: FirebaseNamespace = createFirebaseNamespaceLite();
 
     afterEach(() => {
+      const deleteTasks = [];
       for (const app of firebase.apps) {
-        app.delete();
+        deleteTasks.push(app.delete());
       }
+      return Promise.all(deleteTasks);
     });
 
     it('allows Performance service to register', () => {
@@ -222,12 +226,14 @@ function firebaseAppTests(
   firebaseNamespaceFactory: () => FirebaseNamespace
 ): void {
   describe(testName, () => {
-    let firebase: FirebaseNamespace = firebaseNamespaceFactory();
+    const firebase: FirebaseNamespace = firebaseNamespaceFactory();
 
     afterEach(() => {
+      const deleteTasks = [];
       for (const app of firebase.apps) {
-        app.delete();
+        deleteTasks.push(app.delete());
       }
+      return Promise.all(deleteTasks);
     });
 
     it(' has no initial apps.', () => {
@@ -365,7 +371,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?

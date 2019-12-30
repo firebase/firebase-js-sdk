@@ -17,101 +17,59 @@
 
 import {
   FirebaseApp,
-  FirebaseOptions,
-  FirebaseAppConfig
+  FirebaseOptions
 } from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import { deepCopy } from '@firebase/util';
-import { ERROR_FACTORY, AppError } from '../../errors';
 import { DEFAULT_ENTRY_NAME } from '../../constants';
 import {
-  ComponentContainer,
   Component,
   ComponentType,
   Name
 } from '@firebase/component';
+import { FirebaseAppInternalNext } from '../../next/types';
+import { addComponent } from '../../next/internal';
+import { deleteApp } from '../../next';
 
-interface ServicesCache {
-  [name: string]: {
-    [serviceName: string]: FirebaseService;
-  };
-}
-
-// TODO: refactor to use @firebase/app@next
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
 export class FirebaseAppLiteImpl implements FirebaseApp {
-  private readonly options_: FirebaseOptions;
-  private readonly name_: string;
-  private isDeleted_ = false;
-  private automaticDataCollectionEnabled_: boolean;
-  private container: ComponentContainer;
-
-  // lite version has an empty INTERNAL namespace
-  readonly INTERNAL = {};
 
   constructor(
-    options: FirebaseOptions,
-    config: FirebaseAppConfig,
-    private readonly firebase_: _FirebaseNamespace
+    private readonly app: FirebaseAppInternalNext,
+    private readonly firebase: _FirebaseNamespace
   ) {
-    this.name_ = config.name!;
-    this.automaticDataCollectionEnabled_ =
-      config.automaticDataCollectionEnabled || false;
-    this.options_ = deepCopy<FirebaseOptions>(options);
-    this.container = new ComponentContainer(config.name!);
-
     // add itself to container
-    this.container.addComponent(
+    addComponent(
+      app,
       new Component('app', () => this, ComponentType.PUBLIC)
     );
-    // populate ComponentContainer with existing components
-    // for (const component of this.firebase_.INTERNAL.components.values()) {
-    //   this.container.addComponent(component);
-    // }
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    this.checkDestroyed_();
-    return this.automaticDataCollectionEnabled_;
+    return this.app.automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val) {
-    this.checkDestroyed_();
-    this.automaticDataCollectionEnabled_ = val;
+    this.automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
-    this.checkDestroyed_();
-    return this.name_;
+    return this.app.name;
   }
 
   get options(): FirebaseOptions {
-    this.checkDestroyed_();
-    return this.options_;
+    return this.app.options;
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
-      this.checkDestroyed_();
-      resolve();
-    })
-      .then(() => {
-        this.firebase_.INTERNAL.removeApp(this.name_);
-
-        return Promise.all(
-          this.container.getProviders().map(provider => provider.delete())
-        );
-      })
-      .then((): void => {
-        this.isDeleted_ = true;
-      });
+    this.firebase.INTERNAL.removeApp(this.name);
+    return deleteApp(this.app);
   }
 
   /**
@@ -132,21 +90,11 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): FirebaseService {
-    this.checkDestroyed_();
+    this.app.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this.container.getProvider(name as Name).getImmediate({
+    return (this.app.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as FirebaseService;
-  }
-
-  /**
-   * This function will throw an Error if the App has already been deleted -
-   * use before performing API actions on the App.
-   */
-  private checkDestroyed_(): void {
-    if (this.isDeleted_) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
-    }
   }
 }

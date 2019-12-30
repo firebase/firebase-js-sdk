@@ -118,8 +118,7 @@ export function createFirebaseNamespaceCore(
     rawConfig = {}
   ): FirebaseApp {
     const app = initializeApp(options, rawConfig) as FirebaseAppInternalNext;
-    // TODO: initialize using FirebaseAppImpl or FirebaseAppLiteImpl
-    const appCompat = new FirebaseAppImpl(app, namespace as _FirebaseNamespace);
+    const appCompat = new firebaseAppImpl(app, namespace as _FirebaseNamespace);
     apps[app.name] = appCompat;
     return appCompat;
   }

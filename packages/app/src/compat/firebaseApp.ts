@@ -22,7 +22,6 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { Component, ComponentType, Name } from '@firebase/component';
-import { AppError, ERROR_FACTORY } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { FirebaseAppInternalNext } from '../next/types';
 import { deleteApp } from '../next';
@@ -84,20 +83,12 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): FirebaseService {
-    this.checkDestroyed_();
+    this.app.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return (this.app.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as FirebaseService;
-  }
-
-  private checkDestroyed_(): void {
-    if (this.app.isDeleted) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, {
-        appName: this.app.name
-      });
-    }
   }
 
   /**

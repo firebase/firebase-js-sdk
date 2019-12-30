@@ -43,22 +43,22 @@ export class FirebaseAppImplNext implements FirebaseAppNext {
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    this.checkDestroyed_();
+    this.checkDestroyed();
     return this.automaticDataCollectionEnabled_;
   }
 
   set automaticDataCollectionEnabled(val: boolean) {
-    this.checkDestroyed_();
+    this.checkDestroyed();
     this.automaticDataCollectionEnabled_ = val;
   }
 
   get name(): string {
-    this.checkDestroyed_();
+    this.checkDestroyed();
     return this.name_;
   }
 
   get options(): FirebaseOptionsNext {
-    this.checkDestroyed_();
+    this.checkDestroyed();
     return this.options_;
   }
 
@@ -66,7 +66,7 @@ export class FirebaseAppImplNext implements FirebaseAppNext {
    * This function will throw an Error if the App has already been deleted -
    * use before performing API actions on the App.
    */
-  private checkDestroyed_(): void {
+  private checkDestroyed(): void {
     if (this.isDeleted) {
       throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
     }

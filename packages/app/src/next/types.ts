@@ -38,6 +38,7 @@ export interface FirebaseAppNext {
 export interface FirebaseAppInternalNext extends FirebaseAppNext {
   container: ComponentContainer;
   isDeleted: boolean;
+  checkDestroyed(): void;
 }
 
 export interface FirebaseOptionsNext {

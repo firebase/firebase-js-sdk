@@ -63,12 +63,14 @@ describe('Platform Logger Service', () => {
   });
 
   describe('Integration Tests', () => {
-    let firebase: FirebaseNamespace = createFirebaseNamespace();
+    const firebase: FirebaseNamespace = createFirebaseNamespace();
 
     afterEach(() => {
+      const deleteTasks = [];
       for (const app of firebase.apps) {
-        app.delete();
+        deleteTasks.push(app.delete());
       }
+      return Promise.all(deleteTasks);
     });
 
     it(`logs core version`, () => {
