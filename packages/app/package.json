@@ -4,10 +4,10 @@
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "browser": "dist/cjs/index.js",
+  "module": "dist/esm5/index.js",
   "react-native": "dist/index.rn.cjs.js",
-  "esm2017": "dist/index.esm2017.js",
+  "esm2017": "dist/esm2017/index.js",
   "lite": "dist/index.lite.js",
   "lite-esm2017": "dist/index.lite.esm2017.js",
   "files": [
@@ -23,7 +23,8 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
   },
   "license": "Apache-2.0",
   "dependencies": {

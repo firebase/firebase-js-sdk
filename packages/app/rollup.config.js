@@ -36,10 +36,14 @@ const es5BuildPlugins = [
 
 const es5Builds = [
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      next: 'src/next/index.ts',
+      "next/internal": 'src/next/internal.ts'
+    },
     output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
+      { dir: 'dist/esm5', format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -101,9 +105,13 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      next: 'src/next/index.ts',
+      "next/internal": 'src/next/internal.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },
@@ -123,3 +131,4 @@ const es2017Builds = [
 ];
 
 export default [...es5Builds, ...es2017Builds];
+// export default [...es2017Builds];

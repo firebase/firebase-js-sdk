@@ -1,0 +1,8 @@
+{
+    "name": "@firebase/app/next/internal",
+    "main": "../../dist/cjs/next/internal.js",
+    "browser": "../../dist/cjs/next/internal.js",
+    "module": "../../dist/esm5/next/internal.js",
+    "esm2017": "../../dist/esm2017/next/internal.js",
+    "typings": "../../dist/packages/app/src/next/internal.d.ts"
+}
