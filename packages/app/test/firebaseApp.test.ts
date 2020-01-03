@@ -15,14 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseNamespace,
-  FirebaseOptions
-} from '@firebase/app-types';
-import {
-  _FirebaseApp,
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
+import { FirebaseNamespace, FirebaseOptions } from '@firebase/app-types';
+import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/compat/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/compat/lite/firebaseNamespaceLite';
 import { expect } from 'chai';

@@ -39,7 +39,7 @@ const es5Builds = [
     input: {
       index: 'index.ts',
       next: 'src/next/index.ts',
-      "next/internal": 'src/next/internal.ts'
+      'next/internal': 'src/next/internal.ts'
     },
     output: [
       { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
@@ -108,7 +108,7 @@ const es2017Builds = [
     input: {
       index: 'index.ts',
       next: 'src/next/index.ts',
-      "next/internal": 'src/next/internal.ts'
+      'next/internal': 'src/next/internal.ts'
     },
     output: {
       dir: 'dist/esm2017',

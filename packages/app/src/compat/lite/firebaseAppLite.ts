@@ -15,21 +15,14 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseApp,
-  FirebaseOptions
-} from '@firebase/app-types';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
 import { DEFAULT_ENTRY_NAME } from '../../constants';
-import {
-  Component,
-  ComponentType,
-  Name
-} from '@firebase/component';
+import { Component, ComponentType, Name } from '@firebase/component';
 import { FirebaseAppInternalNext } from '../../next/types';
 import { addComponent } from '../../next/internal';
 import { deleteApp } from '../../next';
@@ -39,16 +32,12 @@ import { deleteApp } from '../../next';
  * a shared authentication state.
  */
 export class FirebaseAppLiteImpl implements FirebaseApp {
-
   constructor(
     private readonly app: FirebaseAppInternalNext,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
-    addComponent(
-      app,
-      new Component('app', () => this, ComponentType.PUBLIC)
-    );
+    addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
   }
 
   get automaticDataCollectionEnabled(): boolean {

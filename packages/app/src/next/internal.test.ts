@@ -1,103 +1,115 @@
-import { expect } from "chai";
-import { stub } from "sinon";
-import "../../test/setup";
+import { expect } from 'chai';
+import { stub } from 'sinon';
+import '../../test/setup';
 import { createTestComponent, TestService } from '../../test/util';
 import { initializeApp, getApps, deleteApp } from './api';
-import { addComponent, addOrOverwriteComponent, registerComponent, components, clearComponents } from './internal';
+import {
+  addComponent,
+  addOrOverwriteComponent,
+  registerComponent,
+  components,
+  clearComponents
+} from './internal';
 import { FirebaseAppInternalNext } from './types';
 
 declare module '@firebase/component' {
-    interface NameServiceMapping {
-      'test': TestService;
-    }
+  interface NameServiceMapping {
+    'test': TestService;
   }
+}
 
 describe('Internal API tests', () => {
+  afterEach(() => {
+    for (const app of getApps()) {
+      deleteApp(app).catch(() => {});
+    }
+  });
 
+  describe('addComponent', () => {
+    it('registers component with App', () => {
+      const app = initializeApp({}) as FirebaseAppInternalNext;
+      const testComp = createTestComponent('test');
+
+      addComponent(app, testComp);
+
+      expect(app.container.getProvider('test').getComponent()).to.equal(
+        testComp
+      );
+    });
+    it('does NOT throw registering duplicate components', () => {
+      const app = initializeApp({}) as FirebaseAppInternalNext;
+      const testComp = createTestComponent('test');
+
+      addComponent(app, testComp);
+
+      expect(() => addComponent(app, testComp)).to.not.throw();
+      expect(app.container.getProvider('test').getComponent()).to.equal(
+        testComp
+      );
+    });
+  });
+
+  describe('addOrOverwriteComponent', () => {
+    it('registers component with App', () => {
+      const app = initializeApp({}) as FirebaseAppInternalNext;
+      const testComp = createTestComponent('test');
+
+      addOrOverwriteComponent(app, testComp);
+
+      expect(app.container.getProvider('test').getComponent()).to.equal(
+        testComp
+      );
+    });
+
+    it('overwrites an existing component with the same name', () => {
+      const app = initializeApp({}) as FirebaseAppInternalNext;
+      const testComp1 = createTestComponent('test');
+      const testComp2 = createTestComponent('test');
+
+      addOrOverwriteComponent(app, testComp1);
+      addOrOverwriteComponent(app, testComp2);
+
+      expect(app.container.getProvider('test').getComponent()).to.equal(
+        testComp2
+      );
+    });
+  });
+
+  describe('registerComponent', () => {
     afterEach(() => {
-        for (const app of getApps()) {
-            deleteApp(app).catch(() => {});
-        }
+      clearComponents();
     });
 
-    describe('addComponent', () => {
-        it('registers component with App', () => {
-            const app = initializeApp({}) as FirebaseAppInternalNext;
-            const testComp = createTestComponent('test');
+    it('caches a component and registers it with all Apps', () => {
+      const app1 = initializeApp({}) as FirebaseAppInternalNext;
+      const app2 = initializeApp({}, 'app2') as FirebaseAppInternalNext;
 
-            addComponent(app, testComp);
+      const stub1 = stub(app1.container, 'addComponent').callThrough();
+      const stub2 = stub(app2.container, 'addComponent').callThrough();
 
-            expect(app.container.getProvider('test').getComponent()).to.equal(testComp);
-        });
-        it('does NOT throw registering duplicate components', () => {
-            const app = initializeApp({}) as FirebaseAppInternalNext;
-            const testComp = createTestComponent('test');
+      const testComp = createTestComponent('test');
+      registerComponent(testComp);
 
-            addComponent(app, testComp);
-
-            expect(() => addComponent(app, testComp)).to.not.throw();
-            expect(app.container.getProvider('test').getComponent()).to.equal(testComp);
-        });
+      expect(components.get('test')).to.equal(testComp);
+      expect(stub1).to.have.been.calledWith(testComp);
+      expect(stub2).to.have.been.calledWith(testComp);
     });
 
-    describe('addOrOverwriteComponent', () => {
-        it('registers component with App', () => {
-            const app = initializeApp({}) as FirebaseAppInternalNext;
-            const testComp = createTestComponent('test');
-
-            addOrOverwriteComponent(app, testComp);
-
-            expect(app.container.getProvider('test').getComponent()).to.equal(testComp);
-        });
-
-        it('overwrites an existing component with the same name', () => {
-            const app = initializeApp({}) as FirebaseAppInternalNext;
-            const testComp1 = createTestComponent('test');
-            const testComp2 = createTestComponent('test');
-
-            addOrOverwriteComponent(app, testComp1);
-            addOrOverwriteComponent(app, testComp2);
-
-            expect(app.container.getProvider('test').getComponent()).to.equal(testComp2);
-        });
+    it('returns true if registration is successful', () => {
+      const testComp = createTestComponent('test');
+      expect(components.size).to.equal(0);
+      expect(registerComponent(testComp)).to.be.true;
+      expect(components.get('test')).to.equal(testComp);
     });
 
-    describe('registerComponent', () => {
-        afterEach(() => {
-            clearComponents();
-        });
-
-        it('caches a component and registers it with all Apps', () => {
-            const app1 = initializeApp({}) as FirebaseAppInternalNext;
-            const app2 = initializeApp({}, 'app2') as FirebaseAppInternalNext;
-
-            const stub1 = stub(app1.container, 'addComponent').callThrough();
-            const stub2 = stub(app2.container, 'addComponent').callThrough();
-
-            const testComp = createTestComponent('test');
-            registerComponent(testComp);
-
-            expect(components.get('test')).to.equal(testComp);
-            expect(stub1).to.have.been.calledWith(testComp);
-            expect(stub2).to.have.been.calledWith(testComp);
-        });
-        
-        it('returns true if registration is successful', () => {
-            const testComp = createTestComponent('test');
-            expect(components.size).to.equal(0);
-            expect(registerComponent(testComp)).to.be.true;
-            expect(components.get('test')).to.equal(testComp);
-        });
-
-        it('does NOT throw when registering duplicate components and returns false', () => {
-            const testComp1 = createTestComponent('test');
-            const testComp2 = createTestComponent('test');
-            expect(components.size).to.equal(0);
-            expect(registerComponent(testComp1)).to.be.true;
-            expect(components.get('test')).to.equal(testComp1);
-            expect(registerComponent(testComp2)).to.be.false;
-            expect(components.get('test')).to.equal(testComp1);
-        });
+    it('does NOT throw when registering duplicate components and returns false', () => {
+      const testComp1 = createTestComponent('test');
+      const testComp2 = createTestComponent('test');
+      expect(components.size).to.equal(0);
+      expect(registerComponent(testComp1)).to.be.true;
+      expect(components.get('test')).to.equal(testComp1);
+      expect(registerComponent(testComp2)).to.be.false;
+      expect(components.get('test')).to.equal(testComp1);
     });
-
+  });
 });

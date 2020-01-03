@@ -25,10 +25,7 @@ import { Component, ComponentType, Name } from '@firebase/component';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { FirebaseAppInternalNext } from '../next/types';
 import { deleteApp } from '../next';
-import {
-  addComponent,
-  addOrOverwriteComponent
-} from '../next/internal';
+import { addComponent, addOrOverwriteComponent } from '../next/internal';
 
 /**
  * Global context object for a collection of services using
@@ -105,7 +102,9 @@ export class FirebaseAppImpl implements FirebaseApp {
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.app.container.getProvider(name as any).clearInstance(instanceIdentifier);
+    this.app.container
+      .getProvider(name as any)
+      .clearInstance(instanceIdentifier);
   }
 
   /**
