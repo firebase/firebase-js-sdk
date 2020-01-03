@@ -22,7 +22,7 @@
     "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --opts ../../config/mocha.node.opts",
     "prepare": "yarn build",
     "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
   },

@@ -27,7 +27,6 @@ import { FirebaseAppInternalNext } from '../next/types';
 import { deleteApp } from '../next';
 import {
   addComponent,
-  removeServiceInstance,
   addOrOverwriteComponent
 } from '../next/internal';
 
@@ -93,9 +92,9 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   /**
    * Remove a service instance from the cache, so we will create a new instance for this service
-   * when people try to get this service again.
+   * when people try to get it again.
    *
-   * NOTE: currently only firestore is using this functionality to support firestore shutdown.
+   * NOTE: currently only firestore uses this functionality to support firestore shutdown.
    *
    * @param name The service name
    * @param instanceIdentifier instance identifier in case multiple instances are allowed
@@ -105,7 +104,8 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
-    removeServiceInstance(this.app, name, instanceIdentifier);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.app.container.getProvider(name as any).clearInstance(instanceIdentifier);
   }
 
   /**

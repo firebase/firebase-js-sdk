@@ -16,22 +16,21 @@
  */
 
 import {
-  FirebaseApp,
   FirebaseNamespace,
   FirebaseOptions
 } from '@firebase/app-types';
 import {
   _FirebaseApp,
-  _FirebaseNamespace,
-  FirebaseService
+  _FirebaseNamespace
 } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/compat/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/compat/lite/firebaseNamespaceLite';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { Component, ComponentType } from '@firebase/component';
+import { ComponentType } from '@firebase/component';
 import { components, clearComponents } from '../src/next/internal';
 import './setup';
+import { createTestComponent, TestService } from './util';
 
 executeFirebaseTests();
 executeFirebaseLiteTests();
@@ -368,35 +367,4 @@ function firebaseAppTests(
       }
     });
   });
-}
-
-class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
-
-  // TODO(koss): Shouldn't this just be an added method on
-  // the service instance?
-  get app(): FirebaseApp {
-    return this.app_;
-  }
-
-  delete(): Promise<void> {
-    return new Promise((resolve: (v?: void) => void) => {
-      setTimeout(() => resolve(), 10);
-    });
-  }
-}
-
-function createTestComponent(
-  name: string,
-  multiInstances = false,
-  type = ComponentType.PUBLIC
-): Component {
-  const component = new Component(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    name as any,
-    container => new TestService(container.getProvider('app').getImmediate()),
-    type
-  );
-  component.setMultipleInstances(multiInstances);
-  return component;
 }
