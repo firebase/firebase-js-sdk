@@ -44,7 +44,7 @@ describe('getInstallationEntry', () => {
   >;
 
   beforeEach(() => {
-    clock = useFakeTimers();
+    clock = useFakeTimers({ now: 1_000_000, shouldAdvanceTime: true });
     appConfig = getFakeAppConfig();
     createInstallationRequestSpy = stub(
       createInstallationRequestModule,
@@ -259,10 +259,6 @@ describe('getInstallationEntry', () => {
     });
 
     it('waits for the FID from the server if FID generation fails', async () => {
-      clock.restore();
-      // Needed to allow the createInstallation request to complete.
-      clock = useFakeTimers({ shouldAdvanceTime: true });
-
       // FID generation fails.
       generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
 
@@ -331,7 +327,7 @@ describe('getInstallationEntry', () => {
     });
 
     it("returns the same InstallationEntry if the request hasn't timed out", async () => {
-      stub(Date, 'now').returns(1_001_000); // One second later
+      clock.now = 1_001_000; // One second after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
@@ -343,8 +339,67 @@ describe('getInstallationEntry', () => {
       expect(createInstallationRequestSpy).not.to.be.called;
     });
 
-    it('returns a new pending InstallationEntry and triggers createInstallation if the request timed out', async () => {
-      stub(Date, 'now').returns(1_015_000); // Fifteen seconds later
+    it('updates the InstallationEntry and triggers createInstallation if the request fails', async () => {
+      clock.now = 1_001_000; // One second after the request was initiated.
+
+      const installationEntryPromise = getInstallationEntry(appConfig);
+
+      // The pending request fails after a while.
+      clock.tick(500);
+      await set(appConfig, {
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      const { registrationPromise } = await installationEntryPromise;
+
+      // Let the new getInstallationEntry process start.
+      await sleep(10);
+
+      expect(await get(appConfig)).to.deep.equal({
+        fid: FID,
+        registrationStatus: RequestStatus.IN_PROGRESS,
+        registrationTime: 1_001_500 // Started when the first pending request failed.
+      });
+
+      expect(registrationPromise).to.be.an.instanceOf(Promise);
+      await registrationPromise;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
+    });
+
+    it('updates the InstallationEntry if the request fails and the app is offline', async () => {
+      stub(navigator, 'onLine').value(false);
+
+      clock.now = 1_001_000; // One second after the request was initiated.
+
+      const installationEntryPromise = getInstallationEntry(appConfig);
+
+      // The pending request fails after a while.
+      clock.tick(500);
+      await set(appConfig, {
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      const { registrationPromise } = await installationEntryPromise;
+
+      // Let the new getInstallationEntry process start.
+      await sleep(10);
+
+      expect(await get(appConfig)).to.deep.equal({
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      expect(registrationPromise).to.be.an.instanceOf(Promise);
+      await expect(registrationPromise).to.be.rejectedWith(
+        'Application offline'
+      );
+      expect(createInstallationRequestSpy).not.to.be.called;
+    });
+
+    it('returns a new pending InstallationEntry and triggers createInstallation if the request had already timed out', async () => {
+      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
@@ -356,9 +411,9 @@ describe('getInstallationEntry', () => {
       expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
-    it('returns a new unregistered InstallationEntry if the request timed out and the app is offline', async () => {
+    it('returns a new unregistered InstallationEntry if the request had already timed out and the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
-      stub(Date, 'now').returns(1_015_000); // Fifteen seconds later
+      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
