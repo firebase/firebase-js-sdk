@@ -354,12 +354,19 @@ describe('getInstallationEntry', () => {
       const { registrationPromise } = await installationEntryPromise;
 
       // Let the new getInstallationEntry process start.
-      await sleep(10);
+      await sleep(50);
 
-      expect(await get(appConfig)).to.deep.equal({
+      const tokenDetails = (await get(
+        appConfig
+      )) as InProgressInstallationEntry;
+      expect(tokenDetails.registrationTime).to.be.at.least(
+        /* When the first pending request failed. */ 1_001_500
+      );
+      expect(tokenDetails).to.deep.equal({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
-        registrationTime: 1_001_500 // Started when the first pending request failed.
+        // Ignore registrationTime as we already checked it.
+        registrationTime: tokenDetails.registrationTime
       });
 
       expect(registrationPromise).to.be.an.instanceOf(Promise);
@@ -384,7 +391,7 @@ describe('getInstallationEntry', () => {
       const { registrationPromise } = await installationEntryPromise;
 
       // Let the new getInstallationEntry process start.
-      await sleep(10);
+      await sleep(50);
 
       expect(await get(appConfig)).to.deep.equal({
         fid: FID,
