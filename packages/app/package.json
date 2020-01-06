@@ -35,7 +35,7 @@
     "xmlhttprequest": "1.8.0"
   },
   "devDependencies": {
-    "rollup": "1.27.9",
+    "rollup": "1.28.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.25.3",
