@@ -38,7 +38,7 @@ const plugins = [
     // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
     objectHashIgnoreUnknownHack: true,
     // For safety, given hack above (see link).
-    clean: true,
+    clean: true
   }),
   json(),
   commonjs()
