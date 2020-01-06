@@ -85,16 +85,16 @@ export class ContextProvider {
   }
 
   async getInstanceIdToken(): Promise<string | undefined> {
-    try {
-      if (!this.messaging) {
-        return undefined;
-      }
+    if (
+      !this.messaging ||
+      !('Notification' in self) ||
+      Notification.permission !== 'granted'
+    ) {
+      return undefined;
+    }
 
-      const token = await this.messaging.getToken();
-      if (!token) {
-        return undefined;
-      }
-      return token;
+    try {
+      return this.messaging.getToken();
     } catch (e) {
       // We don't warn on this, because it usually means messaging isn't set up.
       // console.warn('Failed to retrieve instance id token.', e);
