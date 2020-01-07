@@ -4,6 +4,7 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
+    "prebuild": "tsc -d --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
     "build": "rollup -c",
     "build:console": "node tools/console.build.js",
     "dev": "rollup -c -w",
@@ -24,8 +25,11 @@
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
+  "browserMinified": "dist/index.cjs.min.js",
   "module": "dist/index.esm.js",
+  "moduleMinified": "dist/index.esm.min.js",
   "esm2017": "dist/index.esm2017.js",
+  "esm2017Minified": "dist/index.esm2017.min.js",
   "license": "Apache-2.0",
   "files": [
     "dist"
@@ -48,8 +52,10 @@
     "protobufjs": "6.8.8",
     "rollup": "1.27.9",
     "rollup-plugin-copy-assets": "1.1.0",
+    "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-terser": "5.1.2",
     "rollup-plugin-typescript2": "0.25.3",
     "typescript": "3.7.3"
   },

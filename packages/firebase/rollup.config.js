@@ -28,6 +28,38 @@ import pkg from './package.json';
 
 import appPkg from './app/package.json';
 
+function createUmdOutputConfig(output) {
+  return {
+    file: output,
+    format: 'umd',
+    sourcemap: true,
+    extend: true,
+    name: GLOBAL_NAME,
+    globals: {
+      '@firebase/app': GLOBAL_NAME
+    },
+
+    /**
+     * use iife to avoid below error in the old Safari browser
+     * SyntaxError: Functions cannot be declared in a nested block in strict mode
+     * https://github.com/firebase/firebase-js-sdk/issues/1228
+     *
+     */
+    intro: `
+          try {
+            (function() {`,
+    outro: `
+          }).apply(this, arguments);
+        } catch(err) {
+            console.error(err);
+            throw new Error(
+              'Cannot instantiate ${output} - ' +
+              'be sure to load firebase-app.js first.'
+            );
+          }`
+  };
+}
+
 const plugins = [
   sourcemaps(),
   resolveModule(),
@@ -101,42 +133,20 @@ const componentBuilds = pkg.components
       },
       {
         input: `${component}/index.ts`,
-        output: {
-          file: `firebase-${component}.js`,
-          format: 'umd',
-          sourcemap: true,
-          extend: true,
-          name: GLOBAL_NAME,
-          globals: {
-            '@firebase/app': GLOBAL_NAME
-          },
-
-          /**
-           * use iife to avoid below error in the old Safari browser
-           * SyntaxError: Functions cannot be declared in a nested block in strict mode
-           * https://github.com/firebase/firebase-js-sdk/issues/1228
-           *
-           */
-
-          intro: `
-            try {
-              (function() {`,
-          outro: `
-            }).apply(this, arguments);
-          } catch(err) {
-              console.error(err);
-              throw new Error(
-                'Cannot instantiate firebase-${component} - ' +
-                'be sure to load firebase-app.js first.'
-              );
-            }`
-        },
+        output: createUmdOutputConfig(`firebase-${component}.js`),
         plugins: [...plugins, uglify()],
         external: ['@firebase/app']
       }
     ];
   })
   .reduce((a, b) => a.concat(b), []);
+
+const firestoreMinifiedBuild = {
+  input: `firestore/index.min.ts`,
+  output: createUmdOutputConfig(`firebase-firestore.min.js`),
+  plugins: [...plugins, uglify()],
+  external: ['@firebase/app']
+};
 
 /**
  * Complete Package Builds
@@ -239,4 +249,9 @@ const completeBuilds = [
   }
 ];
 
-export default [...appBuilds, ...componentBuilds, ...completeBuilds];
+export default [
+  ...appBuilds,
+  ...componentBuilds,
+  firestoreMinifiedBuild,
+  ...completeBuilds
+];
