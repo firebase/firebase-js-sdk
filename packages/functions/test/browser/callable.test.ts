@@ -64,6 +64,7 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the messaging method get an instance id token.
     const stub = sinon.stub(messagingMock, 'getToken').callThrough();
+    sinon.stub(Notification, 'permission').value('granted');
 
     const func = functions.httpsCallable('instanceIdTest');
     const result = await func({});
