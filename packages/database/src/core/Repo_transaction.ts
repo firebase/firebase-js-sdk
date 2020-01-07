@@ -248,6 +248,7 @@ Repo.prototype.startTransaction = function(
     const newNodeUnresolved = nodeFromJSON(newVal, priorityForNode);
     const newNode = resolveDeferredValueSnapshot(
       newNodeUnresolved,
+      currentState,
       serverValues
     );
     transaction.currentOutputSnapshotRaw = newNodeUnresolved;
@@ -533,6 +534,7 @@ Repo.prototype.startTransaction = function(
           const serverValues = this.generateServerValues();
           const newNodeResolved = resolveDeferredValueSnapshot(
             newDataNode,
+            currentNode,
             serverValues
           );
 
