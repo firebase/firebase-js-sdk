@@ -56,7 +56,7 @@ export const resolveDeferredValue = function(
   if (!value || typeof value !== 'object') {
     return value as string | number | boolean;
   } else {
-    assert(false, 'Unexpected server value: ' + JSON.stringify(value, null, 2));
+    assert('.sv' in value, 'Unexpected leaf node or priority contents');
     return serverValues[value['.sv']];
   }
 };
