@@ -41,6 +41,12 @@ describe('Performance Monitoring > perf_logger', () => {
   const TRACE_NAME = 'testTrace';
   const START_TIME = 12345;
   const DURATION = 321;
+  // Perf event header which is constant across tests in this file.
+  const webAppInfo = `"application_info":{"google_app_id":"${APP_ID}",\
+"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
+"page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
+"visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
+"application_process_state":0}`;
 
   let addToQueueStub: SinonStub<
     Array<{ message: string; eventTime: number }>,
@@ -83,11 +89,10 @@ describe('Performance Monitoring > perf_logger', () => {
 
   describe('logTrace', () => {
     it('creates, serializes and sends a trace to cc service', () => {
-      const EXPECTED_TRACE_MESSAGE = `{"application_info":{"google_app_id":"${APP_ID}",\
-"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
-"page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
-"visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
-"application_process_state":0},"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
+      const EXPECTED_TRACE_MESSAGE =
+        `{` +
+        webAppInfo +
+        `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "counters":{"counter1":3},"custom_attributes":{"attr":"val"}}}`;
       getIidStub.returns(IID);
@@ -112,6 +117,57 @@ describe('Performance Monitoring > perf_logger', () => {
       clock.tick(1);
 
       expect(addToQueueStub).not.to.be.called;
+    });
+
+    it('Amount of customMetric is 32.', () => {
+      const EXPECTED_TRACE_MESSAGE =
+        `{` +
+        webAppInfo +
+        `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
+"client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
+"counters":{"counter1":1,"counter2":2,"counter3":3,"counter4":4,"counter5":5,"counter6":6,\
+"counter7":7,"counter8":8,"counter9":9,"counter10":10,"counter11":11,"counter12":12,\
+"counter13":13,"counter14":14,"counter15":15,"counter16":16,"counter17":17,"counter18":18,\
+"counter19":19,"counter20":20,"counter21":21,"counter22":22,"counter23":23,"counter24":24,\
+"counter25":25,"counter26":26,"counter27":27,"counter28":28,"counter29":29,"counter30":30,\
+"counter31":31,"counter32":32}}}`;
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logTraceAfterSampling = true;
+      const trace = new Trace(TRACE_NAME);
+      for (let i = 1; i <= 32; i++) {
+        trace.putMetric('counter' + i, i);
+      }
+      trace.record(START_TIME, DURATION);
+      clock.tick(1);
+
+      expect(addToQueueStub).to.be.called;
+      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+        EXPECTED_TRACE_MESSAGE
+      );
+    });
+
+    it('Amount of customAttribute is 5.', () => {
+      const EXPECTED_TRACE_MESSAGE =
+        `{` +
+        webAppInfo +
+        `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
+"client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
+"custom_attributes":{"attr1":"val1","attr2":"val2","attr3":"val3","attr4":"val4","attr5":"val5"}}}`;
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logTraceAfterSampling = true;
+      const trace = new Trace(TRACE_NAME);
+      for (let i = 1; i <= 5; i++) {
+        trace.putAttribute('attr' + i, 'val' + i);
+      }
+      trace.record(START_TIME, DURATION);
+      clock.tick(1);
+
+      expect(addToQueueStub).to.be.called;
+      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+        EXPECTED_TRACE_MESSAGE
+      );
     });
   });
 
@@ -149,11 +205,10 @@ describe('Performance Monitoring > perf_logger', () => {
           RESOURCE_PERFORMANCE_ENTRY.startTime) *
           1000
       );
-      const EXPECTED_NETWORK_MESSAGE = `{"application_info":{"google_app_id":"${APP_ID}",\
-"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
-"page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
-"visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
-"application_process_state":0},\
+      const EXPECTED_NETWORK_MESSAGE =
+        `{` +
+        webAppInfo +
+        `,\
 "network_request_metric":{"url":"${RESOURCE_PERFORMANCE_ENTRY.name}",\
 "http_method":0,"http_response_code":200,\
 "response_payload_bytes":${RESOURCE_PERFORMANCE_ENTRY.transferSize},\
