@@ -4,7 +4,7 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
-    "prebuild": "tsc -d --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
+    "prebuild": "tsc -d --downlevelIteration --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
     "build": "rollup -c",
     "build:console": "node tools/console.build.js",
     "dev": "rollup -c -w",
