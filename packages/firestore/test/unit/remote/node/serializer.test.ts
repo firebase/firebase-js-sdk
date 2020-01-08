@@ -44,7 +44,8 @@ import {
   FieldMask,
   Mutation,
   Precondition,
-  SetMutation
+  SetMutation,
+  VerifyMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
 import {
@@ -690,6 +691,20 @@ describe('Serializer', () => {
       );
       const proto = {
         update: s.toMutationDocument(mutation.key, mutation.value),
+        currentDocument: {
+          updateTime: { seconds: '0', nanos: 4000 }
+        }
+      };
+      verifyMutation(mutation, proto);
+    });
+
+    it('VerifyMutation', () => {
+      const mutation = new VerifyMutation(
+        key('foo/bar'),
+        Precondition.updateTime(version(4))
+      );
+      const proto = {
+        verify: s.toName(mutation.key),
         currentDocument: {
           updateTime: { seconds: '0', nanos: 4000 }
         }
