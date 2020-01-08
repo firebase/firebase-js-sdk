@@ -15,29 +15,26 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers, SinonStub } from 'sinon';
+import { stub, useFakeTimers, SinonStub, SinonFakeTimers } from 'sinon';
 import { use, expect } from 'chai';
 import * as sinonChai from 'sinon-chai';
+import { transportHandler, setupTransportService } from './transport_service';
 
 use(sinonChai);
-
-// We have to stub the clock before importing transport_service, otherwise we cannot deterministically
-// trigger fetches.
-// Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
-const clock = useFakeTimers(1);
-import { transportHandler, setupTransportService } from './transport_service';
 
 describe('Firebase Performance > transport_service', () => {
   let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
+  // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
+  const clock: SinonFakeTimers = useFakeTimers(1);
+  setupTransportService();
   const testTransportHandler = transportHandler((...args) => {
     return args[0];
   });
 
   beforeEach(() => {
     fetchStub = stub(window, 'fetch');
-    setupTransportService();
   });
 
   afterEach(() => {

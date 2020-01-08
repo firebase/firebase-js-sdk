@@ -52,8 +52,13 @@ interface Log {
 
 let queue: BatchEvent[] = [];
 
+let isTransportSetup: boolean = false;
+
 export function setupTransportService(): void {
-  processQueue(INITIAL_SEND_TIME_DELAY_MS);
+  if (!isTransportSetup) {
+    processQueue(INITIAL_SEND_TIME_DELAY_MS);
+    isTransportSetup = true;
+  }
 }
 
 function processQueue(timeOffset: number): void {
