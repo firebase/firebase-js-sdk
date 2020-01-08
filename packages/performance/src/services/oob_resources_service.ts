@@ -19,7 +19,6 @@ import { Trace } from '../resources/trace';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import { TRACE_MEASURE_PREFIX } from '../constants';
 import { getIid } from './iid_service';
-import { setupTransportService } from './transport_service';
 
 const FID_WAIT_TIME_MS = 5000;
 
@@ -28,7 +27,6 @@ export function setupOobResources(): void {
   if (!getIid()) {
     return;
   }
-  setupTransportService();
   // The load event might not have fired yet, and that means performance navigation timing
   // object has a duration of 0. The setup should run after all current tasks in js queue.
   setTimeout(() => setupOobTraces(), 0);

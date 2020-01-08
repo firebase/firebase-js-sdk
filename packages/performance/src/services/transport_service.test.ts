@@ -41,14 +41,13 @@ describe('Firebase Performance > transport_service', () => {
     fetchStub.restore();
   });
 
-  it('throws an error when logging an empty message', done => {
+  it('throws an error when logging an empty message', () => {
     expect(() => {
       testTransportHandler('');
     }).to.throw;
-    done();
   });
 
-  it('does not attempt to log an event to clearcut after INITIAL_SEND_TIME_DELAY_MS if queue is empty', done => {
+  it('does not attempt to log an event to clearcut after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
     fetchStub.resolves(
       new Response('', {
         status: 200,
@@ -58,10 +57,9 @@ describe('Firebase Performance > transport_service', () => {
 
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     expect(fetchStub).to.not.have.been.called;
-    done();
   });
 
-  it('attempts to log an event to clearcut after DEFAULT_SEND_INTERVAL_MS if queue not empty', done => {
+  it('attempts to log an event to clearcut after DEFAULT_SEND_INTERVAL_MS if queue not empty', () => {
     fetchStub.resolves(
       new Response('', {
         status: 200,
@@ -72,6 +70,5 @@ describe('Firebase Performance > transport_service', () => {
     testTransportHandler('someEvent');
     clock.tick(DEFAULT_SEND_INTERVAL_MS);
     expect(fetchStub).to.have.been.calledOnce;
-    done();
   });
 });
