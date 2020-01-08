@@ -17,7 +17,7 @@
 
 import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { Trace } from '../resources/trace';
-import * as ccService from './cc_service';
+import * as ccService from './transport_service';
 import * as iidService from './iid_service';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
@@ -48,7 +48,7 @@ describe('Performance Monitoring > perf_logger', () => {
   let getIidStub: SinonStub<[], string | undefined>;
   let clock: SinonFakeTimers;
 
-  function mockCcHandler(
+  function mockTransportHandler(
     serializer: (...args: any[]) => string
   ): (...args: any[]) => void {
     return (...args) => {
@@ -65,7 +65,7 @@ describe('Performance Monitoring > perf_logger', () => {
   beforeEach(() => {
     getIidStub = stub(iidService, 'getIid');
     addToQueueStub = stub();
-    stub(ccService, 'ccHandler').callsFake(mockCcHandler);
+    stub(ccService, 'transportHandler').callsFake(mockTransportHandler);
     stub(Api.prototype, 'getUrl').returns(PAGE_URL);
     stub(Api.prototype, 'getTimeOrigin').returns(TIME_ORIGIN);
     stub(initializationService, 'isPerfInitialized').returns(true);
