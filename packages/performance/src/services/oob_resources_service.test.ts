@@ -150,6 +150,7 @@ describe('Firebase Performance > oob_resources_service', () => {
     it('waits for first input delay if polyfill is available', () => {
       getIidStub.returns(MOCK_ID);
       const api = Api.getInstance();
+      //@ts-ignore Assignment to read-only property.
       api.onFirstInputDelay = stub();
       setupOobResources();
       clock.tick(1);
@@ -170,6 +171,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Underscore is to avoid compiler comlaining about variable being declared but not used.
       type FirstInputDelayCallback = (firstInputDelay: number) => void;
       let firstInputDelayCallback: FirstInputDelayCallback = (): void => {};
+      //@ts-ignore Assignment to read-only property.
       api.onFirstInputDelay = (cb: FirstInputDelayCallback) => {
         firstInputDelayCallback = cb;
       };
