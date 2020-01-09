@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
+import { use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import { dbDelete } from '../helpers/idb-manager';
+import { deleteDb } from 'idb';
 
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
-}
+use(chaiAsPromised);
+use(sinonChai);
+
+afterEach(async () => {
+  restore();
+  await dbDelete();
+  await deleteDb('fcm_token_details_db');
+});

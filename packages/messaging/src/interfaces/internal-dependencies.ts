@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,15 @@
  * limitations under the License.
  */
 
-export interface TokenDetails {
-  token: string;
-  createTime: number;
-  /** Does not exist in Safari since it's not using Push API. */
-  subscriptionOptions?: SubscriptionOptions;
-}
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { Provider } from '@firebase/component';
+import { AppConfig } from './app-config';
+import { FirebaseApp } from '@firebase/app-types';
 
-/**
- * Additional options and values required by a Push API subscription.
- */
-export interface SubscriptionOptions {
-  vapidKey: string;
-  swScope: string;
-  endpoint: string;
-  auth: string;
-  p256dh: string;
+export interface FirebaseInternalDependencies {
+  app: FirebaseApp;
+  appConfig: AppConfig;
+  installations: FirebaseInstallations;
+  analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 }

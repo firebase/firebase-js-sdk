@@ -30,11 +30,13 @@
     "@firebase/messaging-types": "0.4.0",
     "@firebase/util": "0.2.36",
     "@firebase/component": "0.1.1",
+    "idb": "3.0.2",
     "tslib": "1.10.0"
   },
   "devDependencies": {
     "rollup": "1.28.0",
     "rollup-plugin-typescript2": "0.25.3",
+    "ts-essentials": "4.0.0",
     "typescript": "3.7.3"
   },
   "repository": {
