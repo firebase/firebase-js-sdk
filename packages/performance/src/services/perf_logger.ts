@@ -30,7 +30,7 @@ import {
   isPerfInitialized,
   getInitializationPromise
 } from './initialization_service';
-import { ccHandler } from './cc_service';
+import { transportHandler } from './transport_service';
 import { SDK_VERSION } from '../constants';
 
 const enum ResourceType {
@@ -95,7 +95,7 @@ function sendLog(
   resourceType: ResourceType
 ): void {
   if (!logger) {
-    logger = ccHandler(serializer);
+    logger = transportHandler(serializer);
   }
   logger(resource, resourceType);
 }

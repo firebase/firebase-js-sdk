@@ -52,6 +52,15 @@ interface Log {
 
 let queue: BatchEvent[] = [];
 
+let isTransportSetup: boolean = false;
+
+export function setupTransportService(): void {
+  if (!isTransportSetup) {
+    processQueue(INITIAL_SEND_TIME_DELAY_MS);
+    isTransportSetup = true;
+  }
+}
+
 function processQueue(timeOffset: number): void {
   setTimeout(() => {
     // If there is no remainingTries left, stop retrying.
@@ -120,8 +129,6 @@ function processQueue(timeOffset: number): void {
   }, timeOffset);
 }
 
-processQueue(INITIAL_SEND_TIME_DELAY_MS);
-
 function addToQueue(evt: BatchEvent): void {
   if (!evt.eventTime || !evt.message) {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_CC_LOG);
@@ -131,7 +138,7 @@ function addToQueue(evt: BatchEvent): void {
 }
 
 /** Log handler for cc service to send the performance logs to the server. */
-export function ccHandler(
+export function transportHandler(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serializer: (...args: any[]) => string
 ): (...args: unknown[]) => void {
