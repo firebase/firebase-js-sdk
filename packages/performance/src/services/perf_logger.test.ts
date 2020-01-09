@@ -181,7 +181,9 @@ describe('Performance Monitoring > perf_logger', () => {
       const EXPECTED_TRACE_MESSAGE = `{"application_info":{"google_app_id":"${APP_ID}",\
 "app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
 "page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
-"visibility_state":${attributeUtils.VisibilityState.VISIBLE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
+"visibility_state":${
+        attributeUtils.VisibilityState.VISIBLE
+      },"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0},"trace_metric":{"name":"_wt_${PAGE_URL}","is_auto":true,\
 "client_start_time_us":${flooredStartTime},"duration_us":${DURATION * 1000},\
 "counters":{"domInteractive":10000,"domContentLoadedEventEnd":20000,"loadEventEnd":10000,\
@@ -190,7 +192,9 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
 
-      stub(attributeUtils, 'getVisibilityState').returns(attributeUtils.VisibilityState.VISIBLE);
+      stub(attributeUtils, 'getVisibilityState').returns(
+        attributeUtils.VisibilityState.VISIBLE
+      );
 
       const navigationTiming: PerformanceNavigationTiming = {
         domComplete: 100,
@@ -203,7 +207,7 @@ describe('Performance Monitoring > perf_logger', () => {
         type: 'navigate',
         unloadEventEnd: 10,
         unloadEventStart: 10,
-        duration: DURATION,
+        duration: DURATION
       } as PerformanceNavigationTiming;
 
       const navigationTimings: PerformanceNavigationTiming[] = [
@@ -215,21 +219,22 @@ describe('Performance Monitoring > perf_logger', () => {
         startTime: 40,
         duration: 100,
         entryType: 'url',
-        toJSON() {},
+        toJSON() {}
       };
 
-      const firstContentfulPaint:Readonly<PerformanceEntry> = {
+      const firstContentfulPaint: Readonly<PerformanceEntry> = {
         name: 'first-contentful-paint',
         startTime: 50,
         duration: 100,
         entryType: 'url',
-        toJSON() {} 
+        toJSON() {}
       };
 
       const paintTimings: PerformanceEntry[] = [
-        firstPaint, firstContentfulPaint
+        firstPaint,
+        firstContentfulPaint
       ];
- 
+
       Trace.createOobTrace(navigationTimings, paintTimings, 90);
       clock.tick(1);
 
