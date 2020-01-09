@@ -222,7 +222,7 @@ describe('Performance Monitoring > perf_logger', () => {
         toJSON() {}
       };
 
-      const firstContentfulPaint: Readonly<PerformanceEntry> = {
+      const firstContentfulPaint: PerformanceEntry = {
         name: 'first-contentful-paint',
         startTime: 50,
         duration: 100,
