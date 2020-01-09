@@ -63,7 +63,7 @@ packages/auth  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 
 # Testing Code
-packages/testing  @ryanpbrewster @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
+packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
 
 # RxFire Code
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers

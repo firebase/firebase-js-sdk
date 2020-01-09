@@ -1,6 +1,6 @@
 {
   "name": "@firebase/testing",
-  "version": "0.16.4",
+  "version": "0.16.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -15,15 +15,15 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.6.1",
+    "firebase": "7.6.2",
     "@firebase/logger": "0.1.33",
-    "@firebase/util": "0.2.36",
-    "@types/request": "2.48.3",
+    "@firebase/util": "0.2.37",
+    "@types/request": "2.48.4",
     "grpc": "1.24.2",
     "request": "2.88.0"
   },
   "devDependencies": {
-    "rollup": "1.27.9",
+    "rollup": "1.28.0",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.25.3"

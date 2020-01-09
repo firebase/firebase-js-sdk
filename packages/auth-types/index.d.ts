@@ -223,6 +223,7 @@ export class OAuthProvider implements AuthProvider {
 }
 
 export class SAMLAuthProvider implements AuthProvider {
+  constructor(providerId: string);
   providerId: string;
 }
 

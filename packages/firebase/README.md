@@ -231,6 +231,4 @@ The Firebase changelog can be found at
 [firebase.google.com](https://firebase.google.com/support/release-notes/js).
 
 ## Browser/environment compatibility
-
-See [ENVIRONMENTS.md](ENVIRONMENTS.md) to see which browsers/environments are
-supported for each feature.
+Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).

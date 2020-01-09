@@ -374,6 +374,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Write {
     update?: Document;
     delete?: string;
+    verify?: string;
     transform?: DocumentTransform;
     updateMask?: DocumentMask;
     currentDocument?: Precondition;

@@ -64,7 +64,13 @@ const plugins = [
   sourcemaps(),
   resolveModule(),
   typescriptPlugin({
-    typescript
+    typescript,
+    // Workaround for typescript plugins that use async functions.
+    // In this case, `rollup-plugin-sourcemaps`.
+    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+    objectHashIgnoreUnknownHack: true,
+    // For safety, given hack above (see link).
+    clean: true
   }),
   json(),
   commonjs()
@@ -209,7 +215,13 @@ const completeBuilds = [
         mainFields: ['lite', 'module', 'main']
       }),
       typescriptPlugin({
-        typescript
+        typescript,
+        // Workaround for typescript plugins that use async functions.
+        // In this case, `rollup-plugin-sourcemaps`.
+        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+        objectHashIgnoreUnknownHack: true,
+        // For safety, given hack above (see link).
+        clean: true
       }),
       json(),
       commonjs(),
@@ -234,6 +246,12 @@ const completeBuilds = [
       }),
       typescriptPlugin({
         typescript,
+        // Workaround for typescript plugins that use async functions.
+        // In this case, `rollup-plugin-sourcemaps`.
+        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+        objectHashIgnoreUnknownHack: true,
+        // For safety, given hack above (see link).
+        clean: true,
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017'

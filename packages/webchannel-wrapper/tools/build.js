@@ -50,7 +50,8 @@ closureBuilder.build({
         "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})\n//# sourceMappingURL=index.js.map",
       language_out: 'ECMASCRIPT5',
       compilation_level: 'ADVANCED',
-      define: closureDefines
+      define: closureDefines,
+      use_closure_library: '../../node_modules/google-closure-library'
     }
   }
 });

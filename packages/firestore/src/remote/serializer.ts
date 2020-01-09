@@ -45,7 +45,8 @@ import {
   PatchMutation,
   Precondition,
   SetMutation,
-  TransformMutation
+  TransformMutation,
+  VerifyMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
@@ -844,6 +845,10 @@ export class JsonProtoSerializer {
           )
         }
       };
+    } else if (mutation instanceof VerifyMutation) {
+      result = {
+        verify: this.toName(mutation.key)
+      };
     } else {
       return fail('Unknown mutation type ' + mutation.type);
     }
@@ -883,6 +888,9 @@ export class JsonProtoSerializer {
         'Transforms only support precondition "exists == true"'
       );
       return new TransformMutation(key, fieldTransforms);
+    } else if (proto.verify) {
+      const key = this.fromName(proto.verify);
+      return new VerifyMutation(key, precondition);
     } else {
       return fail('unknown mutation proto: ' + JSON.stringify(proto));
     }

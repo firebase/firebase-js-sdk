@@ -1352,6 +1352,12 @@ declare namespace firebase.installations {
      * Deletes the Firebase Installation and all associated data.
      */
     delete(): Promise<void>;
+
+    /**
+     * Sets a new callback that will get called when Installlation ID changes.
+     * Returns an unsubscribe function that will remove the callback when called.
+     */
+    onIdChange(callback: (installationId: string) => void): () => void;
   }
 }
 
@@ -3656,6 +3662,7 @@ declare namespace firebase.auth {
   }
 
   class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
   }
 

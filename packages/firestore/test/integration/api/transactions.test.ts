@@ -205,45 +205,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
   }
 
-  // TODO(klimt): Test that transactions don't see latency compensation
-  // changes, using the other kind of integration test.
-  // We currently require every document read to also be written.
-  it('get documents', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('spaces').doc();
-      return doc
-        .set({
-          foo: 1,
-          desc: 'Stuff related to Firestore project...',
-          owner: 'Jonny'
-        })
-        .then(() => {
-          return (
-            db
-              .runTransaction(transaction => {
-                return transaction.get(doc);
-              })
-              // We currently require every document read to also be
-              // written.
-              // TODO(b/34879758): Add this check back once we drop that.
-              // .then((snapshot) => {
-              //   expect(snapshot).to.exist;
-              //   expect(snapshot.data()['owner']).to.equal('Jonny');
-              // });
-              .then(() => expect.fail('transaction should fail'))
-              .catch((err: firestore.FirestoreError) => {
-                expect(err).to.exist;
-                expect(err.code).to.equal('invalid-argument');
-                expect(err.message).to.contain(
-                  'Every document read in a transaction must also be' +
-                    ' written'
-                );
-              })
-          );
-        });
-    });
-  });
-
   it('runs transactions after getting existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
@@ -484,54 +445,40 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('handle reading one doc and writing another', () => {
+  it('retry when a document that was read without being written changes', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc1 = db.collection('counters').doc();
       const doc2 = db.collection('counters').doc();
-      // let tries = 0;
-      return (
-        doc1
-          .set({
-            count: 15
-          })
-          .then(() => {
-            return db.runTransaction(transaction => {
-              // ++tries;
+      let tries = 0;
+      return doc1
+        .set({
+          count: 15
+        })
+        .then(() => {
+          return db.runTransaction(transaction => {
+            ++tries;
 
-              // Get the first doc.
-              return (
-                transaction
-                  .get(doc1)
-                  // Do a write outside of the transaction. The first time the
-                  // transaction is tried, this will bump the version, which
-                  // will cause the write to doc2 to fail. The second time, it
-                  // will be a no-op and not bump the version.
-                  .then(() => doc1.set({ count: 1234 }))
-                  // Now try to update the other doc from within the
-                  // transaction.
-                  // This should fail once, because we read 15 earlier.
-                  .then(() => transaction.set(doc2, { count: 16 }))
-              );
-            });
-          })
-          // We currently require every document read to also be written.
-          // TODO(b/34879758): Add this check back once we drop that.
-          // .then(() => doc1.get())
-          // .then(snapshot => {
-          //   expect(tries).to.equal(2);
-          //   expect(snapshot.data()['count']).to.equal(1234);
-          //   return doc2.get();
-          // })
-          // .then(snapshot => expect(snapshot.data()['count']).to.equal(16));
-          .then(() => expect.fail('transaction should fail'))
-          .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            expect(err.code).to.equal('invalid-argument');
-            expect(err.message).to.contain(
-              'Every document read in a transaction must also be ' + 'written'
+            // Get the first doc.
+            return (
+              transaction
+                .get(doc1)
+                // Do a write outside of the transaction. The first time the
+                // transaction is tried, this will bump the version, which
+                // will cause the write to doc2 to fail. The second time, it
+                // will be a no-op and not bump the version.
+                .then(() => doc1.set({ count: 1234 }))
+                // Now try to update the other doc from within the
+                // transaction.
+                // This should fail once, because we read 15 earlier.
+                .then(() => transaction.set(doc2, { count: 16 }))
             );
-          })
-      );
+          });
+        })
+        .then(async () => {
+          const snapshot = await doc1.get();
+          expect(tries).to.equal(2);
+          expect(snapshot.data()!['count']).to.equal(1234);
+        });
     });
   });
 
@@ -621,32 +568,22 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
   });
 
-  it('cannot have a get without mutations', () => {
+  it('can have gets without mutations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('foo').doc();
-      return (
-        docRef
-          .set({ foo: 'bar' })
-          .then(() => {
-            return db.runTransaction(txn => {
-              return txn.get(docRef);
-            });
-          })
-          // We currently require every document read to also be written.
-          // TODO(b/34879758): Add this check back once we drop that.
-          // .then((snapshot) => {
-          //   expect(snapshot).to.exist;
-          //   expect(snapshot.data()['foo']).to.equal('bar');
-          // });
-          .then(() => expect.fail('transaction should fail'))
-          .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            expect(err.code).to.equal('invalid-argument');
-            expect(err.message).to.contain(
-              'Every document read in a transaction must also be ' + 'written'
-            );
-          })
-      );
+      const docRef2 = db.collection('foo').doc();
+      return docRef
+        .set({ foo: 'bar' })
+        .then(() => {
+          return db.runTransaction(async txn => {
+            await txn.get(docRef2);
+            return txn.get(docRef);
+          });
+        })
+        .then(snapshot => {
+          expect(snapshot).to.exist;
+          expect(snapshot.data()!['foo']).to.equal('bar');
+        });
     });
   });
 

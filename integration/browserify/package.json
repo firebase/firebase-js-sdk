@@ -7,11 +7,11 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "7.6.1"
+    "firebase": "7.6.2"
   },
   "devDependencies": {
-    "@babel/core": "7.7.5",
-    "@babel/preset-env": "7.7.6",
+    "@babel/core": "7.7.7",
+    "@babel/preset-env": "7.7.7",
     "browserify": "16.5.0",
     "chai": "4.2.0",
     "karma": "4.4.1",
