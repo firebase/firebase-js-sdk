@@ -51,6 +51,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
+import { reject } from 'q';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
@@ -281,14 +282,22 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
-        const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
-        if (!query.path.isPrefixOf(maybeDoc.key.path)) {
-          control.done();
-        } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
-          results = results.insert(maybeDoc.key, maybeDoc);
-        }
+        this.decodeDocAsync(dbRemoteDoc)
+        .next((maybeDoc) => {
+          if (!query.path.isPrefixOf(maybeDoc.key.path)) {
+            control.done();
+          } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+            results = results.insert(maybeDoc.key, maybeDoc);
+          }
+        });
       })
       .next(() => results);
+  }
+
+  private decodeDocAsync(dbRemoteDoc: DbRemoteDocument): PersistencePromise<MaybeDocument> {
+    return new PersistencePromise((resolve, reject) => {
+      resolve(this.serializer.fromDbRemoteDocument(dbRemoteDoc));
+    });
   }
 
   /**
