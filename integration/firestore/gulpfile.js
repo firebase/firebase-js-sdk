@@ -80,7 +80,7 @@ function compileWebpack() {
     .pipe(
       webpackStream(
         Object.assign({}, config, {
-          output: {
+          outputgit  {
             filename: 'test-harness.js'
           }
         }),
