@@ -44,6 +44,7 @@ declare module '@firebase/app-types' {
       Firestore: typeof types.FirebaseFirestore;
       GeoPoint: typeof types.GeoPoint;
       Query: typeof types.Query;
+      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
       QuerySnapshot: typeof types.QuerySnapshot;
       Timestamp: typeof types.Timestamp;
       Transaction: typeof types.Transaction;
