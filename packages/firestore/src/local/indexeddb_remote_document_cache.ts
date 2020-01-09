@@ -51,7 +51,6 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
-import { reject } from 'q';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
