@@ -41,7 +41,7 @@ describe('Performance Monitoring > perf_logger', () => {
   const START_TIME = 12345;
   const DURATION = 321;
   // Perf event header which is constant across tests in this file.
-  const webAppInfo = `"application_info":{"google_app_id":"${APP_ID}",\
+  const WEBAPP_INFO = `"application_info":{"google_app_id":"${APP_ID}",\
 "app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
 "page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
@@ -88,10 +88,10 @@ describe('Performance Monitoring > perf_logger', () => {
   });
 
   describe('logTrace', () => {
-    it('creates, serializes and sends a trace to cc service', () => {
+    it('creates, serializes and sends a trace to transport service', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
-        webAppInfo +
+        WEBAPP_INFO +
         `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "counters":{"counter1":3},"custom_attributes":{"attr":"val"}}}`;
@@ -121,10 +121,10 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub).not.to.be.called;
     });
 
-    it('Amount of customMetric is 32.', () => {
+    it('Ascertains that the max number of customMetric allowed is 32', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
-        webAppInfo +
+        WEBAPP_INFO +
         `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "counters":{"counter1":1,"counter2":2,"counter3":3,"counter4":4,"counter5":5,"counter6":6,\
@@ -150,10 +150,10 @@ describe('Performance Monitoring > perf_logger', () => {
       );
     });
 
-    it('Amount of customAttribute is 5.', () => {
+    it('Ascertains that the max number of custom attributes allowed is 5', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
-        webAppInfo +
+        WEBAPP_INFO +
         `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "custom_attributes":{"attr1":"val1","attr2":"val2","attr3":"val3","attr4":"val4","attr5":"val5"}}}`;
@@ -222,7 +222,7 @@ describe('Performance Monitoring > perf_logger', () => {
         toJSON() {}
       };
 
-      const firstContentfulPaint: Readonly<PerformanceEntry> = {
+      const firstContentfulPaint: PerformanceEntry = {
         name: 'first-contentful-paint',
         startTime: 50,
         duration: 100,
@@ -246,7 +246,7 @@ describe('Performance Monitoring > perf_logger', () => {
   });
 
   describe('logNetworkRequest', () => {
-    it('creates, serializes and sends a network request to cc service', () => {
+    it('creates, serializes and sends a network request to transport service', () => {
       const RESOURCE_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
         connectEnd: 0,
         connectStart: 0,
@@ -281,7 +281,7 @@ describe('Performance Monitoring > perf_logger', () => {
       );
       const EXPECTED_NETWORK_MESSAGE =
         `{` +
-        webAppInfo +
+        WEBAPP_INFO +
         `,\
 "network_request_metric":{"url":"${RESOURCE_PERFORMANCE_ENTRY.name}",\
 "http_method":0,"http_response_code":200,\
