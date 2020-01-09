@@ -9,8 +9,8 @@
     "firebase": "7.6.1"
   },
   "devDependencies": {
-    "@babel/core": "7.7.5",
-    "@babel/preset-env": "7.7.6",
+    "@babel/core": "7.7.7",
+    "@babel/preset-env": "7.7.7",
     "@types/chai": "4.2.7",
     "@types/mocha": "5.2.7",
     "chai": "4.2.0",
