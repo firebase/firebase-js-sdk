@@ -282,8 +282,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
-        this.decodeDocAsync(dbRemoteDoc)
-        .next((maybeDoc) => {
+        this.decodeDocAsync(dbRemoteDoc).next(maybeDoc => {
           if (!query.path.isPrefixOf(maybeDoc.key.path)) {
             control.done();
           } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
@@ -294,7 +293,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
-  private decodeDocAsync(dbRemoteDoc: DbRemoteDocument): PersistencePromise<MaybeDocument> {
+  private decodeDocAsync(
+    dbRemoteDoc: DbRemoteDocument
+  ): PersistencePromise<MaybeDocument> {
     return new PersistencePromise((resolve, reject) => {
       resolve(this.serializer.fromDbRemoteDocument(dbRemoteDoc));
     });
