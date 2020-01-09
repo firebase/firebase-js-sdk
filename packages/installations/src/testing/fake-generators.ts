@@ -45,8 +45,10 @@ export function getFakeApp(): FirebaseApp {
   };
 }
 
-export function getFakeAppConfig(): AppConfig {
-  return extractAppConfig(getFakeApp());
+export function getFakeAppConfig(
+  customValues: Partial<AppConfig> = {}
+): AppConfig {
+  return { ...extractAppConfig(getFakeApp()), ...customValues };
 }
 
 export function getFakeDependencies(): FirebaseDependencies {
