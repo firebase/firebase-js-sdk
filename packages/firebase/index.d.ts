@@ -3662,6 +3662,7 @@ declare namespace firebase.auth {
   }
 
   class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
   }
 
