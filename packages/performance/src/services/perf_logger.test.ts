@@ -121,7 +121,7 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub).not.to.be.called;
     });
 
-    it('Ascertains that the max number of customMetric allowed is 32', () => {
+    it('ascertains that the max number of customMetric allowed is 32', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
         WEBAPP_INFO +
@@ -150,7 +150,7 @@ describe('Performance Monitoring > perf_logger', () => {
       );
     });
 
-    it('Ascertains that the max number of custom attributes allowed is 5', () => {
+    it('ascertains that the max number of custom attributes allowed is 5', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
         WEBAPP_INFO +
