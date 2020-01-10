@@ -138,6 +138,7 @@ describe('Firebase Performance > trace', () => {
 
     it('throws error if metric doesnt exist and has invalid name', () => {
       expect(() => trace.putMetric('_invalidMetric', 1)).to.throw();
+      expect(() => trace.putMetric('_fid', 1)).to.throw();
     });
   });
 
