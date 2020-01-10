@@ -287,17 +287,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
-        const decodeDoc = new Promise<void>((resolve, reject) => {
+        const decodeDoc = Promise.resolve().then(() => {
           const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
           if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
             results = results.insert(maybeDoc.key, maybeDoc);
           }
-          resolve();
         });
         promises.push(decodeDoc);
       })
+      .next(async () => {
+        await Promise.all(promises);
+      })
       .next(() => {
-        Promise.all(promises);
         return results;
       });
   }
