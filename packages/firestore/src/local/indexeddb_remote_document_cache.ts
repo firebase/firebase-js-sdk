@@ -270,6 +270,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
     }
 
+    let promises : Promise<void>[] = [];
     return remoteDocumentsStore(transaction)
       .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
@@ -281,23 +282,24 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
-        this.decodeDocAsync(dbRemoteDoc).next(maybeDoc => {
-          if (!query.path.isPrefixOf(maybeDoc.key.path)) {
+        if (!query.path.isPrefixOf(new ResourcePath(key))) {
             control.done();
-          } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+            return;
+        }
+
+        const decodeDoc = new Promise<void>((resolve, reject) => {
+          const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+          if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
             results = results.insert(maybeDoc.key, maybeDoc);
           }
+          resolve();
         });
+        promises.push(decodeDoc);
       })
-      .next(() => results);
-  }
-
-  private decodeDocAsync(
-    dbRemoteDoc: DbRemoteDocument
-  ): PersistencePromise<MaybeDocument> {
-    return new PersistencePromise((resolve, reject) => {
-      resolve(this.serializer.fromDbRemoteDocument(dbRemoteDoc));
-    });
+      .next(() => {
+        Promise.all(promises);
+        return results;
+      });
   }
 
   /**
