@@ -270,7 +270,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
     }
 
-    let promises: Promise<void>[] = [];
+    const promises: Promise<void>[] = [];
     return remoteDocumentsStore(transaction)
       .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
