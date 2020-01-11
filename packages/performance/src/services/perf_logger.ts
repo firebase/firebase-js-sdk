@@ -79,8 +79,8 @@ interface TraceMetric {
   is_auto: boolean;
   client_start_time_us: number;
   duration_us: number;
-  counters?: Array<{ key: string; value: number }>;
-  custom_attributes?: Array<{ key: string; value: string }>;
+  counters?: { [key: string]: number };
+  custom_attributes?: { [key: string]: string };
 }
 
 /* eslint-enble camelcase */
@@ -201,11 +201,11 @@ function serializeTrace(trace: Trace): string {
   };
 
   if (Object.keys(trace.counters).length !== 0) {
-    traceMetric.counters = convertToKeyValueArray(trace.counters);
+    traceMetric.counters = trace.counters;
   }
   const customAttributes = trace.getAttributes();
   if (Object.keys(customAttributes).length !== 0) {
-    traceMetric.custom_attributes = convertToKeyValueArray(customAttributes);
+    traceMetric.custom_attributes = customAttributes;
   }
 
   const perfMetric: PerfTraceLog = {
@@ -228,14 +228,4 @@ function getApplicationInfo(): ApplicationInfo {
     },
     application_process_state: 0
   };
-}
-
-function convertToKeyValueArray<T>(obj: {
-  [key: string]: T;
-}): Array<{
-  key: string;
-  value: T;
-}> {
-  const keys = Object.keys(obj);
-  return keys.map(key => ({ key, value: obj[key] }));
 }

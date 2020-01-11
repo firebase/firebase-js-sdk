@@ -45,7 +45,7 @@ interface ClientInfo {
 }
 
 interface Log {
-  source_extension_json: string;
+  source_extension_json_proto3: string;
   event_time_ms: string;
 }
 /* eslint-enable camelcase */
@@ -79,8 +79,8 @@ function processQueue(timeOffset: number): void {
 
     /* eslint-disable camelcase */
     // We will pass the JSON serialized event to the backend.
-    const log_event = staged.map(evt => ({
-      source_extension_json: evt.message,
+    const log_event: Log[] = staged.map(evt => ({
+      source_extension_json_proto3: evt.message,
       event_time_ms: String(evt.eventTime)
     }));
 
