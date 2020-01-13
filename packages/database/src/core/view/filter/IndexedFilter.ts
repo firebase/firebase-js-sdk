@@ -56,7 +56,7 @@ export class IndexedFilter implements NodeFilter {
       // There's an edge case where a child can enter or leave the view because affectedPath was set to null.
       // In this case, affectedPath will appear null in both the old and new snapshots.  So we need
       // to avoid treating these cases as "nothing changed."
-      if (oldChild.isEmpty() == newChild.isEmpty()) {
+      if (oldChild.isEmpty() === newChild.isEmpty()) {
         // Nothing changed.
 
         // This assert should be valid, but it's expensive (can dominate perf testing) so don't actually do it.
@@ -105,7 +105,7 @@ export class IndexedFilter implements NodeFilter {
   ): Node {
     if (optChangeAccumulator != null) {
       if (!oldSnap.isLeafNode()) {
-        oldSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+        oldSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (!newSnap.hasChild(key)) {
             optChangeAccumulator.trackChildChange(
               Change.childRemovedChange(key, childNode)
@@ -114,7 +114,7 @@ export class IndexedFilter implements NodeFilter {
         });
       }
       if (!newSnap.isLeafNode()) {
-        newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+        newSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (oldSnap.hasChild(key)) {
             const oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {

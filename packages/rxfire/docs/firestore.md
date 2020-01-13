@@ -65,6 +65,34 @@ collection(db.collection('users'))
   .subscribe(users => { console.log(users) });
 ```
 
+### `collectionData()`
+The `collectionData()` function creates an observable that emits a stream of collection documents payload with optional document ID.
+
+|                 |                                          |
+|-----------------|------------------------------------------|
+| **function**    | `collection()`                           |
+| **params**      | query: `firestore.CollectionReference` | `firestore.Query`, idField?: `string`  |
+| **import path** | `rxfire/firestore`                       |
+| **return**      | `Observable<T[]>`    |
+
+#### TypeScript Example
+```ts
+import { collectionData } from 'rxfire/firestore';
+import { firestore, initializeApp } from 'firebase';
+import 'firebase/firestore';
+
+// Set up Firebase
+const app = initializeApp({ /* config */ });
+const db = app.firestore();
+const davidDoc = db.doc('users/david');
+
+// Seed the firestore
+davidDoc.set({ name: 'David' });
+
+collectionData(db.collection('users'), 'uid')
+  .subscribe(users => { console.log(users) });
+```
+
 ### `collectionChanges()`
 The `collectionChanges()` function creates an observable that emits the event changes on a collection. This is different than the collection function in that it does not contain the state of your application but only the individual changes. The optional `events` parameter will filter which child events populate the array.
 

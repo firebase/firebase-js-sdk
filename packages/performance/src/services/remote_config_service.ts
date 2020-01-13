@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-import { SettingsService } from './settings_service';
 import {
-  SDK_VERSION,
+  CONFIG_EXPIRY_LOCAL_STORAGE_KEY,
   CONFIG_LOCAL_STORAGE_KEY,
-  CONFIG_EXPIRY_LOCAL_STORAGE_KEY
+  SDK_VERSION
 } from '../constants';
-import { Api } from './api_service';
-import { getAuthTokenPromise } from './iid_service';
 import { consoleLogger } from '../utils/console_logger';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+
+import { Api } from './api_service';
+import { getAuthTokenPromise } from './iid_service';
+import { SettingsService } from './settings_service';
 
 const REMOTE_CONFIG_SDK_VERSION = '0.0.1';
 
@@ -71,12 +72,16 @@ export function getConfig(iid: string): Promise<void> {
     .then(config => processConfig(config))
     .then(
       config => storeConfig(config),
-      /** Do nothing for error, use defaults set in settings service. */ () => {}
+      /** Do nothing for error, use defaults set in settings service. */
+      () => {}
     );
 }
 
 function getStoredConfig(): RemoteConfigResponse | undefined {
   const localStorage = Api.getInstance().localStorage;
+  if (!localStorage) {
+    return;
+  }
   const expiryString = localStorage.getItem(CONFIG_EXPIRY_LOCAL_STORAGE_KEY);
   if (!expiryString || !configValid(expiryString)) {
     return;
@@ -95,10 +100,11 @@ function getStoredConfig(): RemoteConfigResponse | undefined {
 }
 
 function storeConfig(config: RemoteConfigResponse | undefined): void {
-  if (!config) {
+  const localStorage = Api.getInstance().localStorage;
+  if (!config || !localStorage) {
     return;
   }
-  const localStorage = Api.getInstance().localStorage;
+
   localStorage.setItem(CONFIG_LOCAL_STORAGE_KEY, JSON.stringify(config));
   localStorage.setItem(
     CONFIG_EXPIRY_LOCAL_STORAGE_KEY,
@@ -122,9 +128,7 @@ function getRemoteConfig(
       const configEndPoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/namespaces/fireperf:fetch?key=${SettingsService.getInstance().getApiKey()}`;
       const request = new Request(configEndPoint, {
         method: 'POST',
-        headers: {
-          Authorization: `${FIS_AUTH_PREFIX} ${authToken}`
-        },
+        headers: { Authorization: `${FIS_AUTH_PREFIX} ${authToken}` },
         /* eslint-disable camelcase */
         body: JSON.stringify({
           app_instance_id: iid,
@@ -163,7 +167,8 @@ function processConfig(
   const settingsServiceInstance = SettingsService.getInstance();
   const entries = config.entries || {};
   if (entries.fpr_enabled !== undefined) {
-    // TODO: Change the assignment of loggingEnabled once the received type is known.
+    // TODO: Change the assignment of loggingEnabled once the received type is
+    // known.
     settingsServiceInstance.loggingEnabled =
       String(entries.fpr_enabled) === 'true';
   } else if (SECONDARY_CONFIGS.loggingEnabled !== undefined) {

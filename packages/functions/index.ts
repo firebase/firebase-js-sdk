@@ -15,44 +15,14 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
-import * as appTypes from '@firebase/app-types';
-import {
-  FirebaseServiceFactory,
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import * as types from '@firebase/functions-types';
-import { Service } from './src/api/service';
+import { registerFunctions } from './src/config';
 
-/**
- * Type constant for Firebase Functions.
- */
-const FUNCTIONS_TYPE = 'functions';
-
-function factory(
-  app: appTypes.FirebaseApp,
-  _unused: unknown,
-  region?: string
-): Service {
-  return new Service(app, region);
-}
-
-export function registerFunctions(instance: _FirebaseNamespace): void {
-  const namespaceExports = {
-    // no-inline
-    Functions: Service
-  };
-  instance.INTERNAL.registerService(
-    FUNCTIONS_TYPE,
-    factory as FirebaseServiceFactory,
-    namespaceExports,
-    // We don't need to wait on any AppHooks.
-    undefined,
-    // Allow multiple functions instances per app.
-    true
-  );
-}
+import { name, version } from './package.json';
 
 registerFunctions(firebase as _FirebaseNamespace);
+firebase.registerVersion(name, version);
 
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {

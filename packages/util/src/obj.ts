@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export function contains<T extends object>(obj: T, key: keyof T): boolean {
+export function contains<T extends object>(obj: T, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
 

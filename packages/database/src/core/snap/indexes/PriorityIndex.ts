@@ -20,10 +20,10 @@ import { nameCompare, MAX_NAME } from '../../util/util';
 import { NamedNode, Node } from '../Node';
 import { LeafNode } from '../LeafNode';
 
-let nodeFromJSON: (a: any) => Node;
+let nodeFromJSON: (a: unknown) => Node;
 let MAX_NODE: Node;
 
-export function setNodeFromJSON(val: (a: any) => Node) {
+export function setNodeFromJSON(val: (a: unknown) => Node) {
   nodeFromJSON = val;
 }
 
@@ -69,6 +69,7 @@ export class PriorityIndex extends Index {
    * @inheritDoc
    */
   minPost(): NamedNode {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
 
@@ -84,7 +85,7 @@ export class PriorityIndex extends Index {
    * @param {string} name
    * @return {!NamedNode}
    */
-  makePost(indexValue: any, name: string): NamedNode {
+  makePost(indexValue: unknown, name: string): NamedNode {
     const priorityNode = nodeFromJSON(indexValue);
     return new NamedNode(name, new LeafNode('[PRIORITY-POST]', priorityNode));
   }

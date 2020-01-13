@@ -37,6 +37,7 @@ import 'firebase/<PACKAGE>';
 `);
 
 import firebase from '../app';
+import { name, version } from '../package.json';
 
 import '../auth';
 import '../database';
@@ -47,5 +48,7 @@ import '../storage';
 import '../performance';
 import '../analytics';
 import '../remote-config';
+
+firebase.registerVersion(name, version);
 
 export default firebase;

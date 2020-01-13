@@ -25,21 +25,10 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
-import { stringify } from '@firebase/util';
-import {
-  beingCrawled,
-  each,
-  exceptionGuard,
-  warn,
-  log,
-  FIREBASE_DATABASE_EMULATOR_HOST_VAR
-} from './util/util';
-import { map, isEmpty } from '@firebase/util';
-import {
-  FirebaseAuthTokenProvider,
-  AuthTokenProvider
-} from './AuthTokenProvider';
-import { EmulatorAuthTokenProvider } from './EmulatorAuthTokenProvider';
+import { stringify, map, isEmpty } from '@firebase/util';
+import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
+
+import { AuthTokenProvider } from './AuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
@@ -55,6 +44,9 @@ import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
+import { Indexable } from './util/misc';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -72,12 +64,12 @@ export class Repo {
   private nextWriteId_ = 1;
   private server_: ServerActions;
   private statsReporter_: StatsReporter;
-  private transactions_init_: () => void;
+  private transactionsInit_: () => void;
   private infoData_: SnapshotHolder;
   private abortTransactions_: (path: Path) => Path;
   private rerunTransactions_: (changedPath: Path) => Path;
   private interceptServerDataCallback_:
-    | ((a: string, b: any) => void)
+    | ((a: string, b: unknown) => void)
     | null = null;
   private __database: Database;
 
@@ -90,17 +82,10 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
-    public app: FirebaseApp
+    public app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    let authTokenProvider: AuthTokenProvider;
-    if (
-      typeof process !== 'undefined' &&
-      process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
-    ) {
-      authTokenProvider = new EmulatorAuthTokenProvider(app);
-    } else {
-      authTokenProvider = new FirebaseAuthTokenProvider(app);
-    }
+    const authTokenProvider = new AuthTokenProvider(app, authProvider);
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
@@ -152,7 +137,7 @@ export class Repo {
       () => new StatsReporter(this.stats_, this.server_)
     );
 
-    this.transactions_init_();
+    this.transactionsInit_();
 
     // Used for .info.
     this.infoData_ = new SnapshotHolder();
@@ -222,7 +207,7 @@ export class Repo {
   /**
    * Generate ServerValues using some variables from the repo object.
    */
-  generateServerValues(): Object {
+  generateServerValues(): Indexable {
     return generateWithValues({
       timestamp: this.serverTime()
     });
@@ -233,7 +218,7 @@ export class Repo {
    */
   private onDataUpdate_(
     pathString: string,
-    data: any,
+    data: unknown,
     isMerge: boolean,
     tag: number | null
   ) {
@@ -246,8 +231,9 @@ export class Repo {
     let events = [];
     if (tag) {
       if (isMerge) {
-        const taggedChildren = map(data as { [k: string]: any }, (raw: any) =>
-          nodeFromJSON(raw)
+        const taggedChildren = map(
+          data as { [k: string]: unknown },
+          (raw: unknown) => nodeFromJSON(raw)
         );
         events = this.serverSyncTree_.applyTaggedQueryMerge(
           path,
@@ -263,8 +249,9 @@ export class Repo {
         );
       }
     } else if (isMerge) {
-      const changedChildren = map(data as { [k: string]: any }, (raw: any) =>
-        nodeFromJSON(raw)
+      const changedChildren = map(
+        data as { [k: string]: unknown },
+        (raw: unknown) => nodeFromJSON(raw)
       );
       events = this.serverSyncTree_.applyServerMerge(path, changedChildren);
     } else {
@@ -281,7 +268,7 @@ export class Repo {
   }
 
   // TODO: This should be @private but it's used by test_access.js and internal.js
-  interceptServerData_(callback: ((a: string, b: any) => any) | null) {
+  interceptServerData_(callback: ((a: string, b: unknown) => unknown) | null) {
     this.interceptServerDataCallback_ = callback;
   }
 
@@ -292,13 +279,13 @@ export class Repo {
     }
   }
 
-  private onServerInfoUpdate_(updates: Object) {
-    each(updates, (key: string, value: any) => {
+  private onServerInfoUpdate_(updates: object) {
+    each(updates, (key: string, value: unknown) => {
       this.updateInfo_(key, value);
     });
   }
 
-  private updateInfo_(pathString: string, value: any) {
+  private updateInfo_(pathString: string, value: unknown) {
     const path = new Path('/.info/' + pathString);
     const newNode = nodeFromJSON(value);
     this.infoData_.updateSnapshot(path, newNode);
@@ -312,7 +299,7 @@ export class Repo {
 
   setWithPriority(
     path: Path,
-    newVal: any,
+    newVal: unknown,
     newPriority: number | string | null,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
@@ -364,7 +351,7 @@ export class Repo {
 
   update(
     path: Path,
-    childrenToMerge: { [k: string]: any },
+    childrenToMerge: { [k: string]: unknown },
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     this.log_('update', { path: path.toString(), value: childrenToMerge });
@@ -373,7 +360,7 @@ export class Repo {
     let empty = true;
     const serverValues = this.generateServerValues();
     const changedChildren: { [k: string]: Node } = {};
-    each(childrenToMerge, (changedKey: string, changedValue: any) => {
+    each(childrenToMerge, (changedKey: string, changedValue: unknown) => {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
@@ -462,7 +449,7 @@ export class Repo {
 
   onDisconnectSet(
     path: Path,
-    value: any,
+    value: unknown,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     const newNode = nodeFromJSON(value);
@@ -480,8 +467,8 @@ export class Repo {
 
   onDisconnectSetWithPriority(
     path: Path,
-    value: any,
-    priority: any,
+    value: unknown,
+    priority: unknown,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     const newNode = nodeFromJSON(value, priority);
@@ -499,7 +486,7 @@ export class Repo {
 
   onDisconnectUpdate(
     path: Path,
-    childrenToMerge: { [k: string]: any },
+    childrenToMerge: { [k: string]: unknown },
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
   ) {
     if (isEmpty(childrenToMerge)) {
@@ -515,7 +502,7 @@ export class Repo {
       childrenToMerge,
       (status, errorReason) => {
         if (status === 'ok') {
-          each(childrenToMerge, (childName: string, childNode: any) => {
+          each(childrenToMerge, (childName: string, childNode: unknown) => {
             const newChildNode = nodeFromJSON(childNode);
             this.onDisconnect_.remember(path.child(childName), newChildNode);
           });
@@ -575,12 +562,15 @@ export class Repo {
   }
 
   stats(showDelta: boolean = false) {
-    if (typeof console === 'undefined') return;
+    if (typeof console === 'undefined') {
+      return;
+    }
 
-    let stats: { [k: string]: any };
+    let stats: { [k: string]: unknown };
     if (showDelta) {
-      if (!this.statsListener_)
+      if (!this.statsListener_) {
         this.statsListener_ = new StatsListener(this.stats_);
+      }
       stats = this.statsListener_.get();
     } else {
       stats = this.stats_.get();
@@ -592,7 +582,7 @@ export class Repo {
       0
     );
 
-    each(stats, (stat: string, value: any) => {
+    each(stats, (stat: string, value: unknown) => {
       let paddedStat = stat;
       // pad stat names to be the same length (plus 2 extra spaces).
       for (let i = stat.length; i < longestName + 2; i++) {
@@ -607,12 +597,12 @@ export class Repo {
     this.statsReporter_.includeStat(metric);
   }
 
-  private log_(...var_args: any[]) {
+  private log_(...varArgs: unknown[]) {
     let prefix = '';
     if (this.persistentConnection_) {
       prefix = this.persistentConnection_.id + ':';
     }
-    log(prefix, ...var_args);
+    log(prefix, ...varArgs);
   }
 
   callOnCompleteCallback(
@@ -621,15 +611,18 @@ export class Repo {
     errorReason?: string | null
   ) {
     if (callback) {
-      exceptionGuard(function() {
-        if (status == 'ok') {
+      exceptionGuard(() => {
+        if (status === 'ok') {
           callback(null);
         } else {
           const code = (status || 'error').toUpperCase();
           let message = code;
-          if (errorReason) message += ': ' + errorReason;
+          if (errorReason) {
+            message += ': ' + errorReason;
+          }
 
           const error = new Error(message);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any).code = code;
           callback(error);
         }

@@ -23,7 +23,7 @@ export type FirebaseOptions = {
   storageBucket?: string;
   messagingSenderId?: string;
   appId?: string;
-  [name: string]: any;
+  measurementId?: string;
 };
 
 export interface FirebaseAppConfig {
@@ -98,6 +98,26 @@ export interface FirebaseNamespace {
    */
   apps: FirebaseApp[];
 
+  /**
+   * Registers a library's name and version for platform logging purposes.
+   * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
+   * @param version Current version of that library.
+   */
+  registerVersion(library: string, version: string, variant?: string): void;
+
   // The current SDK version.
   SDK_VERSION: string;
+}
+
+export interface VersionService {
+  library: string;
+  version: string;
+}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app': FirebaseApp;
+    'app-version': VersionService;
+    'platform-identifier': VersionService;
+  }
 }

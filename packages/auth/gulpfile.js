@@ -21,6 +21,7 @@ const del = require('del');
 const express = require('express');
 const path = require('path');
 const sourcemaps = require('gulp-sourcemaps');
+const pkg = require('./package.json');
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
@@ -79,7 +80,9 @@ function createBuildTask(filename, prefix, suffix) {
             )
           ],
           language_out: 'ES5',
-          only_closure_dependencies: true
+          only_closure_dependencies: true,
+          // Insert current package.json version into registerVersion call.
+          define: `AUTH_NPM_PACKAGE_VERSION=${pkg.version}`
         })
       )
       .pipe(sourcemaps.write('.'))

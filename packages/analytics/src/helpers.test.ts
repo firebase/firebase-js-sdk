@@ -21,13 +21,16 @@ import '../testing/setup';
 import { DataLayer, Gtag } from '@firebase/analytics-types';
 import {
   initializeGAId,
-  hasDataLayer,
+  getOrCreateDataLayer,
   insertScriptTag,
-  wrapOrCreateGtag
+  wrapOrCreateGtag,
+  findGtagScriptOnPage
 } from './helpers';
-import { getFakeApp } from '../testing/get-fake-app';
+import {
+  getFakeApp,
+  getFakeInstallations
+} from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
-import { findGtagScriptOnPage } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 
 const mockAnalyticsId = 'abcd-efgh-ijkl';
@@ -40,8 +43,9 @@ describe('FirebaseAnalytics methods', () => {
   });
   it('initializeGAId gets FID from installations and calls gtag config with it', async () => {
     const gtagStub: SinonStub = stub();
-    const app = getFakeApp(mockAnalyticsId, mockFid);
-    await initializeGAId(app, gtagStub);
+    const app = getFakeApp(mockAnalyticsId);
+    const installations = getFakeInstallations(mockFid);
+    await initializeGAId(app, installations, gtagStub);
     expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, mockAnalyticsId, {
       'firebase_id': mockFid,
       'origin': 'firebase',
@@ -49,13 +53,14 @@ describe('FirebaseAnalytics methods', () => {
     });
   });
 
-  it('hasDataLayer is able to correctly identify an existing data layer', () => {
-    expect(hasDataLayer('dataLayer')).to.be.false;
-    window['dataLayer'] = [];
-    expect(hasDataLayer('dataLayer')).to.be.true;
-    window['dataLayer'] = 'hello';
-    expect(hasDataLayer('dataLayer')).to.be.false;
+  it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
     delete window['dataLayer'];
+    expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
+  });
+
+  it('getOrCreateDataLayer is able to correctly identify an existing data layer', () => {
+    const existingDataLayer = (window['dataLayer'] = []);
+    expect(getOrCreateDataLayer('dataLayer')).to.equal(existingDataLayer);
   });
 
   it('insertScriptIfNeeded inserts script tag', () => {
@@ -251,27 +256,6 @@ describe('FirebaseAnalytics methods', () => {
     afterEach(() => {
       existingGtagStub.reset();
     });
-
-    // it('wrapped window.gtag function waits for initialization promises before sending events', async () => {
-    //   const deferred = new Deferred<void>();
-    //   wrapOrCreateGtag(
-    //     { [mockAnalyticsId]: deferred.promise },
-    //     'dataLayer',
-    //     'gtag'
-    //   );
-    //   (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
-    //     'transaction_id': 'abcd123'
-    //   });
-    //   await Promise.resolve(); // Clear async event stack but not pending FID promise.
-    //   expect(existingGtagStub).to.not.be.called;
-    //   deferred.resolve(); // Resolves gaid initialization promise.
-    //   await Promise.resolve(); // wait for the next cycle
-    //   expect(existingGtagStub).to.be.calledWith(
-    //     GtagCommand.EVENT,
-    //     'purchase',
-    //     { 'transaction_id': 'abcd123' }
-    //   );
-    // });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
       const deferred = new Deferred<void>();

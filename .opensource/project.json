@@ -1,0 +1,20 @@
+{
+    "name": "Firebase JavaScript SDK",
+    "type": "library",
+    "platforms": [
+        "Web"
+    ],
+    "content": "README.md",
+    "pages": {
+        "packages/rxfire/README.md": "RxFire"
+    },
+    "related": [
+        "firebase/quickstart-js"
+    ],
+    "tabs": [
+        {
+            "title": "Reference",
+            "href": "https://firebase.google.com/docs/reference/js/"
+        }
+    ]
+}

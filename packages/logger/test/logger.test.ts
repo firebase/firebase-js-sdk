@@ -23,7 +23,8 @@ import { setLogLevel } from '../index';
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
-  let spies: { [key: string]: SinonSpy };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let spies: { [key: string]: SinonSpy<any[], void> };
   /**
    * Before each test, instantiate a new instance of Logger and establish spies
    * on all of the console methods so we can assert against them as needed

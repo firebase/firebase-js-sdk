@@ -15,36 +15,30 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { extractAppConfig } from '../helpers/extract-app-config';
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { AppConfig } from '../interfaces/app-config';
-import { RequestStatus } from '../interfaces/installation-entry';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 
-export async function getToken(app: FirebaseApp): Promise<string> {
-  const appConfig = extractAppConfig(app);
-
-  await completeInstallationRegistration(appConfig);
+export async function getToken(
+  dependencies: FirebaseDependencies,
+  forceRefresh = false
+): Promise<string> {
+  await completeInstallationRegistration(dependencies.appConfig);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
-  return refreshAuthToken(appConfig);
+  const authToken = await refreshAuthToken(dependencies, forceRefresh);
+  return authToken.token;
 }
 
 async function completeInstallationRegistration(
   appConfig: AppConfig
 ): Promise<void> {
-  const { installationEntry, registrationPromise } = await getInstallationEntry(
-    appConfig
-  );
+  const { registrationPromise } = await getInstallationEntry(appConfig);
 
   if (registrationPromise) {
     // A createInstallation request is in progress. Wait until it finishes.
     await registrationPromise;
-  } else if (installationEntry.registrationStatus !== RequestStatus.COMPLETED) {
-    // Installation ID can't be registered.
-    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
   }
 }

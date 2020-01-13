@@ -16,22 +16,25 @@
  */
 
 import firebase from '@firebase/app';
+import '@firebase/installations';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PerformanceController } from './src/controllers/perf';
 import { setupApi } from './src/services/api_service';
 import { SettingsService } from './src/services/settings_service';
 import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
 import { FirebasePerformance } from '@firebase/performance-types';
+import { Component, ComponentType } from '@firebase/component';
+import { FirebaseInstallations } from '@firebase/installations-types';
+
+import { name, version } from './package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 export function registerPerformance(instance: FirebaseNamespace): void {
-  const factoryMethod: FirebaseServiceFactory = (
-    app: FirebaseApp
+  const factoryMethod = (
+    app: FirebaseApp,
+    installations: FirebaseInstallations
   ): PerformanceController => {
     if (app.name !== DEFAULT_ENTRY_NAME) {
       throw ERROR_FACTORY.create(ErrorCode.FB_NOT_DEFAULT);
@@ -41,16 +44,30 @@ export function registerPerformance(instance: FirebaseNamespace): void {
     }
     setupApi(window);
     SettingsService.getInstance().firebaseAppInstance = app;
+    SettingsService.getInstance().installationsService = installations;
     return new PerformanceController(app);
   };
 
   // Register performance with firebase-app.
-  const namespaceExports = {};
-  (instance as _FirebaseNamespace).INTERNAL.registerService(
-    'performance',
-    factoryMethod,
-    namespaceExports
+  (instance as _FirebaseNamespace).INTERNAL.registerComponent(
+    new Component(
+      'performance',
+      container => {
+        /* Dependencies */
+        // getImmediate for FirebaseApp will always succeed
+        const app = container.getProvider('app').getImmediate();
+        // The following call will always succeed because perf has `import '@firebase/installations'`
+        const installations = container
+          .getProvider('installations')
+          .getImmediate();
+
+        return factoryMethod(app, installations);
+      },
+      ComponentType.PUBLIC
+    )
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerPerformance(firebase);

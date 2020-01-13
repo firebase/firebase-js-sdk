@@ -17,11 +17,10 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
-import { asyncQueue } from '../util/internal_helpers';
-import { TimerId } from '../../../src/util/async_queue';
+
+const FieldPath = firebase.firestore!.FieldPath;
 
 const apiDescribe = integrationHelpers.apiDescribe;
 apiDescribe('Database transactions', (persistence: boolean) => {
@@ -205,45 +204,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       return seqList.join(', ');
     }
   }
-
-  // TODO(klimt): Test that transactions don't see latency compensation
-  // changes, using the other kind of integration test.
-  // We currently require every document read to also be written.
-  it('get documents', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('spaces').doc();
-      return doc
-        .set({
-          foo: 1,
-          desc: 'Stuff related to Firestore project...',
-          owner: 'Jonny'
-        })
-        .then(() => {
-          return (
-            db
-              .runTransaction(transaction => {
-                return transaction.get(doc);
-              })
-              // We currently require every document read to also be
-              // written.
-              // TODO(b/34879758): Add this check back once we drop that.
-              // .then((snapshot) => {
-              //   expect(snapshot).to.exist;
-              //   expect(snapshot.data()['owner']).to.equal('Jonny');
-              // });
-              .then(() => expect.fail('transaction should fail'))
-              .catch((err: firestore.FirestoreError) => {
-                expect(err).to.exist;
-                expect(err.code).to.equal('invalid-argument');
-                expect(err.message).to.contain(
-                  'Every document read in a transaction must also be' +
-                    ' written'
-                );
-              })
-          );
-        });
-    });
-  });
 
   it('runs transactions after getting existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
@@ -452,125 +412,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('increment transactionally', () => {
-    // A set of concurrent transactions.
-    const transactionPromises: Array<Promise<void>> = [];
-    const readPromises: Array<Promise<void>> = [];
-    // A barrier to make sure every transaction reaches the same spot.
-    const barrier = new Deferred();
-    let started = 0;
-
-    return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
-      const doc = db.collection('counters').doc();
-      return doc
-        .set({
-          count: 5
-        })
-        .then(() => {
-          // Make 3 transactions that will all increment.
-          for (let i = 0; i < 3; i++) {
-            const resolveRead = new Deferred<void>();
-            readPromises.push(resolveRead.promise);
-            transactionPromises.push(
-              db.runTransaction(transaction => {
-                return transaction.get(doc).then(snapshot => {
-                  expect(snapshot).to.exist;
-                  started = started + 1;
-                  resolveRead.resolve();
-                  return barrier.promise.then(() => {
-                    transaction.set(doc, {
-                      count: snapshot.data()!['count'] + 1
-                    });
-                  });
-                });
-              })
-            );
-          }
-
-          // Let all of the transactions fetch the old value and stop once.
-          return Promise.all(readPromises);
-        })
-        .then(() => {
-          // Let all of the transactions continue and wait for them to
-          // finish.
-          expect(started).to.equal(3);
-          barrier.resolve();
-          return Promise.all(transactionPromises);
-        })
-        .then(() => {
-          // Now all transaction should be completed, so check the result.
-          return doc.get();
-        })
-        .then(snapshot => {
-          expect(snapshot).to.exist;
-          expect(snapshot.data()!['count']).to.equal(8);
-        });
-    });
-  });
-
-  it('update transactionally', () => {
-    // A set of concurrent transactions.
-    const transactionPromises: Array<Promise<void>> = [];
-    const readPromises: Array<Promise<void>> = [];
-    // A barrier to make sure every transaction reaches the same spot.
-    const barrier = new Deferred();
-    let counter = 0;
-
-    return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
-      const doc = db.collection('counters').doc();
-      return doc
-        .set({
-          count: 5,
-          other: 'yes'
-        })
-        .then(() => {
-          // Make 3 transactions that will all increment.
-          for (let i = 0; i < 3; i++) {
-            const resolveRead = new Deferred<void>();
-            readPromises.push(resolveRead.promise);
-            transactionPromises.push(
-              db.runTransaction(transaction => {
-                return transaction.get(doc).then(snapshot => {
-                  expect(snapshot).to.exist;
-                  counter = counter + 1;
-                  resolveRead.resolve();
-                  return barrier.promise.then(() => {
-                    transaction.update(doc, {
-                      count: snapshot.data()!['count'] + 1
-                    });
-                  });
-                });
-              })
-            );
-          }
-
-          // Let all of the transactions fetch the old value and stop once.
-          return Promise.all(readPromises);
-        })
-        .then(() => {
-          // Let all of the transactions continue and wait for them to
-          // finish. There should be 3 initial transaction runs.
-          expect(counter).to.equal(3);
-          barrier.resolve();
-          return Promise.all(transactionPromises);
-        })
-        .then(() => {
-          // Now all transaction should be completed, so check the result.
-          // There should be a maximum of 3 retries: once for the 2nd update,
-          // and twice for the 3rd update.
-          expect(counter).to.be.lessThan(7);
-          return doc.get();
-        })
-        .then(snapshot => {
-          expect(snapshot).to.exist;
-          expect(snapshot.data()!['count']).to.equal(8);
-          expect(snapshot.data()!['other']).to.equal('yes');
-        });
-    });
-  });
-
   it('can update nested fields transactionally', () => {
     const initialData = {
       desc: 'Description',
@@ -592,7 +433,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
             doc,
             'owner.name',
             'Sebastian',
-            new firebase.firestore!.FieldPath('is.admin'),
+            new FieldPath('is.admin'),
             true
           );
         })
@@ -604,93 +445,39 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('handle reading one doc and writing another', () => {
+  it('retry when a document that was read without being written changes', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc1 = db.collection('counters').doc();
       const doc2 = db.collection('counters').doc();
-      // let tries = 0;
-      return (
-        doc1
-          .set({
-            count: 15
-          })
-          .then(() => {
-            return db.runTransaction(transaction => {
-              // ++tries;
-
-              // Get the first doc.
-              return (
-                transaction
-                  .get(doc1)
-                  // Do a write outside of the transaction. The first time the
-                  // transaction is tried, this will bump the version, which
-                  // will cause the write to doc2 to fail. The second time, it
-                  // will be a no-op and not bump the version.
-                  .then(() => doc1.set({ count: 1234 }))
-                  // Now try to update the other doc from within the
-                  // transaction.
-                  // This should fail once, because we read 15 earlier.
-                  .then(() => transaction.set(doc2, { count: 16 }))
-              );
-            });
-          })
-          // We currently require every document read to also be written.
-          // TODO(b/34879758): Add this check back once we drop that.
-          // .then(() => doc1.get())
-          // .then(snapshot => {
-          //   expect(tries).to.equal(2);
-          //   expect(snapshot.data()['count']).to.equal(1234);
-          //   return doc2.get();
-          // })
-          // .then(snapshot => expect(snapshot.data()['count']).to.equal(16));
-          .then(() => expect.fail('transaction should fail'))
-          .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            expect(err.code).to.equal('invalid-argument');
-            expect(err.message).to.contain(
-              'Every document read in a transaction must also be ' + 'written'
-            );
-          })
-      );
-    });
-  });
-
-  it('handle reading a doc twice with different versions', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
-      const doc = db.collection('counters').doc();
-      let counter = 0;
-      return doc
+      let tries = 0;
+      return doc1
         .set({
           count: 15
         })
         .then(() => {
           return db.runTransaction(transaction => {
-            counter++;
-            // Get the doc once.
+            ++tries;
+
+            // Get the first doc.
             return (
               transaction
-                .get(doc)
-                // Do a write outside of the transaction. Because the transaction
-                // will retry, set the document to a different value each time.
-                .then(() => doc.set({ count: 1234 + counter }))
-                // Get the doc again in the transaction with the new
-                // version.
-                .then(() => transaction.get(doc))
-                // Now try to update the doc from within the transaction.
-                // This should fail, because we read 15 earlier.
-                .then(() => transaction.set(doc, { count: 16 }))
+                .get(doc1)
+                // Do a write outside of the transaction. The first time the
+                // transaction is tried, this will bump the version, which
+                // will cause the write to doc2 to fail. The second time, it
+                // will be a no-op and not bump the version.
+                .then(() => doc1.set({ count: 1234 }))
+                // Now try to update the other doc from within the
+                // transaction.
+                // This should fail once, because we read 15 earlier.
+                .then(() => transaction.set(doc2, { count: 16 }))
             );
           });
         })
-        .then(() => expect.fail('transaction should fail'))
-        .catch(err => {
-          expect(err).to.exist;
-          expect((err as firestore.FirestoreError).code).to.equal('aborted');
-        })
-        .then(() => doc.get())
-        .then(snapshot => {
-          expect(snapshot.data()!['count']).to.equal(1234 + counter);
+        .then(async () => {
+          const snapshot = await doc1.get();
+          expect(tries).to.equal(2);
+          expect(snapshot.data()!['count']).to.equal(1234);
         });
     });
   });
@@ -781,32 +568,22 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
   });
 
-  it('cannot have a get without mutations', () => {
+  it('can have gets without mutations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('foo').doc();
-      return (
-        docRef
-          .set({ foo: 'bar' })
-          .then(() => {
-            return db.runTransaction(txn => {
-              return txn.get(docRef);
-            });
-          })
-          // We currently require every document read to also be written.
-          // TODO(b/34879758): Add this check back once we drop that.
-          // .then((snapshot) => {
-          //   expect(snapshot).to.exist;
-          //   expect(snapshot.data()['foo']).to.equal('bar');
-          // });
-          .then(() => expect.fail('transaction should fail'))
-          .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            expect(err.code).to.equal('invalid-argument');
-            expect(err.message).to.contain(
-              'Every document read in a transaction must also be ' + 'written'
-            );
-          })
-      );
+      const docRef2 = db.collection('foo').doc();
+      return docRef
+        .set({ foo: 'bar' })
+        .then(() => {
+          return db.runTransaction(async txn => {
+            await txn.get(docRef2);
+            return txn.get(docRef);
+          });
+        })
+        .then(snapshot => {
+          expect(snapshot).to.exist;
+          expect(snapshot.data()!['foo']).to.equal('bar');
+        });
     });
   });
 
@@ -887,6 +664,49 @@ apiDescribe('Database transactions', (persistence: boolean) => {
             false
           );
         });
+    });
+  });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('for Transaction.set<T>() and Transaction.get<T>()', () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options);
+              return new Post(data.title, data.author);
+            }
+          });
+        return docRef.set(new Post('post', 'author')).then(() => {
+          return db
+            .runTransaction(async transaction => {
+              const snapshot = await transaction.get(docRef);
+              expect(snapshot.data()!.byline()).to.equal('post, by author');
+              transaction.set(docRef, new Post('new post', 'author'));
+            })
+            .then(async () => {
+              const snapshot = await docRef.get();
+              expect(snapshot.data()!.byline()).to.equal('new post, by author');
+            });
+        });
+      });
     });
   });
 });

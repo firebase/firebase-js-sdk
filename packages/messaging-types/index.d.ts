@@ -24,10 +24,11 @@ import {
   CompleteFn
 } from '@firebase/util';
 
-export class FirebaseMessaging {
-  private constructor();
+export interface FirebaseMessaging {
+  // TODO: remove the token parameter and just delete the token that matches
+  // this app if it exists.
   deleteToken(token: string): Promise<boolean>;
-  getToken(): Promise<string | null>;
+  getToken(): Promise<string>;
   onMessage(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
@@ -48,4 +49,12 @@ export class FirebaseMessaging {
   ): void;
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
+}
+
+export type FirebaseMessagingName = 'messaging';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'messaging': FirebaseMessaging;
+  }
 }

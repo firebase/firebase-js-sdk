@@ -40,19 +40,33 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
+  /**
+   * Adds a new entry to the collection parent index.
+   *
+   * Repeated calls for the same collectionPath should be avoided within a
+   * transaction as IndexedDbIndexManager only caches writes once a transaction
+   * has been committed.
+   */
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
     assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
-    if (this.collectionParentsCache.add(collectionPath)) {
-      assert(collectionPath.length >= 1, 'Invalid collection path.');
+    if (!this.collectionParentsCache.has(collectionPath)) {
       const collectionId = collectionPath.lastSegment();
       const parentPath = collectionPath.popLast();
-      return collectionParentsStore(transaction).put({
+
+      transaction.addOnCommittedListener(() => {
+        // Add the collection to the in memory cache only if the transaction was
+        // successfully committed.
+        this.collectionParentsCache.add(collectionPath);
+      });
+
+      const collectionParent: DbCollectionParent = {
         collectionId,
         parent: encode(parentPath)
-      });
+      };
+      return collectionParentsStore(transaction).put(collectionParent);
     }
     return PersistencePromise.resolve();
   }

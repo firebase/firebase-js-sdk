@@ -23,18 +23,18 @@ import {
 import {
   _FirebaseApp,
   _FirebaseNamespace,
-  FirebaseService,
-  FirebaseAppInternals
+  FirebaseService
 } from '@firebase/app-types/private';
-import { deepCopy, deepExtend } from '@firebase/util';
+import { deepCopy } from '@firebase/util';
+import {
+  ComponentContainer,
+  Component,
+  ComponentType,
+  Name
+} from '@firebase/component';
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
-
-interface ServicesCache {
-  [name: string]: {
-    [serviceName: string]: FirebaseService;
-  };
-}
+import { logger } from './logger';
 
 /**
  * Global context object for a collection of services using
@@ -44,15 +44,8 @@ export class FirebaseAppImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private isDeleted_ = false;
-  private services_: ServicesCache = {};
   private automaticDataCollectionEnabled_: boolean;
-  // An array to capture listeners before the true auth functions exist
-  private tokenListeners_: Array<(token: string | null) => void> = [];
-  // An array to capture requests to send events before analytics component loads. Use type any to make using function.apply easier
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private analyticsEventRequests_: any[] = [];
-
-  INTERNAL: FirebaseAppInternals;
+  private container: ComponentContainer;
 
   constructor(
     options: FirebaseOptions,
@@ -63,26 +56,14 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
-    const self = this;
-    this.INTERNAL = {
-      getUid: () => null,
-      getToken: () => Promise.resolve(null),
-      addAuthTokenListener: (callback: (token: string | null) => void) => {
-        this.tokenListeners_.push(callback);
-        // Make sure callback is called, asynchronously, in the absence of the auth module
-        setTimeout(() => callback(null), 0);
-      },
-      removeAuthTokenListener: callback => {
-        this.tokenListeners_ = this.tokenListeners_.filter(
-          listener => listener !== callback
-        );
-      },
-      analytics: {
-        logEvent() {
-          self.analyticsEventRequests_.push(arguments);
-        }
-      }
-    };
+    this.container = new ComponentContainer(config.name!);
+
+    // add itself to container
+    this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
+    // populate ComponentContainer with existing components
+    for (const component of this.firebase_.INTERNAL.components.values()) {
+      this._addComponent(component);
+    }
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -112,23 +93,13 @@ export class FirebaseAppImpl implements FirebaseApp {
     })
       .then(() => {
         this.firebase_.INTERNAL.removeApp(this.name_);
-        const services: FirebaseService[] = [];
-
-        for (const serviceKey of Object.keys(this.services_)) {
-          for (const instanceKey of Object.keys(this.services_[serviceKey])) {
-            services.push(this.services_[serviceKey][instanceKey]);
-          }
-        }
 
         return Promise.all(
-          services
-            .filter(service => 'INTERNAL' in service)
-            .map(service => service.INTERNAL!.delete())
+          this.container.getProviders().map(provider => provider.delete())
         );
       })
       .then((): void => {
         this.isDeleted_ = true;
-        this.services_ = {};
       });
   }
 
@@ -152,28 +123,10 @@ export class FirebaseAppImpl implements FirebaseApp {
   ): FirebaseService {
     this.checkDestroyed_();
 
-    if (!this.services_[name]) {
-      this.services_[name] = {};
-    }
-
-    if (!this.services_[name][instanceIdentifier]) {
-      /**
-       * If a custom instance has been defined (i.e. not '[DEFAULT]')
-       * then we will pass that instance on, otherwise we pass `null`
-       */
-      const instanceSpecifier =
-        instanceIdentifier !== DEFAULT_ENTRY_NAME
-          ? instanceIdentifier
-          : undefined;
-      const service = this.firebase_.INTERNAL.factories[name](
-        this,
-        this.extendApp.bind(this),
-        instanceSpecifier
-      );
-      this.services_[name][instanceIdentifier] = service;
-    }
-
-    return this.services_[name][instanceIdentifier];
+    // getImmediate will always succeed because _getService is only called for registered components.
+    return (this.container.getProvider(name as Name).getImmediate({
+      identifier: instanceIdentifier
+    }) as unknown) as FirebaseService;
   }
   /**
    * Remove a service instance from the cache, so we will create a new instance for this service
@@ -189,46 +142,26 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
-    if (this.services_[name] && this.services_[name][instanceIdentifier]) {
-      delete this.services_[name][instanceIdentifier];
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.container.getProvider(name as any).clearInstance(instanceIdentifier);
   }
 
   /**
-   * Callback function used to extend an App instance at the time
-   * of service instance creation.
+   * @param component the component being added to this app's container
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private extendApp(props: { [name: string]: any }): void {
-    // Copy the object onto the FirebaseAppImpl prototype
-    deepExtend(this, props);
-
-    if (props.INTERNAL) {
-      /**
-       * If the app has overwritten the addAuthTokenListener stub, forward
-       * the active token listeners on to the true fxn.
-       *
-       * TODO: This function is required due to our current module
-       * structure. Once we are able to rely strictly upon a single module
-       * implementation, this code should be refactored and Auth should
-       * provide these stubs and the upgrade logic
-       */
-      if (props.INTERNAL.addAuthTokenListener) {
-        for (const listener of this.tokenListeners_) {
-          this.INTERNAL.addAuthTokenListener(listener);
-        }
-        this.tokenListeners_ = [];
-      }
-
-      if (props.INTERNAL.analytics) {
-        for (const request of this.analyticsEventRequests_) {
-          // logEvent is the actual implementation at this point.
-          // We forward the queued events to it.
-          this.INTERNAL.analytics.logEvent.apply(undefined, request);
-        }
-        this.analyticsEventRequests_ = [];
-      }
+  _addComponent(component: Component): void {
+    try {
+      this.container.addComponent(component);
+    } catch (e) {
+      logger.debug(
+        `Component ${component.name} failed to register with FirebaseApp ${this.name}`,
+        e
+      );
     }
+  }
+
+  _addOrOverwriteComponent(component: Component): void {
+    this.container.addOrOverwriteComponent(component);
   }
 
   /**

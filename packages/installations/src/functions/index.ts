@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
-export { getId } from './get-id';
-export { getToken } from './get-token';
-export { deleteInstallation } from './delete-installation';
+export * from './get-id';
+export * from './get-token';
+export * from './delete-installation';
+export * from './on-id-change';

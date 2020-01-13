@@ -15,58 +15,68 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
-
-/**
- * An interface for token fetchers.
- */
-export interface AuthTokenProvider {
-  /**
-   * @param {boolean} forceRefresh
-   * @return {!Promise<FirebaseAuthTokenData>}
-   */
-  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
-
-  addTokenChangeListener(listener: (token: string | null) => void);
-
-  removeTokenChangeListener(listener: (token: string | null) => void);
-
-  notifyForInvalidToken();
-}
+import { FirebaseApp } from '@firebase/app-types';
 
 /**
  * Abstraction around FirebaseApp's token fetching capabilities.
  */
-export class FirebaseAuthTokenProvider implements AuthTokenProvider {
-  constructor(private app_: FirebaseApp) {}
+export class AuthTokenProvider {
+  private auth_: FirebaseAuthInternal | null = null;
+  constructor(
+    private app_: FirebaseApp,
+    private authProvider_: Provider<FirebaseAuthInternalName>
+  ) {
+    this.auth_ = authProvider_.getImmediate({ optional: true });
+    if (!this.auth_) {
+      authProvider_.get().then(auth => (this.auth_ = auth));
+    }
+  }
 
+  /**
+   * @param {boolean} forceRefresh
+   * @return {!Promise<FirebaseAuthTokenData>}
+   */
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
-    return this.app_['INTERNAL']['getToken'](forceRefresh).then(
-      null,
-      // .catch
-      function(error) {
-        // TODO: Need to figure out all the cases this is raised and whether
-        // this makes sense.
-        if (error && error.code === 'auth/token-not-initialized') {
-          log('Got auth/token-not-initialized error.  Treating as null token.');
-          return null;
-        } else {
-          return Promise.reject(error);
-        }
+    if (!this.auth_) {
+      return Promise.resolve(null);
+    }
+
+    return this.auth_.getToken(forceRefresh).catch(error => {
+      // TODO: Need to figure out all the cases this is raised and whether
+      // this makes sense.
+      if (error && error.code === 'auth/token-not-initialized') {
+        log('Got auth/token-not-initialized error.  Treating as null token.');
+        return null;
+      } else {
+        return Promise.reject(error);
       }
-    );
+    });
   }
 
   addTokenChangeListener(listener: (token: string | null) => void) {
     // TODO: We might want to wrap the listener and call it with no args to
     // avoid a leaky abstraction, but that makes removing the listener harder.
-    this.app_['INTERNAL']['addAuthTokenListener'](listener);
+    if (this.auth_) {
+      this.auth_.addAuthTokenListener(listener);
+    } else {
+      setTimeout(() => listener(null), 0);
+      this.authProvider_
+        .get()
+        .then(auth => auth.addAuthTokenListener(listener));
+    }
   }
 
   removeTokenChangeListener(listener: (token: string | null) => void) {
-    this.app_['INTERNAL']['removeAuthTokenListener'](listener);
+    this.authProvider_
+      .get()
+      .then(auth => auth.removeAuthTokenListener(listener));
   }
 
   notifyForInvalidToken() {

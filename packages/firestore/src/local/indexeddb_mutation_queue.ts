@@ -47,7 +47,7 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -178,26 +178,33 @@ export class IndexedDbMutationQueue implements MutationQueue {
       );
       const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
-      this.documentKeysByBatchId[batchId] = batch.keys();
-
       const promises: Array<PersistencePromise<void>> = [];
+      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+        primitiveComparator(l.canonicalString(), r.canonicalString())
+      );
       for (const mutation of mutations) {
         const indexKey = DbDocumentMutation.key(
           this.userId,
           mutation.key.path,
           batchId
         );
+        collectionParents = collectionParents.add(mutation.key.path.popLast());
         promises.push(mutationStore.put(dbBatch));
         promises.push(
           documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
         );
-        promises.push(
-          this.indexManager.addToCollectionParentIndex(
-            transaction,
-            mutation.key.path.popLast()
-          )
-        );
       }
+
+      collectionParents.forEach(parent => {
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(transaction, parent)
+        );
+      });
+
+      transaction.addOnCommittedListener(() => {
+        this.documentKeysByBatchId[batchId] = batch.keys();
+      });
+
       return PersistencePromise.waitFor(promises).next(() => batch);
     });
   }
@@ -345,7 +352,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation!));
+            results.push(this.serializer.fromDbMutationBatch(mutation));
           });
       })
       .next(() => results);
@@ -476,7 +483,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation!));
+            results.push(this.serializer.fromDbMutationBatch(mutation));
           })
       );
     });
@@ -492,7 +499,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       batch
     ).next(removedDocuments => {
-      this.removeCachedMutationKeys(batch.batchId);
+      transaction.addOnCommittedListener(() => {
+        this.removeCachedMutationKeys(batch.batchId);
+      });
       return PersistencePromise.forEach(
         removedDocuments,
         (key: DocumentKey) => {
@@ -666,7 +675,7 @@ function convertStreamToken(token: ProtoByteString): string {
   if (token instanceof Uint8Array) {
     // TODO(b/78771403): Convert tokens to strings during deserialization
     assert(
-      process.env.USE_MOCK_PERSISTENCE === 'YES',
+      SimpleDb.isMockPersistence(),
       'Persisting non-string stream tokens is only supported with mock persistence.'
     );
     return token.toString();

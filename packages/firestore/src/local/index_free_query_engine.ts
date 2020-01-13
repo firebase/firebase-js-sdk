@@ -19,7 +19,7 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { Query } from '../core/query';
+import { Query, LimitType } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -69,7 +69,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
       'setLocalDocumentsView() not called'
     );
 
-    // Queries that match all document don't benefit from using
+    // Queries that match all documents don't benefit from using
     // IndexFreeQueries. It is more efficient to scan all documents in a
     // collection, rather than to perform individual lookups.
     if (query.matchesAllDocuments()) {
@@ -87,8 +87,9 @@ export class IndexFreeQueryEngine implements QueryEngine {
         const previousResults = this.applyQuery(query, documents);
 
         if (
-          query.hasLimit() &&
+          (query.hasLimitToFirst() || query.hasLimitToLast()) &&
           this.needsRefill(
+            query.limitType,
             previousResults,
             remoteKeys,
             lastLimboFreeSnapshotVersion
@@ -155,6 +156,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
    * was last synchronized.
    */
   private needsRefill(
+    limitType: LimitType,
     sortedPreviousResults: SortedSet<Document>,
     remoteKeys: DocumentKeySet,
     limboFreeSnapshotVersion: SnapshotVersion
@@ -168,20 +170,22 @@ export class IndexFreeQueryEngine implements QueryEngine {
     // Limit queries are not eligible for index-free query execution if there is
     // a potential that an older document from cache now sorts before a document
     // that was previously part of the limit. This, however, can only happen if
-    // the last document of the limit sorts lower than it did when the query was
-    // last synchronized. If a document that is not the limit boundary sorts
-    // differently, the boundary of the limit itself did not change and
-    // documents from cache will continue to be "rejected" by this boundary.
-    // Therefore, we can ignore any modifications that don't affect the last
-    // document.
-    const lastDocumentInLimit = sortedPreviousResults.last();
-    if (!lastDocumentInLimit) {
+    // the document at the edge of the limit goes out of limit.
+    // If a document that is not the limit boundary sorts differently,
+    // the boundary of the limit itself did not change and documents from cache
+    // will continue to be "rejected" by this boundary. Therefore, we can ignore
+    // any modifications that don't affect the last document.
+    const docAtLimitEdge =
+      limitType === LimitType.First
+        ? sortedPreviousResults.last()
+        : sortedPreviousResults.first();
+    if (!docAtLimitEdge) {
       // We don't need to refill the query if there were already no documents.
       return false;
     }
     return (
-      lastDocumentInLimit.hasPendingWrites ||
-      lastDocumentInLimit.version.compareTo(limboFreeSnapshotVersion) > 0
+      docAtLimitEdge.hasPendingWrites ||
+      docAtLimitEdge.version.compareTo(limboFreeSnapshotVersion) > 0
     );
   }
 

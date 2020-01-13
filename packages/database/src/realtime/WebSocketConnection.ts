@@ -16,10 +16,13 @@
  */
 
 import { RepoInfo } from '../core/RepoInfo';
-
-declare const MozWebSocket: any;
-
-import { assert, CONSTANTS as ENV_CONSTANTS } from '@firebase/util';
+import {
+  assert,
+  CONSTANTS as ENV_CONSTANTS,
+  jsonEval,
+  stringify,
+  isNodeSdk
+} from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
 import {
@@ -33,11 +36,12 @@ import {
   WEBSOCKET
 } from './Constants';
 import { PersistentStorage } from '../core/storage/storage';
-import { jsonEval, stringify } from '@firebase/util';
-import { isNodeSdk } from '@firebase/util';
 import { Transport } from './Transport';
 import { StatsCollection } from '../core/stats/StatsCollection';
 import { SDK_VERSION } from '../core/version';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const MozWebSocket: any;
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
@@ -66,9 +70,9 @@ export class WebSocketConnection implements Transport {
   bytesReceived = 0;
   connURL: string;
   onDisconnect: (a?: boolean) => void;
-  onMessage: (msg: Object) => void;
-  mySock: any | null;
-  private log_: (...a: any[]) => void;
+  onMessage: (msg: {}) => void;
+  mySock: WebSocket | null;
+  private log_: (...a: unknown[]) => void;
   private stats_: StatsCollection;
   private everConnected_: boolean;
   private isClosed_: boolean;
@@ -133,7 +137,7 @@ export class WebSocketConnection implements Transport {
    * @param onMessage Callback when messages arrive
    * @param onDisconnect Callback with connection lost.
    */
-  open(onMessage: (msg: Object) => void, onDisconnect: (a?: boolean) => void) {
+  open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.onDisconnect = onDisconnect;
     this.onMessage = onMessage;
 
@@ -156,7 +160,7 @@ export class WebSocketConnection implements Transport {
         // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
         const env = process['env'];
         const proxy =
-          this.connURL.indexOf('wss://') == 0
+          this.connURL.indexOf('wss://') === 0
             ? env['HTTPS_PROXY'] || env['https_proxy']
             : env['HTTP_PROXY'] || env['http_proxy'];
 
@@ -189,13 +193,14 @@ export class WebSocketConnection implements Transport {
       this.onClosed_();
     };
 
-    this.mySock.onmessage = (m: object) => {
-      this.handleIncomingFrame(m);
+    this.mySock.onmessage = m => {
+      this.handleIncomingFrame(m as {});
     };
 
-    this.mySock.onerror = (e: any) => {
+    this.mySock.onerror = e => {
       this.log_('WebSocket error.  Closing connection.');
-      const error = e.message || e.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = (e as any).message || (e as any).data;
       if (error) {
         this.log_(error);
       }
@@ -208,7 +213,7 @@ export class WebSocketConnection implements Transport {
    */
   start() {}
 
-  static forceDisallow_: Boolean;
+  static forceDisallow_: boolean;
 
   static forceDisallow() {
     WebSocketConnection.forceDisallow_ = true;
@@ -264,7 +269,7 @@ export class WebSocketConnection implements Transport {
 
   private appendFrame_(data: string) {
     this.frames.push(data);
-    if (this.frames.length == this.totalFrames) {
+    if (this.frames.length === this.totalFrames) {
       const fullMess = this.frames.join('');
       this.frames = null;
       const jsonMess = jsonEval(fullMess) as object;
@@ -308,8 +313,10 @@ export class WebSocketConnection implements Transport {
    * Process a websocket frame that has arrived from the server.
    * @param mess The frame data
    */
-  handleIncomingFrame(mess: { [k: string]: any }) {
-    if (this.mySock === null) return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+  handleIncomingFrame(mess: { [k: string]: unknown }) {
+    if (this.mySock === null) {
+      return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+    }
     const data = mess['data'] as string;
     this.bytesReceived += data.length;
     this.stats_.incrementCounter('bytes_received', data.length);
@@ -332,7 +339,7 @@ export class WebSocketConnection implements Transport {
    * Send a message to the server
    * @param {Object} data The JSON object to transmit
    */
-  send(data: Object) {
+  send(data: {}) {
     this.resetKeepAlive();
 
     const dataStr = stringify(data);
@@ -404,6 +411,7 @@ export class WebSocketConnection implements Transport {
         this.sendString_('0');
       }
       this.resetKeepAlive();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, Math.floor(WEBSOCKET_KEEPALIVE_INTERVAL)) as any;
   }
 

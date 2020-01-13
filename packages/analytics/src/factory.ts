@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAnalytics,
   Gtag,
@@ -28,16 +27,17 @@ import {
   setUserProperties,
   setAnalyticsCollectionEnabled
 } from './functions';
-import '@firebase/installations';
 import {
   initializeGAId,
   insertScriptTag,
   getOrCreateDataLayer,
   wrapOrCreateGtag,
-  hasDataLayer
+  findGtagScriptOnPage
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -104,14 +104,13 @@ export function settings(options: SettingsOptions): void {
 
 export function factory(
   app: FirebaseApp,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extendApp: (props: { [prop: string]: any }) => void
+  installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  if (!app.options[ANALYTICS_ID_FIELD]) {
+  const analyticsId = app.options[ANALYTICS_ID_FIELD];
+  if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
   }
 
-  const analyticsId: string = app.options[ANALYTICS_ID_FIELD];
   if (initializedIdPromisesMap[analyticsId] != null) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {
       id: analyticsId
@@ -122,9 +121,8 @@ export function factory(
     // Steps here should only be done once per page: creation or wrapping
     // of dataLayer and global gtag function.
 
-    // Presence of previously existing dataLayer used to detect if user has
-    // already put the gtag snippet on this page.
-    if (!hasDataLayer(dataLayerName)) {
+    // Detect if user has already put the gtag <script> tag on this page.
+    if (!findGtagScriptOnPage()) {
       insertScriptTag(dataLayerName);
     }
     getOrCreateDataLayer(dataLayerName);
@@ -140,7 +138,11 @@ export function factory(
     globalInitDone = true;
   }
   // Async but non-blocking.
-  initializedIdPromisesMap[analyticsId] = initializeGAId(app, gtagCoreFunction);
+  initializedIdPromisesMap[analyticsId] = initializeGAId(
+    app,
+    installations,
+    gtagCoreFunction
+  );
 
   const analyticsInstance: FirebaseAnalytics = {
     app,
@@ -159,16 +161,8 @@ export function factory(
     setUserProperties: (properties, options) =>
       setUserProperties(wrappedGtagFunction, analyticsId, properties, options),
     setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(app.options[ANALYTICS_ID_FIELD], enabled)
+      setAnalyticsCollectionEnabled(analyticsId, enabled)
   };
-
-  extendApp({
-    INTERNAL: {
-      analytics: {
-        logEvent: analyticsInstance.logEvent
-      }
-    }
-  });
 
   return analyticsInstance;
 }

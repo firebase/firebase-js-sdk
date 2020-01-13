@@ -24,13 +24,15 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  LimitType,
   Operator,
   OrderBy,
   Query
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import * as fieldValue from '../model/field_value';
@@ -43,7 +45,8 @@ import {
   PatchMutation,
   Precondition,
   SetMutation,
-  TransformMutation
+  TransformMutation,
+  VerifyMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
@@ -92,7 +95,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: unknown, description: string): void {
+function assertPresent(value: unknown, description: string): asserts value {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -207,11 +210,24 @@ export class JsonProtoSerializer {
    * to actually return a Timestamp proto.
    */
   private toTimestamp(timestamp: Timestamp): string {
-    return {
-      seconds: '' + timestamp.seconds,
-      nanos: timestamp.nanoseconds
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    if (this.options.useProto3Json) {
+      // Serialize to ISO-8601 date format, but with full nano resolution.
+      // Since JS Date has only millis, let's only use it for the seconds and
+      // then manually add the fractions to the end.
+      const jsDateStr = new Date(timestamp.seconds * 1000).toISOString();
+      // Remove .xxx frac part and Z in the end.
+      const strUntilSeconds = jsDateStr.replace(/\.\d*/, '').replace('Z', '');
+      // Pad the fraction out to 9 digits (nanos).
+      const nanoStr = ('000000000' + timestamp.nanoseconds).slice(-9);
+
+      return `${strUntilSeconds}.${nanoStr}Z`;
+    } else {
+      return {
+        seconds: '' + timestamp.seconds,
+        nanos: timestamp.nanoseconds
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    }
   }
 
   private fromTimestamp(date: string | TimestampProto): Timestamp {
@@ -242,9 +258,9 @@ export class JsonProtoSerializer {
     let nanos = 0;
     const fraction = ISO_REG_EXP.exec(utc);
     assert(!!fraction, 'invalid timestamp: ' + utc);
-    if (fraction![1]) {
+    if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
-      let nanoStr = fraction![1];
+      let nanoStr = fraction[1];
       nanoStr = (nanoStr + '000000000').substr(0, 9);
       nanos = Number(nanoStr);
     }
@@ -351,7 +367,7 @@ export class JsonProtoSerializer {
     // In v1beta1 queries for collections at the root did not have a trailing
     // "/documents". In v1 all resource paths contain "/documents". Preserve the
     // ability to read the v1beta1 form for compatibility with queries persisted
-    // in the local query cache.
+    // in the local target cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }
@@ -475,7 +491,7 @@ export class JsonProtoSerializer {
     } else if ('arrayValue' in obj) {
       // "values" is not present if the array is empty
       assertPresent(obj.arrayValue, 'arrayValue');
-      const values = obj.arrayValue!.values || [];
+      const values = obj.arrayValue.values || [];
       return new fieldValue.ArrayValue(values.map(v => this.fromValue(v)));
     } else if ('timestampValue' in obj) {
       assertPresent(obj.timestampValue, 'timestampValue');
@@ -484,16 +500,16 @@ export class JsonProtoSerializer {
       );
     } else if ('geoPointValue' in obj) {
       assertPresent(obj.geoPointValue, 'geoPointValue');
-      const latitude = obj.geoPointValue!.latitude || 0;
-      const longitude = obj.geoPointValue!.longitude || 0;
+      const latitude = obj.geoPointValue.latitude || 0;
+      const longitude = obj.geoPointValue.longitude || 0;
       return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
     } else if ('bytesValue' in obj) {
       assertPresent(obj.bytesValue, 'bytesValue');
-      const blob = this.fromBlob(obj.bytesValue!);
+      const blob = this.fromBlob(obj.bytesValue);
       return new fieldValue.BlobValue(blob);
     } else if ('referenceValue' in obj) {
       assertPresent(obj.referenceValue, 'referenceValue');
-      const resourceName = this.fromResourceName(obj.referenceValue!);
+      const resourceName = this.fromResourceName(obj.referenceValue);
       const dbId = new DatabaseId(resourceName.get(1), resourceName.get(3));
       const key = new DocumentKey(
         this.extractLocalPathFromResourceName(resourceName)
@@ -580,11 +596,11 @@ export class JsonProtoSerializer {
       !!doc.found,
       'Tried to deserialize a found document from a missing document.'
     );
-    assertPresent(doc.found!.name, 'doc.found.name');
-    assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
-    const key = this.fromName(doc.found!.name!);
-    const version = this.fromVersion(doc.found!.updateTime!);
-    return new Document(key, version, {}, undefined, doc.found!, v =>
+    assertPresent(doc.found.name, 'doc.found.name');
+    assertPresent(doc.found.updateTime, 'doc.found.updateTime');
+    const key = this.fromName(doc.found.name);
+    const version = this.fromVersion(doc.found.updateTime);
+    return new Document(key, version, {}, undefined, doc.found, v =>
       this.fromValue(v)
     );
   }
@@ -598,8 +614,8 @@ export class JsonProtoSerializer {
       !!result.readTime,
       'Tried to deserialize a missing document without a read time.'
     );
-    const key = this.fromName(result.missing!);
-    const version = this.fromVersion(result.readTime!);
+    const key = this.fromName(result.missing);
+    const version = this.fromVersion(result.readTime);
     return new NoDocument(key, version);
   }
 
@@ -699,11 +715,11 @@ export class JsonProtoSerializer {
       // proto3 default value is unset in JSON (undefined), so use 'NO_CHANGE'
       // if unset
       const state = this.fromWatchTargetChangeState(
-        change.targetChange!.targetChangeType || 'NO_CHANGE'
+        change.targetChange.targetChangeType || 'NO_CHANGE'
       );
-      const targetIds: TargetId[] = change.targetChange!.targetIds || [];
+      const targetIds: TargetId[] = change.targetChange.targetIds || [];
       const resumeToken =
-        change.targetChange!.resumeToken || this.emptyByteString();
+        change.targetChange.resumeToken || this.emptyByteString();
       const causeProto = change.targetChange!.cause;
       const cause = causeProto && this.fromRpcStatus(causeProto);
       watchChange = new WatchTargetChange(
@@ -714,18 +730,15 @@ export class JsonProtoSerializer {
       );
     } else if ('documentChange' in change) {
       assertPresent(change.documentChange, 'documentChange');
-      assertPresent(change.documentChange!.document, 'documentChange.name');
+      const entityChange = change.documentChange;
+      assertPresent(entityChange.document, 'documentChange.name');
+      assertPresent(entityChange.document.name, 'documentChange.document.name');
       assertPresent(
-        change.documentChange!.document!.name,
-        'documentChange.document.name'
-      );
-      assertPresent(
-        change.documentChange!.document!.updateTime,
+        entityChange.document.updateTime,
         'documentChange.document.updateTime'
       );
-      const entityChange = change.documentChange!;
-      const key = this.fromName(entityChange.document!.name!);
-      const version = this.fromVersion(entityChange.document!.updateTime!);
+      const key = this.fromName(entityChange.document.name);
+      const version = this.fromVersion(entityChange.document.updateTime);
       const doc = new Document(
         key,
         version,
@@ -744,9 +757,9 @@ export class JsonProtoSerializer {
       );
     } else if ('documentDelete' in change) {
       assertPresent(change.documentDelete, 'documentDelete');
-      assertPresent(change.documentDelete!.document, 'documentDelete.document');
-      const docDelete = change.documentDelete!;
-      const key = this.fromName(docDelete.document!);
+      const docDelete = change.documentDelete;
+      assertPresent(docDelete.document, 'documentDelete.document');
+      const key = this.fromName(docDelete.document);
       const version = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
         : SnapshotVersion.forDeletedDoc();
@@ -755,19 +768,19 @@ export class JsonProtoSerializer {
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
     } else if ('documentRemove' in change) {
       assertPresent(change.documentRemove, 'documentRemove');
-      assertPresent(change.documentRemove!.document, 'documentRemove');
-      const docRemove = change.documentRemove!;
-      const key = this.fromName(docRemove.document!);
+      const docRemove = change.documentRemove;
+      assertPresent(docRemove.document, 'documentRemove');
+      const key = this.fromName(docRemove.document);
       const removedTargetIds = docRemove.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
     } else if ('filter' in change) {
       // TODO(dimond): implement existence filter parsing with strategy.
       assertPresent(change.filter, 'filter');
-      assertPresent(change.filter!.targetId, 'filter.targetId');
       const filter = change.filter;
-      const count = filter!.count || 0;
+      assertPresent(filter.targetId, 'filter.targetId');
+      const count = filter.count || 0;
       const existenceFilter = new ExistenceFilter(count);
-      const targetId = filter!.targetId!;
+      const targetId = filter.targetId;
       watchChange = new ExistenceFilterChange(targetId, existenceFilter);
     } else {
       return fail('Unknown change type ' + JSON.stringify(change));
@@ -832,6 +845,10 @@ export class JsonProtoSerializer {
           )
         }
       };
+    } else if (mutation instanceof VerifyMutation) {
+      result = {
+        verify: this.toName(mutation.key)
+      };
     } else {
       return fail('Unknown mutation type ' + mutation.type);
     }
@@ -850,7 +867,7 @@ export class JsonProtoSerializer {
 
     if (proto.update) {
       assertPresent(proto.update.name, 'name');
-      const key = this.fromName(proto.update.name!);
+      const key = this.fromName(proto.update.name);
       const value = this.fromFields(proto.update.fields || {});
       if (proto.updateMask) {
         const fieldMask = this.fromDocumentMask(proto.updateMask);
@@ -871,6 +888,9 @@ export class JsonProtoSerializer {
         'Transforms only support precondition "exists == true"'
       );
       return new TransformMutation(key, fieldTransforms);
+    } else if (proto.verify) {
+      const key = this.fromName(proto.verify);
+      return new VerifyMutation(key, precondition);
     } else {
       return fail('unknown mutation proto: ' + JSON.stringify(proto));
     }
@@ -935,7 +955,7 @@ export class JsonProtoSerializer {
         commitTime !== undefined,
         'Received a write result without a commit time'
       );
-      return protos.map(proto => this.fromWriteResult(proto, commitTime!));
+      return protos.map(proto => this.fromWriteResult(proto, commitTime));
     } else {
       return [];
     }
@@ -1006,25 +1026,25 @@ export class JsonProtoSerializer {
     return new FieldTransform(fieldPath, transform!);
   }
 
-  toDocumentsTarget(query: Query): api.DocumentsTarget {
-    return { documents: [this.toQueryPath(query.path)] };
+  toDocumentsTarget(target: Target): api.DocumentsTarget {
+    return { documents: [this.toQueryPath(target.path)] };
   }
 
-  fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Query {
+  fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Target {
     const count = documentsTarget.documents!.length;
     assert(
       count === 1,
       'DocumentsTarget contained other than 1 document: ' + count
     );
     const name = documentsTarget.documents![0];
-    return Query.atPath(this.fromQueryPath(name));
+    return Query.atPath(this.fromQueryPath(name)).toTarget();
   }
 
-  toQueryTarget(query: Query): api.QueryTarget {
+  toQueryTarget(target: Target): api.QueryTarget {
     // Dissect the path into parent, collectionId, and optional key filter.
     const result: api.QueryTarget = { structuredQuery: {} };
-    const path = query.path;
-    if (query.collectionGroup !== null) {
+    const path = target.path;
+    if (target.collectionGroup !== null) {
       assert(
         path.length % 2 === 0,
         'Collection Group queries should be within a document path or root.'
@@ -1032,7 +1052,7 @@ export class JsonProtoSerializer {
       result.parent = this.toQueryPath(path);
       result.structuredQuery!.from = [
         {
-          collectionId: query.collectionGroup,
+          collectionId: target.collectionGroup,
           allDescendants: true
         }
       ];
@@ -1045,32 +1065,32 @@ export class JsonProtoSerializer {
       result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
     }
 
-    const where = this.toFilter(query.filters);
+    const where = this.toFilter(target.filters);
     if (where) {
       result.structuredQuery!.where = where;
     }
 
-    const orderBy = this.toOrder(query.orderBy);
+    const orderBy = this.toOrder(target.orderBy);
     if (orderBy) {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toInt32Value(query.limit);
+    const limit = this.toInt32Value(target.limit);
     if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
 
-    if (query.startAt) {
-      result.structuredQuery!.startAt = this.toCursor(query.startAt);
+    if (target.startAt) {
+      result.structuredQuery!.startAt = this.toCursor(target.startAt);
     }
-    if (query.endAt) {
-      result.structuredQuery!.endAt = this.toCursor(query.endAt);
+    if (target.endAt) {
+      result.structuredQuery!.endAt = this.toCursor(target.endAt);
     }
 
     return result;
   }
 
-  fromQueryTarget(target: api.QueryTarget): Query {
+  fromQueryTarget(target: api.QueryTarget): Target {
     let path = this.fromQueryPath(target.parent!);
 
     const query = target.structuredQuery!;
@@ -1120,15 +1140,16 @@ export class JsonProtoSerializer {
       orderBy,
       filterBy,
       limit,
+      LimitType.First,
       startAt,
       endAt
-    );
+    ).toTarget();
   }
 
   toListenRequestLabels(
-    queryData: QueryData
+    targetData: TargetData
   ): api.ApiClientObjectMap<string> | null {
-    const value = this.toLabel(queryData.purpose);
+    const value = this.toLabel(targetData.purpose);
     if (value == null) {
       return null;
     } else {
@@ -1138,34 +1159,34 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toLabel(purpose: QueryPurpose): string | null {
+  private toLabel(purpose: TargetPurpose): string | null {
     switch (purpose) {
-      case QueryPurpose.Listen:
+      case TargetPurpose.Listen:
         return null;
-      case QueryPurpose.ExistenceFilterMismatch:
+      case TargetPurpose.ExistenceFilterMismatch:
         return 'existence-filter-mismatch';
-      case QueryPurpose.LimboResolution:
+      case TargetPurpose.LimboResolution:
         return 'limbo-document';
       default:
         return fail('Unrecognized query purpose: ' + purpose);
     }
   }
 
-  toTarget(queryData: QueryData): api.Target {
+  toTarget(targetData: TargetData): api.Target {
     let result: api.Target;
-    const query = queryData.query;
+    const target = targetData.target;
 
-    if (query.isDocumentQuery()) {
-      result = { documents: this.toDocumentsTarget(query) };
+    if (target.isDocumentQuery()) {
+      result = { documents: this.toDocumentsTarget(target) };
     } else {
-      result = { query: this.toQueryTarget(query) };
+      result = { query: this.toQueryTarget(target) };
     }
 
-    result.targetId = queryData.targetId;
+    result.targetId = targetData.targetId;
 
-    if (queryData.resumeToken.length > 0) {
+    if (targetData.resumeToken.length > 0) {
       result.resumeToken = this.unsafeCastProtoByteString(
-        queryData.resumeToken
+        targetData.resumeToken
       );
     }
 

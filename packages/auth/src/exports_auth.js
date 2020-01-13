@@ -48,6 +48,8 @@ goog.require('fireauth.grecaptcha');
 goog.require('fireauth.idp.ProviderId');
 goog.require('goog.Promise');
 
+/** @define {string} */
+const AUTH_NPM_PACKAGE_VERSION = '';
 
 fireauth.exportlib.exportPrototypeMethods(
     fireauth.Auth.prototype, {
@@ -618,27 +620,10 @@ fireauth.exportlib.exportFunction(
 
 (function() {
   if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
-      !firebase.INTERNAL.registerService) {
+      !firebase.INTERNAL.registerComponent) {
     throw new Error('Cannot find the firebase namespace; be sure to include ' +
         'firebase-app.js before this library.');
   } else {
-    /** @type {!firebase.ServiceFactory} */
-    var factory = function(app, extendApp) {
-      var auth = new fireauth.Auth(app);
-      extendApp({
-        'INTERNAL': {
-          // Extend app.INTERNAL.getUid.
-          'getUid': goog.bind(auth.getUid, auth),
-          'getToken': goog.bind(auth.getIdTokenInternal, auth),
-          'addAuthTokenListener':
-              goog.bind(auth.addAuthTokenListenerInternal, auth),
-          'removeAuthTokenListener':
-              goog.bind(auth.removeAuthTokenListenerInternal, auth)
-        }
-      });
-      return auth;
-    };
-
     var namespace = {
       // Exports firebase.auth.ActionCodeInfo.Operation.
       'ActionCodeInfo': {
@@ -687,30 +672,42 @@ fireauth.exportlib.exportFunction(
     fireauth.exportlib.exportFunction(namespace,
         'ActionCodeURL', fireauth.ActionCodeURL, []);
 
-    // Register Auth service with firebase.App.
-    firebase.INTERNAL.registerService(
-        fireauth.exportlib.AUTH_TYPE,
-        factory,
-        namespace,
-        // Initialize Auth when an App is created, so that tokens and Auth state
-        // listeners are available.
-        function (event, app) {
-          if (event === 'create') {
-            try {
-              app[fireauth.exportlib.AUTH_TYPE]();
-            } catch (e) {
-              // This is a silent operation in the background. If the auth
-              // initialization fails, it should not cause a fatal error.
-              // Instead when the developer tries to initialize again manually,
-              // the error will be thrown.
-              // One specific use case here is the initialization for the nodejs
-              // client when no API key is provided. This is commonly used
-              // for unauthenticated database access.
-            }
-          }
-        }
-        );
-
+    // Create auth components to register with firebase.
+    // Provides Auth public APIs.
+    const authComponent = { 
+      'name': fireauth.exportlib.AUTH_TYPE,
+      'instanceFactory': function(container) {
+        var app = container['getProvider']('app')['getImmediate']();
+        return new fireauth.Auth(app);
+      },
+      'multipleInstances': false,
+      'serviceProps': namespace,
+      'instantiationMode': 'LAZY',
+      'type':  'PUBLIC'
+    };
+  
+    // Provides Auth internal APIs.
+    const authInteropComponent = { 
+      'name': 'auth-internal',
+      'instanceFactory': function(container) {
+        var auth = container['getProvider'](fireauth.exportlib.AUTH_TYPE)['getImmediate']();
+        return {
+          'getUid': goog.bind(auth.getUid, auth),
+          'getToken': goog.bind(auth.getIdTokenInternal, auth),
+          'addAuthTokenListener':
+            goog.bind(auth.addAuthTokenListenerInternal, auth),
+          'removeAuthTokenListener':
+            goog.bind(auth.removeAuthTokenListenerInternal, auth)
+        };
+      },
+      'multipleInstances': false,
+      'instantiationMode': 'LAZY',
+      'type':  'PRIVATE'
+    };
+  
+    firebase.INTERNAL.registerComponent(authComponent);
+    firebase.INTERNAL.registerComponent(authInteropComponent);
+    firebase.registerVersion('@firebase/auth', AUTH_NPM_PACKAGE_VERSION);
 
     // Expose User as firebase.User.
     firebase.INTERNAL.extendNamespace({

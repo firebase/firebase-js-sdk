@@ -2436,6 +2436,8 @@ function testVerifyCustomToken_serverCaughtError() {
       fireauth.authenum.Error.CREDENTIAL_MISMATCH;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
       fireauth.authenum.Error.INVALID_TENANT_ID;
+  errorMap[fireauth.RpcHandler.ServerError.TENANT_ID_MISMATCH] =
+      fireauth.authenum.Error.TENANT_ID_MISMATCH;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyCustomToken(token);
@@ -2658,6 +2660,11 @@ function testGetErrorCodeDetails() {
       'blabla:bla:::bla: something:',
       fireauth.RpcHandler.getErrorCodeDetails('OPERATION_NOT_ALLOWED: blabl' +
           'a:bla:::bla: something:'));
+  // Error message that contains new line.
+  assertEquals(
+      'Provider Id\nis not enabled in configuration.',
+      fireauth.RpcHandler.getErrorCodeDetails('OPERATION_NOT_ALLOWED : Provi' +
+          'der Id\nis not enabled in configuration.'));
 }
 
 

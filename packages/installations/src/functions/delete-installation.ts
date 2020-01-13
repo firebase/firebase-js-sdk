@@ -15,25 +15,18 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { deleteInstallation as deleteInstallationRequest } from '../api/delete-installation';
-import { extractAppConfig } from '../helpers/extract-app-config';
+import { deleteInstallationRequest } from '../api/delete-installation-request';
 import { remove, update } from '../helpers/idb-manager';
-import {
-  InProgressInstallationEntry,
-  InstallationEntry,
-  RegisteredInstallationEntry,
-  RequestStatus
-} from '../interfaces/installation-entry';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
-export async function deleteInstallation(app: FirebaseApp): Promise<void> {
-  const appConfig = extractAppConfig(app);
+export async function deleteInstallation(
+  dependencies: FirebaseDependencies
+): Promise<void> {
+  const { appConfig } = dependencies;
 
-  const entry = await update(appConfig, (oldEntry?: InstallationEntry):
-    | InProgressInstallationEntry
-    | RegisteredInstallationEntry
-    | undefined => {
+  const entry = await update(appConfig, oldEntry => {
     if (oldEntry && oldEntry.registrationStatus === RequestStatus.NOT_STARTED) {
       // Delete the unregistered entry without sending a deleteInstallation request.
       return undefined;

@@ -19,9 +19,17 @@ import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FunctionsErrorCode } from '@firebase/functions-types';
-import firebase from '@firebase/app';
-import '@firebase/messaging';
-import { Service } from '../src/api/service';
+import {
+  Provider,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
+import { makeFakeApp, createTestService } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
@@ -50,7 +58,7 @@ async function expectError(
 
 describe('Firebase Functions > Call', () => {
   let app: FirebaseApp;
-  let functions: Service;
+  const region = 'us-central1';
 
   before(() => {
     const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
@@ -58,24 +66,12 @@ describe('Firebase Functions > Call', () => {
       ? 'functions-integration-test'
       : TEST_PROJECT.projectId;
     const messagingSenderId = 'messaging-sender-id';
-    const region = 'us-central1';
-    try {
-      app = firebase.app('TEST-APP');
-    } catch (e) {
-      app = firebase.initializeApp(
-        { projectId, messagingSenderId },
-        'TEST-APP'
-      );
-    }
-    functions = new Service(app, region);
-    if (useEmulator) {
-      functions.useFunctionsEmulator(
-        process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
-      );
-    }
+
+    app = makeFakeApp({ projectId, messagingSenderId });
   });
 
   it('simple data', async () => {
+    const functions = createTestService(app, region);
     // TODO(klimt): Should we add an API to create a "long" in JS?
     const data = {
       bool: true,
@@ -96,16 +92,29 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('scalars', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('scalarTest');
     const result = await func(17);
     expect(result.data).to.equal(76);
   });
 
   it('token', async () => {
-    // Stub out the internals to get an auth token.
-    const stub = sinon.stub((app as _FirebaseApp).INTERNAL, 'getToken');
-    stub.returns(Promise.resolve({ accessToken: 'token' }));
+    // mock auth-internal service
+    const authMock: FirebaseAuthInternal = ({
+      getToken: async () => ({ accessToken: 'token' })
+    } as unknown) as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
 
+    const functions = createTestService(app, region, authProvider);
+
+    // Stub out the internals to get an auth token.
+    const stub = sinon.stub(authMock, 'getToken').callThrough();
     const func = functions.httpsCallable('tokenTest');
     const result = await func({});
     expect(result.data).to.deep.equal({});
@@ -132,6 +141,7 @@ describe('Firebase Functions > Call', () => {
   */
 
   it('null', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('nullTest');
     let result = await func(null);
     expect(result.data).to.be.null;
@@ -142,21 +152,25 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('missing result', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('missingResultTest');
     await expectError(func(), 'internal', 'Response is missing data field.');
   });
 
   it('unhandled error', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('unhandledErrorTest');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('unknown error', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('unknownErrorTest');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('explicit error', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('explicitErrorTest');
     await expectError(func(), 'out-of-range', 'explicit nope', {
       start: 10,
@@ -166,11 +180,13 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('http error', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('httpErrorTest');
     await expectError(func(), 'invalid-argument', 'invalid-argument');
   });
 
   it('timeout', async () => {
+    const functions = createTestService(app, region);
     const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });

@@ -165,12 +165,15 @@ describe('RxFire Firestore', () => {
         take(1)
       );
 
+      let previousData: Array<{}>;
+
       addedChanges.subscribe(data => {
         const expectedNames = [
           { name: 'David', type: 'added' },
           { name: 'Shannon', type: 'added' }
         ];
         expect(data).to.eql(expectedNames);
+        previousData = data;
         davidDoc.update({ name: 'David!' });
       });
 
@@ -180,6 +183,7 @@ describe('RxFire Firestore', () => {
           { name: 'Shannon', type: 'added' }
         ];
         expect(data).to.eql(expectedNames);
+        expect(data === previousData).to.eql(false);
         done();
       });
     });
@@ -222,14 +226,8 @@ describe('RxFire Firestore', () => {
     it('should keep create a list of all changes', (done: MochaDone) => {
       const { colRef, expectedEvents, davidDoc } = seedTest(firestore);
 
-      const firstAudit = auditTrail(colRef).pipe(
-        unwrapChange,
-        take(1)
-      );
-      const secondAudit = auditTrail(colRef).pipe(
-        unwrapChange,
-        skip(1)
-      );
+      const firstAudit = auditTrail(colRef).pipe(unwrapChange, take(1));
+      const secondAudit = auditTrail(colRef).pipe(unwrapChange, skip(1));
 
       firstAudit.subscribe(list => {
         expect(list).to.eql(expectedEvents);
@@ -277,14 +275,8 @@ describe('RxFire Firestore', () => {
     it('should keep create a list of all changes', (done: MochaDone) => {
       const { colRef, expectedEvents, davidDoc } = seedTest(firestore);
 
-      const firstAudit = auditTrail(colRef).pipe(
-        unwrapChange,
-        take(1)
-      );
-      const secondAudit = auditTrail(colRef).pipe(
-        unwrapChange,
-        skip(1)
-      );
+      const firstAudit = auditTrail(colRef).pipe(unwrapChange, take(1));
+      const secondAudit = auditTrail(colRef).pipe(unwrapChange, skip(1));
 
       firstAudit.subscribe(list => {
         expect(list).to.eql(expectedEvents);

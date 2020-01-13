@@ -18,29 +18,56 @@
 import firebase from '@firebase/app';
 import {
   _FirebaseNamespace,
-  FirebaseServiceFactory
+  FirebaseService
 } from '@firebase/app-types/private';
+import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-
-import { deleteInstallation, getId, getToken } from './functions';
+import {
+  deleteInstallation,
+  getId,
+  getToken,
+  IdChangeCallbackFn,
+  IdChangeUnsubscribeFn,
+  onIdChange
+} from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
+import { FirebaseDependencies } from './interfaces/firebase-dependencies';
+
+import { name, version } from '../package.json';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
 
-  const factoryMethod: FirebaseServiceFactory = app => {
-    // Throws if app isn't configured properly.
-    extractAppConfig(app);
+  instance.INTERNAL.registerComponent(
+    new Component(
+      installationsName,
+      container => {
+        const app = container.getProvider('app').getImmediate();
 
-    return {
-      app,
-      getId: () => getId(app),
-      getToken: () => getToken(app),
-      delete: () => deleteInstallation(app)
-    };
-  };
+        // Throws if app isn't configured properly.
+        const appConfig = extractAppConfig(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        const dependencies: FirebaseDependencies = {
+          appConfig,
+          platformLoggerProvider
+        };
 
-  instance.INTERNAL.registerService(installationsName, factoryMethod);
+        const installations: FirebaseInstallations & FirebaseService = {
+          app,
+          getId: () => getId(dependencies),
+          getToken: (forceRefresh?: boolean) =>
+            getToken(dependencies, forceRefresh),
+          delete: () => deleteInstallation(dependencies),
+          onIdChange: (callback: IdChangeCallbackFn): IdChangeUnsubscribeFn =>
+            onIdChange(dependencies, callback)
+        };
+        return installations;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+
+  instance.registerVersion(name, version);
 }
 
 registerInstallations(firebase as _FirebaseNamespace);

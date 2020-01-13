@@ -23,6 +23,7 @@ import { nodeFromJSON } from '../snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Node } from '../snap/Node';
 import { ChildrenNode } from '../snap/ChildrenNode';
+import { Indexable } from './misc';
 
 /**
  * Generate placeholders for deferred values.
@@ -31,9 +32,9 @@ import { ChildrenNode } from '../snap/ChildrenNode';
  */
 export const generateWithValues = function(
   values: {
-    [k: string]: any;
+    [k: string]: unknown;
   } | null
-): { [k: string]: any } {
+): { [k: string]: unknown } {
   values = values || {};
   values['timestamp'] = values['timestamp'] || new Date().getTime();
   return values;
@@ -47,7 +48,9 @@ export const generateWithValues = function(
  * @return {!(string|number|boolean)}
  */
 export const resolveDeferredValue = function(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: { [k: string]: any } | string | number | boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serverValues: { [k: string]: any }
 ): string | number | boolean {
   if (!value || typeof value !== 'object') {
@@ -67,10 +70,10 @@ export const resolveDeferredValue = function(
  */
 export const resolveDeferredValueTree = function(
   tree: SparseSnapshotTree,
-  serverValues: Object
+  serverValues: object
 ): SparseSnapshotTree {
   const resolvedTree = new SparseSnapshotTree();
-  tree.forEachTree(new Path(''), function(path, node) {
+  tree.forEachTree(new Path(''), (path, node) => {
     resolvedTree.remember(
       path,
       resolveDeferredValueSnapshot(node, serverValues)
@@ -89,10 +92,10 @@ export const resolveDeferredValueTree = function(
  */
 export const resolveDeferredValueSnapshot = function(
   node: Node,
-  serverValues: Object
+  serverValues: object
 ): Node {
   const rawPri = node.getPriority().val() as
-    | object
+    | Indexable
     | boolean
     | null
     | number
@@ -117,7 +120,7 @@ export const resolveDeferredValueSnapshot = function(
     if (priority !== childrenNode.getPriority().val()) {
       newNode = newNode.updatePriority(new LeafNode(priority));
     }
-    childrenNode.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
+    childrenNode.forEachChild(PRIORITY_INDEX, (childName, childNode) => {
       const newChildNode = resolveDeferredValueSnapshot(
         childNode,
         serverValues

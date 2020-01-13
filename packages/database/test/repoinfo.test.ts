@@ -25,8 +25,8 @@ import {
 } from '../src/realtime/Constants';
 import { expect } from 'chai';
 
-describe('RepoInfo', function() {
-  it('should return the correct URL', function() {
+describe('RepoInfo', () => {
+  it('should return the correct URL', () => {
     const repoInfo = testRepoInfo('https://test-ns.firebaseio.com');
 
     const urlParams = {};

@@ -68,6 +68,8 @@ toc:
     path: /docs/reference/js/firebase.auth.IDTokenResult
   - title: "OAuthCredential"
     path: /docs/reference/js/firebase.auth.OAuthCredential
+  - title: "OAuthCredentialOptions"
+    path: /docs/reference/js/firebase.auth.OAuthCredentialOptions
   - title: "OAuthProvider"
     path: /docs/reference/js/firebase.auth.OAuthProvider
   - title: "PhoneAuthProvider"
@@ -122,6 +124,8 @@ toc:
     path: /docs/reference/js/firebase.firestore.FieldValue
   - title: "Firestore"
     path: /docs/reference/js/firebase.firestore.Firestore
+  - title: "FirestoreDataConverter"
+    path: /docs/reference/js/firebase.firestore.FirestoreDataConverter
   - title: "FirestoreError"
     path: /docs/reference/js/firebase.firestore.FirestoreError
   - title: "GeoPoint"

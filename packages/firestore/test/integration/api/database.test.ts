@@ -20,32 +20,25 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
-import { SimpleDb } from '../../../src/local/simple_db';
-import { fail } from '../../../src/util/assert';
-import { Code } from '../../../src/util/error';
-import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  arrayContainsAnyOp,
-  inOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  DEFAULT_SETTINGS,
-  withMockCredentialProviderTestDb
+  DEFAULT_SETTINGS
 } from '../util/helpers';
-import { User } from '../../../src/auth/user';
 
 // tslint:disable:no-floating-promises
 
 use(chaiAsPromised);
 
 const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database', (persistence: boolean) => {
@@ -135,12 +128,12 @@ apiDescribe('Database', (persistence: boolean) => {
       await writerRef
         .get({ source: 'cache' })
         .then(doc => expect(doc.exists).to.be.true);
-      await readerRef
-        .get({ source: 'cache' })
-        .then(
-          () => fail('Expected cache miss'),
-          err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
-        );
+      await readerRef.get({ source: 'cache' }).then(
+        () => {
+          expect.fail('Expected cache miss');
+        },
+        err => expect(err.code).to.be.equal('unavailable')
+      );
       await writerRef
         .get()
         .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
@@ -452,7 +445,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .update({ owner: 'abc' })
         .then(
           () => Promise.reject('update should have failed.'),
-          (err: firestore.FirestoreError) => {
+          err => {
             expect(err.message).to.exist;
             // TODO: Change this to just match "no document to update" once the
             // backend response is consistent.
@@ -492,8 +485,6 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can update nested fields', () => {
-    const FieldPath = firebase.firestore!.FieldPath;
-
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
@@ -612,7 +603,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', inOp, [1, 2])
+          coll.where('x', '>=', 32).where('y', 'in', [1, 2])
         ).not.to.throw();
       });
     });
@@ -620,7 +611,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', arrayContainsAnyOp, [1, 2])
+          coll.where('x', '>=', 32).where('y', 'array-contains-any', [1, 2])
         ).not.to.throw();
       });
     });
@@ -665,14 +656,14 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.orderBy('x').where('y', inOp, [1, 2])).not.to.throw();
+        expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
       });
     });
 
     it('array-contains-any different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.orderBy('x').where('y', arrayContainsAnyOp, [1, 2])
+          coll.orderBy('x').where('y', 'array-contains-any', [1, 2])
         ).not.to.throw();
       });
     });
@@ -822,7 +813,8 @@ apiDescribe('Database', (persistence: boolean) => {
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
-    const queryForRejection = query('foo');
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryForRejection : firestore.Query = null as any;
 
     it('will reject listens', () => {
       const deferred = new Deferred();
@@ -860,7 +852,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject gets', () => {
       return queryForRejection.get().then(
         () => {
-          throw new Error('Promise resolved even though error was expected.');
+          expect.fail('Promise resolved even though error was expected.');
         },
         err => {
           expect(err.name).to.exist;
@@ -874,7 +866,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .get()
         .then(
           () => {
-            throw new Error('Promise resolved even though error was expected.');
+            expect.fail('Promise resolved even though error was expected.');
           },
           err => {
             expect(err.name).to.exist;
@@ -884,7 +876,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(() => queryForRejection.get())
         .then(
           () => {
-            throw new Error('Promise resolved even though error was expected.');
+            expect.fail('Promise resolved even though error was expected.');
           },
           err => {
             expect(err.name).to.exist;
@@ -1055,28 +1047,6 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
-  // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
-    'will reject the promise if clear persistence fails',
-    async () => {
-      await withTestDoc(persistence, async docRef => {
-        const oldDelete = SimpleDb.delete;
-        try {
-          SimpleDb.delete = (name: string): Promise<void> => {
-            return Promise.reject('Failed to delete the database.');
-          };
-          const firestore = docRef.firestore;
-          await firestore.app.delete();
-          await expect(
-            firestore.clearPersistence()
-          ).to.eventually.be.rejectedWith('Failed to delete the database.');
-        } finally {
-          SimpleDb.delete = oldDelete;
-        }
-      });
-    }
-  );
-
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
@@ -1203,25 +1173,6 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('waiting for pending writes should fail when user changes', async () => {
-    await withMockCredentialProviderTestDb(
-      persistence,
-      async (db, mockCredentialsProvider) => {
-        // Prevent pending writes receiving acknowledgement.
-        await db.disableNetwork();
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        db.doc('abc/123').set({ foo: 'bar' });
-        const awaitPendingWrite = db.waitForPendingWrites();
-
-        mockCredentialsProvider.triggerUserChange(new User('user_1'));
-
-        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
-          "'waitForPendingWrites' promise is rejected due to a user change."
-        );
-      }
-    );
-  });
-
   it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
@@ -1231,6 +1182,112 @@ apiDescribe('Database', (persistence: boolean) => {
       // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
       // immediately even if we are offline.
       await firestore.waitForPendingWrites();
+    });
+  });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    const postConverter = {
+      toFirestore(post: Post): firestore.DocumentData {
+        return { title: post.title, author: post.author };
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot,
+        options: firestore.SnapshotOptions
+      ): Post {
+        const data = snapshot.data(options);
+        return new Post(data.title, data.author);
+      }
+    };
+
+    it('for DocumentReference.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverter);
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for CollectionReference.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .withConverter(postConverter)
+          .doc();
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for Query.withConverter()', () => {
+      return withTestDb(persistence, async db => {
+        await db
+          .doc('postings/post1')
+          .set({ title: 'post1', author: 'author1' });
+        await db
+          .doc('postings/post2')
+          .set({ title: 'post2', author: 'author2' });
+        const posts = await db
+          .collectionGroup('postings')
+          .withConverter(postConverter)
+          .get();
+        expect(posts.size).to.equal(2);
+        expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+      });
+    });
+
+    it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db.doc('some/doc').withConverter({
+          toFirestore(post: Post): firestore.DocumentData {
+            return { title: post.title, author: post.author };
+          },
+          fromFirestore(
+            snapshot: firestore.QueryDocumentSnapshot,
+            options: firestore.SnapshotOptions
+          ): Post {
+            // Check that options were passed in properly.
+            expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
+
+            const data = snapshot.data(options);
+            return new Post(data.title, data.author);
+          }
+        });
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        postData.data({ serverTimestamps: 'estimate' });
+      });
+    });
+
+    it('drops the converter when calling CollectionReference<T>.parent()', () => {
+      return withTestDb(persistence, async db => {
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+
+        const usersCollection = postsCollection.parent;
+        expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+      });
     });
   });
 });

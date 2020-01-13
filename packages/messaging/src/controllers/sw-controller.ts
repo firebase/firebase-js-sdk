@@ -15,243 +15,48 @@
  * limitations under the License.
  */
 
-import './sw-types';
-
-import { FirebaseApp } from '@firebase/app-types';
-
+import { deleteToken, getToken } from '../core/token-management';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import {
   MessagePayload,
   NotificationDetails
 } from '../interfaces/message-payload';
-import { ErrorCode, errorFactory } from '../models/errors';
-import {
-  DEFAULT_PUBLIC_VAPID_KEY,
-  FN_CAMPAIGN_ID
-} from '../models/fcm-details';
-import { InternalMessage, MessageType } from '../models/worker-page-message';
-import { BaseController, BgMessageHandler } from './base-controller';
+import { FCM_MSG, DEFAULT_VAPID_KEY } from '../util/constants';
+import { MessageType, InternalMessage } from '../interfaces/internal-message';
+import { dbGet } from '../helpers/idb-manager';
+import { Unsubscribe } from '@firebase/util';
+import { sleep } from '../helpers/sleep';
+import { FirebaseApp } from '@firebase/app-types';
+import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseService } from '@firebase/app-types/private';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
-const FCM_MSG = 'FCM_MSG';
+export type BgMessageHandler = (payload: MessagePayload) => unknown;
 
-export class SwController extends BaseController {
+export class SwController implements FirebaseMessaging, FirebaseService {
+  private vapidKey: string | null = null;
   private bgMessageHandler: BgMessageHandler | null = null;
 
-  constructor(app: FirebaseApp) {
-    super(app);
-
+  constructor(
+    private readonly firebaseDependencies: FirebaseInternalDependencies
+  ) {
     self.addEventListener('push', e => {
-      this.onPush(e);
+      e.waitUntil(this.onPush(e));
     });
     self.addEventListener('pushsubscriptionchange', e => {
-      this.onSubChange(e);
+      e.waitUntil(this.onSubChange(e));
     });
     self.addEventListener('notificationclick', e => {
-      this.onNotificationClick(e);
+      e.waitUntil(this.onNotificationClick(e));
     });
   }
 
-  // Visible for testing
-  // TODO: Make private
-  onPush(event: PushEvent): void {
-    event.waitUntil(this.onPush_(event));
-  }
-
-  // Visible for testing
-  // TODO: Make private
-  onSubChange(event: PushSubscriptionChangeEvent): void {
-    event.waitUntil(this.onSubChange_(event));
-  }
-
-  // Visible for testing
-  // TODO: Make private
-  onNotificationClick(event: NotificationEvent): void {
-    event.waitUntil(this.onNotificationClick_(event));
-  }
-
-  /**
-   * A handler for push events that shows notifications based on the content of
-   * the payload.
-   *
-   * The payload must be a JSON-encoded Object with a `notification` key. The
-   * value of the `notification` property will be used as the NotificationOptions
-   * object passed to showNotification. Additionally, the `title` property of the
-   * notification object will be used as the title.
-   *
-   * If there is no notification data in the payload then no notification will be
-   * shown.
-   */
-  private async onPush_(event: PushEvent): Promise<void> {
-    if (!event.data) {
-      return;
-    }
-
-    let msgPayload: MessagePayload;
-    try {
-      msgPayload = event.data.json();
-    } catch (err) {
-      // Not JSON so not an FCM message
-      return;
-    }
-
-    const hasVisibleClients = await this.hasVisibleClients_();
-    if (hasVisibleClients) {
-      // App in foreground. Send to page.
-      return this.sendMessageToWindowClients_(msgPayload);
-    }
-
-    const notificationDetails = this.getNotificationData_(msgPayload);
-    if (notificationDetails) {
-      const notificationTitle = notificationDetails.title || '';
-      const reg = await this.getSWRegistration_();
-
-      const { actions } = notificationDetails;
-      const { maxActions } = Notification;
-      if (actions && maxActions && actions.length > maxActions) {
-        console.warn(
-          `This browser only supports ${maxActions} actions.` +
-            `The remaining actions will not be displayed.`
-        );
-      }
-
-      return reg.showNotification(notificationTitle, notificationDetails);
-    } else if (this.bgMessageHandler) {
-      await this.bgMessageHandler(msgPayload);
-      return;
-    }
-  }
-
-  private async onSubChange_(
-    _event: PushSubscriptionChangeEvent
-  ): Promise<void> {
-    let registration: ServiceWorkerRegistration;
-    try {
-      registration = await this.getSWRegistration_();
-    } catch (err) {
-      throw errorFactory.create(ErrorCode.UNABLE_TO_RESUBSCRIBE, {
-        errorInfo: err
-      });
-    }
-
-    try {
-      await registration.pushManager.getSubscription();
-      // TODO: Check if it's still valid. If not, then update token.
-    } catch (err) {
-      // The best thing we can do is log this to the terminal so
-      // developers might notice the error.
-      const tokenDetailsModel = this.getTokenDetailsModel();
-      const tokenDetails = await tokenDetailsModel.getTokenDetailsFromSWScope(
-        registration.scope
-      );
-      if (!tokenDetails) {
-        // This should rarely occure, but could if indexedDB
-        // is corrupted or wiped
-        throw err;
-      }
-
-      // Attempt to delete the token if we know it's bad
-      await this.deleteToken(tokenDetails.fcmToken);
-      throw err;
-    }
-  }
-
-  private async onNotificationClick_(event: NotificationEvent): Promise<void> {
-    if (
-      !event.notification ||
-      !event.notification.data ||
-      !event.notification.data[FCM_MSG]
-    ) {
-      // Not an FCM notification, do nothing.
-      return;
-    } else if (event.action) {
-      // User clicked on an action button.
-      // This will allow devs to act on action button clicks by using a custom
-      // onNotificationClick listener that they define.
-      return;
-    }
-
-    // Prevent other listeners from receiving the event
-    event.stopImmediatePropagation();
-    event.notification.close();
-
-    const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
-    if (!msgPayload.notification) {
-      // Nothing to do.
-      return;
-    }
-
-    let link =
-      (msgPayload.fcmOptions && msgPayload.fcmOptions.link) ||
-      msgPayload.notification.click_action;
-    if (!link) {
-      if (msgPayload.data && FN_CAMPAIGN_ID in msgPayload.data) {
-        link = self.location.origin;
-      } else {
-        // Nothing to do.
-        return;
-      }
-    }
-
-    let windowClient = await this.getWindowClient_(link);
-    if (!windowClient) {
-      // Unable to find window client so need to open one.
-      windowClient = await self.clients.openWindow(link);
-      // Wait three seconds for the client to initialize and set up the message
-      // handler so that it can receive the message.
-      await sleep(3000);
-    } else {
-      windowClient = await windowClient.focus();
-    }
-
-    if (!windowClient) {
-      // Window Client will not be returned if it's for a third party origin.
-      return;
-    }
-
-    // Delete notification and fcmOptions data from payload before sending to
-    // the page.
-    delete msgPayload.notification;
-    delete msgPayload.fcmOptions;
-
-    const internalMsg = createNewMsg(
-      MessageType.NOTIFICATION_CLICKED,
-      msgPayload
-    );
-
-    // Attempt to send a message to the client to handle the data
-    // Is affected by: https://github.com/slightlyoff/ServiceWorker/issues/728
-    return this.attemptToMessageClient_(windowClient, internalMsg);
-  }
-
-  // Visible for testing
-  // TODO: Make private
-  getNotificationData_(
-    msgPayload: MessagePayload
-  ): NotificationDetails | undefined {
-    if (!msgPayload) {
-      return;
-    }
-
-    if (typeof msgPayload.notification !== 'object') {
-      return;
-    }
-
-    const notificationInformation: NotificationDetails = {
-      ...msgPayload.notification
-    };
-
-    // Put the message payload under FCM_MSG name so we can identify the
-    // notification as being an FCM notification vs a notification from
-    // somewhere else (i.e. normal web push or developer generated
-    // notification).
-    notificationInformation.data = {
-      ...msgPayload.notification.data,
-      [FCM_MSG]: msgPayload
-    };
-
-    return notificationInformation;
+  get app(): FirebaseApp {
+    return this.firebaseDependencies.app;
   }
 
   /**
@@ -271,124 +76,245 @@ export class SwController extends BaseController {
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
-      throw errorFactory.create(ErrorCode.BG_HANDLER_FUNCTION_EXPECTED);
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_BG_HANDLER);
     }
 
     this.bgMessageHandler = callback;
   }
 
-  /**
-   * @param url The URL to look for when focusing a client.
-   * @return Returns an existing window client or a newly opened WindowClient.
-   */
-  // Visible for testing
-  // TODO: Make private
-  async getWindowClient_(url: string): Promise<WindowClient | null> {
-    // Use URL to normalize the URL when comparing to windowClients.
-    // This at least handles whether to include trailing slashes or not
-    const parsedURL = new URL(url, self.location.href).href;
-
-    const clientList = await getClientList();
-
-    let suitableClient: WindowClient | null = null;
-    for (let i = 0; i < clientList.length; i++) {
-      const parsedClientUrl = new URL(clientList[i].url, self.location.href)
-        .href;
-      if (parsedClientUrl === parsedURL) {
-        suitableClient = clientList[i];
-        break;
-      }
+  // TODO: Remove getToken from SW Controller.
+  // Calling this from an old SW can cause all kinds of trouble.
+  async getToken(): Promise<string> {
+    if (!this.vapidKey) {
+      // Call getToken using the current VAPID key if there already is a token.
+      // This is needed because usePublicVapidKey was not available in SW.
+      // It will be removed when vapidKey becomes a parameter of getToken, or
+      // when getToken is removed from SW.
+      const tokenDetails = await dbGet(this.firebaseDependencies);
+      this.vapidKey =
+        tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
     }
 
-    return suitableClient;
+    return getToken(
+      this.firebaseDependencies,
+      self.registration,
+      this.vapidKey
+    );
+  }
+
+  // TODO: Remove deleteToken from SW Controller.
+  // Calling this from an old SW can cause all kinds of trouble.
+  deleteToken(): Promise<boolean> {
+    return deleteToken(this.firebaseDependencies, self.registration);
+  }
+
+  requestPermission(): Promise<void> {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
+  }
+
+  // TODO: Deprecate this and make VAPID key a parameter in getToken.
+  // TODO: Remove this together with getToken from SW Controller.
+  usePublicVapidKey(vapidKey: string): void {
+    if (this.vapidKey !== null) {
+      throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
+    }
+
+    if (typeof vapidKey !== 'string' || vapidKey.length === 0) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_VAPID_KEY);
+    }
+
+    this.vapidKey = vapidKey;
+  }
+
+  useServiceWorker(): void {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
+  }
+
+  onMessage(): Unsubscribe {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
+  }
+
+  onTokenRefresh(): Unsubscribe {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   /**
-   * This message will attempt to send the message to a window client.
-   * @param client The WindowClient to send the message to.
-   * @param message The message to send to the client.
-   * @returns Returns a promise that resolves after sending the message. This
-   * does not guarantee that the message was successfully received.
+   * A handler for push events that shows notifications based on the content of
+   * the payload.
+   *
+   * The payload must be a JSON-encoded Object with a `notification` key. The
+   * value of the `notification` property will be used as the NotificationOptions
+   * object passed to showNotification. Additionally, the `title` property of the
+   * notification object will be used as the title.
+   *
+   * If there is no notification data in the payload then no notification will be
+   * shown.
    */
-  // Visible for testing
-  // TODO: Make private
-  async attemptToMessageClient_(
-    client: WindowClient,
-    message: InternalMessage
-  ): Promise<void> {
-    // NOTE: This returns a promise in case this API is abstracted later on to
-    // do additional work
+  async onPush(event: PushEvent): Promise<void> {
+    const payload = getMessagePayload(event);
+    if (!payload) {
+      return;
+    }
+
+    const clientList = await getClientList();
+    if (hasVisibleClients(clientList)) {
+      // App in foreground. Send to page.
+      return sendMessageToWindowClients(clientList, payload);
+    }
+
+    const notificationDetails = getNotificationData(payload);
+    if (notificationDetails) {
+      await showNotification(notificationDetails);
+    } else if (this.bgMessageHandler) {
+      await this.bgMessageHandler(payload);
+    }
+  }
+
+  async onSubChange(event: PushSubscriptionChangeEvent): Promise<void> {
+    const { newSubscription } = event;
+    if (!newSubscription) {
+      // Subscription revoked, delete token
+      await deleteToken(this.firebaseDependencies, self.registration);
+      return;
+    }
+
+    const tokenDetails = await dbGet(this.firebaseDependencies);
+    await deleteToken(this.firebaseDependencies, self.registration);
+    await getToken(
+      this.firebaseDependencies,
+      self.registration,
+      tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY
+    );
+  }
+
+  async onNotificationClick(event: NotificationEvent): Promise<void> {
+    const payload: MessagePayload = event.notification?.data?.[FCM_MSG];
+    if (!payload) {
+      // Not an FCM notification, do nothing.
+      return;
+    } else if (event.action) {
+      // User clicked on an action button.
+      // This will allow devs to act on action button clicks by using a custom
+      // onNotificationClick listener that they define.
+      return;
+    }
+
+    // Prevent other listeners from receiving the event
+    event.stopImmediatePropagation();
+    event.notification.close();
+
+    const link = getLink(payload);
+    if (!link) {
+      return;
+    }
+
+    let client = await getWindowClient(link);
     if (!client) {
-      throw errorFactory.create(ErrorCode.NO_WINDOW_CLIENT_TO_MSG);
+      // Unable to find window client so need to open one.
+      // This also focuses the opened client.
+      client = await self.clients.openWindow(link);
+      // Wait three seconds for the client to initialize and set up the message
+      // handler so that it can receive the message.
+      await sleep(3000);
+    } else {
+      client = await client.focus();
     }
 
+    if (!client) {
+      // Window Client will not be returned if it's for a third party origin.
+      return;
+    }
+
+    const message = createNewMessage(MessageType.NOTIFICATION_CLICKED, payload);
+    return client.postMessage(message);
+  }
+}
+
+function getMessagePayload({ data }: PushEvent): MessagePayload | null {
+  if (!data) {
+    return null;
+  }
+
+  try {
+    return data.json();
+  } catch (err) {
+    // Not JSON so not an FCM message.
+    return null;
+  }
+}
+
+function getNotificationData(
+  payload: MessagePayload
+): NotificationDetails | undefined {
+  if (!payload || typeof payload.notification !== 'object') {
+    return;
+  }
+
+  const notificationInformation: NotificationDetails = {
+    ...payload.notification
+  };
+
+  // Put the message payload under FCM_MSG name so we can identify the
+  // notification as being an FCM notification vs a notification from
+  // somewhere else (i.e. normal web push or developer generated
+  // notification).
+  notificationInformation.data = {
+    ...payload.notification.data,
+    [FCM_MSG]: payload
+  };
+
+  return notificationInformation;
+}
+
+/**
+ * @param url The URL to look for when focusing a client.
+ * @return Returns an existing window client or a newly opened WindowClient.
+ */
+async function getWindowClient(url: string): Promise<WindowClient | null> {
+  // Use URL to normalize the URL when comparing to windowClients.
+  // This at least handles whether to include trailing slashes or not
+  const parsedURL = new URL(url, self.location.href).href;
+
+  const clientList = await getClientList();
+
+  for (const client of clientList) {
+    const parsedClientUrl = new URL(client.url, self.location.href).href;
+    if (parsedClientUrl === parsedURL) {
+      return client;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * @returns If there is currently a visible WindowClient, this method will
+ * resolve to true, otherwise false.
+ */
+function hasVisibleClients(clientList: WindowClient[]): boolean {
+  return clientList.some(
+    client =>
+      client.visibilityState === 'visible' &&
+      // Ignore chrome-extension clients as that matches the background pages
+      // of extensions, which are always considered visible for some reason.
+      !client.url.startsWith('chrome-extension://')
+  );
+}
+
+/**
+ * @param payload The data from the push event that should be sent to all
+ * available pages.
+ * @returns Returns a promise that resolves once the message has been sent to
+ * all WindowClients.
+ */
+function sendMessageToWindowClients(
+  clientList: WindowClient[],
+  payload: MessagePayload
+): void {
+  const message = createNewMessage(MessageType.PUSH_RECEIVED, payload);
+
+  for (const client of clientList) {
     client.postMessage(message);
-  }
-
-  /**
-   * @returns If there is currently a visible WindowClient, this method will
-   * resolve to true, otherwise false.
-   */
-  // Visible for testing
-  // TODO: Make private
-  async hasVisibleClients_(): Promise<boolean> {
-    const clientList = await getClientList();
-
-    return clientList.some(
-      (client: WindowClient) =>
-        client.visibilityState === 'visible' &&
-        // Ignore chrome-extension clients as that matches the background pages
-        // of extensions, which are always considered visible.
-        !client.url.startsWith('chrome-extension://')
-    );
-  }
-
-  /**
-   * @param msgPayload The data from the push event that should be sent to all
-   * available pages.
-   * @returns Returns a promise that resolves once the message has been sent to
-   * all WindowClients.
-   */
-  // Visible for testing
-  // TODO: Make private
-  async sendMessageToWindowClients_(msgPayload: MessagePayload): Promise<void> {
-    const clientList = await getClientList();
-
-    const internalMsg = createNewMsg(MessageType.PUSH_MSG_RECEIVED, msgPayload);
-
-    await Promise.all(
-      clientList.map(client =>
-        this.attemptToMessageClient_(client, internalMsg)
-      )
-    );
-  }
-
-  /**
-   * This will register the default service worker and return the registration.
-   * @return he service worker registration to be used for the push service.
-   */
-  async getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    return self.registration;
-  }
-
-  /**
-   * This will return the default VAPID key or the uint8array version of the
-   * public VAPID key provided by the developer.
-   */
-  async getPublicVapidKey_(): Promise<Uint8Array> {
-    const swReg = await this.getSWRegistration_();
-    if (!swReg) {
-      throw errorFactory.create(ErrorCode.SW_REGISTRATION_EXPECTED);
-    }
-
-    const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
-      swReg.scope
-    );
-    if (vapidKeyFromDatabase == null) {
-      return DEFAULT_PUBLIC_VAPID_KEY;
-    }
-
-    return vapidKeyFromDatabase;
   }
 }
 
@@ -400,18 +326,40 @@ function getClientList(): Promise<WindowClient[]> {
   }) as Promise<WindowClient[]>;
 }
 
-function createNewMsg(
-  msgType: MessageType,
-  msgData: MessagePayload
+function createNewMessage(
+  type: MessageType,
+  payload: MessagePayload
 ): InternalMessage {
   return {
-    firebaseMessagingType: msgType,
-    firebaseMessagingData: msgData
+    firebaseMessaging: { type, payload }
   };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise<void>(resolve => {
-    setTimeout(resolve, ms);
-  });
+function showNotification(details: NotificationDetails): Promise<void> {
+  const title = details.title ?? '';
+
+  const { actions } = details;
+  const { maxActions } = Notification;
+  if (actions && maxActions && actions.length > maxActions) {
+    console.warn(
+      `This browser only supports ${maxActions} actions. The remaining actions will not be displayed.`
+    );
+  }
+
+  return self.registration.showNotification(title, details);
+}
+
+function getLink(payload: MessagePayload): string | null {
+  // eslint-disable-next-line camelcase
+  const link = payload.fcmOptions?.link ?? payload.notification?.click_action;
+  if (link) {
+    return link;
+  }
+
+  if (isConsoleMessage(payload.data)) {
+    // Notification created in the Firebase Console. Redirect to origin.
+    return self.location.origin;
+  } else {
+    return null;
+  }
 }

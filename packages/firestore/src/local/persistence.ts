@@ -22,22 +22,42 @@ import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
+import { TargetCache } from './target_cache';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 
 /**
- * Opaque interface representing a persistence transaction.
+ * A base class representing a persistence transaction, encapsulating both the
+ * transaction's sequence numbers as well as a list of onCommitted listeners.
  *
  * When you call Persistence.runTransaction(), it will create a transaction and
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
 export abstract class PersistenceTransaction {
+  private readonly onCommittedListeners: Array<() => void> = [];
+
   abstract readonly currentSequenceNumber: ListenSequenceNumber;
+
+  addOnCommittedListener(listener: () => void): void {
+    this.onCommittedListeners.push(listener);
+  }
+
+  raiseOnCommittedEvent(): void {
+    this.onCommittedListeners.forEach(listener => listener());
+  }
 }
+
+/** The different modes supported by `IndexedDbPersistence.runTransaction()`. */
+export type PersistenceTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readwrite-primary'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent'
+  | 'readwrite-primary-idempotent';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -89,7 +109,7 @@ export interface ReferenceDelegate {
    */
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /** Notify the delegate that a document is no longer being mutated by the user. */
@@ -205,13 +225,13 @@ export interface Persistence {
   getMutationQueue(user: User): MutationQueue;
 
   /**
-   * Returns a QueryCache representing the persisted cache of queries.
+   * Returns a TargetCache representing the persisted cache of targets.
    *
    * Note: The implementation is free to return the same instance every time
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryCache(): QueryCache;
+  getTargetCache(): TargetCache;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote
@@ -255,7 +275,7 @@ export interface Persistence {
    */
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

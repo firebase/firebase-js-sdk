@@ -7,6 +7,24 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "RTDB Unit Tests (Node)",
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/database",
+      "args": [
+        "test/{,!(browser)/**/}*.test.ts",
+        "--file", "index.node.ts",
+        "--opts", "../../config/mocha.node.opts"
+      ],
+      "env": {
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+      },
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Firestore Unit Tests (Node)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
@@ -50,7 +68,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",
@@ -61,8 +79,9 @@
       ],
       "env": {
         "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
-
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}",
+        "FIRESTORE_EMULATOR_PORT" : "8080",
+        "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -71,7 +90,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node / Persistence)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",
@@ -84,8 +103,9 @@
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
         "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
-
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}",
+        "FIRESTORE_EMULATOR_PORT" : "8080",
+        "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -94,7 +114,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",
@@ -107,7 +127,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Browser)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",

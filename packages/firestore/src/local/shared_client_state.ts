@@ -37,33 +37,22 @@ import {
   QueryTargetState,
   SharedClientStateSyncer
 } from './shared_client_state_syncer';
+import {
+  CLIENT_STATE_KEY_PREFIX,
+  ClientStateSchema,
+  createWebStorageClientStateKey,
+  createWebStorageMutationBatchKey,
+  createWebStorageOnlineStateKey,
+  createWebStorageQueryTargetMetadataKey,
+  createWebStorageSequenceNumberKey,
+  MUTATION_BATCH_KEY_PREFIX,
+  MutationMetadataSchema,
+  QUERY_TARGET_KEY_PREFIX,
+  QueryTargetStateSchema,
+  SharedOnlineStateSchema
+} from './shared_client_state_schema';
 
 const LOG_TAG = 'SharedClientState';
-
-// The format of the LocalStorage key that stores the client state is:
-//     firestore_clients_<persistence_prefix>_<instance_key>
-const CLIENT_STATE_KEY_PREFIX = 'firestore_clients';
-
-// The format of the WebStorage key that stores the mutation state is:
-//     firestore_mutations_<persistence_prefix>_<batch_id>
-//     (for unauthenticated users)
-// or: firestore_mutations_<persistence_prefix>_<batch_id>_<user_uid>
-//
-// 'user_uid' is last to avoid needing to escape '_' characters that it might
-// contain.
-const MUTATION_BATCH_KEY_PREFIX = 'firestore_mutations';
-
-// The format of the WebStorage key that stores a query target's metadata is:
-//     firestore_targets_<persistence_prefix>_<target_id>
-const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
-
-// The WebStorage prefix that stores the primary tab's online state. The
-// format of the key is:
-//     firestore_online_state_<persistence_prefix>
-const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
-// The WebStorage key prefix for the key that stores the last sequence number allocated. The key
-// looks like 'firestore_sequence_number_<persistence_prefix>'.
-const SEQUENCE_NUMBER_KEY_PREFIX = 'firestore_sequence_number';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -110,6 +99,9 @@ export interface SharedClientState {
    * Associates a new Query Target ID with the local Firestore client. Returns
    * the new query state for the query (which can be 'current' if the query is
    * already associated with another tab).
+   *
+   * If the target id is already associated with local client, the method simply
+   * returns its `QueryTargetState`.
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
@@ -181,17 +173,6 @@ export interface SharedClientState {
   setOnlineState(onlineState: OnlineState): void;
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-}
-
-/**
- * The JSON representation of a mutation batch's metadata as used during
- * WebStorage serialization. The UserId and BatchId is omitted as it is
- * encoded as part of the key.
- */
-interface MutationMetadataSchema {
-  state: MutationBatchState;
-  error?: { code: string; message: string }; // Only set when state === 'rejected'
-  updateTimeMs: number;
 }
 
 /**
@@ -278,16 +259,6 @@ export class MutationMetadata {
 }
 
 /**
- * The JSON representation of a query target's state as used during WebStorage
- * serialization. The TargetId is omitted as it is encoded as part of the key.
- */
-interface QueryTargetStateSchema {
-  state: QueryTargetState;
-  error?: { code: string; message: string }; // Only set when state === 'rejected'
-  updateTimeMs: number;
-}
-
-/**
  * Holds the state of a query target, including its target ID and whether the
  * target is 'not-current', 'current' or 'rejected'.
  */
@@ -368,16 +339,6 @@ export class QueryTargetMetadata {
 }
 
 /**
- * The JSON representation of a clients's metadata as used during WebStorage
- * serialization. The ClientId is omitted here as it is encoded as part of the
- * key.
- */
-interface ClientStateSchema {
-  activeTargetIds: number[];
-  updateTimeMs: number;
-}
-
-/**
  * Metadata state of a single client denoting the query targets it is actively
  * listening to.
  */
@@ -432,20 +393,6 @@ class RemoteClientState implements ClientState {
 }
 
 /**
- * The JSON representation of the system's online state, as written by the
- * primary client.
- */
-export interface SharedOnlineStateSchema {
-  /**
-   * The clientId of the client that wrote this onlineState value. Tracked so
-   * that on startup, clients can check if this client is still active when
-   * determining whether to apply this value or not.
-   */
-  readonly clientId: string;
-  readonly onlineState: string;
-}
-
-/**
  * This class represents the online state for all clients participating in
  * multi-tab. The online state is only written to by the primary client, and
  * used in secondary clients to update their query views.
@@ -492,10 +439,6 @@ export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
 
   addQueryTarget(targetId: TargetId): void {
-    assert(
-      !this.activeTargetIds.has(targetId),
-      `Target with ID '${targetId}' already active.`
-    );
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 
@@ -568,10 +511,13 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     this.storage = this.platform.window!.localStorage;
     this.currentUser = initialUser;
-    this.localClientStorageKey = this.toWebStorageClientStateKey(
+    this.localClientStorageKey = createWebStorageClientStateKey(
+      this.persistenceKey,
       this.localClientId
     );
-    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${persistenceKey}`;
+    this.sequenceNumberKey = createWebStorageSequenceNumberKey(
+      this.persistenceKey
+    );
     this.activeClients[this.localClientId] = new LocalClientState();
 
     this.clientStateKeyRe = new RegExp(
@@ -584,7 +530,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       `^${QUERY_TARGET_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)$`
     );
 
-    this.onlineStateKey = `${ONLINE_STATE_KEY_PREFIX}_${persistenceKey}`;
+    this.onlineStateKey = createWebStorageOnlineStateKey(this.persistenceKey);
 
     // Rather than adding the storage observer during start(), we add the
     // storage observer during initialization. This ensures that we collect
@@ -621,7 +567,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
 
       const storageItem = this.getItem(
-        this.toWebStorageClientStateKey(clientId)
+        createWebStorageClientStateKey(this.persistenceKey, clientId)
       );
       if (storageItem) {
         const clientState = RemoteClientState.fromWebStorageEntry(
@@ -708,7 +654,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     // by another tab
     if (this.isActiveQueryTarget(targetId)) {
       const storageItem = this.storage.getItem(
-        this.toWebStorageQueryTargetMetadataKey(targetId)
+        createWebStorageQueryTargetMetadataKey(this.persistenceKey, targetId)
       );
 
       if (storageItem) {
@@ -738,7 +684,9 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   clearQueryState(targetId: TargetId): void {
-    this.removeItem(this.toWebStorageQueryTargetMetadataKey(targetId));
+    this.removeItem(
+      createWebStorageQueryTargetMetadataKey(this.persistenceKey, targetId)
+    );
   }
 
   updateQueryState(
@@ -892,12 +840,20 @@ export class WebStorageSharedClientState implements SharedClientState {
       state,
       error
     );
-    const mutationKey = this.toWebStorageMutationBatchKey(batchId);
+    const mutationKey = createWebStorageMutationBatchKey(
+      this.persistenceKey,
+      this.currentUser,
+      batchId
+    );
     this.setItem(mutationKey, mutationState.toWebStorageJSON());
   }
 
   private removeMutationState(batchId: BatchId): void {
-    const mutationKey = this.toWebStorageMutationBatchKey(batchId);
+    const mutationKey = createWebStorageMutationBatchKey(
+      this.persistenceKey,
+      this.currentUser,
+      batchId
+    );
     this.removeItem(mutationKey);
   }
 
@@ -914,35 +870,12 @@ export class WebStorageSharedClientState implements SharedClientState {
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    const targetKey = this.toWebStorageQueryTargetMetadataKey(targetId);
+    const targetKey = createWebStorageQueryTargetMetadataKey(
+      this.persistenceKey,
+      targetId
+    );
     const targetMetadata = new QueryTargetMetadata(targetId, state, error);
     this.setItem(targetKey, targetMetadata.toWebStorageJSON());
-  }
-
-  /** Assembles the key for a client state in WebStorage */
-  private toWebStorageClientStateKey(clientId: ClientId): string {
-    assert(
-      clientId.indexOf('_') === -1,
-      `Client key cannot contain '_', but was '${clientId}'`
-    );
-
-    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
-  }
-
-  /** Assembles the key for a query state in WebStorage */
-  private toWebStorageQueryTargetMetadataKey(targetId: TargetId): string {
-    return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
-  }
-
-  /** Assembles the key for a mutation batch in WebStorage */
-  private toWebStorageMutationBatchKey(batchId: BatchId): string {
-    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${this.persistenceKey}_${batchId}`;
-
-    if (this.currentUser.isAuthenticated()) {
-      mutationKey += `_${this.currentUser.uid}`;
-    }
-
-    return mutationKey;
   }
 
   /**
@@ -964,7 +897,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   ): RemoteClientState | null {
     const clientId = this.fromWebStorageClientStateKey(key);
     assert(clientId !== null, `Cannot parse client state key '${key}'`);
-    return RemoteClientState.fromWebStorageEntry(clientId!, value);
+    return RemoteClientState.fromWebStorageEntry(clientId, value);
   }
 
   /**
@@ -978,8 +911,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.mutationBatchKeyRe.exec(key);
     assert(match !== null, `Cannot parse mutation batch key '${key}'`);
 
-    const batchId = Number(match![1]);
-    const userId = match![2] !== undefined ? match![2] : null;
+    const batchId = Number(match[1]);
+    const userId = match[2] !== undefined ? match[2] : null;
     return MutationMetadata.fromWebStorageEntry(
       new User(userId),
       batchId,
@@ -998,7 +931,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.queryTargetKeyRe.exec(key);
     assert(match !== null, `Cannot parse query target key '${key}'`);
 
-    const targetId = Number(match![1]);
+    const targetId = Number(match[1]);
     return QueryTargetMetadata.fromWebStorageEntry(targetId, value);
   }
 
