@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -28,8 +27,32 @@ jobs:
         yarn build
       env:
         CI: true
+    - name: Archive built Firebase repo
+      uses: actions/upload-artifact@v1
+      with:
+        name: firebase-built
+        path: .
+    # - name: yarn test
+    #   run: |
+    #     xvfb-run yarn test
+    #   env:
+    #     CI: true
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - name: Download built Firebase repo
+      uses: actions/download-artifact@v1
+      with:
+        name: firebase-built
     - name: yarn test
       run: |
-        xvfb-run yarn test
+        xvfb-run yarn --cwd packages/app test
       env:
         CI: true
+
