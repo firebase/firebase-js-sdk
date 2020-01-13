@@ -37,7 +37,7 @@ function copyTests() {
   const firebaseAppSdk = 'firebase/app/dist/index.esm.js';
   const firebaseFirestoreSdk = resolve(
     __dirname,
-    '../../packages/firestore/dist/index.esm.js'
+    '../../packages/firestore/dist/index.esm.min.js'
   );
   return gulp
     .src(
