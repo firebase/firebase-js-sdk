@@ -270,7 +270,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
     }
 
-    const promises: Promise<void>[] = [];
+    const promises: Array<Promise<void>> = [];
     return remoteDocumentsStore(transaction)
       .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
@@ -295,12 +295,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         });
         promises.push(decodeDoc);
       })
-      .next(async () => {
-        await Promise.all(promises);
-      })
-      .next(() => {
-        return results;
-      });
+      .next(() => Promise.all(promises))
+      .next(() => results);
   }
 
   /**
