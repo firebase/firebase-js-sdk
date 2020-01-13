@@ -26,6 +26,8 @@
     "release": "node scripts/release/cli.js",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --concurrency 4 --stream test",
+    "test:part1": "lerna run --ignore @firebase/firestore --concurrency 4 --stream test",
+    "test:part2": "lerna run --scope @firebase/firestore --concurrency 4 --stream test",
     "pretest:coverage": "mkdirp coverage",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",

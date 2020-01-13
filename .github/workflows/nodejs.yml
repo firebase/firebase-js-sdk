@@ -3,7 +3,8 @@ name: Node CI
 on: [push]
 
 jobs:
-  build:
+  test1:
+    name: Node.js and Browser (Chrome) Test
     runs-on: ubuntu-latest
 
     strategy:
@@ -23,22 +24,16 @@ jobs:
       env:
         CI: true
     - name: yarn build
-      run: |
-        yarn build
+      run: yarn build
       env:
         CI: true
-    - name: Archive built Firebase repo
-      uses: actions/upload-artifact@v1
-      with:
-        name: firebase-built
-        path: .
-    # - name: yarn test
-    #   run: |
-    #     xvfb-run yarn test
-    #   env:
-    #     CI: true
-  test:
-    needs: build
+    - name: yarn test1 (no firestore)
+      run: xvfb-run yarn test:part1
+      env:
+        CI: true
+
+  test2:
+    name: Node.js and Browser (Chrome) Test
     runs-on: ubuntu-latest
 
     strategy:
@@ -46,13 +41,55 @@ jobs:
         node-version: [10.x]
 
     steps:
-    - name: Download built Firebase repo
-      uses: actions/download-artifact@v1
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
       with:
-        name: firebase-built
-    - name: yarn test
+        node-version: ${{ matrix.node-version }}
+    - name: setup and yarn install
       run: |
-        xvfb-run yarn --cwd packages/app test
+        cp config/ci.config.json config/project.json
+        yarn
       env:
         CI: true
+    - name: yarn build
+      run: yarn build
+      env:
+        CI: true
+    - name: yarn test2 (firestore)
+      run: xvfb-run yarn test:part2
+      env:
+        CI: true
+
+  cross-browser-test:
+    name: Cross Browser Test for SDKs
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+      env:
+        CI: true
+    - name: yarn build
+      run: yarn build
+      env:
+        CI: true
+    - name: yarn test:saucelabs
+      run: xvfb-run yarn test:saucelabs
+      env:
+        CI: true
+    - name: Warning if cross-browser tests failed
+      run: echo Placeholder - trigger notification cross-browser has failed.
+      if: failed()
 
