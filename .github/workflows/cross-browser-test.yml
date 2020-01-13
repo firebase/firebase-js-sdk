@@ -1,0 +1,37 @@
+name: Cross Browser Test for SDKs
+
+on: [push, pull-request]
+
+jobs:
+  cross-browser-test:
+    name: Cross Browser Test for SDKs
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+      env:
+        CI: true
+    - name: yarn build
+      run: yarn build
+      env:
+        CI: true
+    - name: yarn test:saucelabs
+      run: xvfb-run yarn test:saucelabs
+      env:
+        CI: true
+    - name: Warning if cross-browser tests failed
+      run: echo Placeholder - trigger notification cross-browser has failed.
+      if: failure()
+

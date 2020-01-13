@@ -1,10 +1,10 @@
-name: Node CI
+name: Node.js and Browser (Chrome) Tests
 
-on: [push]
+on: [push, pull-request]
 
 jobs:
   test1:
-    name: Node.js and Browser (Chrome) Test
+    name: Non-Firestore Tests
     runs-on: ubuntu-latest
 
     strategy:
@@ -27,13 +27,13 @@ jobs:
       run: yarn build
       env:
         CI: true
-    - name: yarn test1 (no firestore)
-      run: xvfb-run yarn test:part1
+    - name: yarn test minus firestore
+      run: xvfb-run yarn test:nofirestore
       env:
         CI: true
 
   test2:
-    name: Node.js and Browser (Chrome) Test
+    name: Firestore Tests
     runs-on: ubuntu-latest
 
     strategy:
@@ -56,40 +56,7 @@ jobs:
       run: yarn build
       env:
         CI: true
-    - name: yarn test2 (firestore)
-      run: xvfb-run yarn test:part2
+    - name: yarn firestore test (firestore)
+      run: xvfb-run yarn --cwd packages/firestore test
       env:
         CI: true
-
-  cross-browser-test:
-    name: Cross Browser Test for SDKs
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [10.x]
-
-    steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
-      env:
-        CI: true
-    - name: yarn build
-      run: yarn build
-      env:
-        CI: true
-    - name: yarn test:saucelabs
-      run: xvfb-run yarn test:saucelabs
-      env:
-        CI: true
-    - name: Warning if cross-browser tests failed
-      run: echo Placeholder - trigger notification cross-browser has failed.
-      if: failure()
-
