@@ -2,6 +2,7 @@
 /src
 test
 .idea
+.cache
 
 # Files not needed by end users
 gulpfile.js
