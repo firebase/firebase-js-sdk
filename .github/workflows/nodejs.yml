@@ -91,5 +91,5 @@ jobs:
         CI: true
     - name: Warning if cross-browser tests failed
       run: echo Placeholder - trigger notification cross-browser has failed.
-      if: failed()
+      if: failure()
 
