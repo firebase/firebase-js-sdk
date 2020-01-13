@@ -1,6 +1,6 @@
 name: Cross Browser Test for SDKs
 
-on: [push, pull-request]
+on: [push, pull_request]
 
 jobs:
   cross-browser-test:

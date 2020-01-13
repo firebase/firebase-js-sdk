@@ -1,6 +1,6 @@
 name: Node.js and Browser (Chrome) Tests
 
-on: [push, pull-request]
+on: [push, pull_request]
 
 jobs:
   test1:
