@@ -51,7 +51,7 @@ import { filter } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const auth = app.auth();
-user(auth).subscribe(u => { console.log(u); );
+user(auth).subscribe(u => { console.log(u); });
 ```
 
 ### `idToken()`
