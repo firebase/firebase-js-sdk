@@ -73,6 +73,24 @@ export function isBrowser(): boolean {
 }
 
 /**
+ * Detect browser extensions (Chrome and Firefox at least).
+ */
+interface BrowserRuntime {
+  id?: unknown;
+}
+declare const chrome: { runtime?: BrowserRuntime };
+declare const browser: { runtime?: BrowserRuntime };
+export function isBrowserExtension(): boolean {
+  const runtime =
+    typeof chrome === 'object'
+      ? chrome.runtime
+      : typeof browser === 'object'
+      ? browser.runtime
+      : undefined;
+  return typeof runtime === 'object' && runtime.id !== undefined;
+}
+
+/**
  * Detect React Native.
  *
  * @return true if ReactNative environment is detected.

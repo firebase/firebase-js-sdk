@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed an issue where auth credentials were not respected in some
+  Firefox or Chrome extensions. (#1491)
+
+# 1.9.2
 - [fixed] Fixed an issue where auth credentials were not respected in certain
   browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
 
