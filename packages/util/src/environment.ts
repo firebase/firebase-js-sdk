@@ -75,8 +75,8 @@ export function isBrowser(): boolean {
 /**
  * Detect browser extensions (Chrome and Firefox at least).
  */
-declare var chrome: any;
-declare var browser: any;
+declare const chrome: { runtime?: unknown };
+declare const browser: { runtime?: unknown };
 export function isBrowserExtension(): boolean {
   return (
     (typeof chrome === 'object' && chrome.runtime !== undefined) ||
