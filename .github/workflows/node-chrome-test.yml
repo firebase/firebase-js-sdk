@@ -3,7 +3,7 @@ name: Node.js and Browser (Chrome) Tests
 on: [push, pull_request]
 
 jobs:
-  test1:
+  test-nofirestore:
     name: Non-Firestore Tests
     runs-on: ubuntu-latest
 
@@ -21,18 +21,19 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-      env:
-        CI: true
     - name: yarn build
       run: yarn build
-      env:
-        CI: true
     - name: yarn test minus firestore
       run: xvfb-run yarn test:nofirestore
-      env:
-        CI: true
+    - name: generate coverage file
+      run: yarn ci:coverage:log 'test-all.info'
+    - name: Upload coverage info artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: coverage
+        path: coverage-all.info
 
-  test2:
+  test-firestore:
     name: Firestore Tests
     runs-on: ubuntu-latest
 
@@ -50,13 +51,32 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-      env:
-        CI: true
     - name: yarn build
       run: yarn build
-      env:
-        CI: true
     - name: yarn firestore test (firestore)
       run: xvfb-run yarn --cwd packages/firestore test
-      env:
-        CI: true
+    - name: generate coverage file
+      run: yarn ci:coverage:log 'test-firestore.info'
+    - name: Upload coverage info artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: coverage
+        path: coverage-firestore.info
+
+  coverage:
+    name: Run Coverage
+    runs-on: ubuntu-latest
+    needs: [test-nofirestore, test-firestore]
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - name: Download coverage files
+      uses: actions/download-artifact@v1
+      with:
+        name: coverage
+    - name: Run coverage
+      run: yarn ci:coverage:run
+      continue-on-error: true
