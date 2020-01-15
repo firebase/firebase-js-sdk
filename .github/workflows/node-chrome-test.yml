@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Non-Firestore Tests
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -13,14 +13,16 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-    - name: setup and yarn install
+    - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
         yarn
     - name: yarn build
       run: yarn build
-    - name: yarn test minus firestore
+    - name: Run unit tests
       run: xvfb-run yarn test
+    - name: Generate coverage file
+      run: yarn ci:coverage
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:

@@ -1,0 +1,30 @@
+name: Canary Release
+
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  test:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build
+      run: yarn build
+    - name: Deploy canary
+      # run: yarn release --canary
+      run: echo "Canary release dry run"
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

@@ -1,10 +1,10 @@
-name: Cross Browser Test for SDKs
+name: Cross Browser Tests
 
 on: push
 
 jobs:
   cross-browser-test:
-    name: Cross Browser Test for SDKs
+    name: Run Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     env:
@@ -17,12 +17,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-    - name: setup and yarn install
+    - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
         yarn
     - name: yarn build
       run: yarn build
-    - name: yarn test:saucelabs
+    - name: Run Saucelabs tests
       run: xvfb-run yarn test:saucelabs
 
