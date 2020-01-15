@@ -11,16 +11,12 @@ jobs:
       SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
 
-    strategy:
-      matrix:
-        node-version: [10.x]
-
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 10.x
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 10.x
     - name: setup and yarn install
       run: |
         cp config/ci.config.json config/project.json

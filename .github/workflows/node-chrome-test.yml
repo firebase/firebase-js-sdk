@@ -7,16 +7,12 @@ jobs:
     name: Non-Firestore Tests
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x]
-
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 10.x
     - name: setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -26,7 +22,7 @@ jobs:
     - name: yarn test minus firestore
       run: xvfb-run yarn test:nofirestore
     - name: generate coverage file
-      run: yarn ci:coverage:log 'test-all.info'
+      run: yarn ci:coverage:log 'coverage-all.info'
     - name: Upload coverage info artifact
       uses: actions/upload-artifact@v1
       with:
@@ -37,16 +33,12 @@ jobs:
     name: Firestore Tests
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x]
-
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 10.x
     - name: setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -56,7 +48,7 @@ jobs:
     - name: yarn firestore test (firestore)
       run: xvfb-run yarn --cwd packages/firestore test
     - name: generate coverage file
-      run: yarn ci:coverage:log 'test-firestore.info'
+      run: yarn ci:coverage:log 'coverage-firestore.info'
     - name: Upload coverage info artifact
       uses: actions/upload-artifact@v1
       with:
@@ -68,11 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test-nofirestore, test-firestore]
 
-    strategy:
-      matrix:
-        node-version: [10.x]
-
     steps:
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
     - name: Download coverage files
       uses: actions/download-artifact@v1
       with:
