@@ -1,6 +1,6 @@
 name: Cross Browser Test for SDKs
 
-on: [push]
+on: push
 
 jobs:
   cross-browser-test:
@@ -25,7 +25,4 @@ jobs:
       run: yarn build
     - name: yarn test:saucelabs
       run: xvfb-run yarn test:saucelabs
-    - name: Warning if cross-browser tests failed
-      run: echo Placeholder - trigger notification cross-browser has failed.
-      if: failure()
 

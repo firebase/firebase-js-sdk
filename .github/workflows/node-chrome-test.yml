@@ -3,7 +3,7 @@ name: Node.js and Browser (Chrome) Tests
 on: [push, pull_request]
 
 jobs:
-  test-nofirestore:
+  test:
     name: Non-Firestore Tests
     runs-on: ubuntu-latest
 
@@ -20,55 +20,10 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: yarn test minus firestore
-      run: xvfb-run yarn test:nofirestore
-    - name: generate coverage file
-      run: yarn ci:coverage:log 'coverage-all.info'
-    - name: Upload coverage info artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: coverage
-        path: coverage-all.info
-
-  test-firestore:
-    name: Firestore Tests
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v1
-    - name: Set up Node (10)
-      uses: actions/setup-node@v1
-      with:
-        node-version: 10.x
-    - name: setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
-    - name: yarn build
-      run: yarn build
-    - name: yarn firestore test (firestore)
-      run: xvfb-run yarn --cwd packages/firestore test
-    - name: generate coverage file
-      run: yarn ci:coverage:log 'coverage-firestore.info'
-    - name: Upload coverage info artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: coverage
-        path: coverage-firestore.info
-
-  coverage:
-    name: Run Coverage
-    runs-on: ubuntu-latest
-    needs: [test-nofirestore, test-firestore]
-
-    steps:
-    - name: Set up Node (10)
-      uses: actions/setup-node@v1
-      with:
-        node-version: 10.x
-    - name: Download coverage files
-      uses: actions/download-artifact@v1
-      with:
-        name: coverage
+      run: xvfb-run yarn test
     - name: Run coverage
-      run: yarn ci:coverage:run
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./lcov-all.info
       continue-on-error: true
