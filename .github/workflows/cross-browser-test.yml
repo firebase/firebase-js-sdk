@@ -1,10 +1,16 @@
-name: Cross Browser Tests
+name: Cross-Browser Test Flow
 
-on: push
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+      - '!master'
+  pull_request
 
 jobs:
   cross-browser-test:
-    name: Run Tests
+    name: Cross-Browser (Saucelabs) Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     env:
