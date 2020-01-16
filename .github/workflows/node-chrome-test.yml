@@ -1,12 +1,6 @@
 name: Main Test Flow
 
-on:
-  push:
-    branches:
-      - '*'
-      - '*/*'
-      - '!master'
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   test:
