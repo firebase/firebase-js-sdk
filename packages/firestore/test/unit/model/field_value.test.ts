@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import * as fieldValue from '../../../src/model/field_value';
+import { primitiveComparator } from '../../../src/util/misc';
 import * as typeUtils from '../../../src/util/types';
 import {
   blob,
@@ -484,5 +485,58 @@ describe('FieldValue', () => {
         return left.compareTo(right);
       }
     );
+  });
+
+  it('estimates size correctly for fixed sized values', () => {
+    // This test verifies that each member of a group takes up the same amount
+    // of space in memory (based on its estimated in-memory size).
+    const equalityGroups = [
+      [wrap(null), wrap(false), wrap(true)],
+      [wrap(blob(0, 1)), wrap(blob(128, 129))],
+      [wrap(NaN), wrap(Infinity), wrap(1), wrap(1.1)],
+      [wrap(new GeoPoint(0, 0)), wrap(new GeoPoint(0, 0))],
+      [wrap(Timestamp.fromMillis(100)), wrap(Timestamp.now())],
+      [
+        new fieldValue.ServerTimestampValue(Timestamp.fromMillis(100), null),
+        new fieldValue.ServerTimestampValue(Timestamp.now(), null)
+      ]
+    ];
+
+    for (const group of equalityGroups) {
+      const expectedItemSize = group[0].byteSize();
+      for (const element of group) {
+        expect(element.byteSize()).to.equal(expectedItemSize);
+      }
+    }
+  });
+
+  it('estimates size correctly for relatively sized values', () => {
+    // This test verifies for each group that the estimated size increases
+    // as the size of the underlying data grows.
+    const relativeGroups = [
+      [wrap(blob(0)), wrap(blob(0, 1))],
+      [
+        new fieldValue.ServerTimestampValue(Timestamp.fromMillis(100), null),
+        new fieldValue.ServerTimestampValue(Timestamp.now(), wrap(null))
+      ],
+      [
+        new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1')),
+        new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1/c2/doc2'))
+      ],
+      [wrap('foo'), wrap('foobar')],
+      [wrap(['a', 'b']), wrap(['a', 'bc'])],
+      [wrap(['a', 'b']), wrap(['a', 'b', 'c'])],
+      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'bc' })],
+      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', bc: 'b' })],
+      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })]
+    ];
+
+    for (const group of relativeGroups) {
+      const expectedOrder = group;
+      const actualOrder = group
+        .slice()
+        .sort((l, r) => primitiveComparator(l.byteSize(), r.byteSize()));
+      expect(expectedOrder).to.deep.equal(actualOrder);
+    }
   });
 });

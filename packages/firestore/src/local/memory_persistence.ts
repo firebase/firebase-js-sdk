@@ -16,15 +16,13 @@
  */
 
 import { User } from '../auth/user';
-import { MaybeDocument } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
-import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
@@ -77,11 +75,10 @@ export class MemoryPersistence implements Persistence {
 
   static createLruPersistence(
     clientId: ClientId,
-    serializer: JsonProtoSerializer,
     params: LruParams
   ): MemoryPersistence {
     const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, new LocalSerializer(serializer), params);
+      new MemoryLruDelegate(p, params);
     return new MemoryPersistence(clientId, factory);
   }
 
@@ -334,7 +331,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   constructor(
     private readonly persistence: MemoryPersistence,
-    private readonly serializer: LocalSerializer,
     lruParams: LruParams
   ) {
     this.garbageCollector = new LruGarbageCollector(this, lruParams);
@@ -471,21 +467,11 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 
   documentSize(maybeDoc: MaybeDocument): number {
-    const remoteDocument = this.serializer.toDbRemoteDocument(
-      maybeDoc,
-      maybeDoc.version
-    );
-    let value: unknown;
-    if (remoteDocument.document) {
-      value = remoteDocument.document;
-    } else if (remoteDocument.unknownDocument) {
-      value = remoteDocument.unknownDocument;
-    } else if (remoteDocument.noDocument) {
-      value = remoteDocument.noDocument;
-    } else {
-      throw fail('Unknown remote document type');
+    let documentSize = maybeDoc.key.toString().length;
+    if (maybeDoc instanceof Document) {
+      documentSize += maybeDoc.data().byteSize();
     }
-    return JSON.stringify(value).length;
+    return documentSize;
   }
 
   private isPinned(

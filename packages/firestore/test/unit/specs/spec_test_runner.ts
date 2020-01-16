@@ -1238,7 +1238,6 @@ class MemoryTestRunner extends TestRunner {
         ? MemoryPersistence.createEagerPersistence(this.clientId)
         : MemoryPersistence.createLruPersistence(
             this.clientId,
-            serializer,
             LruParams.DEFAULT
           )
     );
