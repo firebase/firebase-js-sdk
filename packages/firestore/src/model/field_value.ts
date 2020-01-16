@@ -126,9 +126,9 @@ export abstract class FieldValue {
   abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
-  /** 
-   * Returns the approximate (and wildly inaccurate) in-memory size of the field 
-   * value. 
+  /**
+   * Returns an approximate (and wildly inaccurate) in-memory size for the field
+   * value.
    */
   abstract byteSize(): number;
 
@@ -374,7 +374,7 @@ export class TimestampValue extends FieldValue {
   }
 
   byteSize(): number {
-    // Timestamps are made up of two distinct numbers (seconds/nanoseconds)
+    // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
     return 8;
   }
 }
@@ -543,7 +543,7 @@ export class GeoPointValue extends FieldValue {
   }
 
   byteSize(): number {
-    // GeoPoints are made up of two distinct numbers (latitude/longitude)
+    // GeoPoints are made up of two distinct numbers (latitude + longitude)
     return 8;
   }
 }
