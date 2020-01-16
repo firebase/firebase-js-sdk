@@ -6,7 +6,6 @@ jobs:
   cross-browser-test:
     name: Cross-Browser (Saucelabs) Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     env:
       SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
