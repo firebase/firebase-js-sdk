@@ -1,14 +1,17 @@
 name: Canary Release
 
 on:
-  push:
+  pull_request:
     branches:
       - master
+    types:
+      - closed
 
 jobs:
   test:
     name: Deploy
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
 
     steps:
     - uses: actions/checkout@v1
