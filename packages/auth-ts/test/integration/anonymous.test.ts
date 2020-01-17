@@ -30,7 +30,7 @@ import * as PROJECT_CONFIG from '../../../../config/project.json';
 
 describe('signInAnonymously', () => {
   let app: FirebaseApp;
-    
+
   before(() => {
     app = firebase.initializeApp(
       { apiKey: PROJECT_CONFIG.apiKey, projectId: PROJECT_CONFIG.projectId },
@@ -60,26 +60,36 @@ describe('signInAnonymously', () => {
   });
 
   describe('persistence', () => {
-    for(const persistence of [inMemoryPersistence, browserSessionPersistence, browserLocalPersistence, indexedDBLocalPersistence]) {
+    for (const persistence of [
+      inMemoryPersistence,
+      browserSessionPersistence,
+      browserLocalPersistence,
+      indexedDBLocalPersistence
+    ]) {
       context('with ' + persistence.constructor.name, () => {
-    
         it('should work', async () => {
-          const auth = initializeAuth(app, {persistence});
+          const auth = initializeAuth(app, { persistence });
 
           const userCredential = await signInAnonymously(auth);
           expect(userCredential).to.be.instanceOf(UserCredential);
           expect(auth.currentUser).to.eq(userCredential.user);
-    
+
           const user = await persistence.get('authUser');
-          expect(user).to.not.be.null
+          expect(user).to.not.be.null;
           expect(userCredential.user.uid).to.eq(JSON.parse(user!).uid);
 
           // re initialization should pull from persistence instead of cerating a new user
-          const reinitializedAuth = initializeAuth(app, {persistence});
+          const reinitializedAuth = initializeAuth(app, { persistence });
           // TODO: check that currentUser is properly initialized
-          const reinitializedUserCredential = await signInAnonymously(reinitializedAuth);
-          expect(reinitializedAuth.currentUser!.uid).to.eq(userCredential.user.uid);
-          expect(reinitializedUserCredential.user.uid).to.eq(userCredential.user.uid);
+          const reinitializedUserCredential = await signInAnonymously(
+            reinitializedAuth
+          );
+          expect(reinitializedAuth.currentUser!.uid).to.eq(
+            userCredential.user.uid
+          );
+          expect(reinitializedUserCredential.user.uid).to.eq(
+            userCredential.user.uid
+          );
 
           await auth.signOut();
           expect(auth.currentUser).to.be.undefined;

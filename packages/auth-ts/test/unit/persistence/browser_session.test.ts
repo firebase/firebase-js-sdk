@@ -5,12 +5,12 @@ import { browserSessionPersistence } from '../../../src/core/persistence/browser
 describe('BrowserSessionPersistence', () => {
   beforeEach(() => {
     sessionStorage.clear();
-  })
+  });
 
   it('should work', async () => {
     const persistence: Persistence = browserSessionPersistence;
-    const key = "my-super-special-key";
-    const value = "my-super-special-value";
+    const key = 'my-super-special-key';
+    const value = 'my-super-special-value';
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get(key)).to.be.eq(value);

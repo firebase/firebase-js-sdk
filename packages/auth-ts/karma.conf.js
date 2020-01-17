@@ -18,16 +18,13 @@
 // Karma configuration
 // Generated on Tue Jan 07 2020 11:37:42 GMT-0800 (Pacific Standard Time)
 
-
 const karmaBase = require('../../config/karma.base');
 const path = require('path');
 
-module.exports = function (config) {
+module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: [
-      'test/**/*.test.ts'
-    ],
+    files: ['test/**/*.test.ts'],
 
     coverageIstanbulReporter: {
       dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
@@ -40,7 +37,7 @@ module.exports = function (config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
+    frameworks: ['mocha']
   });
 
   config.set(karmaConfig);

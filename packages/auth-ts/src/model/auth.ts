@@ -21,90 +21,93 @@ import { UserManager } from '../core/persistence/user_mananger';
 import { Deferred } from '../core/util/deferred';
 
 export interface AuthSettings {
-    appVerificationDisabledForTesting: boolean;
+  appVerificationDisabledForTesting: boolean;
 }
 
 export interface Config {
-    apiKey?: string;
-    authDomain?: string;
+  apiKey?: string;
+  authDomain?: string;
 }
 
-export interface PopupRedirectResolver { }
+export interface PopupRedirectResolver {}
 
 export interface Dependencies {
-    // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
-    persistence?: Persistence;
-    // Popup/Redirect resolver is needed to resolve pending OAuth redirect
-    // operations. It can be quite complex and has been separated from Auth.
-    // It is also needed for popup operations (same underlying logic).
-    popupRedirectResolver?: PopupRedirectResolver;
+  // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
+  persistence?: Persistence;
+  // Popup/Redirect resolver is needed to resolve pending OAuth redirect
+  // operations. It can be quite complex and has been separated from Auth.
+  // It is also needed for popup operations (same underlying logic).
+  popupRedirectResolver?: PopupRedirectResolver;
 }
 
 export type Unsubscribe = () => void;
 
 export class Auth {
   constructor(
-        public readonly name: string,
-        readonly settings: AuthSettings,
-        readonly config: Config,
-        public currentUser?: User,
-        public languageCode?: string,
-        public tenantId?: string,
-  ) { }
-    deferred?: Deferred<void>;
-    userManager?: UserManager;
-    async setPersistence(persistence: Persistence): Promise<void> {
-      // We may be called synchronously, such as during initialization
-      // make sure previous request has finished before trying to change persistence
-      if (this.deferred) {
-        await this.deferred.promise;
-      }
-      this.deferred = new Deferred<void>();
-      try {
-        this.userManager = new UserManager(persistence);
-        this.currentUser = await this.userManager.getCurrentUser();
-        this.deferred.resolve();
-      } catch (e) {
-        this.deferred.reject();
-      }
-      this.deferred = undefined;
+    public readonly name: string,
+    readonly settings: AuthSettings,
+    readonly config: Config,
+    public currentUser?: User,
+    public languageCode?: string,
+    public tenantId?: string
+  ) {}
+  deferred?: Deferred<void>;
+  userManager?: UserManager;
+  async setPersistence(persistence: Persistence): Promise<void> {
+    // We may be called synchronously, such as during initialization
+    // make sure previous request has finished before trying to change persistence
+    if (this.deferred) {
+      await this.deferred.promise;
     }
-    onIdTokenChanged(
-      nextOrObserver: ((a: User | null) => any),
-      error?: (a: Error) => any,
-      completed?: Unsubscribe,
-    ): Unsubscribe {
-      throw new Error('not implemented');
+    this.deferred = new Deferred<void>();
+    try {
+      this.userManager = new UserManager(persistence);
+      this.currentUser = await this.userManager.getCurrentUser();
+      this.deferred.resolve();
+    } catch (e) {
+      this.deferred.reject();
     }
-    onAuthStateChanged(
-      nextOrObserver: ((a: User | null) => any),
-      error?: (a: Error) => any,
-      completed?: Unsubscribe,
-    ): Unsubscribe {
-      throw new Error('not implemented');
+    this.deferred = undefined;
+  }
+  onIdTokenChanged(
+    nextOrObserver: (a: User | null) => any,
+    error?: (a: Error) => any,
+    completed?: Unsubscribe
+  ): Unsubscribe {
+    throw new Error('not implemented');
+  }
+  onAuthStateChanged(
+    nextOrObserver: (a: User | null) => any,
+    error?: (a: Error) => any,
+    completed?: Unsubscribe
+  ): Unsubscribe {
+    throw new Error('not implemented');
+  }
+  useDeviceLanguage(): void {
+    throw new Error('not implemented');
+  }
+  async setCurrentUser(user: User): Promise<User> {
+    this.currentUser = user;
+    if (this.userManager) {
+      await this.userManager.setCurrentUser(user);
     }
-    useDeviceLanguage(): void {
-      throw new Error('not implemented');
+    return user;
+  }
+  async signOut(): Promise<void> {
+    if (this.currentUser === undefined) {
+      return;
     }
-    async setCurrentUser(user: User): Promise<User> {
-      this.currentUser = user;
-      if (this.userManager) {
-        await this.userManager.setCurrentUser(user);
-      }
-      return user;
+    this.currentUser = undefined;
+    if (this.userManager) {
+      await this.userManager.removeCurrentUser();
     }
-    async signOut(): Promise<void> {
-      if(this.currentUser === undefined) {
-        return;
-      }
-      this.currentUser = undefined;
-      if (this.userManager) {
-        await this.userManager.removeCurrentUser();
-      }
-    }
+  }
 }
 
-export function setPersistence(auth: Auth, persistence: Persistence): Promise<void> {
+export function setPersistence(
+  auth: Auth,
+  persistence: Persistence
+): Promise<void> {
   return auth.setPersistence(persistence);
 }
 

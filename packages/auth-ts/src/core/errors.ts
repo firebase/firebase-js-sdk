@@ -4,95 +4,95 @@ import { ErrorFactory, ErrorMap } from '@firebase/util';
  * Developer facing Firebase Auth error codes.
  */
 export const enum AuthError {
-    ADMIN_ONLY_OPERATION = 'admin-restricted-operation',
-    ARGUMENT_ERROR = 'argument-error',
-    APP_NOT_AUTHORIZED = 'app-not-authorized',
-    APP_NOT_INSTALLED = 'app-not-installed',
-    CAPTCHA_CHECK_FAILED = 'captcha-check-failed',
-    CODE_EXPIRED = 'code-expired',
-    CORDOVA_NOT_READY = 'cordova-not-ready',
-    CORS_UNSUPPORTED = 'cors-unsupported',
-    CREDENTIAL_ALREADY_IN_USE = 'credential-already-in-use',
-    CREDENTIAL_MISMATCH = 'custom-token-mismatch',
-    CREDENTIAL_TOO_OLD_LOGIN_AGAIN = 'requires-recent-login',
-    DYNAMIC_LINK_NOT_ACTIVATED = 'dynamic-link-not-activated',
-    EMAIL_EXISTS = 'email-already-in-use',
-    EXPIRED_OOB_CODE = 'expired-action-code',
-    EXPIRED_POPUP_REQUEST = 'cancelled-popup-request',
-    INTERNAL_ERROR = 'internal-error',
-    INVALID_API_KEY = 'invalid-api-key',
-    INVALID_APP_CREDENTIAL = 'invalid-app-credential',
-    INVALID_APP_ID = 'invalid-app-id',
-    INVALID_AUTH = 'invalid-user-token',
-    INVALID_AUTH_EVENT = 'invalid-auth-event',
-    INVALID_CERT_HASH = 'invalid-cert-hash',
-    INVALID_CODE = 'invalid-verification-code',
-    INVALID_CONTINUE_URI = 'invalid-continue-uri',
-    INVALID_CORDOVA_CONFIGURATION = 'invalid-cordova-configuration',
-    INVALID_CUSTOM_TOKEN = 'invalid-custom-token',
-    INVALID_DYNAMIC_LINK_DOMAIN = 'invalid-dynamic-link-domain',
-    INVALID_EMAIL = 'invalid-email',
-    INVALID_IDP_RESPONSE = 'invalid-credential',
-    INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
-    INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
-    INVALID_OAUTH_PROVIDER = 'invalid-oauth-provider',
-    INVALID_OOB_CODE = 'invalid-action-code',
-    INVALID_ORIGIN = 'unauthorized-domain',
-    INVALID_PASSWORD = 'wrong-password',
-    INVALID_PERSISTENCE = 'invalid-persistence-type',
-    INVALID_PHONE_NUMBER = 'invalid-phone-number',
-    INVALID_PROVIDER_ID = 'invalid-provider-id',
-    INVALID_RECIPIENT_EMAIL = 'invalid-recipient-email',
-    INVALID_SENDER = 'invalid-sender',
-    INVALID_SESSION_INFO = 'invalid-verification-id',
-    INVALID_TENANT_ID = 'invalid-tenant-id',
-    MISSING_ANDROID_PACKAGE_NAME = 'missing-android-pkg-name',
-    MISSING_APP_CREDENTIAL = 'missing-app-credential',
-    MISSING_AUTH_DOMAIN = 'auth-domain-config-required',
-    MISSING_CODE = 'missing-verification-code',
-    MISSING_CONTINUE_URI = 'missing-continue-uri',
-    MISSING_IFRAME_START = 'missing-iframe-start',
-    MISSING_IOS_BUNDLE_ID = 'missing-ios-bundle-id',
-    MISSING_OR_INVALID_NONCE = 'missing-or-invalid-nonce',
-    MISSING_PHONE_NUMBER = 'missing-phone-number',
-    MISSING_SESSION_INFO = 'missing-verification-id',
-    MODULE_DESTROYED = 'app-deleted',
-    NEED_CONFIRMATION = 'account-exists-with-different-credential',
-    NETWORK_REQUEST_FAILED = 'network-request-failed',
-    NULL_USER = 'null-user',
-    NO_AUTH_EVENT = 'no-auth-event',
-    NO_SUCH_PROVIDER = 'no-such-provider',
-    OPERATION_NOT_ALLOWED = 'operation-not-allowed',
-    OPERATION_NOT_SUPPORTED = 'operation-not-supported-in-this-environment',
-    POPUP_BLOCKED = 'popup-blocked',
-    POPUP_CLOSED_BY_USER = 'popup-closed-by-user',
-    PROVIDER_ALREADY_LINKED = 'provider-already-linked',
-    QUOTA_EXCEEDED = 'quota-exceeded',
-    REDIRECT_CANCELLED_BY_USER = 'redirect-cancelled-by-user',
-    REDIRECT_OPERATION_PENDING = 'redirect-operation-pending',
-    REJECTED_CREDENTIAL = 'rejected-credential',
-    TENANT_ID_MISMATCH = 'tenant-id-mismatch',
-    TIMEOUT = 'timeout',
-    TOKEN_EXPIRED = 'user-token-expired',
-    TOO_MANY_ATTEMPTS_TRY_LATER = 'too-many-requests',
-    UNAUTHORIZED_DOMAIN = 'unauthorized-continue-uri',
-    UNSUPPORTED_PERSISTENCE = 'unsupported-persistence-type',
-    UNSUPPORTED_TENANT_OPERATION = 'unsupported-tenant-operation',
-    USER_CANCELLED = 'user-cancelled',
-    USER_DELETED = 'user-not-found',
-    USER_DISABLED = 'user-disabled',
-    USER_MISMATCH = 'user-mismatch',
-    USER_SIGNED_OUT = 'user-signed-out',
-    WEAK_PASSWORD = 'weak-password',
-    WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
+  ADMIN_ONLY_OPERATION = 'admin-restricted-operation',
+  ARGUMENT_ERROR = 'argument-error',
+  APP_NOT_AUTHORIZED = 'app-not-authorized',
+  APP_NOT_INSTALLED = 'app-not-installed',
+  CAPTCHA_CHECK_FAILED = 'captcha-check-failed',
+  CODE_EXPIRED = 'code-expired',
+  CORDOVA_NOT_READY = 'cordova-not-ready',
+  CORS_UNSUPPORTED = 'cors-unsupported',
+  CREDENTIAL_ALREADY_IN_USE = 'credential-already-in-use',
+  CREDENTIAL_MISMATCH = 'custom-token-mismatch',
+  CREDENTIAL_TOO_OLD_LOGIN_AGAIN = 'requires-recent-login',
+  DYNAMIC_LINK_NOT_ACTIVATED = 'dynamic-link-not-activated',
+  EMAIL_EXISTS = 'email-already-in-use',
+  EXPIRED_OOB_CODE = 'expired-action-code',
+  EXPIRED_POPUP_REQUEST = 'cancelled-popup-request',
+  INTERNAL_ERROR = 'internal-error',
+  INVALID_API_KEY = 'invalid-api-key',
+  INVALID_APP_CREDENTIAL = 'invalid-app-credential',
+  INVALID_APP_ID = 'invalid-app-id',
+  INVALID_AUTH = 'invalid-user-token',
+  INVALID_AUTH_EVENT = 'invalid-auth-event',
+  INVALID_CERT_HASH = 'invalid-cert-hash',
+  INVALID_CODE = 'invalid-verification-code',
+  INVALID_CONTINUE_URI = 'invalid-continue-uri',
+  INVALID_CORDOVA_CONFIGURATION = 'invalid-cordova-configuration',
+  INVALID_CUSTOM_TOKEN = 'invalid-custom-token',
+  INVALID_DYNAMIC_LINK_DOMAIN = 'invalid-dynamic-link-domain',
+  INVALID_EMAIL = 'invalid-email',
+  INVALID_IDP_RESPONSE = 'invalid-credential',
+  INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
+  INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
+  INVALID_OAUTH_PROVIDER = 'invalid-oauth-provider',
+  INVALID_OOB_CODE = 'invalid-action-code',
+  INVALID_ORIGIN = 'unauthorized-domain',
+  INVALID_PASSWORD = 'wrong-password',
+  INVALID_PERSISTENCE = 'invalid-persistence-type',
+  INVALID_PHONE_NUMBER = 'invalid-phone-number',
+  INVALID_PROVIDER_ID = 'invalid-provider-id',
+  INVALID_RECIPIENT_EMAIL = 'invalid-recipient-email',
+  INVALID_SENDER = 'invalid-sender',
+  INVALID_SESSION_INFO = 'invalid-verification-id',
+  INVALID_TENANT_ID = 'invalid-tenant-id',
+  MISSING_ANDROID_PACKAGE_NAME = 'missing-android-pkg-name',
+  MISSING_APP_CREDENTIAL = 'missing-app-credential',
+  MISSING_AUTH_DOMAIN = 'auth-domain-config-required',
+  MISSING_CODE = 'missing-verification-code',
+  MISSING_CONTINUE_URI = 'missing-continue-uri',
+  MISSING_IFRAME_START = 'missing-iframe-start',
+  MISSING_IOS_BUNDLE_ID = 'missing-ios-bundle-id',
+  MISSING_OR_INVALID_NONCE = 'missing-or-invalid-nonce',
+  MISSING_PHONE_NUMBER = 'missing-phone-number',
+  MISSING_SESSION_INFO = 'missing-verification-id',
+  MODULE_DESTROYED = 'app-deleted',
+  NEED_CONFIRMATION = 'account-exists-with-different-credential',
+  NETWORK_REQUEST_FAILED = 'network-request-failed',
+  NULL_USER = 'null-user',
+  NO_AUTH_EVENT = 'no-auth-event',
+  NO_SUCH_PROVIDER = 'no-such-provider',
+  OPERATION_NOT_ALLOWED = 'operation-not-allowed',
+  OPERATION_NOT_SUPPORTED = 'operation-not-supported-in-this-environment',
+  POPUP_BLOCKED = 'popup-blocked',
+  POPUP_CLOSED_BY_USER = 'popup-closed-by-user',
+  PROVIDER_ALREADY_LINKED = 'provider-already-linked',
+  QUOTA_EXCEEDED = 'quota-exceeded',
+  REDIRECT_CANCELLED_BY_USER = 'redirect-cancelled-by-user',
+  REDIRECT_OPERATION_PENDING = 'redirect-operation-pending',
+  REJECTED_CREDENTIAL = 'rejected-credential',
+  TENANT_ID_MISMATCH = 'tenant-id-mismatch',
+  TIMEOUT = 'timeout',
+  TOKEN_EXPIRED = 'user-token-expired',
+  TOO_MANY_ATTEMPTS_TRY_LATER = 'too-many-requests',
+  UNAUTHORIZED_DOMAIN = 'unauthorized-continue-uri',
+  UNSUPPORTED_PERSISTENCE = 'unsupported-persistence-type',
+  UNSUPPORTED_TENANT_OPERATION = 'unsupported-tenant-operation',
+  USER_CANCELLED = 'user-cancelled',
+  USER_DELETED = 'user-not-found',
+  USER_DISABLED = 'user-disabled',
+  USER_MISMATCH = 'user-mismatch',
+  USER_SIGNED_OUT = 'user-signed-out',
+  WEAK_PASSWORD = 'weak-password',
+  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
 const ERRORS: ErrorMap<AuthError> = {
-  [AuthError.ADMIN_ONLY_OPERATION]: 
+  [AuthError.ADMIN_ONLY_OPERATION]:
     'This operation is restricted to administrators only.',
   [AuthError.ARGUMENT_ERROR]: '',
   [AuthError.APP_NOT_AUTHORIZED]:
-    'This app]: identified by the domain where it\'s hosted]: is not ' +
+    "This app]: identified by the domain where it's hosted]: is not " +
     'authorized to use Firebase Authentication with the provided API key. ' +
     'Review your key configuration in the Google API console.',
   [AuthError.APP_NOT_INSTALLED]:
@@ -121,31 +121,28 @@ const ERRORS: ErrorMap<AuthError> = {
     'conditions.',
   [AuthError.EMAIL_EXISTS]:
     'The email address is already in use by another account.',
-  [AuthError.EXPIRED_OOB_CODE]:
-    'The action code has expired. ',
+  [AuthError.EXPIRED_OOB_CODE]: 'The action code has expired. ',
   [AuthError.EXPIRED_POPUP_REQUEST]:
     'This operation has been cancelled due to another conflicting popup ' +
     'being opened.',
-  [AuthError.INTERNAL_ERROR]:
-    'An internal AuthError has occurred.',
+  [AuthError.INTERNAL_ERROR]: 'An internal AuthError has occurred.',
   [AuthError.INVALID_APP_CREDENTIAL]:
     'The phone verification request contains an invalid application verifier.' +
     ' The reCAPTCHA token response is either invalid or expired.',
   [AuthError.INVALID_APP_ID]:
     'The mobile app identifier is not registed for the current project.',
   [AuthError.INVALID_AUTH]:
-    'This user\'s credential isn\'t valid for this project. This can happen ' +
-    'if the user\'s token has been tampered with]: or if the user isn\'t for ' +
+    "This user's credential isn't valid for this project. This can happen " +
+    "if the user's token has been tampered with]: or if the user isn't for " +
     'the project associated with this API key.',
-  [AuthError.INVALID_AUTH_EVENT]:
-    'An internal AuthError has occurred.',
+  [AuthError.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
   [AuthError.INVALID_CODE]:
     'The SMS verification code used to create the phone auth credential is ' +
     'invalid. Please resend the verification code sms and be sure use the ' +
     'verification code provided by the user.',
   [AuthError.INVALID_CONTINUE_URI]:
     'The continue URL provided in the request is invalid.',
-  [AuthError.INVALID_CORDOVA_CONFIGURATION]: 
+  [AuthError.INVALID_CORDOVA_CONFIGURATION]:
     'The following' +
     ' Cordova plugins must be installed to enable OAuth sign-in= ' +
     'cordova-plugin-buildinfo]: cordova-universal-links-plugin]: ' +
@@ -153,12 +150,11 @@ const ERRORS: ErrorMap<AuthError> = {
     'cordova-plugin-customurlscheme.',
   [AuthError.INVALID_CUSTOM_TOKEN]:
     'The custom token format is incorrect. Please check the documentation.',
-  [AuthError.INVALID_DYNAMIC_LINK_DOMAIN]: 
+  [AuthError.INVALID_DYNAMIC_LINK_DOMAIN]:
     'The provided ' +
     'dynamic link domain is not configured or authorized for the current ' +
     'project.',
-  [AuthError.INVALID_EMAIL]:
-    'The email address is badly formatted.',
+  [AuthError.INVALID_EMAIL]: 'The email address is badly formatted.',
   [AuthError.INVALID_API_KEY]:
     'Your API key is invalid]: please check you have copied it correctly.',
   [AuthError.INVALID_CERT_HASH]:
@@ -191,8 +187,7 @@ const ERRORS: ErrorMap<AuthError> = {
     'phone number in a format that can be parsed into E.164 format. E.164 ' +
     'phone numbers are written in the format [+,[country code,[subscriber ' +
     'number including area code,.',
-  [AuthError.INVALID_PROVIDER_ID]:
-    'The specified provider ID is invalid.',
+  [AuthError.INVALID_PROVIDER_ID]: 'The specified provider ID is invalid.',
   [AuthError.INVALID_RECIPIENT_EMAIL]:
     'The email corresponding to this action failed to send as the provided ' +
     'recipient email address is invalid.',
@@ -202,8 +197,7 @@ const ERRORS: ErrorMap<AuthError> = {
     'ion in the Firebase Console.',
   [AuthError.INVALID_SESSION_INFO]:
     'The verification ID used to create the phone auth credential is invalid.',
-  [AuthError.INVALID_TENANT_ID]:
-    'The Auth instance\'s tenant ID is invalid.',
+  [AuthError.INVALID_TENANT_ID]: "The Auth instance's tenant ID is invalid.",
   [AuthError.MISSING_ANDROID_PACKAGE_NAME]:
     'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
@@ -219,8 +213,7 @@ const ERRORS: ErrorMap<AuthError> = {
     'code.',
   [AuthError.MISSING_CONTINUE_URI]:
     'A continue URL must be provided in the request.',
-  [AuthError.MISSING_IFRAME_START]:
-    'An internal AuthError has occurred.',
+  [AuthError.MISSING_IFRAME_START]: 'An internal AuthError has occurred.',
   [AuthError.MISSING_IOS_BUNDLE_ID]:
     'An iOS Bundle ID must be provided if an App Store ID is provided.',
   [AuthError.MISSING_OR_INVALID_NONCE]:
@@ -240,8 +233,7 @@ const ERRORS: ErrorMap<AuthError> = {
   [AuthError.NETWORK_REQUEST_FAILED]:
     'A network AuthError (such as timeout]: interrupted connection or ' +
     'unreachable host) has occurred.',
-  [AuthError.NO_AUTH_EVENT]:
-    'An internal AuthError has occurred.',
+  [AuthError.NO_AUTH_EVENT]: 'An internal AuthError has occurred.',
   [AuthError.NO_SUCH_PROVIDER]:
     'User was not linked to an account with the given provider.',
   [AuthError.NULL_USER]:
@@ -263,7 +255,7 @@ const ERRORS: ErrorMap<AuthError> = {
   [AuthError.PROVIDER_ALREADY_LINKED]:
     'User can only be linked to one identity for the given provider.',
   [AuthError.QUOTA_EXCEEDED]:
-    'The project\'s quota for this operation has been exceeded.',
+    "The project's quota for this operation has been exceeded.",
   [AuthError.REDIRECT_CANCELLED_BY_USER]:
     'The redirect operation has been cancelled by the user before finalizing.',
   [AuthError.REDIRECT_OPERATION_PENDING]:
@@ -271,11 +263,10 @@ const ERRORS: ErrorMap<AuthError> = {
   [AuthError.REJECTED_CREDENTIAL]:
     'The request contains malformed or mismatching credentials.',
   [AuthError.TENANT_ID_MISMATCH]:
-    'The provided tenant ID does not match the Auth instance\'s tenant ID',
-  [AuthError.TIMEOUT]:
-    'The operation has timed out.',
+    "The provided tenant ID does not match the Auth instance's tenant ID",
+  [AuthError.TIMEOUT]: 'The operation has timed out.',
   [AuthError.TOKEN_EXPIRED]:
-    'The user\'s credential is no longer valid. The user must sign in again.',
+    "The user's credential is no longer valid. The user must sign in again.",
   [AuthError.TOO_MANY_ATTEMPTS_TRY_LATER]:
     'We have blocked all requests from this device due to unusual activity. ' +
     'Try again later.',
@@ -297,8 +288,7 @@ const ERRORS: ErrorMap<AuthError> = {
     'The supplied credentials do not correspond to the previously signed in ' +
     'user.',
   [AuthError.USER_SIGNED_OUT]: '',
-  [AuthError.WEAK_PASSWORD]:
-    'The password must be 6 characters long or more.',
+  [AuthError.WEAK_PASSWORD]: 'The password must be 6 characters long or more.',
   [AuthError.WEB_STORAGE_UNSUPPORTED]:
     'This browser is not supported or 3rd party cookies and data may be ' +
     'disabled.'

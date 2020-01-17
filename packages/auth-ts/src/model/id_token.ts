@@ -18,15 +18,15 @@
 export type IdToken = string;
 
 export interface IdTokenResult {
-    token: string;
-    authTime: string;
-    expirationTime: string;
-    issuedAtTime: string;
-    signInProvider: string | null;
-    signInSecondFactor: string | null;
-    claims: {
-        [claim: string] : string
-    }
+  token: string;
+  authTime: string;
+  expirationTime: string;
+  issuedAtTime: string;
+  signInProvider: string | null;
+  signInSecondFactor: string | null;
+  claims: {
+    [claim: string]: string;
+  };
 }
 
 export function parseIdToken(idToken: IdToken): IdTokenResult {
@@ -35,7 +35,7 @@ export function parseIdToken(idToken: IdToken): IdTokenResult {
     throw new Error('Invalid JWT');
   }
   const payload = JSON.parse(atob(fields[1]));
-  const utcTimestampToDateString = (utcTimestamp: number) : string => {
+  const utcTimestampToDateString = (utcTimestamp: number): string => {
     const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
       throw new Error('Invalid timestamp');

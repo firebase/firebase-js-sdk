@@ -31,6 +31,8 @@ export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   if (!refreshToken || !idToken) {
     throw new Error('token missing');
   }
-  const user = await auth.setCurrentUser(new User(refreshToken, localId, idToken, true));
+  const user = await auth.setCurrentUser(
+    new User(refreshToken, localId, idToken, true)
+  );
   return new UserCredential(user);
 }

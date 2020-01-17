@@ -4,13 +4,13 @@ import { browserLocalPersistence } from '../../../src/core/persistence/browser_l
 
 describe('BrowserLocalPersistence', () => {
   beforeEach(() => {
-    localStorage.clear()
-  })
+    localStorage.clear();
+  });
 
   it('should work', async () => {
     const persistence: Persistence = browserLocalPersistence;
-    const key = "my-super-special-key";
-    const value = "my-super-special-value";
+    const key = 'my-super-special-key';
+    const value = 'my-super-special-value';
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get(key)).to.be.eq(value);

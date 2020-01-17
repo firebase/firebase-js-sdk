@@ -20,18 +20,28 @@ import { Auth, Dependencies } from '../model/auth';
 import firebase from '@firebase/app';
 import { inMemoryPersistence } from './persistence/in_memory';
 
-export function initializeAuth(app: FirebaseApp = firebase.app(), deps?: Dependencies): Auth {
-  const auth = new Auth(app.name, {
-    appVerificationDisabledForTesting: false
-  }, {
-    apiKey: app.options.apiKey,
-    authDomain: app.options.authDomain
-  });
+export function initializeAuth(
+  app: FirebaseApp = firebase.app(),
+  deps?: Dependencies
+): Auth {
+  const auth = new Auth(
+    app.name,
+    {
+      appVerificationDisabledForTesting: false
+    },
+    {
+      apiKey: app.options.apiKey,
+      authDomain: app.options.authDomain
+    }
+  );
   // TODO: support multiple persistence
   deps = deps || {};
   deps.persistence = deps.persistence || inMemoryPersistence;
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?
-  auth.setPersistence(inMemoryPersistence).then(() => {},  () => {});
+  auth.setPersistence(inMemoryPersistence).then(
+    () => {},
+    () => {}
+  );
   return auth;
 }

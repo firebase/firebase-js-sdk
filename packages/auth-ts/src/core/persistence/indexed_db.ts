@@ -9,17 +9,17 @@ const DB_DATA_KEYPATH = 'fbase_key';
 
 // TODO: this should take a user instead of string
 interface DBObject<R> {
-  [DB_DATA_KEYPATH]: string
-  value: R
+  [DB_DATA_KEYPATH]: string;
+  value: R;
 }
 
 /**
  * Promise wrapper for IDBRequest
- * 
+ *
  * Unfortunately we can't cleanly extend Promise<T> since promises are not callable in ES6
  */
 class DBPromise<T> {
-  constructor(private readonly request: IDBRequest) {  }
+  constructor(private readonly request: IDBRequest) {}
 
   toPromise() {
     return new Promise<T>((resolve, reject) => {
@@ -29,11 +29,14 @@ class DBPromise<T> {
       this.request.addEventListener('error', () => {
         reject(this.request.error);
       });
-    });  
+    });
   }
 }
 
-function getObjectStore_(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
+function getObjectStore_(
+  db: IDBDatabase,
+  isReadWrite: boolean
+): IDBObjectStore {
   return db
     .transaction([DB_OBJECTSTORE_NAME], isReadWrite ? 'readwrite' : 'readonly')
     .objectStore(DB_OBJECTSTORE_NAME);
@@ -42,7 +45,7 @@ function getObjectStore_(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore 
 function deleteDatabase_(): Promise<void> {
   const request = indexedDB.deleteDatabase(DB_NAME);
   return new DBPromise<void>(request).toPromise();
-};
+}
 
 function openDatabase_(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -53,9 +56,9 @@ function openDatabase_(): Promise<IDBDatabase> {
 
     request.addEventListener('upgradeneeded', (event: Event) => {
       const db = request.result;
-  
+
       try {
-        db.createObjectStore(DB_OBJECTSTORE_NAME, { keyPath: DB_DATA_KEYPATH});
+        db.createObjectStore(DB_OBJECTSTORE_NAME, { keyPath: DB_DATA_KEYPATH });
       } catch (e) {
         reject(e);
       }
@@ -78,9 +81,15 @@ function openDatabase_(): Promise<IDBDatabase> {
   });
 }
 
-async function putObject_(db: IDBDatabase, key: string, value: string): Promise<void> {
+async function putObject_(
+  db: IDBDatabase,
+  key: string,
+  value: string
+): Promise<void> {
   const getRequest = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<string> | null>(getRequest).toPromise();
+  const data = await new DBPromise<DBObject<string> | null>(
+    getRequest
+  ).toPromise();
   if (data) {
     data.value = value;
     const request = getObjectStore_(db, true).put(data);
@@ -94,9 +103,14 @@ async function putObject_(db: IDBDatabase, key: string, value: string): Promise<
   }
 }
 
-async function getObject_(db: IDBDatabase, key: string): Promise<string | null> {
+async function getObject_(
+  db: IDBDatabase,
+  key: string
+): Promise<string | null> {
   const request = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<string | undefined>>(request).toPromise();
+  const data = await new DBPromise<DBObject<string | undefined>>(
+    request
+  ).toPromise();
   return data && (data.value === undefined ? null : data.value);
 }
 
@@ -106,44 +120,44 @@ function deleteObject_(db: IDBDatabase, key: string): Promise<void> {
 }
 
 class IndexedDBLocalPersistence implements Persistence {
-    type: PersistenceType = PersistenceType.LOCAL;
-    db?: IDBDatabase;
+  type: PersistenceType = PersistenceType.LOCAL;
+  db?: IDBDatabase;
 
-    async initialize(): Promise<IDBDatabase> {
-      if (this.db) {
-        return this.db;
-      }
-      this.db = await openDatabase_();
+  async initialize(): Promise<IDBDatabase> {
+    if (this.db) {
       return this.db;
     }
+    this.db = await openDatabase_();
+    return this.db;
+  }
 
-    async isAvailable(): Promise<boolean> {
-      try {
-        if (!indexedDB) {
-          return false;
-        }
-        const db = await openDatabase_();
-        await putObject_(db, STORAGE_AVAILABLE_KEY_, '1');
-        await deleteObject_(db, STORAGE_AVAILABLE_KEY_);
-        return true;
-      } catch (e) { }
-      return false;
-    }
+  async isAvailable(): Promise<boolean> {
+    try {
+      if (!indexedDB) {
+        return false;
+      }
+      const db = await openDatabase_();
+      await putObject_(db, STORAGE_AVAILABLE_KEY_, '1');
+      await deleteObject_(db, STORAGE_AVAILABLE_KEY_);
+      return true;
+    } catch (e) {}
+    return false;
+  }
 
-    async set(key: string, value: string): Promise<void> {
-      const db = await this.initialize();
-      return putObject_(db, key, value);
-    }
+  async set(key: string, value: string): Promise<void> {
+    const db = await this.initialize();
+    return putObject_(db, key, value);
+  }
 
-    async get(key: string): Promise<string | null> {
-      const db = await this.initialize();
-      return getObject_(db, key);
-    }
+  async get(key: string): Promise<string | null> {
+    const db = await this.initialize();
+    return getObject_(db, key);
+  }
 
-    async remove(key: string): Promise<void> {
-      const db = await this.initialize();
-      return deleteObject_(db, key);
-    }
+  async remove(key: string): Promise<void> {
+    const db = await this.initialize();
+    return deleteObject_(db, key);
+  }
 }
 
 export const indexedDBLocalPersistence: Persistence = new IndexedDBLocalPersistence();

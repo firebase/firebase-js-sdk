@@ -1,8 +1,8 @@
 /**
  * A Promise implementation that supports deferred resolution.
- * 
+ *
  * TODO: merge this with the one in @firebase/util
- * 
+ *
  * @private
  */
 export class Deferred<R> {

@@ -1,4 +1,4 @@
 export interface ApplicationVerifier {
-    readonly type: string;
-    verify(): Promise<string>;
+  readonly type: string;
+  verify(): Promise<string>;
 }

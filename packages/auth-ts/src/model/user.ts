@@ -18,22 +18,24 @@
 import { IdTokenResult, IdToken, parseIdToken } from './id_token';
 
 export interface UserInfo {
-    readonly uid: string
+  readonly uid: string;
 }
 
 export class User implements UserInfo {
   constructor(
-        public readonly refreshToken: string,
-        public readonly uid: string,
-        private idToken: IdToken,
-        public readonly isAnonymous: boolean = false
-  ) { }
+    public readonly refreshToken: string,
+    public readonly uid: string,
+    private idToken: IdToken,
+    public readonly isAnonymous: boolean = false
+  ) {}
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
     return Promise.resolve(this.idToken);
   }
 
-  async getIdTokenResult(forceRefresh: boolean = false): Promise<IdTokenResult> {
+  async getIdTokenResult(
+    forceRefresh: boolean = false
+  ): Promise<IdTokenResult> {
     return parseIdToken(this.idToken);
   }
 }

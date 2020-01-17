@@ -1,5 +1,5 @@
 module.exports = {
-  extends:  [
+  extends: [
     // "eslint:recommended",
     '../../config/.eslintrc.js'
   ],
@@ -13,7 +13,7 @@ module.exports = {
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'import/no-default-export': 'error',
-    'indent': ["error", 2],
+    'indent': ['error', 2],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

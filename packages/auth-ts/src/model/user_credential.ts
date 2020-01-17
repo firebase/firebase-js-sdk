@@ -18,7 +18,5 @@
 import { User } from './user';
 
 export class UserCredential {
-  constructor(
-        public readonly user: User
-  ) {}
+  constructor(public readonly user: User) {}
 }
