@@ -1,15 +1,17 @@
 name: Canary Release
 
 on:
-  push:
+  pull_request:
     branches:
       - master
-
+    types:
+      - closed
 
 jobs:
   test:
     name: Deploy
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
 
     steps:
     - uses: actions/checkout@v1
@@ -17,14 +19,14 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-        registry-url: 'https://registry.npmjs.org/'
+        registry-url: 'https://wombat-dressing-room.appspot.com/firebase/_ns/'
     - name: Yarn install
       run: yarn
     - name: yarn build
       run: yarn build
     - name: Deploy canary
       run: |
-        npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+        npm config set //wombat-dressing-room.appspot.com/mypackage/_ns:authToken=$NODE_AUTH_TOKEN
         npm config set scope "@firebase"
         yarn release --canary
       env:

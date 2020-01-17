@@ -15,25 +15,70 @@
  * limitations under the License.
  */
 
+import * as path from 'path';
+
 import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import typescript from 'typescript';
+import { terser } from 'rollup-plugin-terser';
+
+import { renameInternals } from './scripts/rename-internals';
+import { extractPublicIdentifiers } from './scripts/extract-api';
 import pkg from './package.json';
+import { externs } from './externs.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
+
+// Extract all identifiers used in external APIs (to be used as a blacklist by
+// the SDK minifier).
+const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
+const publicIdentifiers = extractPublicIdentifiers(externsPaths);
+const transformers = [
+  service => ({
+    before: [
+      renameInternals(service.getProgram(), {
+        publicIdentifiers,
+        prefix: '__PRIVATE_'
+      })
+    ],
+    after: []
+  })
+];
+
+const terserOptions = {
+  output: {
+    comments: false
+  },
+  mangle: {
+    properties: {
+      regex: /^__PRIVATE_/
+    }
+  }
+};
 
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    cacheRoot: './.cache/es5/'
   }),
   json()
+];
+
+const es5MinifiedBuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    transformers,
+    cacheRoot: './.cache/es5.min/'
+  }),
+  json(),
+  terser(terserOptions)
 ];
 
 const es5Builds = [
@@ -69,6 +114,15 @@ const es5Builds = [
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.browserMinified, format: 'cjs', sourcemap: true },
+      { file: pkg.moduleMinified, format: 'es', sourcemap: true }
+    ],
+    plugins: es5MinifiedBuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
@@ -82,9 +136,25 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    cacheRoot: './.cache/es2017/'
   }),
   json({ preferConst: true })
+];
+
+const es2017MinifiedBuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    cacheRoot: './.cache/es2017.min/',
+    transformers
+  }),
+  json({ preferConst: true }),
+  terser(terserOptions)
 ];
 
 const es2017Builds = [
@@ -99,6 +169,16 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.esm2017Minified,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017MinifiedBuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

@@ -25,7 +25,13 @@ import {
   XhrIo
 } from '@firebase/webchannel-wrapper';
 
-import { isElectron, isIE, isReactNative, isUWP } from '@firebase/util';
+import {
+  isBrowserExtension,
+  isElectron,
+  isIE,
+  isReactNative,
+  isUWP
+} from '@firebase/util';
 
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -268,7 +274,13 @@ export class WebChannelConnection implements Connection {
     // doesn't have an Origin header. So we have to exclude a few browser environments that are
     // known to (sometimes) not include an Origin. See
     // https://github.com/firebase/firebase-js-sdk/issues/1491.
-    if (!isReactNative() && !isElectron() && !isIE() && !isUWP()) {
+    if (
+      !isReactNative() &&
+      !isElectron() &&
+      !isIE() &&
+      !isUWP() &&
+      !isBrowserExtension()
+    ) {
       request.httpHeadersOverwriteParam = '$httpHeaders';
     }
 
