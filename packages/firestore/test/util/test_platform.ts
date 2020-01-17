@@ -29,93 +29,93 @@ import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor
  * Firestore.
  */
 export class FakeWindow {
-  private readonly fakeStorageArea: Storage;
-  private readonly fakeIndexedDb: IDBFactory | null;
+	private readonly fakeStorageArea: Storage;
+	private readonly fakeIndexedDb: IDBFactory | null;
 
-  private storageListeners: EventListener[] = [];
+	private storageListeners: EventListener[] = [];
 
-  constructor(
-    sharedFakeStorage: SharedFakeWebStorage,
-    fakeIndexedDb?: IDBFactory
-  ) {
-    this.fakeStorageArea = sharedFakeStorage.getStorageArea(event => {
-      for (const listener of this.storageListeners) {
-        listener(event);
-      }
-    });
-    this.fakeIndexedDb =
-      fakeIndexedDb ||
-      (typeof window !== 'undefined' && window.indexedDB) ||
-      null;
-  }
+	constructor(
+		sharedFakeStorage: SharedFakeWebStorage,
+		fakeIndexedDb?: IDBFactory
+	) {
+		this.fakeStorageArea = sharedFakeStorage.getStorageArea(event => {
+			for (const listener of this.storageListeners) {
+				listener(event);
+			}
+		});
+		this.fakeIndexedDb =
+			fakeIndexedDb ||
+			(typeof window !== 'undefined' && window.indexedDB) ||
+			null;
+	}
 
-  get localStorage(): Storage {
-    return this.fakeStorageArea;
-  }
+	get localStorage(): Storage {
+		return this.fakeStorageArea;
+	}
 
-  get indexedDB(): IDBFactory | null {
-    return this.fakeIndexedDb;
-  }
+	get indexedDB(): IDBFactory | null {
+		return this.fakeIndexedDb;
+	}
 
-  addEventListener(type: string, listener: EventListener): void {
-    switch (type) {
-      case 'storage':
-        this.storageListeners.push(listener);
-        break;
-      case 'unload':
-        // The spec tests currently do not rely on 'unload' listeners.
-        break;
-      default:
-        fail(`MockWindow doesn't support events of type '${type}'`);
-    }
-  }
+	addEventListener(type: string, listener: EventListener): void {
+		switch (type) {
+			case 'storage':
+				this.storageListeners.push(listener);
+				break;
+			case 'unload':
+				// The spec tests currently do not rely on 'unload' listeners.
+				break;
+			default:
+				fail(`MockWindow doesn't support events of type '${type}'`);
+		}
+	}
 
-  removeEventListener(type: string, listener: EventListener): void {
-    if (type === 'storage') {
-      const oldCount = this.storageListeners.length;
-      this.storageListeners = this.storageListeners.filter(
-        registeredListener => listener !== registeredListener
-      );
-      const newCount = this.storageListeners.length;
-      assert(
-        newCount === oldCount - 1,
-        "Listener passed to 'removeEventListener' doesn't match any registered listener."
-      );
-    }
-  }
+	removeEventListener(type: string, listener: EventListener): void {
+		if (type === 'storage') {
+			const oldCount = this.storageListeners.length;
+			this.storageListeners = this.storageListeners.filter(
+				registeredListener => listener !== registeredListener
+			);
+			const newCount = this.storageListeners.length;
+			assert(
+				newCount === oldCount - 1,
+				"Listener passed to 'removeEventListener' doesn't match any registered listener."
+			);
+		}
+	}
 }
 
 /**
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument {
-  private _visibilityState: VisibilityState = 'hidden';
-  private visibilityListener: EventListener | null = null;
+	private _visibilityState: VisibilityState = 'hidden';
+	private visibilityListener: EventListener | null = null;
 
-  get visibilityState(): VisibilityState {
-    return this._visibilityState;
-  }
+	get visibilityState(): VisibilityState {
+		return this._visibilityState;
+	}
 
-  addEventListener(type: string, listener: EventListener): void {
-    assert(
-      type === 'visibilitychange',
-      "FakeDocument only supports events of type 'visibilitychange'"
-    );
-    this.visibilityListener = listener;
-  }
+	addEventListener(type: string, listener: EventListener): void {
+		assert(
+			type === 'visibilitychange',
+			"FakeDocument only supports events of type 'visibilitychange'"
+		);
+		this.visibilityListener = listener;
+	}
 
-  removeEventListener(type: string, listener: EventListener): void {
-    if (listener === this.visibilityListener) {
-      this.visibilityListener = null;
-    }
-  }
+	removeEventListener(type: string, listener: EventListener): void {
+		if (listener === this.visibilityListener) {
+			this.visibilityListener = null;
+		}
+	}
 
-  raiseVisibilityEvent(visibility: VisibilityState): void {
-    this._visibilityState = visibility;
-    if (this.visibilityListener) {
-      this.visibilityListener(new Event('visibilitychange'));
-    }
-  }
+	raiseVisibilityEvent(visibility: VisibilityState): void {
+		this._visibilityState = visibility;
+		if (this.visibilityListener) {
+			this.visibilityListener(new Event('visibilitychange'));
+		}
+	}
 }
 
 /**
@@ -124,147 +124,147 @@ export class FakeDocument {
  * API, invoke `getStorageArea(storageListener)`.
  */
 export class SharedFakeWebStorage {
-  private readonly data = new Map<string, string>();
-  private readonly activeClients: Array<{
-    storageListener: EventListener;
-    storageArea: Storage;
-  }> = [];
+	private readonly data = new Map<string, string>();
+	private readonly activeClients: Array<{
+		storageListener: EventListener;
+		storageArea: Storage;
+	}> = [];
 
-  getStorageArea(storageListener: EventListener): Storage {
-    const clientIndex = this.activeClients.length;
-    const self = this;
+	getStorageArea(storageListener: EventListener): Storage {
+		const clientIndex = this.activeClients.length;
+		const self = this;
 
-    const storageArea: Storage = {
-      get length(): number {
-        return self.length;
-      },
-      getItem: (key: string) => this.getItem(key),
-      key: (index: number) => this.key(index),
-      clear: () => this.clear(),
-      removeItem: (key: string) => {
-        const oldValue = this.getItem(key);
-        this.removeItem(key);
-        this.raiseStorageEvent(clientIndex, key, oldValue, null);
-      },
-      setItem: (key: string, value: string) => {
-        const oldValue = this.getItem(key);
-        this.setItem(key, value);
-        this.raiseStorageEvent(clientIndex, key, oldValue, value);
-      }
-    };
+		const storageArea: Storage = {
+			get length(): number {
+				return self.length;
+			},
+			getItem: (key: string) => this.getItem(key),
+			key: (index: number) => this.key(index),
+			clear: () => this.clear(),
+			removeItem: (key: string) => {
+				const oldValue = this.getItem(key);
+				this.removeItem(key);
+				this.raiseStorageEvent(clientIndex, key, oldValue, null);
+			},
+			setItem: (key: string, value: string) => {
+				const oldValue = this.getItem(key);
+				this.setItem(key, value);
+				this.raiseStorageEvent(clientIndex, key, oldValue, value);
+			}
+		};
 
-    this.activeClients[clientIndex] = { storageListener, storageArea };
+		this.activeClients[clientIndex] = { storageListener, storageArea };
 
-    return storageArea;
-  }
+		return storageArea;
+	}
 
-  private clear(): void {
-    this.data.clear();
-  }
+	private clear(): void {
+		this.data.clear();
+	}
 
-  private getItem(key: string): string | null {
-    return this.data.has(key) ? this.data.get(key)! : null;
-  }
+	private getItem(key: string): string | null {
+		return this.data.has(key) ? this.data.get(key)! : null;
+	}
 
-  private key(index: number): string | null {
-    const key = Array.from(this.data.keys())[index];
-    return key !== undefined ? key : null;
-  }
+	private key(index: number): string | null {
+		const key = Array.from(this.data.keys())[index];
+		return key !== undefined ? key : null;
+	}
 
-  private removeItem(key: string): void {
-    this.data.delete(key);
-  }
+	private removeItem(key: string): void {
+		this.data.delete(key);
+	}
 
-  private setItem(key: string, data: string): void {
-    this.data.set(key, data);
-  }
+	private setItem(key: string, data: string): void {
+		this.data.set(key, data);
+	}
 
-  private get length(): number {
-    return this.data.size;
-  }
+	private get length(): number {
+		return this.data.size;
+	}
 
-  private raiseStorageEvent(
-    sourceClientIndex: number,
-    key: string,
-    oldValue: string | null,
-    newValue: string | null
-  ): void {
-    this.activeClients.forEach((client, index) => {
-      // WebStorage doesn't raise events for writes from the originating client.
-      if (sourceClientIndex === index) {
-        return;
-      }
+	private raiseStorageEvent(
+		sourceClientIndex: number,
+		key: string,
+		oldValue: string | null,
+		newValue: string | null
+	): void {
+		this.activeClients.forEach((client, index) => {
+			// WebStorage doesn't raise events for writes from the originating client.
+			if (sourceClientIndex === index) {
+				return;
+			}
 
-      client.storageListener({
-        key,
-        oldValue,
-        newValue,
-        storageArea: client.storageArea
-      } as any); /* eslint-disable-line @typescript-eslint/no-explicit-any*/ // Not mocking entire Event type.
-    });
-  }
+			client.storageListener({
+				key,
+				oldValue,
+				newValue,
+				storageArea: client.storageArea
+			} as any); /* eslint-disable-line @typescript-eslint/no-explicit-any*/ // Not mocking entire Event type.
+		});
+	}
 }
 
 /**
  * Implementation of `Platform` that allows faking of `document` and `window`.
  */
 export class TestPlatform implements Platform {
-  readonly mockDocument: FakeDocument | null = null;
-  readonly mockWindow: FakeWindow | null = null;
+	readonly mockDocument: FakeDocument | null = null;
+	readonly mockWindow: FakeWindow | null = null;
 
-  constructor(
-    private readonly basePlatform: Platform,
-    private readonly mockStorage: SharedFakeWebStorage
-  ) {
-    this.mockDocument = new FakeDocument();
-    this.mockWindow = new FakeWindow(this.mockStorage);
-  }
+	constructor(
+		private readonly basePlatform: Platform,
+		private readonly mockStorage: SharedFakeWebStorage
+	) {
+		this.mockDocument = new FakeDocument();
+		this.mockWindow = new FakeWindow(this.mockStorage);
+	}
 
-  get document(): Document | null {
-    // FakeWindow doesn't support full Document interface.
-    return this.mockDocument as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  }
+	get document(): Document | null {
+		// FakeWindow doesn't support full Document interface.
+		return this.mockDocument as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+	}
 
-  get window(): Window | null {
-    // FakeWindow doesn't support full Window interface.
-    return this.mockWindow as any; //eslint-disable-line @typescript-eslint/no-explicit-any
-  }
+	get window(): Window | null {
+		// FakeWindow doesn't support full Window interface.
+		return this.mockWindow as any; //eslint-disable-line @typescript-eslint/no-explicit-any
+	}
 
-  get base64Available(): boolean {
-    return this.basePlatform.base64Available;
-  }
+	get base64Available(): boolean {
+		return this.basePlatform.base64Available;
+	}
 
-  get emptyByteString(): ProtoByteString {
-    return this.basePlatform.emptyByteString;
-  }
+	get emptyByteString(): ProtoByteString {
+		return this.basePlatform.emptyByteString;
+	}
 
-  raiseVisibilityEvent(visibility: VisibilityState): void {
-    if (this.mockDocument) {
-      this.mockDocument.raiseVisibilityEvent(visibility);
-    }
-  }
+	raiseVisibilityEvent(visibility: VisibilityState): void {
+		if (this.mockDocument) {
+			this.mockDocument.raiseVisibilityEvent(visibility);
+		}
+	}
 
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    return this.basePlatform.loadConnection(databaseInfo);
-  }
+	loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+		return this.basePlatform.loadConnection(databaseInfo);
+	}
 
-  newConnectivityMonitor(): ConnectivityMonitor {
-    return new NoopConnectivityMonitor();
-  }
+	newConnectivityMonitor(): ConnectivityMonitor {
+		return new NoopConnectivityMonitor();
+	}
 
-  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-    return this.basePlatform.newSerializer(databaseId);
-  }
+	newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+		return this.basePlatform.newSerializer(databaseId);
+	}
 
-  formatJSON(value: unknown): string {
-    return this.basePlatform.formatJSON(value);
-  }
+	formatJSON(value: unknown): string {
+		return this.basePlatform.formatJSON(value);
+	}
 
-  atob(encoded: string): string {
-    return this.basePlatform.atob(encoded);
-  }
+	atob(encoded: string): string {
+		return this.basePlatform.atob(encoded);
+	}
 
-  btoa(raw: string): string {
-    return this.basePlatform.btoa(raw);
-  }
+	btoa(raw: string): string {
+		return this.basePlatform.btoa(raw);
+	}
 }

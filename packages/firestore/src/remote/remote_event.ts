@@ -18,11 +18,11 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import {
-  documentKeySet,
-  DocumentKeySet,
-  maybeDocumentMap,
-  MaybeDocumentMap,
-  targetIdSet
+	documentKeySet,
+	DocumentKeySet,
+	maybeDocumentMap,
+	MaybeDocumentMap,
+	targetIdSet
 } from '../model/collections';
 import { emptyByteString } from '../platform/platform';
 import { SortedSet } from '../util/sorted_set';
@@ -33,56 +33,56 @@ import { SortedSet } from '../util/sorted_set';
  * (changes to the actual documents).
  */
 export class RemoteEvent {
-  constructor(
-    /**
-     * The snapshot version this event brings us up to, or MIN if not set.
-     */
-    readonly snapshotVersion: SnapshotVersion,
-    /**
-     * A map from target to changes to the target. See TargetChange.
-     */
-    readonly targetChanges: { [targetId: number]: TargetChange },
-    /**
-     * A set of targets that is known to be inconsistent. Listens for these
-     * targets should be re-established without resume tokens.
-     */
-    readonly targetMismatches: SortedSet<TargetId>,
-    /**
-     * A set of which documents have changed or been deleted, along with the
-     * doc's new values (if not deleted).
-     */
-    readonly documentUpdates: MaybeDocumentMap,
-    /**
-     * A set of which document updates are due only to limbo resolution targets.
-     */
-    readonly resolvedLimboDocuments: DocumentKeySet
-  ) {}
+	constructor(
+		/**
+		 * The snapshot version this event brings us up to, or MIN if not set.
+		 */
+		readonly snapshotVersion: SnapshotVersion,
+		/**
+		 * A map from target to changes to the target. See TargetChange.
+		 */
+		readonly targetChanges: { [targetId: number]: TargetChange },
+		/**
+		 * A set of targets that is known to be inconsistent. Listens for these
+		 * targets should be re-established without resume tokens.
+		 */
+		readonly targetMismatches: SortedSet<TargetId>,
+		/**
+		 * A set of which documents have changed or been deleted, along with the
+		 * doc's new values (if not deleted).
+		 */
+		readonly documentUpdates: MaybeDocumentMap,
+		/**
+		 * A set of which document updates are due only to limbo resolution targets.
+		 */
+		readonly resolvedLimboDocuments: DocumentKeySet
+	) {}
 
-  /**
-   * HACK: Views require RemoteEvents in order to determine whether the view is
-   * CURRENT, but secondary tabs don't receive remote events. So this method is
-   * used to create a synthesized RemoteEvent that can be used to apply a
-   * CURRENT status change to a View, for queries executed in a different tab.
-   */
-  // PORTING NOTE: Multi-tab only
-  static createSynthesizedRemoteEventForCurrentChange(
-    targetId: TargetId,
-    current: boolean
-  ): RemoteEvent {
-    const targetChanges = {
-      [targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
-        targetId,
-        current
-      )
-    };
-    return new RemoteEvent(
-      SnapshotVersion.MIN,
-      targetChanges,
-      targetIdSet(),
-      maybeDocumentMap(),
-      documentKeySet()
-    );
-  }
+	/**
+	 * HACK: Views require RemoteEvents in order to determine whether the view is
+	 * CURRENT, but secondary tabs don't receive remote events. So this method is
+	 * used to create a synthesized RemoteEvent that can be used to apply a
+	 * CURRENT status change to a View, for queries executed in a different tab.
+	 */
+	// PORTING NOTE: Multi-tab only
+	static createSynthesizedRemoteEventForCurrentChange(
+		targetId: TargetId,
+		current: boolean
+	): RemoteEvent {
+		const targetChanges = {
+			[targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
+				targetId,
+				current
+			)
+		};
+		return new RemoteEvent(
+			SnapshotVersion.MIN,
+			targetChanges,
+			targetIdSet(),
+			maybeDocumentMap(),
+			documentKeySet()
+		);
+	}
 }
 
 /**
@@ -94,52 +94,52 @@ export class RemoteEvent {
  * documents may be part of multiple targets.
  */
 export class TargetChange {
-  constructor(
-    /**
-     * An opaque, server-assigned token that allows watching a query to be resumed
-     * after disconnecting without retransmitting all the data that matches the
-     * query. The resume token essentially identifies a point in time from which
-     * the server should resume sending results.
-     */
-    readonly resumeToken: ProtoByteString,
-    /**
-     * The "current" (synced) status of this target. Note that "current"
-     * has special meaning in the RPC protocol that implies that a target is
-     * both up-to-date and consistent with the rest of the watch stream.
-     */
-    readonly current: boolean,
-    /**
-     * The set of documents that were newly assigned to this target as part of
-     * this remote event.
-     */
-    readonly addedDocuments: DocumentKeySet,
-    /**
-     * The set of documents that were already assigned to this target but received
-     * an update during this remote event.
-     */
-    readonly modifiedDocuments: DocumentKeySet,
-    /**
-     * The set of documents that were removed from this target as part of this
-     * remote event.
-     */
-    readonly removedDocuments: DocumentKeySet
-  ) {}
+	constructor(
+		/**
+		 * An opaque, server-assigned token that allows watching a query to be resumed
+		 * after disconnecting without retransmitting all the data that matches the
+		 * query. The resume token essentially identifies a point in time from which
+		 * the server should resume sending results.
+		 */
+		readonly resumeToken: ProtoByteString,
+		/**
+		 * The "current" (synced) status of this target. Note that "current"
+		 * has special meaning in the RPC protocol that implies that a target is
+		 * both up-to-date and consistent with the rest of the watch stream.
+		 */
+		readonly current: boolean,
+		/**
+		 * The set of documents that were newly assigned to this target as part of
+		 * this remote event.
+		 */
+		readonly addedDocuments: DocumentKeySet,
+		/**
+		 * The set of documents that were already assigned to this target but received
+		 * an update during this remote event.
+		 */
+		readonly modifiedDocuments: DocumentKeySet,
+		/**
+		 * The set of documents that were removed from this target as part of this
+		 * remote event.
+		 */
+		readonly removedDocuments: DocumentKeySet
+	) {}
 
-  /**
-   * This method is used to create a synthesized TargetChanges that can be used to
-   * apply a CURRENT status change to a View (for queries executed in a different
-   * tab) or for new queries (to raise snapshots with correct CURRENT status).
-   */
-  static createSynthesizedTargetChangeForCurrentChange(
-    targetId: TargetId,
-    current: boolean
-  ): TargetChange {
-    return new TargetChange(
-      emptyByteString(),
-      current,
-      documentKeySet(),
-      documentKeySet(),
-      documentKeySet()
-    );
-  }
+	/**
+	 * This method is used to create a synthesized TargetChanges that can be used to
+	 * apply a CURRENT status change to a View (for queries executed in a different
+	 * tab) or for new queries (to raise snapshots with correct CURRENT status).
+	 */
+	static createSynthesizedTargetChangeForCurrentChange(
+		targetId: TargetId,
+		current: boolean
+	): TargetChange {
+		return new TargetChange(
+			emptyByteString(),
+			current,
+			documentKeySet(),
+			documentKeySet(),
+			documentKeySet()
+		);
+	}
 }

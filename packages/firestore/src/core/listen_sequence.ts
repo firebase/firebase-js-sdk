@@ -22,13 +22,13 @@ import { ListenSequenceNumber } from './types';
  * `ListenSequence` in sync.
  */
 export interface SequenceNumberSyncer {
-  // Notify the syncer that a new sequence number has been used.
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-  // Setting this property allows the syncer to notify when a sequence number has been used, and
-  // and lets the ListenSequence adjust its internal previous value accordingly.
-  sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null;
+	// Notify the syncer that a new sequence number has been used.
+	writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+	// Setting this property allows the syncer to notify when a sequence number has been used, and
+	// and lets the ListenSequence adjust its internal previous value accordingly.
+	sequenceNumberHandler:
+		| ((sequenceNumber: ListenSequenceNumber) => void)
+		| null;
 }
 
 /**
@@ -38,36 +38,36 @@ export interface SequenceNumberSyncer {
  * well as write out sequence numbers that it produces via `next()`.
  */
 export class ListenSequence {
-  static readonly INVALID: ListenSequenceNumber = -1;
+	static readonly INVALID: ListenSequenceNumber = -1;
 
-  private writeNewSequenceNumber?: (
-    newSequenceNumber: ListenSequenceNumber
-  ) => void;
+	private writeNewSequenceNumber?: (
+		newSequenceNumber: ListenSequenceNumber
+	) => void;
 
-  constructor(
-    private previousValue: ListenSequenceNumber,
-    sequenceNumberSyncer?: SequenceNumberSyncer
-  ) {
-    if (sequenceNumberSyncer) {
-      sequenceNumberSyncer.sequenceNumberHandler = sequenceNumber =>
-        this.setPreviousValue(sequenceNumber);
-      this.writeNewSequenceNumber = sequenceNumber =>
-        sequenceNumberSyncer.writeSequenceNumber(sequenceNumber);
-    }
-  }
+	constructor(
+		private previousValue: ListenSequenceNumber,
+		sequenceNumberSyncer?: SequenceNumberSyncer
+	) {
+		if (sequenceNumberSyncer) {
+			sequenceNumberSyncer.sequenceNumberHandler = sequenceNumber =>
+				this.setPreviousValue(sequenceNumber);
+			this.writeNewSequenceNumber = sequenceNumber =>
+				sequenceNumberSyncer.writeSequenceNumber(sequenceNumber);
+		}
+	}
 
-  private setPreviousValue(
-    externalPreviousValue: ListenSequenceNumber
-  ): ListenSequenceNumber {
-    this.previousValue = Math.max(externalPreviousValue, this.previousValue);
-    return this.previousValue;
-  }
+	private setPreviousValue(
+		externalPreviousValue: ListenSequenceNumber
+	): ListenSequenceNumber {
+		this.previousValue = Math.max(externalPreviousValue, this.previousValue);
+		return this.previousValue;
+	}
 
-  next(): ListenSequenceNumber {
-    const nextValue = ++this.previousValue;
-    if (this.writeNewSequenceNumber) {
-      this.writeNewSequenceNumber(nextValue);
-    }
-    return nextValue;
-  }
+	next(): ListenSequenceNumber {
+		const nextValue = ++this.previousValue;
+		if (this.writeNewSequenceNumber) {
+			this.writeNewSequenceNumber(nextValue);
+		}
+		return nextValue;
+	}
 }

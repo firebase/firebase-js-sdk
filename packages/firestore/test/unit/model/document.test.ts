@@ -19,56 +19,56 @@ import { expect } from 'chai';
 import { expectEqual, expectNotEqual, doc, field } from '../../util/helpers';
 
 describe('Document', () => {
-  it('can be constructed', () => {
-    const data = {
-      desc: 'Discuss all the project related stuff',
-      owner: 'Jonny'
-    };
-    const document = doc('rooms/Eros', 1, data);
+	it('can be constructed', () => {
+		const data = {
+			desc: 'Discuss all the project related stuff',
+			owner: 'Jonny'
+		};
+		const document = doc('rooms/Eros', 1, data);
 
-    const value = document.value();
-    expect(value).to.deep.equal({
-      desc: 'Discuss all the project related stuff',
-      owner: 'Jonny'
-    });
-    expect(value).not.to.equal(data);
-    expect(document.hasLocalMutations).to.equal(false);
-  });
+		const value = document.value();
+		expect(value).to.deep.equal({
+			desc: 'Discuss all the project related stuff',
+			owner: 'Jonny'
+		});
+		expect(value).not.to.equal(data);
+		expect(document.hasLocalMutations).to.equal(false);
+	});
 
-  it('returns fields correctly', () => {
-    const data = {
-      desc: 'Discuss all the project related stuff',
-      owner: { name: 'Jonny', title: 'scallywag' }
-    };
-    const document = doc('rooms/Eros', 1, data, { hasLocalMutations: true });
+	it('returns fields correctly', () => {
+		const data = {
+			desc: 'Discuss all the project related stuff',
+			owner: { name: 'Jonny', title: 'scallywag' }
+		};
+		const document = doc('rooms/Eros', 1, data, { hasLocalMutations: true });
 
-    expect(document.field(field('desc'))!.value()).to.deep.equal(
-      'Discuss all the project related stuff'
-    );
-    expect(document.field(field('owner.title'))!.value()).to.deep.equal(
-      'scallywag'
-    );
-    expect(document.hasLocalMutations).to.equal(true);
-  });
+		expect(document.field(field('desc'))!.value()).to.deep.equal(
+			'Discuss all the project related stuff'
+		);
+		expect(document.field(field('owner.title'))!.value()).to.deep.equal(
+			'scallywag'
+		);
+		expect(document.hasLocalMutations).to.equal(true);
+	});
 
-  it('equals to other same documents', () => {
-    expect(doc('a/b', 0, {}).isEqual(null)).to.equal(false);
+	it('equals to other same documents', () => {
+		expect(doc('a/b', 0, {}).isEqual(null)).to.equal(false);
 
-    expectEqual(doc('a/b', 3, { foo: 'bar' }), doc('a/b', 3, { foo: 'bar' }));
-    expectEqual(doc('a/b', 1, { foo: NaN }), doc('a/b', 1, { foo: NaN }));
+		expectEqual(doc('a/b', 3, { foo: 'bar' }), doc('a/b', 3, { foo: 'bar' }));
+		expectEqual(doc('a/b', 1, { foo: NaN }), doc('a/b', 1, { foo: NaN }));
 
-    expectNotEqual(
-      doc('a/b', 1, { foo: 'bar' }),
-      doc('a/0', 1, { foo: 'bar' })
-    );
-    expectNotEqual(
-      doc('a/b', 1, { foo: 'bar' }),
-      doc('a/b', 2, { foo: 'bar' })
-    );
-    expectNotEqual(doc('a/b', 1, { foo: 'bar' }), doc('a/b', 1, { foo: 100 }));
-    expectNotEqual(
-      doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: true }),
-      doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: false })
-    );
-  });
+		expectNotEqual(
+			doc('a/b', 1, { foo: 'bar' }),
+			doc('a/0', 1, { foo: 'bar' })
+		);
+		expectNotEqual(
+			doc('a/b', 1, { foo: 'bar' }),
+			doc('a/b', 2, { foo: 'bar' })
+		);
+		expectNotEqual(doc('a/b', 1, { foo: 'bar' }), doc('a/b', 1, { foo: 100 }));
+		expectNotEqual(
+			doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: true }),
+			doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: false })
+		);
+	});
 });

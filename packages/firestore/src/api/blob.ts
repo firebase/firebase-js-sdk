@@ -19,30 +19,30 @@ import { PlatformSupport } from '../platform/platform';
 import { makeConstructorPrivate } from '../util/api';
 import { Code, FirestoreError } from '../util/error';
 import {
-  invalidClassError,
-  validateArgType,
-  validateExactNumberOfArgs
+	invalidClassError,
+	validateArgType,
+	validateExactNumberOfArgs
 } from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
-  if (typeof Uint8Array === 'undefined') {
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'Uint8Arrays are not available in this environment.'
-    );
-  }
+	if (typeof Uint8Array === 'undefined') {
+		throw new FirestoreError(
+			Code.UNIMPLEMENTED,
+			'Uint8Arrays are not available in this environment.'
+		);
+	}
 }
 
 /** Helper function to assert Base64 functions are available at runtime. */
 function assertBase64Available(): void {
-  if (!PlatformSupport.getPlatform().base64Available) {
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'Blobs are unavailable in Firestore in this environment.'
-    );
-  }
+	if (!PlatformSupport.getPlatform().base64Available) {
+		throw new FirestoreError(
+			Code.UNIMPLEMENTED,
+			'Blobs are unavailable in Firestore in this environment.'
+		);
+	}
 }
 
 /**
@@ -53,80 +53,80 @@ function assertBase64Available(): void {
  * using the hack above to make sure no-one outside this module can call it.
  */
 export class Blob {
-  // Prefix with underscore to signal this is a private variable in JS and
-  // prevent it showing up for autocompletion.
-  // A binary string is a string with each char as Unicode code point in the
-  // range of [0, 255], essentially simulating a byte array.
-  private _binaryString: string;
+	// Prefix with underscore to signal this is a private variable in JS and
+	// prevent it showing up for autocompletion.
+	// A binary string is a string with each char as Unicode code point in the
+	// range of [0, 255], essentially simulating a byte array.
+	private _binaryString: string;
 
-  private constructor(binaryString: string) {
-    assertBase64Available();
-    this._binaryString = binaryString;
-  }
+	private constructor(binaryString: string) {
+		assertBase64Available();
+		this._binaryString = binaryString;
+	}
 
-  static fromBase64String(base64: string): Blob {
-    validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
-    validateArgType('Blob.fromBase64String', 'string', 1, base64);
-    assertBase64Available();
-    try {
-      const binaryString = PlatformSupport.getPlatform().atob(base64);
-      return new Blob(binaryString);
-    } catch (e) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Failed to construct Blob from Base64 string: ' + e
-      );
-    }
-  }
+	static fromBase64String(base64: string): Blob {
+		validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
+		validateArgType('Blob.fromBase64String', 'string', 1, base64);
+		assertBase64Available();
+		try {
+			const binaryString = PlatformSupport.getPlatform().atob(base64);
+			return new Blob(binaryString);
+		} catch (e) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				'Failed to construct Blob from Base64 string: ' + e
+			);
+		}
+	}
 
-  static fromUint8Array(array: Uint8Array): Blob {
-    validateExactNumberOfArgs('Blob.fromUint8Array', arguments, 1);
-    assertUint8ArrayAvailable();
-    if (!(array instanceof Uint8Array)) {
-      throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
-    }
-    // We can't call array.map directly because it expects the return type to
-    // be a Uint8Array, whereas we can convert it to a regular array by invoking
-    // map on the Array prototype.
-    const binaryString = Array.prototype.map
-      .call(array, (char: number) => {
-        return String.fromCharCode(char);
-      })
-      .join('');
-    return new Blob(binaryString);
-  }
+	static fromUint8Array(array: Uint8Array): Blob {
+		validateExactNumberOfArgs('Blob.fromUint8Array', arguments, 1);
+		assertUint8ArrayAvailable();
+		if (!(array instanceof Uint8Array)) {
+			throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
+		}
+		// We can't call array.map directly because it expects the return type to
+		// be a Uint8Array, whereas we can convert it to a regular array by invoking
+		// map on the Array prototype.
+		const binaryString = Array.prototype.map
+			.call(array, (char: number) => {
+				return String.fromCharCode(char);
+			})
+			.join('');
+		return new Blob(binaryString);
+	}
 
-  toBase64(): string {
-    validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
-    assertBase64Available();
-    return PlatformSupport.getPlatform().btoa(this._binaryString);
-  }
+	toBase64(): string {
+		validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
+		assertBase64Available();
+		return PlatformSupport.getPlatform().btoa(this._binaryString);
+	}
 
-  toUint8Array(): Uint8Array {
-    validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
-    assertUint8ArrayAvailable();
-    const buffer = new Uint8Array(this._binaryString.length);
-    for (let i = 0; i < this._binaryString.length; i++) {
-      buffer[i] = this._binaryString.charCodeAt(i);
-    }
-    return buffer;
-  }
+	toUint8Array(): Uint8Array {
+		validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
+		assertUint8ArrayAvailable();
+		const buffer = new Uint8Array(this._binaryString.length);
+		for (let i = 0; i < this._binaryString.length; i++) {
+			buffer[i] = this._binaryString.charCodeAt(i);
+		}
+		return buffer;
+	}
 
-  toString(): string {
-    return 'Blob(base64: ' + this.toBase64() + ')';
-  }
+	toString(): string {
+		return 'Blob(base64: ' + this.toBase64() + ')';
+	}
 
-  isEqual(other: Blob): boolean {
-    return this._binaryString === other._binaryString;
-  }
+	isEqual(other: Blob): boolean {
+		return this._binaryString === other._binaryString;
+	}
 
-  /**
-   * Actually private to JS consumers of our API, so this function is prefixed
-   * with an underscore.
-   */
-  _compareTo(other: Blob): number {
-    return primitiveComparator(this._binaryString, other._binaryString);
-  }
+	/**
+	 * Actually private to JS consumers of our API, so this function is prefixed
+	 * with an underscore.
+	 */
+	_compareTo(other: Blob): number {
+		return primitiveComparator(this._binaryString, other._binaryString);
+	}
 }
 
 // Public instance that disallows construction at runtime. This constructor is
@@ -137,6 +137,6 @@ export class Blob {
 // For our internal TypeScript code PublicBlob doesn't exist as a type, and so
 // we need to use Blob as type and export it too.
 export const PublicBlob = makeConstructorPrivate(
-  Blob,
-  'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
+	Blob,
+	'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
 );

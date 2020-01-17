@@ -36,12 +36,12 @@ const describeSpec = require('./specs/describe_spec');
  * @param {string} jsonFile The path to write the JSON to.
  */
 function writeToJSON(testFile, jsonFile) {
-  // Tell the test framework to write to a file instead of running.
-  describeSpec.setSpecJSONHandler(json => {
-    const fd = fs.openSync(jsonFile, 'w');
-    fs.writeSync(fd, json + '\n', 0, 'utf-8');
-  });
-  require('./' + testFile);
+	// Tell the test framework to write to a file instead of running.
+	describeSpec.setSpecJSONHandler(json => {
+		const fd = fs.openSync(jsonFile, 'w');
+		fs.writeSync(fd, json + '\n', 0, 'utf-8');
+	});
+	require('./' + testFile);
 }
 
 /**
@@ -49,25 +49,25 @@ function writeToJSON(testFile, jsonFile) {
  * @param {array} args The command line arguments.
  */
 function main(args) {
-  if (args.length !== 3) {
-    console.error('usage: ./generate_spec_json.sh path/to/output');
-    return;
-  }
-  outputPath = args[2];
-  mkdirp.sync(outputPath);
+	if (args.length !== 3) {
+		console.error('usage: ./generate_spec_json.sh path/to/output');
+		return;
+	}
+	outputPath = args[2];
+	mkdirp.sync(outputPath);
 
-  const testFiles = glob.sync('**/specs/*_spec.test.ts', { cwd: __dirname });
-  if (testFiles.length === 0) {
-    throw new Error('No test files found');
-  }
-  for (var i = 0; i < testFiles.length; ++i) {
-    var specName = testFiles[i].replace(/\.ts$/, '');
-    var testName = specName.replace(/^specs\//, '');
-    var filename = testName.replace(/[^A-Za-z\d]/g, '_') + '.json';
-    writeToJSON(testFiles[i], outputPath + '/' + filename);
-  }
+	const testFiles = glob.sync('**/specs/*_spec.test.ts', { cwd: __dirname });
+	if (testFiles.length === 0) {
+		throw new Error('No test files found');
+	}
+	for (var i = 0; i < testFiles.length; ++i) {
+		var specName = testFiles[i].replace(/\.ts$/, '');
+		var testName = specName.replace(/^specs\//, '');
+		var filename = testName.replace(/[^A-Za-z\d]/g, '_') + '.json';
+		writeToJSON(testFiles[i], outputPath + '/' + filename);
+	}
 
-  console.log('JSON spec files successfully generated to:', outputPath);
+	console.log('JSON spec files successfully generated to:', outputPath);
 }
 
 main(process.argv);

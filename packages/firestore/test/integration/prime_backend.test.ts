@@ -26,27 +26,27 @@ import { withTestDoc } from './util/helpers';
 const PRIMING_TIMEOUT_MS = 45000;
 
 before(
-  'Prime backend by waiting for a write to show up in the watch stream',
-  function(): Promise<void> {
-    this.timeout(PRIMING_TIMEOUT_MS);
+	'Prime backend by waiting for a write to show up in the watch stream',
+	function(): Promise<void> {
+		this.timeout(PRIMING_TIMEOUT_MS);
 
-    return withTestDoc(/*persistence=*/ false, async doc => {
-      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      const unsubscribe = doc.onSnapshot(accumulator.storeEvent);
+		return withTestDoc(/*persistence=*/ false, async doc => {
+			const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+			const unsubscribe = doc.onSnapshot(accumulator.storeEvent);
 
-      // Wait for watch to initialize and deliver first event.
-      await accumulator.awaitRemoteEvent();
+			// Wait for watch to initialize and deliver first event.
+			await accumulator.awaitRemoteEvent();
 
-      // Use a transaction to perform a write without triggering any local events.
-      await doc.firestore.runTransaction(async txn => {
-        txn.set(doc, { value: 'done' });
-      });
+			// Use a transaction to perform a write without triggering any local events.
+			await doc.firestore.runTransaction(async txn => {
+				txn.set(doc, { value: 'done' });
+			});
 
-      // Wait to see the write on the watch stream.
-      const docSnap = await accumulator.awaitRemoteEvent();
-      expect(docSnap.get('value')).to.equal('done');
+			// Wait to see the write on the watch stream.
+			const docSnap = await accumulator.awaitRemoteEvent();
+			expect(docSnap.get('value')).to.equal('done');
 
-      unsubscribe();
-    });
-  }
+			unsubscribe();
+		});
+	}
 );

@@ -21,43 +21,43 @@ import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
 
 apiDescribe('Idle Timeout', (persistence: boolean) => {
-  it('can write document after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('test-collection').doc();
-      return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
-            TimerId.WriteStreamIdle
-          );
-        })
-        .then(() => docRef.set({ foo: 'bar' }));
-    });
-  });
+	it('can write document after idle timeout', () => {
+		return withTestDb(persistence, db => {
+			const docRef = db.collection('test-collection').doc();
+			return docRef
+				.set({ foo: 'bar' })
+				.then(() => {
+					return asyncQueue(db).runDelayedOperationsEarly(
+						TimerId.WriteStreamIdle
+					);
+				})
+				.then(() => docRef.set({ foo: 'bar' }));
+		});
+	});
 
-  it('can watch documents after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const awaitOnlineSnapshot = (): Promise<void> => {
-        const docRef = db.collection('test-collection').doc();
-        const deferred = new Deferred<void>();
-        const unregister = docRef.onSnapshot(
-          { includeMetadataChanges: true },
-          snapshot => {
-            if (!snapshot.metadata.fromCache) {
-              deferred.resolve();
-            }
-          }
-        );
-        return deferred.promise.then(unregister);
-      };
+	it('can watch documents after idle timeout', () => {
+		return withTestDb(persistence, db => {
+			const awaitOnlineSnapshot = (): Promise<void> => {
+				const docRef = db.collection('test-collection').doc();
+				const deferred = new Deferred<void>();
+				const unregister = docRef.onSnapshot(
+					{ includeMetadataChanges: true },
+					snapshot => {
+						if (!snapshot.metadata.fromCache) {
+							deferred.resolve();
+						}
+					}
+				);
+				return deferred.promise.then(unregister);
+			};
 
-      return awaitOnlineSnapshot()
-        .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
-            TimerId.ListenStreamIdle
-          );
-        })
-        .then(() => awaitOnlineSnapshot());
-    });
-  });
+			return awaitOnlineSnapshot()
+				.then(() => {
+					return asyncQueue(db).runDelayedOperationsEarly(
+						TimerId.ListenStreamIdle
+					);
+				})
+				.then(() => awaitOnlineSnapshot());
+		});
+	});
 });

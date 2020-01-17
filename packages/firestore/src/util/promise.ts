@@ -16,29 +16,29 @@
  */
 
 export interface Resolver<R> {
-  (value?: R | Promise<R>): void;
+	(value?: R | Promise<R>): void;
 }
 
 export interface Rejecter {
-  (reason?: Error): void;
+	(reason?: Error): void;
 }
 
 export interface CancelablePromise<T> extends Promise<T> {
-  cancel(): void;
+	cancel(): void;
 }
 
 export class Deferred<R> {
-  promise: Promise<R>;
-  // Assigned synchronously in constructor by Promise constructor callback.
-  resolve!: Resolver<R>;
-  reject!: Rejecter;
+	promise: Promise<R>;
+	// Assigned synchronously in constructor by Promise constructor callback.
+	resolve!: Resolver<R>;
+	reject!: Rejecter;
 
-  constructor() {
-    this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
-  }
+	constructor() {
+		this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
+			this.resolve = resolve;
+			this.reject = reject;
+		});
+	}
 }
 
 /**
@@ -47,12 +47,12 @@ export class Deferred<R> {
  * The returned promise resolves once the function has been run on all values.
  */
 export function sequence<T>(
-  values: T[],
-  fn: (value: T) => Promise<void>
+	values: T[],
+	fn: (value: T) => Promise<void>
 ): Promise<void> {
-  let p = Promise.resolve();
-  for (const value of values) {
-    p = p.then(() => fn(value));
-  }
-  return p;
+	let p = Promise.resolve();
+	for (const value of values) {
+		p = p.then(() => fn(value));
+	}
+	return p;
 }

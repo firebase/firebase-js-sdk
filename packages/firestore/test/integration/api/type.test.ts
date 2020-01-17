@@ -26,101 +26,101 @@ const GeoPoint = firebase.firestore!.GeoPoint;
 const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Firestore', (persistence: boolean) => {
-  addEqualityMatcher();
+	addEqualityMatcher();
 
-  function expectRoundtrip(
-    db: firestore.FirebaseFirestore,
-    data: {}
-  ): Promise<void> {
-    const doc = db.collection('rooms').doc();
-    return doc
-      .set(data)
-      .then(() => doc.get())
-      .then(snapshot => {
-        expect(snapshot.data()).to.deep.equal(data);
-      });
-  }
+	function expectRoundtrip(
+		db: firestore.FirebaseFirestore,
+		data: {}
+	): Promise<void> {
+		const doc = db.collection('rooms').doc();
+		return doc
+			.set(data)
+			.then(() => doc.get())
+			.then(snapshot => {
+				expect(snapshot.data()).to.deep.equal(data);
+			});
+	}
 
-  it('can read and write null fields', () => {
-    return withTestDb(persistence, db => {
-      return expectRoundtrip(db, { a: 1, b: null });
-    });
-  });
+	it('can read and write null fields', () => {
+		return withTestDb(persistence, db => {
+			return expectRoundtrip(db, { a: 1, b: null });
+		});
+	});
 
-  it('can read and write array fields', () => {
-    return withTestDb(persistence, db => {
-      return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
-    });
-  });
+	it('can read and write array fields', () => {
+		return withTestDb(persistence, db => {
+			return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
+		});
+	});
 
-  it('can read and write geo point fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({ geopoint: new GeoPoint(1.23, 4.56) })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const latLong = docSnapshot.data()!['geopoint'];
-          expect(latLong instanceof GeoPoint).to.equal(true);
-          expect(latLong.latitude).to.equal(1.23);
-          expect(latLong.longitude).to.equal(4.56);
-        });
-    });
-  });
+	it('can read and write geo point fields', () => {
+		return withTestDoc(persistence, doc => {
+			return doc
+				.set({ geopoint: new GeoPoint(1.23, 4.56) })
+				.then(() => {
+					return doc.get();
+				})
+				.then(docSnapshot => {
+					const latLong = docSnapshot.data()!['geopoint'];
+					expect(latLong instanceof GeoPoint).to.equal(true);
+					expect(latLong.latitude).to.equal(1.23);
+					expect(latLong.longitude).to.equal(4.56);
+				});
+		});
+	});
 
-  it('can read and write bytes fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({
-          bytes: Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const blob = docSnapshot.data()!['bytes'];
-          expect(blob instanceof Blob).to.equal(true);
-          expect(blob.toUint8Array()).to.deep.equal(
-            new Uint8Array([0, 1, 255])
-          );
-        });
-    });
-  });
+	it('can read and write bytes fields', () => {
+		return withTestDoc(persistence, doc => {
+			return doc
+				.set({
+					bytes: Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
+				})
+				.then(() => {
+					return doc.get();
+				})
+				.then(docSnapshot => {
+					const blob = docSnapshot.data()!['bytes'];
+					expect(blob instanceof Blob).to.equal(true);
+					expect(blob.toUint8Array()).to.deep.equal(
+						new Uint8Array([0, 1, 255])
+					);
+				});
+		});
+	});
 
-  it('can read and write date fields', () => {
-    return withTestDb(persistence, db => {
-      const dateValue = new Date('2017-04-10T09:10:11.123Z');
-      // Dates are returned as Timestamps, so expectRoundtrip can't be used
-      // here.
-      const doc = db.collection('rooms').doc();
-      return doc
-        .set({ date: dateValue })
-        .then(() => doc.get())
-        .then(snapshot => {
-          expect(snapshot.data()).to.deep.equal({
-            date: Timestamp.fromDate(dateValue)
-          });
-        });
-    });
-  });
+	it('can read and write date fields', () => {
+		return withTestDb(persistence, db => {
+			const dateValue = new Date('2017-04-10T09:10:11.123Z');
+			// Dates are returned as Timestamps, so expectRoundtrip can't be used
+			// here.
+			const doc = db.collection('rooms').doc();
+			return doc
+				.set({ date: dateValue })
+				.then(() => doc.get())
+				.then(snapshot => {
+					expect(snapshot.data()).to.deep.equal({
+						date: Timestamp.fromDate(dateValue)
+					});
+				});
+		});
+	});
 
-  it('can read and write timestamp fields', () => {
-    return withTestDb(persistence, db => {
-      const timestampValue = Timestamp.now();
-      return expectRoundtrip(db, { timestamp: timestampValue });
-    });
-  });
+	it('can read and write timestamp fields', () => {
+		return withTestDb(persistence, db => {
+			const timestampValue = Timestamp.now();
+			return expectRoundtrip(db, { timestamp: timestampValue });
+		});
+	});
 
-  it('can read and write document references', () => {
-    return withTestDoc(persistence, doc => {
-      return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
-    });
-  });
+	it('can read and write document references', () => {
+		return withTestDoc(persistence, doc => {
+			return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
+		});
+	});
 
-  it('can read and write document references in an array', () => {
-    return withTestDoc(persistence, doc => {
-      return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
-    });
-  });
+	it('can read and write document references in an array', () => {
+		return withTestDoc(persistence, doc => {
+			return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
+		});
+	});
 });

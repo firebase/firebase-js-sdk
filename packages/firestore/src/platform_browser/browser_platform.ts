@@ -26,47 +26,47 @@ import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
 export class BrowserPlatform implements Platform {
-  readonly base64Available: boolean;
+	readonly base64Available: boolean;
 
-  readonly emptyByteString = '';
+	readonly emptyByteString = '';
 
-  constructor() {
-    this.base64Available = typeof atob !== 'undefined';
-  }
+	constructor() {
+		this.base64Available = typeof atob !== 'undefined';
+	}
 
-  get document(): Document | null {
-    return typeof document !== 'undefined' ? document : null;
-  }
+	get document(): Document | null {
+		return typeof document !== 'undefined' ? document : null;
+	}
 
-  get window(): Window | null {
-    return typeof window !== 'undefined' ? window : null;
-  }
+	get window(): Window | null {
+		return typeof window !== 'undefined' ? window : null;
+	}
 
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    return Promise.resolve(new WebChannelConnection(databaseInfo));
-  }
+	loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+		return Promise.resolve(new WebChannelConnection(databaseInfo));
+	}
 
-  newConnectivityMonitor(): ConnectivityMonitor {
-    if (BrowserConnectivityMonitor.isAvailable()) {
-      return new BrowserConnectivityMonitor();
-    } else {
-      return new NoopConnectivityMonitor();
-    }
-  }
+	newConnectivityMonitor(): ConnectivityMonitor {
+		if (BrowserConnectivityMonitor.isAvailable()) {
+			return new BrowserConnectivityMonitor();
+		} else {
+			return new NoopConnectivityMonitor();
+		}
+	}
 
-  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(databaseId, { useProto3Json: true });
-  }
+	newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+		return new JsonProtoSerializer(databaseId, { useProto3Json: true });
+	}
 
-  formatJSON(value: unknown): string {
-    return JSON.stringify(value);
-  }
+	formatJSON(value: unknown): string {
+		return JSON.stringify(value);
+	}
 
-  atob(encoded: string): string {
-    return atob(encoded);
-  }
+	atob(encoded: string): string {
+		return atob(encoded);
+	}
 
-  btoa(raw: string): string {
-    return btoa(raw);
-  }
+	btoa(raw: string): string {
+		return btoa(raw);
+	}
 }

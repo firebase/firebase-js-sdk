@@ -20,60 +20,60 @@ import { assert } from '../util/assert';
 import { ResourcePath } from './path';
 
 export class DocumentKey {
-  constructor(readonly path: ResourcePath) {
-    assert(
-      DocumentKey.isDocumentKey(path),
-      'Invalid DocumentKey with an odd number of segments: ' +
-        path.toArray().join('/')
-    );
-  }
+	constructor(readonly path: ResourcePath) {
+		assert(
+			DocumentKey.isDocumentKey(path),
+			'Invalid DocumentKey with an odd number of segments: ' +
+				path.toArray().join('/')
+		);
+	}
 
-  /** Returns true if the document is in the specified collectionId. */
-  hasCollectionId(collectionId: string): boolean {
-    return (
-      this.path.length >= 2 &&
-      this.path.get(this.path.length - 2) === collectionId
-    );
-  }
+	/** Returns true if the document is in the specified collectionId. */
+	hasCollectionId(collectionId: string): boolean {
+		return (
+			this.path.length >= 2 &&
+			this.path.get(this.path.length - 2) === collectionId
+		);
+	}
 
-  isEqual(other: DocumentKey | null): boolean {
-    return (
-      other !== null && ResourcePath.comparator(this.path, other.path) === 0
-    );
-  }
+	isEqual(other: DocumentKey | null): boolean {
+		return (
+			other !== null && ResourcePath.comparator(this.path, other.path) === 0
+		);
+	}
 
-  toString(): string {
-    return this.path.toString();
-  }
+	toString(): string {
+		return this.path.toString();
+	}
 
-  static EMPTY = new DocumentKey(new ResourcePath([]));
+	static EMPTY = new DocumentKey(new ResourcePath([]));
 
-  static comparator(k1: DocumentKey, k2: DocumentKey): number {
-    return ResourcePath.comparator(k1.path, k2.path);
-  }
+	static comparator(k1: DocumentKey, k2: DocumentKey): number {
+		return ResourcePath.comparator(k1.path, k2.path);
+	}
 
-  static isDocumentKey(path: ResourcePath): boolean {
-    return path.length % 2 === 0;
-  }
+	static isDocumentKey(path: ResourcePath): boolean {
+		return path.length % 2 === 0;
+	}
 
-  /**
-   * Creates and returns a new document key with the given segments.
-   *
-   * @param path The segments of the path to the document
-   * @return A new instance of DocumentKey
-   */
-  static fromSegments(segments: string[]): DocumentKey {
-    return new DocumentKey(new ResourcePath(segments.slice()));
-  }
+	/**
+	 * Creates and returns a new document key with the given segments.
+	 *
+	 * @param path The segments of the path to the document
+	 * @return A new instance of DocumentKey
+	 */
+	static fromSegments(segments: string[]): DocumentKey {
+		return new DocumentKey(new ResourcePath(segments.slice()));
+	}
 
-  /**
-   * Creates and returns a new document key using '/' to split the string into
-   * segments.
-   *
-   * @param path The slash-separated path string to the document
-   * @return A new instance of DocumentKey
-   */
-  static fromPathString(path: string): DocumentKey {
-    return new DocumentKey(ResourcePath.fromString(path));
-  }
+	/**
+	 * Creates and returns a new document key using '/' to split the string into
+	 * segments.
+	 *
+	 * @param path The slash-separated path string to the document
+	 * @return A new instance of DocumentKey
+	 */
+	static fromPathString(path: string): DocumentKey {
+		return new DocumentKey(ResourcePath.fromString(path));
+	}
 }

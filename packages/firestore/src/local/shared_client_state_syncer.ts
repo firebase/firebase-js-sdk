@@ -27,26 +27,26 @@ export type QueryTargetState = 'not-current' | 'current' | 'rejected';
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
-  /** Applies a mutation state to an existing batch.  */
-  applyBatchState(
-    batchId: BatchId,
-    state: MutationBatchState,
-    error?: FirestoreError
-  ): Promise<void>;
+	/** Applies a mutation state to an existing batch.  */
+	applyBatchState(
+		batchId: BatchId,
+		state: MutationBatchState,
+		error?: FirestoreError
+	): Promise<void>;
 
-  /** Applies a query target change from a different tab. */
-  applyTargetState(
-    targetId: TargetId,
-    state: QueryTargetState,
-    error?: FirestoreError
-  ): Promise<void>;
+	/** Applies a query target change from a different tab. */
+	applyTargetState(
+		targetId: TargetId,
+		state: QueryTargetState,
+		error?: FirestoreError
+	): Promise<void>;
 
-  /** Adds or removes Watch targets for queries from different tabs. */
-  applyActiveTargetsChange(
-    added: TargetId[],
-    removed: TargetId[]
-  ): Promise<void>;
+	/** Adds or removes Watch targets for queries from different tabs. */
+	applyActiveTargetsChange(
+		added: TargetId[],
+		removed: TargetId[]
+	): Promise<void>;
 
-  /** Returns the IDs of the clients that are currently active. */
-  getActiveClients(): Promise<ClientId[]>;
+	/** Returns the IDs of the clients that are currently active. */
+	getActiveClients(): Promise<ClientId[]>;
 }

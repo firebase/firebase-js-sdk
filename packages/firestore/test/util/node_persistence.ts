@@ -36,25 +36,25 @@ const globalAny = global as any;
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
 
 if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
-  registerIndexedDBShim(null, {
-    checkOrigin: false,
-    databaseBasePath: dbDir,
-    deleteDatabaseFiles: true
-  });
+	registerIndexedDBShim(null, {
+		checkOrigin: false,
+		databaseBasePath: dbDir,
+		deleteDatabaseFiles: true
+	});
 
-  const fakeWindow = new FakeWindow(
-    new SharedFakeWebStorage(),
-    globalAny.indexedDB
-  );
+	const fakeWindow = new FakeWindow(
+		new SharedFakeWebStorage(),
+		globalAny.indexedDB
+	);
 
-  globalAny.window = fakeWindow;
+	globalAny.window = fakeWindow;
 
-  // We need to define the `Event` type as it is used in Node to send events to
-  // WebStorage when using both the IndexedDB mock and the WebStorage mock.
-  class Event {
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-    constructor(typeArg: string, eventInitDict?: EventInit) {}
-  }
+	// We need to define the `Event` type as it is used in Node to send events to
+	// WebStorage when using both the IndexedDB mock and the WebStorage mock.
+	class Event {
+		// eslint-disable-next-line @typescript-eslint/no-useless-constructor
+		constructor(typeArg: string, eventInitDict?: EventInit) {}
+	}
 
-  globalAny.Event = Event;
+	globalAny.Event = Event;
 }

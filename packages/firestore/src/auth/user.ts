@@ -20,33 +20,33 @@
  * readable.
  */
 export class User {
-  /** A user with a null UID. */
-  static readonly UNAUTHENTICATED = new User(null);
+	/** A user with a null UID. */
+	static readonly UNAUTHENTICATED = new User(null);
 
-  // TODO(mikelehen): Look into getting a proper uid-equivalent for
-  // non-FirebaseAuth providers.
-  static readonly GOOGLE_CREDENTIALS = new User('google-credentials-uid');
-  static readonly FIRST_PARTY = new User('first-party-uid');
+	// TODO(mikelehen): Look into getting a proper uid-equivalent for
+	// non-FirebaseAuth providers.
+	static readonly GOOGLE_CREDENTIALS = new User('google-credentials-uid');
+	static readonly FIRST_PARTY = new User('first-party-uid');
 
-  constructor(readonly uid: string | null) {}
+	constructor(readonly uid: string | null) {}
 
-  isAuthenticated(): boolean {
-    return this.uid != null;
-  }
+	isAuthenticated(): boolean {
+		return this.uid != null;
+	}
 
-  /**
-   * Returns a key representing this user, suitable for inclusion in a
-   * dictionary.
-   */
-  toKey(): string {
-    if (this.isAuthenticated()) {
-      return 'uid:' + this.uid;
-    } else {
-      return 'anonymous-user';
-    }
-  }
+	/**
+	 * Returns a key representing this user, suitable for inclusion in a
+	 * dictionary.
+	 */
+	toKey(): string {
+		if (this.isAuthenticated()) {
+			return 'uid:' + this.uid;
+		} else {
+			return 'anonymous-user';
+		}
+	}
 
-  isEqual(otherUser: User): boolean {
-    return otherUser.uid === this.uid;
-  }
+	isEqual(otherUser: User): boolean {
+		return otherUser.uid === this.uid;
+	}
 }

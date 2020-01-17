@@ -21,7 +21,7 @@ const NumberAsAny = Number as any;
 
 // An Object whose keys and values are strings.
 export interface StringMap {
-  [key: string]: string;
+	[key: string]: string;
 }
 
 /**
@@ -29,14 +29,14 @@ export interface StringMap {
  * Added to not rely on ES6 features.
  */
 export const MIN_SAFE_INTEGER: number =
-  NumberAsAny.MIN_SAFE_INTEGER || -(Math.pow(2, 53) - 1);
+	NumberAsAny.MIN_SAFE_INTEGER || -(Math.pow(2, 53) - 1);
 
 /**
  * Maximum safe integer in Javascript because of floating point precision.
  * Added to not rely on ES6 features.
  */
 export const MAX_SAFE_INTEGER: number =
-  NumberAsAny.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
+	NumberAsAny.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
 
 /**
  * Returns whether an number is an integer, uses native implementation if
@@ -45,17 +45,17 @@ export const MAX_SAFE_INTEGER: number =
  * @param value The value to test for being an integer
  */
 export const isInteger: (value: unknown) => boolean =
-  NumberAsAny.isInteger ||
-  (value =>
-    typeof value === 'number' &&
-    isFinite(value) &&
-    Math.floor(value) === value);
+	NumberAsAny.isInteger ||
+	(value =>
+		typeof value === 'number' &&
+		isFinite(value) &&
+		Math.floor(value) === value);
 
 /**
  * Returns whether a variable is either undefined or null.
  */
 export function isNullOrUndefined(value: unknown): boolean {
-  return value === null || value === undefined;
+	return value === null || value === undefined;
 }
 
 /**
@@ -63,20 +63,20 @@ export function isNullOrUndefined(value: unknown): boolean {
  * @param value The value to test for being an integer and in the safe range
  */
 export function isSafeInteger(value: unknown): boolean {
-  return (
-    isInteger(value) &&
-    (value as number) <= MAX_SAFE_INTEGER &&
-    (value as number) >= MIN_SAFE_INTEGER
-  );
+	return (
+		isInteger(value) &&
+		(value as number) <= MAX_SAFE_INTEGER &&
+		(value as number) >= MIN_SAFE_INTEGER
+	);
 }
 
 /**
  * Safely checks if the number is NaN.
  */
 export function safeIsNaN(value: unknown): boolean {
-  if (NumberAsAny.IsNaN) {
-    return NumberAsAny.IsNaN(value);
-  } else {
-    return typeof value === 'number' && isNaN(value);
-  }
+	if (NumberAsAny.IsNaN) {
+		return NumberAsAny.IsNaN(value);
+	} else {
+		return typeof value === 'number' && isNaN(value);
+	}
 }

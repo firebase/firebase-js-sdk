@@ -28,6 +28,6 @@ import '../../index';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const testsContext = (require as any).context('.', true, /.test$/);
 const browserTests = testsContext
-  .keys()
-  .filter((file: string) => file.indexOf('/node/') < 0);
+	.keys()
+	.filter((file: string) => file.indexOf('/node/') < 0);
 browserTests.forEach(testsContext);

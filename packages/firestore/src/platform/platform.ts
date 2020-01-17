@@ -31,29 +31,29 @@ import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 // TODO: Consider only exposing the APIs of 'document' and 'window' that we
 // use in our client.
 export interface Platform {
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection>;
-  newConnectivityMonitor(): ConnectivityMonitor;
-  newSerializer(databaseId: DatabaseId): JsonProtoSerializer;
+	loadConnection(databaseInfo: DatabaseInfo): Promise<Connection>;
+	newConnectivityMonitor(): ConnectivityMonitor;
+	newSerializer(databaseId: DatabaseId): JsonProtoSerializer;
 
-  /** Formats an object as a JSON string, suitable for logging. */
-  formatJSON(value: unknown): string;
+	/** Formats an object as a JSON string, suitable for logging. */
+	formatJSON(value: unknown): string;
 
-  /** Converts a Base64 encoded string to a binary string. */
-  atob(encoded: string): string;
+	/** Converts a Base64 encoded string to a binary string. */
+	atob(encoded: string): string;
 
-  /** Converts a binary string to a Base64 encoded string. */
-  btoa(raw: string): string;
+	/** Converts a binary string to a Base64 encoded string. */
+	btoa(raw: string): string;
 
-  /** The Platform's 'window' implementation or null if not available. */
-  readonly window: Window | null;
+	/** The Platform's 'window' implementation or null if not available. */
+	readonly window: Window | null;
 
-  /** The Platform's 'document' implementation or null if not available. */
-  readonly document: Document | null;
+	/** The Platform's 'document' implementation or null if not available. */
+	readonly document: Document | null;
 
-  /** True if and only if the Base64 conversion functions are available. */
-  readonly base64Available: boolean;
+	/** True if and only if the Base64 conversion functions are available. */
+	readonly base64Available: boolean;
 
-  readonly emptyByteString: ProtoByteString;
+	readonly emptyByteString: ProtoByteString;
 }
 
 /**
@@ -62,20 +62,20 @@ export interface Platform {
  * once.
  */
 export class PlatformSupport {
-  private static platform: Platform;
-  static setPlatform(platform: Platform): void {
-    if (PlatformSupport.platform) {
-      fail('Platform already defined');
-    }
-    PlatformSupport.platform = platform;
-  }
+	private static platform: Platform;
+	static setPlatform(platform: Platform): void {
+		if (PlatformSupport.platform) {
+			fail('Platform already defined');
+		}
+		PlatformSupport.platform = platform;
+	}
 
-  static getPlatform(): Platform {
-    if (!PlatformSupport.platform) {
-      fail('Platform not set');
-    }
-    return PlatformSupport.platform;
-  }
+	static getPlatform(): Platform {
+		if (!PlatformSupport.platform) {
+			fail('Platform not set');
+		}
+		return PlatformSupport.platform;
+	}
 }
 
 /**
@@ -83,5 +83,5 @@ export class PlatformSupport {
  * platform.
  */
 export function emptyByteString(): ProtoByteString {
-  return PlatformSupport.getPlatform().emptyByteString;
+	return PlatformSupport.getPlatform().emptyByteString;
 }

@@ -25,38 +25,38 @@ import { documentKeySet, DocumentKeySet } from '../model/collections';
  * the SyncEngine) and are used to pin / unpin documents as appropriate.
  */
 export class LocalViewChanges {
-  constructor(
-    readonly targetId: TargetId,
-    readonly fromCache: boolean,
-    readonly addedKeys: DocumentKeySet,
-    readonly removedKeys: DocumentKeySet
-  ) {}
+	constructor(
+		readonly targetId: TargetId,
+		readonly fromCache: boolean,
+		readonly addedKeys: DocumentKeySet,
+		readonly removedKeys: DocumentKeySet
+	) {}
 
-  static fromSnapshot(
-    targetId: TargetId,
-    viewSnapshot: ViewSnapshot
-  ): LocalViewChanges {
-    let addedKeys = documentKeySet();
-    let removedKeys = documentKeySet();
+	static fromSnapshot(
+		targetId: TargetId,
+		viewSnapshot: ViewSnapshot
+	): LocalViewChanges {
+		let addedKeys = documentKeySet();
+		let removedKeys = documentKeySet();
 
-    for (const docChange of viewSnapshot.docChanges) {
-      switch (docChange.type) {
-        case ChangeType.Added:
-          addedKeys = addedKeys.add(docChange.doc.key);
-          break;
-        case ChangeType.Removed:
-          removedKeys = removedKeys.add(docChange.doc.key);
-          break;
-        default:
-        // do nothing
-      }
-    }
+		for (const docChange of viewSnapshot.docChanges) {
+			switch (docChange.type) {
+				case ChangeType.Added:
+					addedKeys = addedKeys.add(docChange.doc.key);
+					break;
+				case ChangeType.Removed:
+					removedKeys = removedKeys.add(docChange.doc.key);
+					break;
+				default:
+				// do nothing
+			}
+		}
 
-    return new LocalViewChanges(
-      targetId,
-      viewSnapshot.fromCache,
-      addedKeys,
-      removedKeys
-    );
-  }
+		return new LocalViewChanges(
+			targetId,
+			viewSnapshot.fromCache,
+			addedKeys,
+			removedKeys
+		);
+	}
 }

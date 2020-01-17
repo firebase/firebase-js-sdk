@@ -30,23 +30,23 @@ import * as log from '../util/log';
  * names of these identifiers.
  */
 enum RpcCode {
-  OK = 0,
-  CANCELLED = 1,
-  UNKNOWN = 2,
-  INVALID_ARGUMENT = 3,
-  DEADLINE_EXCEEDED = 4,
-  NOT_FOUND = 5,
-  ALREADY_EXISTS = 6,
-  PERMISSION_DENIED = 7,
-  UNAUTHENTICATED = 16,
-  RESOURCE_EXHAUSTED = 8,
-  FAILED_PRECONDITION = 9,
-  ABORTED = 10,
-  OUT_OF_RANGE = 11,
-  UNIMPLEMENTED = 12,
-  INTERNAL = 13,
-  UNAVAILABLE = 14,
-  DATA_LOSS = 15
+	OK = 0,
+	CANCELLED = 1,
+	UNKNOWN = 2,
+	INVALID_ARGUMENT = 3,
+	DEADLINE_EXCEEDED = 4,
+	NOT_FOUND = 5,
+	ALREADY_EXISTS = 6,
+	PERMISSION_DENIED = 7,
+	UNAUTHENTICATED = 16,
+	RESOURCE_EXHAUSTED = 8,
+	FAILED_PRECONDITION = 9,
+	ABORTED = 10,
+	OUT_OF_RANGE = 11,
+	UNIMPLEMENTED = 12,
+	INTERNAL = 13,
+	UNAVAILABLE = 14,
+	DATA_LOSS = 15
 }
 
 /**
@@ -56,35 +56,35 @@ enum RpcCode {
  * See isPermanentWriteError for classifying write errors.
  */
 export function isPermanentError(code: Code): boolean {
-  switch (code) {
-    case Code.OK:
-      return fail('Treated status OK as error');
-    case Code.CANCELLED:
-    case Code.UNKNOWN:
-    case Code.DEADLINE_EXCEEDED:
-    case Code.RESOURCE_EXHAUSTED:
-    case Code.INTERNAL:
-    case Code.UNAVAILABLE:
-    // Unauthenticated means something went wrong with our token and we need
-    // to retry with new credentials which will happen automatically.
-    case Code.UNAUTHENTICATED:
-      return false;
-    case Code.INVALID_ARGUMENT:
-    case Code.NOT_FOUND:
-    case Code.ALREADY_EXISTS:
-    case Code.PERMISSION_DENIED:
-    case Code.FAILED_PRECONDITION:
-    // Aborted might be retried in some scenarios, but that is dependant on
-    // the context and should handled individually by the calling code.
-    // See https://cloud.google.com/apis/design/errors.
-    case Code.ABORTED:
-    case Code.OUT_OF_RANGE:
-    case Code.UNIMPLEMENTED:
-    case Code.DATA_LOSS:
-      return true;
-    default:
-      return fail('Unknown status code: ' + code);
-  }
+	switch (code) {
+		case Code.OK:
+			return fail('Treated status OK as error');
+		case Code.CANCELLED:
+		case Code.UNKNOWN:
+		case Code.DEADLINE_EXCEEDED:
+		case Code.RESOURCE_EXHAUSTED:
+		case Code.INTERNAL:
+		case Code.UNAVAILABLE:
+		// Unauthenticated means something went wrong with our token and we need
+		// to retry with new credentials which will happen automatically.
+		case Code.UNAUTHENTICATED:
+			return false;
+		case Code.INVALID_ARGUMENT:
+		case Code.NOT_FOUND:
+		case Code.ALREADY_EXISTS:
+		case Code.PERMISSION_DENIED:
+		case Code.FAILED_PRECONDITION:
+		// Aborted might be retried in some scenarios, but that is dependant on
+		// the context and should handled individually by the calling code.
+		// See https://cloud.google.com/apis/design/errors.
+		case Code.ABORTED:
+		case Code.OUT_OF_RANGE:
+		case Code.UNIMPLEMENTED:
+		case Code.DATA_LOSS:
+			return true;
+		default:
+			return fail('Unknown status code: ' + code);
+	}
 }
 
 /**
@@ -100,7 +100,7 @@ export function isPermanentError(code: Code): boolean {
  * means a handshake error should be classified with isPermanentError, above.
  */
 export function isPermanentWriteError(code: Code): boolean {
-  return isPermanentError(code) && code !== Code.ABORTED;
+	return isPermanentError(code) && code !== Code.ABORTED;
 }
 
 /**
@@ -110,14 +110,14 @@ export function isPermanentWriteError(code: Code): boolean {
  *     there is no match.
  */
 export function mapCodeFromRpcStatus(status: string): Code | undefined {
-  // lookup by string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const code: RpcCode = RpcCode[status as any] as any;
-  if (code === undefined) {
-    return undefined;
-  }
+	// lookup by string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const code: RpcCode = RpcCode[status as any] as any;
+	if (code === undefined) {
+		return undefined;
+	}
 
-  return mapCodeFromRpcCode(code);
+	return mapCodeFromRpcCode(code);
 }
 
 /**
@@ -128,51 +128,51 @@ export function mapCodeFromRpcStatus(status: string): Code | undefined {
  *     is no match.
  */
 export function mapCodeFromRpcCode(code: number | undefined): Code {
-  if (code === undefined) {
-    // This shouldn't normally happen, but in certain error cases (like trying
-    // to send invalid proto messages) we may get an error with no GRPC code.
-    log.error('GRPC error has no .code');
-    return Code.UNKNOWN;
-  }
+	if (code === undefined) {
+		// This shouldn't normally happen, but in certain error cases (like trying
+		// to send invalid proto messages) we may get an error with no GRPC code.
+		log.error('GRPC error has no .code');
+		return Code.UNKNOWN;
+	}
 
-  switch (code) {
-    case RpcCode.OK:
-      return Code.OK;
-    case RpcCode.CANCELLED:
-      return Code.CANCELLED;
-    case RpcCode.UNKNOWN:
-      return Code.UNKNOWN;
-    case RpcCode.DEADLINE_EXCEEDED:
-      return Code.DEADLINE_EXCEEDED;
-    case RpcCode.RESOURCE_EXHAUSTED:
-      return Code.RESOURCE_EXHAUSTED;
-    case RpcCode.INTERNAL:
-      return Code.INTERNAL;
-    case RpcCode.UNAVAILABLE:
-      return Code.UNAVAILABLE;
-    case RpcCode.UNAUTHENTICATED:
-      return Code.UNAUTHENTICATED;
-    case RpcCode.INVALID_ARGUMENT:
-      return Code.INVALID_ARGUMENT;
-    case RpcCode.NOT_FOUND:
-      return Code.NOT_FOUND;
-    case RpcCode.ALREADY_EXISTS:
-      return Code.ALREADY_EXISTS;
-    case RpcCode.PERMISSION_DENIED:
-      return Code.PERMISSION_DENIED;
-    case RpcCode.FAILED_PRECONDITION:
-      return Code.FAILED_PRECONDITION;
-    case RpcCode.ABORTED:
-      return Code.ABORTED;
-    case RpcCode.OUT_OF_RANGE:
-      return Code.OUT_OF_RANGE;
-    case RpcCode.UNIMPLEMENTED:
-      return Code.UNIMPLEMENTED;
-    case RpcCode.DATA_LOSS:
-      return Code.DATA_LOSS;
-    default:
-      return fail('Unknown status code: ' + code);
-  }
+	switch (code) {
+		case RpcCode.OK:
+			return Code.OK;
+		case RpcCode.CANCELLED:
+			return Code.CANCELLED;
+		case RpcCode.UNKNOWN:
+			return Code.UNKNOWN;
+		case RpcCode.DEADLINE_EXCEEDED:
+			return Code.DEADLINE_EXCEEDED;
+		case RpcCode.RESOURCE_EXHAUSTED:
+			return Code.RESOURCE_EXHAUSTED;
+		case RpcCode.INTERNAL:
+			return Code.INTERNAL;
+		case RpcCode.UNAVAILABLE:
+			return Code.UNAVAILABLE;
+		case RpcCode.UNAUTHENTICATED:
+			return Code.UNAUTHENTICATED;
+		case RpcCode.INVALID_ARGUMENT:
+			return Code.INVALID_ARGUMENT;
+		case RpcCode.NOT_FOUND:
+			return Code.NOT_FOUND;
+		case RpcCode.ALREADY_EXISTS:
+			return Code.ALREADY_EXISTS;
+		case RpcCode.PERMISSION_DENIED:
+			return Code.PERMISSION_DENIED;
+		case RpcCode.FAILED_PRECONDITION:
+			return Code.FAILED_PRECONDITION;
+		case RpcCode.ABORTED:
+			return Code.ABORTED;
+		case RpcCode.OUT_OF_RANGE:
+			return Code.OUT_OF_RANGE;
+		case RpcCode.UNIMPLEMENTED:
+			return Code.UNIMPLEMENTED;
+		case RpcCode.DATA_LOSS:
+			return Code.DATA_LOSS;
+		default:
+			return fail('Unknown status code: ' + code);
+	}
 }
 
 /**
@@ -180,48 +180,48 @@ export function mapCodeFromRpcCode(code: number | undefined): Code {
  * mapCodeFromRpcCode and should really only be used in tests.
  */
 export function mapRpcCodeFromCode(code: Code | undefined): number {
-  if (code === undefined) {
-    return RpcCode.OK;
-  }
+	if (code === undefined) {
+		return RpcCode.OK;
+	}
 
-  switch (code) {
-    case Code.OK:
-      return RpcCode.OK;
-    case Code.CANCELLED:
-      return RpcCode.CANCELLED;
-    case Code.UNKNOWN:
-      return RpcCode.UNKNOWN;
-    case Code.DEADLINE_EXCEEDED:
-      return RpcCode.DEADLINE_EXCEEDED;
-    case Code.RESOURCE_EXHAUSTED:
-      return RpcCode.RESOURCE_EXHAUSTED;
-    case Code.INTERNAL:
-      return RpcCode.INTERNAL;
-    case Code.UNAVAILABLE:
-      return RpcCode.UNAVAILABLE;
-    case Code.UNAUTHENTICATED:
-      return RpcCode.UNAUTHENTICATED;
-    case Code.INVALID_ARGUMENT:
-      return RpcCode.INVALID_ARGUMENT;
-    case Code.NOT_FOUND:
-      return RpcCode.NOT_FOUND;
-    case Code.ALREADY_EXISTS:
-      return RpcCode.ALREADY_EXISTS;
-    case Code.PERMISSION_DENIED:
-      return RpcCode.PERMISSION_DENIED;
-    case Code.FAILED_PRECONDITION:
-      return RpcCode.FAILED_PRECONDITION;
-    case Code.ABORTED:
-      return RpcCode.ABORTED;
-    case Code.OUT_OF_RANGE:
-      return RpcCode.OUT_OF_RANGE;
-    case Code.UNIMPLEMENTED:
-      return RpcCode.UNIMPLEMENTED;
-    case Code.DATA_LOSS:
-      return RpcCode.DATA_LOSS;
-    default:
-      return fail('Unknown status code: ' + code);
-  }
+	switch (code) {
+		case Code.OK:
+			return RpcCode.OK;
+		case Code.CANCELLED:
+			return RpcCode.CANCELLED;
+		case Code.UNKNOWN:
+			return RpcCode.UNKNOWN;
+		case Code.DEADLINE_EXCEEDED:
+			return RpcCode.DEADLINE_EXCEEDED;
+		case Code.RESOURCE_EXHAUSTED:
+			return RpcCode.RESOURCE_EXHAUSTED;
+		case Code.INTERNAL:
+			return RpcCode.INTERNAL;
+		case Code.UNAVAILABLE:
+			return RpcCode.UNAVAILABLE;
+		case Code.UNAUTHENTICATED:
+			return RpcCode.UNAUTHENTICATED;
+		case Code.INVALID_ARGUMENT:
+			return RpcCode.INVALID_ARGUMENT;
+		case Code.NOT_FOUND:
+			return RpcCode.NOT_FOUND;
+		case Code.ALREADY_EXISTS:
+			return RpcCode.ALREADY_EXISTS;
+		case Code.PERMISSION_DENIED:
+			return RpcCode.PERMISSION_DENIED;
+		case Code.FAILED_PRECONDITION:
+			return RpcCode.FAILED_PRECONDITION;
+		case Code.ABORTED:
+			return RpcCode.ABORTED;
+		case Code.OUT_OF_RANGE:
+			return RpcCode.OUT_OF_RANGE;
+		case Code.UNIMPLEMENTED:
+			return RpcCode.UNIMPLEMENTED;
+		case Code.DATA_LOSS:
+			return RpcCode.DATA_LOSS;
+		default:
+			return fail('Unknown status code: ' + code);
+	}
 }
 
 /**
@@ -232,72 +232,72 @@ export function mapRpcCodeFromCode(code: Code | undefined): number {
  *     Code.UNKNOWN.
  */
 export function mapCodeFromHttpStatus(status: number): Code {
-  // The canonical error codes for Google APIs [1] specify mapping onto HTTP
-  // status codes but the mapping is not bijective. In each case of ambiguity
-  // this function chooses a primary error.
-  //
-  // [1]
-  // https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
-  switch (status) {
-    case 200: // OK
-      return Code.OK;
+	// The canonical error codes for Google APIs [1] specify mapping onto HTTP
+	// status codes but the mapping is not bijective. In each case of ambiguity
+	// this function chooses a primary error.
+	//
+	// [1]
+	// https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
+	switch (status) {
+		case 200: // OK
+			return Code.OK;
 
-    case 400: // Bad Request
-      return Code.INVALID_ARGUMENT;
-    // Other possibilities based on the forward mapping
-    // return Code.FAILED_PRECONDITION;
-    // return Code.OUT_OF_RANGE;
+		case 400: // Bad Request
+			return Code.INVALID_ARGUMENT;
+		// Other possibilities based on the forward mapping
+		// return Code.FAILED_PRECONDITION;
+		// return Code.OUT_OF_RANGE;
 
-    case 401: // Unauthorized
-      return Code.UNAUTHENTICATED;
+		case 401: // Unauthorized
+			return Code.UNAUTHENTICATED;
 
-    case 403: // Forbidden
-      return Code.PERMISSION_DENIED;
+		case 403: // Forbidden
+			return Code.PERMISSION_DENIED;
 
-    case 404: // Not Found
-      return Code.NOT_FOUND;
+		case 404: // Not Found
+			return Code.NOT_FOUND;
 
-    case 409: // Conflict
-      return Code.ABORTED;
-    // Other possibilities:
-    // return Code.ALREADY_EXISTS;
+		case 409: // Conflict
+			return Code.ABORTED;
+		// Other possibilities:
+		// return Code.ALREADY_EXISTS;
 
-    case 416: // Range Not Satisfiable
-      return Code.OUT_OF_RANGE;
+		case 416: // Range Not Satisfiable
+			return Code.OUT_OF_RANGE;
 
-    case 429: // Too Many Requests
-      return Code.RESOURCE_EXHAUSTED;
+		case 429: // Too Many Requests
+			return Code.RESOURCE_EXHAUSTED;
 
-    case 499: // Client Closed Request
-      return Code.CANCELLED;
+		case 499: // Client Closed Request
+			return Code.CANCELLED;
 
-    case 500: // Internal Server Error
-      return Code.UNKNOWN;
-    // Other possibilities:
-    // return Code.INTERNAL;
-    // return Code.DATA_LOSS;
+		case 500: // Internal Server Error
+			return Code.UNKNOWN;
+		// Other possibilities:
+		// return Code.INTERNAL;
+		// return Code.DATA_LOSS;
 
-    case 501: // Unimplemented
-      return Code.UNIMPLEMENTED;
+		case 501: // Unimplemented
+			return Code.UNIMPLEMENTED;
 
-    case 503: // Service Unavailable
-      return Code.UNAVAILABLE;
+		case 503: // Service Unavailable
+			return Code.UNAVAILABLE;
 
-    case 504: // Gateway Timeout
-      return Code.DEADLINE_EXCEEDED;
+		case 504: // Gateway Timeout
+			return Code.DEADLINE_EXCEEDED;
 
-    default:
-      if (status >= 200 && status < 300) {
-        return Code.OK;
-      }
-      if (status >= 400 && status < 500) {
-        return Code.FAILED_PRECONDITION;
-      }
-      if (status >= 500 && status < 600) {
-        return Code.INTERNAL;
-      }
-      return Code.UNKNOWN;
-  }
+		default:
+			if (status >= 200 && status < 300) {
+				return Code.OK;
+			}
+			if (status >= 400 && status < 500) {
+				return Code.FAILED_PRECONDITION;
+			}
+			if (status >= 500 && status < 600) {
+				return Code.INTERNAL;
+			}
+			return Code.UNKNOWN;
+	}
 }
 
 /**
@@ -309,8 +309,8 @@ export function mapCodeFromHttpStatus(status: number): Code {
  *     Code.UNKNOWN.
  */
 export function mapCodeFromHttpResponseErrorStatus(status: string): Code {
-  const serverError = status.toLowerCase().replace('_', '-');
-  return Object.values(Code).indexOf(serverError as Code) >= 0
-    ? (serverError as Code)
-    : Code.UNKNOWN;
+	const serverError = status.toLowerCase().replace('_', '-');
+	return Object.values(Code).indexOf(serverError as Code) >= 0
+		? (serverError as Code)
+		: Code.UNKNOWN;
 }

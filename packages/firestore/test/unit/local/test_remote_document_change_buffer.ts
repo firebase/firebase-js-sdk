@@ -26,36 +26,36 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
  * transaction around operations to reduce test boilerplate.
  */
 export class TestRemoteDocumentChangeBuffer {
-  constructor(
-    public persistence: Persistence,
-    public buffer: RemoteDocumentChangeBuffer
-  ) {}
+	constructor(
+		public persistence: Persistence,
+		public buffer: RemoteDocumentChangeBuffer
+	) {}
 
-  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
-    this.buffer.addEntry(maybeDocument, readTime);
-  }
+	addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
+		this.buffer.addEntry(maybeDocument, readTime);
+	}
 
-  removeEntry(key: DocumentKey): void {
-    this.buffer.removeEntry(key);
-  }
+	removeEntry(key: DocumentKey): void {
+		this.buffer.removeEntry(key);
+	}
 
-  getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction(
-      'getEntry',
-      'readonly-idempotent',
-      txn => {
-        return this.buffer.getEntry(txn, documentKey);
-      }
-    );
-  }
+	getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
+		return this.persistence.runTransaction(
+			'getEntry',
+			'readonly-idempotent',
+			txn => {
+				return this.buffer.getEntry(txn, documentKey);
+			}
+		);
+	}
 
-  apply(): Promise<void> {
-    return this.persistence.runTransaction(
-      'apply',
-      'readwrite-primary',
-      txn => {
-        return this.buffer.apply(txn);
-      }
-    );
-  }
+	apply(): Promise<void> {
+		return this.persistence.runTransaction(
+			'apply',
+			'readwrite-primary',
+			txn => {
+				return this.buffer.apply(txn);
+			}
+		);
+	}
 }

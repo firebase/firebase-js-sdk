@@ -29,165 +29,165 @@ import { DocumentKey } from '../../../src/model/document_key';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestTargetCache {
-  constructor(public persistence: Persistence, public cache: TargetCache) {}
+	constructor(public persistence: Persistence, public cache: TargetCache) {}
 
-  addTargetData(targetData: TargetData): Promise<void> {
-    return this.persistence.runTransaction(
-      'addTargetData',
-      'readwrite',
-      txn => {
-        return this.cache.addTargetData(txn, targetData);
-      }
-    );
-  }
+	addTargetData(targetData: TargetData): Promise<void> {
+		return this.persistence.runTransaction(
+			'addTargetData',
+			'readwrite',
+			txn => {
+				return this.cache.addTargetData(txn, targetData);
+			}
+		);
+	}
 
-  updateTargetData(targetData: TargetData): Promise<void> {
-    return this.persistence.runTransaction(
-      'updateTargetData',
-      'readwrite-primary-idempotent',
-      txn => {
-        return this.cache.updateTargetData(txn, targetData);
-      }
-    );
-  }
+	updateTargetData(targetData: TargetData): Promise<void> {
+		return this.persistence.runTransaction(
+			'updateTargetData',
+			'readwrite-primary-idempotent',
+			txn => {
+				return this.cache.updateTargetData(txn, targetData);
+			}
+		);
+	}
 
-  getTargetCount(): Promise<number> {
-    return this.persistence.runTransaction(
-      'getTargetCount',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.getTargetCount(txn);
-      }
-    );
-  }
+	getTargetCount(): Promise<number> {
+		return this.persistence.runTransaction(
+			'getTargetCount',
+			'readonly-idempotent',
+			txn => {
+				return this.cache.getTargetCount(txn);
+			}
+		);
+	}
 
-  removeTargetData(targetData: TargetData): Promise<void> {
-    return this.persistence.runTransaction(
-      'addTargetData',
-      'readwrite-primary',
-      txn => {
-        return this.cache.removeTargetData(txn, targetData);
-      }
-    );
-  }
+	removeTargetData(targetData: TargetData): Promise<void> {
+		return this.persistence.runTransaction(
+			'addTargetData',
+			'readwrite-primary',
+			txn => {
+				return this.cache.removeTargetData(txn, targetData);
+			}
+		);
+	}
 
-  getTargetData(target: Target): Promise<TargetData | null> {
-    return this.persistence.runTransaction(
-      'getTargetData',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.getTargetData(txn, target);
-      }
-    );
-  }
+	getTargetData(target: Target): Promise<TargetData | null> {
+		return this.persistence.runTransaction(
+			'getTargetData',
+			'readonly-idempotent',
+			txn => {
+				return this.cache.getTargetData(txn, target);
+			}
+		);
+	}
 
-  getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
-    return this.persistence.runTransaction(
-      'getLastRemoteSnapshotVersion',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.getLastRemoteSnapshotVersion(txn);
-      }
-    );
-  }
+	getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
+		return this.persistence.runTransaction(
+			'getLastRemoteSnapshotVersion',
+			'readonly-idempotent',
+			txn => {
+				return this.cache.getLastRemoteSnapshotVersion(txn);
+			}
+		);
+	}
 
-  getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
-    return this.persistence.runTransaction(
-      'getHighestSequenceNumber',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.getHighestSequenceNumber(txn);
-      }
-    );
-  }
+	getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
+		return this.persistence.runTransaction(
+			'getHighestSequenceNumber',
+			'readonly-idempotent',
+			txn => {
+				return this.cache.getHighestSequenceNumber(txn);
+			}
+		);
+	}
 
-  allocateTargetId(): Promise<TargetId> {
-    return this.persistence.runTransaction(
-      'allocateTargetId',
-      'readwrite',
-      txn => {
-        return this.cache.allocateTargetId(txn);
-      }
-    );
-  }
+	allocateTargetId(): Promise<TargetId> {
+		return this.persistence.runTransaction(
+			'allocateTargetId',
+			'readwrite',
+			txn => {
+				return this.cache.allocateTargetId(txn);
+			}
+		);
+	}
 
-  addMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
-    return this.persistence.runTransaction(
-      'addMatchingKeys',
-      'readwrite-primary',
-      txn => {
-        let set = documentKeySet();
-        for (const key of keys) {
-          set = set.add(key);
-        }
-        return this.cache.addMatchingKeys(txn, set, targetId);
-      }
-    );
-  }
+	addMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
+		return this.persistence.runTransaction(
+			'addMatchingKeys',
+			'readwrite-primary',
+			txn => {
+				let set = documentKeySet();
+				for (const key of keys) {
+					set = set.add(key);
+				}
+				return this.cache.addMatchingKeys(txn, set, targetId);
+			}
+		);
+	}
 
-  removeMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeMatchingKeys',
-      'readwrite-primary',
-      txn => {
-        let set = documentKeySet();
-        for (const key of keys) {
-          set = set.add(key);
-        }
-        return this.cache.removeMatchingKeys(txn, set, targetId);
-      }
-    );
-  }
+	removeMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
+		return this.persistence.runTransaction(
+			'removeMatchingKeys',
+			'readwrite-primary',
+			txn => {
+				let set = documentKeySet();
+				for (const key of keys) {
+					set = set.add(key);
+				}
+				return this.cache.removeMatchingKeys(txn, set, targetId);
+			}
+		);
+	}
 
-  getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
-    return this.persistence
-      .runTransaction(
-        'getMatchingKeysForTargetId',
-        'readonly-idempotent',
-        txn => {
-          return this.cache.getMatchingKeysForTargetId(txn, targetId);
-        }
-      )
-      .then(keySet => {
-        const result: DocumentKey[] = [];
-        keySet.forEach(key => result.push(key));
-        return result;
-      });
-  }
+	getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
+		return this.persistence
+			.runTransaction(
+				'getMatchingKeysForTargetId',
+				'readonly-idempotent',
+				txn => {
+					return this.cache.getMatchingKeysForTargetId(txn, targetId);
+				}
+			)
+			.then(keySet => {
+				const result: DocumentKey[] = [];
+				keySet.forEach(key => result.push(key));
+				return result;
+			});
+	}
 
-  removeMatchingKeysForTargetId(targetId: TargetId): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeMatchingKeysForTargetId',
-      'readwrite-primary',
-      txn => {
-        return this.cache.removeMatchingKeysForTargetId(txn, targetId);
-      }
-    );
-  }
+	removeMatchingKeysForTargetId(targetId: TargetId): Promise<void> {
+		return this.persistence.runTransaction(
+			'removeMatchingKeysForTargetId',
+			'readwrite-primary',
+			txn => {
+				return this.cache.removeMatchingKeysForTargetId(txn, targetId);
+			}
+		);
+	}
 
-  containsKey(key: DocumentKey): Promise<boolean> {
-    return this.persistence.runTransaction(
-      'containsKey',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.containsKey(txn, key);
-      }
-    );
-  }
+	containsKey(key: DocumentKey): Promise<boolean> {
+		return this.persistence.runTransaction(
+			'containsKey',
+			'readonly-idempotent',
+			txn => {
+				return this.cache.containsKey(txn, key);
+			}
+		);
+	}
 
-  setTargetsMetadata(
-    highestListenSequenceNumber: ListenSequenceNumber,
-    lastRemoteSnapshotVersion?: SnapshotVersion
-  ): Promise<void> {
-    return this.persistence.runTransaction(
-      'setTargetsMetadata',
-      'readwrite-primary-idempotent',
-      txn =>
-        this.cache.setTargetsMetadata(
-          txn,
-          highestListenSequenceNumber,
-          lastRemoteSnapshotVersion
-        )
-    );
-  }
+	setTargetsMetadata(
+		highestListenSequenceNumber: ListenSequenceNumber,
+		lastRemoteSnapshotVersion?: SnapshotVersion
+	): Promise<void> {
+		return this.persistence.runTransaction(
+			'setTargetsMetadata',
+			'readwrite-primary-idempotent',
+			txn =>
+				this.cache.setTargetsMetadata(
+					txn,
+					highestListenSequenceNumber,
+					lastRemoteSnapshotVersion
+				)
+		);
+	}
 }

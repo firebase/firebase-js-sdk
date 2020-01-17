@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { PlatformSupport } from '../../../src/platform/platform';
 
 describe('Platform', () => {
-  it('can load the platform at runtime', () => {
-    expect(PlatformSupport.getPlatform()).to.exist;
-  });
+	it('can load the platform at runtime', () => {
+		expect(PlatformSupport.getPlatform()).to.exist;
+	});
 });

@@ -27,16 +27,16 @@ import { error } from './log';
  * let futureVar = fail('not implemented yet');
  */
 export function fail(failure: string): never {
-  // Log the failure in addition to throw an exception, just in case the
-  // exception is swallowed.
-  const message =
-    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
-  error(message);
+	// Log the failure in addition to throw an exception, just in case the
+	// exception is swallowed.
+	const message =
+		`FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+	error(message);
 
-  // NOTE: We don't use FirestoreError here because these are internal failures
-  // that cannot be handled by the user. (Also it would create a circular
-  // dependency between the error and assert modules which doesn't work.)
-  throw new Error(message);
+	// NOTE: We don't use FirestoreError here because these are internal failures
+	// that cannot be handled by the user. (Also it would create a circular
+	// dependency between the error and assert modules which doesn't work.)
+	throw new Error(message);
 }
 
 /**
@@ -44,7 +44,7 @@ export function fail(failure: string): never {
  * given message if it did.
  */
 export function assert(assertion: boolean, message: string): asserts assertion {
-  if (!assertion) {
-    fail(message);
-  }
+	if (!assertion) {
+		fail(message);
+	}
 }

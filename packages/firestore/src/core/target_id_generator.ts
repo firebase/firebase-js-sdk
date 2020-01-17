@@ -21,8 +21,8 @@ import { TargetId } from './types';
 const RESERVED_BITS = 1;
 
 enum GeneratorIds {
-  QueryCache = 0, // The target IDs for user-issued queries are even (end in 0).
-  SyncEngine = 1 // The target IDs for limbo detection are odd (end in 1).
+	QueryCache = 0, // The target IDs for user-issued queries are even (end in 0).
+	SyncEngine = 1 // The target IDs for limbo detection are odd (end in 1).
 }
 
 /**
@@ -42,56 +42,56 @@ enum GeneratorIds {
 // TODO(mrschmidt): Explore removing this class in favor of generating these IDs
 // directly in SyncEngine and LocalStore.
 export class TargetIdGenerator {
-  // Initialized in the constructor via call to seek().
-  private nextId!: TargetId;
+	// Initialized in the constructor via call to seek().
+	private nextId!: TargetId;
 
-  /**
-   * Instantiates a new TargetIdGenerator. If a seed is provided, the generator
-   * will use the seed value as the next target ID.
-   */
-  constructor(private generatorId: number, seed?: number) {
-    assert(
-      (generatorId & RESERVED_BITS) === generatorId,
-      `Generator ID ${generatorId} contains more than ${RESERVED_BITS} reserved bits`
-    );
-    this.seek(seed !== undefined ? seed : this.generatorId);
-  }
+	/**
+	 * Instantiates a new TargetIdGenerator. If a seed is provided, the generator
+	 * will use the seed value as the next target ID.
+	 */
+	constructor(private generatorId: number, seed?: number) {
+		assert(
+			(generatorId & RESERVED_BITS) === generatorId,
+			`Generator ID ${generatorId} contains more than ${RESERVED_BITS} reserved bits`
+		);
+		this.seek(seed !== undefined ? seed : this.generatorId);
+	}
 
-  next(): TargetId {
-    const nextId = this.nextId;
-    this.nextId += 1 << RESERVED_BITS;
-    return nextId;
-  }
+	next(): TargetId {
+		const nextId = this.nextId;
+		this.nextId += 1 << RESERVED_BITS;
+		return nextId;
+	}
 
-  /**
-   * Returns the ID that follows the given ID. Subsequent calls to `next()`
-   * use the newly returned target ID as their base.
-   */
-  // PORTING NOTE: Multi-tab only.
-  after(targetId: TargetId): TargetId {
-    this.seek(targetId + (1 << RESERVED_BITS));
-    return this.next();
-  }
+	/**
+	 * Returns the ID that follows the given ID. Subsequent calls to `next()`
+	 * use the newly returned target ID as their base.
+	 */
+	// PORTING NOTE: Multi-tab only.
+	after(targetId: TargetId): TargetId {
+		this.seek(targetId + (1 << RESERVED_BITS));
+		return this.next();
+	}
 
-  private seek(targetId: TargetId): void {
-    assert(
-      (targetId & RESERVED_BITS) === this.generatorId,
-      'Cannot supply target ID from different generator ID'
-    );
-    this.nextId = targetId;
-  }
+	private seek(targetId: TargetId): void {
+		assert(
+			(targetId & RESERVED_BITS) === this.generatorId,
+			'Cannot supply target ID from different generator ID'
+		);
+		this.nextId = targetId;
+	}
 
-  static forTargetCache(): TargetIdGenerator {
-    // We seed the query cache generator to return '2' as its first ID, as there
-    // is no differentiation in the protocol layer between an unset number and
-    // the number '0'. If we were to sent a target with target ID '0', the
-    // backend would consider it unset and replace it with its own ID.
-    const targetIdGenerator = new TargetIdGenerator(GeneratorIds.QueryCache, 2);
-    return targetIdGenerator;
-  }
+	static forTargetCache(): TargetIdGenerator {
+		// We seed the query cache generator to return '2' as its first ID, as there
+		// is no differentiation in the protocol layer between an unset number and
+		// the number '0'. If we were to sent a target with target ID '0', the
+		// backend would consider it unset and replace it with its own ID.
+		const targetIdGenerator = new TargetIdGenerator(GeneratorIds.QueryCache, 2);
+		return targetIdGenerator;
+	}
 
-  static forSyncEngine(): TargetIdGenerator {
-    // Sync engine assigns target IDs for limbo document detection.
-    return new TargetIdGenerator(GeneratorIds.SyncEngine);
-  }
+	static forSyncEngine(): TargetIdGenerator {
+		// Sync engine assigns target IDs for limbo document detection.
+		return new TargetIdGenerator(GeneratorIds.SyncEngine);
+	}
 }

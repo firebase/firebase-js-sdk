@@ -24,164 +24,164 @@ export const DOCUMENT_KEY_NAME = '__name__';
  * Path represents an ordered sequence of string segments.
  */
 abstract class BasePath<B extends BasePath<B>> {
-  private segments: string[];
-  private offset: number;
-  private len: number;
+	private segments: string[];
+	private offset: number;
+	private len: number;
 
-  constructor(segments: string[], offset?: number, length?: number) {
-    if (offset === undefined) {
-      offset = 0;
-    } else if (offset > segments.length) {
-      fail('offset ' + offset + ' out of range ' + segments.length);
-    }
+	constructor(segments: string[], offset?: number, length?: number) {
+		if (offset === undefined) {
+			offset = 0;
+		} else if (offset > segments.length) {
+			fail('offset ' + offset + ' out of range ' + segments.length);
+		}
 
-    if (length === undefined) {
-      length = segments.length - offset;
-    } else if (length > segments.length - offset) {
-      fail('length ' + length + ' out of range ' + (segments.length - offset));
-    }
-    this.segments = segments;
-    this.offset = offset;
-    this.len = length;
-  }
+		if (length === undefined) {
+			length = segments.length - offset;
+		} else if (length > segments.length - offset) {
+			fail('length ' + length + ' out of range ' + (segments.length - offset));
+		}
+		this.segments = segments;
+		this.offset = offset;
+		this.len = length;
+	}
 
-  /**
-   * Abstract constructor method to construct an instance of B with the given
-   * parameters.
-   */
-  protected abstract construct(
-    segments: string[],
-    offset?: number,
-    length?: number
-  ): B;
+	/**
+	 * Abstract constructor method to construct an instance of B with the given
+	 * parameters.
+	 */
+	protected abstract construct(
+		segments: string[],
+		offset?: number,
+		length?: number
+	): B;
 
-  /**
-   * Returns a String representation.
-   *
-   * Implementing classes are required to provide deterministic implementations as
-   * the String representation is used to obtain canonical Query IDs.
-   */
-  abstract toString(): string;
+	/**
+	 * Returns a String representation.
+	 *
+	 * Implementing classes are required to provide deterministic implementations as
+	 * the String representation is used to obtain canonical Query IDs.
+	 */
+	abstract toString(): string;
 
-  get length(): number {
-    return this.len;
-  }
+	get length(): number {
+		return this.len;
+	}
 
-  isEqual(other: B): boolean {
-    return BasePath.comparator(this, other) === 0;
-  }
+	isEqual(other: B): boolean {
+		return BasePath.comparator(this, other) === 0;
+	}
 
-  child(nameOrPath: string | B): B {
-    const segments = this.segments.slice(this.offset, this.limit());
-    if (nameOrPath instanceof BasePath) {
-      nameOrPath.forEach(segment => {
-        segments.push(segment);
-      });
-    } else {
-      segments.push(nameOrPath);
-    }
-    return this.construct(segments);
-  }
+	child(nameOrPath: string | B): B {
+		const segments = this.segments.slice(this.offset, this.limit());
+		if (nameOrPath instanceof BasePath) {
+			nameOrPath.forEach(segment => {
+				segments.push(segment);
+			});
+		} else {
+			segments.push(nameOrPath);
+		}
+		return this.construct(segments);
+	}
 
-  /** The index of one past the last segment of the path. */
-  private limit(): number {
-    return this.offset + this.length;
-  }
+	/** The index of one past the last segment of the path. */
+	private limit(): number {
+		return this.offset + this.length;
+	}
 
-  popFirst(size?: number): B {
-    size = size === undefined ? 1 : size;
-    assert(this.length >= size, "Can't call popFirst() with less segments");
-    return this.construct(
-      this.segments,
-      this.offset + size,
-      this.length - size
-    );
-  }
+	popFirst(size?: number): B {
+		size = size === undefined ? 1 : size;
+		assert(this.length >= size, "Can't call popFirst() with less segments");
+		return this.construct(
+			this.segments,
+			this.offset + size,
+			this.length - size
+		);
+	}
 
-  popLast(): B {
-    assert(!this.isEmpty(), "Can't call popLast() on empty path");
-    return this.construct(this.segments, this.offset, this.length - 1);
-  }
+	popLast(): B {
+		assert(!this.isEmpty(), "Can't call popLast() on empty path");
+		return this.construct(this.segments, this.offset, this.length - 1);
+	}
 
-  firstSegment(): string {
-    assert(!this.isEmpty(), "Can't call firstSegment() on empty path");
-    return this.segments[this.offset];
-  }
+	firstSegment(): string {
+		assert(!this.isEmpty(), "Can't call firstSegment() on empty path");
+		return this.segments[this.offset];
+	}
 
-  lastSegment(): string {
-    return this.get(this.length - 1);
-  }
+	lastSegment(): string {
+		return this.get(this.length - 1);
+	}
 
-  get(index: number): string {
-    assert(index < this.length, 'Index out of range');
-    return this.segments[this.offset + index];
-  }
+	get(index: number): string {
+		assert(index < this.length, 'Index out of range');
+		return this.segments[this.offset + index];
+	}
 
-  isEmpty(): boolean {
-    return this.length === 0;
-  }
+	isEmpty(): boolean {
+		return this.length === 0;
+	}
 
-  isPrefixOf(other: this): boolean {
-    if (other.length < this.length) {
-      return false;
-    }
+	isPrefixOf(other: this): boolean {
+		if (other.length < this.length) {
+			return false;
+		}
 
-    for (let i = 0; i < this.length; i++) {
-      if (this.get(i) !== other.get(i)) {
-        return false;
-      }
-    }
+		for (let i = 0; i < this.length; i++) {
+			if (this.get(i) !== other.get(i)) {
+				return false;
+			}
+		}
 
-    return true;
-  }
+		return true;
+	}
 
-  isImmediateParentOf(potentialChild: this): boolean {
-    if (this.length + 1 !== potentialChild.length) {
-      return false;
-    }
+	isImmediateParentOf(potentialChild: this): boolean {
+		if (this.length + 1 !== potentialChild.length) {
+			return false;
+		}
 
-    for (let i = 0; i < this.length; i++) {
-      if (this.get(i) !== potentialChild.get(i)) {
-        return false;
-      }
-    }
+		for (let i = 0; i < this.length; i++) {
+			if (this.get(i) !== potentialChild.get(i)) {
+				return false;
+			}
+		}
 
-    return true;
-  }
+		return true;
+	}
 
-  forEach(fn: (segment: string) => void): void {
-    for (let i = this.offset, end = this.limit(); i < end; i++) {
-      fn(this.segments[i]);
-    }
-  }
+	forEach(fn: (segment: string) => void): void {
+		for (let i = this.offset, end = this.limit(); i < end; i++) {
+			fn(this.segments[i]);
+		}
+	}
 
-  toArray(): string[] {
-    return this.segments.slice(this.offset, this.limit());
-  }
+	toArray(): string[] {
+		return this.segments.slice(this.offset, this.limit());
+	}
 
-  static comparator<T extends BasePath<T>>(
-    p1: BasePath<T>,
-    p2: BasePath<T>
-  ): number {
-    const len = Math.min(p1.length, p2.length);
-    for (let i = 0; i < len; i++) {
-      const left = p1.get(i);
-      const right = p2.get(i);
-      if (left < right) {
-        return -1;
-      }
-      if (left > right) {
-        return 1;
-      }
-    }
-    if (p1.length < p2.length) {
-      return -1;
-    }
-    if (p1.length > p2.length) {
-      return 1;
-    }
-    return 0;
-  }
+	static comparator<T extends BasePath<T>>(
+		p1: BasePath<T>,
+		p2: BasePath<T>
+	): number {
+		const len = Math.min(p1.length, p2.length);
+		for (let i = 0; i < len; i++) {
+			const left = p1.get(i);
+			const right = p2.get(i);
+			if (left < right) {
+				return -1;
+			}
+			if (left > right) {
+				return 1;
+			}
+		}
+		if (p1.length < p2.length) {
+			return -1;
+		}
+		if (p1.length > p2.length) {
+			return 1;
+		}
+		return 0;
+	}
 }
 
 /**
@@ -189,170 +189,170 @@ abstract class BasePath<B extends BasePath<B>> {
  * within Firestore.
  */
 export class ResourcePath extends BasePath<ResourcePath> {
-  protected construct(
-    segments: string[],
-    offset?: number,
-    length?: number
-  ): ResourcePath {
-    return new ResourcePath(segments, offset, length);
-  }
+	protected construct(
+		segments: string[],
+		offset?: number,
+		length?: number
+	): ResourcePath {
+		return new ResourcePath(segments, offset, length);
+	}
 
-  canonicalString(): string {
-    // NOTE: The client is ignorant of any path segments containing escape
-    // sequences (e.g. __id123__) and just passes them through raw (they exist
-    // for legacy reasons and should not be used frequently).
+	canonicalString(): string {
+		// NOTE: The client is ignorant of any path segments containing escape
+		// sequences (e.g. __id123__) and just passes them through raw (they exist
+		// for legacy reasons and should not be used frequently).
 
-    return this.toArray().join('/');
-  }
+		return this.toArray().join('/');
+	}
 
-  toString(): string {
-    return this.canonicalString();
-  }
+	toString(): string {
+		return this.canonicalString();
+	}
 
-  /**
-   * Creates a resource path from the given slash-delimited string.
-   */
-  static fromString(path: string): ResourcePath {
-    // NOTE: The client is ignorant of any path segments containing escape
-    // sequences (e.g. __id123__) and just passes them through raw (they exist
-    // for legacy reasons and should not be used frequently).
+	/**
+	 * Creates a resource path from the given slash-delimited string.
+	 */
+	static fromString(path: string): ResourcePath {
+		// NOTE: The client is ignorant of any path segments containing escape
+		// sequences (e.g. __id123__) and just passes them through raw (they exist
+		// for legacy reasons and should not be used frequently).
 
-    if (path.indexOf('//') >= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Paths must not contain // in them.`
-      );
-    }
+		if (path.indexOf('//') >= 0) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				`Invalid path (${path}). Paths must not contain // in them.`
+			);
+		}
 
-    // We may still have an empty segment at the beginning or end if they had a
-    // leading or trailing slash (which we allow).
-    const segments = path.split('/').filter(segment => segment.length > 0);
+		// We may still have an empty segment at the beginning or end if they had a
+		// leading or trailing slash (which we allow).
+		const segments = path.split('/').filter(segment => segment.length > 0);
 
-    return new ResourcePath(segments);
-  }
+		return new ResourcePath(segments);
+	}
 
-  static EMPTY_PATH = new ResourcePath([]);
+	static EMPTY_PATH = new ResourcePath([]);
 }
 
 const identifierRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 /** A dot-separated path for navigating sub-objects within a document. */
 export class FieldPath extends BasePath<FieldPath> {
-  protected construct(
-    segments: string[],
-    offset?: number,
-    length?: number
-  ): FieldPath {
-    return new FieldPath(segments, offset, length);
-  }
+	protected construct(
+		segments: string[],
+		offset?: number,
+		length?: number
+	): FieldPath {
+		return new FieldPath(segments, offset, length);
+	}
 
-  /**
-   * Returns true if the string could be used as a segment in a field path
-   * without escaping.
-   */
-  private static isValidIdentifier(segment: string): boolean {
-    return identifierRegExp.test(segment);
-  }
+	/**
+	 * Returns true if the string could be used as a segment in a field path
+	 * without escaping.
+	 */
+	private static isValidIdentifier(segment: string): boolean {
+		return identifierRegExp.test(segment);
+	}
 
-  canonicalString(): string {
-    return this.toArray()
-      .map(str => {
-        str = str.replace('\\', '\\\\').replace('`', '\\`');
-        if (!FieldPath.isValidIdentifier(str)) {
-          str = '`' + str + '`';
-        }
-        return str;
-      })
-      .join('.');
-  }
+	canonicalString(): string {
+		return this.toArray()
+			.map(str => {
+				str = str.replace('\\', '\\\\').replace('`', '\\`');
+				if (!FieldPath.isValidIdentifier(str)) {
+					str = '`' + str + '`';
+				}
+				return str;
+			})
+			.join('.');
+	}
 
-  toString(): string {
-    return this.canonicalString();
-  }
+	toString(): string {
+		return this.canonicalString();
+	}
 
-  /**
-   * Returns true if this field references the key of a document.
-   */
-  isKeyField(): boolean {
-    return this.length === 1 && this.get(0) === DOCUMENT_KEY_NAME;
-  }
+	/**
+	 * Returns true if this field references the key of a document.
+	 */
+	isKeyField(): boolean {
+		return this.length === 1 && this.get(0) === DOCUMENT_KEY_NAME;
+	}
 
-  /**
-   * The field designating the key of a document.
-   */
-  static keyField(): FieldPath {
-    return new FieldPath([DOCUMENT_KEY_NAME]);
-  }
+	/**
+	 * The field designating the key of a document.
+	 */
+	static keyField(): FieldPath {
+		return new FieldPath([DOCUMENT_KEY_NAME]);
+	}
 
-  /**
-   * Parses a field string from the given server-formatted string.
-   *
-   * - Splitting the empty string is not allowed (for now at least).
-   * - Empty segments within the string (e.g. if there are two consecutive
-   *   separators) are not allowed.
-   *
-   * TODO(b/37244157): we should make this more strict. Right now, it allows
-   * non-identifier path components, even if they aren't escaped.
-   */
-  static fromServerFormat(path: string): FieldPath {
-    const segments: string[] = [];
-    let current = '';
-    let i = 0;
+	/**
+	 * Parses a field string from the given server-formatted string.
+	 *
+	 * - Splitting the empty string is not allowed (for now at least).
+	 * - Empty segments within the string (e.g. if there are two consecutive
+	 *   separators) are not allowed.
+	 *
+	 * TODO(b/37244157): we should make this more strict. Right now, it allows
+	 * non-identifier path components, even if they aren't escaped.
+	 */
+	static fromServerFormat(path: string): FieldPath {
+		const segments: string[] = [];
+		let current = '';
+		let i = 0;
 
-    const addCurrentSegment = (): void => {
-      if (current.length === 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid field path (${path}). Paths must not be empty, begin ` +
-            `with '.', end with '.', or contain '..'`
-        );
-      }
-      segments.push(current);
-      current = '';
-    };
+		const addCurrentSegment = (): void => {
+			if (current.length === 0) {
+				throw new FirestoreError(
+					Code.INVALID_ARGUMENT,
+					`Invalid field path (${path}). Paths must not be empty, begin ` +
+						`with '.', end with '.', or contain '..'`
+				);
+			}
+			segments.push(current);
+			current = '';
+		};
 
-    let inBackticks = false;
+		let inBackticks = false;
 
-    while (i < path.length) {
-      const c = path[i];
-      if (c === '\\') {
-        if (i + 1 === path.length) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Path has trailing escape character: ' + path
-          );
-        }
-        const next = path[i + 1];
-        if (!(next === '\\' || next === '.' || next === '`')) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Path has invalid escape sequence: ' + path
-          );
-        }
-        current += next;
-        i += 2;
-      } else if (c === '`') {
-        inBackticks = !inBackticks;
-        i++;
-      } else if (c === '.' && !inBackticks) {
-        addCurrentSegment();
-        i++;
-      } else {
-        current += c;
-        i++;
-      }
-    }
-    addCurrentSegment();
+		while (i < path.length) {
+			const c = path[i];
+			if (c === '\\') {
+				if (i + 1 === path.length) {
+					throw new FirestoreError(
+						Code.INVALID_ARGUMENT,
+						'Path has trailing escape character: ' + path
+					);
+				}
+				const next = path[i + 1];
+				if (!(next === '\\' || next === '.' || next === '`')) {
+					throw new FirestoreError(
+						Code.INVALID_ARGUMENT,
+						'Path has invalid escape sequence: ' + path
+					);
+				}
+				current += next;
+				i += 2;
+			} else if (c === '`') {
+				inBackticks = !inBackticks;
+				i++;
+			} else if (c === '.' && !inBackticks) {
+				addCurrentSegment();
+				i++;
+			} else {
+				current += c;
+				i++;
+			}
+		}
+		addCurrentSegment();
 
-    if (inBackticks) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Unterminated ` in path: ' + path
-      );
-    }
+		if (inBackticks) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				'Unterminated ` in path: ' + path
+			);
+		}
 
-    return new FieldPath(segments);
-  }
+		return new FieldPath(segments);
+	}
 
-  static EMPTY_PATH = new FieldPath([]);
+	static EMPTY_PATH = new FieldPath([]);
 }

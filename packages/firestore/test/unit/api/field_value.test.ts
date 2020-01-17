@@ -19,9 +19,9 @@ import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldValue', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(FieldValue.delete(), FieldValue.delete());
-    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
-    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(FieldValue.delete(), FieldValue.delete());
+		expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
+		expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+	});
 });

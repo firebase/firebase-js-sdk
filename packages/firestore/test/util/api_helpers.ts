@@ -19,18 +19,18 @@
 // these in any integration test, where we expect working Firestore object.
 
 import {
-  CollectionReference,
-  DocumentReference,
-  DocumentSnapshot,
-  Firestore,
-  Query,
-  QuerySnapshot
+	CollectionReference,
+	DocumentReference,
+	DocumentSnapshot,
+	Firestore,
+	Query,
+	QuerySnapshot
 } from '../../src/api/database';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
-  ChangeType,
-  DocumentViewChange,
-  ViewSnapshot
+	ChangeType,
+	DocumentViewChange,
+	ViewSnapshot
 } from '../../src/core/view_snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
@@ -43,51 +43,51 @@ import { Provider, ComponentContainer } from '@firebase/component';
  * A mock Firestore. Will not work for integration test.
  */
 export const FIRESTORE = new Firestore(
-  {
-    projectId: 'projectid',
-    database: 'database'
-  },
-  new Provider('auth-internal', new ComponentContainer('default'))
+	{
+		projectId: 'projectid',
+		database: 'database'
+	},
+	new Provider('auth-internal', new ComponentContainer('default'))
 );
 
 export function firestore(): Firestore {
-  return FIRESTORE;
+	return FIRESTORE;
 }
 
 export function collectionReference(path: string): CollectionReference {
-  return new CollectionReference(pathFrom(path), firestore());
+	return new CollectionReference(pathFrom(path), firestore());
 }
 
 export function documentReference(path: string): DocumentReference {
-  return new DocumentReference(key(path), firestore());
+	return new DocumentReference(key(path), firestore());
 }
 
 export function documentSnapshot(
-  path: string,
-  data: JsonObject<unknown> | null,
-  fromCache: boolean
+	path: string,
+	data: JsonObject<unknown> | null,
+	fromCache: boolean
 ): DocumentSnapshot {
-  if (data) {
-    return new DocumentSnapshot(
-      firestore(),
-      key(path),
-      doc(path, 1, data),
-      fromCache,
-      /* hasPendingWrites= */ false
-    );
-  } else {
-    return new DocumentSnapshot(
-      firestore(),
-      key(path),
-      null,
-      fromCache,
-      /* hasPendingWrites= */ false
-    );
-  }
+	if (data) {
+		return new DocumentSnapshot(
+			firestore(),
+			key(path),
+			doc(path, 1, data),
+			fromCache,
+			/* hasPendingWrites= */ false
+		);
+	} else {
+		return new DocumentSnapshot(
+			firestore(),
+			key(path),
+			null,
+			fromCache,
+			/* hasPendingWrites= */ false
+		);
+	}
 }
 
 export function query(path: string): Query {
-  return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
+	return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
 }
 
 /**
@@ -104,34 +104,34 @@ export function query(path: string): Query {
  * @return A query snapshot that consists of both sets of documents.
  */
 export function querySnapshot(
-  path: string,
-  oldDocs: { [key: string]: JsonObject<unknown> },
-  docsToAdd: { [key: string]: JsonObject<unknown> },
-  mutatedKeys: DocumentKeySet,
-  fromCache: boolean,
-  syncStateChanged: boolean
+	path: string,
+	oldDocs: { [key: string]: JsonObject<unknown> },
+	docsToAdd: { [key: string]: JsonObject<unknown> },
+	mutatedKeys: DocumentKeySet,
+	fromCache: boolean,
+	syncStateChanged: boolean
 ): QuerySnapshot {
-  const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
-  let oldDocuments: DocumentSet = new DocumentSet();
-  Object.keys(oldDocs).forEach(key => {
-    oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));
-  });
-  let newDocuments: DocumentSet = new DocumentSet();
-  const documentChanges: DocumentViewChange[] = [];
-  Object.keys(docsToAdd).forEach(key => {
-    const docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
-    newDocuments = newDocuments.add(docToAdd);
-    documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
-  });
-  const viewSnapshot: ViewSnapshot = new ViewSnapshot(
-    query,
-    newDocuments,
-    oldDocuments,
-    documentChanges,
-    mutatedKeys,
-    fromCache,
-    syncStateChanged,
-    false
-  );
-  return new QuerySnapshot(firestore(), query, viewSnapshot);
+	const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
+	let oldDocuments: DocumentSet = new DocumentSet();
+	Object.keys(oldDocs).forEach(key => {
+		oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));
+	});
+	let newDocuments: DocumentSet = new DocumentSet();
+	const documentChanges: DocumentViewChange[] = [];
+	Object.keys(docsToAdd).forEach(key => {
+		const docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
+		newDocuments = newDocuments.add(docToAdd);
+		documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
+	});
+	const viewSnapshot: ViewSnapshot = new ViewSnapshot(
+		query,
+		newDocuments,
+		oldDocuments,
+		documentChanges,
+		mutatedKeys,
+		fromCache,
+		syncStateChanged,
+		false
+	);
+	return new QuerySnapshot(firestore(), query, viewSnapshot);
 }

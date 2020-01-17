@@ -22,66 +22,66 @@ import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { FieldValueImpl } from '../../src/api/field_value';
 import {
-  DocumentKeyReference,
-  UserDataConverter
+	DocumentKeyReference,
+	UserDataConverter
 } from '../../src/api/user_data_converter';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Operator,
-  OrderBy
+	Bound,
+	Direction,
+	FieldFilter,
+	Operator,
+	OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { ProtoByteString, TargetId } from '../../src/core/types';
 import {
-  AddedLimboDocument,
-  LimboDocumentChange,
-  RemovedLimboDocument,
-  View,
-  ViewChange
+	AddedLimboDocument,
+	LimboDocumentChange,
+	RemovedLimboDocument,
+	View,
+	ViewChange
 } from '../../src/core/view';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
 import { TargetData, TargetPurpose } from '../../src/local/target_data';
 import {
-  DocumentKeySet,
-  documentKeySet,
-  MaybeDocumentMap,
-  maybeDocumentMap
+	DocumentKeySet,
+	documentKeySet,
+	MaybeDocumentMap,
+	maybeDocumentMap
 } from '../../src/model/collections';
 import {
-  Document,
-  DocumentOptions,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
+	Document,
+	DocumentOptions,
+	MaybeDocument,
+	NoDocument,
+	UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
 import {
-  FieldValue,
-  JsonObject,
-  ObjectValue
+	FieldValue,
+	JsonObject,
+	ObjectValue
 } from '../../src/model/field_value';
 import {
-  DeleteMutation,
-  FieldMask,
-  MutationResult,
-  PatchMutation,
-  Precondition,
-  SetMutation,
-  TransformMutation
+	DeleteMutation,
+	FieldMask,
+	MutationResult,
+	PatchMutation,
+	Precondition,
+	SetMutation,
+	TransformMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
-  DocumentWatchChange,
-  WatchChangeAggregator,
-  WatchTargetChange,
-  WatchTargetChangeState
+	DocumentWatchChange,
+	WatchChangeAggregator,
+	WatchTargetChange,
+	WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
@@ -99,143 +99,143 @@ export type TestSnapshotVersion = number;
 export const DELETE_SENTINEL = '<DELETE>';
 
 const preConverter = (input: unknown): unknown => {
-  return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
+	return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
 const dataConverter = new UserDataConverter(preConverter);
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
-  return SnapshotVersion.fromMicroseconds(v);
+	return SnapshotVersion.fromMicroseconds(v);
 }
 
 export function ref(
-  dbIdStr: string,
-  keyStr: string,
-  offset?: number
+	dbIdStr: string,
+	keyStr: string,
+	offset?: number
 ): DocumentKeyReference {
-  const [project, database] = dbIdStr.split('/', 2);
-  const dbId = new DatabaseId(project, database);
-  return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
+	const [project, database] = dbIdStr.split('/', 2);
+	const dbId = new DatabaseId(project, database);
+	return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
 }
 
 export function doc(
-  keyStr: string,
-  ver: TestSnapshotVersion,
-  json: JsonObject<unknown>,
-  options: DocumentOptions = {}
+	keyStr: string,
+	ver: TestSnapshotVersion,
+	json: JsonObject<unknown>,
+	options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), options, wrapObject(json));
+	return new Document(key(keyStr), version(ver), options, wrapObject(json));
 }
 
 export function deletedDoc(
-  keyStr: string,
-  ver: TestSnapshotVersion,
-  options: DocumentOptions = {}
+	keyStr: string,
+	ver: TestSnapshotVersion,
+	options: DocumentOptions = {}
 ): NoDocument {
-  return new NoDocument(key(keyStr), version(ver), options);
+	return new NoDocument(key(keyStr), version(ver), options);
 }
 
 export function unknownDoc(
-  keyStr: string,
-  ver: TestSnapshotVersion
+	keyStr: string,
+	ver: TestSnapshotVersion
 ): UnknownDocument {
-  return new UnknownDocument(key(keyStr), version(ver));
+	return new UnknownDocument(key(keyStr), version(ver));
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+	return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
 }
 
 export function wrap(value: unknown): FieldValue {
-  // HACK: We use parseQueryValue() since it accepts scalars as well as
-  // arrays / objects, and our tests currently use wrap() pretty generically so
-  // we don't know the intent.
-  return dataConverter.parseQueryValue('wrap', value);
+	// HACK: We use parseQueryValue() since it accepts scalars as well as
+	// arrays / objects, and our tests currently use wrap() pretty generically so
+	// we don't know the intent.
+	return dataConverter.parseQueryValue('wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
-  // Cast is safe here because value passed in is a map
-  return wrap(obj) as ObjectValue;
+	// Cast is safe here because value passed in is a map
+	return wrap(obj) as ObjectValue;
 }
 
 export function dbId(project: string, database?: string): DatabaseId {
-  return new DatabaseId(project, database);
+	return new DatabaseId(project, database);
 }
 
 export function key(path: string): DocumentKey {
-  return new DocumentKey(new ResourcePath(splitPath(path, '/')));
+	return new DocumentKey(new ResourcePath(splitPath(path, '/')));
 }
 
 export function keys(
-  ...documents: Array<MaybeDocument | string>
+	...documents: Array<MaybeDocument | string>
 ): DocumentKeySet {
-  let keys = documentKeySet();
-  for (const doc of documents) {
-    keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
-  }
-  return keys;
+	let keys = documentKeySet();
+	for (const doc of documents) {
+		keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
+	}
+	return keys;
 }
 
 export function path(path: string, offset?: number): ResourcePath {
-  return new ResourcePath(splitPath(path, '/'), offset);
+	return new ResourcePath(splitPath(path, '/'), offset);
 }
 
 export function field(path: string): FieldPath {
-  return fromDotSeparatedString(path)._internalPath;
+	return fromDotSeparatedString(path)._internalPath;
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+	let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+	for (const path of paths) {
+		fieldPaths = fieldPaths.add(field(path));
+	}
+	return FieldMask.fromSet(fieldPaths);
 }
 
 export function blob(...bytes: number[]): Blob {
-  // bytes can be undefined for the empty blob
-  return Blob.fromUint8Array(new Uint8Array(bytes || []));
+	// bytes can be undefined for the empty blob
+	return Blob.fromUint8Array(new Uint8Array(bytes || []));
 }
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
-  const dataValue = wrap(value);
-  const operator = Operator.fromString(op);
-  const filter = FieldFilter.create(field(path), operator, dataValue);
+	const dataValue = wrap(value);
+	const operator = Operator.fromString(op);
+	const filter = FieldFilter.create(field(path), operator, dataValue);
 
-  if (filter instanceof FieldFilter) {
-    return filter;
-  } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
-  }
+	if (filter instanceof FieldFilter) {
+		return filter;
+	} else {
+		return fail('Unrecognized filter: ' + JSON.stringify(filter));
+	}
 }
 
 export function setMutation(
-  keyStr: string,
-  json: JsonObject<unknown>
+	keyStr: string,
+	json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
+	return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
 }
 
 export function patchMutation(
-  keyStr: string,
-  json: JsonObject<unknown>,
-  precondition?: Precondition
+	keyStr: string,
+	json: JsonObject<unknown>,
+	precondition?: Precondition
 ): PatchMutation {
-  if (precondition === undefined) {
-    precondition = Precondition.exists(true);
-  }
+	if (precondition === undefined) {
+		precondition = Precondition.exists(true);
+	}
 
-  const parsed = dataConverter.parseUpdateData('patchMutation', json);
-  return new PatchMutation(
-    key(keyStr),
-    parsed.data,
-    parsed.fieldMask,
-    precondition
-  );
+	const parsed = dataConverter.parseUpdateData('patchMutation', json);
+	return new PatchMutation(
+		key(keyStr),
+		parsed.data,
+		parsed.fieldMask,
+		precondition
+	);
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
-  return new DeleteMutation(key(keyStr), Precondition.NONE);
+	return new DeleteMutation(key(keyStr), Precondition.NONE);
 }
 
 /**
@@ -245,280 +245,280 @@ export function deleteMutation(keyStr: string): DeleteMutation {
  * data.
  */
 export function transformMutation(
-  keyStr: string,
-  data: Dict<unknown>
+	keyStr: string,
+	data: Dict<unknown>
 ): TransformMutation {
-  const result = dataConverter.parseUpdateData('transformMutation()', data);
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+	const result = dataConverter.parseUpdateData('transformMutation()', data);
+	return new TransformMutation(key(keyStr), result.fieldTransforms);
 }
 
 export function mutationResult(
-  testVersion: TestSnapshotVersion
+	testVersion: TestSnapshotVersion
 ): MutationResult {
-  return new MutationResult(version(testVersion), /* transformResults= */ null);
+	return new MutationResult(version(testVersion), /* transformResults= */ null);
 }
 
 export function bound(
-  values: Array<[string, {}, firestore.OrderByDirection]>,
-  before: boolean
+	values: Array<[string, {}, firestore.OrderByDirection]>,
+	before: boolean
 ): Bound {
-  const components: FieldValue[] = [];
-  for (const value of values) {
-    const [_, dataValue] = value;
-    components.push(wrap(dataValue));
-  }
-  return new Bound(components, before);
+	const components: FieldValue[] = [];
+	for (const value of values) {
+		const [_, dataValue] = value;
+		components.push(wrap(dataValue));
+	}
+	return new Bound(components, before);
 }
 
 export function targetData(
-  targetId: TargetId,
-  queryPurpose: TargetPurpose,
-  path: string
+	targetId: TargetId,
+	queryPurpose: TargetPurpose,
+	path: string
 ): TargetData {
-  // Arbitrary value.
-  const sequenceNumber = 0;
-  return new TargetData(
-    query(path)._query.toTarget(),
-    targetId,
-    queryPurpose,
-    sequenceNumber
-  );
+	// Arbitrary value.
+	const sequenceNumber = 0;
+	return new TargetData(
+		query(path)._query.toTarget(),
+		targetId,
+		queryPurpose,
+		sequenceNumber
+	);
 }
 
 export function noChangeEvent(
-  targetId: number,
-  snapshotVersion: number,
-  resumeToken: ProtoByteString = emptyByteString()
+	targetId: number,
+	snapshotVersion: number,
+	resumeToken: ProtoByteString = emptyByteString()
 ): RemoteEvent {
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => documentKeySet(),
-    getTargetDataForTarget: targetId =>
-      targetData(targetId, TargetPurpose.Listen, 'foo')
-  });
-  aggregator.handleTargetChange(
-    new WatchTargetChange(
-      WatchTargetChangeState.NoChange,
-      [targetId],
-      resumeToken
-    )
-  );
-  return aggregator.createRemoteEvent(version(snapshotVersion));
+	const aggregator = new WatchChangeAggregator({
+		getRemoteKeysForTarget: () => documentKeySet(),
+		getTargetDataForTarget: targetId =>
+			targetData(targetId, TargetPurpose.Listen, 'foo')
+	});
+	aggregator.handleTargetChange(
+		new WatchTargetChange(
+			WatchTargetChangeState.NoChange,
+			[targetId],
+			resumeToken
+		)
+	);
+	return aggregator.createRemoteEvent(version(snapshotVersion));
 }
 
 export function docAddedRemoteEvent(
-  docOrDocs: MaybeDocument | MaybeDocument[],
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  activeTargets?: TargetId[]
+	docOrDocs: MaybeDocument | MaybeDocument[],
+	updatedInTargets?: TargetId[],
+	removedFromTargets?: TargetId[],
+	activeTargets?: TargetId[]
 ): RemoteEvent {
-  const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+	const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
+	assert(docs.length !== 0, 'Cannot pass empty docs array');
 
-  const allTargets = activeTargets
-    ? activeTargets
-    : (updatedInTargets || []).concat(removedFromTargets || []);
+	const allTargets = activeTargets
+		? activeTargets
+		: (updatedInTargets || []).concat(removedFromTargets || []);
 
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => documentKeySet(),
-    getTargetDataForTarget: targetId => {
-      if (allTargets.indexOf(targetId) !== -1) {
-        const collectionPath = docs[0].key.path.popLast();
-        return targetData(
-          targetId,
-          TargetPurpose.Listen,
-          collectionPath.toString()
-        );
-      } else {
-        return null;
-      }
-    }
-  });
+	const aggregator = new WatchChangeAggregator({
+		getRemoteKeysForTarget: () => documentKeySet(),
+		getTargetDataForTarget: targetId => {
+			if (allTargets.indexOf(targetId) !== -1) {
+				const collectionPath = docs[0].key.path.popLast();
+				return targetData(
+					targetId,
+					TargetPurpose.Listen,
+					collectionPath.toString()
+				);
+			} else {
+				return null;
+			}
+		}
+	});
 
-  let version = SnapshotVersion.MIN;
+	let version = SnapshotVersion.MIN;
 
-  for (const doc of docs) {
-    assert(
-      !(doc instanceof Document) || !doc.hasLocalMutations,
-      "Docs from remote updates shouldn't have local changes."
-    );
-    const docChange = new DocumentWatchChange(
-      updatedInTargets || [],
-      removedFromTargets || [],
-      doc.key,
-      doc
-    );
-    aggregator.handleDocumentChange(docChange);
-    version = doc.version.compareTo(version) > 0 ? doc.version : version;
-  }
+	for (const doc of docs) {
+		assert(
+			!(doc instanceof Document) || !doc.hasLocalMutations,
+			"Docs from remote updates shouldn't have local changes."
+		);
+		const docChange = new DocumentWatchChange(
+			updatedInTargets || [],
+			removedFromTargets || [],
+			doc.key,
+			doc
+		);
+		aggregator.handleDocumentChange(docChange);
+		version = doc.version.compareTo(version) > 0 ? doc.version : version;
+	}
 
-  return aggregator.createRemoteEvent(version);
+	return aggregator.createRemoteEvent(version);
 }
 
 export function docUpdateRemoteEvent(
-  doc: MaybeDocument,
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+	doc: MaybeDocument,
+	updatedInTargets?: TargetId[],
+	removedFromTargets?: TargetId[],
+	limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
-    "Docs from remote updates shouldn't have local changes."
-  );
-  const docChange = new DocumentWatchChange(
-    updatedInTargets || [],
-    removedFromTargets || [],
-    doc.key,
-    doc
-  );
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => keys(doc),
-    getTargetDataForTarget: targetId => {
-      const purpose =
-        limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? TargetPurpose.LimboResolution
-          : TargetPurpose.Listen;
-      return targetData(targetId, purpose, doc.key.toString());
-    }
-  });
-  aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+	assert(
+		!(doc instanceof Document) || !doc.hasLocalMutations,
+		"Docs from remote updates shouldn't have local changes."
+	);
+	const docChange = new DocumentWatchChange(
+		updatedInTargets || [],
+		removedFromTargets || [],
+		doc.key,
+		doc
+	);
+	const aggregator = new WatchChangeAggregator({
+		getRemoteKeysForTarget: () => keys(doc),
+		getTargetDataForTarget: targetId => {
+			const purpose =
+				limboTargets && limboTargets.indexOf(targetId) !== -1
+					? TargetPurpose.LimboResolution
+					: TargetPurpose.Listen;
+			return targetData(targetId, purpose, doc.key.toString());
+		}
+	});
+	aggregator.handleDocumentChange(docChange);
+	return aggregator.createRemoteEvent(doc.version);
 }
 
 export function updateMapping(
-  snapshotVersion: SnapshotVersion,
-  added: Array<Document | string>,
-  modified: Array<Document | string>,
-  removed: Array<MaybeDocument | string>,
-  current?: boolean
+	snapshotVersion: SnapshotVersion,
+	added: Array<Document | string>,
+	modified: Array<Document | string>,
+	removed: Array<MaybeDocument | string>,
+	current?: boolean
 ): TargetChange {
-  let addedDocuments = documentKeySet();
-  let modifiedDocuments = documentKeySet();
-  let removedDocuments = documentKeySet();
+	let addedDocuments = documentKeySet();
+	let modifiedDocuments = documentKeySet();
+	let removedDocuments = documentKeySet();
 
-  added.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
-    addedDocuments = addedDocuments.add(k);
-  });
-  modified.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
-    modifiedDocuments = modifiedDocuments.add(k);
-  });
-  removed.forEach(docOrKey => {
-    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
-    removedDocuments = removedDocuments.add(k);
-  });
+	added.forEach(docOrKey => {
+		const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+		addedDocuments = addedDocuments.add(k);
+	});
+	modified.forEach(docOrKey => {
+		const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+		modifiedDocuments = modifiedDocuments.add(k);
+	});
+	removed.forEach(docOrKey => {
+		const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
+		removedDocuments = removedDocuments.add(k);
+	});
 
-  return new TargetChange(
-    resumeTokenForSnapshot(snapshotVersion),
-    !!current,
-    addedDocuments,
-    modifiedDocuments,
-    removedDocuments
-  );
+	return new TargetChange(
+		resumeTokenForSnapshot(snapshotVersion),
+		!!current,
+		addedDocuments,
+		modifiedDocuments,
+		removedDocuments
+	);
 }
 
 export function addTargetMapping(
-  ...docsOrKeys: Array<Document | string>
+	...docsOrKeys: Array<Document | string>
 ): TargetChange {
-  return updateMapping(
-    SnapshotVersion.MIN,
-    docsOrKeys,
-    [],
-    [],
-    /* current= */ false
-  );
+	return updateMapping(
+		SnapshotVersion.MIN,
+		docsOrKeys,
+		[],
+		[],
+		/* current= */ false
+	);
 }
 
 export function ackTarget(
-  ...docsOrKeys: Array<Document | string>
+	...docsOrKeys: Array<Document | string>
 ): TargetChange {
-  return updateMapping(
-    SnapshotVersion.MIN,
-    docsOrKeys,
-    [],
-    [],
-    /* current= */ true
-  );
+	return updateMapping(
+		SnapshotVersion.MIN,
+		docsOrKeys,
+		[],
+		[],
+		/* current= */ true
+	);
 }
 
 export function limboChanges(changes: {
-  added?: Document[];
-  removed?: Document[];
+	added?: Document[];
+	removed?: Document[];
 }): LimboDocumentChange[] {
-  changes.added = changes.added || [];
-  changes.removed = changes.removed || [];
-  const result: LimboDocumentChange[] = [];
-  for (const removed of changes.removed) {
-    result.push(new RemovedLimboDocument(removed.key));
-  }
-  for (const added of changes.added) {
-    result.push(new AddedLimboDocument(added.key));
-  }
-  return result;
+	changes.added = changes.added || [];
+	changes.removed = changes.removed || [];
+	const result: LimboDocumentChange[] = [];
+	for (const removed of changes.removed) {
+		result.push(new RemovedLimboDocument(removed.key));
+	}
+	for (const added of changes.added) {
+		result.push(new AddedLimboDocument(added.key));
+	}
+	return result;
 }
 
 export function localViewChanges(
-  targetId: TargetId,
-  fromCache: boolean,
-  changes: { added?: string[]; removed?: string[] }
+	targetId: TargetId,
+	fromCache: boolean,
+	changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
-  if (!changes.added) {
-    changes.added = [];
-  }
-  if (!changes.removed) {
-    changes.removed = [];
-  }
+	if (!changes.added) {
+		changes.added = [];
+	}
+	if (!changes.removed) {
+		changes.removed = [];
+	}
 
-  let addedKeys = documentKeySet();
-  let removedKeys = documentKeySet();
+	let addedKeys = documentKeySet();
+	let removedKeys = documentKeySet();
 
-  changes.added.forEach(keyStr => (addedKeys = addedKeys.add(key(keyStr))));
+	changes.added.forEach(keyStr => (addedKeys = addedKeys.add(key(keyStr))));
 
-  changes.removed.forEach(
-    keyStr => (removedKeys = removedKeys.add(key(keyStr)))
-  );
+	changes.removed.forEach(
+		keyStr => (removedKeys = removedKeys.add(key(keyStr)))
+	);
 
-  return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
+	return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */
 export function resumeTokenForSnapshot(
-  snapshotVersion: SnapshotVersion
+	snapshotVersion: SnapshotVersion
 ): ProtoByteString {
-  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-    return emptyByteString();
-  } else {
-    return snapshotVersion.toString();
-  }
+	if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+		return emptyByteString();
+	} else {
+		return snapshotVersion.toString();
+	}
 }
 
 export function orderBy(path: string, op?: string): OrderBy {
-  op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
-  const dir: Direction =
-    op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
-  return new OrderBy(field(path), dir);
+	op = op || 'asc';
+	assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+	const dir: Direction =
+		op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
+	return new OrderBy(field(path), dir);
 }
 
 function splitPath(path: string, splitChar: string): string[] {
-  if (path === '') {
-    return [];
-  } else {
-    return path.split(splitChar);
-  }
+	if (path === '') {
+		return [];
+	} else {
+		return path.split(splitChar);
+	}
 }
 
 /**
  * Converts a sorted map to an array with inorder traversal
  */
 export function mapAsArray<K, V>(
-  sortedMap: SortedMap<K, V>
+	sortedMap: SortedMap<K, V>
 ): Array<{ key: K; value: V }> {
-  const result: Array<{ key: K; value: V }> = [];
-  sortedMap.inorderTraversal((key: K, value: V) => {
-    result.push({ key, value });
-  });
-  return result;
+	const result: Array<{ key: K; value: V }> = [];
+	sortedMap.inorderTraversal((key: K, value: V) => {
+		result.push({ key, value });
+	});
+	return result;
 }
 
 /**
@@ -526,81 +526,81 @@ export function mapAsArray<K, V>(
  * key is used to represent a deletion and maps to null.
  */
 export function documentUpdates(
-  ...docsOrKeys: Array<Document | DocumentKey>
+	...docsOrKeys: Array<Document | DocumentKey>
 ): MaybeDocumentMap {
-  let changes = maybeDocumentMap();
-  for (const docOrKey of docsOrKeys) {
-    if (docOrKey instanceof Document) {
-      changes = changes.insert(docOrKey.key, docOrKey);
-    } else if (docOrKey instanceof DocumentKey) {
-      changes = changes.insert(
-        docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
-      );
-    }
-  }
-  return changes;
+	let changes = maybeDocumentMap();
+	for (const docOrKey of docsOrKeys) {
+		if (docOrKey instanceof Document) {
+			changes = changes.insert(docOrKey.key, docOrKey);
+		} else if (docOrKey instanceof DocumentKey) {
+			changes = changes.insert(
+				docOrKey,
+				new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+			);
+		}
+	}
+	return changes;
 }
 
 /**
  * Short for view.applyChanges(view.computeDocChanges(documentUpdates(docs))).
  */
 export function applyDocChanges(
-  view: View,
-  ...docsOrKeys: Array<Document | DocumentKey>
+	view: View,
+	...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
-  const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
-  return view.applyChanges(changes, true);
+	const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
+	return view.applyChanges(changes, true);
 }
 
 /**
  * Constructs a document set.
  */
 export function documentSet(
-  comp: DocumentComparator,
-  ...docs: Document[]
+	comp: DocumentComparator,
+	...docs: Document[]
 ): DocumentSet;
 export function documentSet(...docs: Document[]): DocumentSet;
 export function documentSet(...args: unknown[]): DocumentSet {
-  let docSet: DocumentSet | null = null;
-  if (args[0] instanceof Function) {
-    docSet = new DocumentSet(args[0] as DocumentComparator);
-    args = args.slice(1);
-  } else {
-    docSet = new DocumentSet();
-  }
-  for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
-    docSet = docSet.add(doc);
-  }
-  return docSet;
+	let docSet: DocumentSet | null = null;
+	if (args[0] instanceof Function) {
+		docSet = new DocumentSet(args[0] as DocumentComparator);
+		args = args.slice(1);
+	} else {
+		docSet = new DocumentSet();
+	}
+	for (const doc of args) {
+		assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+		docSet = docSet.add(doc);
+	}
+	return docSet;
 }
 
 /**
  * Constructs a document key set.
  */
 export function keySet(...keys: DocumentKey[]): DocumentKeySet {
-  let keySet = documentKeySet();
-  for (const key of keys) {
-    keySet = keySet.add(key);
-  }
-  return keySet;
+	let keySet = documentKeySet();
+	for (const key of keys) {
+		keySet = keySet.add(key);
+	}
+	return keySet;
 }
 
 /** Converts a DocumentSet to an array. */
 export function documentSetAsArray(docs: DocumentSet): Document[] {
-  const result: Document[] = [];
-  docs.forEach((doc: Document) => {
-    result.push(doc);
-  });
-  return result;
+	const result: Document[] = [];
+	docs.forEach((doc: Document) => {
+		result.push(doc);
+	});
+	return result;
 }
 
 export class DocComparator {
-  static byField(...fields: string[]): DocumentComparator {
-    const path = new FieldPath(fields);
-    return Document.compareByField.bind(this, path);
-  }
+	static byField(...fields: string[]): DocumentComparator {
+		const path = new FieldPath(fields);
+		return Document.compareByField.bind(this, path);
+	}
 }
 
 /**
@@ -609,41 +609,41 @@ export class DocComparator {
 // Use any, so we can dynamically call .isEqual().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
-  message = message || '';
-  if (typeof left.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(left) + ' does not support isEqual (left) ' + message
-    );
-  }
-  if (typeof right.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(right) + ' does not support isEqual (right) ' + message
-    );
-  }
-  expect(left.isEqual(right)).to.equal(true, message);
-  expect(right.isEqual(left)).to.equal(true, message);
+	message = message || '';
+	if (typeof left.isEqual !== 'function') {
+		return fail(
+			JSON.stringify(left) + ' does not support isEqual (left) ' + message
+		);
+	}
+	if (typeof right.isEqual !== 'function') {
+		return fail(
+			JSON.stringify(right) + ' does not support isEqual (right) ' + message
+		);
+	}
+	expect(left.isEqual(right)).to.equal(true, message);
+	expect(right.isEqual(left)).to.equal(true, message);
 }
 
 // Use any, so we can dynamically call .isEqual().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectNotEqual(left: any, right: any, message?: string): void {
-  expect(left.isEqual(right)).to.equal(false, message || '');
-  expect(right.isEqual(left)).to.equal(false, message || '');
+	expect(left.isEqual(right)).to.equal(false, message || '');
+	expect(right.isEqual(left)).to.equal(false, message || '');
 }
 
 export function expectEqualArrays(
-  left: unknown[],
-  right: unknown[],
-  message?: string
+	left: unknown[],
+	right: unknown[],
+	message?: string
 ): void {
-  message = message ? ' ' + message : '';
-  expect(left.length).to.deep.equal(
-    right.length,
-    'different array lengths' + message
-  );
-  for (let i = 0; i < left.length; i++) {
-    expectEqual(left[i], right[i], 'for index ' + i + message);
-  }
+	message = message ? ' ' + message : '';
+	expect(left.length).to.deep.equal(
+		right.length,
+		'different array lengths' + message
+	);
+	for (let i = 0; i < left.length; i++) {
+		expectEqual(left[i], right[i], 'for index ' + i + message);
+	}
 }
 
 /**
@@ -651,27 +651,27 @@ export function expectEqualArrays(
  * comparison result for the supplied comparator
  */
 export function expectCorrectComparisons<T extends unknown>(
-  array: T[],
-  comp: (left: T, right: T) => number
+	array: T[],
+	comp: (left: T, right: T) => number
 ): void {
-  for (let i = 0; i < array.length; i++) {
-    for (let j = 0; j < array.length; j++) {
-      const desc =
-        'comparing ' +
-        JSON.stringify(array[i]) +
-        ' to ' +
-        JSON.stringify(array[j]) +
-        ' at (' +
-        i +
-        ', ' +
-        j +
-        ')';
-      expect(comp(array[i], array[j])).to.equal(
-        primitiveComparator(i, j),
-        desc
-      );
-    }
-  }
+	for (let i = 0; i < array.length; i++) {
+		for (let j = 0; j < array.length; j++) {
+			const desc =
+				'comparing ' +
+				JSON.stringify(array[i]) +
+				' to ' +
+				JSON.stringify(array[j]) +
+				' at (' +
+				i +
+				', ' +
+				j +
+				')';
+			expect(comp(array[i], array[j])).to.equal(
+				primitiveComparator(i, j),
+				desc
+			);
+		}
+	}
 }
 
 /**
@@ -680,50 +680,50 @@ export function expectCorrectComparisons<T extends unknown>(
  * (0 for items in the same group).
  */
 export function expectCorrectComparisonGroups<T extends unknown>(
-  groups: T[][],
-  comp: (left: T, right: T) => number
+	groups: T[][],
+	comp: (left: T, right: T) => number
 ): void {
-  for (let i = 0; i < groups.length; i++) {
-    for (const left of groups[i]) {
-      for (let j = 0; j < groups.length; j++) {
-        for (const right of groups[j]) {
-          expect(comp(left, right)).to.equal(
-            primitiveComparator(i, j),
-            'comparing ' +
-              JSON.stringify(left) +
-              ' to ' +
-              JSON.stringify(right) +
-              ' at (' +
-              i +
-              ', ' +
-              j +
-              ')'
-          );
+	for (let i = 0; i < groups.length; i++) {
+		for (const left of groups[i]) {
+			for (let j = 0; j < groups.length; j++) {
+				for (const right of groups[j]) {
+					expect(comp(left, right)).to.equal(
+						primitiveComparator(i, j),
+						'comparing ' +
+							JSON.stringify(left) +
+							' to ' +
+							JSON.stringify(right) +
+							' at (' +
+							i +
+							', ' +
+							j +
+							')'
+					);
 
-          expect(comp(right, left)).to.equal(
-            primitiveComparator(j, i),
-            'comparing ' +
-              JSON.stringify(right) +
-              ' to ' +
-              JSON.stringify(left) +
-              ' at (' +
-              j +
-              ', ' +
-              i +
-              ')'
-          );
-        }
-      }
-    }
-  }
+					expect(comp(right, left)).to.equal(
+						primitiveComparator(j, i),
+						'comparing ' +
+							JSON.stringify(right) +
+							' to ' +
+							JSON.stringify(left) +
+							' at (' +
+							j +
+							', ' +
+							i +
+							')'
+					);
+				}
+			}
+		}
+	}
 }
 
 /** Compares SortedSet to an array */
 export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
-  expect(set.size).to.equal(arr.length);
-  const results: T[] = [];
-  set.forEach(elem => results.push(elem));
-  expect(results).to.deep.equal(arr);
+	expect(set.size).to.equal(arr.length);
+	const results: T[] = [];
+	set.forEach(elem => results.push(elem));
+	expect(results).to.deep.equal(arr);
 }
 
 /**
@@ -735,41 +735,41 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  * (including itself) and unequal to all other elements from the other array
  */
 export function expectEqualitySets<T>(
-  elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+	elems: T[][],
+	equalityFn: (v1: T, v2: T) => boolean
 ): void {
-  for (let i = 0; i < elems.length; i++) {
-    const currentElems = elems[i];
-    // compare all elems within the nested array
-    for (const elem of currentElems) {
-      // compare to all other values
-      for (let j = 0; j < elems.length; j++) {
-        // same outer index <=> equality should be true
-        const expectedComparison = i === j;
-        for (const otherElem of elems[j]) {
-          expect(equalityFn(elem, otherElem)).to.equal(
-            expectedComparison,
-            'Expected (' +
-              elem +
-              ').isEqual(' +
-              otherElem +
-              ').to.equal(' +
-              expectedComparison +
-              ')'
-          );
-        }
-      }
-    }
-  }
+	for (let i = 0; i < elems.length; i++) {
+		const currentElems = elems[i];
+		// compare all elems within the nested array
+		for (const elem of currentElems) {
+			// compare to all other values
+			for (let j = 0; j < elems.length; j++) {
+				// same outer index <=> equality should be true
+				const expectedComparison = i === j;
+				for (const otherElem of elems[j]) {
+					expect(equalityFn(elem, otherElem)).to.equal(
+						expectedComparison,
+						'Expected (' +
+							elem +
+							').isEqual(' +
+							otherElem +
+							').to.equal(' +
+							expectedComparison +
+							')'
+					);
+				}
+			}
+		}
+	}
 }
 
 /** Returns the number of keys in this object. */
 export function size(obj: JsonObject<unknown>): number {
-  let c = 0;
-  forEach(obj, () => c++);
-  return c;
+	let c = 0;
+	forEach(obj, () => c++);
+	return c;
 }
 
 export function expectFirestoreError(err: Error): void {
-  expect(err.name).to.equal('FirebaseError');
+	expect(err.name).to.equal('FirebaseError');
 }

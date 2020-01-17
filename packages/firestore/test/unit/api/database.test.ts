@@ -16,140 +16,140 @@
  */
 
 import {
-  collectionReference,
-  documentReference,
-  documentSnapshot,
-  query,
-  querySnapshot
+	collectionReference,
+	documentReference,
+	documentSnapshot,
+	query,
+	querySnapshot
 } from '../../util/api_helpers';
 import { expectEqual, expectNotEqual, keys } from '../../util/helpers';
 
 describe('CollectionReference', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(collectionReference('foo'), collectionReference('foo'));
-    expectNotEqual(collectionReference('foo'), collectionReference('bar'));
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(collectionReference('foo'), collectionReference('foo'));
+		expectNotEqual(collectionReference('foo'), collectionReference('bar'));
+	});
 });
 
 describe('DocumentReference', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(documentReference('rooms/foo'), documentReference('rooms/foo'));
-    expectNotEqual(
-      documentReference('rooms/foo'),
-      documentReference('rooms/bar')
-    );
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(documentReference('rooms/foo'), documentReference('rooms/foo'));
+		expectNotEqual(
+			documentReference('rooms/foo'),
+			documentReference('rooms/bar')
+		);
+	});
 });
 
 describe('DocumentSnapshot', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(
-      documentSnapshot('rooms/foo', { a: 1 }, true),
-      documentSnapshot('rooms/foo', { a: 1 }, true)
-    );
-    expectEqual(
-      documentSnapshot('rooms/foo', null, true),
-      documentSnapshot('rooms/foo', null, true)
-    );
-    // will do both !left.isEqual(right) and !right.isEqual(left).
-    expectNotEqual(
-      documentSnapshot('rooms/foo', { a: 1 }, true),
-      documentSnapshot('rooms/foo', null, true)
-    );
-    expectNotEqual(
-      documentSnapshot('rooms/foo', { a: 1 }, true),
-      documentSnapshot('rooms/bar', { a: 1 }, true)
-    );
-    expectNotEqual(
-      documentSnapshot('rooms/foo', { a: 1 }, true),
-      documentSnapshot('rooms/bar', { b: 1 }, true)
-    );
-    expectNotEqual(
-      documentSnapshot('rooms/foo', { a: 1 }, true),
-      documentSnapshot('rooms/bar', { a: 1 }, false)
-    );
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(
+			documentSnapshot('rooms/foo', { a: 1 }, true),
+			documentSnapshot('rooms/foo', { a: 1 }, true)
+		);
+		expectEqual(
+			documentSnapshot('rooms/foo', null, true),
+			documentSnapshot('rooms/foo', null, true)
+		);
+		// will do both !left.isEqual(right) and !right.isEqual(left).
+		expectNotEqual(
+			documentSnapshot('rooms/foo', { a: 1 }, true),
+			documentSnapshot('rooms/foo', null, true)
+		);
+		expectNotEqual(
+			documentSnapshot('rooms/foo', { a: 1 }, true),
+			documentSnapshot('rooms/bar', { a: 1 }, true)
+		);
+		expectNotEqual(
+			documentSnapshot('rooms/foo', { a: 1 }, true),
+			documentSnapshot('rooms/bar', { b: 1 }, true)
+		);
+		expectNotEqual(
+			documentSnapshot('rooms/foo', { a: 1 }, true),
+			documentSnapshot('rooms/bar', { a: 1 }, false)
+		);
+	});
 });
 
 describe('Query', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(query('foo'), query('foo'));
-    expectNotEqual(query('foo'), query('bar'));
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(query('foo'), query('foo'));
+		expectNotEqual(query('foo'), query('bar'));
+	});
 });
 
 describe('QuerySnapshot', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
-      querySnapshot('bar', {}, { a: { a: 1 } }, keys(), false, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
-      querySnapshot(
-        'foo',
-        { b: { b: 1 } },
-        { a: { a: 1 } },
-        keys(),
-        false,
-        false
-      )
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
-      querySnapshot('foo', {}, { a: { b: 1 } }, keys(), false, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/b'), false, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), true, false)
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
-    );
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+			querySnapshot('bar', {}, { a: { a: 1 } }, keys(), false, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+			querySnapshot(
+				'foo',
+				{ b: { b: 1 } },
+				{ a: { a: 1 } },
+				keys(),
+				false,
+				false
+			)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+			querySnapshot('foo', {}, { a: { b: 1 } }, keys(), false, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/b'), false, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), true, false)
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+			querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
+		);
+	});
 });
 
 describe('SnapshotMetadata', () => {
-  it('from DocumentSnapshot support equality checking with isEqual()', () => {
-    expectEqual(
-      documentSnapshot('rooms/foo', {}, true).metadata,
-      documentSnapshot('rooms/foo', {}, true).metadata
-    );
-    expectNotEqual(
-      documentSnapshot('rooms/foo', {}, true).metadata,
-      documentSnapshot('rooms/foo', {}, false).metadata
-    );
-  });
+	it('from DocumentSnapshot support equality checking with isEqual()', () => {
+		expectEqual(
+			documentSnapshot('rooms/foo', {}, true).metadata,
+			documentSnapshot('rooms/foo', {}, true).metadata
+		);
+		expectNotEqual(
+			documentSnapshot('rooms/foo', {}, true).metadata,
+			documentSnapshot('rooms/foo', {}, false).metadata
+		);
+	});
 
-  it('from QuerySnapshot support equality checking with isEqual()', () => {
-    expectEqual(
-      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys(), true, false).metadata
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys('foo/a'), false, false).metadata
-    );
-    expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys(), false, false).metadata
-    );
-  });
+	it('from QuerySnapshot support equality checking with isEqual()', () => {
+		expectEqual(
+			querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+			querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+			querySnapshot('foo', {}, {}, keys(), true, false).metadata
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+			querySnapshot('foo', {}, {}, keys('foo/a'), false, false).metadata
+		);
+		expectNotEqual(
+			querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+			querySnapshot('foo', {}, {}, keys(), false, false).metadata
+		);
+	});
 });

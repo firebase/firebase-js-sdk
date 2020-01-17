@@ -18,14 +18,14 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
-  DocumentKeySet,
-  documentKeySet,
-  DocumentMap,
-  documentMap,
-  MaybeDocumentMap,
-  maybeDocumentMap,
-  NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap
+	DocumentKeySet,
+	documentKeySet,
+	DocumentMap,
+	documentMap,
+	MaybeDocumentMap,
+	maybeDocumentMap,
+	NullableMaybeDocumentMap,
+	nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -47,273 +47,273 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * MutationQueue to the RemoteDocumentCache.
  */
 export class LocalDocumentsView {
-  constructor(
-    readonly remoteDocumentCache: RemoteDocumentCache,
-    readonly mutationQueue: MutationQueue,
-    readonly indexManager: IndexManager
-  ) {}
+	constructor(
+		readonly remoteDocumentCache: RemoteDocumentCache,
+		readonly mutationQueue: MutationQueue,
+		readonly indexManager: IndexManager
+	) {}
 
-  /**
-   * Get the local view of the document identified by `key`.
-   *
-   * @return Local view of the document or null if we don't have any cached
-   * state for it.
-   */
-  getDocument(
-    transaction: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
-    return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKey(transaction, key)
-      .next(batches => this.getDocumentInternal(transaction, key, batches));
-  }
+	/**
+	 * Get the local view of the document identified by `key`.
+	 *
+	 * @return Local view of the document or null if we don't have any cached
+	 * state for it.
+	 */
+	getDocument(
+		transaction: PersistenceTransaction,
+		key: DocumentKey
+	): PersistencePromise<MaybeDocument | null> {
+		return this.mutationQueue
+			.getAllMutationBatchesAffectingDocumentKey(transaction, key)
+			.next(batches => this.getDocumentInternal(transaction, key, batches));
+	}
 
-  /** Internal version of `getDocument` that allows reusing batches. */
-  private getDocumentInternal(
-    transaction: PersistenceTransaction,
-    key: DocumentKey,
-    inBatches: MutationBatch[]
-  ): PersistencePromise<MaybeDocument | null> {
-    return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
-      for (const batch of inBatches) {
-        doc = batch.applyToLocalView(key, doc);
-      }
-      return doc;
-    });
-  }
+	/** Internal version of `getDocument` that allows reusing batches. */
+	private getDocumentInternal(
+		transaction: PersistenceTransaction,
+		key: DocumentKey,
+		inBatches: MutationBatch[]
+	): PersistencePromise<MaybeDocument | null> {
+		return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
+			for (const batch of inBatches) {
+				doc = batch.applyToLocalView(key, doc);
+			}
+			return doc;
+		});
+	}
 
-  // Returns the view of the given `docs` as they would appear after applying
-  // all mutations in the given `batches`.
-  private applyLocalMutationsToDocuments(
-    transaction: PersistenceTransaction,
-    docs: NullableMaybeDocumentMap,
-    batches: MutationBatch[]
-  ): NullableMaybeDocumentMap {
-    let results = nullableMaybeDocumentMap();
-    docs.forEach((key, localView) => {
-      for (const batch of batches) {
-        localView = batch.applyToLocalView(key, localView);
-      }
-      results = results.insert(key, localView);
-    });
-    return results;
-  }
+	// Returns the view of the given `docs` as they would appear after applying
+	// all mutations in the given `batches`.
+	private applyLocalMutationsToDocuments(
+		transaction: PersistenceTransaction,
+		docs: NullableMaybeDocumentMap,
+		batches: MutationBatch[]
+	): NullableMaybeDocumentMap {
+		let results = nullableMaybeDocumentMap();
+		docs.forEach((key, localView) => {
+			for (const batch of batches) {
+				localView = batch.applyToLocalView(key, localView);
+			}
+			results = results.insert(key, localView);
+		});
+		return results;
+	}
 
-  /**
-   * Gets the local view of the documents identified by `keys`.
-   *
-   * If we don't have cached state for a document in `keys`, a NoDocument will
-   * be stored for that key in the resulting set.
-   */
-  getDocuments(
-    transaction: PersistenceTransaction,
-    keys: DocumentKeySet
-  ): PersistencePromise<MaybeDocumentMap> {
-    return this.remoteDocumentCache
-      .getEntries(transaction, keys)
-      .next(docs => this.getLocalViewOfDocuments(transaction, docs));
-  }
+	/**
+	 * Gets the local view of the documents identified by `keys`.
+	 *
+	 * If we don't have cached state for a document in `keys`, a NoDocument will
+	 * be stored for that key in the resulting set.
+	 */
+	getDocuments(
+		transaction: PersistenceTransaction,
+		keys: DocumentKeySet
+	): PersistencePromise<MaybeDocumentMap> {
+		return this.remoteDocumentCache
+			.getEntries(transaction, keys)
+			.next(docs => this.getLocalViewOfDocuments(transaction, docs));
+	}
 
-  /**
-   * Similar to `getDocuments`, but creates the local view from the given
-   * `baseDocs` without retrieving documents from the local store.
-   */
-  getLocalViewOfDocuments(
-    transaction: PersistenceTransaction,
-    baseDocs: NullableMaybeDocumentMap
-  ): PersistencePromise<MaybeDocumentMap> {
-    return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
-      .next(batches => {
-        const docs = this.applyLocalMutationsToDocuments(
-          transaction,
-          baseDocs,
-          batches
-        );
-        let results = maybeDocumentMap();
-        docs.forEach((key, maybeDoc) => {
-          // TODO(http://b/32275378): Don't conflate missing / deleted.
-          if (!maybeDoc) {
-            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
-          }
-          results = results.insert(key, maybeDoc);
-        });
+	/**
+	 * Similar to `getDocuments`, but creates the local view from the given
+	 * `baseDocs` without retrieving documents from the local store.
+	 */
+	getLocalViewOfDocuments(
+		transaction: PersistenceTransaction,
+		baseDocs: NullableMaybeDocumentMap
+	): PersistencePromise<MaybeDocumentMap> {
+		return this.mutationQueue
+			.getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
+			.next(batches => {
+				const docs = this.applyLocalMutationsToDocuments(
+					transaction,
+					baseDocs,
+					batches
+				);
+				let results = maybeDocumentMap();
+				docs.forEach((key, maybeDoc) => {
+					// TODO(http://b/32275378): Don't conflate missing / deleted.
+					if (!maybeDoc) {
+						maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
+					}
+					results = results.insert(key, maybeDoc);
+				});
 
-        return results;
-      });
-  }
+				return results;
+			});
+	}
 
-  /**
-   * Performs a query against the local view of all documents.
-   *
-   * @param transaction The persistence transaction.
-   * @param query The query to match documents against.
-   * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
-   *     documents that have been read since this snapshot version (exclusive).
-   */
-  getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
-    query: Query,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
-    if (query.isDocumentQuery()) {
-      return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
-    } else if (query.isCollectionGroupQuery()) {
-      return this.getDocumentsMatchingCollectionGroupQuery(
-        transaction,
-        query,
-        sinceReadTime
-      );
-    } else {
-      return this.getDocumentsMatchingCollectionQuery(
-        transaction,
-        query,
-        sinceReadTime
-      );
-    }
-  }
+	/**
+	 * Performs a query against the local view of all documents.
+	 *
+	 * @param transaction The persistence transaction.
+	 * @param query The query to match documents against.
+	 * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
+	 *     documents that have been read since this snapshot version (exclusive).
+	 */
+	getDocumentsMatchingQuery(
+		transaction: PersistenceTransaction,
+		query: Query,
+		sinceReadTime: SnapshotVersion
+	): PersistencePromise<DocumentMap> {
+		if (query.isDocumentQuery()) {
+			return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+		} else if (query.isCollectionGroupQuery()) {
+			return this.getDocumentsMatchingCollectionGroupQuery(
+				transaction,
+				query,
+				sinceReadTime
+			);
+		} else {
+			return this.getDocumentsMatchingCollectionQuery(
+				transaction,
+				query,
+				sinceReadTime
+			);
+		}
+	}
 
-  private getDocumentsMatchingDocumentQuery(
-    transaction: PersistenceTransaction,
-    docPath: ResourcePath
-  ): PersistencePromise<DocumentMap> {
-    // Just do a simple document lookup.
-    return this.getDocument(transaction, new DocumentKey(docPath)).next(
-      maybeDoc => {
-        let result = documentMap();
-        if (maybeDoc instanceof Document) {
-          result = result.insert(maybeDoc.key, maybeDoc);
-        }
-        return result;
-      }
-    );
-  }
+	private getDocumentsMatchingDocumentQuery(
+		transaction: PersistenceTransaction,
+		docPath: ResourcePath
+	): PersistencePromise<DocumentMap> {
+		// Just do a simple document lookup.
+		return this.getDocument(transaction, new DocumentKey(docPath)).next(
+			maybeDoc => {
+				let result = documentMap();
+				if (maybeDoc instanceof Document) {
+					result = result.insert(maybeDoc.key, maybeDoc);
+				}
+				return result;
+			}
+		);
+	}
 
-  private getDocumentsMatchingCollectionGroupQuery(
-    transaction: PersistenceTransaction,
-    query: Query,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
-    assert(
-      query.path.isEmpty(),
-      'Currently we only support collection group queries at the root.'
-    );
-    const collectionId = query.collectionGroup!;
-    let results = documentMap();
-    return this.indexManager
-      .getCollectionParents(transaction, collectionId)
-      .next(parents => {
-        // Perform a collection query against each parent that contains the
-        // collectionId and aggregate the results.
-        return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
-          const collectionQuery = query.asCollectionQueryAtPath(
-            parent.child(collectionId)
-          );
-          return this.getDocumentsMatchingCollectionQuery(
-            transaction,
-            collectionQuery,
-            sinceReadTime
-          ).next(r => {
-            r.forEach((key, doc) => {
-              results = results.insert(key, doc);
-            });
-          });
-        }).next(() => results);
-      });
-  }
+	private getDocumentsMatchingCollectionGroupQuery(
+		transaction: PersistenceTransaction,
+		query: Query,
+		sinceReadTime: SnapshotVersion
+	): PersistencePromise<DocumentMap> {
+		assert(
+			query.path.isEmpty(),
+			'Currently we only support collection group queries at the root.'
+		);
+		const collectionId = query.collectionGroup!;
+		let results = documentMap();
+		return this.indexManager
+			.getCollectionParents(transaction, collectionId)
+			.next(parents => {
+				// Perform a collection query against each parent that contains the
+				// collectionId and aggregate the results.
+				return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
+					const collectionQuery = query.asCollectionQueryAtPath(
+						parent.child(collectionId)
+					);
+					return this.getDocumentsMatchingCollectionQuery(
+						transaction,
+						collectionQuery,
+						sinceReadTime
+					).next(r => {
+						r.forEach((key, doc) => {
+							results = results.insert(key, doc);
+						});
+					});
+				}).next(() => results);
+			});
+	}
 
-  private getDocumentsMatchingCollectionQuery(
-    transaction: PersistenceTransaction,
-    query: Query,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
-    // Query the remote documents and overlay mutations.
-    let results: DocumentMap;
-    let mutationBatches: MutationBatch[];
-    return this.remoteDocumentCache
-      .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
-      .next(queryResults => {
-        results = queryResults;
-        return this.mutationQueue.getAllMutationBatchesAffectingQuery(
-          transaction,
-          query
-        );
-      })
-      .next(matchingMutationBatches => {
-        mutationBatches = matchingMutationBatches;
-        // It is possible that a PatchMutation can make a document match a query, even if
-        // the version in the RemoteDocumentCache is not a match yet (waiting for server
-        // to ack). To handle this, we find all document keys affected by the PatchMutations
-        // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
-        // otherwise those `PatchMutations` will be ignored because no base document can be found,
-        // and lead to missing result for the query.
-        return this.addMissingBaseDocuments(
-          transaction,
-          mutationBatches,
-          results
-        ).next(mergedDocuments => {
-          results = mergedDocuments;
+	private getDocumentsMatchingCollectionQuery(
+		transaction: PersistenceTransaction,
+		query: Query,
+		sinceReadTime: SnapshotVersion
+	): PersistencePromise<DocumentMap> {
+		// Query the remote documents and overlay mutations.
+		let results: DocumentMap;
+		let mutationBatches: MutationBatch[];
+		return this.remoteDocumentCache
+			.getDocumentsMatchingQuery(transaction, query, sinceReadTime)
+			.next(queryResults => {
+				results = queryResults;
+				return this.mutationQueue.getAllMutationBatchesAffectingQuery(
+					transaction,
+					query
+				);
+			})
+			.next(matchingMutationBatches => {
+				mutationBatches = matchingMutationBatches;
+				// It is possible that a PatchMutation can make a document match a query, even if
+				// the version in the RemoteDocumentCache is not a match yet (waiting for server
+				// to ack). To handle this, we find all document keys affected by the PatchMutations
+				// that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
+				// otherwise those `PatchMutations` will be ignored because no base document can be found,
+				// and lead to missing result for the query.
+				return this.addMissingBaseDocuments(
+					transaction,
+					mutationBatches,
+					results
+				).next(mergedDocuments => {
+					results = mergedDocuments;
 
-          for (const batch of mutationBatches) {
-            for (const mutation of batch.mutations) {
-              const key = mutation.key;
-              const baseDoc = results.get(key);
-              const mutatedDoc = mutation.applyToLocalView(
-                baseDoc,
-                baseDoc,
-                batch.localWriteTime
-              );
-              if (mutatedDoc instanceof Document) {
-                results = results.insert(key, mutatedDoc);
-              } else {
-                results = results.remove(key);
-              }
-            }
-          }
-        });
-      })
-      .next(() => {
-        // Finally, filter out any documents that don't actually match
-        // the query.
-        results.forEach((key, doc) => {
-          if (!query.matches(doc)) {
-            results = results.remove(key);
-          }
-        });
+					for (const batch of mutationBatches) {
+						for (const mutation of batch.mutations) {
+							const key = mutation.key;
+							const baseDoc = results.get(key);
+							const mutatedDoc = mutation.applyToLocalView(
+								baseDoc,
+								baseDoc,
+								batch.localWriteTime
+							);
+							if (mutatedDoc instanceof Document) {
+								results = results.insert(key, mutatedDoc);
+							} else {
+								results = results.remove(key);
+							}
+						}
+					}
+				});
+			})
+			.next(() => {
+				// Finally, filter out any documents that don't actually match
+				// the query.
+				results.forEach((key, doc) => {
+					if (!query.matches(doc)) {
+						results = results.remove(key);
+					}
+				});
 
-        return results;
-      });
-  }
+				return results;
+			});
+	}
 
-  private addMissingBaseDocuments(
-    transaction: PersistenceTransaction,
-    matchingMutationBatches: MutationBatch[],
-    existingDocuments: DocumentMap
-  ): PersistencePromise<DocumentMap> {
-    let missingBaseDocEntriesForPatching = documentKeySet();
-    for (const batch of matchingMutationBatches) {
-      for (const mutation of batch.mutations) {
-        if (
-          mutation instanceof PatchMutation &&
-          existingDocuments.get(mutation.key) === null
-        ) {
-          missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
-            mutation.key
-          );
-        }
-      }
-    }
+	private addMissingBaseDocuments(
+		transaction: PersistenceTransaction,
+		matchingMutationBatches: MutationBatch[],
+		existingDocuments: DocumentMap
+	): PersistencePromise<DocumentMap> {
+		let missingBaseDocEntriesForPatching = documentKeySet();
+		for (const batch of matchingMutationBatches) {
+			for (const mutation of batch.mutations) {
+				if (
+					mutation instanceof PatchMutation &&
+					existingDocuments.get(mutation.key) === null
+				) {
+					missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
+						mutation.key
+					);
+				}
+			}
+		}
 
-    let mergedDocuments = existingDocuments;
-    return this.remoteDocumentCache
-      .getEntries(transaction, missingBaseDocEntriesForPatching)
-      .next(missingBaseDocs => {
-        missingBaseDocs.forEach((key, doc) => {
-          if (doc !== null && doc instanceof Document) {
-            mergedDocuments = mergedDocuments.insert(key, doc);
-          }
-        });
-        return mergedDocuments;
-      });
-  }
+		let mergedDocuments = existingDocuments;
+		return this.remoteDocumentCache
+			.getEntries(transaction, missingBaseDocEntriesForPatching)
+			.next(missingBaseDocs => {
+				missingBaseDocs.forEach((key, doc) => {
+					if (doc !== null && doc instanceof Document) {
+						mergedDocuments = mergedDocuments.insert(key, doc);
+					}
+				});
+				return mergedDocuments;
+			});
+	}
 }

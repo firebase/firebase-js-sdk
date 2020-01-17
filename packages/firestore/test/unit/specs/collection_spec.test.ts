@@ -22,32 +22,32 @@ import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 
 describeSpec('Collections:', [], () => {
-  specTest('Events are raised after watch ack', [], () => {
-    const query1 = Query.atPath(path('collection'));
-    const doc1 = doc('collection/key', 1000, { foo: 'bar' });
-    return spec()
-      .userListens(query1)
-      .watchAcksFull(query1, 1001, doc1)
-      .expectEvents(query1, {
-        added: [doc1]
-      });
-  });
+	specTest('Events are raised after watch ack', [], () => {
+		const query1 = Query.atPath(path('collection'));
+		const doc1 = doc('collection/key', 1000, { foo: 'bar' });
+		return spec()
+			.userListens(query1)
+			.watchAcksFull(query1, 1001, doc1)
+			.expectEvents(query1, {
+				added: [doc1]
+			});
+	});
 
-  specTest('Events are raised for local sets before watch ack', [], () => {
-    const query1 = Query.atPath(path('collection'));
-    const doc1 = doc(
-      'collection/key',
-      0,
-      { foo: 'bar' },
-      { hasLocalMutations: true }
-    );
-    return spec()
-      .userListens(query1)
-      .userSets('collection/key', { foo: 'bar' })
-      .expectEvents(query1, {
-        hasPendingWrites: true,
-        fromCache: true,
-        added: [doc1]
-      });
-  });
+	specTest('Events are raised for local sets before watch ack', [], () => {
+		const query1 = Query.atPath(path('collection'));
+		const doc1 = doc(
+			'collection/key',
+			0,
+			{ foo: 'bar' },
+			{ hasLocalMutations: true }
+		);
+		return spec()
+			.userListens(query1)
+			.userSets('collection/key', { foo: 'bar' })
+			.expectEvents(query1, {
+				hasPendingWrites: true,
+				fromCache: true,
+				added: [doc1]
+			});
+	});
 });

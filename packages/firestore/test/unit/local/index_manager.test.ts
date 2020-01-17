@@ -25,65 +25,65 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
 
 describe('MemoryIndexManager', () => {
-  genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
+	genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
 describe('IndexedDbIndexManager', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbIndexManager tests.');
-    return;
-  }
+	if (!IndexedDbPersistence.isAvailable()) {
+		console.warn('No IndexedDB. Skipping IndexedDbIndexManager tests.');
+		return;
+	}
 
-  let persistencePromise: Promise<Persistence>;
-  beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
-  });
+	let persistencePromise: Promise<Persistence>;
+	beforeEach(async () => {
+		persistencePromise = persistenceHelpers.testIndexedDbPersistence();
+	});
 
-  genericIndexManagerTests(() => persistencePromise);
+	genericIndexManagerTests(() => persistencePromise);
 });
 
 /**
  * Defines the set of tests to run against both IndexManager implementations.
  */
 function genericIndexManagerTests(
-  persistencePromise: () => Promise<Persistence>
+	persistencePromise: () => Promise<Persistence>
 ): void {
-  addEqualityMatcher();
-  let indexManager: TestIndexManager;
+	addEqualityMatcher();
+	let indexManager: TestIndexManager;
 
-  let persistence: Persistence;
-  beforeEach(async () => {
-    persistence = await persistencePromise();
-    indexManager = new TestIndexManager(
-      persistence,
-      persistence.getIndexManager()
-    );
-  });
+	let persistence: Persistence;
+	beforeEach(async () => {
+		persistence = await persistencePromise();
+		indexManager = new TestIndexManager(
+			persistence,
+			persistence.getIndexManager()
+		);
+	});
 
-  afterEach(async () => {
-    if (persistence.started) {
-      await persistence.shutdown();
-      await persistenceHelpers.clearTestPersistence();
-    }
-  });
+	afterEach(async () => {
+		if (persistence.started) {
+			await persistence.shutdown();
+			await persistenceHelpers.clearTestPersistence();
+		}
+	});
 
-  it('can add and read collection=>parent index entries', async () => {
-    await indexManager.addToCollectionParentIndex(path('messages'));
-    await indexManager.addToCollectionParentIndex(path('messages'));
-    await indexManager.addToCollectionParentIndex(path('rooms/foo/messages'));
-    await indexManager.addToCollectionParentIndex(path('rooms/bar/messages'));
-    await indexManager.addToCollectionParentIndex(path('rooms/foo/messages2'));
+	it('can add and read collection=>parent index entries', async () => {
+		await indexManager.addToCollectionParentIndex(path('messages'));
+		await indexManager.addToCollectionParentIndex(path('messages'));
+		await indexManager.addToCollectionParentIndex(path('rooms/foo/messages'));
+		await indexManager.addToCollectionParentIndex(path('rooms/bar/messages'));
+		await indexManager.addToCollectionParentIndex(path('rooms/foo/messages2'));
 
-    expect(await indexManager.getCollectionParents('messages')).to.deep.equal([
-      path(''),
-      path('rooms/bar'),
-      path('rooms/foo')
-    ]);
-    expect(await indexManager.getCollectionParents('messages2')).to.deep.equal([
-      path('rooms/foo')
-    ]);
-    expect(await indexManager.getCollectionParents('messages3')).to.deep.equal(
-      []
-    );
-  });
+		expect(await indexManager.getCollectionParents('messages')).to.deep.equal([
+			path(''),
+			path('rooms/bar'),
+			path('rooms/foo')
+		]);
+		expect(await indexManager.getCollectionParents('messages2')).to.deep.equal([
+			path('rooms/foo')
+		]);
+		expect(await indexManager.getCollectionParents('messages3')).to.deep.equal(
+			[]
+		);
+	});
 }

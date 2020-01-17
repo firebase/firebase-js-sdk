@@ -32,12 +32,12 @@ import { configureForStandalone } from '../config';
 declare let __firestore_exports__: { [key: string]: {} };
 // eslint-disable-next-line camelcase
 if (typeof __firestore_exports__ !== 'undefined') {
-  configureForStandalone(__firestore_exports__);
+	configureForStandalone(__firestore_exports__);
 } else {
-  // Wrap in a closure to allow throwing from within a goog.module.
-  // TS compiles this file to a goog.module which then disallows throwing
-  // directly.
-  (() => {
-    throw new Error('__firestore_exports__ not found.');
-  })();
+	// Wrap in a closure to allow throwing from within a goog.module.
+	// TS compiles this file to a goog.module which then disallows throwing
+	// directly.
+	(() => {
+		throw new Error('__firestore_exports__ not found.');
+	})();
 }

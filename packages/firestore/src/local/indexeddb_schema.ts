@@ -52,264 +52,264 @@ export const SCHEMA_VERSION = 9;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
-  constructor(private readonly serializer: LocalSerializer) {}
+	constructor(private readonly serializer: LocalSerializer) {}
 
-  /**
-   * Performs database creation and schema upgrades.
-   *
-   * Note that in production, this method is only ever used to upgrade the schema
-   * to SCHEMA_VERSION. Different values of toVersion are only used for testing
-   * and local feature development.
-   */
-  createOrUpgrade(
-    db: IDBDatabase,
-    txn: IDBTransaction,
-    fromVersion: number,
-    toVersion: number
-  ): PersistencePromise<void> {
-    assert(
-      fromVersion < toVersion &&
-        fromVersion >= 0 &&
-        toVersion <= SCHEMA_VERSION,
-      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
-    );
+	/**
+	 * Performs database creation and schema upgrades.
+	 *
+	 * Note that in production, this method is only ever used to upgrade the schema
+	 * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+	 * and local feature development.
+	 */
+	createOrUpgrade(
+		db: IDBDatabase,
+		txn: IDBTransaction,
+		fromVersion: number,
+		toVersion: number
+	): PersistencePromise<void> {
+		assert(
+			fromVersion < toVersion &&
+				fromVersion >= 0 &&
+				toVersion <= SCHEMA_VERSION,
+			`Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+		);
 
-    const simpleDbTransaction = new SimpleDbTransaction(txn);
+		const simpleDbTransaction = new SimpleDbTransaction(txn);
 
-    if (fromVersion < 1 && toVersion >= 1) {
-      createPrimaryClientStore(db);
-      createMutationQueue(db);
-      createQueryCache(db);
-      createRemoteDocumentCache(db);
-    }
+		if (fromVersion < 1 && toVersion >= 1) {
+			createPrimaryClientStore(db);
+			createMutationQueue(db);
+			createQueryCache(db);
+			createRemoteDocumentCache(db);
+		}
 
-    // Migration 2 to populate the targetGlobal object no longer needed since
-    // migration 3 unconditionally clears it.
+		// Migration 2 to populate the targetGlobal object no longer needed since
+		// migration 3 unconditionally clears it.
 
-    let p = PersistencePromise.resolve();
-    if (fromVersion < 3 && toVersion >= 3) {
-      // Brand new clients don't need to drop and recreate--only clients that
-      // potentially have corrupt data.
-      if (fromVersion !== 0) {
-        dropQueryCache(db);
-        createQueryCache(db);
-      }
-      p = p.next(() => writeEmptyTargetGlobalEntry(simpleDbTransaction));
-    }
+		let p = PersistencePromise.resolve();
+		if (fromVersion < 3 && toVersion >= 3) {
+			// Brand new clients don't need to drop and recreate--only clients that
+			// potentially have corrupt data.
+			if (fromVersion !== 0) {
+				dropQueryCache(db);
+				createQueryCache(db);
+			}
+			p = p.next(() => writeEmptyTargetGlobalEntry(simpleDbTransaction));
+		}
 
-    if (fromVersion < 4 && toVersion >= 4) {
-      if (fromVersion !== 0) {
-        // Schema version 3 uses auto-generated keys to generate globally unique
-        // mutation batch IDs (this was previously ensured internally by the
-        // client). To migrate to the new schema, we have to read all mutations
-        // and write them back out. We preserve the existing batch IDs to guarantee
-        // consistency with other object stores. Any further mutation batch IDs will
-        // be auto-generated.
-        p = p.next(() =>
-          upgradeMutationBatchSchemaAndMigrateData(db, simpleDbTransaction)
-        );
-      }
+		if (fromVersion < 4 && toVersion >= 4) {
+			if (fromVersion !== 0) {
+				// Schema version 3 uses auto-generated keys to generate globally unique
+				// mutation batch IDs (this was previously ensured internally by the
+				// client). To migrate to the new schema, we have to read all mutations
+				// and write them back out. We preserve the existing batch IDs to guarantee
+				// consistency with other object stores. Any further mutation batch IDs will
+				// be auto-generated.
+				p = p.next(() =>
+					upgradeMutationBatchSchemaAndMigrateData(db, simpleDbTransaction)
+				);
+			}
 
-      p = p.next(() => {
-        createClientMetadataStore(db);
-      });
-    }
+			p = p.next(() => {
+				createClientMetadataStore(db);
+			});
+		}
 
-    if (fromVersion < 5 && toVersion >= 5) {
-      p = p.next(() => this.removeAcknowledgedMutations(simpleDbTransaction));
-    }
+		if (fromVersion < 5 && toVersion >= 5) {
+			p = p.next(() => this.removeAcknowledgedMutations(simpleDbTransaction));
+		}
 
-    if (fromVersion < 6 && toVersion >= 6) {
-      p = p.next(() => {
-        createDocumentGlobalStore(db);
-        return this.addDocumentGlobal(simpleDbTransaction);
-      });
-    }
+		if (fromVersion < 6 && toVersion >= 6) {
+			p = p.next(() => {
+				createDocumentGlobalStore(db);
+				return this.addDocumentGlobal(simpleDbTransaction);
+			});
+		}
 
-    if (fromVersion < 7 && toVersion >= 7) {
-      p = p.next(() => this.ensureSequenceNumbers(simpleDbTransaction));
-    }
+		if (fromVersion < 7 && toVersion >= 7) {
+			p = p.next(() => this.ensureSequenceNumbers(simpleDbTransaction));
+		}
 
-    if (fromVersion < 8 && toVersion >= 8) {
-      p = p.next(() =>
-        this.createCollectionParentIndex(db, simpleDbTransaction)
-      );
-    }
+		if (fromVersion < 8 && toVersion >= 8) {
+			p = p.next(() =>
+				this.createCollectionParentIndex(db, simpleDbTransaction)
+			);
+		}
 
-    if (fromVersion < 9 && toVersion >= 9) {
-      p = p.next(() => {
-        // Multi-Tab used to manage its own changelog, but this has been moved
-        // to the DbRemoteDocument object store itself. Since the previous change
-        // log only contained transient data, we can drop its object store.
-        dropRemoteDocumentChangesStore(db);
-        createRemoteDocumentReadTimeIndex(txn);
-      });
-    }
-    return p;
-  }
+		if (fromVersion < 9 && toVersion >= 9) {
+			p = p.next(() => {
+				// Multi-Tab used to manage its own changelog, but this has been moved
+				// to the DbRemoteDocument object store itself. Since the previous change
+				// log only contained transient data, we can drop its object store.
+				dropRemoteDocumentChangesStore(db);
+				createRemoteDocumentReadTimeIndex(txn);
+			});
+		}
+		return p;
+	}
 
-  private addDocumentGlobal(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    let byteCount = 0;
-    return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
-      .iterate((_, doc) => {
-        byteCount += dbDocumentSize(doc);
-      })
-      .next(() => {
-        const metadata = new DbRemoteDocumentGlobal(byteCount);
-        return txn
-          .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
-            DbRemoteDocumentGlobal.store
-          )
-          .put(DbRemoteDocumentGlobal.key, metadata);
-      });
-  }
+	private addDocumentGlobal(
+		txn: SimpleDbTransaction
+	): PersistencePromise<void> {
+		let byteCount = 0;
+		return txn
+			.store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+			.iterate((_, doc) => {
+				byteCount += dbDocumentSize(doc);
+			})
+			.next(() => {
+				const metadata = new DbRemoteDocumentGlobal(byteCount);
+				return txn
+					.store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+						DbRemoteDocumentGlobal.store
+					)
+					.put(DbRemoteDocumentGlobal.key, metadata);
+			});
+	}
 
-  private removeAcknowledgedMutations(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
-      DbMutationQueue.store
-    );
-    const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
-    );
+	private removeAcknowledgedMutations(
+		txn: SimpleDbTransaction
+	): PersistencePromise<void> {
+		const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
+			DbMutationQueue.store
+		);
+		const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+			DbMutationBatch.store
+		);
 
-    return queuesStore.loadAll().next(queues => {
-      return PersistencePromise.forEach(queues, (queue: DbMutationQueue) => {
-        const range = IDBKeyRange.bound(
-          [queue.userId, BATCHID_UNKNOWN],
-          [queue.userId, queue.lastAcknowledgedBatchId]
-        );
+		return queuesStore.loadAll().next(queues => {
+			return PersistencePromise.forEach(queues, (queue: DbMutationQueue) => {
+				const range = IDBKeyRange.bound(
+					[queue.userId, BATCHID_UNKNOWN],
+					[queue.userId, queue.lastAcknowledgedBatchId]
+				);
 
-        return mutationsStore
-          .loadAll(DbMutationBatch.userMutationsIndex, range)
-          .next(dbBatches => {
-            return PersistencePromise.forEach(
-              dbBatches,
-              (dbBatch: DbMutationBatch) => {
-                assert(
-                  dbBatch.userId === queue.userId,
-                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
-                );
-                const batch = this.serializer.fromDbMutationBatch(dbBatch);
+				return mutationsStore
+					.loadAll(DbMutationBatch.userMutationsIndex, range)
+					.next(dbBatches => {
+						return PersistencePromise.forEach(
+							dbBatches,
+							(dbBatch: DbMutationBatch) => {
+								assert(
+									dbBatch.userId === queue.userId,
+									`Cannot process batch ${dbBatch.batchId} from unexpected user`
+								);
+								const batch = this.serializer.fromDbMutationBatch(dbBatch);
 
-                return removeMutationBatch(
-                  txn,
-                  queue.userId,
-                  batch
-                ).next(() => {});
-              }
-            );
-          });
-      });
-    });
-  }
+								return removeMutationBatch(
+									txn,
+									queue.userId,
+									batch
+								).next(() => {});
+							}
+						);
+					});
+			});
+		});
+	}
 
-  /**
-   * Ensures that every document in the remote document cache has a corresponding sentinel row
-   * with a sequence number. Missing rows are given the most recently used sequence number.
-   */
-  private ensureSequenceNumbers(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    const documentTargetStore = txn.store<
-      DbTargetDocumentKey,
-      DbTargetDocument
-    >(DbTargetDocument.store);
-    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
-    );
+	/**
+	 * Ensures that every document in the remote document cache has a corresponding sentinel row
+	 * with a sequence number. Missing rows are given the most recently used sequence number.
+	 */
+	private ensureSequenceNumbers(
+		txn: SimpleDbTransaction
+	): PersistencePromise<void> {
+		const documentTargetStore = txn.store<
+			DbTargetDocumentKey,
+			DbTargetDocument
+		>(DbTargetDocument.store);
+		const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+			DbRemoteDocument.store
+		);
 
-    return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
-      const writeSentinelKey = (
-        path: ResourcePath
-      ): PersistencePromise<void> => {
-        return documentTargetStore.put(
-          new DbTargetDocument(0, encode(path), currentSequenceNumber)
-        );
-      };
+		return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
+			const writeSentinelKey = (
+				path: ResourcePath
+			): PersistencePromise<void> => {
+				return documentTargetStore.put(
+					new DbTargetDocument(0, encode(path), currentSequenceNumber)
+				);
+			};
 
-      const promises: Array<PersistencePromise<void>> = [];
-      return documentsStore
-        .iterate((key, doc) => {
-          const path = new ResourcePath(key);
-          const docSentinelKey = sentinelKey(path);
-          promises.push(
-            documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
-              if (!maybeSentinel) {
-                return writeSentinelKey(path);
-              } else {
-                return PersistencePromise.resolve();
-              }
-            })
-          );
-        })
-        .next(() => PersistencePromise.waitFor(promises));
-    });
-  }
+			const promises: Array<PersistencePromise<void>> = [];
+			return documentsStore
+				.iterate((key, doc) => {
+					const path = new ResourcePath(key);
+					const docSentinelKey = sentinelKey(path);
+					promises.push(
+						documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
+							if (!maybeSentinel) {
+								return writeSentinelKey(path);
+							} else {
+								return PersistencePromise.resolve();
+							}
+						})
+					);
+				})
+				.next(() => PersistencePromise.waitFor(promises));
+		});
+	}
 
-  private createCollectionParentIndex(
-    db: IDBDatabase,
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    // Create the index.
-    db.createObjectStore(DbCollectionParent.store, {
-      keyPath: DbCollectionParent.keyPath
-    });
+	private createCollectionParentIndex(
+		db: IDBDatabase,
+		txn: SimpleDbTransaction
+	): PersistencePromise<void> {
+		// Create the index.
+		db.createObjectStore(DbCollectionParent.store, {
+			keyPath: DbCollectionParent.keyPath
+		});
 
-    const collectionParentsStore = txn.store<
-      DbCollectionParentKey,
-      DbCollectionParent
-    >(DbCollectionParent.store);
+		const collectionParentsStore = txn.store<
+			DbCollectionParentKey,
+			DbCollectionParent
+		>(DbCollectionParent.store);
 
-    // Helper to add an index entry iff we haven't already written it.
-    const cache = new MemoryCollectionParentIndex();
-    const addEntry = (
-      collectionPath: ResourcePath
-    ): PersistencePromise<void> | undefined => {
-      if (cache.add(collectionPath)) {
-        const collectionId = collectionPath.lastSegment();
-        const parentPath = collectionPath.popLast();
-        return collectionParentsStore.put({
-          collectionId,
-          parent: encode(parentPath)
-        });
-      }
-    };
+		// Helper to add an index entry iff we haven't already written it.
+		const cache = new MemoryCollectionParentIndex();
+		const addEntry = (
+			collectionPath: ResourcePath
+		): PersistencePromise<void> | undefined => {
+			if (cache.add(collectionPath)) {
+				const collectionId = collectionPath.lastSegment();
+				const parentPath = collectionPath.popLast();
+				return collectionParentsStore.put({
+					collectionId,
+					parent: encode(parentPath)
+				});
+			}
+		};
 
-    // Index existing remote documents.
-    return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
-      .iterate({ keysOnly: true }, (pathSegments, _) => {
-        const path = new ResourcePath(pathSegments);
-        return addEntry(path.popLast());
-      })
-      .next(() => {
-        // Index existing mutations.
-        return txn
-          .store<DbDocumentMutationKey, DbDocumentMutation>(
-            DbDocumentMutation.store
-          )
-          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
-            const path = decode(encodedPath);
-            return addEntry(path.popLast());
-          });
-      });
-  }
+		// Index existing remote documents.
+		return txn
+			.store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+			.iterate({ keysOnly: true }, (pathSegments, _) => {
+				const path = new ResourcePath(pathSegments);
+				return addEntry(path.popLast());
+			})
+			.next(() => {
+				// Index existing mutations.
+				return txn
+					.store<DbDocumentMutationKey, DbDocumentMutation>(
+						DbDocumentMutation.store
+					)
+					.iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+						const path = decode(encodedPath);
+						return addEntry(path.popLast());
+					});
+			});
+	}
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
-  return [0, encode(path)];
+	return [0, encode(path)];
 }
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
  */
 export class DbTimestamp {
-  constructor(public seconds: number, public nanoseconds: number) {}
+	constructor(public seconds: number, public nanoseconds: number) {}
 }
 
 /** A timestamp type that can be used in IndexedDb keys. */
@@ -328,31 +328,31 @@ export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
  * "stealing" the primary lease
  */
 export class DbPrimaryClient {
-  /**
-   * Name of the IndexedDb object store.
-   *
-   * Note that the name 'owner' is chosen to ensure backwards compatibility with
-   * older clients that only supported single locked access to the persistence
-   * layer.
-   */
-  static store = 'owner';
+	/**
+	 * Name of the IndexedDb object store.
+	 *
+	 * Note that the name 'owner' is chosen to ensure backwards compatibility with
+	 * older clients that only supported single locked access to the persistence
+	 * layer.
+	 */
+	static store = 'owner';
 
-  /**
-   * The key string used for the single object that exists in the
-   * DbPrimaryClient store.
-   */
-  static key = 'owner';
+	/**
+	 * The key string used for the single object that exists in the
+	 * DbPrimaryClient store.
+	 */
+	static key = 'owner';
 
-  constructor(
-    public ownerId: string,
-    /** Whether to allow shared access from multiple tabs. */
-    public allowTabSynchronization: boolean,
-    public leaseTimestampMs: number
-  ) {}
+	constructor(
+		public ownerId: string,
+		/** Whether to allow shared access from multiple tabs. */
+		public allowTabSynchronization: boolean,
+		public leaseTimestampMs: number
+	) {}
 }
 
 function createPrimaryClientStore(db: IDBDatabase): void {
-  db.createObjectStore(DbPrimaryClient.store);
+	db.createObjectStore(DbPrimaryClient.store);
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -365,37 +365,37 @@ export type DbMutationQueueKey = string;
  * DbMutationQueue tracks the metadata about the queue.
  */
 export class DbMutationQueue {
-  /** Name of the IndexedDb object store.  */
-  static store = 'mutationQueues';
+	/** Name of the IndexedDb object store.  */
+	static store = 'mutationQueues';
 
-  /** Keys are automatically assigned via the userId property. */
-  static keyPath = 'userId';
+	/** Keys are automatically assigned via the userId property. */
+	static keyPath = 'userId';
 
-  constructor(
-    /**
-     * The normalized user ID to which this queue belongs.
-     */
-    public userId: string,
-    /**
-     * An identifier for the highest numbered batch that has been acknowledged
-     * by the server. All MutationBatches in this queue with batchIds less
-     * than or equal to this value are considered to have been acknowledged by
-     * the server.
-     *
-     * NOTE: this is deprecated and no longer used by the code.
-     */
-    public lastAcknowledgedBatchId: number,
-    /**
-     * A stream token that was previously sent by the server.
-     *
-     * See StreamingWriteRequest in datastore.proto for more details about
-     * usage.
-     *
-     * After sending this token, earlier tokens may not be used anymore so
-     * only a single stream token is retained.
-     */
-    public lastStreamToken: string
-  ) {}
+	constructor(
+		/**
+		 * The normalized user ID to which this queue belongs.
+		 */
+		public userId: string,
+		/**
+		 * An identifier for the highest numbered batch that has been acknowledged
+		 * by the server. All MutationBatches in this queue with batchIds less
+		 * than or equal to this value are considered to have been acknowledged by
+		 * the server.
+		 *
+		 * NOTE: this is deprecated and no longer used by the code.
+		 */
+		public lastAcknowledgedBatchId: number,
+		/**
+		 * A stream token that was previously sent by the server.
+		 *
+		 * See StreamingWriteRequest in datastore.proto for more details about
+		 * usage.
+		 *
+		 * After sending this token, earlier tokens may not be used anymore so
+		 * only a single stream token is retained.
+		 */
+		public lastStreamToken: string
+	) {}
 }
 
 /** The 'mutations' store  is keyed by batch ID. */
@@ -409,52 +409,52 @@ export type DbMutationBatchKey = BatchId;
  * with a new batchId.
  */
 export class DbMutationBatch {
-  /** Name of the IndexedDb object store.  */
-  static store = 'mutations';
+	/** Name of the IndexedDb object store.  */
+	static store = 'mutations';
 
-  /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = 'batchId';
+	/** Keys are automatically assigned via the userId, batchId properties. */
+	static keyPath = 'batchId';
 
-  /** The index name for lookup of mutations by user. */
-  static userMutationsIndex = 'userMutationsIndex';
+	/** The index name for lookup of mutations by user. */
+	static userMutationsIndex = 'userMutationsIndex';
 
-  /** The user mutations index is keyed by [userId, batchId] pairs. */
-  static userMutationsKeyPath = ['userId', 'batchId'];
+	/** The user mutations index is keyed by [userId, batchId] pairs. */
+	static userMutationsKeyPath = ['userId', 'batchId'];
 
-  constructor(
-    /**
-     * The normalized user ID to which this batch belongs.
-     */
-    public userId: string,
-    /**
-     * An identifier for this batch, allocated using an auto-generated key.
-     */
-    public batchId: BatchId,
-    /**
-     * The local write time of the batch, stored as milliseconds since the
-     * epoch.
-     */
-    public localWriteTimeMs: number,
-    /**
-     * A list of "mutations" that represent a partial base state from when this
-     * write batch was initially created. During local application of the write
-     * batch, these baseMutations are applied prior to the real writes in order
-     * to override certain document fields from the remote document cache. This
-     * is necessary in the case of non-idempotent writes (e.g. `increment()`
-     * transforms) to make sure that the local view of the modified documents
-     * doesn't flicker if the remote document cache receives the result of the
-     * non-idempotent write before the write is removed from the queue.
-     *
-     * These mutations are never sent to the backend.
-     */
-    public baseMutations: api.Write[] | undefined,
-    /**
-     * A list of mutations to apply. All mutations will be applied atomically.
-     *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
-     */
-    public mutations: api.Write[]
-  ) {}
+	constructor(
+		/**
+		 * The normalized user ID to which this batch belongs.
+		 */
+		public userId: string,
+		/**
+		 * An identifier for this batch, allocated using an auto-generated key.
+		 */
+		public batchId: BatchId,
+		/**
+		 * The local write time of the batch, stored as milliseconds since the
+		 * epoch.
+		 */
+		public localWriteTimeMs: number,
+		/**
+		 * A list of "mutations" that represent a partial base state from when this
+		 * write batch was initially created. During local application of the write
+		 * batch, these baseMutations are applied prior to the real writes in order
+		 * to override certain document fields from the remote document cache. This
+		 * is necessary in the case of non-idempotent writes (e.g. `increment()`
+		 * transforms) to make sure that the local view of the modified documents
+		 * doesn't flicker if the remote document cache receives the result of the
+		 * non-idempotent write before the write is removed from the queue.
+		 *
+		 * These mutations are never sent to the backend.
+		 */
+		public baseMutations: api.Write[] | undefined,
+		/**
+		 * A list of mutations to apply. All mutations will be applied atomically.
+		 *
+		 * Mutations are serialized via JsonProtoSerializer.toMutation().
+		 */
+		public mutations: api.Write[]
+	) {}
 }
 
 /**
@@ -465,21 +465,21 @@ export class DbMutationBatch {
 export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
 
 function createMutationQueue(db: IDBDatabase): void {
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
+	db.createObjectStore(DbMutationQueue.store, {
+		keyPath: DbMutationQueue.keyPath
+	});
 
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
-    autoIncrement: true
-  });
-  mutationBatchesStore.createIndex(
-    DbMutationBatch.userMutationsIndex,
-    DbMutationBatch.userMutationsKeyPath,
-    { unique: true }
-  );
+	const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
+		keyPath: DbMutationBatch.keyPath,
+		autoIncrement: true
+	});
+	mutationBatchesStore.createIndex(
+		DbMutationBatch.userMutationsIndex,
+		DbMutationBatch.userMutationsKeyPath,
+		{ unique: true }
+	);
 
-  db.createObjectStore(DbDocumentMutation.store);
+	db.createObjectStore(DbDocumentMutation.store);
 }
 
 /**
@@ -487,34 +487,34 @@ function createMutationQueue(db: IDBDatabase): void {
  * and rewrites all data.
  */
 function upgradeMutationBatchSchemaAndMigrateData(
-  db: IDBDatabase,
-  txn: SimpleDbTransaction
+	db: IDBDatabase,
+	txn: SimpleDbTransaction
 ): PersistencePromise<void> {
-  const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
-    DbMutationBatch.store
-  );
-  return v1MutationsStore.loadAll().next(existingMutations => {
-    db.deleteObjectStore(DbMutationBatch.store);
+	const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
+		DbMutationBatch.store
+	);
+	return v1MutationsStore.loadAll().next(existingMutations => {
+		db.deleteObjectStore(DbMutationBatch.store);
 
-    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
-      keyPath: DbMutationBatch.keyPath,
-      autoIncrement: true
-    });
-    mutationsStore.createIndex(
-      DbMutationBatch.userMutationsIndex,
-      DbMutationBatch.userMutationsKeyPath,
-      { unique: true }
-    );
+		const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
+			keyPath: DbMutationBatch.keyPath,
+			autoIncrement: true
+		});
+		mutationsStore.createIndex(
+			DbMutationBatch.userMutationsIndex,
+			DbMutationBatch.userMutationsKeyPath,
+			{ unique: true }
+		);
 
-    const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
-    );
-    const writeAll = existingMutations.map(mutation =>
-      v3MutationsStore.put(mutation)
-    );
+		const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+			DbMutationBatch.store
+		);
+		const writeAll = existingMutations.map(mutation =>
+			v3MutationsStore.put(mutation)
+		);
 
-    return PersistencePromise.waitFor(writeAll);
-  });
+		return PersistencePromise.waitFor(writeAll);
+	});
 }
 
 /**
@@ -525,48 +525,48 @@ function upgradeMutationBatchSchemaAndMigrateData(
  * DbMutationBatch.mutations.
  */
 export class DbDocumentMutation {
-  static store = 'documentMutations';
+	static store = 'documentMutations';
 
-  /**
-   * Creates a [userId] key for use in the DbDocumentMutations index to iterate
-   * over all of a user's document mutations.
-   */
-  static prefixForUser(userId: string): [string] {
-    return [userId];
-  }
+	/**
+	 * Creates a [userId] key for use in the DbDocumentMutations index to iterate
+	 * over all of a user's document mutations.
+	 */
+	static prefixForUser(userId: string): [string] {
+		return [userId];
+	}
 
-  /**
-   * Creates a [userId, encodedPath] key for use in the DbDocumentMutations
-   * index to iterate over all at document mutations for a given path or lower.
-   */
-  static prefixForPath(
-    userId: string,
-    path: ResourcePath
-  ): [string, EncodedResourcePath] {
-    return [userId, encode(path)];
-  }
+	/**
+	 * Creates a [userId, encodedPath] key for use in the DbDocumentMutations
+	 * index to iterate over all at document mutations for a given path or lower.
+	 */
+	static prefixForPath(
+		userId: string,
+		path: ResourcePath
+	): [string, EncodedResourcePath] {
+		return [userId, encode(path)];
+	}
 
-  /**
-   * Creates a full index key of [userId, encodedPath, batchId] for inserting
-   * and deleting into the DbDocumentMutations index.
-   */
-  static key(
-    userId: string,
-    path: ResourcePath,
-    batchId: BatchId
-  ): DbDocumentMutationKey {
-    return [userId, encode(path), batchId];
-  }
+	/**
+	 * Creates a full index key of [userId, encodedPath, batchId] for inserting
+	 * and deleting into the DbDocumentMutations index.
+	 */
+	static key(
+		userId: string,
+		path: ResourcePath,
+		batchId: BatchId
+	): DbDocumentMutationKey {
+		return [userId, encode(path), batchId];
+	}
 
-  /**
-   * Because we store all the useful information for this store in the key,
-   * there is no useful information to store as the value. The raw (unencoded)
-   * path cannot be stored because IndexedDb doesn't store prototype
-   * information.
-   */
-  static PLACEHOLDER = new DbDocumentMutation();
+	/**
+	 * Because we store all the useful information for this store in the key,
+	 * there is no useful information to store as the value. The raw (unencoded)
+	 * path cannot be stored because IndexedDb doesn't store prototype
+	 * information.
+	 */
+	static PLACEHOLDER = new DbDocumentMutation();
 
-  private constructor() {}
+	private constructor() {}
 }
 
 /**
@@ -576,7 +576,7 @@ export class DbDocumentMutation {
 export type DbRemoteDocumentKey = string[];
 
 function createRemoteDocumentCache(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocument.store);
+	db.createObjectStore(DbRemoteDocument.store);
 }
 
 /**
@@ -584,7 +584,7 @@ function createRemoteDocumentCache(db: IDBDatabase): void {
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
 export class DbNoDocument {
-  constructor(public path: string[], public readTime: DbTimestamp) {}
+	constructor(public path: string[], public readTime: DbTimestamp) {}
 }
 
 /**
@@ -592,7 +592,7 @@ export class DbNoDocument {
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
 export class DbUnknownDocument {
-  constructor(public path: string[], public version: DbTimestamp) {}
+	constructor(public path: string[], public version: DbTimestamp) {}
 }
 
 /**
@@ -609,93 +609,93 @@ export class DbUnknownDocument {
  * be made more general if necessary.
  */
 export class DbRemoteDocument {
-  static store = 'remoteDocuments';
+	static store = 'remoteDocuments';
 
-  /**
-   * An index that provides access to all entries sorted by read time (which
-   * corresponds to the last modification time of each row).
-   *
-   * This index is used to provide a changelog for Multi-Tab.
-   */
-  static readTimeIndex = 'readTimeIndex';
+	/**
+	 * An index that provides access to all entries sorted by read time (which
+	 * corresponds to the last modification time of each row).
+	 *
+	 * This index is used to provide a changelog for Multi-Tab.
+	 */
+	static readTimeIndex = 'readTimeIndex';
 
-  static readTimeIndexPath = 'readTime';
+	static readTimeIndexPath = 'readTime';
 
-  /**
-   * An index that provides access to documents in a collection sorted by read
-   * time.
-   *
-   * This index is used to allow the RemoteDocumentCache to fetch newly changed
-   * documents in a collection.
-   */
-  static collectionReadTimeIndex = 'collectionReadTimeIndex';
+	/**
+	 * An index that provides access to documents in a collection sorted by read
+	 * time.
+	 *
+	 * This index is used to allow the RemoteDocumentCache to fetch newly changed
+	 * documents in a collection.
+	 */
+	static collectionReadTimeIndex = 'collectionReadTimeIndex';
 
-  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
+	static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
 
-  // TODO: We are currently storing full document keys almost three times
-  // (once as part of the primary key, once - partly - as `parentPath` and once
-  // inside the encoded documents). During our next migration, we should
-  // rewrite the primary key as parentPath + document ID which would allow us
-  // to drop one value.
+	// TODO: We are currently storing full document keys almost three times
+	// (once as part of the primary key, once - partly - as `parentPath` and once
+	// inside the encoded documents). During our next migration, we should
+	// rewrite the primary key as parentPath + document ID which would allow us
+	// to drop one value.
 
-  constructor(
-    /**
-     * Set to an instance of DbUnknownDocument if the data for a document is
-     * not known, but it is known that a document exists at the specified
-     * version (e.g. it had a successful update applied to it)
-     */
-    public unknownDocument: DbUnknownDocument | null | undefined,
-    /**
-     * Set to an instance of a DbNoDocument if it is known that no document
-     * exists.
-     */
-    public noDocument: DbNoDocument | null,
-    /**
-     * Set to an instance of a Document if there's a cached version of the
-     * document.
-     */
-    public document: api.Document | null,
-    /**
-     * Documents that were written to the remote document store based on
-     * a write acknowledgment are marked with `hasCommittedMutations`. These
-     * documents are potentially inconsistent with the backend's copy and use
-     * the write's commit version as their document version.
-     */
-    public hasCommittedMutations: boolean | undefined,
+	constructor(
+		/**
+		 * Set to an instance of DbUnknownDocument if the data for a document is
+		 * not known, but it is known that a document exists at the specified
+		 * version (e.g. it had a successful update applied to it)
+		 */
+		public unknownDocument: DbUnknownDocument | null | undefined,
+		/**
+		 * Set to an instance of a DbNoDocument if it is known that no document
+		 * exists.
+		 */
+		public noDocument: DbNoDocument | null,
+		/**
+		 * Set to an instance of a Document if there's a cached version of the
+		 * document.
+		 */
+		public document: api.Document | null,
+		/**
+		 * Documents that were written to the remote document store based on
+		 * a write acknowledgment are marked with `hasCommittedMutations`. These
+		 * documents are potentially inconsistent with the backend's copy and use
+		 * the write's commit version as their document version.
+		 */
+		public hasCommittedMutations: boolean | undefined,
 
-    /**
-     * When the document was read from the backend. Undefined for data written
-     * prior to schema version 9.
-     */
-    public readTime: DbTimestampKey | undefined,
+		/**
+		 * When the document was read from the backend. Undefined for data written
+		 * prior to schema version 9.
+		 */
+		public readTime: DbTimestampKey | undefined,
 
-    /**
-     * The path of the collection this document is part of. Undefined for data
-     * written prior to schema version 9.
-     */
-    public parentPath: string[] | undefined
-  ) {}
+		/**
+		 * The path of the collection this document is part of. Undefined for data
+		 * written prior to schema version 9.
+		 */
+		public parentPath: string[] | undefined
+	) {}
 }
 
 /**
  * Contains a single entry that has metadata about the remote document cache.
  */
 export class DbRemoteDocumentGlobal {
-  static store = 'remoteDocumentGlobal';
+	static store = 'remoteDocumentGlobal';
 
-  static key = 'remoteDocumentGlobalKey';
+	static key = 'remoteDocumentGlobalKey';
 
-  /**
-   * @param byteSize Approximately the total size in bytes of all the documents in the document
-   * cache.
-   */
-  constructor(public byteSize: number) {}
+	/**
+	 * @param byteSize Approximately the total size in bytes of all the documents in the document
+	 * cache.
+	 */
+	constructor(public byteSize: number) {}
 }
 
 export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
 
 function createDocumentGlobalStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentGlobal.store);
+	db.createObjectStore(DbRemoteDocumentGlobal.store);
 }
 
 /**
@@ -720,89 +720,89 @@ export type DbQuery = api.QueryTarget | api.DocumentsTarget;
  * that the query can be efficiently resumed on restart.
  */
 export class DbTarget {
-  static store = 'targets';
+	static store = 'targets';
 
-  /** Keys are automatically assigned via the targetId property. */
-  static keyPath = 'targetId';
+	/** Keys are automatically assigned via the targetId property. */
+	static keyPath = 'targetId';
 
-  /** The name of the queryTargets index. */
-  static queryTargetsIndexName = 'queryTargetsIndex';
+	/** The name of the queryTargets index. */
+	static queryTargetsIndexName = 'queryTargetsIndex';
 
-  /**
-   * The index of all canonicalIds to the targets that they match. This is not
-   * a unique mapping because canonicalId does not promise a unique name for all
-   * possible queries, so we append the targetId to make the mapping unique.
-   */
-  static queryTargetsKeyPath = ['canonicalId', 'targetId'];
+	/**
+	 * The index of all canonicalIds to the targets that they match. This is not
+	 * a unique mapping because canonicalId does not promise a unique name for all
+	 * possible queries, so we append the targetId to make the mapping unique.
+	 */
+	static queryTargetsKeyPath = ['canonicalId', 'targetId'];
 
-  constructor(
-    /**
-     * An auto-generated sequential numeric identifier for the query.
-     *
-     * Queries are stored using their canonicalId as the key, but these
-     * canonicalIds can be quite long so we additionally assign a unique
-     * queryId which can be used by referenced data structures (e.g.
-     * indexes) to minimize the on-disk cost.
-     */
-    public targetId: TargetId,
-    /**
-     * The canonical string representing this query. This is not unique.
-     */
-    public canonicalId: string,
-    /**
-     * The last readTime received from the Watch Service for this query.
-     *
-     * This is the same value as TargetChange.read_time in the protos.
-     */
-    public readTime: DbTimestamp,
-    /**
-     * An opaque, server-assigned token that allows watching a query to be
-     * resumed after disconnecting without retransmitting all the data
-     * that matches the query. The resume token essentially identifies a
-     * point in time from which the server should resume sending results.
-     *
-     * This is related to the snapshotVersion in that the resumeToken
-     * effectively also encodes that value, but the resumeToken is opaque
-     * and sometimes encodes additional information.
-     *
-     * A consequence of this is that the resumeToken should be used when
-     * asking the server to reason about where this client is in the watch
-     * stream, but the client should use the snapshotVersion for its own
-     * purposes.
-     *
-     * This is the same value as TargetChange.resume_token in the protos.
-     */
-    public resumeToken: string,
-    /**
-     * A sequence number representing the last time this query was
-     * listened to, used for garbage collection purposes.
-     *
-     * Conventionally this would be a timestamp value, but device-local
-     * clocks are unreliable and they must be able to create new listens
-     * even while disconnected. Instead this should be a monotonically
-     * increasing number that's incremented on each listen call.
-     *
-     * This is different from the queryId since the queryId is an
-     * immutable identifier assigned to the Query on first use while
-     * lastListenSequenceNumber is updated every time the query is
-     * listened to.
-     */
-    public lastListenSequenceNumber: number,
-    /**
-     * Denotes the maximum snapshot version at which the associated query view
-     * contained no limbo documents.  Undefined for data written prior to
-     * schema version 9.
-     */
-    public lastLimboFreeSnapshotVersion: DbTimestamp | undefined,
-    /**
-     * The query for this target.
-     *
-     * Because canonical ids are not unique we must store the actual query. We
-     * use the proto to have an object we can persist without having to
-     * duplicate translation logic to and from a `Query` object.
-     */
-    public query: DbQuery
-  ) {}
+	constructor(
+		/**
+		 * An auto-generated sequential numeric identifier for the query.
+		 *
+		 * Queries are stored using their canonicalId as the key, but these
+		 * canonicalIds can be quite long so we additionally assign a unique
+		 * queryId which can be used by referenced data structures (e.g.
+		 * indexes) to minimize the on-disk cost.
+		 */
+		public targetId: TargetId,
+		/**
+		 * The canonical string representing this query. This is not unique.
+		 */
+		public canonicalId: string,
+		/**
+		 * The last readTime received from the Watch Service for this query.
+		 *
+		 * This is the same value as TargetChange.read_time in the protos.
+		 */
+		public readTime: DbTimestamp,
+		/**
+		 * An opaque, server-assigned token that allows watching a query to be
+		 * resumed after disconnecting without retransmitting all the data
+		 * that matches the query. The resume token essentially identifies a
+		 * point in time from which the server should resume sending results.
+		 *
+		 * This is related to the snapshotVersion in that the resumeToken
+		 * effectively also encodes that value, but the resumeToken is opaque
+		 * and sometimes encodes additional information.
+		 *
+		 * A consequence of this is that the resumeToken should be used when
+		 * asking the server to reason about where this client is in the watch
+		 * stream, but the client should use the snapshotVersion for its own
+		 * purposes.
+		 *
+		 * This is the same value as TargetChange.resume_token in the protos.
+		 */
+		public resumeToken: string,
+		/**
+		 * A sequence number representing the last time this query was
+		 * listened to, used for garbage collection purposes.
+		 *
+		 * Conventionally this would be a timestamp value, but device-local
+		 * clocks are unreliable and they must be able to create new listens
+		 * even while disconnected. Instead this should be a monotonically
+		 * increasing number that's incremented on each listen call.
+		 *
+		 * This is different from the queryId since the queryId is an
+		 * immutable identifier assigned to the Query on first use while
+		 * lastListenSequenceNumber is updated every time the query is
+		 * listened to.
+		 */
+		public lastListenSequenceNumber: number,
+		/**
+		 * Denotes the maximum snapshot version at which the associated query view
+		 * contained no limbo documents.  Undefined for data written prior to
+		 * schema version 9.
+		 */
+		public lastLimboFreeSnapshotVersion: DbTimestamp | undefined,
+		/**
+		 * The query for this target.
+		 *
+		 * Because canonical ids are not unique we must store the actual query. We
+		 * use the proto to have an object we can persist without having to
+		 * duplicate translation logic to and from a `Query` object.
+		 */
+		public query: DbQuery
+	) {}
 }
 
 /**
@@ -822,39 +822,39 @@ export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
  * of this store.
  */
 export class DbTargetDocument {
-  /** Name of the IndexedDb object store.  */
-  static store = 'targetDocuments';
+	/** Name of the IndexedDb object store.  */
+	static store = 'targetDocuments';
 
-  /** Keys are automatically assigned via the targetId, path properties. */
-  static keyPath = ['targetId', 'path'];
+	/** Keys are automatically assigned via the targetId, path properties. */
+	static keyPath = ['targetId', 'path'];
 
-  /** The index name for the reverse index. */
-  static documentTargetsIndex = 'documentTargetsIndex';
+	/** The index name for the reverse index. */
+	static documentTargetsIndex = 'documentTargetsIndex';
 
-  /** We also need to create the reverse index for these properties. */
-  static documentTargetsKeyPath = ['path', 'targetId'];
+	/** We also need to create the reverse index for these properties. */
+	static documentTargetsKeyPath = ['path', 'targetId'];
 
-  constructor(
-    /**
-     * The targetId identifying a target or 0 for a sentinel row.
-     */
-    public targetId: TargetId,
-    /**
-     * The path to the document, as encoded in the key.
-     */
-    public path: EncodedResourcePath,
-    /**
-     * If this is a sentinel row, this should be the sequence number of the last
-     * time the document specified by `path` was used. Otherwise, it should be
-     * `undefined`.
-     */
-    public sequenceNumber?: ListenSequenceNumber
-  ) {
-    assert(
-      (targetId === 0) === (sequenceNumber !== undefined),
-      'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
-    );
-  }
+	constructor(
+		/**
+		 * The targetId identifying a target or 0 for a sentinel row.
+		 */
+		public targetId: TargetId,
+		/**
+		 * The path to the document, as encoded in the key.
+		 */
+		public path: EncodedResourcePath,
+		/**
+		 * If this is a sentinel row, this should be the sequence number of the last
+		 * time the document specified by `path` was used. Otherwise, it should be
+		 * `undefined`.
+		 */
+		public sequenceNumber?: ListenSequenceNumber
+	) {
+		assert(
+			(targetId === 0) === (sequenceNumber !== undefined),
+			'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
+		);
+	}
 }
 
 /**
@@ -869,40 +869,40 @@ export type DbTargetGlobalKey = typeof DbTargetGlobal.key;
  * This should be kept in-sync with the proto used in the iOS client.
  */
 export class DbTargetGlobal {
-  /**
-   * The key string used for the single object that exists in the
-   * DbTargetGlobal store.
-   */
-  static key = 'targetGlobalKey';
-  static store = 'targetGlobal';
+	/**
+	 * The key string used for the single object that exists in the
+	 * DbTargetGlobal store.
+	 */
+	static key = 'targetGlobalKey';
+	static store = 'targetGlobal';
 
-  constructor(
-    /**
-     * The highest numbered target id across all targets.
-     *
-     * See DbTarget.targetId.
-     */
-    public highestTargetId: TargetId,
-    /**
-     * The highest numbered lastListenSequenceNumber across all targets.
-     *
-     * See DbTarget.lastListenSequenceNumber.
-     */
-    public highestListenSequenceNumber: number,
-    /**
-     * A global snapshot version representing the last consistent snapshot we
-     * received from the backend. This is monotonically increasing and any
-     * snapshots received from the backend prior to this version (e.g. for
-     * targets resumed with a resumeToken) should be suppressed (buffered)
-     * until the backend has caught up to this snapshot version again. This
-     * prevents our cache from ever going backwards in time.
-     */
-    public lastRemoteSnapshotVersion: DbTimestamp,
-    /**
-     * The number of targets persisted.
-     */
-    public targetCount: number
-  ) {}
+	constructor(
+		/**
+		 * The highest numbered target id across all targets.
+		 *
+		 * See DbTarget.targetId.
+		 */
+		public highestTargetId: TargetId,
+		/**
+		 * The highest numbered lastListenSequenceNumber across all targets.
+		 *
+		 * See DbTarget.lastListenSequenceNumber.
+		 */
+		public highestListenSequenceNumber: number,
+		/**
+		 * A global snapshot version representing the last consistent snapshot we
+		 * received from the backend. This is monotonically increasing and any
+		 * snapshots received from the backend prior to this version (e.g. for
+		 * targets resumed with a resumeToken) should be suppressed (buffered)
+		 * until the backend has caught up to this snapshot version again. This
+		 * prevents our cache from ever going backwards in time.
+		 */
+		public lastRemoteSnapshotVersion: DbTimestamp,
+		/**
+		 * The number of targets persisted.
+		 */
+		public targetCount: number
+	) {}
 }
 
 /**
@@ -919,58 +919,58 @@ export type DbCollectionParentKey = [string, EncodedResourcePath];
  * a Collection Group query.
  */
 export class DbCollectionParent {
-  /** Name of the IndexedDb object store. */
-  static store = 'collectionParents';
+	/** Name of the IndexedDb object store. */
+	static store = 'collectionParents';
 
-  /** Keys are automatically assigned via the collectionId, parent properties. */
-  static keyPath = ['collectionId', 'parent'];
+	/** Keys are automatically assigned via the collectionId, parent properties. */
+	static keyPath = ['collectionId', 'parent'];
 
-  constructor(
-    /**
-     * The collectionId (e.g. 'messages')
-     */
-    public collectionId: string,
-    /**
-     * The path to the parent (either a document location or an empty path for
-     * a root-level collection).
-     */
-    public parent: EncodedResourcePath
-  ) {}
+	constructor(
+		/**
+		 * The collectionId (e.g. 'messages')
+		 */
+		public collectionId: string,
+		/**
+		 * The path to the parent (either a document location or an empty path for
+		 * a root-level collection).
+		 */
+		public parent: EncodedResourcePath
+	) {}
 }
 
 function createQueryCache(db: IDBDatabase): void {
-  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath
-  });
-  targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
-    { unique: true }
-  );
+	const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
+		keyPath: DbTargetDocument.keyPath
+	});
+	targetDocumentsStore.createIndex(
+		DbTargetDocument.documentTargetsIndex,
+		DbTargetDocument.documentTargetsKeyPath,
+		{ unique: true }
+	);
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
-  });
+	const targetStore = db.createObjectStore(DbTarget.store, {
+		keyPath: DbTarget.keyPath
+	});
 
-  // NOTE: This is unique only because the TargetId is the suffix.
-  targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
-    { unique: true }
-  );
-  db.createObjectStore(DbTargetGlobal.store);
+	// NOTE: This is unique only because the TargetId is the suffix.
+	targetStore.createIndex(
+		DbTarget.queryTargetsIndexName,
+		DbTarget.queryTargetsKeyPath,
+		{ unique: true }
+	);
+	db.createObjectStore(DbTargetGlobal.store);
 }
 
 function dropQueryCache(db: IDBDatabase): void {
-  db.deleteObjectStore(DbTargetDocument.store);
-  db.deleteObjectStore(DbTarget.store);
-  db.deleteObjectStore(DbTargetGlobal.store);
+	db.deleteObjectStore(DbTargetDocument.store);
+	db.deleteObjectStore(DbTarget.store);
+	db.deleteObjectStore(DbTargetGlobal.store);
 }
 
 function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
-  if (db.objectStoreNames.contains('remoteDocumentChanges')) {
-    db.deleteObjectStore('remoteDocumentChanges');
-  }
+	if (db.objectStoreNames.contains('remoteDocumentChanges')) {
+		db.deleteObjectStore('remoteDocumentChanges');
+	}
 }
 
 /**
@@ -979,18 +979,18 @@ function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
 function writeEmptyTargetGlobalEntry(
-  txn: SimpleDbTransaction
+	txn: SimpleDbTransaction
 ): PersistencePromise<void> {
-  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-    DbTargetGlobal.store
-  );
-  const metadata = new DbTargetGlobal(
-    /*highestTargetId=*/ 0,
-    /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp(),
-    /*targetCount=*/ 0
-  );
-  return globalStore.put(DbTargetGlobal.key, metadata);
+	const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+		DbTargetGlobal.store
+	);
+	const metadata = new DbTargetGlobal(
+		/*highestTargetId=*/ 0,
+		/*lastListenSequenceNumber=*/ 0,
+		SnapshotVersion.MIN.toTimestamp(),
+		/*targetCount=*/ 0
+	);
+	return globalStore.put(DbTargetGlobal.key, metadata);
 }
 
 /**
@@ -998,17 +998,17 @@ function writeEmptyTargetGlobalEntry(
  * and Index-Free queries.
  */
 function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.readTimeIndex,
-    DbRemoteDocument.readTimeIndexPath,
-    { unique: false }
-  );
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.collectionReadTimeIndex,
-    DbRemoteDocument.collectionReadTimeIndexPath,
-    { unique: false }
-  );
+	const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
+	remoteDocumentStore.createIndex(
+		DbRemoteDocument.readTimeIndex,
+		DbRemoteDocument.readTimeIndexPath,
+		{ unique: false }
+	);
+	remoteDocumentStore.createIndex(
+		DbRemoteDocument.collectionReadTimeIndex,
+		DbRemoteDocument.collectionReadTimeIndexPath,
+		{ unique: false }
+	);
 }
 
 /**
@@ -1018,46 +1018,46 @@ function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
  * to be ported to iOS or Android.
  */
 export class DbClientMetadata {
-  /** Name of the IndexedDb object store. */
-  static store = 'clientMetadata';
+	/** Name of the IndexedDb object store. */
+	static store = 'clientMetadata';
 
-  /** Keys are automatically assigned via the clientId properties. */
-  static keyPath = 'clientId';
+	/** Keys are automatically assigned via the clientId properties. */
+	static keyPath = 'clientId';
 
-  constructor(
-    // Note: Previous schema versions included a field
-    // "lastProcessedDocumentChangeId". Don't use anymore.
+	constructor(
+		// Note: Previous schema versions included a field
+		// "lastProcessedDocumentChangeId". Don't use anymore.
 
-    /** The auto-generated client id assigned at client startup. */
-    public clientId: string,
-    /** The last time this state was updated. */
-    public updateTimeMs: number,
-    /** Whether the client's network connection is enabled. */
-    public networkEnabled: boolean,
-    /** Whether this client is running in a foreground tab. */
-    public inForeground: boolean
-  ) {}
+		/** The auto-generated client id assigned at client startup. */
+		public clientId: string,
+		/** The last time this state was updated. */
+		public updateTimeMs: number,
+		/** Whether the client's network connection is enabled. */
+		public networkEnabled: boolean,
+		/** Whether this client is running in a foreground tab. */
+		public inForeground: boolean
+	) {}
 }
 
 /** Object keys in the 'clientMetadata' store are clientId strings. */
 export type DbClientMetadataKey = string;
 
 function createClientMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath
-  });
+	db.createObjectStore(DbClientMetadata.store, {
+		keyPath: DbClientMetadata.keyPath
+	});
 }
 
 // Visible for testing
 export const V1_STORES = [
-  DbMutationQueue.store,
-  DbMutationBatch.store,
-  DbDocumentMutation.store,
-  DbRemoteDocument.store,
-  DbTarget.store,
-  DbPrimaryClient.store,
-  DbTargetGlobal.store,
-  DbTargetDocument.store
+	DbMutationQueue.store,
+	DbMutationBatch.store,
+	DbDocumentMutation.store,
+	DbRemoteDocument.store,
+	DbTarget.store,
+	DbPrimaryClient.store,
+	DbTargetGlobal.store,
+	DbTargetDocument.store
 ];
 
 // V2 is no longer usable (see comment at top of file)

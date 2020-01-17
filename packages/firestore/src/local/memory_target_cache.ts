@@ -33,219 +33,219 @@ import { TargetData } from './target_data';
 import { Target } from '../core/target';
 
 export class MemoryTargetCache implements TargetCache {
-  /**
-   * Maps a target to the data about that target
-   */
-  private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
+	/**
+	 * Maps a target to the data about that target
+	 */
+	private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
 
-  /** The last received snapshot version. */
-  private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
-  /** The highest numbered target ID encountered. */
-  private highestTargetId: TargetId = 0;
-  /** The highest sequence number encountered. */
-  private highestSequenceNumber: ListenSequenceNumber = 0;
-  /**
-   * A ordered bidirectional mapping between documents and the remote target
-   * IDs.
-   */
-  private references = new ReferenceSet();
+	/** The last received snapshot version. */
+	private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
+	/** The highest numbered target ID encountered. */
+	private highestTargetId: TargetId = 0;
+	/** The highest sequence number encountered. */
+	private highestSequenceNumber: ListenSequenceNumber = 0;
+	/**
+	 * A ordered bidirectional mapping between documents and the remote target
+	 * IDs.
+	 */
+	private references = new ReferenceSet();
 
-  private targetCount = 0;
+	private targetCount = 0;
 
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
+	private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
-  constructor(private readonly persistence: MemoryPersistence) {}
+	constructor(private readonly persistence: MemoryPersistence) {}
 
-  forEachTarget(
-    txn: PersistenceTransaction,
-    f: (q: TargetData) => void
-  ): PersistencePromise<void> {
-    this.targets.forEach((_, targetData) => f(targetData));
-    return PersistencePromise.resolve();
-  }
+	forEachTarget(
+		txn: PersistenceTransaction,
+		f: (q: TargetData) => void
+	): PersistencePromise<void> {
+		this.targets.forEach((_, targetData) => f(targetData));
+		return PersistencePromise.resolve();
+	}
 
-  getLastRemoteSnapshotVersion(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion> {
-    return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
-  }
+	getLastRemoteSnapshotVersion(
+		transaction: PersistenceTransaction
+	): PersistencePromise<SnapshotVersion> {
+		return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
+	}
 
-  getHighestSequenceNumber(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ListenSequenceNumber> {
-    return PersistencePromise.resolve(this.highestSequenceNumber);
-  }
+	getHighestSequenceNumber(
+		transaction: PersistenceTransaction
+	): PersistencePromise<ListenSequenceNumber> {
+		return PersistencePromise.resolve(this.highestSequenceNumber);
+	}
 
-  allocateTargetId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<TargetId> {
-    const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
-    this.highestTargetId = nextTargetId;
-    return PersistencePromise.resolve(nextTargetId);
-  }
+	allocateTargetId(
+		transaction: PersistenceTransaction
+	): PersistencePromise<TargetId> {
+		const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
+		this.highestTargetId = nextTargetId;
+		return PersistencePromise.resolve(nextTargetId);
+	}
 
-  setTargetsMetadata(
-    transaction: PersistenceTransaction,
-    highestListenSequenceNumber: number,
-    lastRemoteSnapshotVersion?: SnapshotVersion
-  ): PersistencePromise<void> {
-    if (lastRemoteSnapshotVersion) {
-      this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
-    }
-    if (highestListenSequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = highestListenSequenceNumber;
-    }
-    return PersistencePromise.resolve();
-  }
+	setTargetsMetadata(
+		transaction: PersistenceTransaction,
+		highestListenSequenceNumber: number,
+		lastRemoteSnapshotVersion?: SnapshotVersion
+	): PersistencePromise<void> {
+		if (lastRemoteSnapshotVersion) {
+			this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
+		}
+		if (highestListenSequenceNumber > this.highestSequenceNumber) {
+			this.highestSequenceNumber = highestListenSequenceNumber;
+		}
+		return PersistencePromise.resolve();
+	}
 
-  private saveTargetData(targetData: TargetData): void {
-    this.targets.set(targetData.target, targetData);
-    const targetId = targetData.targetId;
-    if (targetId > this.highestTargetId) {
-      this.highestTargetId = targetId;
-    }
-    if (targetData.sequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = targetData.sequenceNumber;
-    }
-  }
+	private saveTargetData(targetData: TargetData): void {
+		this.targets.set(targetData.target, targetData);
+		const targetId = targetData.targetId;
+		if (targetId > this.highestTargetId) {
+			this.highestTargetId = targetId;
+		}
+		if (targetData.sequenceNumber > this.highestSequenceNumber) {
+			this.highestSequenceNumber = targetData.sequenceNumber;
+		}
+	}
 
-  addTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void> {
-    assert(
-      !this.targets.has(targetData.target),
-      'Adding a target that already exists'
-    );
-    this.saveTargetData(targetData);
-    this.targetCount += 1;
-    return PersistencePromise.resolve();
-  }
+	addTargetData(
+		transaction: PersistenceTransaction,
+		targetData: TargetData
+	): PersistencePromise<void> {
+		assert(
+			!this.targets.has(targetData.target),
+			'Adding a target that already exists'
+		);
+		this.saveTargetData(targetData);
+		this.targetCount += 1;
+		return PersistencePromise.resolve();
+	}
 
-  updateTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void> {
-    assert(
-      this.targets.has(targetData.target),
-      'Updating a non-existent target'
-    );
-    this.saveTargetData(targetData);
-    return PersistencePromise.resolve();
-  }
+	updateTargetData(
+		transaction: PersistenceTransaction,
+		targetData: TargetData
+	): PersistencePromise<void> {
+		assert(
+			this.targets.has(targetData.target),
+			'Updating a non-existent target'
+		);
+		this.saveTargetData(targetData);
+		return PersistencePromise.resolve();
+	}
 
-  removeTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void> {
-    assert(this.targetCount > 0, 'Removing a target from an empty cache');
-    assert(
-      this.targets.has(targetData.target),
-      'Removing a non-existent target from the cache'
-    );
-    this.targets.delete(targetData.target);
-    this.references.removeReferencesForId(targetData.targetId);
-    this.targetCount -= 1;
-    return PersistencePromise.resolve();
-  }
+	removeTargetData(
+		transaction: PersistenceTransaction,
+		targetData: TargetData
+	): PersistencePromise<void> {
+		assert(this.targetCount > 0, 'Removing a target from an empty cache');
+		assert(
+			this.targets.has(targetData.target),
+			'Removing a non-existent target from the cache'
+		);
+		this.targets.delete(targetData.target);
+		this.references.removeReferencesForId(targetData.targetId);
+		this.targetCount -= 1;
+		return PersistencePromise.resolve();
+	}
 
-  removeTargets(
-    transaction: PersistenceTransaction,
-    upperBound: ListenSequenceNumber,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<number> {
-    let count = 0;
-    const removals: Array<PersistencePromise<void>> = [];
-    this.targets.forEach((key, targetData) => {
-      if (
-        targetData.sequenceNumber <= upperBound &&
-        activeTargetIds.get(targetData.targetId) === null
-      ) {
-        this.targets.delete(key);
-        removals.push(
-          this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
-        );
-        count++;
-      }
-    });
-    return PersistencePromise.waitFor(removals).next(() => count);
-  }
+	removeTargets(
+		transaction: PersistenceTransaction,
+		upperBound: ListenSequenceNumber,
+		activeTargetIds: ActiveTargets
+	): PersistencePromise<number> {
+		let count = 0;
+		const removals: Array<PersistencePromise<void>> = [];
+		this.targets.forEach((key, targetData) => {
+			if (
+				targetData.sequenceNumber <= upperBound &&
+				activeTargetIds.get(targetData.targetId) === null
+			) {
+				this.targets.delete(key);
+				removals.push(
+					this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
+				);
+				count++;
+			}
+		});
+		return PersistencePromise.waitFor(removals).next(() => count);
+	}
 
-  getTargetCount(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<number> {
-    return PersistencePromise.resolve(this.targetCount);
-  }
+	getTargetCount(
+		transaction: PersistenceTransaction
+	): PersistencePromise<number> {
+		return PersistencePromise.resolve(this.targetCount);
+	}
 
-  getTargetData(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<TargetData | null> {
-    const targetData = this.targets.get(target) || null;
-    return PersistencePromise.resolve(targetData);
-  }
+	getTargetData(
+		transaction: PersistenceTransaction,
+		target: Target
+	): PersistencePromise<TargetData | null> {
+		const targetData = this.targets.get(target) || null;
+		return PersistencePromise.resolve(targetData);
+	}
 
-  getTargetDataForTarget(
-    transaction: PersistenceTransaction,
-    targetId: TargetId
-  ): never {
-    // This method is only needed for multi-tab and we can't implement it
-    // efficiently without additional data structures.
-    return fail('Not yet implemented.');
-  }
+	getTargetDataForTarget(
+		transaction: PersistenceTransaction,
+		targetId: TargetId
+	): never {
+		// This method is only needed for multi-tab and we can't implement it
+		// efficiently without additional data structures.
+		return fail('Not yet implemented.');
+	}
 
-  addMatchingKeys(
-    txn: PersistenceTransaction,
-    keys: DocumentKeySet,
-    targetId: TargetId
-  ): PersistencePromise<void> {
-    this.references.addReferences(keys, targetId);
-    const referenceDelegate = this.persistence.referenceDelegate;
-    const promises: Array<PersistencePromise<void>> = [];
-    if (referenceDelegate) {
-      keys.forEach(key => {
-        promises.push(referenceDelegate.addReference(txn, key));
-      });
-    }
-    return PersistencePromise.waitFor(promises);
-  }
+	addMatchingKeys(
+		txn: PersistenceTransaction,
+		keys: DocumentKeySet,
+		targetId: TargetId
+	): PersistencePromise<void> {
+		this.references.addReferences(keys, targetId);
+		const referenceDelegate = this.persistence.referenceDelegate;
+		const promises: Array<PersistencePromise<void>> = [];
+		if (referenceDelegate) {
+			keys.forEach(key => {
+				promises.push(referenceDelegate.addReference(txn, key));
+			});
+		}
+		return PersistencePromise.waitFor(promises);
+	}
 
-  removeMatchingKeys(
-    txn: PersistenceTransaction,
-    keys: DocumentKeySet,
-    targetId: TargetId
-  ): PersistencePromise<void> {
-    this.references.removeReferences(keys, targetId);
-    const referenceDelegate = this.persistence.referenceDelegate;
-    const promises: Array<PersistencePromise<void>> = [];
-    if (referenceDelegate) {
-      keys.forEach(key => {
-        promises.push(referenceDelegate.removeReference(txn, key));
-      });
-    }
-    return PersistencePromise.waitFor(promises);
-  }
+	removeMatchingKeys(
+		txn: PersistenceTransaction,
+		keys: DocumentKeySet,
+		targetId: TargetId
+	): PersistencePromise<void> {
+		this.references.removeReferences(keys, targetId);
+		const referenceDelegate = this.persistence.referenceDelegate;
+		const promises: Array<PersistencePromise<void>> = [];
+		if (referenceDelegate) {
+			keys.forEach(key => {
+				promises.push(referenceDelegate.removeReference(txn, key));
+			});
+		}
+		return PersistencePromise.waitFor(promises);
+	}
 
-  removeMatchingKeysForTargetId(
-    txn: PersistenceTransaction,
-    targetId: TargetId
-  ): PersistencePromise<void> {
-    this.references.removeReferencesForId(targetId);
-    return PersistencePromise.resolve();
-  }
+	removeMatchingKeysForTargetId(
+		txn: PersistenceTransaction,
+		targetId: TargetId
+	): PersistencePromise<void> {
+		this.references.removeReferencesForId(targetId);
+		return PersistencePromise.resolve();
+	}
 
-  getMatchingKeysForTargetId(
-    txn: PersistenceTransaction,
-    targetId: TargetId
-  ): PersistencePromise<DocumentKeySet> {
-    const matchingKeys = this.references.referencesForId(targetId);
-    return PersistencePromise.resolve(matchingKeys);
-  }
+	getMatchingKeysForTargetId(
+		txn: PersistenceTransaction,
+		targetId: TargetId
+	): PersistencePromise<DocumentKeySet> {
+		const matchingKeys = this.references.referencesForId(targetId);
+		return PersistencePromise.resolve(matchingKeys);
+	}
 
-  containsKey(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<boolean> {
-    return PersistencePromise.resolve(this.references.containsKey(key));
-  }
+	containsKey(
+		txn: PersistenceTransaction,
+		key: DocumentKey
+	): PersistencePromise<boolean> {
+		return PersistencePromise.resolve(this.references.containsKey(key));
+	}
 }

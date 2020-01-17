@@ -49,149 +49,149 @@ const ONLINE_STATE_TIMEOUT_MS = 10 * 1000;
  * it is offline (get()s will return cached data, etc.).
  */
 export class OnlineStateTracker {
-  /** The current OnlineState. */
-  private state = OnlineState.Unknown;
+	/** The current OnlineState. */
+	private state = OnlineState.Unknown;
 
-  /**
-   * A count of consecutive failures to open the stream. If it reaches the
-   * maximum defined by MAX_WATCH_STREAM_FAILURES, we'll set the OnlineState to
-   * Offline.
-   */
-  private watchStreamFailures = 0;
+	/**
+	 * A count of consecutive failures to open the stream. If it reaches the
+	 * maximum defined by MAX_WATCH_STREAM_FAILURES, we'll set the OnlineState to
+	 * Offline.
+	 */
+	private watchStreamFailures = 0;
 
-  /**
-   * A timer that elapses after ONLINE_STATE_TIMEOUT_MS, at which point we
-   * transition from OnlineState.Unknown to OnlineState.Offline without waiting
-   * for the stream to actually fail (MAX_WATCH_STREAM_FAILURES times).
-   */
-  private onlineStateTimer: CancelablePromise<void> | null = null;
+	/**
+	 * A timer that elapses after ONLINE_STATE_TIMEOUT_MS, at which point we
+	 * transition from OnlineState.Unknown to OnlineState.Offline without waiting
+	 * for the stream to actually fail (MAX_WATCH_STREAM_FAILURES times).
+	 */
+	private onlineStateTimer: CancelablePromise<void> | null = null;
 
-  /**
-   * Whether the client should log a warning message if it fails to connect to
-   * the backend (initially true, cleared after a successful stream, or if we've
-   * logged the message already).
-   */
-  private shouldWarnClientIsOffline = true;
+	/**
+	 * Whether the client should log a warning message if it fails to connect to
+	 * the backend (initially true, cleared after a successful stream, or if we've
+	 * logged the message already).
+	 */
+	private shouldWarnClientIsOffline = true;
 
-  constructor(
-    private asyncQueue: AsyncQueue,
-    private onlineStateHandler: (onlineState: OnlineState) => void
-  ) {}
+	constructor(
+		private asyncQueue: AsyncQueue,
+		private onlineStateHandler: (onlineState: OnlineState) => void
+	) {}
 
-  /**
-   * Called by RemoteStore when a watch stream is started (including on each
-   * backoff attempt).
-   *
-   * If this is the first attempt, it sets the OnlineState to Unknown and starts
-   * the onlineStateTimer.
-   */
-  handleWatchStreamStart(): void {
-    if (this.watchStreamFailures === 0) {
-      this.setAndBroadcast(OnlineState.Unknown);
+	/**
+	 * Called by RemoteStore when a watch stream is started (including on each
+	 * backoff attempt).
+	 *
+	 * If this is the first attempt, it sets the OnlineState to Unknown and starts
+	 * the onlineStateTimer.
+	 */
+	handleWatchStreamStart(): void {
+		if (this.watchStreamFailures === 0) {
+			this.setAndBroadcast(OnlineState.Unknown);
 
-      assert(
-        this.onlineStateTimer === null,
-        `onlineStateTimer shouldn't be started yet`
-      );
-      this.onlineStateTimer = this.asyncQueue.enqueueAfterDelay(
-        TimerId.OnlineStateTimeout,
-        ONLINE_STATE_TIMEOUT_MS,
-        () => {
-          this.onlineStateTimer = null;
-          assert(
-            this.state === OnlineState.Unknown,
-            'Timer should be canceled if we transitioned to a different state.'
-          );
-          this.logClientOfflineWarningIfNecessary(
-            `Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
-              `seconds.`
-          );
-          this.setAndBroadcast(OnlineState.Offline);
+			assert(
+				this.onlineStateTimer === null,
+				`onlineStateTimer shouldn't be started yet`
+			);
+			this.onlineStateTimer = this.asyncQueue.enqueueAfterDelay(
+				TimerId.OnlineStateTimeout,
+				ONLINE_STATE_TIMEOUT_MS,
+				() => {
+					this.onlineStateTimer = null;
+					assert(
+						this.state === OnlineState.Unknown,
+						'Timer should be canceled if we transitioned to a different state.'
+					);
+					this.logClientOfflineWarningIfNecessary(
+						`Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
+							`seconds.`
+					);
+					this.setAndBroadcast(OnlineState.Offline);
 
-          // NOTE: handleWatchStreamFailure() will continue to increment
-          // watchStreamFailures even though we are already marked Offline,
-          // but this is non-harmful.
+					// NOTE: handleWatchStreamFailure() will continue to increment
+					// watchStreamFailures even though we are already marked Offline,
+					// but this is non-harmful.
 
-          return Promise.resolve();
-        }
-      );
-    }
-  }
+					return Promise.resolve();
+				}
+			);
+		}
+	}
 
-  /**
-   * Updates our OnlineState as appropriate after the watch stream reports a
-   * failure. The first failure moves us to the 'Unknown' state. We then may
-   * allow multiple failures (based on MAX_WATCH_STREAM_FAILURES) before we
-   * actually transition to the 'Offline' state.
-   */
-  handleWatchStreamFailure(error: FirestoreError): void {
-    if (this.state === OnlineState.Online) {
-      this.setAndBroadcast(OnlineState.Unknown);
+	/**
+	 * Updates our OnlineState as appropriate after the watch stream reports a
+	 * failure. The first failure moves us to the 'Unknown' state. We then may
+	 * allow multiple failures (based on MAX_WATCH_STREAM_FAILURES) before we
+	 * actually transition to the 'Offline' state.
+	 */
+	handleWatchStreamFailure(error: FirestoreError): void {
+		if (this.state === OnlineState.Online) {
+			this.setAndBroadcast(OnlineState.Unknown);
 
-      // To get to OnlineState.Online, set() must have been called which would
-      // have reset our heuristics.
-      assert(this.watchStreamFailures === 0, 'watchStreamFailures must be 0');
-      assert(this.onlineStateTimer === null, 'onlineStateTimer must be null');
-    } else {
-      this.watchStreamFailures++;
-      if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {
-        this.clearOnlineStateTimer();
+			// To get to OnlineState.Online, set() must have been called which would
+			// have reset our heuristics.
+			assert(this.watchStreamFailures === 0, 'watchStreamFailures must be 0');
+			assert(this.onlineStateTimer === null, 'onlineStateTimer must be null');
+		} else {
+			this.watchStreamFailures++;
+			if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {
+				this.clearOnlineStateTimer();
 
-        this.logClientOfflineWarningIfNecessary(
-          `Connection failed ${MAX_WATCH_STREAM_FAILURES} ` +
-            `times. Most recent error: ${error.toString()}`
-        );
+				this.logClientOfflineWarningIfNecessary(
+					`Connection failed ${MAX_WATCH_STREAM_FAILURES} ` +
+						`times. Most recent error: ${error.toString()}`
+				);
 
-        this.setAndBroadcast(OnlineState.Offline);
-      }
-    }
-  }
+				this.setAndBroadcast(OnlineState.Offline);
+			}
+		}
+	}
 
-  /**
-   * Explicitly sets the OnlineState to the specified state.
-   *
-   * Note that this resets our timers / failure counters, etc. used by our
-   * Offline heuristics, so must not be used in place of
-   * handleWatchStreamStart() and handleWatchStreamFailure().
-   */
-  set(newState: OnlineState): void {
-    this.clearOnlineStateTimer();
-    this.watchStreamFailures = 0;
+	/**
+	 * Explicitly sets the OnlineState to the specified state.
+	 *
+	 * Note that this resets our timers / failure counters, etc. used by our
+	 * Offline heuristics, so must not be used in place of
+	 * handleWatchStreamStart() and handleWatchStreamFailure().
+	 */
+	set(newState: OnlineState): void {
+		this.clearOnlineStateTimer();
+		this.watchStreamFailures = 0;
 
-    if (newState === OnlineState.Online) {
-      // We've connected to watch at least once. Don't warn the developer
-      // about being offline going forward.
-      this.shouldWarnClientIsOffline = false;
-    }
+		if (newState === OnlineState.Online) {
+			// We've connected to watch at least once. Don't warn the developer
+			// about being offline going forward.
+			this.shouldWarnClientIsOffline = false;
+		}
 
-    this.setAndBroadcast(newState);
-  }
+		this.setAndBroadcast(newState);
+	}
 
-  private setAndBroadcast(newState: OnlineState): void {
-    if (newState !== this.state) {
-      this.state = newState;
-      this.onlineStateHandler(newState);
-    }
-  }
+	private setAndBroadcast(newState: OnlineState): void {
+		if (newState !== this.state) {
+			this.state = newState;
+			this.onlineStateHandler(newState);
+		}
+	}
 
-  private logClientOfflineWarningIfNecessary(details: string): void {
-    const message =
-      `Could not reach Cloud Firestore backend. ${details}\n` +
-      `This typically indicates that your device does not have a healthy ` +
-      `Internet connection at the moment. The client will operate in offline ` +
-      `mode until it is able to successfully connect to the backend.`;
-    if (this.shouldWarnClientIsOffline) {
-      log.error(message);
-      this.shouldWarnClientIsOffline = false;
-    } else {
-      log.debug(LOG_TAG, message);
-    }
-  }
+	private logClientOfflineWarningIfNecessary(details: string): void {
+		const message =
+			`Could not reach Cloud Firestore backend. ${details}\n` +
+			`This typically indicates that your device does not have a healthy ` +
+			`Internet connection at the moment. The client will operate in offline ` +
+			`mode until it is able to successfully connect to the backend.`;
+		if (this.shouldWarnClientIsOffline) {
+			log.error(message);
+			this.shouldWarnClientIsOffline = false;
+		} else {
+			log.debug(LOG_TAG, message);
+		}
+	}
 
-  private clearOnlineStateTimer(): void {
-    if (this.onlineStateTimer !== null) {
-      this.onlineStateTimer.cancel();
-      this.onlineStateTimer = null;
-    }
-  }
+	private clearOnlineStateTimer(): void {
+		if (this.onlineStateTimer !== null) {
+			this.onlineStateTimer.cancel();
+			this.onlineStateTimer = null;
+		}
+	}
 }

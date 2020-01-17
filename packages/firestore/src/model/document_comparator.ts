@@ -21,5 +21,5 @@ import { DocumentKey } from './document_key';
 export type DocumentComparator = (doc1: Document, doc2: Document) => number;
 
 export function compareByKey(doc1: Document, doc2: Document): number {
-  return DocumentKey.comparator(doc1.key, doc2.key);
+	return DocumentKey.comparator(doc1.key, doc2.key);
 }

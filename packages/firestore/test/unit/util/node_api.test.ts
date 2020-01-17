@@ -19,25 +19,25 @@ import { expect } from 'chai';
 import { NodeCallback, nodePromise } from '../../../src/util/node_api';
 
 describe('nodePromise', () => {
-  it('resolves on success value', () => {
-    return nodePromise((callback: NodeCallback<string>) => {
-      callback(null, 'success');
-    }).then((value: string) => {
-      expect(value).to.equal('success');
-    });
-  });
+	it('resolves on success value', () => {
+		return nodePromise((callback: NodeCallback<string>) => {
+			callback(null, 'success');
+		}).then((value: string) => {
+			expect(value).to.equal('success');
+		});
+	});
 
-  it('rejects on error', () => {
-    const expected = new Error('error');
+	it('rejects on error', () => {
+		const expected = new Error('error');
 
-    return nodePromise((callback: NodeCallback<string>) => {
-      callback(expected);
-    })
-      .then((value: string) => {
-        expect.fail('should not have returned a value, got: ' + value);
-      })
-      .catch((err: unknown) => {
-        expect(err).to.equal(expected);
-      });
-  });
+		return nodePromise((callback: NodeCallback<string>) => {
+			callback(expected);
+		})
+			.then((value: string) => {
+				expect.fail('should not have returned a value, got: ' + value);
+			})
+			.catch((err: unknown) => {
+				expect(err).to.equal(expected);
+			});
+	});
 });

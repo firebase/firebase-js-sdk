@@ -73,39 +73,39 @@ const encodedEscape = '\u0011';
  * Encodes a resource path into a IndexedDb-compatible string form.
  */
 export function encode(path: ResourcePath): EncodedResourcePath {
-  let result = '';
-  for (let i = 0; i < path.length; i++) {
-    if (result.length > 0) {
-      result = encodeSeparator(result);
-    }
-    result = encodeSegment(path.get(i), result);
-  }
-  return encodeSeparator(result);
+	let result = '';
+	for (let i = 0; i < path.length; i++) {
+		if (result.length > 0) {
+			result = encodeSeparator(result);
+		}
+		result = encodeSegment(path.get(i), result);
+	}
+	return encodeSeparator(result);
 }
 
 /** Encodes a single segment of a resource path into the given result */
 function encodeSegment(segment: string, resultBuf: string): string {
-  let result = resultBuf;
-  const length = segment.length;
-  for (let i = 0; i < length; i++) {
-    const c = segment.charAt(i);
-    switch (c) {
-      case '\0':
-        result += escapeChar + encodedNul;
-        break;
-      case escapeChar:
-        result += escapeChar + encodedEscape;
-        break;
-      default:
-        result += c;
-    }
-  }
-  return result;
+	let result = resultBuf;
+	const length = segment.length;
+	for (let i = 0; i < length; i++) {
+		const c = segment.charAt(i);
+		switch (c) {
+			case '\0':
+				result += escapeChar + encodedNul;
+				break;
+			case escapeChar:
+				result += escapeChar + encodedEscape;
+				break;
+			default:
+				result += c;
+		}
+	}
+	return result;
 }
 
 /** Encodes a path separator into the given result */
 function encodeSeparator(result: string): string {
-  return result + escapeChar + encodedSeparatorChar;
+	return result + escapeChar + encodedSeparatorChar;
 }
 
 /**
@@ -115,65 +115,65 @@ function encodeSeparator(result: string): string {
  * strings.
  */
 export function decode(path: EncodedResourcePath): ResourcePath {
-  // Event the empty path must encode as a path of at least length 2. A path
-  // with exactly 2 must be the empty path.
-  const length = path.length;
-  assert(length >= 2, 'Invalid path ' + path);
-  if (length === 2) {
-    assert(
-      path.charAt(0) === escapeChar && path.charAt(1) === encodedSeparatorChar,
-      'Non-empty path ' + path + ' had length 2'
-    );
-    return ResourcePath.EMPTY_PATH;
-  }
+	// Event the empty path must encode as a path of at least length 2. A path
+	// with exactly 2 must be the empty path.
+	const length = path.length;
+	assert(length >= 2, 'Invalid path ' + path);
+	if (length === 2) {
+		assert(
+			path.charAt(0) === escapeChar && path.charAt(1) === encodedSeparatorChar,
+			'Non-empty path ' + path + ' had length 2'
+		);
+		return ResourcePath.EMPTY_PATH;
+	}
 
-  // Escape characters cannot exist past the second-to-last position in the
-  // source value.
-  const lastReasonableEscapeIndex = length - 2;
+	// Escape characters cannot exist past the second-to-last position in the
+	// source value.
+	const lastReasonableEscapeIndex = length - 2;
 
-  const segments: string[] = [];
-  let segmentBuilder = '';
+	const segments: string[] = [];
+	let segmentBuilder = '';
 
-  for (let start = 0; start < length; ) {
-    // The last two characters of a valid encoded path must be a separator, so
-    // there must be an end to this segment.
-    const end = path.indexOf(escapeChar, start);
-    if (end < 0 || end > lastReasonableEscapeIndex) {
-      fail('Invalid encoded resource path: "' + path + '"');
-    }
+	for (let start = 0; start < length; ) {
+		// The last two characters of a valid encoded path must be a separator, so
+		// there must be an end to this segment.
+		const end = path.indexOf(escapeChar, start);
+		if (end < 0 || end > lastReasonableEscapeIndex) {
+			fail('Invalid encoded resource path: "' + path + '"');
+		}
 
-    const next = path.charAt(end + 1);
-    switch (next) {
-      case encodedSeparatorChar:
-        const currentPiece = path.substring(start, end);
-        let segment;
-        if (segmentBuilder.length === 0) {
-          // Avoid copying for the common case of a segment that excludes \0
-          // and \001
-          segment = currentPiece;
-        } else {
-          segmentBuilder += currentPiece;
-          segment = segmentBuilder;
-          segmentBuilder = '';
-        }
-        segments.push(segment);
-        break;
-      case encodedNul:
-        segmentBuilder += path.substring(start, end);
-        segmentBuilder += '\0';
-        break;
-      case encodedEscape:
-        // The escape character can be used in the output to encode itself.
-        segmentBuilder += path.substring(start, end + 1);
-        break;
-      default:
-        fail('Invalid encoded resource path: "' + path + '"');
-    }
+		const next = path.charAt(end + 1);
+		switch (next) {
+			case encodedSeparatorChar:
+				const currentPiece = path.substring(start, end);
+				let segment;
+				if (segmentBuilder.length === 0) {
+					// Avoid copying for the common case of a segment that excludes \0
+					// and \001
+					segment = currentPiece;
+				} else {
+					segmentBuilder += currentPiece;
+					segment = segmentBuilder;
+					segmentBuilder = '';
+				}
+				segments.push(segment);
+				break;
+			case encodedNul:
+				segmentBuilder += path.substring(start, end);
+				segmentBuilder += '\0';
+				break;
+			case encodedEscape:
+				// The escape character can be used in the output to encode itself.
+				segmentBuilder += path.substring(start, end + 1);
+				break;
+			default:
+				fail('Invalid encoded resource path: "' + path + '"');
+		}
 
-    start = end + 2;
-  }
+		start = end + 2;
+	}
 
-  return new ResourcePath(segments);
+	return new ResourcePath(segments);
 }
 
 /**
@@ -189,11 +189,11 @@ export function decode(path: EncodedResourcePath): ResourcePath {
  * cheaply computed by incrementing the last character of the path.
  */
 export function prefixSuccessor(
-  path: EncodedResourcePath
+	path: EncodedResourcePath
 ): EncodedResourcePath {
-  const c = path.charCodeAt(path.length - 1);
-  // TODO(mcg): this really should be a general thing, but not worth it right
-  // now
-  assert(c === 1, 'successor may only operate on paths generated by encode');
-  return path.substring(0, path.length - 1) + String.fromCharCode(c + 1);
+	const c = path.charCodeAt(path.length - 1);
+	// TODO(mcg): this really should be a general thing, but not worth it right
+	// now
+	assert(c === 1, 'successor may only operate on paths generated by encode');
+	return path.substring(0, path.length - 1) + String.fromCharCode(c + 1);
 }

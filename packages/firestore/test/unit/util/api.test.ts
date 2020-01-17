@@ -19,54 +19,54 @@ import { expect } from 'chai';
 import { makeConstructorPrivate } from '../../../src/util/api';
 
 describe('makeConstructorPrivate', () => {
-  class PrivateClass {
-    x = 'x-value';
-    private _y = 'y-value';
+	class PrivateClass {
+		x = 'x-value';
+		private _y = 'y-value';
 
-    getY(): string {
-      return this._y;
-    }
+		getY(): string {
+			return this._y;
+		}
 
-    setY(newValue: string): void {
-      this._y = newValue;
-    }
+		setY(newValue: string): void {
+			this._y = newValue;
+		}
 
-    static foobar(): string {
-      return 'foobar-value';
-    }
+		static foobar(): string {
+			return 'foobar-value';
+		}
 
-    static make(): PrivateClass {
-      return new PrivateClass();
-    }
-  }
+		static make(): PrivateClass {
+			return new PrivateClass();
+		}
+	}
 
-  // tslint:disable-next-line:variable-name We're treating this as a class name.
-  const PublicClass = makeConstructorPrivate(PrivateClass);
+	// tslint:disable-next-line:variable-name We're treating this as a class name.
+	const PublicClass = makeConstructorPrivate(PrivateClass);
 
-  it('throws on instantiation', () => {
-    expect(() => new PublicClass()).to.throw();
-  });
+	it('throws on instantiation', () => {
+		expect(() => new PublicClass()).to.throw();
+	});
 
-  it('still exposes static methods', () => {
-    expect(PublicClass.foobar()).to.equal('foobar-value');
-  });
+	it('still exposes static methods', () => {
+		expect(PublicClass.foobar()).to.equal('foobar-value');
+	});
 
-  it('still works with instanceof methods', () => {
-    const x = PublicClass.make();
-    const y = new PrivateClass();
-    expect(x instanceof PublicClass).to.equal(true);
-    expect(x instanceof PrivateClass).to.equal(true);
-    expect(y instanceof PublicClass).to.equal(true);
-    expect(y instanceof PrivateClass).to.equal(true);
-  });
+	it('still works with instanceof methods', () => {
+		const x = PublicClass.make();
+		const y = new PrivateClass();
+		expect(x instanceof PublicClass).to.equal(true);
+		expect(x instanceof PrivateClass).to.equal(true);
+		expect(y instanceof PublicClass).to.equal(true);
+		expect(y instanceof PrivateClass).to.equal(true);
+	});
 
-  it('still works with class members', () => {
-    const instance = PublicClass.make();
-    expect(instance.x).to.equal('x-value');
-    expect(instance.getY()).to.equal('y-value');
-    instance.x = 'new-x-value';
-    instance.setY('new-y-value');
-    expect(instance.x).to.equal('new-x-value');
-    expect(instance.getY()).to.equal('new-y-value');
-  });
+	it('still works with class members', () => {
+		const instance = PublicClass.make();
+		expect(instance.x).to.equal('x-value');
+		expect(instance.getY()).to.equal('y-value');
+		instance.x = 'new-x-value';
+		instance.setY('new-y-value');
+		expect(instance.x).to.equal('new-x-value');
+		expect(instance.getY()).to.equal('new-y-value');
+	});
 });

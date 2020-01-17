@@ -20,13 +20,13 @@ import * as obj from './obj';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =
-  | 'undefined'
-  | 'object'
-  | 'function'
-  | 'boolean'
-  | 'number'
-  | 'string'
-  | 'non-empty string';
+	| 'undefined'
+	| 'object'
+	| 'function'
+	| 'boolean'
+	| 'number'
+	| 'string'
+	| 'non-empty string';
 
 /**
  * Validates that no arguments were passed in the invocation of functionName.
@@ -36,15 +36,15 @@ export type ValidationType =
  * validateNoArgs('myFunction', arguments);
  */
 export function validateNoArgs(functionName: string, args: IArguments): void {
-  if (args.length !== 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() does not support arguments, ` +
-        'but was called with ' +
-        formatPlural(args.length, 'argument') +
-        '.'
-    );
-  }
+	if (args.length !== 0) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() does not support arguments, ` +
+				'but was called with ' +
+				formatPlural(args.length, 'argument') +
+				'.'
+		);
+	}
 }
 
 /**
@@ -55,20 +55,20 @@ export function validateNoArgs(functionName: string, args: IArguments): void {
  * validateExactNumberOfArgs('myFunction', arguments, 2);
  */
 export function validateExactNumberOfArgs(
-  functionName: string,
-  args: IArguments,
-  numberOfArgs: number
+	functionName: string,
+	args: IArguments,
+	numberOfArgs: number
 ): void {
-  if (args.length !== numberOfArgs) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires ` +
-        formatPlural(numberOfArgs, 'argument') +
-        ', but was called with ' +
-        formatPlural(args.length, 'argument') +
-        '.'
-    );
-  }
+	if (args.length !== numberOfArgs) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires ` +
+				formatPlural(numberOfArgs, 'argument') +
+				', but was called with ' +
+				formatPlural(args.length, 'argument') +
+				'.'
+		);
+	}
 }
 
 /**
@@ -80,20 +80,20 @@ export function validateExactNumberOfArgs(
  * validateAtLeastNumberOfArgs('myFunction', arguments, 2);
  */
 export function validateAtLeastNumberOfArgs(
-  functionName: string,
-  args: IArguments,
-  minNumberOfArgs: number
+	functionName: string,
+	args: IArguments,
+	minNumberOfArgs: number
 ): void {
-  if (args.length < minNumberOfArgs) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires at least ` +
-        formatPlural(minNumberOfArgs, 'argument') +
-        ', but was called with ' +
-        formatPlural(args.length, 'argument') +
-        '.'
-    );
-  }
+	if (args.length < minNumberOfArgs) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires at least ` +
+				formatPlural(minNumberOfArgs, 'argument') +
+				', but was called with ' +
+				formatPlural(args.length, 'argument') +
+				'.'
+		);
+	}
 }
 
 /**
@@ -105,20 +105,20 @@ export function validateAtLeastNumberOfArgs(
  * validateBetweenNumberOfArgs('myFunction', arguments, 2, 3);
  */
 export function validateBetweenNumberOfArgs(
-  functionName: string,
-  args: IArguments,
-  minNumberOfArgs: number,
-  maxNumberOfArgs: number
+	functionName: string,
+	args: IArguments,
+	minNumberOfArgs: number,
+	maxNumberOfArgs: number
 ): void {
-  if (args.length < minNumberOfArgs || args.length > maxNumberOfArgs) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires between ${minNumberOfArgs} and ` +
-        `${maxNumberOfArgs} arguments, but was called with ` +
-        formatPlural(args.length, 'argument') +
-        '.'
-    );
-  }
+	if (args.length < minNumberOfArgs || args.length > maxNumberOfArgs) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires between ${minNumberOfArgs} and ` +
+				`${maxNumberOfArgs} arguments, but was called with ` +
+				formatPlural(args.length, 'argument') +
+				'.'
+		);
+	}
 }
 
 /**
@@ -126,19 +126,19 @@ export function validateBetweenNumberOfArgs(
  * number of elements.
  */
 export function validateNamedArrayAtLeastNumberOfElements<T>(
-  functionName: string,
-  value: T[],
-  name: string,
-  minNumberOfElements: number
+	functionName: string,
+	value: T[],
+	name: string,
+	minNumberOfElements: number
 ): void {
-  if (!(value instanceof Array) || value.length < minNumberOfElements) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires its ${name} argument to be an ` +
-        'array with at least ' +
-        `${formatPlural(minNumberOfElements, 'element')}.`
-    );
-  }
+	if (!(value instanceof Array) || value.length < minNumberOfElements) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires its ${name} argument to be an ` +
+				'array with at least ' +
+				`${formatPlural(minNumberOfElements, 'element')}.`
+		);
+	}
 }
 
 /**
@@ -146,12 +146,12 @@ export function validateNamedArrayAtLeastNumberOfElements<T>(
  * using typeof checks.
  */
 export function validateArgType(
-  functionName: string,
-  type: ValidationType,
-  position: number,
-  argument: unknown
+	functionName: string,
+	type: ValidationType,
+	position: number,
+	argument: unknown
 ): void {
-  validateType(functionName, type, `${ordinal(position)} argument`, argument);
+	validateType(functionName, type, `${ordinal(position)} argument`, argument);
 }
 
 /**
@@ -159,14 +159,14 @@ export function validateArgType(
  * typeof checks or is undefined.
  */
 export function validateOptionalArgType(
-  functionName: string,
-  type: ValidationType,
-  position: number,
-  argument: unknown
+	functionName: string,
+	type: ValidationType,
+	position: number,
+	argument: unknown
 ): void {
-  if (argument !== undefined) {
-    validateArgType(functionName, type, position, argument);
-  }
+	if (argument !== undefined) {
+		validateArgType(functionName, type, position, argument);
+	}
 }
 
 /**
@@ -174,12 +174,12 @@ export function validateOptionalArgType(
  * typeof checks.
  */
 export function validateNamedType(
-  functionName: string,
-  type: ValidationType,
-  optionName: string,
-  argument: unknown
+	functionName: string,
+	type: ValidationType,
+	optionName: string,
+	argument: unknown
 ): void {
-  validateType(functionName, type, `${optionName} option`, argument);
+	validateType(functionName, type, `${optionName} option`, argument);
 }
 
 /**
@@ -187,86 +187,86 @@ export function validateNamedType(
  * typeof checks or is undefined.
  */
 export function validateNamedOptionalType(
-  functionName: string,
-  type: ValidationType,
-  optionName: string,
-  argument: unknown
+	functionName: string,
+	type: ValidationType,
+	optionName: string,
+	argument: unknown
 ): void {
-  if (argument !== undefined) {
-    validateNamedType(functionName, type, optionName, argument);
-  }
+	if (argument !== undefined) {
+		validateNamedType(functionName, type, optionName, argument);
+	}
 }
 
 export function validateArrayElements<T>(
-  functionName: string,
-  optionName: string,
-  typeDescription: string,
-  argument: T[],
-  validator: (arg0: T) => boolean
+	functionName: string,
+	optionName: string,
+	typeDescription: string,
+	argument: T[],
+	validator: (arg0: T) => boolean
 ): void {
-  if (!(argument instanceof Array)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires its ${optionName} ` +
-        `option to be an array, but it was: ${valueDescription(argument)}`
-    );
-  }
+	if (!(argument instanceof Array)) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires its ${optionName} ` +
+				`option to be an array, but it was: ${valueDescription(argument)}`
+		);
+	}
 
-  for (let i = 0; i < argument.length; ++i) {
-    if (!validator(argument[i])) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Function ${functionName}() requires all ${optionName} ` +
-          `elements to be ${typeDescription}, but the value at index ${i} ` +
-          `was: ${valueDescription(argument[i])}`
-      );
-    }
-  }
+	for (let i = 0; i < argument.length; ++i) {
+		if (!validator(argument[i])) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				`Function ${functionName}() requires all ${optionName} ` +
+					`elements to be ${typeDescription}, but the value at index ${i} ` +
+					`was: ${valueDescription(argument[i])}`
+			);
+		}
+	}
 }
 
 export function validateOptionalArrayElements<T>(
-  functionName: string,
-  optionName: string,
-  typeDescription: string,
-  argument: T[] | undefined,
-  validator: (arg0: T) => boolean
+	functionName: string,
+	optionName: string,
+	typeDescription: string,
+	argument: T[] | undefined,
+	validator: (arg0: T) => boolean
 ): void {
-  if (argument !== undefined) {
-    validateArrayElements(
-      functionName,
-      optionName,
-      typeDescription,
-      argument,
-      validator
-    );
-  }
+	if (argument !== undefined) {
+		validateArrayElements(
+			functionName,
+			optionName,
+			typeDescription,
+			argument,
+			validator
+		);
+	}
 }
 
 /**
  * Validates that the provided named option equals one of the expected values.
  */
 export function validateNamedPropertyEquals<T>(
-  functionName: string,
-  inputName: string,
-  optionName: string,
-  input: T,
-  expected: T[]
+	functionName: string,
+	inputName: string,
+	optionName: string,
+	input: T,
+	expected: T[]
 ): void {
-  const expectedDescription: string[] = [];
+	const expectedDescription: string[] = [];
 
-  for (const val of expected) {
-    if (val === input) {
-      return;
-    }
-    expectedDescription.push(valueDescription(val));
-  }
+	for (const val of expected) {
+		if (val === input) {
+			return;
+		}
+		expectedDescription.push(valueDescription(val));
+	}
 
-  const actualDescription = valueDescription(input);
-  throw new FirestoreError(
-    Code.INVALID_ARGUMENT,
-    `Invalid value ${actualDescription} provided to function ${functionName}() for option ` +
-      `"${optionName}". Acceptable values: ${expectedDescription.join(', ')}`
-  );
+	const actualDescription = valueDescription(input);
+	throw new FirestoreError(
+		Code.INVALID_ARGUMENT,
+		`Invalid value ${actualDescription} provided to function ${functionName}() for option ` +
+			`"${optionName}". Acceptable values: ${expectedDescription.join(', ')}`
+	);
 }
 
 /**
@@ -274,21 +274,21 @@ export function validateNamedPropertyEquals<T>(
  * is undefined.
  */
 export function validateNamedOptionalPropertyEquals<T>(
-  functionName: string,
-  inputName: string,
-  optionName: string,
-  input: T,
-  expected: T[]
+	functionName: string,
+	inputName: string,
+	optionName: string,
+	input: T,
+	expected: T[]
 ): void {
-  if (input !== undefined) {
-    validateNamedPropertyEquals(
-      functionName,
-      inputName,
-      optionName,
-      input,
-      expected
-    );
-  }
+	if (input !== undefined) {
+		validateNamedPropertyEquals(
+			functionName,
+			inputName,
+			optionName,
+			input,
+			expected
+		);
+	}
 }
 
 /**
@@ -300,45 +300,45 @@ export function validateNamedOptionalPropertyEquals<T>(
  * @param argument Arugment to validate.
  */
 export function validateStringEnum<T>(
-  functionName: string,
-  enums: string[],
-  position: number,
-  argument: unknown
+	functionName: string,
+	enums: string[],
+	position: number,
+	argument: unknown
 ): void {
-  if (!enums.some(element => element === argument)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid value ${valueDescription(argument)} provided to function ` +
-        `${functionName}() for its ${ordinal(position)} argument. Acceptable ` +
-        `values: ${enums.join(', ')}`
-    );
-  }
+	if (!enums.some(element => element === argument)) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Invalid value ${valueDescription(argument)} provided to function ` +
+				`${functionName}() for its ${ordinal(position)} argument. Acceptable ` +
+				`values: ${enums.join(', ')}`
+		);
+	}
 }
 
 /** Helper to validate the type of a provided input. */
 function validateType(
-  functionName: string,
-  type: ValidationType,
-  inputName: string,
-  input: unknown
+	functionName: string,
+	type: ValidationType,
+	inputName: string,
+	input: unknown
 ): void {
-  let valid = false;
-  if (type === 'object') {
-    valid = isPlainObject(input);
-  } else if (type === 'non-empty string') {
-    valid = typeof input === 'string' && input !== '';
-  } else {
-    valid = typeof input === type;
-  }
+	let valid = false;
+	if (type === 'object') {
+		valid = isPlainObject(input);
+	} else if (type === 'non-empty string') {
+		valid = typeof input === 'string' && input !== '';
+	} else {
+		valid = typeof input === type;
+	}
 
-  if (!valid) {
-    const description = valueDescription(input);
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires its ${inputName} ` +
-        `to be of type ${type}, but it was: ${description}`
-    );
-  }
+	if (!valid) {
+		const description = valueDescription(input);
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires its ${inputName} ` +
+				`to be of type ${type}, but it was: ${description}`
+		);
+	}
 }
 
 /**
@@ -346,70 +346,70 @@ function validateType(
  * (i.e. excludes Array, Date, etc.).
  */
 export function isPlainObject(input: unknown): boolean {
-  return (
-    typeof input === 'object' &&
-    input !== null &&
-    (Object.getPrototypeOf(input) === Object.prototype ||
-      Object.getPrototypeOf(input) === null)
-  );
+	return (
+		typeof input === 'object' &&
+		input !== null &&
+		(Object.getPrototypeOf(input) === Object.prototype ||
+			Object.getPrototypeOf(input) === null)
+	);
 }
 
 /** Returns a string describing the type / value of the provided input. */
 export function valueDescription(input: unknown): string {
-  if (input === undefined) {
-    return 'undefined';
-  } else if (input === null) {
-    return 'null';
-  } else if (typeof input === 'string') {
-    if (input.length > 20) {
-      input = `${input.substring(0, 20)}...`;
-    }
-    return JSON.stringify(input);
-  } else if (typeof input === 'number' || typeof input === 'boolean') {
-    return '' + input;
-  } else if (typeof input === 'object') {
-    if (input instanceof Array) {
-      return 'an array';
-    } else {
-      const customObjectName = tryGetCustomObjectType(input!);
-      if (customObjectName) {
-        return `a custom ${customObjectName} object`;
-      } else {
-        return 'an object';
-      }
-    }
-  } else if (typeof input === 'function') {
-    return 'a function';
-  } else {
-    return fail('Unknown wrong type: ' + typeof input);
-  }
+	if (input === undefined) {
+		return 'undefined';
+	} else if (input === null) {
+		return 'null';
+	} else if (typeof input === 'string') {
+		if (input.length > 20) {
+			input = `${input.substring(0, 20)}...`;
+		}
+		return JSON.stringify(input);
+	} else if (typeof input === 'number' || typeof input === 'boolean') {
+		return '' + input;
+	} else if (typeof input === 'object') {
+		if (input instanceof Array) {
+			return 'an array';
+		} else {
+			const customObjectName = tryGetCustomObjectType(input!);
+			if (customObjectName) {
+				return `a custom ${customObjectName} object`;
+			} else {
+				return 'an object';
+			}
+		}
+	} else if (typeof input === 'function') {
+		return 'a function';
+	} else {
+		return fail('Unknown wrong type: ' + typeof input);
+	}
 }
 
 /** Hacky method to try to get the constructor name for an object. */
 export function tryGetCustomObjectType(input: object): string | null {
-  if (input.constructor) {
-    const funcNameRegex = /function\s+([^\s(]+)\s*\(/;
-    const results = funcNameRegex.exec(input.constructor.toString());
-    if (results && results.length > 1) {
-      return results[1];
-    }
-  }
-  return null;
+	if (input.constructor) {
+		const funcNameRegex = /function\s+([^\s(]+)\s*\(/;
+		const results = funcNameRegex.exec(input.constructor.toString());
+		if (results && results.length > 1) {
+			return results[1];
+		}
+	}
+	return null;
 }
 
 /** Validates the provided argument is defined. */
 export function validateDefined(
-  functionName: string,
-  position: number,
-  argument: unknown
+	functionName: string,
+	position: number,
+	argument: unknown
 ): void {
-  if (argument === undefined) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires a valid ${ordinal(position)} ` +
-        `argument, but it was undefined.`
-    );
-  }
+	if (argument === undefined) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function ${functionName}() requires a valid ${ordinal(position)} ` +
+				`argument, but it was undefined.`
+		);
+	}
 }
 
 /**
@@ -417,20 +417,20 @@ export function validateDefined(
  * values match the expected keys and types provided in optionTypes.
  */
 export function validateOptionNames(
-  functionName: string,
-  options: object,
-  optionNames: string[]
+	functionName: string,
+	options: object,
+	optionNames: string[]
 ): void {
-  obj.forEach(options as obj.Dict<unknown>, (key, _) => {
-    if (optionNames.indexOf(key) < 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Unknown option '${key}' passed to function ${functionName}(). ` +
-          'Available options: ' +
-          optionNames.join(', ')
-      );
-    }
-  });
+	obj.forEach(options as obj.Dict<unknown>, (key, _) => {
+		if (optionNames.indexOf(key) < 0) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				`Unknown option '${key}' passed to function ${functionName}(). ` +
+					'Available options: ' +
+					optionNames.join(', ')
+			);
+		}
+	});
 }
 
 /**
@@ -438,51 +438,51 @@ export function validateOptionNames(
  * an instanceof check.
  */
 export function invalidClassError(
-  functionName: string,
-  type: string,
-  position: number,
-  argument: unknown
+	functionName: string,
+	type: string,
+	position: number,
+	argument: unknown
 ): Error {
-  const description = valueDescription(argument);
-  return new FirestoreError(
-    Code.INVALID_ARGUMENT,
-    `Function ${functionName}() requires its ${ordinal(position)} ` +
-      `argument to be a ${type}, but it was: ${description}`
-  );
+	const description = valueDescription(argument);
+	return new FirestoreError(
+		Code.INVALID_ARGUMENT,
+		`Function ${functionName}() requires its ${ordinal(position)} ` +
+			`argument to be a ${type}, but it was: ${description}`
+	);
 }
 
 export function validatePositiveNumber(
-  functionName: string,
-  position: number,
-  n: number
+	functionName: string,
+	position: number,
+	n: number
 ): void {
-  if (n <= 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function "${functionName}()" requires its ${ordinal(
-        position
-      )} argument to be a positive number, but it was: ${n}.`
-    );
-  }
+	if (n <= 0) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Function "${functionName}()" requires its ${ordinal(
+				position
+			)} argument to be a positive number, but it was: ${n}.`
+		);
+	}
 }
 
 /** Converts a number to its english word representation */
 function ordinal(num: number): string {
-  switch (num) {
-    case 1:
-      return 'first';
-    case 2:
-      return 'second';
-    case 3:
-      return 'third';
-    default:
-      return num + 'th';
-  }
+	switch (num) {
+		case 1:
+			return 'first';
+		case 2:
+			return 'second';
+		case 3:
+			return 'third';
+		default:
+			return num + 'th';
+	}
 }
 
 /**
  * Formats the given word as plural conditionally given the preceding number.
  */
 function formatPlural(num: number, str: string): string {
-  return `${num} ${str}` + (num === 1 ? '' : 's');
+	return `${num} ${str}` + (num === 1 ? '' : 's');
 }

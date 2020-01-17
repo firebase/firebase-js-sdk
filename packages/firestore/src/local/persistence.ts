@@ -37,27 +37,27 @@ import { TargetData } from './target_data';
  * on persistence.
  */
 export abstract class PersistenceTransaction {
-  private readonly onCommittedListeners: Array<() => void> = [];
+	private readonly onCommittedListeners: Array<() => void> = [];
 
-  abstract readonly currentSequenceNumber: ListenSequenceNumber;
+	abstract readonly currentSequenceNumber: ListenSequenceNumber;
 
-  addOnCommittedListener(listener: () => void): void {
-    this.onCommittedListeners.push(listener);
-  }
+	addOnCommittedListener(listener: () => void): void {
+		this.onCommittedListeners.push(listener);
+	}
 
-  raiseOnCommittedEvent(): void {
-    this.onCommittedListeners.forEach(listener => listener());
-  }
+	raiseOnCommittedEvent(): void {
+		this.onCommittedListeners.forEach(listener => listener());
+	}
 }
 
 /** The different modes supported by `IndexedDbPersistence.runTransaction()`. */
 export type PersistenceTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readwrite-primary'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent'
-  | 'readwrite-primary-idempotent';
+	| 'readonly'
+	| 'readwrite'
+	| 'readwrite-primary'
+	| 'readonly-idempotent'
+	| 'readwrite-idempotent'
+	| 'readwrite-primary-idempotent';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -85,44 +85,44 @@ export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
  * generate sequence numbers (getCurrentSequenceNumber()).
  */
 export interface ReferenceDelegate {
-  /**
-   * Registers a ReferenceSet of documents that should be considered 'referenced' and not eligible
-   * for removal during garbage collection.
-   */
-  setInMemoryPins(pins: ReferenceSet): void;
+	/**
+	 * Registers a ReferenceSet of documents that should be considered 'referenced' and not eligible
+	 * for removal during garbage collection.
+	 */
+	setInMemoryPins(pins: ReferenceSet): void;
 
-  /** Notify the delegate that the given document was added to a target. */
-  addReference(
-    txn: PersistenceTransaction,
-    doc: DocumentKey
-  ): PersistencePromise<void>;
+	/** Notify the delegate that the given document was added to a target. */
+	addReference(
+		txn: PersistenceTransaction,
+		doc: DocumentKey
+	): PersistencePromise<void>;
 
-  /** Notify the delegate that the given document was removed from a target. */
-  removeReference(
-    txn: PersistenceTransaction,
-    doc: DocumentKey
-  ): PersistencePromise<void>;
+	/** Notify the delegate that the given document was removed from a target. */
+	removeReference(
+		txn: PersistenceTransaction,
+		doc: DocumentKey
+	): PersistencePromise<void>;
 
-  /**
-   * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
-   * actually delete the target and associated data.
-   */
-  removeTarget(
-    txn: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void>;
+	/**
+	 * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
+	 * actually delete the target and associated data.
+	 */
+	removeTarget(
+		txn: PersistenceTransaction,
+		targetData: TargetData
+	): PersistencePromise<void>;
 
-  /** Notify the delegate that a document is no longer being mutated by the user. */
-  removeMutationReference(
-    txn: PersistenceTransaction,
-    doc: DocumentKey
-  ): PersistencePromise<void>;
+	/** Notify the delegate that a document is no longer being mutated by the user. */
+	removeMutationReference(
+		txn: PersistenceTransaction,
+		doc: DocumentKey
+	): PersistencePromise<void>;
 
-  /** Notify the delegate that a limbo document was updated. */
-  updateLimboDocument(
-    txn: PersistenceTransaction,
-    doc: DocumentKey
-  ): PersistencePromise<void>;
+	/** Notify the delegate that a limbo document was updated. */
+	updateLimboDocument(
+		txn: PersistenceTransaction,
+		doc: DocumentKey
+	): PersistencePromise<void>;
 }
 
 /**
@@ -162,122 +162,122 @@ export interface ReferenceDelegate {
  * writes.
  */
 export interface Persistence {
-  /**
-   * Whether or not this persistence instance has been started.
-   */
-  readonly started: boolean;
+	/**
+	 * Whether or not this persistence instance has been started.
+	 */
+	readonly started: boolean;
 
-  readonly referenceDelegate: ReferenceDelegate;
+	readonly referenceDelegate: ReferenceDelegate;
 
-  /**
-   * Releases any resources held during eager shutdown.
-   */
-  shutdown(): Promise<void>;
+	/**
+	 * Releases any resources held during eager shutdown.
+	 */
+	shutdown(): Promise<void>;
 
-  /**
-   * Registers a listener that gets called when the primary state of the
-   * instance changes. Upon registering, this listener is invoked immediately
-   * with the current primary state.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void>;
+	/**
+	 * Registers a listener that gets called when the primary state of the
+	 * instance changes. Upon registering, this listener is invoked immediately
+	 * with the current primary state.
+	 *
+	 * PORTING NOTE: This is only used for Web multi-tab.
+	 */
+	setPrimaryStateListener(
+		primaryStateListener: PrimaryStateListener
+	): Promise<void>;
 
-  /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
-  ): void;
+	/**
+	 * Registers a listener that gets called when the database receives a
+	 * version change event indicating that it has deleted.
+	 *
+	 * PORTING NOTE: This is only used for Web multi-tab.
+	 */
+	setDatabaseDeletedListener(
+		databaseDeletedListener: () => Promise<void>
+	): void;
 
-  /**
-   * Adjusts the current network state in the client's metadata, potentially
-   * affecting the primary lease.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setNetworkEnabled(networkEnabled: boolean): void;
+	/**
+	 * Adjusts the current network state in the client's metadata, potentially
+	 * affecting the primary lease.
+	 *
+	 * PORTING NOTE: This is only used for Web multi-tab.
+	 */
+	setNetworkEnabled(networkEnabled: boolean): void;
 
-  /**
-   * Returns the IDs of the clients that are currently active. If multi-tab
-   * is not supported, returns an array that only contains the local client's
-   * ID.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  getActiveClients(): Promise<ClientId[]>;
+	/**
+	 * Returns the IDs of the clients that are currently active. If multi-tab
+	 * is not supported, returns an array that only contains the local client's
+	 * ID.
+	 *
+	 * PORTING NOTE: This is only used for Web multi-tab.
+	 */
+	getActiveClients(): Promise<ClientId[]>;
 
-  /**
-   * Returns a MutationQueue representing the persisted mutations for the
-   * given user.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called for a given user. In particular, the memory-backed
-   * implementation does this to emulate the persisted implementation to the
-   * extent possible (e.g. in the case of uid switching from
-   * sally=>jack=>sally, sally's mutation queue will be preserved).
-   */
-  getMutationQueue(user: User): MutationQueue;
+	/**
+	 * Returns a MutationQueue representing the persisted mutations for the
+	 * given user.
+	 *
+	 * Note: The implementation is free to return the same instance every time
+	 * this is called for a given user. In particular, the memory-backed
+	 * implementation does this to emulate the persisted implementation to the
+	 * extent possible (e.g. in the case of uid switching from
+	 * sally=>jack=>sally, sally's mutation queue will be preserved).
+	 */
+	getMutationQueue(user: User): MutationQueue;
 
-  /**
-   * Returns a TargetCache representing the persisted cache of targets.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getTargetCache(): TargetCache;
+	/**
+	 * Returns a TargetCache representing the persisted cache of targets.
+	 *
+	 * Note: The implementation is free to return the same instance every time
+	 * this is called. In particular, the memory-backed implementation does this
+	 * to emulate the persisted implementation to the extent possible.
+	 */
+	getTargetCache(): TargetCache;
 
-  /**
-   * Returns a RemoteDocumentCache representing the persisted cache of remote
-   * documents.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getRemoteDocumentCache(): RemoteDocumentCache;
+	/**
+	 * Returns a RemoteDocumentCache representing the persisted cache of remote
+	 * documents.
+	 *
+	 * Note: The implementation is free to return the same instance every time
+	 * this is called. In particular, the memory-backed implementation does this
+	 * to emulate the persisted implementation to the extent possible.
+	 */
+	getRemoteDocumentCache(): RemoteDocumentCache;
 
-  /**
-   * Returns an IndexManager instance that manages our persisted query indexes.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getIndexManager(): IndexManager;
+	/**
+	 * Returns an IndexManager instance that manages our persisted query indexes.
+	 *
+	 * Note: The implementation is free to return the same instance every time
+	 * this is called. In particular, the memory-backed implementation does this
+	 * to emulate the persisted implementation to the extent possible.
+	 */
+	getIndexManager(): IndexManager;
 
-  /**
-   * Performs an operation inside a persistence transaction. Any reads or writes
-   * against persistence must be performed within a transaction. Writes will be
-   * committed atomically once the transaction completes.
-   *
-   * Persistence operations are asynchronous and therefore the provided
-   * transactionOperation must return a PersistencePromise. When it is resolved,
-   * the transaction will be committed and the Promise returned by this method
-   * will resolve.
-   *
-   * @param action A description of the action performed by this transaction,
-   * used for logging.
-   * @param mode The underlying mode of the IndexedDb transaction. Can be
-   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
-   * 'readwrite-primary' can only be executed by the primary client. In this
-   * mode, the transactionOperation will not be run if the primary lease cannot
-   * be acquired and the returned promise will be rejected with a
-   * FAILED_PRECONDITION error.
-   * @param transactionOperation The operation to run inside a transaction.
-   * @return A promise that is resolved once the transaction completes.
-   */
-  runTransaction<T>(
-    action: string,
-    mode: PersistenceTransactionMode,
-    transactionOperation: (
-      transaction: PersistenceTransaction
-    ) => PersistencePromise<T>
-  ): Promise<T>;
+	/**
+	 * Performs an operation inside a persistence transaction. Any reads or writes
+	 * against persistence must be performed within a transaction. Writes will be
+	 * committed atomically once the transaction completes.
+	 *
+	 * Persistence operations are asynchronous and therefore the provided
+	 * transactionOperation must return a PersistencePromise. When it is resolved,
+	 * the transaction will be committed and the Promise returned by this method
+	 * will resolve.
+	 *
+	 * @param action A description of the action performed by this transaction,
+	 * used for logging.
+	 * @param mode The underlying mode of the IndexedDb transaction. Can be
+	 * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+	 * 'readwrite-primary' can only be executed by the primary client. In this
+	 * mode, the transactionOperation will not be run if the primary lease cannot
+	 * be acquired and the returned promise will be rejected with a
+	 * FAILED_PRECONDITION error.
+	 * @param transactionOperation The operation to run inside a transaction.
+	 * @return A promise that is resolved once the transaction completes.
+	 */
+	runTransaction<T>(
+		action: string,
+		mode: PersistenceTransactionMode,
+		transactionOperation: (
+			transaction: PersistenceTransaction
+		) => PersistencePromise<T>
+	): Promise<T>;
 }

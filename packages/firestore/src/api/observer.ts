@@ -26,17 +26,17 @@ export type CompleteFn = () => void;
 
 // Allow for any of the Observer methods to be undefined.
 export interface PartialObserver<T> {
-  next?: NextFn<T>;
-  error?: ErrorFn;
-  complete?: CompleteFn;
+	next?: NextFn<T>;
+	error?: ErrorFn;
+	complete?: CompleteFn;
 }
 
 export interface Unsubscribe {
-  (): void;
+	(): void;
 }
 
 export function isPartialObserver(obj: unknown): boolean {
-  return implementsAnyMethods(obj, ['next', 'error', 'complete']);
+	return implementsAnyMethods(obj, ['next', 'error', 'complete']);
 }
 
 /**
@@ -44,15 +44,15 @@ export function isPartialObserver(obj: unknown): boolean {
  * methods.
  */
 function implementsAnyMethods(obj: unknown, methods: string[]): boolean {
-  if (typeof obj !== 'object' || obj === null) {
-    return false;
-  }
+	if (typeof obj !== 'object' || obj === null) {
+		return false;
+	}
 
-  const object = obj as JsonObject<unknown>;
-  for (const method of methods) {
-    if (method in object && typeof object[method] === 'function') {
-      return true;
-    }
-  }
-  return false;
+	const object = obj as JsonObject<unknown>;
+	for (const method of methods) {
+		if (method in object && typeof object[method] === 'function') {
+			return true;
+		}
+	}
+	return false;
 }

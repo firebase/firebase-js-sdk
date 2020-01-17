@@ -26,97 +26,97 @@ import { TargetId } from '../../../src/core/types';
 let persistence: Persistence;
 
 describe('MemoryTransaction', () => {
-  beforeEach(() => {
-    return persistenceHelpers.testMemoryEagerPersistence().then(p => {
-      persistence = p;
-    });
-  });
+	beforeEach(() => {
+		return persistenceHelpers.testMemoryEagerPersistence().then(p => {
+			persistence = p;
+		});
+	});
 
-  genericTransactionTests();
+	genericTransactionTests();
 });
 
 describe('IndexedDbTransaction', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbTransaction tests.');
-    return;
-  }
+	if (!IndexedDbPersistence.isAvailable()) {
+		console.warn('No IndexedDB. Skipping IndexedDbTransaction tests.');
+		return;
+	}
 
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
-    });
-  });
+	beforeEach(() => {
+		return persistenceHelpers.testIndexedDbPersistence().then(p => {
+			persistence = p;
+		});
+	});
 
-  afterEach(() => persistence.shutdown());
+	afterEach(() => persistence.shutdown());
 
-  genericTransactionTests();
+	genericTransactionTests();
 
-  it('only invokes onCommittedListener once with retries', async () => {
-    let runCount = 0;
-    let commitCount = 0;
-    await persistence.runTransaction(
-      'onCommitted',
-      'readwrite-idempotent',
-      txn => {
-        const targetsStore = IndexedDbPersistence.getStore<
-          DbTargetKey,
-          { targetId: TargetId }
-        >(txn, DbTarget.store);
+	it('only invokes onCommittedListener once with retries', async () => {
+		let runCount = 0;
+		let commitCount = 0;
+		await persistence.runTransaction(
+			'onCommitted',
+			'readwrite-idempotent',
+			txn => {
+				const targetsStore = IndexedDbPersistence.getStore<
+					DbTargetKey,
+					{ targetId: TargetId }
+				>(txn, DbTarget.store);
 
-        txn.addOnCommittedListener(() => {
-          ++commitCount;
-        });
+				txn.addOnCommittedListener(() => {
+					++commitCount;
+				});
 
-        expect(commitCount).to.equal(0);
+				expect(commitCount).to.equal(0);
 
-        ++runCount;
-        if (runCount === 1) {
-          // Trigger a unique key violation
-          return targetsStore
-            .add({ targetId: 1 })
-            .next(() => targetsStore.add({ targetId: 1 }));
-        } else {
-          return PersistencePromise.resolve(0);
-        }
-      }
-    );
+				++runCount;
+				if (runCount === 1) {
+					// Trigger a unique key violation
+					return targetsStore
+						.add({ targetId: 1 })
+						.next(() => targetsStore.add({ targetId: 1 }));
+				} else {
+					return PersistencePromise.resolve(0);
+				}
+			}
+		);
 
-    expect(runCount).to.be.equal(2);
-    expect(commitCount).to.be.equal(1);
-  });
+		expect(runCount).to.be.equal(2);
+		expect(commitCount).to.be.equal(1);
+	});
 });
 
 function genericTransactionTests(): void {
-  it('invokes onCommittedListener when transaction succeeds', async () => {
-    let onCommitted = false;
-    await persistence.runTransaction(
-      'onCommitted',
-      'readonly-idempotent',
-      txn => {
-        txn.addOnCommittedListener(() => {
-          onCommitted = true;
-        });
+	it('invokes onCommittedListener when transaction succeeds', async () => {
+		let onCommitted = false;
+		await persistence.runTransaction(
+			'onCommitted',
+			'readonly-idempotent',
+			txn => {
+				txn.addOnCommittedListener(() => {
+					onCommitted = true;
+				});
 
-        expect(onCommitted).to.be.false;
-        return PersistencePromise.resolve();
-      }
-    );
+				expect(onCommitted).to.be.false;
+				return PersistencePromise.resolve();
+			}
+		);
 
-    expect(onCommitted).to.be.true;
-  });
+		expect(onCommitted).to.be.true;
+	});
 
-  it('does not invoke onCommittedListener when transaction fails', async () => {
-    let onCommitted = false;
-    await persistence
-      .runTransaction('onCommitted', 'readonly-idempotent', txn => {
-        txn.addOnCommittedListener(() => {
-          onCommitted = true;
-        });
+	it('does not invoke onCommittedListener when transaction fails', async () => {
+		let onCommitted = false;
+		await persistence
+			.runTransaction('onCommitted', 'readonly-idempotent', txn => {
+				txn.addOnCommittedListener(() => {
+					onCommitted = true;
+				});
 
-        return PersistencePromise.reject(new Error('Aborted'));
-      })
-      .catch(() => {});
+				return PersistencePromise.reject(new Error('Aborted'));
+			})
+			.catch(() => {});
 
-    expect(onCommitted).to.be.false;
-  });
+		expect(onCommitted).to.be.false;
+	});
 }

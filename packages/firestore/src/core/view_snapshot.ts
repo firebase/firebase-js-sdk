@@ -25,20 +25,20 @@ import { DocumentKeySet } from '../model/collections';
 import { Query } from './query';
 
 export enum ChangeType {
-  Added,
-  Removed,
-  Modified,
-  Metadata
+	Added,
+	Removed,
+	Modified,
+	Metadata
 }
 
 export interface DocumentViewChange {
-  type: ChangeType;
-  doc: Document;
+	type: ChangeType;
+	doc: Document;
 }
 
 export enum SyncState {
-  Local,
-  Synced
+	Local,
+	Synced
 }
 
 /**
@@ -46,161 +46,161 @@ export enum SyncState {
  * duplicate events for the same doc.
  */
 export class DocumentChangeSet {
-  private changeMap = new SortedMap<DocumentKey, DocumentViewChange>(
-    DocumentKey.comparator
-  );
+	private changeMap = new SortedMap<DocumentKey, DocumentViewChange>(
+		DocumentKey.comparator
+	);
 
-  track(change: DocumentViewChange): void {
-    const key = change.doc.key;
-    const oldChange = this.changeMap.get(key);
-    if (!oldChange) {
-      this.changeMap = this.changeMap.insert(key, change);
-      return;
-    }
+	track(change: DocumentViewChange): void {
+		const key = change.doc.key;
+		const oldChange = this.changeMap.get(key);
+		if (!oldChange) {
+			this.changeMap = this.changeMap.insert(key, change);
+			return;
+		}
 
-    // Merge the new change with the existing change.
-    if (
-      change.type !== ChangeType.Added &&
-      oldChange.type === ChangeType.Metadata
-    ) {
-      this.changeMap = this.changeMap.insert(key, change);
-    } else if (
-      change.type === ChangeType.Metadata &&
-      oldChange.type !== ChangeType.Removed
-    ) {
-      this.changeMap = this.changeMap.insert(key, {
-        type: oldChange.type,
-        doc: change.doc
-      });
-    } else if (
-      change.type === ChangeType.Modified &&
-      oldChange.type === ChangeType.Modified
-    ) {
-      this.changeMap = this.changeMap.insert(key, {
-        type: ChangeType.Modified,
-        doc: change.doc
-      });
-    } else if (
-      change.type === ChangeType.Modified &&
-      oldChange.type === ChangeType.Added
-    ) {
-      this.changeMap = this.changeMap.insert(key, {
-        type: ChangeType.Added,
-        doc: change.doc
-      });
-    } else if (
-      change.type === ChangeType.Removed &&
-      oldChange.type === ChangeType.Added
-    ) {
-      this.changeMap = this.changeMap.remove(key);
-    } else if (
-      change.type === ChangeType.Removed &&
-      oldChange.type === ChangeType.Modified
-    ) {
-      this.changeMap = this.changeMap.insert(key, {
-        type: ChangeType.Removed,
-        doc: oldChange.doc
-      });
-    } else if (
-      change.type === ChangeType.Added &&
-      oldChange.type === ChangeType.Removed
-    ) {
-      this.changeMap = this.changeMap.insert(key, {
-        type: ChangeType.Modified,
-        doc: change.doc
-      });
-    } else {
-      // This includes these cases, which don't make sense:
-      // Added->Added
-      // Removed->Removed
-      // Modified->Added
-      // Removed->Modified
-      // Metadata->Added
-      // Removed->Metadata
-      fail(
-        'unsupported combination of changes: ' +
-          JSON.stringify(change) +
-          ' after ' +
-          JSON.stringify(oldChange)
-      );
-    }
-  }
+		// Merge the new change with the existing change.
+		if (
+			change.type !== ChangeType.Added &&
+			oldChange.type === ChangeType.Metadata
+		) {
+			this.changeMap = this.changeMap.insert(key, change);
+		} else if (
+			change.type === ChangeType.Metadata &&
+			oldChange.type !== ChangeType.Removed
+		) {
+			this.changeMap = this.changeMap.insert(key, {
+				type: oldChange.type,
+				doc: change.doc
+			});
+		} else if (
+			change.type === ChangeType.Modified &&
+			oldChange.type === ChangeType.Modified
+		) {
+			this.changeMap = this.changeMap.insert(key, {
+				type: ChangeType.Modified,
+				doc: change.doc
+			});
+		} else if (
+			change.type === ChangeType.Modified &&
+			oldChange.type === ChangeType.Added
+		) {
+			this.changeMap = this.changeMap.insert(key, {
+				type: ChangeType.Added,
+				doc: change.doc
+			});
+		} else if (
+			change.type === ChangeType.Removed &&
+			oldChange.type === ChangeType.Added
+		) {
+			this.changeMap = this.changeMap.remove(key);
+		} else if (
+			change.type === ChangeType.Removed &&
+			oldChange.type === ChangeType.Modified
+		) {
+			this.changeMap = this.changeMap.insert(key, {
+				type: ChangeType.Removed,
+				doc: oldChange.doc
+			});
+		} else if (
+			change.type === ChangeType.Added &&
+			oldChange.type === ChangeType.Removed
+		) {
+			this.changeMap = this.changeMap.insert(key, {
+				type: ChangeType.Modified,
+				doc: change.doc
+			});
+		} else {
+			// This includes these cases, which don't make sense:
+			// Added->Added
+			// Removed->Removed
+			// Modified->Added
+			// Removed->Modified
+			// Metadata->Added
+			// Removed->Metadata
+			fail(
+				'unsupported combination of changes: ' +
+					JSON.stringify(change) +
+					' after ' +
+					JSON.stringify(oldChange)
+			);
+		}
+	}
 
-  getChanges(): DocumentViewChange[] {
-    const changes: DocumentViewChange[] = [];
-    this.changeMap.inorderTraversal(
-      (key: DocumentKey, change: DocumentViewChange) => {
-        changes.push(change);
-      }
-    );
-    return changes;
-  }
+	getChanges(): DocumentViewChange[] {
+		const changes: DocumentViewChange[] = [];
+		this.changeMap.inorderTraversal(
+			(key: DocumentKey, change: DocumentViewChange) => {
+				changes.push(change);
+			}
+		);
+		return changes;
+	}
 }
 
 export class ViewSnapshot {
-  constructor(
-    readonly query: Query,
-    readonly docs: DocumentSet,
-    readonly oldDocs: DocumentSet,
-    readonly docChanges: DocumentViewChange[],
-    readonly mutatedKeys: DocumentKeySet,
-    readonly fromCache: boolean,
-    readonly syncStateChanged: boolean,
-    readonly excludesMetadataChanges: boolean
-  ) {}
+	constructor(
+		readonly query: Query,
+		readonly docs: DocumentSet,
+		readonly oldDocs: DocumentSet,
+		readonly docChanges: DocumentViewChange[],
+		readonly mutatedKeys: DocumentKeySet,
+		readonly fromCache: boolean,
+		readonly syncStateChanged: boolean,
+		readonly excludesMetadataChanges: boolean
+	) {}
 
-  /** Returns a view snapshot as if all documents in the snapshot were added. */
-  static fromInitialDocuments(
-    query: Query,
-    documents: DocumentSet,
-    mutatedKeys: DocumentKeySet,
-    fromCache: boolean
-  ): ViewSnapshot {
-    const changes: DocumentViewChange[] = [];
-    documents.forEach(doc => {
-      changes.push({ type: ChangeType.Added, doc });
-    });
+	/** Returns a view snapshot as if all documents in the snapshot were added. */
+	static fromInitialDocuments(
+		query: Query,
+		documents: DocumentSet,
+		mutatedKeys: DocumentKeySet,
+		fromCache: boolean
+	): ViewSnapshot {
+		const changes: DocumentViewChange[] = [];
+		documents.forEach(doc => {
+			changes.push({ type: ChangeType.Added, doc });
+		});
 
-    return new ViewSnapshot(
-      query,
-      documents,
-      DocumentSet.emptySet(documents),
-      changes,
-      mutatedKeys,
-      fromCache,
-      /* syncStateChanged= */ true,
-      /* excludesMetadataChanges= */ false
-    );
-  }
+		return new ViewSnapshot(
+			query,
+			documents,
+			DocumentSet.emptySet(documents),
+			changes,
+			mutatedKeys,
+			fromCache,
+			/* syncStateChanged= */ true,
+			/* excludesMetadataChanges= */ false
+		);
+	}
 
-  get hasPendingWrites(): boolean {
-    return !this.mutatedKeys.isEmpty();
-  }
+	get hasPendingWrites(): boolean {
+		return !this.mutatedKeys.isEmpty();
+	}
 
-  isEqual(other: ViewSnapshot): boolean {
-    if (
-      this.fromCache !== other.fromCache ||
-      this.syncStateChanged !== other.syncStateChanged ||
-      !this.mutatedKeys.isEqual(other.mutatedKeys) ||
-      !this.query.isEqual(other.query) ||
-      !this.docs.isEqual(other.docs) ||
-      !this.oldDocs.isEqual(other.oldDocs)
-    ) {
-      return false;
-    }
-    const changes: DocumentViewChange[] = this.docChanges;
-    const otherChanges: DocumentViewChange[] = other.docChanges;
-    if (changes.length !== otherChanges.length) {
-      return false;
-    }
-    for (let i = 0; i < changes.length; i++) {
-      if (
-        changes[i].type !== otherChanges[i].type ||
-        !changes[i].doc.isEqual(otherChanges[i].doc)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
+	isEqual(other: ViewSnapshot): boolean {
+		if (
+			this.fromCache !== other.fromCache ||
+			this.syncStateChanged !== other.syncStateChanged ||
+			!this.mutatedKeys.isEqual(other.mutatedKeys) ||
+			!this.query.isEqual(other.query) ||
+			!this.docs.isEqual(other.docs) ||
+			!this.oldDocs.isEqual(other.oldDocs)
+		) {
+			return false;
+		}
+		const changes: DocumentViewChange[] = this.docChanges;
+		const otherChanges: DocumentViewChange[] = other.docChanges;
+		if (changes.length !== otherChanges.length) {
+			return false;
+		}
+		for (let i = 0; i < changes.length; i++) {
+			if (
+				changes[i].type !== otherChanges[i].type ||
+				!changes[i].doc.isEqual(otherChanges[i].doc)
+			) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

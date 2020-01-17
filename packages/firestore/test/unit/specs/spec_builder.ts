@@ -20,16 +20,16 @@ import { Target } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
-  Document,
-  MaybeDocument,
-  NoDocument
+	Document,
+	MaybeDocument,
+	NoDocument
 } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import {
-  isPermanentWriteError,
-  mapCodeFromRpcCode,
-  mapRpcCodeFromCode
+	isPermanentWriteError,
+	mapCodeFromRpcCode,
+	mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
 import { assert, fail } from '../../../src/util/assert';
 
@@ -42,27 +42,27 @@ import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
 import {
-  parseQuery,
-  runSpec,
-  SpecConfig,
-  SpecDocument,
-  SpecQuery,
-  SpecQueryFilter,
-  SpecQueryOrderBy,
-  SpecStep,
-  SpecWatchFilter,
-  SpecWriteAck,
-  SpecWriteFailure
+	parseQuery,
+	runSpec,
+	SpecConfig,
+	SpecDocument,
+	SpecQuery,
+	SpecQueryFilter,
+	SpecQueryOrderBy,
+	SpecStep,
+	SpecWatchFilter,
+	SpecWriteAck,
+	SpecWriteFailure
 } from './spec_test_runner';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
 export interface LimboMap {
-  [key: string]: TargetId;
+	[key: string]: TargetId;
 }
 
 export interface ActiveTargetMap {
-  [targetId: string]: { queries: SpecQuery[]; resumeToken: string };
+	[targetId: string]: { queries: SpecQuery[]; resumeToken: string };
 }
 
 /**
@@ -77,30 +77,30 @@ export interface ActiveTargetMap {
  * the tests.
  */
 export class ClientMemoryState {
-  activeTargets: ActiveTargetMap = {};
-  queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-  limboMapping: LimboMap = {};
+	activeTargets: ActiveTargetMap = {};
+	queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+	limboMapping: LimboMap = {};
 
-  limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
+	limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
-  constructor() {
-    this.reset();
-  }
+	constructor() {
+		this.reset();
+	}
 
-  /** Reset all internal memory state (as done during a client restart). */
-  reset(): void {
-    this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-    this.limboMapping = {};
-    this.activeTargets = {};
-    this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
-  }
+	/** Reset all internal memory state (as done during a client restart). */
+	reset(): void {
+		this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+		this.limboMapping = {};
+		this.activeTargets = {};
+		this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
+	}
 
-  /**
-   * Reset the internal limbo mapping (as done during a primary lease failover).
-   */
-  resetLimboMapping(): void {
-    this.limboMapping = {};
-  }
+	/**
+	 * Reset the internal limbo mapping (as done during a primary lease failover).
+	 */
+	resetLimboMapping(): void {
+		this.limboMapping = {};
+	}
 }
 
 /**
@@ -108,40 +108,40 @@ export class ClientMemoryState {
  * active in multiple tabs.
  */
 class CachedTargetIdGenerator {
-  // TODO(wuandy): rename this to targetMapping.
-  private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
+	// TODO(wuandy): rename this to targetMapping.
+	private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+	private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
-  /**
-   * Returns a cached target ID for the provided Target, or a new ID if no
-   * target ID has ever been assigned.
-   */
-  next(target: Target): TargetId {
-    if (this.queryMapping.has(target)) {
-      return this.queryMapping.get(target)!;
-    }
-    const targetId = this.targetIdGenerator.next();
-    this.queryMapping.set(target, targetId);
-    return targetId;
-  }
+	/**
+	 * Returns a cached target ID for the provided Target, or a new ID if no
+	 * target ID has ever been assigned.
+	 */
+	next(target: Target): TargetId {
+		if (this.queryMapping.has(target)) {
+			return this.queryMapping.get(target)!;
+		}
+		const targetId = this.targetIdGenerator.next();
+		this.queryMapping.set(target, targetId);
+		return targetId;
+	}
 
-  /** Returns the target ID for a target that is known to exist. */
-  cachedId(target: Target): TargetId {
-    if (!this.queryMapping.has(target)) {
-      throw new Error("Target ID doesn't exists for target: " + target);
-    }
+	/** Returns the target ID for a target that is known to exist. */
+	cachedId(target: Target): TargetId {
+		if (!this.queryMapping.has(target)) {
+			throw new Error("Target ID doesn't exists for target: " + target);
+		}
 
-    return this.queryMapping.get(target)!;
-  }
+		return this.queryMapping.get(target)!;
+	}
 
-  /** Remove the cached target ID for the provided target. */
-  purge(target: Target): void {
-    if (!this.queryMapping.has(target)) {
-      throw new Error("Target ID doesn't exists for target: " + target);
-    }
+	/** Remove the cached target ID for the provided target. */
+	purge(target: Target): void {
+		if (!this.queryMapping.has(target)) {
+			throw new Error("Target ID doesn't exists for target: " + target);
+		}
 
-    this.queryMapping.delete(target);
-  }
+		this.queryMapping.delete(target);
+	}
 }
 /**
  * Provides a high-level language to construct spec tests that can be exported
@@ -151,857 +151,857 @@ class CachedTargetIdGenerator {
  * duplicate tests in every client.
  */
 export class SpecBuilder {
-  protected config: SpecConfig = { useGarbageCollection: true, numClients: 1 };
-  // currentStep is built up (in particular, expectations can be added to it)
-  // until nextStep() is called to append it to steps.
-  protected currentStep: SpecStep | null = null;
-
-  private steps: SpecStep[] = [];
-
-  private queryIdGenerator = new CachedTargetIdGenerator();
-
-  private readonly currentClientState: ClientMemoryState = new ClientMemoryState();
-
-  // Accessor function that can be overridden to return a different
-  // `ClientMemoryState`.
-  protected get clientState(): ClientMemoryState {
-    return this.currentClientState;
-  }
-
-  private get limboIdGenerator(): TargetIdGenerator {
-    return this.clientState.limboIdGenerator;
-  }
-
-  private get queryMapping(): ObjectMap<Target, TargetId> {
-    return this.clientState.queryMapping;
-  }
-
-  private get limboMapping(): LimboMap {
-    return this.clientState.limboMapping;
-  }
-
-  private get activeTargets(): ActiveTargetMap {
-    return this.clientState.activeTargets;
-  }
-
-  /**
-   * Exports the spec steps as a JSON object that be used in the spec runner.
-   */
-  toJSON(): { config: SpecConfig; steps: SpecStep[] } {
-    this.nextStep();
-    return { config: this.config, steps: this.steps };
-  }
-
-  /**
-   * Run the spec as a test. If persistence is available it will run it with and
-   * without persistence enabled.
-   */
-  runAsTest(
-    name: string,
-    tags: string[],
-    usePersistence: boolean
-  ): Promise<void> {
-    this.nextStep();
-    return runSpec(name, tags, usePersistence, this.config, this.steps);
-  }
-
-  // Configures Garbage Collection behavior (on or off). Default is on.
-  withGCEnabled(gcEnabled: boolean): this {
-    assert(
-      !this.currentStep,
-      'withGCEnabled() must be called before all spec steps.'
-    );
-    this.config.useGarbageCollection = gcEnabled;
-    return this;
-  }
-
-  userListens(query: Query, resumeToken?: string): this {
-    this.nextStep();
-
-    const target = query.toTarget();
-    let targetId: TargetId = 0;
-    if (this.queryMapping.has(target)) {
-      targetId = this.queryMapping.get(target)!;
-    } else {
-      targetId = this.queryIdGenerator.next(target);
-    }
-
-    this.queryMapping.set(target, targetId);
-    this.addQueryToActiveTargets(targetId, query, resumeToken);
-    this.currentStep = {
-      userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
-    };
-    return this;
-  }
-
-  /**
-   * Registers a previously active target with the test expectations after a
-   * stream disconnect.
-   */
-  restoreListen(query: Query, resumeToken: string): this {
-    const targetId = this.queryMapping.get(query.toTarget());
-
-    if (isNullOrUndefined(targetId)) {
-      throw new Error("Can't restore an unknown query: " + query);
-    }
-
-    this.addQueryToActiveTargets(targetId!, query, resumeToken);
-
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
-    return this;
-  }
-
-  userUnlistens(query: Query): this {
-    this.nextStep();
-    const target = query.toTarget();
-    if (!this.queryMapping.has(target)) {
-      throw new Error('Unlistening to query not listened to: ' + query);
-    }
-    const targetId = this.queryMapping.get(target)!;
-    this.removeQueryFromActiveTargets(query, targetId);
-
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
-      this.queryMapping.delete(target);
-      this.queryIdGenerator.purge(target);
-    }
-
-    this.currentStep = {
-      userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
-    };
-    return this;
-  }
-
-  userSets(key: string, value: JsonObject<unknown>): this {
-    this.nextStep();
-    this.currentStep = {
-      userSet: [key, value]
-    };
-    return this;
-  }
-
-  userPatches(key: string, value: JsonObject<unknown>): this {
-    this.nextStep();
-    this.currentStep = {
-      userPatch: [key, value]
-    };
-    return this;
-  }
-
-  userDeletes(key: string): this {
-    this.nextStep();
-    this.currentStep = {
-      userDelete: key
-    };
-    return this;
-  }
-
-  userAddsSnapshotsInSyncListener(): this {
-    this.nextStep();
-    this.currentStep = {
-      addSnapshotsInSyncListener: true
-    };
-    return this;
-  }
-
-  userRemovesSnapshotsInSyncListener(): this {
-    this.nextStep();
-    this.currentStep = {
-      removeSnapshotsInSyncListener: true
-    };
-    return this;
-  }
-
-  // PORTING NOTE: Only used by web multi-tab tests.
-  becomeHidden(): this {
-    this.nextStep();
-    this.currentStep = {
-      applyClientState: { visibility: 'hidden' }
-    };
-    return this;
-  }
-
-  // PORTING NOTE: Only used by web multi-tab tests.
-  becomeVisible(): this {
-    this.nextStep();
-    this.currentStep = {
-      applyClientState: { visibility: 'visible' }
-    };
-    return this;
-  }
-
-  runTimer(timerId: TimerId): this {
-    this.nextStep();
-    this.currentStep = { runTimer: timerId };
-    return this;
-  }
-
-  changeUser(uid: string | null): this {
-    this.nextStep();
-    this.currentStep = { changeUser: uid };
-    return this;
-  }
-
-  disableNetwork(): this {
-    this.nextStep();
-    this.currentStep = {
-      enableNetwork: false,
-      expectedState: {
-        activeTargets: {},
-        limboDocs: []
-      }
-    };
-    return this;
-  }
-
-  enableNetwork(): this {
-    this.nextStep();
-    this.currentStep = {
-      enableNetwork: true
-    };
-    return this;
-  }
-
-  clearPersistence(): this {
-    this.nextStep();
-    this.currentStep = {
-      clearPersistence: true
-    };
-    return this;
-  }
-
-  restart(): this {
-    this.nextStep();
-    this.currentStep = {
-      restart: true,
-      expectedState: {
-        activeTargets: {},
-        limboDocs: []
-      }
-    };
-    // Reset our mappings / target ids since all existing listens will be
-    // forgotten.
-    this.clientState.reset();
-    return this;
-  }
-
-  shutdown(): this {
-    this.nextStep();
-    this.currentStep = {
-      shutdown: true,
-      expectedState: {
-        activeTargets: {},
-        limboDocs: []
-      }
-    };
-    // Reset our mappings / target ids since all existing listens will be
-    // forgotten.
-    this.clientState.reset();
-    return this;
-  }
-
-  expectIsShutdown(): this {
-    this.assertStep('Active target expectation requires previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.isShutdown = true;
-    return this;
-  }
-
-  /** Overrides the currently expected set of active targets. */
-  expectActiveTargets(
-    ...targets: Array<{ query: Query; resumeToken: string }>
-  ): this {
-    this.assertStep('Active target expectation requires previous step');
-    const currentStep = this.currentStep!;
-    this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken }) => {
-      this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
-    });
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
-    return this;
-  }
-
-  /**
-   * Expects a document to be in limbo. A targetId is assigned if it's not in
-   * limbo yet.
-   */
-  expectLimboDocs(...keys: DocumentKey[]): this {
-    this.assertStep('Limbo expectation requires previous step');
-    const currentStep = this.currentStep!;
-
-    // Clear any preexisting limbo watch targets, which we'll re-create as
-    // necessary from the provided keys below.
-    objUtils.forEach(this.limboMapping, (key, targetId) => {
-      delete this.activeTargets[targetId];
-    });
-
-    keys.forEach(key => {
-      const path = key.path.canonicalString();
-      // Create limbo target ID mapping if it was not in limbo yet
-      if (!objUtils.contains(this.limboMapping, path)) {
-        this.limboMapping[path] = this.limboIdGenerator.next();
-      }
-      // Limbo doc queries are always without resume token
-      this.addQueryToActiveTargets(
-        this.limboMapping[path],
-        Query.atPath(key.path),
-        ''
-      );
-    });
-
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.limboDocs = keys.map(k =>
-      SpecBuilder.keyToSpec(k)
-    );
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
-    return this;
-  }
-
-  /**
-   * Special helper for limbo documents that acks with either a document or
-   * with no document for NoDocument. This is translated into normal watch
-   * messages.
-   */
-  ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
-    const query = Query.atPath(doc.key.path);
-    this.watchAcks(query);
-    if (doc instanceof Document) {
-      this.watchSends({ affects: [query] }, doc);
-    } else if (doc instanceof NoDocument) {
-      // Don't send any updates
-    } else {
-      fail('Unknown parameter: ' + doc);
-    }
-    this.watchCurrents(query, 'resume-token-' + version);
-    this.watchSnapshots(version);
-    return this;
-  }
-
-  /**
-   * Special helper for limbo documents that acks an unlisten for a limbo doc
-   * with either a document or with no document for NoDocument. This is
-   * translated into normal watch messages.
-   */
-  watchRemovesLimboTarget(doc: Document | NoDocument): this {
-    const query = Query.atPath(doc.key.path);
-    this.watchRemoves(query);
-    return this;
-  }
-
-  /**
-   * Acks a write with a version and optional additional options.
-   *
-   * expectUserCallback defaults to true if omitted.
-   */
-  writeAcks(
-    doc: string,
-    version: TestSnapshotVersion,
-    options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
-  ): this {
-    this.nextStep();
-    options = options || {};
-
-    const writeAck: SpecWriteAck = { version };
-    if (options.keepInQueue) {
-      writeAck.keepInQueue = true;
-    }
-    this.currentStep = { writeAck };
-
-    if (options.expectUserCallback !== false) {
-      return this.expectUserCallbacks({ acknowledged: [doc] });
-    } else {
-      return this;
-    }
-  }
-
-  /**
-   * Fails a write with an error and optional additional options.
-   *
-   * expectUserCallback defaults to true if omitted.
-   */
-  failWrite(
-    doc: string,
-    error: RpcError,
-    options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
-  ): this {
-    this.nextStep();
-    options = options || {};
-
-    // If this is a permanent error, the write is not expected to be sent
-    // again.
-    const code = mapCodeFromRpcCode(error.code);
-    const isPermanentFailure = isPermanentWriteError(code);
-    const keepInQueue =
-      options.keepInQueue !== undefined
-        ? options.keepInQueue
-        : !isPermanentFailure;
-
-    const failWrite: SpecWriteFailure = { error };
-    if (keepInQueue) {
-      failWrite.keepInQueue = true;
-    }
-    this.currentStep = { failWrite };
-
-    if (options.expectUserCallback !== false) {
-      return this.expectUserCallbacks({ rejected: [doc] });
-    } else {
-      return this;
-    }
-  }
-
-  // TODO(wuandy): watch* methods should really be dealing with Target, not
-  // Query, make this happen.
-  watchAcks(query: Query): this {
-    this.nextStep();
-    this.currentStep = {
-      watchAck: [this.getTargetId(query)]
-    };
-    return this;
-  }
-
-  // Technically any target change can contain a resume token, but a CURRENT
-  // target change is where it makes the most sense in our tests currently.
-  // Eventually we want to make the model more generic so we can add resume
-  // tokens in other places.
-  // TODO(b/37254270): Handle global resume tokens
-  watchCurrents(query: Query, resumeToken: string): this {
-    this.nextStep();
-    this.currentStep = {
-      watchCurrent: [[this.getTargetId(query)], resumeToken]
-    };
-    return this;
-  }
-
-  watchRemoves(query: Query, cause?: RpcError): this {
-    this.nextStep();
-    this.currentStep = {
-      watchRemove: { targetIds: [this.getTargetId(query)], cause }
-    };
-    if (cause) {
-      delete this.activeTargets[this.getTargetId(query)];
-      this.currentStep.expectedState = {
-        activeTargets: objUtils.shallowCopy(this.activeTargets)
-      };
-    }
-    return this;
-  }
-
-  watchSends(
-    targets: { affects?: Query[]; removed?: Query[] },
-    ...docs: MaybeDocument[]
-  ): this {
-    this.nextStep();
-    const affects =
-      targets.affects &&
-      targets.affects.map(query => {
-        return this.getTargetId(query);
-      });
-    const removed =
-      targets.removed &&
-      targets.removed.map(query => {
-        return this.getTargetId(query);
-      });
-    const specDocs: SpecDocument[] = [];
-    for (const doc of docs) {
-      specDocs.push(SpecBuilder.docToSpec(doc));
-    }
-    this.currentStep = {
-      watchEntity: {
-        docs: specDocs,
-        targets: affects,
-        removedTargets: removed
-      }
-    };
-    return this;
-  }
-
-  watchRemovesDoc(key: DocumentKey, ...targets: Query[]): this {
-    this.nextStep();
-    this.currentStep = {
-      watchEntity: {
-        key: SpecBuilder.keyToSpec(key),
-        removedTargets: targets.map(query => this.getTargetId(query))
-      }
-    };
-    return this;
-  }
-
-  watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
-    this.nextStep();
-    const targetIds = queries.map(query => {
-      return this.getTargetId(query);
-    });
-    const keys = docs.map(key => {
-      return key.path.canonicalString();
-    });
-    const filter: SpecWatchFilter = [targetIds] as SpecWatchFilter;
-    for (const key of keys) {
-      filter.push(key);
-    }
-    this.currentStep = {
-      watchFilter: filter
-    };
-    return this;
-  }
-
-  watchResets(...queries: Query[]): this {
-    this.nextStep();
-    const targetIds = queries.map(query => this.getTargetId(query));
-    this.currentStep = {
-      watchReset: targetIds
-    };
-    return this;
-  }
-
-  watchSnapshots(
-    version: TestSnapshotVersion,
-    targets?: Query[],
-    resumeToken?: string
-  ): this {
-    this.nextStep();
-    const targetIds = targets
-      ? targets.map(query => this.getTargetId(query))
-      : [];
-    this.currentStep = {
-      watchSnapshot: { version, targetIds, resumeToken }
-    };
-    return this;
-  }
-
-  watchAcksFull(
-    query: Query,
-    version: TestSnapshotVersion,
-    ...docs: Document[]
-  ): this {
-    this.watchAcks(query);
-    this.watchSends({ affects: [query] }, ...docs);
-    this.watchCurrents(query, 'resume-token-' + version);
-    this.watchSnapshots(version);
-    return this;
-  }
-
-  watchStreamCloses(error: Code, opts?: { runBackoffTimer: boolean }): this {
-    if (!opts) {
-      opts = { runBackoffTimer: true };
-    }
-
-    this.nextStep();
-    this.currentStep = {
-      watchStreamClose: {
-        error: {
-          code: mapRpcCodeFromCode(error),
-          message: 'Simulated Backend Error'
-        },
-        runBackoffTimer: opts.runBackoffTimer
-      }
-    };
-    return this;
-  }
-
-  expectUserCallbacks(docs: {
-    acknowledged?: string[];
-    rejected?: string[];
-  }): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.userCallbacks = currentStep.expectedState
-      .userCallbacks || { acknowledgedDocs: [], rejectedDocs: [] };
-
-    if (docs.acknowledged) {
-      currentStep.expectedState.userCallbacks.acknowledgedDocs.push(
-        ...docs.acknowledged
-      );
-    }
-
-    if (docs.rejected) {
-      currentStep.expectedState.userCallbacks.rejectedDocs.push(
-        ...docs.rejected
-      );
-    }
-
-    return this;
-  }
-
-  expectEvents(
-    query: Query,
-    events: {
-      fromCache?: boolean;
-      hasPendingWrites?: boolean;
-      added?: Document[];
-      modified?: Document[];
-      removed?: Document[];
-      metadata?: Document[];
-      errorCode?: Code;
-    }
-  ): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    if (!currentStep.expectedSnapshotEvents) {
-      currentStep.expectedSnapshotEvents = [];
-    }
-    assert(
-      !events.errorCode ||
-        !(events.added || events.modified || events.removed || events.metadata),
-      "Can't provide both error and events"
-    );
-    currentStep.expectedSnapshotEvents.push({
-      query: SpecBuilder.queryToSpec(query),
-      added: events.added && events.added.map(SpecBuilder.docToSpec),
-      modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
-      removed: events.removed && events.removed.map(SpecBuilder.docToSpec),
-      metadata: events.metadata && events.metadata.map(SpecBuilder.docToSpec),
-      errorCode: mapRpcCodeFromCode(events.errorCode),
-      fromCache: events.fromCache || false,
-      hasPendingWrites: events.hasPendingWrites || false
-    });
-    return this;
-  }
-
-  /** Registers a query that is active in another tab. */
-  expectListen(query: Query, resumeToken?: string): this {
-    this.assertStep('Expectations require previous step');
-
-    const target = query.toTarget();
-    const targetId = this.queryIdGenerator.cachedId(target);
-    this.queryMapping.set(target, targetId);
-
-    this.addQueryToActiveTargets(targetId, query, resumeToken);
-
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
-    return this;
-  }
-
-  /** Removes a query that is no longer active in any tab. */
-  expectUnlisten(query: Query): this {
-    this.assertStep('Expectations require previous step');
-
-    const target = query.toTarget();
-    const targetId = this.queryMapping.get(target)!;
-
-    this.removeQueryFromActiveTargets(query, targetId);
-
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
-      this.queryMapping.delete(target);
-      this.queryIdGenerator.purge(target);
-    }
-
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
-    return this;
-  }
-
-  /**
-   * Verifies the total number of requests sent to the write backend since test
-   * initialization.
-   */
-  expectWriteStreamRequestCount(num: number): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.writeStreamRequestCount = num;
-    return this;
-  }
-
-  /**
-   * Verifies the total number of requests sent to the watch backend since test
-   * initialization.
-   */
-  expectWatchStreamRequestCount(num: number): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.watchStreamRequestCount = num;
-    return this;
-  }
-
-  expectNumOutstandingWrites(num: number): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.numOutstandingWrites = num;
-    return this;
-  }
-
-  expectNumActiveClients(num: number): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.numActiveClients = num;
-    return this;
-  }
-
-  expectPrimaryState(isPrimary: boolean): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.isPrimary = isPrimary;
-    return this;
-  }
-
-  expectSnapshotsInSyncEvent(count = 1): this {
-    this.assertStep('Expectations require previous step');
-    const currentStep = this.currentStep!;
-    currentStep.expectedSnapshotsInSyncEvents = count;
-    return this;
-  }
-
-  private static queryToSpec(query: Query): SpecQuery {
-    // TODO(dimond): full query support
-    const spec: SpecQuery = { path: query.path.canonicalString() };
-    if (query.collectionGroup !== null) {
-      spec.collectionGroup = query.collectionGroup;
-    }
-    if (query.hasLimitToFirst()) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToFirst';
-    }
-    if (query.hasLimitToLast()) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToLast';
-    }
-    if (query.filters) {
-      spec.filters = query.filters.map((filter: Filter) => {
-        if (filter instanceof FieldFilter) {
-          // TODO(dimond): Support non-JSON primitive values?
-          return [
-            filter.field.canonicalString(),
-            filter.op.name,
-            filter.value.value()
-          ] as SpecQueryFilter;
-        } else {
-          return fail('Unknown filter: ' + filter);
-        }
-      });
-    }
-    if (query.explicitOrderBy) {
-      spec.orderBys = query.explicitOrderBy.map(orderBy => {
-        return [
-          orderBy.field.canonicalString(),
-          orderBy.dir.name
-        ] as SpecQueryOrderBy;
-      });
-    }
-    return spec;
-  }
-
-  private static docToSpec(doc: MaybeDocument): SpecDocument {
-    if (doc instanceof Document) {
-      return {
-        key: SpecBuilder.keyToSpec(doc.key),
-        version: doc.version.toMicroseconds(),
-        value: doc.data().value(),
-        options: {
-          hasLocalMutations: doc.hasLocalMutations,
-          hasCommittedMutations: doc.hasCommittedMutations
-        }
-      };
-    } else {
-      return {
-        key: SpecBuilder.keyToSpec(doc.key),
-        version: doc.version.toMicroseconds(),
-        value: null
-      };
-    }
-  }
-
-  private static keyToSpec(key: DocumentKey): string {
-    return key.path.canonicalString();
-  }
-
-  protected nextStep(): void {
-    if (this.currentStep !== null) {
-      this.steps.push(this.currentStep);
-      this.currentStep = null;
-    }
-  }
-
-  /**
-   * Add the specified `Query` under give active targe id. If it is already
-   * added, this is a no-op.
-   */
-  private addQueryToActiveTargets(
-    targetId: number,
-    query: Query,
-    resumeToken?: string
-  ): void {
-    if (this.activeTargets[targetId]) {
-      const activeQueries = this.activeTargets[targetId].queries;
-      if (
-        !activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
-      ) {
-        // `query` is not added yet.
-        this.activeTargets[targetId] = {
-          queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resumeToken || ''
-        };
-      } else {
-        this.activeTargets[targetId] = {
-          queries: activeQueries,
-          resumeToken: resumeToken || ''
-        };
-      }
-    } else {
-      this.activeTargets[targetId] = {
-        queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resumeToken || ''
-      };
-    }
-  }
-
-  private removeQueryFromActiveTargets(query: Query, targetId: number): void {
-    const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
-      specQuery => !parseQuery(specQuery).isEqual(query)
-    );
-    if (queriesAfterRemoval.length > 0) {
-      this.activeTargets[targetId] = {
-        queries: queriesAfterRemoval,
-        resumeToken: this.activeTargets[targetId].resumeToken
-      };
-    } else {
-      delete this.activeTargets[targetId];
-    }
-  }
-
-  private assertStep(msg: string): void {
-    if (this.currentStep === null) {
-      throw new Error('Expected a previous step: ' + msg);
-    }
-  }
-
-  private getTargetId(query: Query): TargetId {
-    const queryTargetId = this.queryMapping.get(query.toTarget());
-    const limboTargetId = this.limboMapping[query.path.canonicalString()];
-    if (queryTargetId && limboTargetId) {
-      // TODO(dimond): add support for query for doc and limbo doc at the same
-      // time?
-      fail('Found both query and limbo doc with target ID, not supported yet');
-    }
-    const targetId = queryTargetId || limboTargetId;
-    assert(
-      !isNullOrUndefined(targetId),
-      'No target ID found for query/limbo doc in spec'
-    );
-    return targetId;
-  }
+	protected config: SpecConfig = { useGarbageCollection: true, numClients: 1 };
+	// currentStep is built up (in particular, expectations can be added to it)
+	// until nextStep() is called to append it to steps.
+	protected currentStep: SpecStep | null = null;
+
+	private steps: SpecStep[] = [];
+
+	private queryIdGenerator = new CachedTargetIdGenerator();
+
+	private readonly currentClientState: ClientMemoryState = new ClientMemoryState();
+
+	// Accessor function that can be overridden to return a different
+	// `ClientMemoryState`.
+	protected get clientState(): ClientMemoryState {
+		return this.currentClientState;
+	}
+
+	private get limboIdGenerator(): TargetIdGenerator {
+		return this.clientState.limboIdGenerator;
+	}
+
+	private get queryMapping(): ObjectMap<Target, TargetId> {
+		return this.clientState.queryMapping;
+	}
+
+	private get limboMapping(): LimboMap {
+		return this.clientState.limboMapping;
+	}
+
+	private get activeTargets(): ActiveTargetMap {
+		return this.clientState.activeTargets;
+	}
+
+	/**
+	 * Exports the spec steps as a JSON object that be used in the spec runner.
+	 */
+	toJSON(): { config: SpecConfig; steps: SpecStep[] } {
+		this.nextStep();
+		return { config: this.config, steps: this.steps };
+	}
+
+	/**
+	 * Run the spec as a test. If persistence is available it will run it with and
+	 * without persistence enabled.
+	 */
+	runAsTest(
+		name: string,
+		tags: string[],
+		usePersistence: boolean
+	): Promise<void> {
+		this.nextStep();
+		return runSpec(name, tags, usePersistence, this.config, this.steps);
+	}
+
+	// Configures Garbage Collection behavior (on or off). Default is on.
+	withGCEnabled(gcEnabled: boolean): this {
+		assert(
+			!this.currentStep,
+			'withGCEnabled() must be called before all spec steps.'
+		);
+		this.config.useGarbageCollection = gcEnabled;
+		return this;
+	}
+
+	userListens(query: Query, resumeToken?: string): this {
+		this.nextStep();
+
+		const target = query.toTarget();
+		let targetId: TargetId = 0;
+		if (this.queryMapping.has(target)) {
+			targetId = this.queryMapping.get(target)!;
+		} else {
+			targetId = this.queryIdGenerator.next(target);
+		}
+
+		this.queryMapping.set(target, targetId);
+		this.addQueryToActiveTargets(targetId, query, resumeToken);
+		this.currentStep = {
+			userListen: [targetId, SpecBuilder.queryToSpec(query)],
+			expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+		};
+		return this;
+	}
+
+	/**
+	 * Registers a previously active target with the test expectations after a
+	 * stream disconnect.
+	 */
+	restoreListen(query: Query, resumeToken: string): this {
+		const targetId = this.queryMapping.get(query.toTarget());
+
+		if (isNullOrUndefined(targetId)) {
+			throw new Error("Can't restore an unknown query: " + query);
+		}
+
+		this.addQueryToActiveTargets(targetId!, query, resumeToken);
+
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.activeTargets = objUtils.shallowCopy(
+			this.activeTargets
+		);
+		return this;
+	}
+
+	userUnlistens(query: Query): this {
+		this.nextStep();
+		const target = query.toTarget();
+		if (!this.queryMapping.has(target)) {
+			throw new Error('Unlistening to query not listened to: ' + query);
+		}
+		const targetId = this.queryMapping.get(target)!;
+		this.removeQueryFromActiveTargets(query, targetId);
+
+		if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+			this.queryMapping.delete(target);
+			this.queryIdGenerator.purge(target);
+		}
+
+		this.currentStep = {
+			userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
+			expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+		};
+		return this;
+	}
+
+	userSets(key: string, value: JsonObject<unknown>): this {
+		this.nextStep();
+		this.currentStep = {
+			userSet: [key, value]
+		};
+		return this;
+	}
+
+	userPatches(key: string, value: JsonObject<unknown>): this {
+		this.nextStep();
+		this.currentStep = {
+			userPatch: [key, value]
+		};
+		return this;
+	}
+
+	userDeletes(key: string): this {
+		this.nextStep();
+		this.currentStep = {
+			userDelete: key
+		};
+		return this;
+	}
+
+	userAddsSnapshotsInSyncListener(): this {
+		this.nextStep();
+		this.currentStep = {
+			addSnapshotsInSyncListener: true
+		};
+		return this;
+	}
+
+	userRemovesSnapshotsInSyncListener(): this {
+		this.nextStep();
+		this.currentStep = {
+			removeSnapshotsInSyncListener: true
+		};
+		return this;
+	}
+
+	// PORTING NOTE: Only used by web multi-tab tests.
+	becomeHidden(): this {
+		this.nextStep();
+		this.currentStep = {
+			applyClientState: { visibility: 'hidden' }
+		};
+		return this;
+	}
+
+	// PORTING NOTE: Only used by web multi-tab tests.
+	becomeVisible(): this {
+		this.nextStep();
+		this.currentStep = {
+			applyClientState: { visibility: 'visible' }
+		};
+		return this;
+	}
+
+	runTimer(timerId: TimerId): this {
+		this.nextStep();
+		this.currentStep = { runTimer: timerId };
+		return this;
+	}
+
+	changeUser(uid: string | null): this {
+		this.nextStep();
+		this.currentStep = { changeUser: uid };
+		return this;
+	}
+
+	disableNetwork(): this {
+		this.nextStep();
+		this.currentStep = {
+			enableNetwork: false,
+			expectedState: {
+				activeTargets: {},
+				limboDocs: []
+			}
+		};
+		return this;
+	}
+
+	enableNetwork(): this {
+		this.nextStep();
+		this.currentStep = {
+			enableNetwork: true
+		};
+		return this;
+	}
+
+	clearPersistence(): this {
+		this.nextStep();
+		this.currentStep = {
+			clearPersistence: true
+		};
+		return this;
+	}
+
+	restart(): this {
+		this.nextStep();
+		this.currentStep = {
+			restart: true,
+			expectedState: {
+				activeTargets: {},
+				limboDocs: []
+			}
+		};
+		// Reset our mappings / target ids since all existing listens will be
+		// forgotten.
+		this.clientState.reset();
+		return this;
+	}
+
+	shutdown(): this {
+		this.nextStep();
+		this.currentStep = {
+			shutdown: true,
+			expectedState: {
+				activeTargets: {},
+				limboDocs: []
+			}
+		};
+		// Reset our mappings / target ids since all existing listens will be
+		// forgotten.
+		this.clientState.reset();
+		return this;
+	}
+
+	expectIsShutdown(): this {
+		this.assertStep('Active target expectation requires previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.isShutdown = true;
+		return this;
+	}
+
+	/** Overrides the currently expected set of active targets. */
+	expectActiveTargets(
+		...targets: Array<{ query: Query; resumeToken: string }>
+	): this {
+		this.assertStep('Active target expectation requires previous step');
+		const currentStep = this.currentStep!;
+		this.clientState.activeTargets = {};
+		targets.forEach(({ query, resumeToken }) => {
+			this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
+		});
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.activeTargets = objUtils.shallowCopy(
+			this.activeTargets
+		);
+		return this;
+	}
+
+	/**
+	 * Expects a document to be in limbo. A targetId is assigned if it's not in
+	 * limbo yet.
+	 */
+	expectLimboDocs(...keys: DocumentKey[]): this {
+		this.assertStep('Limbo expectation requires previous step');
+		const currentStep = this.currentStep!;
+
+		// Clear any preexisting limbo watch targets, which we'll re-create as
+		// necessary from the provided keys below.
+		objUtils.forEach(this.limboMapping, (key, targetId) => {
+			delete this.activeTargets[targetId];
+		});
+
+		keys.forEach(key => {
+			const path = key.path.canonicalString();
+			// Create limbo target ID mapping if it was not in limbo yet
+			if (!objUtils.contains(this.limboMapping, path)) {
+				this.limboMapping[path] = this.limboIdGenerator.next();
+			}
+			// Limbo doc queries are always without resume token
+			this.addQueryToActiveTargets(
+				this.limboMapping[path],
+				Query.atPath(key.path),
+				''
+			);
+		});
+
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.limboDocs = keys.map(k =>
+			SpecBuilder.keyToSpec(k)
+		);
+		currentStep.expectedState.activeTargets = objUtils.shallowCopy(
+			this.activeTargets
+		);
+		return this;
+	}
+
+	/**
+	 * Special helper for limbo documents that acks with either a document or
+	 * with no document for NoDocument. This is translated into normal watch
+	 * messages.
+	 */
+	ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
+		const query = Query.atPath(doc.key.path);
+		this.watchAcks(query);
+		if (doc instanceof Document) {
+			this.watchSends({ affects: [query] }, doc);
+		} else if (doc instanceof NoDocument) {
+			// Don't send any updates
+		} else {
+			fail('Unknown parameter: ' + doc);
+		}
+		this.watchCurrents(query, 'resume-token-' + version);
+		this.watchSnapshots(version);
+		return this;
+	}
+
+	/**
+	 * Special helper for limbo documents that acks an unlisten for a limbo doc
+	 * with either a document or with no document for NoDocument. This is
+	 * translated into normal watch messages.
+	 */
+	watchRemovesLimboTarget(doc: Document | NoDocument): this {
+		const query = Query.atPath(doc.key.path);
+		this.watchRemoves(query);
+		return this;
+	}
+
+	/**
+	 * Acks a write with a version and optional additional options.
+	 *
+	 * expectUserCallback defaults to true if omitted.
+	 */
+	writeAcks(
+		doc: string,
+		version: TestSnapshotVersion,
+		options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
+	): this {
+		this.nextStep();
+		options = options || {};
+
+		const writeAck: SpecWriteAck = { version };
+		if (options.keepInQueue) {
+			writeAck.keepInQueue = true;
+		}
+		this.currentStep = { writeAck };
+
+		if (options.expectUserCallback !== false) {
+			return this.expectUserCallbacks({ acknowledged: [doc] });
+		} else {
+			return this;
+		}
+	}
+
+	/**
+	 * Fails a write with an error and optional additional options.
+	 *
+	 * expectUserCallback defaults to true if omitted.
+	 */
+	failWrite(
+		doc: string,
+		error: RpcError,
+		options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
+	): this {
+		this.nextStep();
+		options = options || {};
+
+		// If this is a permanent error, the write is not expected to be sent
+		// again.
+		const code = mapCodeFromRpcCode(error.code);
+		const isPermanentFailure = isPermanentWriteError(code);
+		const keepInQueue =
+			options.keepInQueue !== undefined
+				? options.keepInQueue
+				: !isPermanentFailure;
+
+		const failWrite: SpecWriteFailure = { error };
+		if (keepInQueue) {
+			failWrite.keepInQueue = true;
+		}
+		this.currentStep = { failWrite };
+
+		if (options.expectUserCallback !== false) {
+			return this.expectUserCallbacks({ rejected: [doc] });
+		} else {
+			return this;
+		}
+	}
+
+	// TODO(wuandy): watch* methods should really be dealing with Target, not
+	// Query, make this happen.
+	watchAcks(query: Query): this {
+		this.nextStep();
+		this.currentStep = {
+			watchAck: [this.getTargetId(query)]
+		};
+		return this;
+	}
+
+	// Technically any target change can contain a resume token, but a CURRENT
+	// target change is where it makes the most sense in our tests currently.
+	// Eventually we want to make the model more generic so we can add resume
+	// tokens in other places.
+	// TODO(b/37254270): Handle global resume tokens
+	watchCurrents(query: Query, resumeToken: string): this {
+		this.nextStep();
+		this.currentStep = {
+			watchCurrent: [[this.getTargetId(query)], resumeToken]
+		};
+		return this;
+	}
+
+	watchRemoves(query: Query, cause?: RpcError): this {
+		this.nextStep();
+		this.currentStep = {
+			watchRemove: { targetIds: [this.getTargetId(query)], cause }
+		};
+		if (cause) {
+			delete this.activeTargets[this.getTargetId(query)];
+			this.currentStep.expectedState = {
+				activeTargets: objUtils.shallowCopy(this.activeTargets)
+			};
+		}
+		return this;
+	}
+
+	watchSends(
+		targets: { affects?: Query[]; removed?: Query[] },
+		...docs: MaybeDocument[]
+	): this {
+		this.nextStep();
+		const affects =
+			targets.affects &&
+			targets.affects.map(query => {
+				return this.getTargetId(query);
+			});
+		const removed =
+			targets.removed &&
+			targets.removed.map(query => {
+				return this.getTargetId(query);
+			});
+		const specDocs: SpecDocument[] = [];
+		for (const doc of docs) {
+			specDocs.push(SpecBuilder.docToSpec(doc));
+		}
+		this.currentStep = {
+			watchEntity: {
+				docs: specDocs,
+				targets: affects,
+				removedTargets: removed
+			}
+		};
+		return this;
+	}
+
+	watchRemovesDoc(key: DocumentKey, ...targets: Query[]): this {
+		this.nextStep();
+		this.currentStep = {
+			watchEntity: {
+				key: SpecBuilder.keyToSpec(key),
+				removedTargets: targets.map(query => this.getTargetId(query))
+			}
+		};
+		return this;
+	}
+
+	watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
+		this.nextStep();
+		const targetIds = queries.map(query => {
+			return this.getTargetId(query);
+		});
+		const keys = docs.map(key => {
+			return key.path.canonicalString();
+		});
+		const filter: SpecWatchFilter = [targetIds] as SpecWatchFilter;
+		for (const key of keys) {
+			filter.push(key);
+		}
+		this.currentStep = {
+			watchFilter: filter
+		};
+		return this;
+	}
+
+	watchResets(...queries: Query[]): this {
+		this.nextStep();
+		const targetIds = queries.map(query => this.getTargetId(query));
+		this.currentStep = {
+			watchReset: targetIds
+		};
+		return this;
+	}
+
+	watchSnapshots(
+		version: TestSnapshotVersion,
+		targets?: Query[],
+		resumeToken?: string
+	): this {
+		this.nextStep();
+		const targetIds = targets
+			? targets.map(query => this.getTargetId(query))
+			: [];
+		this.currentStep = {
+			watchSnapshot: { version, targetIds, resumeToken }
+		};
+		return this;
+	}
+
+	watchAcksFull(
+		query: Query,
+		version: TestSnapshotVersion,
+		...docs: Document[]
+	): this {
+		this.watchAcks(query);
+		this.watchSends({ affects: [query] }, ...docs);
+		this.watchCurrents(query, 'resume-token-' + version);
+		this.watchSnapshots(version);
+		return this;
+	}
+
+	watchStreamCloses(error: Code, opts?: { runBackoffTimer: boolean }): this {
+		if (!opts) {
+			opts = { runBackoffTimer: true };
+		}
+
+		this.nextStep();
+		this.currentStep = {
+			watchStreamClose: {
+				error: {
+					code: mapRpcCodeFromCode(error),
+					message: 'Simulated Backend Error'
+				},
+				runBackoffTimer: opts.runBackoffTimer
+			}
+		};
+		return this;
+	}
+
+	expectUserCallbacks(docs: {
+		acknowledged?: string[];
+		rejected?: string[];
+	}): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.userCallbacks = currentStep.expectedState
+			.userCallbacks || { acknowledgedDocs: [], rejectedDocs: [] };
+
+		if (docs.acknowledged) {
+			currentStep.expectedState.userCallbacks.acknowledgedDocs.push(
+				...docs.acknowledged
+			);
+		}
+
+		if (docs.rejected) {
+			currentStep.expectedState.userCallbacks.rejectedDocs.push(
+				...docs.rejected
+			);
+		}
+
+		return this;
+	}
+
+	expectEvents(
+		query: Query,
+		events: {
+			fromCache?: boolean;
+			hasPendingWrites?: boolean;
+			added?: Document[];
+			modified?: Document[];
+			removed?: Document[];
+			metadata?: Document[];
+			errorCode?: Code;
+		}
+	): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		if (!currentStep.expectedSnapshotEvents) {
+			currentStep.expectedSnapshotEvents = [];
+		}
+		assert(
+			!events.errorCode ||
+				!(events.added || events.modified || events.removed || events.metadata),
+			"Can't provide both error and events"
+		);
+		currentStep.expectedSnapshotEvents.push({
+			query: SpecBuilder.queryToSpec(query),
+			added: events.added && events.added.map(SpecBuilder.docToSpec),
+			modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
+			removed: events.removed && events.removed.map(SpecBuilder.docToSpec),
+			metadata: events.metadata && events.metadata.map(SpecBuilder.docToSpec),
+			errorCode: mapRpcCodeFromCode(events.errorCode),
+			fromCache: events.fromCache || false,
+			hasPendingWrites: events.hasPendingWrites || false
+		});
+		return this;
+	}
+
+	/** Registers a query that is active in another tab. */
+	expectListen(query: Query, resumeToken?: string): this {
+		this.assertStep('Expectations require previous step');
+
+		const target = query.toTarget();
+		const targetId = this.queryIdGenerator.cachedId(target);
+		this.queryMapping.set(target, targetId);
+
+		this.addQueryToActiveTargets(targetId, query, resumeToken);
+
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.activeTargets = objUtils.shallowCopy(
+			this.activeTargets
+		);
+		return this;
+	}
+
+	/** Removes a query that is no longer active in any tab. */
+	expectUnlisten(query: Query): this {
+		this.assertStep('Expectations require previous step');
+
+		const target = query.toTarget();
+		const targetId = this.queryMapping.get(target)!;
+
+		this.removeQueryFromActiveTargets(query, targetId);
+
+		if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+			this.queryMapping.delete(target);
+			this.queryIdGenerator.purge(target);
+		}
+
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.activeTargets = objUtils.shallowCopy(
+			this.activeTargets
+		);
+		return this;
+	}
+
+	/**
+	 * Verifies the total number of requests sent to the write backend since test
+	 * initialization.
+	 */
+	expectWriteStreamRequestCount(num: number): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.writeStreamRequestCount = num;
+		return this;
+	}
+
+	/**
+	 * Verifies the total number of requests sent to the watch backend since test
+	 * initialization.
+	 */
+	expectWatchStreamRequestCount(num: number): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.watchStreamRequestCount = num;
+		return this;
+	}
+
+	expectNumOutstandingWrites(num: number): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.numOutstandingWrites = num;
+		return this;
+	}
+
+	expectNumActiveClients(num: number): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.numActiveClients = num;
+		return this;
+	}
+
+	expectPrimaryState(isPrimary: boolean): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedState = currentStep.expectedState || {};
+		currentStep.expectedState.isPrimary = isPrimary;
+		return this;
+	}
+
+	expectSnapshotsInSyncEvent(count = 1): this {
+		this.assertStep('Expectations require previous step');
+		const currentStep = this.currentStep!;
+		currentStep.expectedSnapshotsInSyncEvents = count;
+		return this;
+	}
+
+	private static queryToSpec(query: Query): SpecQuery {
+		// TODO(dimond): full query support
+		const spec: SpecQuery = { path: query.path.canonicalString() };
+		if (query.collectionGroup !== null) {
+			spec.collectionGroup = query.collectionGroup;
+		}
+		if (query.hasLimitToFirst()) {
+			spec.limit = query.limit!;
+			spec.limitType = 'LimitToFirst';
+		}
+		if (query.hasLimitToLast()) {
+			spec.limit = query.limit!;
+			spec.limitType = 'LimitToLast';
+		}
+		if (query.filters) {
+			spec.filters = query.filters.map((filter: Filter) => {
+				if (filter instanceof FieldFilter) {
+					// TODO(dimond): Support non-JSON primitive values?
+					return [
+						filter.field.canonicalString(),
+						filter.op.name,
+						filter.value.value()
+					] as SpecQueryFilter;
+				} else {
+					return fail('Unknown filter: ' + filter);
+				}
+			});
+		}
+		if (query.explicitOrderBy) {
+			spec.orderBys = query.explicitOrderBy.map(orderBy => {
+				return [
+					orderBy.field.canonicalString(),
+					orderBy.dir.name
+				] as SpecQueryOrderBy;
+			});
+		}
+		return spec;
+	}
+
+	private static docToSpec(doc: MaybeDocument): SpecDocument {
+		if (doc instanceof Document) {
+			return {
+				key: SpecBuilder.keyToSpec(doc.key),
+				version: doc.version.toMicroseconds(),
+				value: doc.data().value(),
+				options: {
+					hasLocalMutations: doc.hasLocalMutations,
+					hasCommittedMutations: doc.hasCommittedMutations
+				}
+			};
+		} else {
+			return {
+				key: SpecBuilder.keyToSpec(doc.key),
+				version: doc.version.toMicroseconds(),
+				value: null
+			};
+		}
+	}
+
+	private static keyToSpec(key: DocumentKey): string {
+		return key.path.canonicalString();
+	}
+
+	protected nextStep(): void {
+		if (this.currentStep !== null) {
+			this.steps.push(this.currentStep);
+			this.currentStep = null;
+		}
+	}
+
+	/**
+	 * Add the specified `Query` under give active targe id. If it is already
+	 * added, this is a no-op.
+	 */
+	private addQueryToActiveTargets(
+		targetId: number,
+		query: Query,
+		resumeToken?: string
+	): void {
+		if (this.activeTargets[targetId]) {
+			const activeQueries = this.activeTargets[targetId].queries;
+			if (
+				!activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
+			) {
+				// `query` is not added yet.
+				this.activeTargets[targetId] = {
+					queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
+					resumeToken: resumeToken || ''
+				};
+			} else {
+				this.activeTargets[targetId] = {
+					queries: activeQueries,
+					resumeToken: resumeToken || ''
+				};
+			}
+		} else {
+			this.activeTargets[targetId] = {
+				queries: [SpecBuilder.queryToSpec(query)],
+				resumeToken: resumeToken || ''
+			};
+		}
+	}
+
+	private removeQueryFromActiveTargets(query: Query, targetId: number): void {
+		const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
+			specQuery => !parseQuery(specQuery).isEqual(query)
+		);
+		if (queriesAfterRemoval.length > 0) {
+			this.activeTargets[targetId] = {
+				queries: queriesAfterRemoval,
+				resumeToken: this.activeTargets[targetId].resumeToken
+			};
+		} else {
+			delete this.activeTargets[targetId];
+		}
+	}
+
+	private assertStep(msg: string): void {
+		if (this.currentStep === null) {
+			throw new Error('Expected a previous step: ' + msg);
+		}
+	}
+
+	private getTargetId(query: Query): TargetId {
+		const queryTargetId = this.queryMapping.get(query.toTarget());
+		const limboTargetId = this.limboMapping[query.path.canonicalString()];
+		if (queryTargetId && limboTargetId) {
+			// TODO(dimond): add support for query for doc and limbo doc at the same
+			// time?
+			fail('Found both query and limbo doc with target ID, not supported yet');
+		}
+		const targetId = queryTargetId || limboTargetId;
+		assert(
+			!isNullOrUndefined(targetId),
+			'No target ID found for query/limbo doc in spec'
+		);
+		return targetId;
+	}
 }
 
 /**
@@ -1011,79 +1011,79 @@ export class SpecBuilder {
  */
 // PORTING NOTE: Only used by web multi-tab tests.
 export class MultiClientSpecBuilder extends SpecBuilder {
-  private activeClientIndex = -1;
-  private clientStates: ClientMemoryState[] = [];
+	private activeClientIndex = -1;
+	private clientStates: ClientMemoryState[] = [];
 
-  protected get clientState(): ClientMemoryState {
-    if (!this.clientStates[this.activeClientIndex]) {
-      this.clientStates[this.activeClientIndex] = new ClientMemoryState();
-    }
-    return this.clientStates[this.activeClientIndex];
-  }
+	protected get clientState(): ClientMemoryState {
+		if (!this.clientStates[this.activeClientIndex]) {
+			this.clientStates[this.activeClientIndex] = new ClientMemoryState();
+		}
+		return this.clientStates[this.activeClientIndex];
+	}
 
-  client(clientIndex: number): MultiClientSpecBuilder {
-    // Since `currentStep` is fully self-contained and does not rely on previous
-    // state, we don't need to use a different SpecBuilder instance for each
-    // client.
-    this.nextStep();
-    this.currentStep = {
-      drainQueue: true
-    };
+	client(clientIndex: number): MultiClientSpecBuilder {
+		// Since `currentStep` is fully self-contained and does not rely on previous
+		// state, we don't need to use a different SpecBuilder instance for each
+		// client.
+		this.nextStep();
+		this.currentStep = {
+			drainQueue: true
+		};
 
-    this.activeClientIndex = clientIndex;
-    this.config.numClients = Math.max(
-      this.config.numClients,
-      this.activeClientIndex + 1
-    );
+		this.activeClientIndex = clientIndex;
+		this.config.numClients = Math.max(
+			this.config.numClients,
+			this.activeClientIndex + 1
+		);
 
-    return this;
-  }
+		return this;
+	}
 
-  /**
-   * Take the primary lease, even if another client has already obtained the
-   * lease.
-   */
-  stealPrimaryLease(): this {
-    this.nextStep();
-    this.currentStep = {
-      applyClientState: {
-        primary: true
-      },
-      expectedState: {
-        isPrimary: true
-      }
-    };
+	/**
+	 * Take the primary lease, even if another client has already obtained the
+	 * lease.
+	 */
+	stealPrimaryLease(): this {
+		this.nextStep();
+		this.currentStep = {
+			applyClientState: {
+				primary: true
+			},
+			expectedState: {
+				isPrimary: true
+			}
+		};
 
-    // HACK: SyncEngine resets its limbo mapping when it gains the primary
-    // lease. The SpecTests need to also clear their mapping, but when we parse
-    // the spec tests, we don't know when the primary lease transition happens.
-    // It is likely going to happen right after `stealPrimaryLease`, so we are
-    // clearing the limbo mapping here.
-    this.clientState.resetLimboMapping();
+		// HACK: SyncEngine resets its limbo mapping when it gains the primary
+		// lease. The SpecTests need to also clear their mapping, but when we parse
+		// the spec tests, we don't know when the primary lease transition happens.
+		// It is likely going to happen right after `stealPrimaryLease`, so we are
+		// clearing the limbo mapping here.
+		this.clientState.resetLimboMapping();
 
-    return this;
-  }
+		return this;
+	}
 
-  protected nextStep(): void {
-    if (this.currentStep !== null) {
-      this.currentStep.clientIndex = this.activeClientIndex;
-    }
-    super.nextStep();
-  }
+	protected nextStep(): void {
+		if (this.currentStep !== null) {
+			this.currentStep.clientIndex = this.activeClientIndex;
+		}
+		super.nextStep();
+	}
 }
 
 /** Starts a new single-client SpecTest. */
 export function spec(): SpecBuilder {
-  return new SpecBuilder();
+	return new SpecBuilder();
 }
 
 /** Starts a new multi-client SpecTest. */
 // PORTING NOTE: Only used by web multi-tab tests.
 export function client(
-  num: number,
-  withGcEnabled?: boolean
+	num: number,
+	withGcEnabled?: boolean
 ): MultiClientSpecBuilder {
-  const specBuilder = new MultiClientSpecBuilder();
-  specBuilder.withGCEnabled(withGcEnabled === true);
-  return specBuilder.client(num);
+	const specBuilder = new MultiClientSpecBuilder();
+	specBuilder.withGCEnabled(withGcEnabled === true);
+	return specBuilder.client(num);
 }

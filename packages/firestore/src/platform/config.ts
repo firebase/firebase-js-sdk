@@ -19,17 +19,17 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
 import {
-  CACHE_SIZE_UNLIMITED,
-  Firestore,
-  PublicCollectionReference,
-  PublicDocumentReference,
-  PublicDocumentSnapshot,
-  PublicFirestore,
-  PublicQuery,
-  PublicQueryDocumentSnapshot,
-  PublicQuerySnapshot,
-  PublicTransaction,
-  PublicWriteBatch
+	CACHE_SIZE_UNLIMITED,
+	Firestore,
+	PublicCollectionReference,
+	PublicDocumentReference,
+	PublicDocumentSnapshot,
+	PublicFirestore,
+	PublicQuery,
+	PublicQueryDocumentSnapshot,
+	PublicQuerySnapshot,
+	PublicTransaction,
+	PublicWriteBatch
 } from '../api/database';
 import { FieldPath } from '../api/field_path';
 import { PublicFieldValue } from '../api/field_value';
@@ -39,38 +39,38 @@ import { shallowCopy } from '../util/obj';
 import { Component, ComponentType } from '@firebase/component';
 
 const firestoreNamespace = {
-  Firestore: PublicFirestore,
-  GeoPoint,
-  Timestamp,
-  Blob: PublicBlob,
-  Transaction: PublicTransaction,
-  WriteBatch: PublicWriteBatch,
-  DocumentReference: PublicDocumentReference,
-  DocumentSnapshot: PublicDocumentSnapshot,
-  Query: PublicQuery,
-  QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
-  QuerySnapshot: PublicQuerySnapshot,
-  CollectionReference: PublicCollectionReference,
-  FieldPath,
-  FieldValue: PublicFieldValue,
-  setLogLevel: Firestore.setLogLevel,
-  CACHE_SIZE_UNLIMITED
+	Firestore: PublicFirestore,
+	GeoPoint,
+	Timestamp,
+	Blob: PublicBlob,
+	Transaction: PublicTransaction,
+	WriteBatch: PublicWriteBatch,
+	DocumentReference: PublicDocumentReference,
+	DocumentSnapshot: PublicDocumentSnapshot,
+	Query: PublicQuery,
+	QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
+	QuerySnapshot: PublicQuerySnapshot,
+	CollectionReference: PublicCollectionReference,
+	FieldPath,
+	FieldValue: PublicFieldValue,
+	setLogLevel: Firestore.setLogLevel,
+	CACHE_SIZE_UNLIMITED
 };
 
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  */
 export function configureForFirebase(firebase: FirebaseNamespace): void {
-  (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
-    new Component(
-      'firestore',
-      container => {
-        const app = container.getProvider('app').getImmediate()!;
-        return new Firestore(app, container.getProvider('auth-internal'));
-      },
-      ComponentType.PUBLIC
-    ).setServiceProps(shallowCopy(firestoreNamespace))
-  );
+	(firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+		new Component(
+			'firestore',
+			container => {
+				const app = container.getProvider('app').getImmediate()!;
+				return new Firestore(app, container.getProvider('auth-internal'));
+			},
+			ComponentType.PUBLIC
+		).setServiceProps(shallowCopy(firestoreNamespace))
+	);
 }
 
 /**
@@ -79,11 +79,11 @@ export function configureForFirebase(firebase: FirebaseNamespace): void {
  * as a goog module.
  */
 export function configureForStandalone(exportObject: {
-  [key: string]: {};
+	[key: string]: {};
 }): void {
-  const copiedNamespace = shallowCopy(firestoreNamespace);
-  // Unlike the use with Firebase, the standalone allows the use of the
-  // constructor, so export it's internal class
-  copiedNamespace['Firestore'] = Firestore;
-  exportObject['firestore'] = copiedNamespace;
+	const copiedNamespace = shallowCopy(firestoreNamespace);
+	// Unlike the use with Firebase, the standalone allows the use of the
+	// constructor, so export it's internal class
+	copiedNamespace['Firestore'] = Firestore;
+	exportObject['firestore'] = copiedNamespace;
 }

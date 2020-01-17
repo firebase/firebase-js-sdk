@@ -29,30 +29,30 @@ import { PersistencePromise } from './persistence_promise';
  * the queried collection and then filters them in memory.
  */
 export class SimpleQueryEngine implements QueryEngine {
-  private localDocumentsView: LocalDocumentsView | undefined;
+	private localDocumentsView: LocalDocumentsView | undefined;
 
-  setLocalDocumentsView(localDocuments: LocalDocumentsView): void {
-    this.localDocumentsView = localDocuments;
-  }
+	setLocalDocumentsView(localDocuments: LocalDocumentsView): void {
+		this.localDocumentsView = localDocuments;
+	}
 
-  /** Returns all local documents matching the specified query. */
-  getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
-    query: Query,
-    lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
-  ): PersistencePromise<DocumentMap> {
-    assert(
-      this.localDocumentsView !== undefined,
-      'setLocalDocumentsView() not called'
-    );
+	/** Returns all local documents matching the specified query. */
+	getDocumentsMatchingQuery(
+		transaction: PersistenceTransaction,
+		query: Query,
+		lastLimboFreeSnapshotVersion: SnapshotVersion,
+		remoteKeys: DocumentKeySet
+	): PersistencePromise<DocumentMap> {
+		assert(
+			this.localDocumentsView !== undefined,
+			'setLocalDocumentsView() not called'
+		);
 
-    // TODO: Once LocalDocumentsView provides a getCollectionDocuments()
-    // method, we should call that here and then filter the results.
-    return this.localDocumentsView.getDocumentsMatchingQuery(
-      transaction,
-      query,
-      SnapshotVersion.MIN
-    );
-  }
+		// TODO: Once LocalDocumentsView provides a getCollectionDocuments()
+		// method, we should call that here and then filter the results.
+		return this.localDocumentsView.getDocumentsMatchingQuery(
+			transaction,
+			query,
+			SnapshotVersion.MIN
+		);
+	}
 }

@@ -24,33 +24,33 @@ import { EventHandler } from './misc';
  * causes events scheduled to no longer be raised.
  */
 export class AsyncObserver<T> implements Observer<T> {
-  /**
-   * When set to true, will not raise future events. Necessary to deal with
-   * async detachment of listener.
-   */
-  private muted = false;
+	/**
+	 * When set to true, will not raise future events. Necessary to deal with
+	 * async detachment of listener.
+	 */
+	private muted = false;
 
-  constructor(private observer: Observer<T>) {}
+	constructor(private observer: Observer<T>) {}
 
-  next(value: T): void {
-    this.scheduleEvent(this.observer.next, value);
-  }
+	next(value: T): void {
+		this.scheduleEvent(this.observer.next, value);
+	}
 
-  error(error: Error): void {
-    this.scheduleEvent(this.observer.error, error);
-  }
+	error(error: Error): void {
+		this.scheduleEvent(this.observer.error, error);
+	}
 
-  mute(): void {
-    this.muted = true;
-  }
+	mute(): void {
+		this.muted = true;
+	}
 
-  private scheduleEvent<E>(eventHandler: EventHandler<E>, event: E): void {
-    if (!this.muted) {
-      setTimeout(() => {
-        if (!this.muted) {
-          eventHandler(event);
-        }
-      }, 0);
-    }
-  }
+	private scheduleEvent<E>(eventHandler: EventHandler<E>, event: E): void {
+		if (!this.muted) {
+			setTimeout(() => {
+				if (!this.muted) {
+					eventHandler(event);
+				}
+			}, 0);
+		}
+	}
 }

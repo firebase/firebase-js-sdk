@@ -20,17 +20,17 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 describe('Timestamp', () => {
-  addEqualityMatcher();
+	addEqualityMatcher();
 
-  it('fromDate', () => {
-    expect(Timestamp.fromDate(new Date(1488872578916))).to.deep.equal({
-      seconds: 1488872578,
-      nanoseconds: 916000000
-    });
+	it('fromDate', () => {
+		expect(Timestamp.fromDate(new Date(1488872578916))).to.deep.equal({
+			seconds: 1488872578,
+			nanoseconds: 916000000
+		});
 
-    expect(Timestamp.fromDate(new Date(-1250))).to.deep.equal({
-      seconds: -2,
-      nanoseconds: 750000000
-    });
-  });
+		expect(Timestamp.fromDate(new Date(-1250))).to.deep.equal({
+			seconds: -2,
+			nanoseconds: 750000000
+		});
+	});
 });

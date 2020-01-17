@@ -18,8 +18,8 @@
 import { expectEqual, expectNotEqual, field } from '../../util/helpers';
 
 describe('FieldPath', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(field('foo'), field('foo'));
-    expectNotEqual(field('foo'), field('bar'));
-  });
+	it('support equality checking with isEqual()', () => {
+		expectEqual(field('foo'), field('foo'));
+		expectNotEqual(field('foo'), field('bar'));
+	});
 });

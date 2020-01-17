@@ -26,62 +26,62 @@ import { Stream } from './connection';
  * interface. The stream callbacks are invoked with the callOn... methods.
  */
 export class StreamBridge<I, O> implements Stream<I, O> {
-  private wrappedOnOpen: (() => void) | undefined;
-  private wrappedOnClose: ((err?: FirestoreError) => void) | undefined;
-  private wrappedOnMessage: ((msg: O) => void) | undefined;
+	private wrappedOnOpen: (() => void) | undefined;
+	private wrappedOnClose: ((err?: FirestoreError) => void) | undefined;
+	private wrappedOnMessage: ((msg: O) => void) | undefined;
 
-  private sendFn: (msg: I) => void;
-  private closeFn: () => void;
+	private sendFn: (msg: I) => void;
+	private closeFn: () => void;
 
-  constructor(args: { sendFn: (msg: I) => void; closeFn: () => void }) {
-    this.sendFn = args.sendFn;
-    this.closeFn = args.closeFn;
-  }
+	constructor(args: { sendFn: (msg: I) => void; closeFn: () => void }) {
+		this.sendFn = args.sendFn;
+		this.closeFn = args.closeFn;
+	}
 
-  onOpen(callback: () => void): void {
-    assert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
-    this.wrappedOnOpen = callback;
-  }
+	onOpen(callback: () => void): void {
+		assert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
+		this.wrappedOnOpen = callback;
+	}
 
-  onClose(callback: (err?: FirestoreError) => void): void {
-    assert(!this.wrappedOnClose, 'Called onClose on stream twice!');
-    this.wrappedOnClose = callback;
-  }
+	onClose(callback: (err?: FirestoreError) => void): void {
+		assert(!this.wrappedOnClose, 'Called onClose on stream twice!');
+		this.wrappedOnClose = callback;
+	}
 
-  onMessage(callback: (msg: O) => void): void {
-    assert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
-    this.wrappedOnMessage = callback;
-  }
+	onMessage(callback: (msg: O) => void): void {
+		assert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
+		this.wrappedOnMessage = callback;
+	}
 
-  close(): void {
-    this.closeFn();
-  }
+	close(): void {
+		this.closeFn();
+	}
 
-  send(msg: I): void {
-    this.sendFn(msg);
-  }
+	send(msg: I): void {
+		this.sendFn(msg);
+	}
 
-  callOnOpen(): void {
-    assert(
-      this.wrappedOnOpen !== undefined,
-      'Cannot call onOpen because no callback was set'
-    );
-    this.wrappedOnOpen();
-  }
+	callOnOpen(): void {
+		assert(
+			this.wrappedOnOpen !== undefined,
+			'Cannot call onOpen because no callback was set'
+		);
+		this.wrappedOnOpen();
+	}
 
-  callOnClose(err?: FirestoreError): void {
-    assert(
-      this.wrappedOnClose !== undefined,
-      'Cannot call onClose because no callback was set'
-    );
-    this.wrappedOnClose(err);
-  }
+	callOnClose(err?: FirestoreError): void {
+		assert(
+			this.wrappedOnClose !== undefined,
+			'Cannot call onClose because no callback was set'
+		);
+		this.wrappedOnClose(err);
+	}
 
-  callOnMessage(msg: O): void {
-    assert(
-      this.wrappedOnMessage !== undefined,
-      'Cannot call onMessage because no callback was set'
-    );
-    this.wrappedOnMessage(msg);
-  }
+	callOnMessage(msg: O): void {
+		assert(
+			this.wrappedOnMessage !== undefined,
+			'Cannot call onMessage because no callback was set'
+		);
+		this.wrappedOnMessage(msg);
+	}
 }

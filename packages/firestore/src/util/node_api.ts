@@ -55,19 +55,19 @@
  *     first Error parameter or will resolve to the value given otherwise.
  */
 export function nodePromise<R>(
-  action: (callback: NodeCallback<R>) => void
+	action: (callback: NodeCallback<R>) => void
 ): Promise<R> {
-  return new Promise(
-    (resolve: (value?: R) => void, reject: (error?: unknown) => void) => {
-      action((error?: unknown, value?: R) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(value);
-        }
-      });
-    }
-  );
+	return new Promise(
+		(resolve: (value?: R) => void, reject: (error?: unknown) => void) => {
+			action((error?: unknown, value?: R) => {
+				if (error) {
+					reject(error);
+				} else {
+					resolve(value);
+				}
+			});
+		}
+	);
 }
 
 /**
@@ -75,5 +75,5 @@ export function nodePromise<R>(
  * was an error, or passes null and a proper value
  */
 export interface NodeCallback<R> {
-  (error?: unknown, value?: R): void;
+	(error?: unknown, value?: R): void;
 }

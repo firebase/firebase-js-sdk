@@ -24,31 +24,31 @@ import { ResourcePath } from '../../../src/model/path';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestIndexManager {
-  constructor(
-    public persistence: Persistence,
-    public indexManager: IndexManager
-  ) {}
+	constructor(
+		public persistence: Persistence,
+		public indexManager: IndexManager
+	) {}
 
-  addToCollectionParentIndex(collectionPath: ResourcePath): Promise<void> {
-    return this.persistence.runTransaction(
-      'addToCollectionParentIndex',
-      'readwrite-idempotent',
-      txn => {
-        return this.indexManager.addToCollectionParentIndex(
-          txn,
-          collectionPath
-        );
-      }
-    );
-  }
+	addToCollectionParentIndex(collectionPath: ResourcePath): Promise<void> {
+		return this.persistence.runTransaction(
+			'addToCollectionParentIndex',
+			'readwrite-idempotent',
+			txn => {
+				return this.indexManager.addToCollectionParentIndex(
+					txn,
+					collectionPath
+				);
+			}
+		);
+	}
 
-  getCollectionParents(collectionId: string): Promise<ResourcePath[]> {
-    return this.persistence.runTransaction(
-      'getCollectionParents',
-      'readonly-idempotent',
-      txn => {
-        return this.indexManager.getCollectionParents(txn, collectionId);
-      }
-    );
-  }
+	getCollectionParents(collectionId: string): Promise<ResourcePath[]> {
+		return this.persistence.runTransaction(
+			'getCollectionParents',
+			'readonly-idempotent',
+			txn => {
+				return this.indexManager.getCollectionParents(txn, collectionId);
+			}
+		);
+	}
 }

@@ -31,95 +31,95 @@ const RETRY_COUNT = 5;
  * with backoff.
  */
 export class TransactionRunner<T> {
-  private retries = RETRY_COUNT;
-  private backoff: ExponentialBackoff;
+	private retries = RETRY_COUNT;
+	private backoff: ExponentialBackoff;
 
-  constructor(
-    private readonly asyncQueue: AsyncQueue,
-    private readonly remoteStore: RemoteStore,
-    private readonly updateFunction: (transaction: Transaction) => Promise<T>,
-    private readonly deferred: Deferred<T>
-  ) {
-    this.backoff = new ExponentialBackoff(
-      this.asyncQueue,
-      TimerId.RetryTransaction
-    );
-  }
+	constructor(
+		private readonly asyncQueue: AsyncQueue,
+		private readonly remoteStore: RemoteStore,
+		private readonly updateFunction: (transaction: Transaction) => Promise<T>,
+		private readonly deferred: Deferred<T>
+	) {
+		this.backoff = new ExponentialBackoff(
+			this.asyncQueue,
+			TimerId.RetryTransaction
+		);
+	}
 
-  /** Runs the transaction and sets the result on deferred. */
-  run(): void {
-    this.runWithBackOff();
-  }
+	/** Runs the transaction and sets the result on deferred. */
+	run(): void {
+		this.runWithBackOff();
+	}
 
-  private runWithBackOff(): void {
-    this.backoff.backoffAndRun(async () => {
-      const transaction = this.remoteStore.createTransaction();
-      const userPromise = this.tryRunUpdateFunction(transaction);
-      if (userPromise) {
-        userPromise
-          .then(result => {
-            this.asyncQueue.enqueueAndForget(() => {
-              return transaction
-                .commit()
-                .then(() => {
-                  this.deferred.resolve(result);
-                })
-                .catch(commitError => {
-                  this.handleTransactionError(commitError);
-                });
-            });
-          })
-          .catch(userPromiseError => {
-            this.handleTransactionError(userPromiseError);
-          });
-      }
-    });
-  }
+	private runWithBackOff(): void {
+		this.backoff.backoffAndRun(async () => {
+			const transaction = this.remoteStore.createTransaction();
+			const userPromise = this.tryRunUpdateFunction(transaction);
+			if (userPromise) {
+				userPromise
+					.then(result => {
+						this.asyncQueue.enqueueAndForget(() => {
+							return transaction
+								.commit()
+								.then(() => {
+									this.deferred.resolve(result);
+								})
+								.catch(commitError => {
+									this.handleTransactionError(commitError);
+								});
+						});
+					})
+					.catch(userPromiseError => {
+						this.handleTransactionError(userPromiseError);
+					});
+			}
+		});
+	}
 
-  private tryRunUpdateFunction(transaction: Transaction): Promise<T> | null {
-    try {
-      const userPromise = this.updateFunction(transaction);
-      if (
-        isNullOrUndefined(userPromise) ||
-        !userPromise.catch ||
-        !userPromise.then
-      ) {
-        this.deferred.reject(
-          Error('Transaction callback must return a Promise')
-        );
-        return null;
-      }
-      return userPromise;
-    } catch (error) {
-      // Do not retry errors thrown by user provided updateFunction.
-      this.deferred.reject(error);
-      return null;
-    }
-  }
+	private tryRunUpdateFunction(transaction: Transaction): Promise<T> | null {
+		try {
+			const userPromise = this.updateFunction(transaction);
+			if (
+				isNullOrUndefined(userPromise) ||
+				!userPromise.catch ||
+				!userPromise.then
+			) {
+				this.deferred.reject(
+					Error('Transaction callback must return a Promise')
+				);
+				return null;
+			}
+			return userPromise;
+		} catch (error) {
+			// Do not retry errors thrown by user provided updateFunction.
+			this.deferred.reject(error);
+			return null;
+		}
+	}
 
-  private handleTransactionError(error: Error): void {
-    if (this.retries > 0 && this.isRetryableTransactionError(error)) {
-      this.retries -= 1;
-      this.asyncQueue.enqueueAndForget(() => {
-        this.runWithBackOff();
-        return Promise.resolve();
-      });
-    } else {
-      this.deferred.reject(error);
-    }
-  }
+	private handleTransactionError(error: Error): void {
+		if (this.retries > 0 && this.isRetryableTransactionError(error)) {
+			this.retries -= 1;
+			this.asyncQueue.enqueueAndForget(() => {
+				this.runWithBackOff();
+				return Promise.resolve();
+			});
+		} else {
+			this.deferred.reject(error);
+		}
+	}
 
-  private isRetryableTransactionError(error: Error): boolean {
-    if (error.name === 'FirebaseError') {
-      // In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
-      // non-matching document versions with ABORTED. These errors should be retried.
-      const code = (error as FirestoreError).code;
-      return (
-        code === 'aborted' ||
-        code === 'failed-precondition' ||
-        !isPermanentError(code)
-      );
-    }
-    return false;
-  }
+	private isRetryableTransactionError(error: Error): boolean {
+		if (error.name === 'FirebaseError') {
+			// In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
+			// non-matching document versions with ABORTED. These errors should be retried.
+			const code = (error as FirestoreError).code;
+			return (
+				code === 'aborted' ||
+				code === 'failed-precondition' ||
+				!isPermanentError(code)
+			);
+		}
+		return false;
+	}
 }

@@ -26,24 +26,24 @@ import { PersistencePromise } from './persistence_promise';
  * An in-memory implementation of IndexManager.
  */
 export class MemoryIndexManager implements IndexManager {
-  private collectionParentIndex = new MemoryCollectionParentIndex();
+	private collectionParentIndex = new MemoryCollectionParentIndex();
 
-  addToCollectionParentIndex(
-    transaction: PersistenceTransaction,
-    collectionPath: ResourcePath
-  ): PersistencePromise<void> {
-    this.collectionParentIndex.add(collectionPath);
-    return PersistencePromise.resolve();
-  }
+	addToCollectionParentIndex(
+		transaction: PersistenceTransaction,
+		collectionPath: ResourcePath
+	): PersistencePromise<void> {
+		this.collectionParentIndex.add(collectionPath);
+		return PersistencePromise.resolve();
+	}
 
-  getCollectionParents(
-    transaction: PersistenceTransaction,
-    collectionId: string
-  ): PersistencePromise<ResourcePath[]> {
-    return PersistencePromise.resolve(
-      this.collectionParentIndex.getEntries(collectionId)
-    );
-  }
+	getCollectionParents(
+		transaction: PersistenceTransaction,
+		collectionId: string
+	): PersistencePromise<ResourcePath[]> {
+		return PersistencePromise.resolve(
+			this.collectionParentIndex.getEntries(collectionId)
+		);
+	}
 }
 
 /**
@@ -52,34 +52,34 @@ export class MemoryIndexManager implements IndexManager {
  * in indexeddb_schema.ts
  */
 export class MemoryCollectionParentIndex {
-  private index = {} as {
-    [collectionId: string]: SortedSet<ResourcePath>;
-  };
+	private index = {} as {
+		[collectionId: string]: SortedSet<ResourcePath>;
+	};
 
-  // Returns false if the entry already existed.
-  add(collectionPath: ResourcePath): boolean {
-    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
-    const collectionId = collectionPath.lastSegment();
-    const parentPath = collectionPath.popLast();
-    const existingParents =
-      this.index[collectionId] ||
-      new SortedSet<ResourcePath>(ResourcePath.comparator);
-    const added = !existingParents.has(parentPath);
-    this.index[collectionId] = existingParents.add(parentPath);
-    return added;
-  }
+	// Returns false if the entry already existed.
+	add(collectionPath: ResourcePath): boolean {
+		assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
+		const collectionId = collectionPath.lastSegment();
+		const parentPath = collectionPath.popLast();
+		const existingParents =
+			this.index[collectionId] ||
+			new SortedSet<ResourcePath>(ResourcePath.comparator);
+		const added = !existingParents.has(parentPath);
+		this.index[collectionId] = existingParents.add(parentPath);
+		return added;
+	}
 
-  has(collectionPath: ResourcePath): boolean {
-    const collectionId = collectionPath.lastSegment();
-    const parentPath = collectionPath.popLast();
-    const existingParents = this.index[collectionId];
-    return existingParents && existingParents.has(parentPath);
-  }
+	has(collectionPath: ResourcePath): boolean {
+		const collectionId = collectionPath.lastSegment();
+		const parentPath = collectionPath.popLast();
+		const existingParents = this.index[collectionId];
+		return existingParents && existingParents.has(parentPath);
+	}
 
-  getEntries(collectionId: string): ResourcePath[] {
-    const parentPaths =
-      this.index[collectionId] ||
-      new SortedSet<ResourcePath>(ResourcePath.comparator);
-    return parentPaths.toArray();
-  }
+	getEntries(collectionId: string): ResourcePath[] {
+		const parentPaths =
+			this.index[collectionId] ||
+			new SortedSet<ResourcePath>(ResourcePath.comparator);
+		return parentPaths.toArray();
+	}
 }

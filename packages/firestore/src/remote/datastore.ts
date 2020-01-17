@@ -26,10 +26,10 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
 import {
-  WatchStreamListener,
-  WriteStreamListener,
-  PersistentListenStream,
-  PersistentWriteStream
+	WatchStreamListener,
+	WriteStreamListener,
+	PersistentListenStream,
+	PersistentWriteStream
 } from './persistent_stream';
 
 import { JsonProtoSerializer } from './serializer';
@@ -38,10 +38,10 @@ import { JsonProtoSerializer } from './serializer';
 // field. So we add it here.
 // TODO(b/36015800): Remove this once the api generator is fixed.
 interface BatchGetDocumentsRequest extends api.BatchGetDocumentsRequest {
-  database?: string;
+	database?: string;
 }
 interface CommitRequest extends api.CommitRequest {
-  database?: string;
+	database?: string;
 }
 
 /**
@@ -50,111 +50,111 @@ interface CommitRequest extends api.CommitRequest {
  * client SDK architecture to consume.
  */
 export class Datastore {
-  constructor(
-    private queue: AsyncQueue,
-    private connection: Connection,
-    private credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer
-  ) {}
+	constructor(
+		private queue: AsyncQueue,
+		private connection: Connection,
+		private credentials: CredentialsProvider,
+		private serializer: JsonProtoSerializer
+	) {}
 
-  newPersistentWriteStream(
-    listener: WriteStreamListener
-  ): PersistentWriteStream {
-    return new PersistentWriteStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
+	newPersistentWriteStream(
+		listener: WriteStreamListener
+	): PersistentWriteStream {
+		return new PersistentWriteStream(
+			this.queue,
+			this.connection,
+			this.credentials,
+			this.serializer,
+			listener
+		);
+	}
 
-  newPersistentWatchStream(
-    listener: WatchStreamListener
-  ): PersistentListenStream {
-    return new PersistentListenStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
+	newPersistentWatchStream(
+		listener: WatchStreamListener
+	): PersistentListenStream {
+		return new PersistentListenStream(
+			this.queue,
+			this.connection,
+			this.credentials,
+			this.serializer,
+			listener
+		);
+	}
 
-  commit(mutations: Mutation[]): Promise<MutationResult[]> {
-    const params: CommitRequest = {
-      database: this.serializer.encodedDatabaseId,
-      writes: mutations.map(m => this.serializer.toMutation(m))
-    };
-    return this.invokeRPC<CommitRequest, api.CommitResponse>(
-      'Commit',
-      params
-    ).then(response => {
-      return this.serializer.fromWriteResults(
-        response.writeResults,
-        response.commitTime
-      );
-    });
-  }
+	commit(mutations: Mutation[]): Promise<MutationResult[]> {
+		const params: CommitRequest = {
+			database: this.serializer.encodedDatabaseId,
+			writes: mutations.map(m => this.serializer.toMutation(m))
+		};
+		return this.invokeRPC<CommitRequest, api.CommitResponse>(
+			'Commit',
+			params
+		).then(response => {
+			return this.serializer.fromWriteResults(
+				response.writeResults,
+				response.commitTime
+			);
+		});
+	}
 
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
-    const params: BatchGetDocumentsRequest = {
-      database: this.serializer.encodedDatabaseId,
-      documents: keys.map(k => this.serializer.toName(k))
-    };
-    return this.invokeStreamingRPC<
-      BatchGetDocumentsRequest,
-      api.BatchGetDocumentsResponse
-    >('BatchGetDocuments', params).then(response => {
-      let docs = maybeDocumentMap();
-      response.forEach(proto => {
-        const doc = this.serializer.fromMaybeDocument(proto);
-        docs = docs.insert(doc.key, doc);
-      });
-      const result: MaybeDocument[] = [];
-      keys.forEach(key => {
-        const doc = docs.get(key);
-        assert(!!doc, 'Missing entity in write response for ' + key);
-        result.push(doc);
-      });
-      return result;
-    });
-  }
+	lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
+		const params: BatchGetDocumentsRequest = {
+			database: this.serializer.encodedDatabaseId,
+			documents: keys.map(k => this.serializer.toName(k))
+		};
+		return this.invokeStreamingRPC<
+			BatchGetDocumentsRequest,
+			api.BatchGetDocumentsResponse
+		>('BatchGetDocuments', params).then(response => {
+			let docs = maybeDocumentMap();
+			response.forEach(proto => {
+				const doc = this.serializer.fromMaybeDocument(proto);
+				docs = docs.insert(doc.key, doc);
+			});
+			const result: MaybeDocument[] = [];
+			keys.forEach(key => {
+				const doc = docs.get(key);
+				assert(!!doc, 'Missing entity in write response for ' + key);
+				result.push(doc);
+			});
+			return result;
+		});
+	}
 
-  /** Gets an auth token and invokes the provided RPC. */
-  private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
-    return this.credentials
-      .getToken()
-      .then(token => {
-        return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
-      })
-      .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
-        }
-        throw error;
-      });
-  }
+	/** Gets an auth token and invokes the provided RPC. */
+	private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
+		return this.credentials
+			.getToken()
+			.then(token => {
+				return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
+			})
+			.catch((error: FirestoreError) => {
+				if (error.code === Code.UNAUTHENTICATED) {
+					this.credentials.invalidateToken();
+				}
+				throw error;
+			});
+	}
 
-  /** Gets an auth token and invokes the provided RPC with streamed results. */
-  private invokeStreamingRPC<Req, Resp>(
-    rpcName: string,
-    request: Req
-  ): Promise<Resp[]> {
-    return this.credentials
-      .getToken()
-      .then(token => {
-        return this.connection.invokeStreamingRPC<Req, Resp>(
-          rpcName,
-          request,
-          token
-        );
-      })
-      .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
-        }
-        throw error;
-      });
-  }
+	/** Gets an auth token and invokes the provided RPC with streamed results. */
+	private invokeStreamingRPC<Req, Resp>(
+		rpcName: string,
+		request: Req
+	): Promise<Resp[]> {
+		return this.credentials
+			.getToken()
+			.then(token => {
+				return this.connection.invokeStreamingRPC<Req, Resp>(
+					rpcName,
+					request,
+					token
+				);
+			})
+			.catch((error: FirestoreError) => {
+				if (error.code === Code.UNAUTHENTICATED) {
+					this.credentials.invalidateToken();
+				}
+				throw error;
+			});
+	}
 }

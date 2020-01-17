@@ -21,90 +21,90 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
 import {
-  CredentialChangeListener,
-  CredentialsProvider,
-  EmptyCredentialsProvider
+	CredentialChangeListener,
+	CredentialsProvider,
+	EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS,
-  withTestDbsSettings
+	DEFAULT_PROJECT_ID,
+	DEFAULT_SETTINGS,
+	withTestDbsSettings
 } from './helpers';
 import { User } from '../../../src/auth/user';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
-  return (db as Firestore)._queue;
+	return (db as Firestore)._queue;
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {
-  return new DatabaseInfo(
-    new DatabaseId(DEFAULT_PROJECT_ID),
-    'persistenceKey',
-    DEFAULT_SETTINGS.host!,
-    !!DEFAULT_SETTINGS.ssl,
-    !!DEFAULT_SETTINGS.experimentalForceLongPolling
-  );
+	return new DatabaseInfo(
+		new DatabaseId(DEFAULT_PROJECT_ID),
+		'persistenceKey',
+		DEFAULT_SETTINGS.host!,
+		!!DEFAULT_SETTINGS.ssl,
+		!!DEFAULT_SETTINGS.experimentalForceLongPolling
+	);
 }
 
 export function withTestDatastore(
-  fn: (datastore: Datastore) => Promise<void>,
-  queue?: AsyncQueue,
-  credentialsProvider?: CredentialsProvider
+	fn: (datastore: Datastore) => Promise<void>,
+	queue?: AsyncQueue,
+	credentialsProvider?: CredentialsProvider
 ): Promise<void> {
-  const databaseInfo = getDefaultDatabaseInfo();
-  return PlatformSupport.getPlatform()
-    .loadConnection(databaseInfo)
-    .then(conn => {
-      const serializer = PlatformSupport.getPlatform().newSerializer(
-        databaseInfo.databaseId
-      );
-      const datastore = new Datastore(
-        queue || new AsyncQueue(),
-        conn,
-        credentialsProvider || new EmptyCredentialsProvider(),
-        serializer
-      );
+	const databaseInfo = getDefaultDatabaseInfo();
+	return PlatformSupport.getPlatform()
+		.loadConnection(databaseInfo)
+		.then(conn => {
+			const serializer = PlatformSupport.getPlatform().newSerializer(
+				databaseInfo.databaseId
+			);
+			const datastore = new Datastore(
+				queue || new AsyncQueue(),
+				conn,
+				credentialsProvider || new EmptyCredentialsProvider(),
+				serializer
+			);
 
-      return fn(datastore);
-    });
+			return fn(datastore);
+		});
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {
-  private listener: CredentialChangeListener | null = null;
+	private listener: CredentialChangeListener | null = null;
 
-  triggerUserChange(newUser: User): void {
-    this.listener!(newUser);
-  }
+	triggerUserChange(newUser: User): void {
+		this.listener!(newUser);
+	}
 
-  setChangeListener(listener: CredentialChangeListener): void {
-    super.setChangeListener(listener);
-    this.listener = listener;
-  }
+	setChangeListener(listener: CredentialChangeListener): void {
+		super.setChangeListener(listener);
+		this.listener = listener;
+	}
 }
 
 export function withMockCredentialProviderTestDb(
-  persistence: boolean,
-  fn: (
-    db: firestore.FirebaseFirestore,
-    mockCredential: MockCredentialsProvider
-  ) => Promise<void>
+	persistence: boolean,
+	fn: (
+		db: firestore.FirebaseFirestore,
+		mockCredential: MockCredentialsProvider
+	) => Promise<void>
 ): Promise<void> {
-  const mockCredentialsProvider = new MockCredentialsProvider();
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    credentials: { client: mockCredentialsProvider, type: 'provider' }
-  };
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    settings,
-    1,
-    ([db]) => {
-      return fn(db, mockCredentialsProvider);
-    }
-  );
+	const mockCredentialsProvider = new MockCredentialsProvider();
+	const settings = {
+		...DEFAULT_SETTINGS,
+		credentials: { client: mockCredentialsProvider, type: 'provider' }
+	};
+	return withTestDbsSettings(
+		persistence,
+		DEFAULT_PROJECT_ID,
+		settings,
+		1,
+		([db]) => {
+			return fn(db, mockCredentialsProvider);
+		}
+	);
 }

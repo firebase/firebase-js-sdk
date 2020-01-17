@@ -24,10 +24,10 @@ import * as ProtobufJS from 'protobufjs';
 
 /** Used by tests so we can match @grpc/proto-loader behavior. */
 export const protoLoaderOptions: ProtobufJS.IConversionOptions = {
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: false
+	longs: String,
+	enums: String,
+	defaults: true,
+	oneofs: false
 };
 
 /**
@@ -36,45 +36,45 @@ export const protoLoaderOptions: ProtobufJS.IConversionOptions = {
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): grpc.GrpcObject {
-  const root = path.resolve(
-    __dirname,
-    process.env.FIRESTORE_PROTO_ROOT || '../protos'
-  );
-  const firestoreProtoFile = path.join(
-    root,
-    'google/firestore/v1/firestore.proto'
-  );
+	const root = path.resolve(
+		__dirname,
+		process.env.FIRESTORE_PROTO_ROOT || '../protos'
+	);
+	const firestoreProtoFile = path.join(
+		root,
+		'google/firestore/v1/firestore.proto'
+	);
 
-  const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
-    ...protoLoaderOptions,
-    includeDirs: [root]
-  });
+	const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
+		...protoLoaderOptions,
+		includeDirs: [root]
+	});
 
-  return grpc.loadPackageDefinition(packageDefinition);
+	return grpc.loadPackageDefinition(packageDefinition);
 }
 
 /** Used by tests so we can directly create ProtobufJS proto message objects from JSON protos. */
 export function loadRawProtos(): ProtobufJS.Root {
-  const root = path.resolve(
-    __dirname,
-    process.env.FIRESTORE_PROTO_ROOT || '../protos'
-  );
-  const firestoreProtoFile = path.join(
-    root,
-    'google/firestore/v1/firestore.proto'
-  );
+	const root = path.resolve(
+		__dirname,
+		process.env.FIRESTORE_PROTO_ROOT || '../protos'
+	);
+	const firestoreProtoFile = path.join(
+		root,
+		'google/firestore/v1/firestore.proto'
+	);
 
-  const protoRoot = new ProtobufJS.Root();
-  // Override the resolvePath function to look for protos in the 'root'
-  // directory.
-  protoRoot.resolvePath = (origin: string, target: string) => {
-    if (path.isAbsolute(target)) {
-      return target;
-    }
-    return path.join(root, target);
-  };
+	const protoRoot = new ProtobufJS.Root();
+	// Override the resolvePath function to look for protos in the 'root'
+	// directory.
+	protoRoot.resolvePath = (origin: string, target: string) => {
+		if (path.isAbsolute(target)) {
+			return target;
+		}
+		return path.join(root, target);
+	};
 
-  protoRoot.loadSync(firestoreProtoFile);
-  protoRoot.resolveAll();
-  return protoRoot;
+	protoRoot.loadSync(firestoreProtoFile);
+	protoRoot.resolveAll();
+	return protoRoot;
 }

@@ -20,9 +20,9 @@ import * as firestore from '@firebase/firestore-types';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
 import {
-  invalidClassError,
-  validateArgType,
-  validateNamedArrayAtLeastNumberOfElements
+	invalidClassError,
+	validateArgType,
+	validateNamedArrayAtLeastNumberOfElements
 } from '../util/input_validation';
 
 // The objects that are a part of this API are exposed to third-parties as
@@ -35,57 +35,57 @@ import {
  * field names (referring to a nested field in the document).
  */
 export class FieldPath implements firestore.FieldPath {
-  /** Internal representation of a Firestore field path. */
-  _internalPath: InternalFieldPath;
+	/** Internal representation of a Firestore field path. */
+	_internalPath: InternalFieldPath;
 
-  /**
-   * Creates a FieldPath from the provided field names. If more than one field
-   * name is provided, the path will point to a nested field in a document.
-   *
-   * @param fieldNames A list of field names.
-   */
-  constructor(...fieldNames: string[]) {
-    validateNamedArrayAtLeastNumberOfElements(
-      'FieldPath',
-      fieldNames,
-      'fieldNames',
-      1
-    );
+	/**
+	 * Creates a FieldPath from the provided field names. If more than one field
+	 * name is provided, the path will point to a nested field in a document.
+	 *
+	 * @param fieldNames A list of field names.
+	 */
+	constructor(...fieldNames: string[]) {
+		validateNamedArrayAtLeastNumberOfElements(
+			'FieldPath',
+			fieldNames,
+			'fieldNames',
+			1
+		);
 
-    for (let i = 0; i < fieldNames.length; ++i) {
-      validateArgType('FieldPath', 'string', i, fieldNames[i]);
-      if (fieldNames[i].length === 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid field name at argument $(i + 1). ` +
-            'Field names must not be empty.'
-        );
-      }
-    }
+		for (let i = 0; i < fieldNames.length; ++i) {
+			validateArgType('FieldPath', 'string', i, fieldNames[i]);
+			if (fieldNames[i].length === 0) {
+				throw new FirestoreError(
+					Code.INVALID_ARGUMENT,
+					`Invalid field name at argument $(i + 1). ` +
+						'Field names must not be empty.'
+				);
+			}
+		}
 
-    this._internalPath = new InternalFieldPath(fieldNames);
-  }
+		this._internalPath = new InternalFieldPath(fieldNames);
+	}
 
-  /**
-   * Internal Note: The backend doesn't technically support querying by
-   * document ID. Instead it queries by the entire document name (full path
-   * included), but in the cases we currently support documentId(), the net
-   * effect is the same.
-   */
-  private static readonly _DOCUMENT_ID = new FieldPath(
-    InternalFieldPath.keyField().canonicalString()
-  );
+	/**
+	 * Internal Note: The backend doesn't technically support querying by
+	 * document ID. Instead it queries by the entire document name (full path
+	 * included), but in the cases we currently support documentId(), the net
+	 * effect is the same.
+	 */
+	private static readonly _DOCUMENT_ID = new FieldPath(
+		InternalFieldPath.keyField().canonicalString()
+	);
 
-  static documentId(): FieldPath {
-    return FieldPath._DOCUMENT_ID;
-  }
+	static documentId(): FieldPath {
+		return FieldPath._DOCUMENT_ID;
+	}
 
-  isEqual(other: firestore.FieldPath): boolean {
-    if (!(other instanceof FieldPath)) {
-      throw invalidClassError('isEqual', 'FieldPath', 1, other);
-    }
-    return this._internalPath.isEqual(other._internalPath);
-  }
+	isEqual(other: firestore.FieldPath): boolean {
+		if (!(other instanceof FieldPath)) {
+			throw invalidClassError('isEqual', 'FieldPath', 1, other);
+		}
+		return this._internalPath.isEqual(other._internalPath);
+	}
 }
 
 /**
@@ -97,21 +97,21 @@ const RESERVED = new RegExp('[~\\*/\\[\\]]');
  * Parses a field path string into a FieldPath, treating dots as separators.
  */
 export function fromDotSeparatedString(path: string): FieldPath {
-  const found = path.search(RESERVED);
-  if (found >= 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid field path (${path}). Paths must not contain ` +
-        `'~', '*', '/', '[', or ']'`
-    );
-  }
-  try {
-    return new FieldPath(...path.split('.'));
-  } catch (e) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid field path (${path}). Paths must not be empty, ` +
-        `begin with '.', end with '.', or contain '..'`
-    );
-  }
+	const found = path.search(RESERVED);
+	if (found >= 0) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Invalid field path (${path}). Paths must not contain ` +
+				`'~', '*', '/', '[', or ']'`
+		);
+	}
+	try {
+		return new FieldPath(...path.split('.'));
+	} catch (e) {
+		throw new FirestoreError(
+			Code.INVALID_ARGUMENT,
+			`Invalid field path (${path}). Paths must not be empty, ` +
+				`begin with '.', end with '.', or contain '..'`
+		);
+	}
 }

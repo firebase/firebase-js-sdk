@@ -27,14 +27,14 @@ import { PersistencePromise } from './persistence_promise';
  * document cache. You must call `setLocalDocumentsView()` before using.
  */
 export interface QueryEngine {
-  /** Sets the document view to query against. */
-  setLocalDocumentsView(localDocuments: LocalDocumentsView): void;
+	/** Sets the document view to query against. */
+	setLocalDocumentsView(localDocuments: LocalDocumentsView): void;
 
-  /** Returns all local documents matching the specified query. */
-  getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
-    query: Query,
-    lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
-  ): PersistencePromise<DocumentMap>;
+	/** Returns all local documents matching the specified query. */
+	getDocumentsMatchingQuery(
+		transaction: PersistenceTransaction,
+		query: Query,
+		lastLimboFreeSnapshotVersion: SnapshotVersion,
+		remoteKeys: DocumentKeySet
+	): PersistencePromise<DocumentMap>;
 }

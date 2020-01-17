@@ -19,8 +19,8 @@ import { expect } from 'chai';
 import { immediateSuccessor } from '../../../src/util/misc';
 
 describe('immediateSuccessor', () => {
-  it('generates the correct immediate successors', () => {
-    expect(immediateSuccessor('hello')).to.equal('hello\0');
-    expect(immediateSuccessor('')).to.equal('\0');
-  });
+	it('generates the correct immediate successors', () => {
+		expect(immediateSuccessor('hello')).to.equal('hello\0');
+		expect(immediateSuccessor('')).to.equal('\0');
+	});
 });

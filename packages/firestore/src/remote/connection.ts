@@ -33,50 +33,50 @@ import { FirestoreError } from '../util/error';
  * creating the equivalent protocol buffers for GRPC.
  */
 export interface Connection {
-  /**
-   * Invokes an RPC by name, given a request message as a JavaScript object
-   * representing the JSON to send.
-   *
-   * @param rpcName the name of the RPC to invoke
-   * @param request the Raw JSON object encoding of the request message
-   * @param token the Token to use for the RPC.
-   * @return a Promise containing the JSON object encoding of the response
-   */
-  invokeRPC<Req, Resp>(
-    rpcName: string,
-    request: Req,
-    token: Token | null
-  ): Promise<Resp>;
+	/**
+	 * Invokes an RPC by name, given a request message as a JavaScript object
+	 * representing the JSON to send.
+	 *
+	 * @param rpcName the name of the RPC to invoke
+	 * @param request the Raw JSON object encoding of the request message
+	 * @param token the Token to use for the RPC.
+	 * @return a Promise containing the JSON object encoding of the response
+	 */
+	invokeRPC<Req, Resp>(
+		rpcName: string,
+		request: Req,
+		token: Token | null
+	): Promise<Resp>;
 
-  /**
-   * Invokes a streaming RPC by name, given a request message as a JavaScript
-   * object representing the JSON to send. The responses will be consumed to
-   * completion and then returned as an array.
-   *
-   * @param rpcName the name of the RPC to invoke
-   * @param request the Raw JSON object encoding of the request message
-   * @param token the Token to use for the RPC.
-   * @return a Promise containing an array with the JSON object encodings of the
-   * responses
-   */
-  invokeStreamingRPC<Req, Resp>(
-    rpcName: string,
-    request: Req,
-    token: Token | null
-  ): Promise<Resp[]>;
+	/**
+	 * Invokes a streaming RPC by name, given a request message as a JavaScript
+	 * object representing the JSON to send. The responses will be consumed to
+	 * completion and then returned as an array.
+	 *
+	 * @param rpcName the name of the RPC to invoke
+	 * @param request the Raw JSON object encoding of the request message
+	 * @param token the Token to use for the RPC.
+	 * @return a Promise containing an array with the JSON object encodings of the
+	 * responses
+	 */
+	invokeStreamingRPC<Req, Resp>(
+		rpcName: string,
+		request: Req,
+		token: Token | null
+	): Promise<Resp[]>;
 
-  /**
-   * Opens a stream to the given stream RPC endpoint. Returns a stream which
-   * will try to open itself.
-   * @param rpcName the name of the RPC to open the stream on
-   * @param token the Token to use for the RPC.
-   */
-  openStream<Req, Resp>(
-    rpcName: string,
-    token: Token | null
-  ): Stream<Req, Resp>;
+	/**
+	 * Opens a stream to the given stream RPC endpoint. Returns a stream which
+	 * will try to open itself.
+	 * @param rpcName the name of the RPC to open the stream on
+	 * @param token the Token to use for the RPC.
+	 */
+	openStream<Req, Resp>(
+		rpcName: string,
+		token: Token | null
+	): Stream<Req, Resp>;
 
-  // TODO(mcg): subscribe to connection state changes.
+	// TODO(mcg): subscribe to connection state changes.
 }
 
 /**
@@ -87,10 +87,10 @@ export interface Connection {
  * be called if the stream successfully established a connection.
  */
 export interface Stream<I, O> {
-  onOpen(callback: () => void): void;
-  onClose(callback: (err?: FirestoreError) => void): void;
-  onMessage(callback: (msg: O) => void): void;
+	onOpen(callback: () => void): void;
+	onClose(callback: (err?: FirestoreError) => void): void;
+	onMessage(callback: (msg: O) => void): void;
 
-  send(msg: I): void;
-  close(): void;
+	send(msg: I): void;
+	close(): void;
 }

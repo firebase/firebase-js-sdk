@@ -29,51 +29,51 @@ import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
 export class NodePlatform implements Platform {
-  readonly base64Available = true;
+	readonly base64Available = true;
 
-  readonly emptyByteString = new Uint8Array(0);
+	readonly emptyByteString = new Uint8Array(0);
 
-  readonly document = null;
+	readonly document = null;
 
-  get window(): Window | null {
-    if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
-      return window;
-    }
+	get window(): Window | null {
+		if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+			return window;
+		}
 
-    return null;
-  }
+		return null;
+	}
 
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    const protos = loadProtos();
-    return Promise.resolve(new GrpcConnection(protos, databaseInfo));
-  }
+	loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+		const protos = loadProtos();
+		return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+	}
 
-  newConnectivityMonitor(): ConnectivityMonitor {
-    return new NoopConnectivityMonitor();
-  }
+	newConnectivityMonitor(): ConnectivityMonitor {
+		return new NoopConnectivityMonitor();
+	}
 
-  newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(partitionId, { useProto3Json: false });
-  }
+	newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
+		return new JsonProtoSerializer(partitionId, { useProto3Json: false });
+	}
 
-  formatJSON(value: unknown): string {
-    // util.inspect() results in much more readable output than JSON.stringify()
-    return util.inspect(value, { depth: 100 });
-  }
+	formatJSON(value: unknown): string {
+		// util.inspect() results in much more readable output than JSON.stringify()
+		return util.inspect(value, { depth: 100 });
+	}
 
-  atob(encoded: string): string {
-    // Node actually doesn't validate base64 strings.
-    // A quick sanity check that is not a fool-proof validation
-    if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Not a valid Base64 string: ' + encoded
-      );
-    }
-    return new Buffer(encoded, 'base64').toString('binary');
-  }
+	atob(encoded: string): string {
+		// Node actually doesn't validate base64 strings.
+		// A quick sanity check that is not a fool-proof validation
+		if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
+			throw new FirestoreError(
+				Code.INVALID_ARGUMENT,
+				'Not a valid Base64 string: ' + encoded
+			);
+		}
+		return new Buffer(encoded, 'base64').toString('binary');
+	}
 
-  btoa(raw: string): string {
-    return new Buffer(raw, 'binary').toString('base64');
-  }
+	btoa(raw: string): string {
+		return new Buffer(raw, 'binary').toString('base64');
+	}
 }

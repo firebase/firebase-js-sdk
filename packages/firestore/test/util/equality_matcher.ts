@@ -23,7 +23,7 @@ import { use } from 'chai';
  * Note: This is copied from src/util/misc.ts to avoid importing private types.
  */
 export interface Equatable<T> {
-  isEqual(other: T): boolean;
+	isEqual(other: T): boolean;
 }
 
 /**
@@ -34,101 +34,101 @@ export interface Equatable<T> {
  */
 
 function customDeepEqual(left: unknown, right: unknown): boolean {
-  /**
-   * START: Custom compare logic
-   */
-  if (typeof left === 'object' && left && 'isEqual' in left) {
-    return (left as Equatable<unknown>).isEqual(right);
-  }
-  if (typeof right === 'object' && right && 'isEqual' in right) {
-    return (right as Equatable<unknown>).isEqual(left);
-  }
-  /**
-   * END: Custom compare logic
-   */
-  if (left === right) {
-    return true;
-  }
-  if (
-    typeof left === 'number' &&
-    typeof right === 'number' &&
-    isNaN(left) &&
-    isNaN(right)
-  ) {
-    return true;
-  }
-  if (typeof left !== typeof right) {
-    return false;
-  } // needed for structurally different objects
-  if (Object(left) !== left) {
-    return false;
-  } // primitive values
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const keys = Object.keys(left as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (keys.length !== Object.keys(right as any).length) {
-    return false;
-  }
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if (!Object.prototype.hasOwnProperty.call(right, key)) {
-      return false;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!customDeepEqual((left as any)[key], (right as any)[key])) {
-      return false;
-    }
-  }
-  return true;
+	/**
+	 * START: Custom compare logic
+	 */
+	if (typeof left === 'object' && left && 'isEqual' in left) {
+		return (left as Equatable<unknown>).isEqual(right);
+	}
+	if (typeof right === 'object' && right && 'isEqual' in right) {
+		return (right as Equatable<unknown>).isEqual(left);
+	}
+	/**
+	 * END: Custom compare logic
+	 */
+	if (left === right) {
+		return true;
+	}
+	if (
+		typeof left === 'number' &&
+		typeof right === 'number' &&
+		isNaN(left) &&
+		isNaN(right)
+	) {
+		return true;
+	}
+	if (typeof left !== typeof right) {
+		return false;
+	} // needed for structurally different objects
+	if (Object(left) !== left) {
+		return false;
+	} // primitive values
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const keys = Object.keys(left as any);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	if (keys.length !== Object.keys(right as any).length) {
+		return false;
+	}
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		if (!Object.prototype.hasOwnProperty.call(right, key)) {
+			return false;
+		}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		if (!customDeepEqual((left as any)[key], (right as any)[key])) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /** The original equality function passed in by chai(). */
 let originalFunction: ((r: unknown, l: unknown) => boolean) | null = null;
 
 export function addEqualityMatcher(): void {
-  let isActive = true;
+	let isActive = true;
 
-  before(() => {
-    use((chai, utils) => {
-      const Assertion = chai.Assertion;
+	before(() => {
+		use((chai, utils) => {
+			const Assertion = chai.Assertion;
 
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
-        originalFunction = originalFunction || _super;
-        return function(
-          this: Chai.Assertion,
-          expected?: unknown,
-          msg?: unknown
-        ): void {
-          if (isActive) {
-            utils.flag(this, 'message', msg);
-            const actual = utils.flag(this, 'object');
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+			const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
+				originalFunction = originalFunction || _super;
+				return function(
+					this: Chai.Assertion,
+					expected?: unknown,
+					msg?: unknown
+				): void {
+					if (isActive) {
+						utils.flag(this, 'message', msg);
+						const actual = utils.flag(this, 'object');
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const assertion = new (chai.Assertion as any)();
-            utils.transferFlags(this, assertion, /*includeAll=*/ true);
-            // NOTE: Unlike the top-level chai assert() method, Assertion.assert()
-            // takes the expected value before the actual value.
-            assertion.assert(
-              customDeepEqual(actual, expected),
-              'expected #{act} to roughly deeply equal #{exp}',
-              'expected #{act} to not roughly deeply equal #{exp}',
-              expected,
-              actual,
-              /*showDiff=*/ true
-            );
-          } else if (originalFunction) {
-            originalFunction.call(this, expected, msg);
-          }
-        };
-      };
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						const assertion = new (chai.Assertion as any)();
+						utils.transferFlags(this, assertion, /*includeAll=*/ true);
+						// NOTE: Unlike the top-level chai assert() method, Assertion.assert()
+						// takes the expected value before the actual value.
+						assertion.assert(
+							customDeepEqual(actual, expected),
+							'expected #{act} to roughly deeply equal #{exp}',
+							'expected #{act} to not roughly deeply equal #{exp}',
+							expected,
+							actual,
+							/*showDiff=*/ true
+						);
+					} else if (originalFunction) {
+						originalFunction.call(this, expected, msg);
+					}
+				};
+			};
 
-      Assertion.overwriteMethod('eql', assertEql);
-      Assertion.overwriteMethod('eqls', assertEql);
-    });
-  });
+			Assertion.overwriteMethod('eql', assertEql);
+			Assertion.overwriteMethod('eqls', assertEql);
+		});
+	});
 
-  after(() => {
-    isActive = false;
-  });
+	after(() => {
+		isActive = false;
+	});
 }

@@ -16,23 +16,23 @@
  */
 
 export interface Resolver<R> {
-  (value?: R | Promise<R>): void;
+	(value?: R | Promise<R>): void;
 }
 
 export interface Rejecter {
-  (reason?: Error): void;
+	(reason?: Error): void;
 }
 
 export class Deferred<R> {
-  promise: Promise<R>;
-  // Assigned synchronously in constructor by Promise constructor callback.
-  resolve!: Resolver<R>;
-  reject!: Rejecter;
+	promise: Promise<R>;
+	// Assigned synchronously in constructor by Promise constructor callback.
+	resolve!: Resolver<R>;
+	reject!: Rejecter;
 
-  constructor() {
-    this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
-  }
+	constructor() {
+		this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
+			this.resolve = resolve;
+			this.reject = reject;
+		});
+	}
 }

@@ -19,24 +19,24 @@
  * Returns true iff the array contains the value using strong equality.
  */
 export function includes<T>(array: T[], value: T): boolean {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i] === value) {
-      return true;
-    }
-  }
-  return false;
+	for (let i = 0; i < array.length; i++) {
+		if (array[i] === value) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
  * Returns true iff the array contains any value mathching the predicate
  */
 export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
-  for (let i = 0; i < array.length; i++) {
-    if (predicate(array[i])) {
-      return true;
-    }
-  }
-  return false;
+	for (let i = 0; i < array.length; i++) {
+		if (predicate(array[i])) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
@@ -45,13 +45,13 @@ export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
  * predicate does not return true for any item, null is returned.
  */
 export function findIndex<A>(
-  array: A[],
-  predicate: (value: A) => boolean
+	array: A[],
+	predicate: (value: A) => boolean
 ): number | null {
-  for (let i = 0; i < array.length; i++) {
-    if (predicate(array[i])) {
-      return i;
-    }
-  }
-  return null;
+	for (let i = 0; i < array.length; i++) {
+		if (predicate(array[i])) {
+			return i;
+		}
+	}
+	return null;
 }

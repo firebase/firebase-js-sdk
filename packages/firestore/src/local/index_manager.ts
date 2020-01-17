@@ -26,27 +26,27 @@ import { PersistencePromise } from './persistence_promise';
  * to execute Collection Group queries.
  */
 export interface IndexManager {
-  /**
-   * Creates an index entry mapping the collectionId (last segment of the path)
-   * to the parent path (either the containing document location or the empty
-   * path for root-level collections). Index entries can be retrieved via
-   * getCollectionParents().
-   *
-   * NOTE: Currently we don't remove index entries. If this ends up being an
-   * issue we can devise some sort of GC strategy.
-   */
-  addToCollectionParentIndex(
-    transaction: PersistenceTransaction,
-    collectionPath: ResourcePath
-  ): PersistencePromise<void>;
+	/**
+	 * Creates an index entry mapping the collectionId (last segment of the path)
+	 * to the parent path (either the containing document location or the empty
+	 * path for root-level collections). Index entries can be retrieved via
+	 * getCollectionParents().
+	 *
+	 * NOTE: Currently we don't remove index entries. If this ends up being an
+	 * issue we can devise some sort of GC strategy.
+	 */
+	addToCollectionParentIndex(
+		transaction: PersistenceTransaction,
+		collectionPath: ResourcePath
+	): PersistencePromise<void>;
 
-  /**
-   * Retrieves all parent locations containing the given collectionId, as a
-   * list of paths (each path being either a document location or the empty
-   * path for a root-level collection).
-   */
-  getCollectionParents(
-    transaction: PersistenceTransaction,
-    collectionId: string
-  ): PersistencePromise<ResourcePath[]>;
+	/**
+	 * Retrieves all parent locations containing the given collectionId, as a
+	 * list of paths (each path being either a document location or the empty
+	 * path for a root-level collection).
+	 */
+	getCollectionParents(
+		transaction: PersistenceTransaction,
+		collectionId: string
+	): PersistencePromise<ResourcePath[]>;
 }

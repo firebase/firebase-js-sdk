@@ -17,9 +17,9 @@
 
 import { expect } from 'chai';
 import {
-  changesFromSnapshot,
-  DocumentSnapshot,
-  Firestore
+	changesFromSnapshot,
+	DocumentSnapshot,
+	Firestore
 } from '../../../src/api/database';
 import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
@@ -27,132 +27,132 @@ import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
-  applyDocChanges,
-  doc,
-  documentSetAsArray,
-  key,
-  orderBy,
-  path
+	applyDocChanges,
+	doc,
+	documentSetAsArray,
+	key,
+	orderBy,
+	path
 } from '../../util/helpers';
 
 describe('DocumentChange:', () => {
-  function expectPositions(
-    query: Query,
-    initialDocs: Document[],
-    updates: Array<Document | DocumentKey>
-  ): void {
-    const view = new View(query, documentKeySet());
-    const initialSnapshot = applyDocChanges(view, ...initialDocs).snapshot!;
-    const updatedSnapshot = applyDocChanges(view, ...updates).snapshot;
+	function expectPositions(
+		query: Query,
+		initialDocs: Document[],
+		updates: Array<Document | DocumentKey>
+	): void {
+		const view = new View(query, documentKeySet());
+		const initialSnapshot = applyDocChanges(view, ...initialDocs).snapshot!;
+		const updatedSnapshot = applyDocChanges(view, ...updates).snapshot;
 
-    if (!updatedSnapshot) {
-      // Nothing changed, no positions to verify
-      return;
-    }
+		if (!updatedSnapshot) {
+			// Nothing changed, no positions to verify
+			return;
+		}
 
-    const expected = documentSetAsArray(updatedSnapshot.docs);
-    const actual = documentSetAsArray(initialSnapshot.docs);
+		const expected = documentSetAsArray(updatedSnapshot.docs);
+		const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const changes = changesFromSnapshot({} as Firestore, true, updatedSnapshot);
+		const changes = changesFromSnapshot({} as Firestore, true, updatedSnapshot);
 
-    for (const change of changes) {
-      if (change.type !== 'added') {
-        actual.splice(change.oldIndex, 1);
-      }
-      if (change.type !== 'removed') {
-        actual.splice(
-          change.newIndex,
-          0,
-          (change.doc as DocumentSnapshot)._document!
-        );
-      }
-    }
+		for (const change of changes) {
+			if (change.type !== 'added') {
+				actual.splice(change.oldIndex, 1);
+			}
+			if (change.type !== 'removed') {
+				actual.splice(
+					change.newIndex,
+					0,
+					(change.doc as DocumentSnapshot)._document!
+				);
+			}
+		}
 
-    expect(actual).to.deep.equal(expected);
-  }
+		expect(actual).to.deep.equal(expected);
+	}
 
-  it('positions are correct for additions', () => {
-    const query = Query.atPath(path('c'));
-    const initialDocs = [
-      doc('c/a', 1, {}),
-      doc('c/c', 1, {}),
-      doc('c/e', 1, {})
-    ];
-    const updates = [doc('c/b', 2, {}), doc('c/d', 2, {})];
+	it('positions are correct for additions', () => {
+		const query = Query.atPath(path('c'));
+		const initialDocs = [
+			doc('c/a', 1, {}),
+			doc('c/c', 1, {}),
+			doc('c/e', 1, {})
+		];
+		const updates = [doc('c/b', 2, {}), doc('c/d', 2, {})];
 
-    expectPositions(query, initialDocs, updates);
-  });
+		expectPositions(query, initialDocs, updates);
+	});
 
-  it('positions are correct for deletions', () => {
-    const query = Query.atPath(path('c'));
-    const initialDocs = [
-      doc('c/a', 1, {}),
-      doc('c/b', 1, {}),
-      doc('c/c', 1, {})
-    ];
-    const updates = [key('c/a'), key('c/c')];
+	it('positions are correct for deletions', () => {
+		const query = Query.atPath(path('c'));
+		const initialDocs = [
+			doc('c/a', 1, {}),
+			doc('c/b', 1, {}),
+			doc('c/c', 1, {})
+		];
+		const updates = [key('c/a'), key('c/c')];
 
-    expectPositions(query, initialDocs, updates);
-  });
+		expectPositions(query, initialDocs, updates);
+	});
 
-  it('positions are correct for modifications', () => {
-    const query = Query.atPath(path('c'));
-    const initialDocs = [
-      doc('c/a', 1, { value: 'a-1' }),
-      doc('c/b', 1, { value: 'b-1' }),
-      doc('c/c', 1, { value: 'c-1' })
-    ];
-    const updates = [
-      doc('c/a', 2, { value: 'a-2' }),
-      doc('c/c', 2, { value: 'c-2' })
-    ];
+	it('positions are correct for modifications', () => {
+		const query = Query.atPath(path('c'));
+		const initialDocs = [
+			doc('c/a', 1, { value: 'a-1' }),
+			doc('c/b', 1, { value: 'b-1' }),
+			doc('c/c', 1, { value: 'c-1' })
+		];
+		const updates = [
+			doc('c/a', 2, { value: 'a-2' }),
+			doc('c/c', 2, { value: 'c-2' })
+		];
 
-    expectPositions(query, initialDocs, updates);
-  });
+		expectPositions(query, initialDocs, updates);
+	});
 
-  it('positions are correct for sort order changes', () => {
-    const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
-    const initialDocs = [
-      doc('c/a', 1, { sort: 10 }),
-      doc('c/b', 1, { sort: 20 }),
-      doc('c/c', 1, { sort: 30 })
-    ];
-    const updates = [
-      doc('c/new-a', 2, { sort: 0 }),
-      doc('c/b', 2, { sort: 5 }),
-      key('c/c'),
-      doc('c/e', 2, { sort: 25 }),
-      doc('c/a', 2, { sort: 35 })
-    ];
+	it('positions are correct for sort order changes', () => {
+		const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
+		const initialDocs = [
+			doc('c/a', 1, { sort: 10 }),
+			doc('c/b', 1, { sort: 20 }),
+			doc('c/c', 1, { sort: 30 })
+		];
+		const updates = [
+			doc('c/new-a', 2, { sort: 0 }),
+			doc('c/b', 2, { sort: 5 }),
+			key('c/c'),
+			doc('c/e', 2, { sort: 25 }),
+			doc('c/a', 2, { sort: 35 })
+		];
 
-    expectPositions(query, initialDocs, updates);
-  });
+		expectPositions(query, initialDocs, updates);
+	});
 
-  it('positions are correct for randomly chosen examples', () => {
-    const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
-    for (let run = 0; run < 100; run++) {
-      const initialDocs: Document[] = [];
-      const updates: Array<DocumentKey | Document> = [];
-      const numDocs = 100;
-      for (let i = 0; i < numDocs; i++) {
-        // Skip 20% of the docs
-        if (Math.random() > 0.8) {
-          initialDocs.push(doc('c/test-doc-' + i, 1, { sort: Math.random() }));
-        }
-      }
-      for (let i = 0; i < numDocs; i++) {
-        // Only update 20% of the docs
-        if (Math.random() < 0.2) {
-          // 30% deletes, rest updates and/or additions
-          if (Math.random() < 0.3) {
-            updates.push(key('c/test-doc-' + i));
-          } else {
-            updates.push(doc('c/test-doc-' + i, 1, { sort: Math.random() }));
-          }
-        }
-      }
+	it('positions are correct for randomly chosen examples', () => {
+		const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
+		for (let run = 0; run < 100; run++) {
+			const initialDocs: Document[] = [];
+			const updates: Array<DocumentKey | Document> = [];
+			const numDocs = 100;
+			for (let i = 0; i < numDocs; i++) {
+				// Skip 20% of the docs
+				if (Math.random() > 0.8) {
+					initialDocs.push(doc('c/test-doc-' + i, 1, { sort: Math.random() }));
+				}
+			}
+			for (let i = 0; i < numDocs; i++) {
+				// Only update 20% of the docs
+				if (Math.random() < 0.2) {
+					// 30% deletes, rest updates and/or additions
+					if (Math.random() < 0.3) {
+						updates.push(key('c/test-doc-' + i));
+					} else {
+						updates.push(doc('c/test-doc-' + i, 1, { sort: Math.random() }));
+					}
+				}
+			}
 
-      expectPositions(query, initialDocs, updates);
-    }
-  });
+			expectPositions(query, initialDocs, updates);
+		}
+	});
 });

@@ -29,29 +29,29 @@ import { Code, FirestoreError } from './error';
  * original constructor are copied to the new constructor.
  */
 export function makeConstructorPrivate<T extends Function>(
-  cls: T,
-  optionalMessage?: string
+	cls: T,
+	optionalMessage?: string
 ): T {
-  function PublicConstructor(): never {
-    let error = 'This constructor is private.';
-    if (optionalMessage) {
-      error += ' ';
-      error += optionalMessage;
-    }
-    throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-  }
+	function PublicConstructor(): never {
+		let error = 'This constructor is private.';
+		if (optionalMessage) {
+			error += ' ';
+			error += optionalMessage;
+		}
+		throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+	}
 
-  // Make sure instanceof checks work and all methods are exposed on the public
-  // constructor
-  PublicConstructor.prototype = cls.prototype;
+	// Make sure instanceof checks work and all methods are exposed on the public
+	// constructor
+	PublicConstructor.prototype = cls.prototype;
 
-  // Copy any static methods/members
-  for (const staticProperty in cls) {
-    if (cls.hasOwnProperty(staticProperty)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (PublicConstructor as any)[staticProperty] = (cls as any)[staticProperty];
-    }
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return PublicConstructor as any;
+	// Copy any static methods/members
+	for (const staticProperty in cls) {
+		if (cls.hasOwnProperty(staticProperty)) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(PublicConstructor as any)[staticProperty] = (cls as any)[staticProperty];
+		}
+	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return PublicConstructor as any;
 }

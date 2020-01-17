@@ -31,164 +31,164 @@ import { SortedMap } from '../../../src/util/sorted_map';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestMutationQueue {
-  constructor(public persistence: Persistence, public queue: MutationQueue) {}
+	constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
-  checkEmpty(): Promise<boolean> {
-    return this.persistence.runTransaction(
-      'checkEmpty',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.checkEmpty(txn);
-      }
-    );
-  }
+	checkEmpty(): Promise<boolean> {
+		return this.persistence.runTransaction(
+			'checkEmpty',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.checkEmpty(txn);
+			}
+		);
+	}
 
-  countBatches(): Promise<number> {
-    return this.persistence
-      .runTransaction('countBatches', 'readonly-idempotent', txn => {
-        return this.queue.getAllMutationBatches(txn);
-      })
-      .then(batches => batches.length);
-  }
+	countBatches(): Promise<number> {
+		return this.persistence
+			.runTransaction('countBatches', 'readonly-idempotent', txn => {
+				return this.queue.getAllMutationBatches(txn);
+			})
+			.then(batches => batches.length);
+	}
 
-  acknowledgeBatch(
-    batch: MutationBatch,
-    streamToken: ProtoByteString
-  ): Promise<void> {
-    return this.persistence.runTransaction(
-      'acknowledgeThroughBatchId',
-      'readwrite-primary',
-      txn => {
-        return this.queue.acknowledgeBatch(txn, batch, streamToken);
-      }
-    );
-  }
+	acknowledgeBatch(
+		batch: MutationBatch,
+		streamToken: ProtoByteString
+	): Promise<void> {
+		return this.persistence.runTransaction(
+			'acknowledgeThroughBatchId',
+			'readwrite-primary',
+			txn => {
+				return this.queue.acknowledgeBatch(txn, batch, streamToken);
+			}
+		);
+	}
 
-  getLastStreamToken(): Promise<string> {
-    return this.persistence.runTransaction(
-      'getLastStreamToken',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getLastStreamToken(txn).next(token => {
-          if (typeof token === 'string') {
-            return token;
-          } else {
-            throw new Error('Test mutation queue cannot handle Uint8Arrays');
-          }
-        });
-      }
-    );
-  }
+	getLastStreamToken(): Promise<string> {
+		return this.persistence.runTransaction(
+			'getLastStreamToken',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getLastStreamToken(txn).next(token => {
+					if (typeof token === 'string') {
+						return token;
+					} else {
+						throw new Error('Test mutation queue cannot handle Uint8Arrays');
+					}
+				});
+			}
+		);
+	}
 
-  setLastStreamToken(streamToken: string): Promise<void> {
-    return this.persistence.runTransaction(
-      'setLastStreamToken',
-      'readwrite-primary-idempotent',
-      txn => {
-        return this.queue.setLastStreamToken(txn, streamToken);
-      }
-    );
-  }
+	setLastStreamToken(streamToken: string): Promise<void> {
+		return this.persistence.runTransaction(
+			'setLastStreamToken',
+			'readwrite-primary-idempotent',
+			txn => {
+				return this.queue.setLastStreamToken(txn, streamToken);
+			}
+		);
+	}
 
-  addMutationBatch(mutations: Mutation[]): Promise<MutationBatch> {
-    return this.persistence.runTransaction(
-      'addMutationBatch',
-      'readwrite',
-      txn => {
-        return this.queue.addMutationBatch(
-          txn,
-          Timestamp.now(),
-          /* baseMutations= */ [],
-          mutations
-        );
-      }
-    );
-  }
+	addMutationBatch(mutations: Mutation[]): Promise<MutationBatch> {
+		return this.persistence.runTransaction(
+			'addMutationBatch',
+			'readwrite',
+			txn => {
+				return this.queue.addMutationBatch(
+					txn,
+					Timestamp.now(),
+					/* baseMutations= */ [],
+					mutations
+				);
+			}
+		);
+	}
 
-  lookupMutationBatch(batchId: BatchId): Promise<MutationBatch | null> {
-    return this.persistence.runTransaction(
-      'lookupMutationBatch',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.lookupMutationBatch(txn, batchId);
-      }
-    );
-  }
+	lookupMutationBatch(batchId: BatchId): Promise<MutationBatch | null> {
+		return this.persistence.runTransaction(
+			'lookupMutationBatch',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.lookupMutationBatch(txn, batchId);
+			}
+		);
+	}
 
-  getNextMutationBatchAfterBatchId(
-    batchId: BatchId
-  ): Promise<MutationBatch | null> {
-    return this.persistence.runTransaction(
-      'getNextMutationBatchAfterBatchId',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getNextMutationBatchAfterBatchId(txn, batchId);
-      }
-    );
-  }
+	getNextMutationBatchAfterBatchId(
+		batchId: BatchId
+	): Promise<MutationBatch | null> {
+		return this.persistence.runTransaction(
+			'getNextMutationBatchAfterBatchId',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getNextMutationBatchAfterBatchId(txn, batchId);
+			}
+		);
+	}
 
-  getAllMutationBatches(): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction(
-      'getAllMutationBatches',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getAllMutationBatches(txn);
-      }
-    );
-  }
+	getAllMutationBatches(): Promise<MutationBatch[]> {
+		return this.persistence.runTransaction(
+			'getAllMutationBatches',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getAllMutationBatches(txn);
+			}
+		);
+	}
 
-  getAllMutationBatchesAffectingDocumentKey(
-    documentKey: DocumentKey
-  ): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction(
-      'getAllMutationBatchesAffectingDocumentKey',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getAllMutationBatchesAffectingDocumentKey(
-          txn,
-          documentKey
-        );
-      }
-    );
-  }
+	getAllMutationBatchesAffectingDocumentKey(
+		documentKey: DocumentKey
+	): Promise<MutationBatch[]> {
+		return this.persistence.runTransaction(
+			'getAllMutationBatchesAffectingDocumentKey',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getAllMutationBatchesAffectingDocumentKey(
+					txn,
+					documentKey
+				);
+			}
+		);
+	}
 
-  getAllMutationBatchesAffectingDocumentKeys(
-    documentKeys: DocumentKeySet
-  ): Promise<MutationBatch[]> {
-    let keyMap = new SortedMap<DocumentKey, null>(DocumentKey.comparator);
-    documentKeys.forEach(key => {
-      keyMap = keyMap.insert(key, null);
-    });
+	getAllMutationBatchesAffectingDocumentKeys(
+		documentKeys: DocumentKeySet
+	): Promise<MutationBatch[]> {
+		let keyMap = new SortedMap<DocumentKey, null>(DocumentKey.comparator);
+		documentKeys.forEach(key => {
+			keyMap = keyMap.insert(key, null);
+		});
 
-    return this.persistence.runTransaction(
-      'getAllMutationBatchesAffectingDocumentKeys',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getAllMutationBatchesAffectingDocumentKeys(
-          txn,
-          keyMap
-        );
-      }
-    );
-  }
+		return this.persistence.runTransaction(
+			'getAllMutationBatchesAffectingDocumentKeys',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getAllMutationBatchesAffectingDocumentKeys(
+					txn,
+					keyMap
+				);
+			}
+		);
+	}
 
-  getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction(
-      'getAllMutationBatchesAffectingQuery',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
-      }
-    );
-  }
+	getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
+		return this.persistence.runTransaction(
+			'getAllMutationBatchesAffectingQuery',
+			'readonly-idempotent',
+			txn => {
+				return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
+			}
+		);
+	}
 
-  removeMutationBatch(batch: MutationBatch): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeMutationBatch',
-      'readwrite-primary',
-      txn => {
-        return this.queue.removeMutationBatch(txn, batch);
-      }
-    );
-  }
+	removeMutationBatch(batch: MutationBatch): Promise<void> {
+		return this.persistence.runTransaction(
+			'removeMutationBatch',
+			'readwrite-primary',
+			txn => {
+				return this.queue.removeMutationBatch(txn, batch);
+			}
+		);
+	}
 }

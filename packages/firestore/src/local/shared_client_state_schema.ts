@@ -27,15 +27,15 @@ export const CLIENT_STATE_KEY_PREFIX = 'firestore_clients';
 
 /** Assembles the key for a client state in WebStorage */
 export function createWebStorageClientStateKey(
-  persistenceKey: string,
-  clientId: ClientId
+	persistenceKey: string,
+	clientId: ClientId
 ): string {
-  assert(
-    clientId.indexOf('_') === -1,
-    `Client key cannot contain '_', but was '${clientId}'`
-  );
+	assert(
+		clientId.indexOf('_') === -1,
+		`Client key cannot contain '_', but was '${clientId}'`
+	);
 
-  return `${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_${clientId}`;
+	return `${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_${clientId}`;
 }
 
 /**
@@ -44,8 +44,8 @@ export function createWebStorageClientStateKey(
  * key.
  */
 export interface ClientStateSchema {
-  activeTargetIds: number[];
-  updateTimeMs: number;
+	activeTargetIds: number[];
+	updateTimeMs: number;
 }
 
 // The format of the WebStorage key that stores the mutation state is:
@@ -59,17 +59,17 @@ export const MUTATION_BATCH_KEY_PREFIX = 'firestore_mutations';
 
 /** Assembles the key for a mutation batch in WebStorage */
 export function createWebStorageMutationBatchKey(
-  persistenceKey: string,
-  user: User,
-  batchId: BatchId
+	persistenceKey: string,
+	user: User,
+	batchId: BatchId
 ): string {
-  let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_${batchId}`;
+	let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_${batchId}`;
 
-  if (user.isAuthenticated()) {
-    mutationKey += `_${user.uid}`;
-  }
+	if (user.isAuthenticated()) {
+		mutationKey += `_${user.uid}`;
+	}
 
-  return mutationKey;
+	return mutationKey;
 }
 
 /**
@@ -78,9 +78,9 @@ export function createWebStorageMutationBatchKey(
  * encoded as part of the key.
  */
 export interface MutationMetadataSchema {
-  state: MutationBatchState;
-  error?: { code: string; message: string }; // Only set when state === 'rejected'
-  updateTimeMs: number;
+	state: MutationBatchState;
+	error?: { code: string; message: string }; // Only set when state === 'rejected'
+	updateTimeMs: number;
 }
 
 // The format of the WebStorage key that stores a query target's metadata is:
@@ -89,10 +89,10 @@ export const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 
 /** Assembles the key for a query state in WebStorage */
 export function createWebStorageQueryTargetMetadataKey(
-  persistenceKey: string,
-  targetId: TargetId
+	persistenceKey: string,
+	targetId: TargetId
 ): string {
-  return `${QUERY_TARGET_KEY_PREFIX}_${persistenceKey}_${targetId}`;
+	return `${QUERY_TARGET_KEY_PREFIX}_${persistenceKey}_${targetId}`;
 }
 
 /**
@@ -100,9 +100,9 @@ export function createWebStorageQueryTargetMetadataKey(
  * serialization. The TargetId is omitted as it is encoded as part of the key.
  */
 export interface QueryTargetStateSchema {
-  state: QueryTargetState;
-  error?: { code: string; message: string }; // Only set when state === 'rejected'
-  updateTimeMs: number;
+	state: QueryTargetState;
+	error?: { code: string; message: string }; // Only set when state === 'rejected'
+	updateTimeMs: number;
 }
 
 // The WebStorage prefix that stores the primary tab's online state. The
@@ -112,7 +112,7 @@ export const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
 
 /** Assembles the key for the online state of the primary tab. */
 export function createWebStorageOnlineStateKey(persistenceKey: string): string {
-  return `${ONLINE_STATE_KEY_PREFIX}_${persistenceKey}`;
+	return `${ONLINE_STATE_KEY_PREFIX}_${persistenceKey}`;
 }
 
 /**
@@ -120,13 +120,13 @@ export function createWebStorageOnlineStateKey(persistenceKey: string): string {
  * primary client.
  */
 export interface SharedOnlineStateSchema {
-  /**
-   * The clientId of the client that wrote this onlineState value. Tracked so
-   * that on startup, clients can check if this client is still active when
-   * determining whether to apply this value or not.
-   */
-  readonly clientId: string;
-  readonly onlineState: string;
+	/**
+	 * The clientId of the client that wrote this onlineState value. Tracked so
+	 * that on startup, clients can check if this client is still active when
+	 * determining whether to apply this value or not.
+	 */
+	readonly clientId: string;
+	readonly onlineState: string;
 }
 
 // The WebStorage key prefix for the key that stores the last sequence number allocated. The key
@@ -135,7 +135,7 @@ export const SEQUENCE_NUMBER_KEY_PREFIX = 'firestore_sequence_number';
 
 /** Assembles the key for the current sequence number. */
 export function createWebStorageSequenceNumberKey(
-  persistenceKey: string
+	persistenceKey: string
 ): string {
-  return `${SEQUENCE_NUMBER_KEY_PREFIX}_${persistenceKey}`;
+	return `${SEQUENCE_NUMBER_KEY_PREFIX}_${persistenceKey}`;
 }

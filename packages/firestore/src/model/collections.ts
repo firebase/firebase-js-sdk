@@ -26,60 +26,60 @@ import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
 export interface DocumentSizeEntry {
-  maybeDocument: MaybeDocument;
-  size: number;
+	maybeDocument: MaybeDocument;
+	size: number;
 }
 
 export type MaybeDocumentMap = SortedMap<DocumentKey, MaybeDocument>;
 const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
-  DocumentKey.comparator
+	DocumentKey.comparator
 );
 export function maybeDocumentMap(): MaybeDocumentMap {
-  return EMPTY_MAYBE_DOCUMENT_MAP;
+	return EMPTY_MAYBE_DOCUMENT_MAP;
 }
 
 export type NullableMaybeDocumentMap = SortedMap<
-  DocumentKey,
-  MaybeDocument | null
+	DocumentKey,
+	MaybeDocument | null
 >;
 
 export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
-  return maybeDocumentMap();
+	return maybeDocumentMap();
 }
 
 export interface DocumentSizeEntries {
-  maybeDocuments: NullableMaybeDocumentMap;
-  sizeMap: SortedMap<DocumentKey, number>;
+	maybeDocuments: NullableMaybeDocumentMap;
+	sizeMap: SortedMap<DocumentKey, number>;
 }
 
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
-  DocumentKey.comparator
+	DocumentKey.comparator
 );
 export function documentMap(): DocumentMap {
-  return EMPTY_DOCUMENT_MAP;
+	return EMPTY_DOCUMENT_MAP;
 }
 
 export type DocumentVersionMap = SortedMap<DocumentKey, SnapshotVersion>;
 const EMPTY_DOCUMENT_VERSION_MAP = new SortedMap<DocumentKey, SnapshotVersion>(
-  DocumentKey.comparator
+	DocumentKey.comparator
 );
 export function documentVersionMap(): DocumentVersionMap {
-  return EMPTY_DOCUMENT_VERSION_MAP;
+	return EMPTY_DOCUMENT_VERSION_MAP;
 }
 
 export type DocumentKeySet = SortedSet<DocumentKey>;
 const EMPTY_DOCUMENT_KEY_SET = new SortedSet(DocumentKey.comparator);
 export function documentKeySet(...keys: DocumentKey[]): DocumentKeySet {
-  let set = EMPTY_DOCUMENT_KEY_SET;
-  for (const key of keys) {
-    set = set.add(key);
-  }
-  return set;
+	let set = EMPTY_DOCUMENT_KEY_SET;
+	for (const key of keys) {
+		set = set.add(key);
+	}
+	return set;
 }
 
 export type TargetIdSet = SortedSet<TargetId>;
 const EMPTY_TARGET_ID_SET = new SortedSet<TargetId>(primitiveComparator);
 export function targetIdSet(): SortedSet<TargetId> {
-  return EMPTY_TARGET_ID_SET;
+	return EMPTY_TARGET_ID_SET;
 }

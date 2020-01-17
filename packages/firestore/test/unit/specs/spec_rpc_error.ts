@@ -22,19 +22,19 @@ import { Code } from '../../../src/util/error';
  * An error encountered making RPCs.
  */
 export class RpcError extends Error {
-  code: number;
+	code: number;
 
-  constructor(code: Code | number, message: string) {
-    super(message);
+	constructor(code: Code | number, message: string) {
+		super(message);
 
-    if (typeof code === 'number') {
-      this.code = code;
-    } else {
-      this.code = mapRpcCodeFromCode(code);
-    }
+		if (typeof code === 'number') {
+			this.code = code;
+		} else {
+			this.code = mapRpcCodeFromCode(code);
+		}
 
-    // TODO(mikelehen): Error is a function not a class in ES5 so extending it
-    // doesn't really work without hackery.  Just manually set .message for now.
-    this.message = message;
-  }
+		// TODO(mikelehen): Error is a function not a class in ES5 so extending it
+		// doesn't really work without hackery.  Just manually set .message for now.
+		this.message = message;
+	}
 }

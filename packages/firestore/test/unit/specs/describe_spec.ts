@@ -38,14 +38,14 @@ const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
-  BENCHMARK_TAG,
-  EXCLUSIVE_TAG,
-  MULTI_CLIENT_TAG,
-  NO_WEB_TAG,
-  NO_ANDROID_TAG,
-  NO_IOS_TAG,
-  EAGER_GC_TAG,
-  DURABLE_PERSISTENCE_TAG
+	BENCHMARK_TAG,
+	EXCLUSIVE_TAG,
+	MULTI_CLIENT_TAG,
+	NO_WEB_TAG,
+	NO_ANDROID_TAG,
+	NO_IOS_TAG,
+	EAGER_GC_TAG,
+	DURABLE_PERSISTENCE_TAG
 ];
 
 // TODO(mrschmidt): Make this configurable with mocha options.
@@ -54,11 +54,11 @@ const BENCHMARK_TEST_TIMEOUT_MS = 10 * 1000;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
-  describeName: string;
-  itName: string;
-  tags: string[];
-  comment?: string;
-  steps: SpecStep[];
+	describeName: string;
+	itName: string;
+	tags: string[];
+	comment?: string;
+	steps: SpecStep[];
 }
 
 // The name of the describeSpec that's currently running.
@@ -78,49 +78,49 @@ let writeJSONFile: ((json: string) => void) | null = null;
  * be written using the given function instead of running as a normal test.
  */
 export function setSpecJSONHandler(writer: (json: string) => void): void {
-  writeJSONFile = writer;
+	writeJSONFile = writer;
 }
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(
-  tags: string[],
-  persistenceEnabled: boolean
+	tags: string[],
+	persistenceEnabled: boolean
 ): ExclusiveTestFunction | PendingTestFunction {
-  if (tags.indexOf(NO_WEB_TAG) >= 0) {
-    // eslint-disable-next-line no-restricted-properties
-    return it.skip;
-  } else if (
-    !persistenceEnabled &&
-    tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
-  ) {
-    // Test requires actual persistence, but it's not enabled. Skip it.
-    // eslint-disable-next-line no-restricted-properties
-    return it.skip;
-  } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
-    // spec should have a comment explaining why it is being skipped.
-    // eslint-disable-next-line no-restricted-properties
-    return it.skip;
-  } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
-    // eslint-disable-next-line no-restricted-properties
-    return it.skip;
-  } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
-    // eslint-disable-next-line no-restricted-properties
-    return it.skip;
-  } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
-    // eslint-disable-next-line no-restricted-properties
-    return it.only;
-  } else {
-    return it;
-  }
+	if (tags.indexOf(NO_WEB_TAG) >= 0) {
+		// eslint-disable-next-line no-restricted-properties
+		return it.skip;
+	} else if (
+		!persistenceEnabled &&
+		tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
+	) {
+		// Test requires actual persistence, but it's not enabled. Skip it.
+		// eslint-disable-next-line no-restricted-properties
+		return it.skip;
+	} else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
+		// spec should have a comment explaining why it is being skipped.
+		// eslint-disable-next-line no-restricted-properties
+		return it.skip;
+	} else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
+		// eslint-disable-next-line no-restricted-properties
+		return it.skip;
+	} else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+		// eslint-disable-next-line no-restricted-properties
+		return it.skip;
+	} else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+		// eslint-disable-next-line no-restricted-properties
+		return it.only;
+	} else {
+		return it;
+	}
 }
 
 /** If required, returns a custom test timeout for long-running tests */
 function getTestTimeout(tags: string[]): number | undefined {
-  if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-    return BENCHMARK_TEST_TIMEOUT_MS;
-  } else {
-    return undefined;
-  }
+	if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+		return BENCHMARK_TEST_TIMEOUT_MS;
+	} else {
+		return undefined;
+	}
 }
 
 /**
@@ -133,88 +133,88 @@ function getTestTimeout(tags: string[]): number | undefined {
  * `specsInThisTest`. Otherwise, it will be run, just as it() would run it.
  */
 export function specTest(
-  name: string,
-  tags: string[],
-  builder: () => SpecBuilder
+	name: string,
+	tags: string[],
+	builder: () => SpecBuilder
 ): void;
 export function specTest(
-  name: string,
-  tags: string[],
-  comment: string,
-  builder: () => SpecBuilder
+	name: string,
+	tags: string[],
+	comment: string,
+	builder: () => SpecBuilder
 ): void;
 export function specTest(
-  name: string,
-  tags: string[],
-  commentOrBuilder: string | (() => SpecBuilder),
-  maybeBuilder?: () => SpecBuilder
+	name: string,
+	tags: string[],
+	commentOrBuilder: string | (() => SpecBuilder),
+	maybeBuilder?: () => SpecBuilder
 ): void {
-  let comment: string | undefined;
-  let builder: () => SpecBuilder;
-  if (typeof commentOrBuilder === 'string') {
-    comment = commentOrBuilder;
-    builder = maybeBuilder!;
-  } else {
-    builder = commentOrBuilder;
-  }
-  assert(!!builder, 'Missing spec builder');
-  // Union in the tags for the describeSpec().
-  tags = tags.concat(describeTags);
-  for (const tag of tags) {
-    assert(
-      KNOWN_TAGS.indexOf(tag) >= 0,
-      'Unknown tag "' + tag + '" on test: ' + name
-    );
-  }
+	let comment: string | undefined;
+	let builder: () => SpecBuilder;
+	if (typeof commentOrBuilder === 'string') {
+		comment = commentOrBuilder;
+		builder = maybeBuilder!;
+	} else {
+		builder = commentOrBuilder;
+	}
+	assert(!!builder, 'Missing spec builder');
+	// Union in the tags for the describeSpec().
+	tags = tags.concat(describeTags);
+	for (const tag of tags) {
+		assert(
+			KNOWN_TAGS.indexOf(tag) >= 0,
+			'Unknown tag "' + tag + '" on test: ' + name
+		);
+	}
 
-  if (!writeJSONFile) {
-    const persistenceModes = IndexedDbPersistence.isAvailable()
-      ? [true, false]
-      : [false];
-    for (const usePersistence of persistenceModes) {
-      const runner = getTestRunner(tags, usePersistence);
-      const timeout = getTestTimeout(tags);
-      const mode = usePersistence ? '(Persistence)' : '(Memory)';
-      const fullName = `${mode} ${name}`;
-      const queuedTest = runner(fullName, async () => {
-        const spec = builder();
-        const start = Date.now();
-        await spec.runAsTest(fullName, tags, usePersistence);
-        const end = Date.now();
-        if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-          // eslint-disable-next-line no-console
-          console.log(`Runtime: ${end - start} ms.`);
-        }
-      });
+	if (!writeJSONFile) {
+		const persistenceModes = IndexedDbPersistence.isAvailable()
+			? [true, false]
+			: [false];
+		for (const usePersistence of persistenceModes) {
+			const runner = getTestRunner(tags, usePersistence);
+			const timeout = getTestTimeout(tags);
+			const mode = usePersistence ? '(Persistence)' : '(Memory)';
+			const fullName = `${mode} ${name}`;
+			const queuedTest = runner(fullName, async () => {
+				const spec = builder();
+				const start = Date.now();
+				await spec.runAsTest(fullName, tags, usePersistence);
+				const end = Date.now();
+				if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+					// eslint-disable-next-line no-console
+					console.log(`Runtime: ${end - start} ms.`);
+				}
+			});
 
-      if (timeout !== undefined) {
-        queuedTest.timeout(timeout);
-      }
-    }
-  } else {
-    assert(
-      tags.indexOf(EXCLUSIVE_TAG) === -1,
-      `The 'exclusive' tag is only supported for development and should not be exported to ` +
-        `other platforms.`
-    );
-    const spec = builder();
+			if (timeout !== undefined) {
+				queuedTest.timeout(timeout);
+			}
+		}
+	} else {
+		assert(
+			tags.indexOf(EXCLUSIVE_TAG) === -1,
+			`The 'exclusive' tag is only supported for development and should not be exported to ` +
+				`other platforms.`
+		);
+		const spec = builder();
 
-    const specJSON = spec.toJSON();
+		const specJSON = spec.toJSON();
 
-    const json = {
-      describeName,
-      itName: name,
-      tags,
-      comment,
-      config: specJSON.config,
-      steps: specJSON.steps
-    };
+		const json = {
+			describeName,
+			itName: name,
+			tags,
+			comment,
+			config: specJSON.config,
+			steps: specJSON.steps
+		};
 
-    if (name in specsInThisTest) {
-      throw new Error('duplicate spec test: "' + name + '"');
-    }
-    specsInThisTest[name] = json;
-  }
+		if (name in specsInThisTest) {
+			throw new Error('duplicate spec test: "' + name + '"');
+		}
+		specsInThisTest[name] = json;
+	}
 }
 
 /**
@@ -227,22 +227,22 @@ export function specTest(
  * that file. Otherwise, they will be run, just as describe would run.
  */
 export function describeSpec(
-  name: string,
-  tags: string[],
-  builder: () => void
+	name: string,
+	tags: string[],
+	builder: () => void
 ): void {
-  describeTags = tags;
-  describeName = name;
+	describeTags = tags;
+	describeName = name;
 
-  if (!writeJSONFile) {
-    describe(name, () => {
-      addEqualityMatcher();
-      return builder();
-    });
-  } else {
-    specsInThisTest = {};
-    builder();
-    const output = JSON.stringify(specsInThisTest, null, 2);
-    writeJSONFile(output);
-  }
+	if (!writeJSONFile) {
+		describe(name, () => {
+			addEqualityMatcher();
+			return builder();
+		});
+	} else {
+		specsInThisTest = {};
+		builder();
+		const output = JSON.stringify(specsInThisTest, null, 2);
+		writeJSONFile(output);
+	}
 }
