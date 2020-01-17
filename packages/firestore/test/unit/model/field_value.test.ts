@@ -503,9 +503,9 @@ describe('FieldValue', () => {
     ];
 
     for (const group of equalityGroups) {
-      const expectedItemSize = group[0].byteSize();
+      const expectedItemSize = group[0].approximateByteSize();
       for (const element of group) {
-        expect(element.byteSize()).to.equal(expectedItemSize);
+        expect(element.approximateByteSize()).to.equal(expectedItemSize);
       }
     }
   });
@@ -535,7 +535,9 @@ describe('FieldValue', () => {
       const expectedOrder = group;
       const actualOrder = group
         .slice()
-        .sort((l, r) => primitiveComparator(l.byteSize(), r.byteSize()));
+        .sort((l, r) =>
+          primitiveComparator(l.approximateByteSize(), r.approximateByteSize())
+        );
       expect(expectedOrder).to.deep.equal(actualOrder);
     }
   });

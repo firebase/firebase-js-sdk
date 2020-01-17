@@ -130,7 +130,7 @@ export abstract class FieldValue {
    * Returns an approximate (and wildly inaccurate) in-memory size for the field
    * value.
    */
-  abstract byteSize(): number;
+  abstract approximateByteSize(): number;
 
   toString(): string {
     const val = this.value();
@@ -173,8 +173,8 @@ export class NullValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
-    return 1;
+  approximateByteSize(): number {
+    return 4;
   }
 
   static INSTANCE = new NullValue();
@@ -205,8 +205,8 @@ export class BooleanValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
-    return 1;
+  approximateByteSize(): number {
+    return 4;
   }
 
   static of(value: boolean): BooleanValue {
@@ -236,8 +236,8 @@ export abstract class NumberValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
-    return 4;
+  approximateByteSize(): number {
+    return 8;
   }
 }
 
@@ -332,7 +332,7 @@ export class StringValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures:
     // "JavaScript's String type is [...] a set of elements of 16-bit unsigned
     // integer values"
@@ -373,9 +373,9 @@ export class TimestampValue extends FieldValue {
     }
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
-    return 8;
+    return 16;
   }
 }
 
@@ -441,10 +441,10 @@ export class ServerTimestampValue extends FieldValue {
     return '<ServerTimestamp localTime=' + this.localWriteTime.toString() + '>';
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     return (
-      /* localWriteTime */ 8 +
-      (this.previousValue ? this.previousValue.byteSize() : 0)
+      /* localWriteTime */ 16 +
+      (this.previousValue ? this.previousValue.approximateByteSize() : 0)
     );
   }
 }
@@ -474,8 +474,8 @@ export class BlobValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
-    return this.internalValue.toUint8Array().byteLength;
+  approximateByteSize(): number {
+    return this.internalValue._approximateByteSize();
   }
 }
 
@@ -508,7 +508,7 @@ export class RefValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     return (
       this.databaseId.projectId.length +
       this.databaseId.database.length +
@@ -542,9 +542,9 @@ export class GeoPointValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     // GeoPoints are made up of two distinct numbers (latitude + longitude)
-    return 8;
+    return 16;
   }
 }
 
@@ -688,10 +688,10 @@ export class ObjectValue extends FieldValue {
     return FieldMask.fromSet(fields);
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     let size = 0;
     this.internalValue.inorderTraversal((key, val) => {
-      size += key.length + val.byteSize();
+      size += key.length + val.approximateByteSize();
     });
     return size;
   }
@@ -782,9 +782,9 @@ export class ArrayValue extends FieldValue {
     }
   }
 
-  byteSize(): number {
+  approximateByteSize(): number {
     return this.internalValue.reduce(
-      (previousSize, value) => previousSize + value.byteSize(),
+      (totalSize, value) => totalSize + value.approximateByteSize(),
       0
     );
   }

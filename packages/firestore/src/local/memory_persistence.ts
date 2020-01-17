@@ -469,7 +469,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(maybeDoc: MaybeDocument): number {
     let documentSize = maybeDoc.key.toString().length;
     if (maybeDoc instanceof Document) {
-      documentSize += maybeDoc.data().byteSize();
+      documentSize += maybeDoc.data().approximateByteSize();
     }
     return documentSize;
   }
