@@ -17,14 +17,15 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+        registry-url: 'https://registry.npmjs.org/'
+    - name: Yarn install
+      run: yarn
     - name: yarn build
       run: yarn build
     - name: Deploy canary
-      # run: yarn release --canary
-      run: echo "Canary release dry run"
+      run: |
+        npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+        npm config set scope "@firebase"
+        yarn release --canary
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
