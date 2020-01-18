@@ -30,7 +30,7 @@ export interface Config {
   authDomain?: string;
 }
 
-export interface PopupRedirectResolver { }
+export interface PopupRedirectResolver {}
 
 export interface Dependencies {
   // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
@@ -47,18 +47,21 @@ interface Deferrable {
   deferred?: Deferred<void>;
 }
 
-async function withLock(deferrable: Deferrable, fn: () => Promise<void>): Promise<void> {
-    if(deferrable.deferred) {
-      await deferrable.deferred.promise
-    }
-    deferrable.deferred = new Deferred<void>()
-    try {
-      await fn()
-      deferrable.deferred.resolve()
-    } catch (e) {
-      deferrable.deferred.reject()
-    }
-    deferrable.deferred = undefined
+async function withLock(
+  deferrable: Deferrable,
+  fn: () => Promise<void>
+): Promise<void> {
+  if (deferrable.deferred) {
+    await deferrable.deferred.promise;
+  }
+  deferrable.deferred = new Deferred<void>();
+  try {
+    await fn();
+    deferrable.deferred.resolve();
+  } catch (e) {
+    deferrable.deferred.reject();
+  }
+  deferrable.deferred = undefined;
 }
 
 export class Auth {
@@ -69,14 +72,14 @@ export class Auth {
     public currentUser?: User,
     public languageCode?: string,
     public tenantId?: string
-  ) { }
+  ) {}
   deferred?: Deferred<void>;
   userManager?: UserManager;
   async isInitialized(): Promise<void> {
     if (this.deferred) {
       await this.deferred.promise;
     }
-    assert(!this.deferred, 'expect deferred to be undefined')
+    assert(!this.deferred, 'expect deferred to be undefined');
   }
 
   async setPersistence(persistence: Persistence): Promise<void> {
@@ -85,7 +88,7 @@ export class Auth {
     return withLock(this, async () => {
       this.userManager = new UserManager(persistence);
       this.currentUser = await this.userManager.getCurrentUser();
-    })
+    });
   }
   onIdTokenChanged(
     nextOrObserver: (a: User | null) => any,
@@ -108,14 +111,14 @@ export class Auth {
     await withLock(this, async () => {
       this.currentUser = user;
       await this.userManager!.setCurrentUser(user);
-    })
+    });
     return user;
   }
   async signOut(): Promise<void> {
     return withLock(this, async () => {
       this.currentUser = undefined;
       await this.userManager!.removeCurrentUser();
-    })
+    });
   }
 }
 

@@ -42,7 +42,7 @@ module.exports = function(config) {
     frameworks: ['mocha']
   });
 
-  karmaConfig.reporters = ['spec']
+  karmaConfig.reporters = ['spec'];
 
   config.set(karmaConfig);
 };
