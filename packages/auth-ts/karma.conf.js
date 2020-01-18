@@ -26,19 +26,23 @@ module.exports = function(config) {
     // files to load into karma
     files: ['test/**/*.test.ts'],
 
-    coverageIstanbulReporter: {
-      dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
-      fixWebpackSourcePaths: true,
-      reports: ['html', 'lcovonly'],
-      instrumenterOptions: {
-        istanbul: { noCompact: true }
-      }
-    },
+    reporters: ['spec'],
+
+    // coverageIstanbulReporter: {
+    //   dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
+    //   fixWebpackSourcePaths: true,
+    //   reports: ['html', 'lcovonly'],
+    //   instrumenterOptions: {
+    //     istanbul: { noCompact: true }
+    //   }
+    // },
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
   });
+
+  karmaConfig.reporters = ['spec']
 
   config.set(karmaConfig);
 };

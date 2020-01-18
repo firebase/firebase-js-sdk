@@ -21,6 +21,7 @@ import { User } from '../../model/user';
 import { signUp } from '../../api/authentication';
 
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
+  await auth.isInitialized()
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign him again.
     return new UserCredential(auth.currentUser);

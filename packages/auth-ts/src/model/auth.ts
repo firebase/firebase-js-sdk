@@ -19,6 +19,7 @@ import { User } from './user';
 import { Persistence } from '../core/persistence';
 import { UserManager } from '../core/persistence/user_mananger';
 import { Deferred } from '../core/util/deferred';
+import { assert } from '@firebase/util';
 
 export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
@@ -29,7 +30,7 @@ export interface Config {
   authDomain?: string;
 }
 
-export interface PopupRedirectResolver {}
+export interface PopupRedirectResolver { }
 
 export interface Dependencies {
   // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
@@ -42,6 +43,24 @@ export interface Dependencies {
 
 export type Unsubscribe = () => void;
 
+interface Deferrable {
+  deferred?: Deferred<void>;
+}
+
+async function withLock(deferrable: Deferrable, fn: () => Promise<void>): Promise<void> {
+    if(deferrable.deferred) {
+      await deferrable.deferred.promise
+    }
+    deferrable.deferred = new Deferred<void>()
+    try {
+      await fn()
+      deferrable.deferred.resolve()
+    } catch (e) {
+      deferrable.deferred.reject()
+    }
+    deferrable.deferred = undefined
+}
+
 export class Auth {
   constructor(
     public readonly name: string,
@@ -50,24 +69,23 @@ export class Auth {
     public currentUser?: User,
     public languageCode?: string,
     public tenantId?: string
-  ) {}
+  ) { }
   deferred?: Deferred<void>;
   userManager?: UserManager;
-  async setPersistence(persistence: Persistence): Promise<void> {
-    // We may be called synchronously, such as during initialization
-    // make sure previous request has finished before trying to change persistence
+  async isInitialized(): Promise<void> {
     if (this.deferred) {
       await this.deferred.promise;
     }
-    this.deferred = new Deferred<void>();
-    try {
+    assert(!this.deferred, 'expect deferred to be undefined')
+  }
+
+  async setPersistence(persistence: Persistence): Promise<void> {
+    // We may be called synchronously, such as during initialization
+    // make sure previous request has finished before trying to change persistence
+    return withLock(this, async () => {
       this.userManager = new UserManager(persistence);
       this.currentUser = await this.userManager.getCurrentUser();
-      this.deferred.resolve();
-    } catch (e) {
-      this.deferred.reject();
-    }
-    this.deferred = undefined;
+    })
   }
   onIdTokenChanged(
     nextOrObserver: (a: User | null) => any,
@@ -87,20 +105,17 @@ export class Auth {
     throw new Error('not implemented');
   }
   async setCurrentUser(user: User): Promise<User> {
-    this.currentUser = user;
-    if (this.userManager) {
-      await this.userManager.setCurrentUser(user);
-    }
+    await withLock(this, async () => {
+      this.currentUser = user;
+      await this.userManager!.setCurrentUser(user);
+    })
     return user;
   }
   async signOut(): Promise<void> {
-    if (this.currentUser === undefined) {
-      return;
-    }
-    this.currentUser = undefined;
-    if (this.userManager) {
-      await this.userManager.removeCurrentUser();
-    }
+    return withLock(this, async () => {
+      this.currentUser = undefined;
+      await this.userManager!.removeCurrentUser();
+    })
   }
 }
 

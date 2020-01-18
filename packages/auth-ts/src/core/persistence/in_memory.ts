@@ -32,7 +32,7 @@ class InMemoryPersistence implements Persistence {
   }
 
   async get(key: string): Promise<string | null> {
-    let value = this.storage[key];
+    const value = this.storage[key];
     return value === undefined ? null : value;
   }
 

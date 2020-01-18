@@ -29,10 +29,7 @@ export class UserManager {
 
   async getCurrentUser(): Promise<User | undefined> {
     const json = await this.persistence.get(AUTH_USER_KEY_NAME_);
-    if (!json) {
-      return undefined;
-    }
-    return JSON.parse(json);
+    return json ? JSON.parse(json) : undefined;
   }
 
   removeCurrentUser(): Promise<void> {

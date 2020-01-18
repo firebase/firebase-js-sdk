@@ -38,7 +38,7 @@ interface DBObject<R> {
 class DBPromise<T> {
   constructor(private readonly request: IDBRequest) {}
 
-  toPromise() {
+  toPromise(): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.request.addEventListener('success', () => {
         resolve(this.request.result);
@@ -125,10 +125,10 @@ async function getObject_(
   key: string
 ): Promise<string | null> {
   const request = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<string | undefined>>(
+  const data = await new DBPromise<DBObject<string> | undefined>(
     request
   ).toPromise();
-  return data && (data.value === undefined ? null : data.value);
+  return data === undefined ? null : data.value;
 }
 
 function deleteObject_(db: IDBDatabase, key: string): Promise<void> {
