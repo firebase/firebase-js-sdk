@@ -31,8 +31,8 @@ interface BatchEvent {
 }
 
 /* eslint-disable camelcase */
-// CC accepted log format.
-interface CcBatchLogFormat {
+// CC/Firelog accepted log format.
+interface TransportBatchLogFormat {
   request_time_ms: string;
   client_info: ClientInfo;
   log_source: number;
@@ -84,21 +84,21 @@ function processQueue(timeOffset: number): void {
       event_time_ms: String(evt.eventTime)
     }));
 
-    const data: CcBatchLogFormat = {
+    const data: TransportBatchLogFormat = {
       request_time_ms: String(Date.now()),
       client_info: {
         client_type: 1, // 1 is JS
         js_client_info: {}
       },
-      log_source: SettingsService.getInstance().logSource,
+      log_source: 461, // ALERT! Needs to change back to: SettingsService.getInstance().logSource,
       log_event
     };
     /* eslint-enable camelcase */
 
-    fetch(SettingsService.getInstance().logEndPointUrl, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    })
+    postToTransportEndpoint(
+      SettingsService.getInstance().transportEndpointFullUrl,
+      data
+    )
       .then(res => {
         if (!res.ok) {
           consoleLogger.info('Call to Firebase backend failed.');
@@ -106,12 +106,20 @@ function processQueue(timeOffset: number): void {
         return res.json();
       })
       .then(res => {
-        const wait = Number(res.next_request_wait_millis);
+        // Take both transport response fields into consideration for next request wait time.
+        const cc_wait = Number(res.next_request_wait_millis);
+        const firelog_wait = Number(res.nextRequestWaitMillis);
 
         // Find the next call wait time from the response.
-        const requestOffset = isNaN(wait)
-          ? DEFAULT_SEND_INTERVAL_MS
-          : Math.max(DEFAULT_SEND_INTERVAL_MS, wait);
+        let wait = DEFAULT_SEND_INTERVAL_MS;
+        if (!isNaN(cc_wait)) {
+          wait = Math.max(cc_wait, wait);
+        }
+        if (!isNaN(firelog_wait)) {
+          wait = Math.max(firelog_wait, wait);
+        }
+        const requestOffset = wait;
+
         remainingTries = DEFAULT_REMAINING_TRIES;
         // Schedule the next process.
         processQueue(requestOffset);
@@ -127,6 +135,57 @@ function processQueue(timeOffset: number): void {
         processQueue(DEFAULT_SEND_INTERVAL_MS);
       });
   }, timeOffset);
+}
+
+function postToTransportEndpoint(
+  transportFullUrl: string,
+  data: TransportBatchLogFormat
+): Promise<Response> {
+  const key = extractKey(transportFullUrl);
+  const transportUrl = excludeKeyFromUrl(transportFullUrl);
+
+  if (key) {
+    return fetch(transportUrl, {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': key,
+        'content-type': 'application/json',
+        'content-encoding': 'gzip'
+      },
+      body: JSON.stringify(data)
+    });
+  }
+
+  return fetch(transportUrl, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+function extractKey(transportFullUrl: string): string | null {
+  const url = new URL(transportFullUrl);
+
+  // Query param 'key' is not configured in full URL. Transport request doesn't need to provide key.
+  if (!url.searchParams.has('key')) {
+    return null;
+  }
+
+  // Query param 'key' exists and is not null or empty. Transport request uses the provided key.
+  let value = url.searchParams.get('key');
+  if (value) {
+    return value;
+  }
+
+  // Query param 'key' exists but is null or empty. Transport request uses the app instance key.
+  return SettingsService.getInstance().firebaseAppInstance.options.apiKey!;
+}
+
+function excludeKeyFromUrl(transportFullUrl: string): string {
+  const url = new URL(transportFullUrl);
+  let searchParams = new URLSearchParams(url.searchParams);
+  searchParams.delete('key');
+  url.search = searchParams.toString();
+  return url.toString();
 }
 
 function addToQueue(evt: BatchEvent): void {

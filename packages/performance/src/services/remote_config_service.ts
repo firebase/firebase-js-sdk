@@ -32,6 +32,7 @@ const REMOTE_CONFIG_SDK_VERSION = '0.0.1';
 interface SecondaryConfig {
   loggingEnabled?: boolean;
   logEndPointUrl?: string;
+  transportEndpointFullUrl?: string;
   logSource?: number;
   tracesSamplingRate?: number;
   networkRequestsSamplingRate?: number;
@@ -48,6 +49,7 @@ interface RemoteConfigTemplate {
   fpr_enabled?: string;
   fpr_log_source?: string;
   fpr_log_endpoint_url?: string;
+  fpr_transport_endpoint_url?: string;
   fpr_vc_network_request_sampling_rate?: string;
   fpr_vc_trace_sampling_rate?: string;
   fpr_vc_session_sampling_rate?: string;
@@ -185,6 +187,13 @@ function processConfig(
     settingsServiceInstance.logEndPointUrl = entries.fpr_log_endpoint_url;
   } else if (SECONDARY_CONFIGS.logEndPointUrl) {
     settingsServiceInstance.logEndPointUrl = SECONDARY_CONFIGS.logEndPointUrl;
+  }
+  if (entries.fpr_transport_endpoint_url) {
+    settingsServiceInstance.transportEndpointFullUrl =
+      entries.fpr_transport_endpoint_url;
+  } else if (SECONDARY_CONFIGS.transportEndpointFullUrl) {
+    settingsServiceInstance.transportEndpointFullUrl =
+      SECONDARY_CONFIGS.transportEndpointFullUrl;
   }
   if (entries.fpr_vc_network_request_sampling_rate !== undefined) {
     settingsServiceInstance.networkRequestsSamplingRate = Number(

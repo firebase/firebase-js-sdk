@@ -18,6 +18,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import { mergeStrings } from '../utils/string_merger';
 
 let settingsServiceInstance: SettingsService | undefined;
 
@@ -33,9 +34,19 @@ export class SettingsService {
   // Sampling rate between 0 and 1.
   tracesSamplingRate = 1;
   networkRequestsSamplingRate = 1;
+
   // Address of logging service.
   logEndPointUrl =
     'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto';
+  // Performance event transport endpoint URL which should be compatible with proto3.
+  // ALERT: Needs to change the default value to:
+  // 'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto'
+  transportEndpointFullUrl = mergeStrings(
+    'hts/frbslgigp.ogepscmv/ieo/eaylgkyAzSC8r6ReiGqFMyfvgow',
+    'tp:/ieaeogn-agolai.o/1frlglgc/o?e=Iayx0u-XT3vksVM-pIV'
+  );
+
+  // Logging ID for performance events.
   logSource = 462;
 
   // Flags which control per session logging of traces and network requests.
