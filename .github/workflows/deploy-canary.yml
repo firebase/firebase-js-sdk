@@ -19,15 +19,14 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-        registry-url: 'https://wombat-dressing-room.appspot.com/firebase/_ns/'
+        registry-url: 'https://registry.npmjs.org'
     - name: Yarn install
       run: yarn
     - name: yarn build
       run: yarn build
     - name: Deploy canary
       run: |
-        npm config set //wombat-dressing-room.appspot.com/mypackage/_ns:authToken=$NODE_AUTH_TOKEN
-        npm config set scope "@firebase"
+        npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
         yarn release --canary
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
