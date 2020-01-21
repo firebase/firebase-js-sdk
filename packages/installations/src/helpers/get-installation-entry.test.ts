@@ -44,14 +44,14 @@ describe('getInstallationEntry', () => {
   >;
 
   beforeEach(() => {
-    clock = useFakeTimers({ now: 1_000_000, shouldAdvanceTime: true });
+    clock = useFakeTimers({ now: 1_000_000 });
     appConfig = getFakeAppConfig();
     createInstallationRequestSpy = stub(
       createInstallationRequestModule,
       'createInstallationRequest'
     ).callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
-        await sleep(100); // Request would take some time
+        await sleep(500); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
           // Returns new FID if client FID is invalid.
           fid: installationEntry.fid || FID,
@@ -67,6 +67,11 @@ describe('getInstallationEntry', () => {
         return registeredInstallationEntry;
       }
     );
+  });
+
+  afterEach(() => {
+    // Clean up all pending requests.
+    clock.runAll();
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
@@ -113,7 +118,7 @@ describe('getInstallationEntry', () => {
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
     createInstallationRequestSpy.callsFake(async () => {
-      await sleep(100); // Request would take some time
+      await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 500,
@@ -143,7 +148,7 @@ describe('getInstallationEntry', () => {
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
     createInstallationRequestSpy.callsFake(async () => {
-      await sleep(100); // Request would take some time
+      await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 409,
@@ -259,6 +264,12 @@ describe('getInstallationEntry', () => {
     });
 
     it('waits for the FID from the server if FID generation fails', async () => {
+      clock.restore();
+      clock = useFakeTimers({
+        now: 1_000_000,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
+
       // FID generation fails.
       generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
 
@@ -340,12 +351,16 @@ describe('getInstallationEntry', () => {
     });
 
     it('updates the InstallationEntry and triggers createInstallation if the request fails', async () => {
-      clock.now = 1_001_000; // One second after the request was initiated.
+      clock.restore();
+      clock = useFakeTimers({
+        now: 1_001_000 /* One second after the request was initiated. */,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
 
       const installationEntryPromise = getInstallationEntry(appConfig);
 
       // The pending request fails after a while.
-      clock.tick(500);
+      clock.tick(3000);
       await set(appConfig, {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -354,13 +369,13 @@ describe('getInstallationEntry', () => {
       const { registrationPromise } = await installationEntryPromise;
 
       // Let the new getInstallationEntry process start.
-      await sleep(50);
+      await sleep(250);
 
       const tokenDetails = (await get(
         appConfig
       )) as InProgressInstallationEntry;
       expect(tokenDetails.registrationTime).to.be.at.least(
-        /* When the first pending request failed. */ 1_001_500
+        /* When the first pending request failed. */ 1_004_000
       );
       expect(tokenDetails).to.deep.equal({
         fid: FID,
@@ -377,12 +392,16 @@ describe('getInstallationEntry', () => {
     it('updates the InstallationEntry if the request fails and the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      clock.now = 1_001_000; // One second after the request was initiated.
+      clock.restore();
+      clock = useFakeTimers({
+        now: 1_001_000 /* One second after the request was initiated. */,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
 
       const installationEntryPromise = getInstallationEntry(appConfig);
 
       // The pending request fails after a while.
-      clock.tick(500);
+      clock.tick(3000);
       await set(appConfig, {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -391,7 +410,7 @@ describe('getInstallationEntry', () => {
       const { registrationPromise } = await installationEntryPromise;
 
       // Let the new getInstallationEntry process start.
-      await sleep(50);
+      await sleep(250);
 
       expect(await get(appConfig)).to.deep.equal({
         fid: FID,
