@@ -38,7 +38,7 @@ export class Component<T extends Name = Name> {
    *
    * @param name The public service name, e.g. app, auth, firestore, database
    * @param instanceFactory Service factory responsible for creating the public interface
-   * @param type whehter the service provided by the component is public or private
+   * @param type whether the service provided by the component is public or private
    */
   constructor(
     readonly name: T,
