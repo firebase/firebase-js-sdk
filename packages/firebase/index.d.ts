@@ -8046,11 +8046,10 @@ declare namespace firebase.firestore {
     readonly hasPendingWrites: boolean;
 
     /**
-     * True if the snapshot includes local writes (`set()` or
-     * `update()` calls) that haven't been committed to the backend yet.
-     * If your listener has opted into
-     * metadata updates (via `SnapshotListenOptions`)
-     * you will receive another snapshot with `fromCache` equal to false once
+     * True if the snapshot was created from cached data rather than guaranteed
+     * up-to-date server data. If your listener has opted into metadata updates
+     * (via `SnapshotListenOptions`)
+     * you will receive another snapshot with `fromCache` set to false once
      * the client has received up-to-date data from the backend.
      */
     readonly fromCache: boolean;
