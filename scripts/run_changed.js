@@ -8,11 +8,10 @@ async function runTestsOnChangedPackages() {
   try {
     const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
     const changedFiles = diff.split('\n');
-    console.log(diff);
     const changedPackages = {};
     for (const filename of changedFiles) {
       console.log(filename);
-      if (filename.includes('packages/')) {
+      if (filename.match('^packages\/')) {
         console.log(filename);
       }
     }

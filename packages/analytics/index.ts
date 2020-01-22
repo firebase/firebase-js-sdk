@@ -30,6 +30,7 @@ import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 import { name, version } from './package.json';
 
+
 declare global {
   interface Window {
     [key: string]: unknown;
