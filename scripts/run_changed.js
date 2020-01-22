@@ -41,7 +41,9 @@ async function runTestsOnChangedPackages() {
   if (changedPackages.size > 0) {
     await runTests(Object.keys(changedPackages));
   } else {
-    console.log('No changes detected in any package. Skipping all package-specific tests.')
+    console.log(
+      'No changes detected in any package. Skipping all package-specific tests.'
+    );
   }
 }
 
