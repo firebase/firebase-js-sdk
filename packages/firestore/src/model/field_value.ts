@@ -126,6 +126,15 @@ export abstract class FieldValue {
   abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
+  /**
+   * Returns an approximate (and wildly inaccurate) in-memory size for the field
+   * value.
+   *
+   * The memory size takes into account only the actual user data as it resides
+   * in memory and ignores object overhead.
+   */
+  abstract approximateByteSize(): number;
+
   toString(): string {
     const val = this.value();
     return val === null ? 'null' : val.toString();
@@ -167,6 +176,10 @@ export class NullValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
+  approximateByteSize(): number {
+    return 4;
+  }
+
   static INSTANCE = new NullValue();
 }
 
@@ -195,6 +208,10 @@ export class BooleanValue extends FieldValue {
     return this.defaultCompareTo(other);
   }
 
+  approximateByteSize(): number {
+    return 4;
+  }
+
   static of(value: boolean): BooleanValue {
     return value ? BooleanValue.TRUE : BooleanValue.FALSE;
   }
@@ -220,6 +237,10 @@ export abstract class NumberValue extends FieldValue {
       return numericComparator(this.internalValue, other.internalValue);
     }
     return this.defaultCompareTo(other);
+  }
+
+  approximateByteSize(): number {
+    return 8;
   }
 }
 
@@ -313,6 +334,13 @@ export class StringValue extends FieldValue {
     }
     return this.defaultCompareTo(other);
   }
+
+  approximateByteSize(): number {
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures:
+    // "JavaScript's String type is [...] a set of elements of 16-bit unsigned
+    // integer values"
+    return this.internalValue.length * 2;
+  }
 }
 
 export class TimestampValue extends FieldValue {
@@ -346,6 +374,11 @@ export class TimestampValue extends FieldValue {
     } else {
       return this.defaultCompareTo(other);
     }
+  }
+
+  approximateByteSize(): number {
+    // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
+    return 16;
   }
 }
 
@@ -410,6 +443,13 @@ export class ServerTimestampValue extends FieldValue {
   toString(): string {
     return '<ServerTimestamp localTime=' + this.localWriteTime.toString() + '>';
   }
+
+  approximateByteSize(): number {
+    return (
+      /* localWriteTime */ 16 +
+      (this.previousValue ? this.previousValue.approximateByteSize() : 0)
+    );
+  }
 }
 
 export class BlobValue extends FieldValue {
@@ -435,6 +475,10 @@ export class BlobValue extends FieldValue {
       return this.internalValue._compareTo(other.internalValue);
     }
     return this.defaultCompareTo(other);
+  }
+
+  approximateByteSize(): number {
+    return this.internalValue._approximateByteSize();
   }
 }
 
@@ -466,6 +510,14 @@ export class RefValue extends FieldValue {
     }
     return this.defaultCompareTo(other);
   }
+
+  approximateByteSize(): number {
+    return (
+      this.databaseId.projectId.length +
+      this.databaseId.database.length +
+      this.key.toString().length
+    );
+  }
 }
 
 export class GeoPointValue extends FieldValue {
@@ -491,6 +543,11 @@ export class GeoPointValue extends FieldValue {
       return this.internalValue._compareTo(other.internalValue);
     }
     return this.defaultCompareTo(other);
+  }
+
+  approximateByteSize(): number {
+    // GeoPoints are made up of two distinct numbers (latitude + longitude)
+    return 16;
   }
 }
 
@@ -634,6 +691,14 @@ export class ObjectValue extends FieldValue {
     return FieldMask.fromSet(fields);
   }
 
+  approximateByteSize(): number {
+    let size = 0;
+    this.internalValue.inorderTraversal((key, val) => {
+      size += key.length + val.approximateByteSize();
+    });
+    return size;
+  }
+
   toString(): string {
     return this.internalValue.toString();
   }
@@ -718,6 +783,13 @@ export class ArrayValue extends FieldValue {
     } else {
       return this.defaultCompareTo(other);
     }
+  }
+
+  approximateByteSize(): number {
+    return this.internalValue.reduce(
+      (totalSize, value) => totalSize + value.approximateByteSize(),
+      0
+    );
   }
 
   toString(): string {

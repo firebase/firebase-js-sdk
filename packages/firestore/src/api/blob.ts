@@ -120,6 +120,11 @@ export class Blob {
     return this._binaryString === other._binaryString;
   }
 
+  _approximateByteSize(): number {
+    // Assume UTF-16 encoding in memory (see StringValue.approximateByteSize())
+    return this._binaryString.length * 2;
+  }
+
   /**
    * Actually private to JS consumers of our API, so this function is prefixed
    * with an underscore.
