@@ -1,10 +1,10 @@
-name: Main Test Flow
+name: Test Changed Packages
 
 on: [push, pull_request]
 
 jobs:
   test:
-    name: Node.js and Browser (Chrome) Tests
+    name: Test Packages With Changed Files
     runs-on: ubuntu-latest
 
     steps:
@@ -19,5 +19,5 @@ jobs:
         yarn
     - name: yarn build
       run: yarn build
-    - name: Run unit tests
+    - name: Run tests on changed packages
       run: xvfb-run yarn test:changed
