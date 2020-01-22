@@ -1,7 +1,9 @@
 # Unreleased
 - [fixed] Fixed an issue where auth credentials were not respected in some
   Firefox or Chrome extensions. (#1491)
-
+- [changed] Firestore previously required that every document read in a
+  transaction must also be written. This requirement has been removed, and
+  you can now read a document in transaction without writing to it.
 # 1.9.2
 - [fixed] Fixed an issue where auth credentials were not respected in certain
   browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
