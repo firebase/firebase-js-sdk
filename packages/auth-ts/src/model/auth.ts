@@ -59,7 +59,7 @@ async function withLock(
     await fn();
     deferrable.deferred.resolve();
   } catch (e) {
-    deferrable.deferred.reject();
+    deferrable.deferred.reject(e);
   }
   deferrable.deferred = undefined;
 }

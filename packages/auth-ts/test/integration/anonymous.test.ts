@@ -61,15 +61,14 @@ describe('signInAnonymously', () => {
 
   describe('persistence', () => {
     for (const persistence of [
-      // inMemoryPersistence,
-      browserSessionPersistence
-      // browserLocalPersistence,
-      // indexedDBLocalPersistence
+      inMemoryPersistence,
+      browserSessionPersistence,
+      browserLocalPersistence,
+      indexedDBLocalPersistence
     ]) {
       context('with ' + persistence.constructor.name, () => {
         it('should work', async () => {
           const auth = initializeAuth(app, { persistence });
-
           await auth.signOut();
           const beforeSignin = await persistence.get('authUser');
           expect(beforeSignin).to.be.null;

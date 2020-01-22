@@ -39,7 +39,7 @@ export function initializeAuth(
   deps.persistence = deps.persistence || inMemoryPersistence;
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?
-  auth.setPersistence(inMemoryPersistence).then(
+  auth.setPersistence(deps.persistence).then(
     () => {},
     () => {}
   );
