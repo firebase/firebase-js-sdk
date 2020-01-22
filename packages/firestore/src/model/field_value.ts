@@ -129,6 +129,9 @@ export abstract class FieldValue {
   /**
    * Returns an approximate (and wildly inaccurate) in-memory size for the field
    * value.
+   *
+   * The memory size takes into account only the actual user data as it resides
+   * in memory and ignores object overhead.
    */
   abstract approximateByteSize(): number;
 
