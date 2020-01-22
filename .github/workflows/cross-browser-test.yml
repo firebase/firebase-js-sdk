@@ -1,11 +1,17 @@
 name: Cross-Browser Test Flow
 
-on: push
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
 
 jobs:
   cross-browser-test:
     name: Cross-Browser (Saucelabs) Tests
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
     env:
       SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}

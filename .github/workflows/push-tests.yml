@@ -1,0 +1,23 @@
+name: Main Test Flow
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Node.js and Browser (Chrome) Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build
+      run: yarn build
+    - name: Run unit tests
+      run: xvfb-run yarn test
