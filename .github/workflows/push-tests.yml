@@ -20,4 +20,4 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Run unit tests
-      run: xvfb-run yarn test
+      run: xvfb-run yarn test:changed

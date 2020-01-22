@@ -34,6 +34,7 @@ import {
   ComponentContainer
 } from '@firebase/component';
 
+
 // Facilitates debugging by enabling settings changes without rebuilding asset.
 // Note these debug options are not part of a documented, supported API and can change at any time.
 // Consolidates debug options for easier discovery.
