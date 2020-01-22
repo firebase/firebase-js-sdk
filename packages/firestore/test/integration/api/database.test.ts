@@ -814,7 +814,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryForRejection : firestore.Query = null as any;
+    const queryForRejection: firestore.Query = null as any;
 
     it('will reject listens', () => {
       const deferred = new Deferred();

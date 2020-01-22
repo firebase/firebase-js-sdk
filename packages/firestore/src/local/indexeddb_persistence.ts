@@ -63,6 +63,7 @@ import {
   Persistence,
   PersistenceTransaction,
   PersistenceTransactionMode,
+  PRIMARY_LEASE_LOST_ERROR_MSG,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -97,9 +98,6 @@ const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
  */
 const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 /** User-facing error when the primary lease is required but not available. */
-const PRIMARY_LEASE_LOST_ERROR_MSG =
-  'The current tab is not in the required state to perform this operation. ' +
-  'It might be necessary to refresh the browser tab.';
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Another tab has exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
@@ -1049,33 +1047,6 @@ export class IndexedDbPersistence implements Persistence {
 
   private zombiedClientLocalStorageKey(clientId: ClientId): string {
     return `${ZOMBIED_CLIENTS_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
-  }
-}
-
-function isPrimaryLeaseLostError(err: FirestoreError): boolean {
-  return (
-    err.code === Code.FAILED_PRECONDITION &&
-    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
-  );
-}
-
-/**
- * Verifies the error thrown by a LocalStore operation. If a LocalStore
- * operation fails because the primary lease has been taken by another client,
- * we ignore the error (the persistence layer will immediately call
- * `applyPrimaryLease` to propagate the primary state change). All other errors
- * are re-thrown.
- *
- * @param err An error returned by a LocalStore operation.
- * @return A Promise that resolves after we recovered, or the original error.
- */
-export async function ignoreIfPrimaryLeaseLoss(
-  err: FirestoreError
-): Promise<void> {
-  if (isPrimaryLeaseLostError(err)) {
-    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
-  } else {
-    throw err;
   }
 }
 

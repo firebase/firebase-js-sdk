@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
-import { LocalStore } from '../local/local_store';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -32,7 +32,6 @@ import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
