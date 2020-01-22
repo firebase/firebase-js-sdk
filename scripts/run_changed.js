@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2020 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,11 @@ async function runTestsOnChangedPackages() {
       }
     }
   }
-  await runTests(Object.keys(changedPackages));
+  if (changedPackages.size > 0) {
+    await runTests(Object.keys(changedPackages));
+  } else {
+    console.log('No changes detected in any package. Skipping all package-specific tests.')
+  }
 }
 
 /**
