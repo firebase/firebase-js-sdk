@@ -19,7 +19,7 @@ import { Persistence, PersistenceType } from '.';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
-const DB_NAME = 'firebaseLocalStorageDb';
+export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';

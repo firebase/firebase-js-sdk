@@ -17,15 +17,15 @@
 
 import { expect } from 'chai';
 import { firebase } from '@firebase/app';
-import { signInAnonymously } from '../../src/core/strategies/anonymous';
 import { UserCredential } from '../../src/model/user_credential';
 import { initializeAuth } from '../../src/core/initialize_auth';
 import { FirebaseApp } from '@firebase/app-types';
 
 import * as PROJECT_CONFIG from '../../../../config/project.json';
 import { Provider } from '../../src/model/id_token';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from '../../src/core/strategies/email_and_password';
 
-describe('signInAnonymously', () => {
+describe('signUp & signInWithEmailAndPassword', () => {
   let app: FirebaseApp;
 
   before(() => {
@@ -38,10 +38,13 @@ describe('signInAnonymously', () => {
   it('should work', async () => {
     const auth = initializeAuth(app);
 
-    const userCredential = await signInAnonymously(auth);
+    const email = `test-user-${Date.now()}@example.com`;
+    const password = Math.random().toString(36).substring(2,15);
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     expect(userCredential).to.be.instanceOf(UserCredential);
     expect(userCredential.user.refreshToken).to.not.be.empty;
-    expect(userCredential.user.isAnonymous).to.be.true;
+    expect(userCredential.user.isAnonymous).to.be.false;
     expect(userCredential.user.uid).to.not.be.empty;
 
     const idToken = await userCredential.user.getIdToken();
@@ -52,7 +55,12 @@ describe('signInAnonymously', () => {
     expect(idTokenResult.claims).to.be.empty;
     expect(idTokenResult.expirationTime).to.not.be.empty;
     expect(idTokenResult.issuedAtTime).to.not.be.empty;
-    expect(idTokenResult.signInProvider).to.eq(Provider.ANONYMOUS);
+    expect(idTokenResult.signInProvider).to.eq(Provider.PASSWORD);
     expect(idTokenResult.signInSecondFactor).to.be.null;
+
+    await auth.signOut();
+
+    const login = await signInWithEmailAndPassword(auth, email, password);
+    expect(login.user.uid).to.eq(userCredential.user.uid);
   });
 });

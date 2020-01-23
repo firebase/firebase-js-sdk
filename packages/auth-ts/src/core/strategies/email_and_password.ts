@@ -45,6 +45,7 @@ export async function signInWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const { refreshToken, localId, idToken } = await signInWithPassword(auth, {
+    returnSecureToken: true,
     email,
     password
   });
