@@ -68,7 +68,7 @@ apiDescribe('Database (with internal API)', (persistence: boolean) => {
       }
     );
   });
-  
+
   it('app delete leads to instance termination', async () => {
     await withTestDoc(persistence, async docRef => {
       await docRef.set({ foo: 'bar' });
