@@ -23,7 +23,10 @@ import { FirebaseApp } from '@firebase/app-types';
 
 import * as PROJECT_CONFIG from '../../../../config/project.json';
 import { Provider } from '../../src/model/id_token';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from '../../src/core/strategies/email_and_password';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from '../../src/core/strategies/email_and_password';
 
 describe('signUp & signInWithEmailAndPassword', () => {
   let app: FirebaseApp;
@@ -39,9 +42,15 @@ describe('signUp & signInWithEmailAndPassword', () => {
     const auth = initializeAuth(app);
 
     const email = `test-user-${Date.now()}@example.com`;
-    const password = Math.random().toString(36).substring(2,15);
+    const password = Math.random()
+      .toString(36)
+      .substring(2, 15);
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     expect(userCredential).to.be.instanceOf(UserCredential);
     expect(userCredential.user.refreshToken).to.not.be.empty;
     expect(userCredential.user.isAnonymous).to.be.false;

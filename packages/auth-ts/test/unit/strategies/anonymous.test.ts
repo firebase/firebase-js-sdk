@@ -29,7 +29,11 @@ import { indexedDBLocalPersistence } from '../../../src/core/persistence/indexed
 import { User } from '../../../src/model/user';
 
 import * as PROJECT_CONFIG from '../../../../../config/project.json';
-import { PRODUCTION_URL, SignUpResponse, SIGN_UP_RESPONSE_KIND } from '../../../src/api/authentication';
+import {
+  PRODUCTION_URL,
+  SignUpResponse,
+  SIGN_UP_RESPONSE_KIND
+} from '../../../src/api/authentication';
 import { restoreFetch, mockFetch } from '../../util/fetch-mock';
 import { Provider, encodeIdToken, IdToken } from '../../../src/model/id_token';
 import { signOut } from '../../../src/model/auth';
@@ -38,24 +42,28 @@ const EXPIRATION_TIME = 3600;
 
 function generateJWT(provider: Provider, uid: string): IdToken {
   const timestamp = Math.floor(Date.now() / 1000);
-  return encodeIdToken({
-    alg: "RS256",
-    kid: "firebase-key-id-123456abcdef",
-    typ: "JWT"
-  }, {
-    provider_id: provider, // eslint-disable-line camelcase
-    iss: `https://securetoken.google.com/${PROJECT_CONFIG.projectId}`,
-    aud: PROJECT_CONFIG.projectId,
-    auth_time: timestamp, // eslint-disable-line camelcase
-    user_id: uid,// eslint-disable-line camelcase
-    sub: uid,
-    iat: timestamp,
-    exp: timestamp + EXPIRATION_TIME,
-    firebase: {
-      identities: {},
-      sign_in_provider: provider // eslint-disable-line camelcase
-    }
-  }, "SIGNATURE");
+  return encodeIdToken(
+    {
+      alg: 'RS256',
+      kid: 'firebase-key-id-123456abcdef',
+      typ: 'JWT'
+    },
+    {
+      provider_id: provider, // eslint-disable-line camelcase
+      iss: `https://securetoken.google.com/${PROJECT_CONFIG.projectId}`,
+      aud: PROJECT_CONFIG.projectId,
+      auth_time: timestamp, // eslint-disable-line camelcase
+      user_id: uid, // eslint-disable-line camelcase
+      sub: uid,
+      iat: timestamp,
+      exp: timestamp + EXPIRATION_TIME,
+      firebase: {
+        identities: {},
+        sign_in_provider: provider // eslint-disable-line camelcase
+      }
+    },
+    'SIGNATURE'
+  );
 }
 
 describe('signInAnonymously', () => {
@@ -73,11 +81,14 @@ describe('signInAnonymously', () => {
     const response: SignUpResponse = {
       kind: SIGN_UP_RESPONSE_KIND,
       idToken: generateJWT(Provider.ANONYMOUS, uid),
-      refreshToken: "super-long-refresh-token",
+      refreshToken: 'super-long-refresh-token',
       expiresIn: `${EXPIRATION_TIME}`,
-      localId: uid 
+      localId: uid
     };
-    mockFetch(`${PRODUCTION_URL}/v1/accounts:signUp?key=${PROJECT_CONFIG.apiKey}`, JSON.stringify(response));
+    mockFetch(
+      `${PRODUCTION_URL}/v1/accounts:signUp?key=${PROJECT_CONFIG.apiKey}`,
+      JSON.stringify(response)
+    );
   });
 
   afterEach(() => {
@@ -152,20 +163,20 @@ describe('signInAnonymously', () => {
       let callbackNum = 0;
       const auth = initializeAuth(app);
       await auth.isInitialized();
-      const promise =  new Promise((resolve, reject) => {
+      const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
-          switch(++callbackNum) {
-          case 1:
-            expect(user).to.be.null;
-            break;
-          case 2:
-            expect(user).to.not.be.null;
-            expect(user).to.eq(auth.currentUser);
-            resolve();
-            break;
-          default:
-            fail("expected only 2 callbacks");
-            reject();
+          switch (++callbackNum) {
+            case 1:
+              expect(user).to.be.null;
+              break;
+            case 2:
+              expect(user).to.not.be.null;
+              expect(user).to.eq(auth.currentUser);
+              resolve();
+              break;
+            default:
+              fail('expected only 2 callbacks');
+              reject();
           }
         });
       });
@@ -176,7 +187,7 @@ describe('signInAnonymously', () => {
     it('should fire if registered after sign in', async () => {
       const auth = initializeAuth(app);
       await signInAnonymously(auth);
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         auth.onAuthStateChanged((user: User | null) => {
           expect(user).to.not.be.null;
           expect(user).to.eq(auth.currentUser);
@@ -186,11 +197,15 @@ describe('signInAnonymously', () => {
     });
 
     it('should fire if reinitialized from persistence', async () => {
-      const auth = initializeAuth(app, { persistence: browserSessionPersistence });
+      const auth = initializeAuth(app, {
+        persistence: browserSessionPersistence
+      });
       await signInAnonymously(auth);
-      const reinitializedAuth = initializeAuth(app, { persistence: browserSessionPersistence });
+      const reinitializedAuth = initializeAuth(app, {
+        persistence: browserSessionPersistence
+      });
       await reinitializedAuth.isInitialized();
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         reinitializedAuth.onAuthStateChanged((user: User | null) => {
           expect(user!.uid).to.eq(auth.currentUser!.uid);
           resolve();
@@ -202,9 +217,9 @@ describe('signInAnonymously', () => {
       const auth = initializeAuth(app);
       await signInAnonymously(auth);
       let numCallbacks = 0;
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const callbackFn = (): void => {
-          if(++numCallbacks === 2) {
+          if (++numCallbacks === 2) {
             resolve();
           }
         };
@@ -229,7 +244,7 @@ describe('signInAnonymously', () => {
       const auth = initializeAuth(app);
       await signInAnonymously(auth);
       await signOut(auth);
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         auth.onAuthStateChanged((user: User | null) => {
           expect(user).to.be.null;
           resolve();
@@ -241,7 +256,7 @@ describe('signInAnonymously', () => {
       const auth = initializeAuth(app);
       await auth.isInitialized();
       const unsubscribe = auth.onAuthStateChanged((user: User | null) => {
-        fail("expected calback to be unsubscribed");
+        fail('expected calback to be unsubscribed');
       });
       unsubscribe();
       await signInAnonymously(auth);

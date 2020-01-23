@@ -1,6 +1,6 @@
 import * as sinon from 'sinon';
 
-let routes: {[url: string]: Response} = {};
+let routes: { [url: string]: Response } = {};
 
 function fakeFetch(requestInfo: RequestInfo): Promise<Response> {
   if (typeof requestInfo !== 'string') {
@@ -20,7 +20,7 @@ export function mockFetch(url: string, body: string): void {
       'Content-type': 'application/json'
     }
   });
-  sinon.stub(window, "fetch").callsFake(fakeFetch);
+  sinon.stub(window, 'fetch').callsFake(fakeFetch);
 }
 
 export function restoreFetch(): void {

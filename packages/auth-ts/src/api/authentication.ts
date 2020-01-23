@@ -20,8 +20,9 @@ import { IdToken } from '../model/id_token';
 
 // TODO: pass this in for emulator
 export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
-export const SIGN_IN_WITH_PASSWORD_KIND = "identitytoolkit#VerifyPasswordResponse";
-export const SIGN_UP_RESPONSE_KIND = "identitytoolkit#SignupNewUserResponse";
+export const SIGN_IN_WITH_PASSWORD_KIND =
+  'identitytoolkit#VerifyPasswordResponse';
+export const SIGN_UP_RESPONSE_KIND = 'identitytoolkit#SignupNewUserResponse';
 
 export interface SignUpRequest {
   returnSecureToken?: boolean;
@@ -30,7 +31,7 @@ export interface SignUpRequest {
 }
 
 export interface SignUpResponse {
-  kind: typeof SIGN_UP_RESPONSE_KIND,
+  kind: typeof SIGN_UP_RESPONSE_KIND;
   localId: string;
   idToken?: IdToken;
   displayName?: string;
@@ -78,7 +79,7 @@ export interface SignInWithPasswordRequest {
 }
 
 export interface SignInWithPasswordResponse {
-  kind: typeof SIGN_IN_WITH_PASSWORD_KIND,
+  kind: typeof SIGN_IN_WITH_PASSWORD_KIND;
   localId: string;
   email?: string;
   displayName?: string;

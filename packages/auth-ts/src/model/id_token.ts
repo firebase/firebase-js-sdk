@@ -32,30 +32,30 @@ export enum Provider {
  * JWT algorithm section
  */
 export interface IdTokenAlgorithm {
-  alg: "RS256",
-  kid: string,
-  typ: "JWT"
+  alg: 'RS256';
+  kid: string;
+  typ: 'JWT';
 }
 
 /**
  * JWT payload section
  */
 export interface IdTokenPayload {
-  provider_id?: Provider, // eslint-disable-line camelcase
-  iss: string,
-  aud: string,
-  auth_time: number, // eslint-disable-line camelcase
-  user_id: string, // eslint-disable-line camelcase
-  sub: string,
-  iat: number,
-  exp: number,
-  email_verified?: boolean, // eslint-disable-line camelcase
+  provider_id?: Provider; // eslint-disable-line camelcase
+  iss: string;
+  aud: string;
+  auth_time: number; // eslint-disable-line camelcase
+  user_id: string; // eslint-disable-line camelcase
+  sub: string;
+  iat: number;
+  exp: number;
+  email_verified?: boolean; // eslint-disable-line camelcase
   firebase: {
     identities: {
-      email?: string[]
-    },
-    sign_in_provider: Provider // eslint-disable-line camelcase
-  }
+      email?: string[];
+    };
+    sign_in_provider: Provider; // eslint-disable-line camelcase
+  };
 }
 
 /**
@@ -75,7 +75,7 @@ export interface IdTokenResult {
 
 /**
  * Parses but *does not verify* the IdToken received from the server.
- * 
+ *
  * @param idToken raw encoded JWT from the server.
  */
 export function parseIdToken(idToken: IdToken): IdTokenResult {
@@ -105,11 +105,17 @@ export function parseIdToken(idToken: IdToken): IdTokenResult {
 
 /**
  * Helper function to create JWT ID Tokens given the three components.  Intended to make testing easier.
- * 
+ *
  * @param algorithm JWT algorithm
  * @param payload JWT payload
  * @param signature JWT signature
  */
-export function encodeIdToken(algorithm: IdTokenAlgorithm, payload: IdTokenPayload, signature: string): IdToken {
-  return `${btoa(JSON.stringify(algorithm))}.${btoa(JSON.stringify(payload))}.${signature}`;
+export function encodeIdToken(
+  algorithm: IdTokenAlgorithm,
+  payload: IdTokenPayload,
+  signature: string
+): IdToken {
+  return `${btoa(JSON.stringify(algorithm))}.${btoa(
+    JSON.stringify(payload)
+  )}.${signature}`;
 }
