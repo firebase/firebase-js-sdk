@@ -1106,17 +1106,6 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('app delete leads to instance termination', async () => {
-    await withTestDoc(persistence, async docRef => {
-      await docRef.set({ foo: 'bar' });
-      const app = docRef.firestore.app;
-      await app.delete();
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((docRef.firestore as any)._isTerminated).to.be.true;
-    });
-  });
-
   it('new operation after termination should throw', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
