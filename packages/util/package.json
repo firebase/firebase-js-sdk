@@ -15,7 +15,8 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser test:node",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"

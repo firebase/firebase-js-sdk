@@ -46,6 +46,7 @@ export function getFakeInstallations(
   return {
     getId: async () => fid,
     getToken: async () => 'authToken',
+    onIdChange: () => () => undefined,
     delete: async () => undefined
   };
 }
