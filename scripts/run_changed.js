@@ -38,8 +38,7 @@ async function runTestsOnChangedPackages() {
       }
     }
   }
-  console.log(changedPackages);
-  if (changedPackages.size > 0) {
+  if (Object.keys(changedPackages).length > 0) {
     await runTests(Object.keys(changedPackages));
   } else {
     console.log(
