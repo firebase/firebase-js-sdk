@@ -128,7 +128,7 @@ async function getObject_<T extends PersistenceValue>(
   const data = await new DBPromise<DBObject<PersistenceValue> | undefined>(
     request
   ).toPromise();
-  return data === undefined ? null : data.value as T;
+  return data === undefined ? null : (data.value as T);
 }
 
 function deleteObject_(db: IDBDatabase, key: string): Promise<void> {

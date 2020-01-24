@@ -36,7 +36,7 @@ describe('InMemoryPersistence', () => {
   it('should work with user', async () => {
     const persistence: Persistence = inMemoryPersistence;
     const key = 'my-super-special-user';
-    const value = new User("refreshToken", "uid", "idToken");
+    const value = new User('refreshToken', 'uid', 'idToken');
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get<User>(key)).to.include(value);

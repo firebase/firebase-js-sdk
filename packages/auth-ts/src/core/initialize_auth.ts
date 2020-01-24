@@ -25,8 +25,10 @@ export function initializeAuth(
   app: FirebaseApp = firebase.app(),
   deps?: Dependencies
 ): Auth {
-  if(!app.options.apiKey) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, { appName: app.name });
+  if (!app.options.apiKey) {
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, {
+      appName: app.name
+    });
   }
 
   const auth = new Auth(

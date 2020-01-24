@@ -22,16 +22,24 @@ export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
 const NAMESPACE_ = 'firebase';
 
-export function fullKeyName_(key: string, apiKey: string, appName: string): string {
+export function fullKeyName_(
+  key: string,
+  apiKey: string,
+  appName: string
+): string {
   return `${NAMESPACE_}:${key}:${apiKey}:${appName}`;
 }
 
 export class UserManager {
-  constructor(public persistence: Persistence, private readonly apiKey: string, private readonly appName: string) { }
+  constructor(
+    public persistence: Persistence,
+    private readonly apiKey: string,
+    private readonly appName: string
+  ) {}
 
   fullKeyName_(key: string): string {
     return fullKeyName_(key, this.apiKey, this.appName);
-  };
+  }
 
   setCurrentUser(user: User): Promise<void> {
     return this.persistence.set(this.fullKeyName_(AUTH_USER_KEY_NAME_), user);
@@ -46,6 +54,9 @@ export class UserManager {
   }
 
   savePersistenceForRedirect(): Promise<void> {
-    return this.persistence.set(this.fullKeyName_(PERSISTENCE_KEY_NAME_), this.persistence.type);
+    return this.persistence.set(
+      this.fullKeyName_(PERSISTENCE_KEY_NAME_),
+      this.persistence.type
+    );
   }
 }
