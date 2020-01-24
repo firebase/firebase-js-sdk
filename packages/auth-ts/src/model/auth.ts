@@ -35,7 +35,7 @@ export interface AuthSettings {
 }
 
 export interface Config {
-  apiKey?: string;
+  apiKey: string;
   authDomain?: string;
 }
 
@@ -112,7 +112,7 @@ export class Auth {
     // We may be called synchronously, such as during initialization
     // make sure previous request has finished before trying to change persistence
     return withLock(this, async () => {
-      this.userManager = new UserManager(persistence);
+      this.userManager = new UserManager(persistence, this.config.apiKey, this.name);
       this.currentUser = await this.userManager.getCurrentUser();
     });
   }

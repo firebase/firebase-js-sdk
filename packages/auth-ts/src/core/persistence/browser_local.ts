@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '.';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -36,12 +36,13 @@ class BrowserLocalPersistence implements Persistence {
     }
   }
 
-  async set(key: string, value: string): Promise<void> {
-    localStorage.setItem(key, value);
+  async set(key: string, value: PersistenceValue): Promise<void> {
+    localStorage.setItem(key, JSON.stringify(value));
   }
 
-  async get(key: string): Promise<string | null> {
-    return localStorage.getItem(key);
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+    const json = localStorage.getItem(key);
+    return json ? JSON.parse(json) : null;
   }
 
   async remove(key: string): Promise<void> {

@@ -16,17 +16,30 @@
  */
 
 import { inMemoryPersistence } from '../../../src/core/persistence/in_memory';
-import { Persistence } from '../../../src/core/persistence';
+import { Persistence, PersistenceType } from '../../../src/core/persistence';
 import { expect } from 'chai';
+import { User } from '../../../src/model/user';
 
 describe('InMemoryPersistence', () => {
-  it('should work', async () => {
+  it('should work with persistence type', async () => {
     const persistence: Persistence = inMemoryPersistence;
-    const key = 'my-super-special-key';
-    const value = 'my-super-special-value';
+    const key = 'my-super-special-persistence-type';
+    const value = PersistenceType.LOCAL;
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get(key)).to.be.eq(value);
+    expect(await persistence.get('other-key')).to.be.null;
+    await persistence.remove(key);
+    expect(await persistence.get(key)).to.be.null;
+  });
+
+  it('should work with user', async () => {
+    const persistence: Persistence = inMemoryPersistence;
+    const key = 'my-super-special-user';
+    const value = new User("refreshToken", "uid", "idToken");
+    expect(await persistence.get(key)).to.be.null;
+    await persistence.set(key, value);
+    expect(await persistence.get<User>(key)).to.include(value);
     expect(await persistence.get('other-key')).to.be.null;
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;

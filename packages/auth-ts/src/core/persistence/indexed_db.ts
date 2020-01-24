@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '.';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -101,10 +101,10 @@ function openDatabase_(): Promise<IDBDatabase> {
 async function putObject_(
   db: IDBDatabase,
   key: string,
-  value: string
+  value: PersistenceValue
 ): Promise<void> {
   const getRequest = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<string> | null>(
+  const data = await new DBPromise<DBObject<PersistenceValue> | null>(
     getRequest
   ).toPromise();
   if (data) {
@@ -120,15 +120,15 @@ async function putObject_(
   }
 }
 
-async function getObject_(
+async function getObject_<T extends PersistenceValue>(
   db: IDBDatabase,
   key: string
-): Promise<string | null> {
+): Promise<T | null> {
   const request = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<string> | undefined>(
+  const data = await new DBPromise<DBObject<PersistenceValue> | undefined>(
     request
   ).toPromise();
-  return data === undefined ? null : data.value;
+  return data === undefined ? null : data.value as T;
 }
 
 function deleteObject_(db: IDBDatabase, key: string): Promise<void> {
@@ -154,21 +154,21 @@ class IndexedDBLocalPersistence implements Persistence {
         return false;
       }
       const db = await openDatabase_();
-      await putObject_(db, STORAGE_AVAILABLE_KEY_, '1');
+      await putObject_(db, STORAGE_AVAILABLE_KEY_, PersistenceType.LOCAL);
       await deleteObject_(db, STORAGE_AVAILABLE_KEY_);
       return true;
     } catch (e) {}
     return false;
   }
 
-  async set(key: string, value: string): Promise<void> {
+  async set(key: string, value: PersistenceValue): Promise<void> {
     const db = await this.initialize();
     return putObject_(db, key, value);
   }
 
-  async get(key: string): Promise<string | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
-    return getObject_(db, key);
+    return getObject_<T>(db, key);
   }
 
   async remove(key: string): Promise<void> {

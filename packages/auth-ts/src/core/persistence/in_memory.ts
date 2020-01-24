@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '.';
 
 class InMemoryPersistence implements Persistence {
   type: PersistenceType = PersistenceType.NONE;
   storage: {
-    [key: string]: string;
+    [key: string]: PersistenceValue;
   } = {};
 
   async isAvailable(): Promise<boolean> {
     return true;
   }
 
-  async set(key: string, value: string): Promise<void> {
+  async set(key: string, value: PersistenceValue): Promise<void> {
     this.storage[key] = value;
   }
 
-  async get(key: string): Promise<string | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const value = this.storage[key];
-    return value === undefined ? null : value;
+    return value === undefined ? null : value as T;
   }
 
   async remove(key: string): Promise<void> {

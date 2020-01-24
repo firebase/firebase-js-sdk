@@ -1,5 +1,3 @@
-import { User } from '../../model/user';
-
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -17,20 +15,6 @@ import { User } from '../../model/user';
  * limitations under the License.
  */
 
-export enum PersistenceType {
-  SESSION = 'SESSION',
-  LOCAL = 'LOCAL',
-  NONE = 'NONE'
+export interface AuthProvider {
+  readonly providerId: string;
 }
-
-export type PersistenceValue = PersistenceType | User;
-
-export interface Persistence {
-  type: PersistenceType;
-  isAvailable(): Promise<boolean>;
-  set(key: string, value: PersistenceValue): Promise<void>;
-  get<T extends PersistenceValue>(key: string): Promise<T | null>;
-  remove(key: string): Promise<void>;
-}
-
-// export const reactNativeLocalPersistence: Persistence = { type: PersistenceType.LOCAL };

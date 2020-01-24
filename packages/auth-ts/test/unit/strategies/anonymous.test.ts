@@ -37,6 +37,7 @@ import {
 import { restoreFetch, mockFetch } from '../../util/fetch-mock';
 import { Provider, encodeIdToken, IdToken } from '../../../src/model/id_token';
 import { signOut } from '../../../src/model/auth';
+import { fullKeyName_, AUTH_USER_KEY_NAME_ } from '../../../src/core/persistence/user_mananger';
 
 const EXPIRATION_TIME = 3600;
 
@@ -127,7 +128,7 @@ describe('signInAnonymously', () => {
         it('should work', async () => {
           const auth = initializeAuth(app, { persistence });
           await auth.signOut();
-          const beforeSignin = await persistence.get('authUser');
+          const beforeSignin = await persistence.get(fullKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name));
           expect(beforeSignin).to.be.null;
           expect(auth.currentUser).to.be.null;
 
@@ -135,9 +136,9 @@ describe('signInAnonymously', () => {
           expect(userCredential).to.be.instanceOf(UserCredential);
           expect(auth.currentUser).to.eq(userCredential.user);
 
-          const user = await persistence.get('authUser');
+          const user = await persistence.get<User>(fullKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name));
           expect(user).to.not.be.null;
-          expect(userCredential.user.uid).to.eq(JSON.parse(user!).uid);
+          expect(userCredential.user.uid).to.eq(user!.uid);
 
           // re initialization should pull from persistence instead of creating a new user
           const reinitializedAuth = initializeAuth(app, { persistence });
@@ -166,17 +167,17 @@ describe('signInAnonymously', () => {
       const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
           switch (++callbackNum) {
-            case 1:
-              expect(user).to.be.null;
-              break;
-            case 2:
-              expect(user).to.not.be.null;
-              expect(user).to.eq(auth.currentUser);
-              resolve();
-              break;
-            default:
-              fail('expected only 2 callbacks');
-              reject();
+          case 1:
+            expect(user).to.be.null;
+            break;
+          case 2:
+            expect(user).to.not.be.null;
+            expect(user).to.eq(auth.currentUser);
+            resolve();
+            break;
+          default:
+            fail('expected only 2 callbacks');
+            reject();
           }
         });
       });

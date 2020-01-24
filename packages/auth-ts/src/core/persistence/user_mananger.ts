@@ -18,21 +18,34 @@
 import { Persistence } from '.';
 import { User } from '../../model/user';
 
-const AUTH_USER_KEY_NAME_ = 'authUser';
+export const AUTH_USER_KEY_NAME_ = 'authUser';
+export const PERSISTENCE_KEY_NAME_ = 'persistence';
+const NAMESPACE_ = 'firebase';
+
+export function fullKeyName_(key: string, apiKey: string, appName: string): string {
+  return `${NAMESPACE_}:${key}:${apiKey}:${appName}`;
+}
 
 export class UserManager {
-  constructor(public persistence: Persistence) {}
+  constructor(public persistence: Persistence, private readonly apiKey: string, private readonly appName: string) { }
+
+  fullKeyName_(key: string): string {
+    return fullKeyName_(key, this.apiKey, this.appName);
+  };
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(AUTH_USER_KEY_NAME_, JSON.stringify(user));
+    return this.persistence.set(this.fullKeyName_(AUTH_USER_KEY_NAME_), user);
   }
 
   async getCurrentUser(): Promise<User | null> {
-    const json = await this.persistence.get(AUTH_USER_KEY_NAME_);
-    return json ? JSON.parse(json) : null;
+    return this.persistence.get<User>(this.fullKeyName_(AUTH_USER_KEY_NAME_));
   }
 
   removeCurrentUser(): Promise<void> {
-    return this.persistence.remove(AUTH_USER_KEY_NAME_);
+    return this.persistence.remove(this.fullKeyName_(AUTH_USER_KEY_NAME_));
+  }
+
+  savePersistenceForRedirect(): Promise<void> {
+    return this.persistence.set(this.fullKeyName_(PERSISTENCE_KEY_NAME_), this.persistence.type);
   }
 }
