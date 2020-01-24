@@ -83,3 +83,7 @@ packages/analytics-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
 # Remote Config Code
 packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
+
+# Documentation Changes
+packages/firebase/index.d.ts @egilmorez
+scripts/docgen/content-sources/ @egilmorez
