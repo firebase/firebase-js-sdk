@@ -26,8 +26,8 @@ const git = simpleGit(root);
  * Changes to these files warrant running all tests.
  */
 const fullTestTriggerFiles = [
-  'package.json',
-  'yarn.lock'
+  './package.json',
+  './yarn.lock'
 ];
 
 /**
