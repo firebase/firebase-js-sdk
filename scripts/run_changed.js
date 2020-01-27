@@ -38,7 +38,7 @@ const fullTestTriggerFiles = [
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',
-  'config/database.rules.json',
+  'config/database.rules.json'
 ];
 
 /**
@@ -61,7 +61,9 @@ async function getChangedPackages() {
   const changedPackages = {};
   for (const filename of changedFiles) {
     if (fullTestTriggerFiles.includes(filename)) {
-      console.log(chalk`{blue Running all tests because ${filename} was modified.}`);
+      console.log(
+        chalk`{blue Running all tests because ${filename} was modified.}`
+      );
       return { testAll: true };
     }
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
