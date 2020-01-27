@@ -26,8 +26,8 @@ const git = simpleGit(root);
  * Changes to these files warrant running all tests.
  */
 const fullTestTriggerFiles = [
-  'packages/package.json',
-  'scripts/run_changed.js'
+  'package.json',
+  'yarn.lock'
 ];
 
 /**
@@ -78,30 +78,29 @@ async function getChangedPackages() {
 async function runTests(pathList) {
   if (!pathList || pathList.length === 0) return;
   for (const testPath of pathList) {
-    console.log('mock run ', testPath);
-    // try {
-    //   await spawn('yarn', ['--cwd', testPath, 'test'], {
-    //     stdio: 'inherit'
-    //   });
-    // } catch (e) {
-    //   throw new Error(`Error running tests in ${testPath}.`);
-    // }
+    try {
+      await spawn('yarn', ['--cwd', testPath, 'test'], {
+        stdio: 'inherit'
+      });
+    } catch (e) {
+      throw new Error(`Error running tests in ${testPath}.`);
+    }
   }
 }
 
 async function main() {
   try {
-    const { testAll, packageDirs } = getChangedPackages();
+    const { testAll, packageDirs = [] } = await getChangedPackages();
     if (testAll) {
       await spawn('yarn', ['test'], {
         stdio: 'inherit'
       });
     } else {
       console.log(chalk`{blue Running tests in:}`);
-      for (const filename in alwaysRunTestPaths) {
+      for (const filename of alwaysRunTestPaths) {
         console.log(chalk`{green ${filename} (always runs)}`);
       }
-      for (const filename in alwaysRunTestPaths) {
+      for (const filename of packageDirs) {
         console.log(chalk`{yellow ${filename} (contains modified files)}`);
       }
       await runTests(alwaysRunTestPaths);
