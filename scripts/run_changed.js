@@ -17,19 +17,42 @@
 
 const { resolve } = require('path');
 const { spawn } = require('child-process-promise');
+const chalk = require('chalk');
 const simpleGit = require('simple-git/promise');
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
 /**
- * Runs tests on packages changed (in comparison to origin/master...HEAD)
+ * Changes to these files warrant running all tests.
  */
+const fullTestTriggerFiles = [
+  'packages/package.json',
+  'scripts/run_changed.js'
+];
 
-async function runTestsOnChangedPackages() {
+/**
+ * Always run tests in these paths.
+ */
+const alwaysRunTestPaths = [
+  // These tests are very fast.
+  'integration/browserify',
+  'integration/firebase-typings',
+  'integration/typescript',
+  'integration/webpack'
+];
+
+/**
+ * Identify modified packages that require tests.
+ */
+async function getChangedPackages() {
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   const changedPackages = {};
   for (const filename of changedFiles) {
+    if (fullTestTriggerFiles.includes(filename)) {
+      console.log(chalk`{blue Running all tests because ${filename} was modified.}`);
+      return { testAll: true };
+    }
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const pkg = require(resolve(root, match[1], 'package.json'));
@@ -39,11 +62,12 @@ async function runTestsOnChangedPackages() {
     }
   }
   if (Object.keys(changedPackages).length > 0) {
-    await runTests(Object.keys(changedPackages));
+    return { testAll: false, packageDirs: Object.keys(changedPackages) };
   } else {
     console.log(
-      'No changes detected in any package. Skipping all package-specific tests.'
+      chalk`{green No changes detected in any package. Skipping all package-specific tests.}`
     );
+    return { testAll: false, packageDirs: [] };
   }
 }
 
@@ -52,34 +76,37 @@ async function runTestsOnChangedPackages() {
  * @param {Array<string>} pathList
  */
 async function runTests(pathList) {
-  if (!pathList) return;
+  if (!pathList || pathList.length === 0) return;
   for (const testPath of pathList) {
-    try {
-      await spawn('yarn', ['--cwd', testPath, 'test'], {
-        stdio: 'inherit'
-      });
-    } catch (e) {
-      throw new Error(`Error running tests in ${testPath}.`);
-    }
+    console.log('mock run ', testPath);
+    // try {
+    //   await spawn('yarn', ['--cwd', testPath, 'test'], {
+    //     stdio: 'inherit'
+    //   });
+    // } catch (e) {
+    //   throw new Error(`Error running tests in ${testPath}.`);
+    // }
   }
-}
-
-/**
- * These are short, always run them.
- */
-async function runIntegrationTests() {
-  await runTests([
-    'integration/browserify',
-    'integration/firebase-typings',
-    'integration/typescript',
-    'integration/webpack'
-  ]);
 }
 
 async function main() {
   try {
-    await runIntegrationTests();
-    await runTestsOnChangedPackages();
+    const { testAll, packageDirs } = getChangedPackages();
+    if (testAll) {
+      await spawn('yarn', ['test'], {
+        stdio: 'inherit'
+      });
+    } else {
+      console.log(chalk`{blue Running tests in:}`);
+      for (const filename in alwaysRunTestPaths) {
+        console.log(chalk`{green ${filename} (always runs)}`);
+      }
+      for (const filename in alwaysRunTestPaths) {
+        console.log(chalk`{yellow ${filename} (contains modified files)}`);
+      }
+      await runTests(alwaysRunTestPaths);
+      await runTests(packageDirs);
+    }
   } catch (e) {
     console.error(e);
     process.exit(1);
