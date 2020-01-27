@@ -16,7 +16,6 @@
     "storage",
     "performance"
   ],
-  
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
     "build": "lerna run --scope @firebase/* --scope firebase --scope rxfire prepare",

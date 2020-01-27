@@ -19,6 +19,7 @@ const { resolve } = require('path');
 const { spawn } = require('child-process-promise');
 const chalk = require('chalk');
 const simpleGit = require('simple-git/promise');
+
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
@@ -26,8 +27,18 @@ const git = simpleGit(root);
  * Changes to these files warrant running all tests.
  */
 const fullTestTriggerFiles = [
-  './package.json',
-  './yarn.lock'
+  // Global dependency changes.
+  'package.json',
+  'yarn.lock',
+  // Test/compile/lint configs.
+  'config/karma.base.js',
+  'config/.eslintrc.js',
+  'config/mocha.browser.opts',
+  'config/mocha.node.opts',
+  'config/tsconfig.base.json',
+  'config/webpack.test.js',
+  'config/firestore.rules',
+  'config/database.rules.json',
 ];
 
 /**
