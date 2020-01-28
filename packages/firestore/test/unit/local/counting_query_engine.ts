@@ -115,6 +115,7 @@ export class CountingQueryEngine implements QueryEngine {
         });
       },
       getNewDocumentChanges: subject.getNewDocumentChanges,
+      getLastReadTime: subject.getLastReadTime,
       getSize: subject.getSize,
       newChangeBuffer: subject.newChangeBuffer
     };

@@ -291,11 +291,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
-  /**
-   * Returns the set of documents that have been updated since the specified read
-   * time.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
     transaction: PersistenceTransaction,
     sinceReadTime: SnapshotVersion
@@ -328,37 +323,25 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       });
   }
 
-  /**
-   * Returns the last document that has changed, as well as the read time of the
-   * last change. If no document has changed, returns SnapshotVersion.MIN.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  getLastDocumentChange(
+  getLastReadTime(
     transaction: PersistenceTransaction
-  ): PersistencePromise<{
-    changedDoc: MaybeDocument | undefined;
-    readTime: SnapshotVersion;
-  }> {
+  ): PersistencePromise<SnapshotVersion> {
     const documentsStore = remoteDocumentsStore(transaction);
 
     // If there are no existing entries, we return SnapshotVersion.MIN.
     let readTime = SnapshotVersion.MIN;
-    let changedDoc: MaybeDocument | undefined;
 
     return documentsStore
       .iterate(
         { index: DbRemoteDocument.readTimeIndex, reverse: true },
         (key, dbRemoteDoc, control) => {
-          changedDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
           if (dbRemoteDoc.readTime) {
             readTime = this.serializer.fromDbTimestampKey(dbRemoteDoc.readTime);
           }
           control.done();
         }
       )
-      .next(() => {
-        return { changedDoc, readTime };
-      });
+      .next(() => readTime);
   }
 
   newChangeBuffer(options?: {
