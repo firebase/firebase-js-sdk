@@ -9,9 +9,29 @@ on:
 
 jobs:
   test:
+    name: Pre-Deploy Test
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build
+      run: yarn build
+    - name: Run unit tests
+      run: xvfb-run yarn test
+  deploy:
     name: Deploy
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged
+    needs: test
 
     steps:
     - uses: actions/checkout@v1
