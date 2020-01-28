@@ -47,8 +47,7 @@ import { SortedMap } from '../util/sorted_map';
 
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
-import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';f
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
