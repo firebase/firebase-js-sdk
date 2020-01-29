@@ -89,7 +89,7 @@ async function getChangedPackages() {
  * @param {Array<string>} pathList
  */
 async function runTests(pathList) {
-  if (!pathList || pathList.length === 0) return;
+  if (!pathList) return;
   for (const testPath of pathList) {
     try {
       await spawn('yarn', ['--cwd', testPath, 'test'], {
