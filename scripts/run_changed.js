@@ -17,19 +17,55 @@
 
 const { resolve } = require('path');
 const { spawn } = require('child-process-promise');
+const chalk = require('chalk');
 const simpleGit = require('simple-git/promise');
+
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
 /**
- * Runs tests on packages changed (in comparison to origin/master...HEAD)
+ * Changes to these files warrant running all tests.
  */
+const fullTestTriggerFiles = [
+  // Global dependency changes.
+  'package.json',
+  'yarn.lock',
+  // Test/compile/lint configs.
+  'config/karma.base.js',
+  'config/.eslintrc.js',
+  'config/mocha.browser.opts',
+  'config/mocha.node.opts',
+  'config/tsconfig.base.json',
+  'config/webpack.test.js',
+  'config/firestore.rules',
+  'config/database.rules.json'
+];
 
-async function runTestsOnChangedPackages() {
+/**
+ * Always run tests in these paths.
+ */
+const alwaysRunTestPaths = [
+  // These tests are very fast.
+  'integration/browserify',
+  'integration/firebase-typings',
+  'integration/typescript',
+  'integration/webpack'
+];
+
+/**
+ * Identify modified packages that require tests.
+ */
+async function getChangedPackages() {
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   const changedPackages = {};
   for (const filename of changedFiles) {
+    if (fullTestTriggerFiles.includes(filename)) {
+      console.log(
+        chalk`{blue Running all tests because ${filename} was modified.}`
+      );
+      return { testAll: true };
+    }
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const pkg = require(resolve(root, match[1], 'package.json'));
@@ -39,11 +75,12 @@ async function runTestsOnChangedPackages() {
     }
   }
   if (Object.keys(changedPackages).length > 0) {
-    await runTests(Object.keys(changedPackages));
+    return { testAll: false, packageDirs: Object.keys(changedPackages) };
   } else {
     console.log(
-      'No changes detected in any package. Skipping all package-specific tests.'
+      chalk`{green No changes detected in any package. Skipping all package-specific tests.}`
     );
+    return { testAll: false, packageDirs: [] };
   }
 }
 
@@ -64,22 +101,24 @@ async function runTests(pathList) {
   }
 }
 
-/**
- * These are short, always run them.
- */
-async function runIntegrationTests() {
-  await runTests([
-    'integration/browserify',
-    'integration/firebase-typings',
-    'integration/typescript',
-    'integration/webpack'
-  ]);
-}
-
 async function main() {
   try {
-    await runIntegrationTests();
-    await runTestsOnChangedPackages();
+    const { testAll, packageDirs = [] } = await getChangedPackages();
+    if (testAll) {
+      await spawn('yarn', ['test'], {
+        stdio: 'inherit'
+      });
+    } else {
+      console.log(chalk`{blue Running tests in:}`);
+      for (const filename of alwaysRunTestPaths) {
+        console.log(chalk`{green ${filename} (always runs)}`);
+      }
+      for (const filename of packageDirs) {
+        console.log(chalk`{yellow ${filename} (contains modified files)}`);
+      }
+      await runTests(alwaysRunTestPaths);
+      await runTests(packageDirs);
+    }
   } catch (e) {
     console.error(e);
     process.exit(1);
