@@ -27,7 +27,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.25.3",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.7.3"
+    "typescript": "3.7.5"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
