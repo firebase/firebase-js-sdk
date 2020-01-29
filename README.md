@@ -1,7 +1,6 @@
 # Firebase Javascript SDK
 
 <!-- BADGES -->
-![Build Status](https://github.com/firebase/firebase-js-sdk/workflows/Run%20All%20Tests/badge.svg)
 ![Build Status](https://img.shields.io/github/workflow/status/firebase/firebase-js-sdk/Run%20All%20Tests.svg)
 [![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
