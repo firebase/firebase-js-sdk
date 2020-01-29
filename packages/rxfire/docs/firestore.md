@@ -1,6 +1,5 @@
 # RxFire Firestore
 
-## Document Observables
 
 ### `doc()`
 The `doc()` function creates an observable that emits document changes.
@@ -8,7 +7,7 @@ The `doc()` function creates an observable that emits document changes.
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `doc()`                                  |
-| **params**      | `firestore.DocumentReference`            |
+| **params**      | `ref:firestore.DocumentReference`            |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentSnapshot>` |
 
@@ -70,7 +69,7 @@ The `collection()` function creates an observable that emits collection changes.
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `collection()`                           |
-| **params**      | `firestore.CollectionReference` | `firestore.Query` |
+| **params**      | query: `firestore.CollectionReference | firestore.Query` |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.QueryDocumentSnapshot[]>`    |
 
@@ -99,8 +98,8 @@ The `collectionData()` function creates an observable that emits a stream of col
 
 |                 |                                          |
 |-----------------|------------------------------------------|
-| **function**    | `collection()`                           |
-| **params**      | query: `firestore.CollectionReference` | `firestore.Query`, idField?: `string`  |
+| **function**    | `collectionData()`                           |
+| **params**      | query: `firestore.CollectionReference | firestore.Query` <br> idField?: `string`  |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<T[]>`    |
 
@@ -128,7 +127,7 @@ The `collectionChanges()` function creates an observable that emits the event ch
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `collectionChanges()`                           |
-| **params**      | query: `firestore.CollectionReference` | `firestore.Query`, events?: `firestore.DocumentChangeType[]` |
+| **params**      | query: `firestore.CollectionReference | firestore.Query` <br> events?: `firestore.DocumentChangeType[]` |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentChange[]>`    |
 
@@ -161,7 +160,7 @@ The `sortedChanges()` function creates an observable that emits the reduced stat
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `sortedChanges()`                           |
-| **params**      | query: `firestore.CollectionReference` | `firestore.Query`, events?: `firestore.DocumentChangeType[]` |
+| **params**      | query: `firestore.CollectionReference | firestore.Query`<br> events?: `firestore.DocumentChangeType[]` |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentChange[]>`    |
 
@@ -194,7 +193,7 @@ The `auditTrail()` function creates an observable that emits the entire state tr
 |                 |                                                      |
 |-----------------|------------------------------------------------------|
 | **function**    | `auditTrail()`                                       |
-| **params**      | ref: `firestore.Reference` or `firestore.Query`, events?: `firestore.DocumentChangeType[]` |
+| **params**      | ref: `firestore.Reference | firestore.Query`<br> events?: `firestore.DocumentChangeType[]` |
 | **import path** | `rxfire/firestore`                                    |
 | **return**      | `Observable<firestore.DocumentChange[]>`              |
 
@@ -251,7 +250,7 @@ The `fromDocRef()` function creates an observable that emits document changes. T
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `fromDocRef()`                           |
-| **params**      | ref: `firestore.Reference`               |
+| **params**      |  ref: `firestore.DocumentReference` <br> options?: `firestore.SnapshotListenOptions`              |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentSnapshot>` |
 
@@ -279,7 +278,7 @@ The `fromCollectionRef()` function creates an observable that emits document cha
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `fromCollectionRef()`                    |
-| **params**      | ref: `firestore.CollectionReference` or `firestore.Query` |
+| **params**      | ref: `firestore.Reference | firestore.Query`<br> options?: `firestore.SnapshotListenOptions` |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.QuerySnapshot>`    |
 
