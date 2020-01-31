@@ -2,12 +2,12 @@
 
 
 ### `doc()`
-The `doc()` function creates an observable that emits document changes.
+The `doc()` function creates an observable that emits document changes.  Returns snapshot of the data each time the document changes.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `doc()`                                  |
-| **params**      | `ref:firestore.DocumentReference`            |
+| **params**      | `ref:firestore.DocumentReference`        |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentSnapshot>` |
 
@@ -33,7 +33,7 @@ doc(davidDoc).subscribe(snapshot => {
 ```
 
 ### `docData()`
-The `docData()` function returns a stream of a document, mapped to its data payload and optionally the document ID.
+The `docData()` function creates an observable that returns a stream of a document, mapped to its data field values and, optionally, the document ID.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
@@ -64,7 +64,7 @@ docData(davidDocRef,'uid').subscribe(userData => {
 ## Collection Observables
 
 ### `collection()`
-The `collection()` function creates an observable that emits collection changes.
+The `collection()` function creates an observable that emits changes to the specified collection based on the input query.  Any time updates are made, the function returns all documents in the collection that match the query.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
@@ -94,7 +94,7 @@ collection(db.collection('users'))
 ```
 
 ### `collectionData()`
-The `collectionData()` function creates an observable that emits a stream of collection documents payload with optional document ID.
+The `collectionData()` function creates an observable that emits a stream of documents for the specified collection based on the input query.  When updates are made, returns all documents (field values and optional document ID) in the collection that match the query.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
@@ -122,7 +122,7 @@ collectionData(db.collection('users'), 'uid')
 ```
 
 ### `collectionChanges()`
-The `collectionChanges()` function creates an observable that emits the event changes on a collection. This is different than the collection function in that it does not contain the state of your application but only the individual changes. The optional `events` parameter will filter which child events populate the array.
+The `collectionChanges()` function creates an observable that emits the changes on the specified collection based on the input query. This is different than the collection function in that it does not contain the state of your application but only the individual changes. The optional `events` parameter filters which the type of change populate the array. By default, all changes are emitted. Returns the affected documents and the type of change that occurred (added, modified, or removed).
 
 |                 |                                          |
 |-----------------|------------------------------------------|
@@ -188,7 +188,7 @@ docChanges(db.collection('users'), ['added'])
 ```
 
 ### `auditTrail()`
-The `auditTrail()` function creates an observable that emits the entire state trail. This is useful for debugging or replaying the state of a list in your app. The optional `events` parameter will filter which child events populate the array.
+The `auditTrail()` function creates an observable that emits the entire state trail on the specified collection based on the input query. This is useful for debugging or replaying the changes to the database. The optional `events` parameter filters which the type of change populate the array. By default, all changes are emitted.
 
 |                 |                                                      |
 |-----------------|------------------------------------------------------|
@@ -273,7 +273,7 @@ fromDocRef(davidDoc).subscribe(snap => { console.log(snap); })
 ```
 
 ### `fromCollectionRef()`
-The `fromCollectionRef()` function creates an observable that emits document changes. This is different than the `collection()` function in that it returns the full `QuerySnapshot` instead of plucking off the `QueryDocumentSnapshot[]` array.
+The `fromCollectionRef()` function creates an observable that emits changes to the specified collection based on the input query and, optionally, the listen options. This is different than the `collection()` function in that it returns the full `QuerySnapshot` representing the results of the query.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
