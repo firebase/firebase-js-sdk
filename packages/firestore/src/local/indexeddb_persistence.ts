@@ -72,7 +72,7 @@ import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import {ignoreIfPrimaryLeaseLoss} from "./local_store";
+import { ignoreIfPrimaryLeaseLoss } from './local_store';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
