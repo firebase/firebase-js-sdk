@@ -72,7 +72,6 @@ import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -489,7 +488,13 @@ export class IndexedDbPersistence implements Persistence {
             ).next(() => inactive);
           });
         }
-      );
+      ).catch(() => {
+        // Ignore primary lease violations or any other type of error. The next
+        // primary will run `maybeGarbageCollectMultiClientState()` again.
+        // We don't use `ignoreIfPrimaryLeaseLoss()` since we don't want to depend
+        // on LocalStore.
+        return [];
+      });
 
       // Delete potential leftover entries that may continue to mark the
       // inactive clients as zombied in LocalStorage.
