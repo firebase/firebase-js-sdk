@@ -489,8 +489,9 @@ export class IndexedDbPersistence implements Persistence {
           });
         }
       ).catch(() => {
-        // Ignore primary lease violations or any other type of error.
-        // We don't use `ignoreIfPrimaryLeaseLoss` since we don't want to depend
+        // Ignore primary lease violations or any other type of error. The next
+        // primary will run `maybeGarbageCollectMultiClientState()` again.
+        // We don't use `ignoreIfPrimaryLeaseLoss()` since we don't want to depend
         // on LocalStore.
         return [];
       });
