@@ -16,17 +16,16 @@ The `doc()` function creates an observable that emits document changes.  Returns
 import { doc } from 'rxfire/firestore';
 import { firestore, initializeApp } from 'firebase';
 import 'firebase/firestore';
-import { map } from 'rxjs/operators';
 
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const davidDocRef = db.doc('users/david');
 
 // Seed the firestore
-davidDoc.set({ name: 'David' });
+davidDocRef.set({ name: 'David' });
 
-doc(davidDoc).subscribe(snapshot => {
+doc(davidDocRef).subscribe(snapshot => {
   console.log(snapshot.id);
   console.log(snapshot.data());
 });
@@ -78,17 +77,13 @@ The `collection()` function creates an observable that emits changes to the spec
 import { collection } from 'rxfire/firestore';
 import { firestore, initializeApp } from 'firebase';
 import 'firebase/firestore';
-import { map } from 'rxjs/operators';
 
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const collectionRef = db.collection('users');
 
-// Seed the firestore
-davidDoc.set({ name: 'David' });
-
-collection(db.collection('users'))
+collection(collectionRef)
   .pipe(map(docs => docs.map(d => d.data())))
   .subscribe(users => { console.log(users) });
 ```
@@ -112,12 +107,9 @@ import 'firebase/firestore';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const collectionRef = db.collection('users');
 
-// Seed the firestore
-davidDoc.set({ name: 'David' });
-
-collectionData(db.collection('users'), 'uid')
+collectionData(collectionRef, 'uid')
   .subscribe(users => { console.log(users) });
 ```
 
@@ -141,16 +133,14 @@ import { map } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const collectionRef = db.collection('users');
 
-// Seed the firestore
-davidDoc.set({ name: 'David' });
-
-collectionChanges(db.collection('users'))
-  .subscribe(changes => { console.log(users) });
+// Listen to all events
+collectionChanges(collectionRef)
+  .subscribe(changes => { console.log(changes) });
 
 // Listen to only 'added' events
-collectionChanges(db.collection('users'), ['added'])
+collectionChanges(collectionRef, ['added'])
   .subscribe(addedEvents => { console.log(addedEvents) });
 ```
 
@@ -174,16 +164,14 @@ import { map } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const collectionRef = db.collection('users');
 
-// Seed the firestore
-davidDoc.set({ name: 'David' });
-
-sortedChanges(db.collection('users'))
-  .subscribe(changes => { console.log(users) });
+// Listen to all events
+sortedChanges(collectionRef)
+  .subscribe(changes => { console.log(changes) });
 
 // Listen to only 'added' events
-docChanges(db.collection('users'), ['added'])
+docChanges(collectionRef, ['added'])
   .subscribe(addedEvents => { console.log(addedEvents) });
 ```
 
@@ -207,39 +195,40 @@ import { map } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const collection = db.collection('users');
+const collectionRef = db.collection('users');
+const davidDocRef = collectionRef.doc('david');
 
-// Seed Firestore
-const davidDoc = collection.doc('users/david');
-davidDoc.set({ name: 'David' });
-
-auditTrail(collection).pipe(
+// Start the audit trail
+auditTrail(collectionRef).pipe(
   map(change => {
     return { 
       _key: change.snapshot.key, 
       event: change.event,
-      ...change.snapshot.val(); 
+      ...change.snapshot.val() 
     };
   })
 ).subscribe(stateTrail => {
   console.log(stateTrail); 
-  /**
-  first emission:
+});
+
+// Seed Firestore
+davidDocRef.set({ name: 'David' });
+
+// Remove the document
+davidDocRef.delete();
+
+/**
+  First emission:
     [{ _key: '3qtWqaKga8jA; name: 'David', event: 'added' }]
   
-  second emission:
+  When more events occur, the trail still contains the previous events.
+
+  Second emission:
     [
       { _key: '3qtWqaKga8jA; name: 'David', event: 'added' },
       { _key: '3qtWqaKga8jA; name: 'David', event: 'removed' } 
     ]
   */
-});
-
-// When more events occur the trail still contains the previous events
-// In this case we'll remove the only item
-davidDoc.delete();
-
-// Now this will trigger the subscribe function above
 ```
 
 ## Event Observables
@@ -264,12 +253,12 @@ import { map } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const davidDoc = db.doc('users/david');
+const davidDocRef = db.doc('users/david');
 
 // Seed Firestore
-davidDoc.set({ name: 'David' });
+davidDocRef.set({ name: 'David' });
 
-fromDocRef(davidDoc).subscribe(snap => { console.log(snap); })
+fromDocRef(davidDocRef).subscribe(snap => { console.log(snap); })
 ```
 
 ### `fromCollectionRef()`
@@ -292,11 +281,7 @@ import { map } from 'rxjs/operators';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const db = app.firestore();
-const collection = db.collection('users');
-const davidDoc = collection.doc('david');
+const collectionRef = db.collection('users');
 
-// Seed Firestore
-davidDoc.set({ name: 'David' });
-
-fromCollectionRef(collection).subscribe(snap => { console.log(snap.docs); })
+fromCollectionRef(collectionRef).subscribe(snap => { console.log(snap.docs); })
 ```
