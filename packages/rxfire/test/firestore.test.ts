@@ -60,7 +60,7 @@ const unwrapChange = map((changes: firestore.DocumentChange[]) => {
  * from the function for use within the test.
  */
 const seedTest = (firestore: firestore.Firestore): any => {
-  const colRef = createRandomCol(firestore);
+  const colRef: firestore.CollectionReference = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });
   const shannonDoc = colRef.doc('shannon');
@@ -345,6 +345,21 @@ describe('RxFire Firestore', () => {
         };
         expect(val).to.eql(expectedDoc);
         done();
+      });
+    });
+
+    it("docData matches the result of docSnapShot.data() when the document doesn't exist", (done: MochaDone) => {
+      const { colRef } = seedTest(firestore);
+
+      const nonExistentDoc: firestore.DocumentReference = colRef.doc('jeff');
+
+      const unwrapped = docData(nonExistentDoc);
+
+      nonExistentDoc.onSnapshot(snap => {
+        unwrapped.subscribe(val => {
+          expect(val).to.eql(snap.data());
+          done();
+        });
       });
     });
   });

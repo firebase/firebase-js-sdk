@@ -40,7 +40,12 @@ export function docData<T>(
 export function snapToData(
   snapshot: firestore.DocumentSnapshot,
   idField?: string
-): {} {
+): {} | undefined {
+  // match the behavior of the JS SDK when the snapshot doesn't exist
+  if (!snapshot.exists) {
+    return snapshot.data();
+  }
+
   return {
     ...snapshot.data(),
     ...(idField ? { [idField]: snapshot.id } : null)
