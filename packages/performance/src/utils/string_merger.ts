@@ -23,7 +23,7 @@ export function mergeStrings(part1: string, part2: string): string {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_STRING_MERGER_PARAMETER);
   }
 
-  let resultArray = [];
+  const resultArray = [];
   for (let i = 0; i < part1.length; i++) {
     resultArray.push(part1.charAt(i));
     if (part2.length > i) {

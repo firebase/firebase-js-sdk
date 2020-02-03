@@ -39,12 +39,14 @@ export class SettingsService {
   logEndPointUrl =
     'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto';
   // Performance event transport endpoint URL which should be compatible with proto3.
-  // ALERT: Needs to change the default value to:
-  // 'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto'
-  transportEndpointFullUrl = mergeStrings(
+  // New Address for transport service.
+  // ALERT: Need to make decision whether to control by RC.
+  transportEndpointUrl = mergeStrings(
     'hts/frbslgigp.ogepscmv/ieo/eaylgkyAzSC8r6ReiGqFMyfvgow',
     'tp:/ieaeogn-agolai.o/1frlglgc/o?e=Iayx0u-XT3vksVM-pIV'
   );
+
+  shouldSendToTransport = false;
 
   // Logging ID for performance events.
   logSource = 462;
@@ -98,5 +100,23 @@ export class SettingsService {
       settingsServiceInstance = new SettingsService();
     }
     return settingsServiceInstance;
+  }
+
+  // True if event should be sent to transport endpoint rather than log endpoint.
+  // rolloutPercent is in range [0.0, 100.0].
+  static isDestTransport(iid: string, rolloutPercent: number): boolean {
+    return this.getHashPercent(iid) < rolloutPercent;
+  }
+  // Generate integer value range in [0, 99]. Return 100 if seed string is empty.
+  static getHashPercent(seed: string): number {
+    let hash = 0;
+    if (seed.length === 0) {
+      return 100; // Empty seed is invalid so return value beyond valid range.
+    }
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash << 3) + hash - seed.charCodeAt(i);
+    }
+    hash = Math.abs(hash % 100);
+    return hash;
   }
 }

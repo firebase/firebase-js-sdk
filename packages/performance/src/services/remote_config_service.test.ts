@@ -35,6 +35,7 @@ describe('Performance Monitoring > remote_config_service', () => {
   const STRINGIFIED_CONFIG = `{"entries":{"fpr_enabled":"true",\
 "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
 "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+"fpr_log_transport_web_percent":"100.0",\
 "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
 "state":"UPDATE"}`;
   const PROJECT_ID = 'project1';
@@ -128,6 +129,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -165,6 +167,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -214,7 +217,7 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('uses secondary configs if the response does not have any fields', async () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
-      const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
+      const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO_TEMPLATE"}';
 
       setup(
         {
@@ -226,6 +229,118 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+    });
+  });
+
+  describe('Transport rollout flag', () => {
+    it('No template', async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        { reject: false, value: new Response('{"state":"NO_TEMPLATE"}') }
+      );
+      await getConfig(IID);
+
+      // If no template, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+    });
+
+    it('state not specified', async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        {
+          reject: false,
+          value: new Response('{"state":"INSTANCE_STATE_UNSPECIFIED"}')
+        }
+      );
+      await getConfig(IID);
+
+      // If no template, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+    });
+
+    it('state not exists', async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        { reject: false, value: new Response('{}') }
+      );
+      await getConfig(IID);
+
+      // If no template, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+    });
+
+    it('Template exists but no rollout flag', async () => {
+      const CONFIG_WITHOUT_ROLLOUT_FLAG = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        { reject: false, value: new Response(CONFIG_WITHOUT_ROLLOUT_FLAG) }
+      );
+      await getConfig(IID);
+
+      // If template exists but no rollout flag, will send to transport.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
+    });
+
+    it('Rollout flag exists and sends to cc', async () => {
+      const CONFIG_WITH_ROLLOUT_FLAG_10 = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_log_transport_web_percent":"10.0",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_10) }
+      );
+      await getConfig(IID);
+
+      // If template exists but no rollout flag, will send to transport.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+    });
+
+    it('Rollout flag exists and sends to transport', async () => {
+      const CONFIG_WITH_ROLLOUT_FLAG_40 = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_log_transport_web_percent":"40.0",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: 'not a valid config and should not be used'
+        },
+        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_40) }
+      );
+      await getConfig(IID);
+
+      // If template exists but no rollout flag, will send to transport.
+      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
     });
   });
 });

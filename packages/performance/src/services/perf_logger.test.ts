@@ -28,6 +28,7 @@ import { SDK_VERSION } from '../constants';
 import * as attributeUtils from '../utils/attributes_utils';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import '../../test/setup';
+import { mergeStrings } from '../utils/string_merger';
 
 describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';
@@ -300,6 +301,79 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_NETWORK_MESSAGE
       );
+    });
+
+    it('Skip performance collection if domain is cc', () => {
+      const CC_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+        connectEnd: 0,
+        connectStart: 0,
+        decodedBodySize: 0,
+        domainLookupEnd: 0,
+        domainLookupStart: 0,
+        duration: 39.610000094398856,
+        encodedBodySize: 0,
+        entryType: 'resource',
+        fetchStart: 5645.689999917522,
+        initiatorType: 'fetch',
+        name: 'http://firebaselogging.googleapis.com/some/path?message=a',
+        nextHopProtocol: 'http/2+quic/43',
+        redirectEnd: 0,
+        redirectStart: 0,
+        requestStart: 0,
+        responseEnd: 5685.300000011921,
+        responseStart: 0,
+        secureConnectionStart: 0,
+        startTime: 5645.689999917522,
+        transferSize: 0,
+        workerStart: 0,
+        toJSON: () => {}
+      };
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logNetworkAfterSampling = true;
+      // Calls logNetworkRequest under the hood.
+      createNetworkRequestEntry(CC_NETWORK_PERFORMANCE_ENTRY);
+      clock.tick(1);
+
+      expect(addToQueueStub).not.called;
+    });
+
+    it('Skip performance collection if domain is transport', () => {
+      const TRANSPORT_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+        connectEnd: 0,
+        connectStart: 0,
+        decodedBodySize: 0,
+        domainLookupEnd: 0,
+        domainLookupStart: 0,
+        duration: 39.610000094398856,
+        encodedBodySize: 0,
+        entryType: 'resource',
+        fetchStart: 5645.689999917522,
+        initiatorType: 'fetch',
+        name: mergeStrings(
+          'hts/frbslgigp.ogepscmti/sapt?aa=2',
+          'tp:/ieaeogn-agolai.o/hsi//ahprm13'
+        ),
+        nextHopProtocol: 'http/2+quic/43',
+        redirectEnd: 0,
+        redirectStart: 0,
+        requestStart: 0,
+        responseEnd: 5685.300000011921,
+        responseStart: 0,
+        secureConnectionStart: 0,
+        startTime: 5645.689999917522,
+        transferSize: 0,
+        workerStart: 0,
+        toJSON: () => {}
+      };
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logNetworkAfterSampling = true;
+      // Calls logNetworkRequest under the hood.
+      createNetworkRequestEntry(TRANSPORT_NETWORK_PERFORMANCE_ENTRY);
+      clock.tick(1);
+
+      expect(addToQueueStub).not.called;
     });
   });
 });

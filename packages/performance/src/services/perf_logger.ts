@@ -150,16 +150,20 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   if (!settingsService.instrumentationEnabled) {
     return;
   }
-  // Do not log the js sdk's call to cc service to avoid unnecessary cycle.
-  // if (networkRequest.url === settingsService.logEndPointUrl.split('?')[0]) {
-  //   return;
-  // }
 
   // Do not log the js sdk's call to transport service domain to avoid unnecessary cycle.
-  // Need to consider blacklisting both old and new endpoints to avoid migration gap.
+  // Need to blacklist both old and new endpoints to avoid migration gap.
   const networkRequestHostName = new URL(networkRequest.url).hostname;
+
+  // Blacklist old log endpoint.
+  const logEndpointHostName = new URL(settingsService.logEndPointUrl).hostname;
+  if (networkRequestHostName === logEndpointHostName) {
+    return;
+  }
+
+  // Blacklist new transport endpoint.
   const transportEndpointHostName = new URL(
-    settingsService.transportEndpointFullUrl
+    settingsService.transportEndpointUrl
   ).hostname;
   if (networkRequestHostName === transportEndpointHostName) {
     return;
