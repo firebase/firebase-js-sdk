@@ -28,12 +28,14 @@ describe('Performance Monitoring > remote_config_service', () => {
   const IID = 'asd123';
   const AUTH_TOKEN = 'auth_token';
   const LOG_URL = 'https://firebaselogging.test.com';
+  const TRANSPORT_URL = 'https://transport.logging.com';
   const LOG_SOURCE = 2;
   const NETWORK_SAMPLIG_RATE = 0.25;
   const TRACE_SAMPLING_RATE = 0.5;
   const GLOBAL_CLOCK_NOW = 1556524895326;
   const STRINGIFIED_CONFIG = `{"entries":{"fpr_enabled":"true",\
-"fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+  "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+  "fpr_log_transport_url":"https://transport.logging.com",\
 "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
 "fpr_log_transport_web_percent":"100.0",\
 "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
@@ -128,6 +130,9 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(getItemStub).to.be.called;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportEndpointUrl).to.equal(
+        TRANSPORT_URL
+      );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
       expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
       expect(
@@ -166,6 +171,9 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportEndpointUrl).to.equal(
+        TRANSPORT_URL
+      );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
       expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
       expect(

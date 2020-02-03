@@ -47,7 +47,7 @@ describe('Firebase Performance > transport_service', () => {
     fetchStub.restore();
     clock.restore();
     resetTransportService();
-    // SettingsService.getInstance().shouldSendToTransport = false;
+    SettingsService.getInstance().shouldSendToTransport = false;
   });
 
   it('throws an error when logging an empty message', () => {

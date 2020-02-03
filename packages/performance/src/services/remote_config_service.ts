@@ -33,6 +33,7 @@ interface SecondaryConfig {
   loggingEnabled?: boolean;
   logSource?: number;
   logEndPointUrl?: string;
+  transportEndpointUrl?: string;
   shouldSendToTransport?: boolean;
   tracesSamplingRate?: number;
   networkRequestsSamplingRate?: number;
@@ -56,6 +57,7 @@ interface RemoteConfigTemplate {
   fpr_enabled?: string;
   fpr_log_source?: string;
   fpr_log_endpoint_url?: string;
+  fpr_log_transport_url?: string;
   fpr_log_transport_web_percent?: string;
   fpr_vc_network_request_sampling_rate?: string;
   fpr_vc_trace_sampling_rate?: string;
@@ -197,6 +199,14 @@ function processConfig(
     settingsServiceInstance.logEndPointUrl = entries.fpr_log_endpoint_url;
   } else if (SECONDARY_CONFIGS.logEndPointUrl) {
     settingsServiceInstance.logEndPointUrl = SECONDARY_CONFIGS.logEndPointUrl;
+  }
+
+  if (entries.fpr_log_transport_url) {
+    settingsServiceInstance.transportEndpointUrl =
+      entries.fpr_log_transport_url;
+  } else if (SECONDARY_CONFIGS.transportEndpointUrl) {
+    settingsServiceInstance.transportEndpointUrl =
+      SECONDARY_CONFIGS.transportEndpointUrl;
   }
 
   // If config object state indicates that no template has been set, that means it is new user of

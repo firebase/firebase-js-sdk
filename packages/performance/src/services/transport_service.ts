@@ -35,7 +35,7 @@ interface BatchEvent {
 }
 
 /* eslint-disable camelcase */
-// CC/Firelog accepted log format.
+// CC/Transport accepted log format.
 interface TransportBatchLogFormat {
   request_time_ms: string;
   client_info: ClientInfo;
@@ -198,9 +198,6 @@ function postToTransportEndpoint(
   transportFullUrl: string,
   data: TransportBatchLogFormat
 ): Promise<Response> {
-  // const key = extractKey(transportFullUrl);
-  // const transportUrl = excludeKeyFromUrl(transportFullUrl);
-
   return fetch(transportFullUrl, {
     method: 'POST',
     headers: {
@@ -211,32 +208,6 @@ function postToTransportEndpoint(
     body: JSON.stringify(data)
   });
 }
-
-// function extractKey(transportFullUrl: string): string | null {
-//   const url = new URL(transportFullUrl);
-
-//   // Query param 'key' is not configured in full URL. Transport request doesn't need to provide key.
-//   if (!url.searchParams.has('key')) {
-//     return null;
-//   }
-
-//   // Query param 'key' exists and is not null or empty. Transport request uses the provided key.
-//   let value = url.searchParams.get('key');
-//   if (value) {
-//     return value;
-//   }
-
-//   // Query param 'key' exists but is null or empty. Transport request uses the app instance key.
-//   return SettingsService.getInstance().firebaseAppInstance.options.apiKey!;
-// }
-
-// function excludeKeyFromUrl(transportFullUrl: string): string {
-//   const url = new URL(transportFullUrl);
-//   let searchParams = new URLSearchParams(url.searchParams);
-//   searchParams.delete('key');
-//   url.search = searchParams.toString();
-//   return url.toString();
-// }
 
 function addToQueue(evt: BatchEvent): void {
   if (!evt.eventTime || !evt.message) {
