@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -26,10 +26,10 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.4.0",
+    "@firebase/installations": "0.4.1",
     "@firebase/messaging-types": "0.4.1",
-    "@firebase/util": "0.2.38",
-    "@firebase/component": "0.1.3",
+    "@firebase/util": "0.2.39",
+    "@firebase/component": "0.1.4",
     "idb": "3.0.2",
     "tslib": "1.10.0"
   },
