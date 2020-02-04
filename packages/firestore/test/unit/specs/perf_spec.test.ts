@@ -34,7 +34,7 @@ describeSpec(
       for (let i = 0; i < STEP_COUNT; ++i) {
         steps
           .userSets(`collection/{i}`, { doc: i })
-          .writeAcks(`collection/{i}`, i);
+          .writeAcks(`collection/{i}`, i + 1); // Prevent zero version
       }
       return steps;
     });
