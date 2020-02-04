@@ -73,7 +73,7 @@ export function registerRemoteConfig(
     }
 
     // Normalizes optional inputs.
-    const { projectId, apiKey, appId } = app.options;
+    const { projectId, apiKey, appId, measurementId } = app.options;
     if (!projectId) {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_PROJECT_ID);
     }
@@ -116,7 +116,8 @@ export function registerRemoteConfig(
       cachingClient,
       storageCache,
       storage,
-      logger
+      logger,
+      measurementId
     );
 
     // Starts warming cache.

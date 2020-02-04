@@ -70,10 +70,6 @@ export class RemoteConfig implements RemoteConfigType {
     }
   }
 
-  get activeExperiments(): {[key:string]: string} {
-    return this._storageCache.getActiveExperiments() || {};
-  }
-
   get fetchTimeMillis(): number {
     return this._storageCache.getLastSuccessfulFetchTimestampMillis() || -1;
   }
@@ -91,14 +87,29 @@ export class RemoteConfig implements RemoteConfigType {
     private readonly _client: RemoteConfigFetchClient,
     private readonly _storageCache: StorageCache,
     private readonly _storage: Storage,
-    private readonly _logger: Logger
+    private readonly _logger: Logger,
+    private readonly _measurementId: string|undefined
   ) {}
-
+  
   async activate(): Promise<boolean> {
     const [lastSuccessfulFetchResponse, activeConfigEtag] = await Promise.all([
       this._storage.getLastSuccessfulFetchResponse(),
       this._storage.getActiveConfigEtag()
     ]);
+    // TODO find out why I can't look at window
+    // just calling gtag right now, couldn't get analytics-internal to work
+    if (
+      (window as any).gtag &&
+      this._measurementId &&
+      lastSuccessfulFetchResponse &&
+      lastSuccessfulFetchResponse.experiments &&
+      Object.keys(lastSuccessfulFetchResponse.experiments).length > 0
+    ) {
+      const user_properties = Object.keys(lastSuccessfulFetchResponse.experiments).reduce((acc, key) => {
+        return {...acc, [`firebase${key}`]: lastSuccessfulFetchResponse.experiments![key]}
+      }, {} as {[key:string]: string});
+      (window as any).gtag("config", this._measurementId, {update: true, user_properties});
+    }
     if (
       !lastSuccessfulFetchResponse ||
       !lastSuccessfulFetchResponse.config ||
