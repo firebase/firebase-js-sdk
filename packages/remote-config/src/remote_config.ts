@@ -70,6 +70,10 @@ export class RemoteConfig implements RemoteConfigType {
     }
   }
 
+  get activeExperiments(): {[key:string]: string} {
+    return this._storageCache.getActiveExperiments() || {};
+  }
+
   get fetchTimeMillis(): number {
     return this._storageCache.getLastSuccessfulFetchTimestampMillis() || -1;
   }
@@ -98,6 +102,7 @@ export class RemoteConfig implements RemoteConfigType {
     if (
       !lastSuccessfulFetchResponse ||
       !lastSuccessfulFetchResponse.config ||
+      !lastSuccessfulFetchResponse.experiments ||
       !lastSuccessfulFetchResponse.eTag ||
       lastSuccessfulFetchResponse.eTag === activeConfigEtag
     ) {
@@ -107,6 +112,7 @@ export class RemoteConfig implements RemoteConfigType {
     }
     await Promise.all([
       this._storageCache.setActiveConfig(lastSuccessfulFetchResponse.config),
+      this._storageCache.setActiveExperiments(lastSuccessfulFetchResponse.experiments),
       this._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
     ]);
     return true;

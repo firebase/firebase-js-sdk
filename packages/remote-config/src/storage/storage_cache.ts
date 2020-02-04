@@ -31,6 +31,7 @@ export class StorageCache {
   private lastFetchStatus?: FetchStatus;
   private lastSuccessfulFetchTimestampMillis?: number;
   private activeConfig?: FirebaseRemoteConfigObject;
+  private activeExperiments?: FirebaseRemoteConfigObject;
 
   /**
    * Memory-only getters
@@ -47,6 +48,10 @@ export class StorageCache {
     return this.activeConfig;
   }
 
+  getActiveExperiments(): FirebaseRemoteConfigObject | undefined {
+    return this.activeExperiments;
+  }
+
   /**
    * Read-ahead getter
    */
@@ -54,6 +59,7 @@ export class StorageCache {
     const lastFetchStatusPromise = this.storage.getLastFetchStatus();
     const lastSuccessfulFetchTimestampMillisPromise = this.storage.getLastSuccessfulFetchTimestampMillis();
     const activeConfigPromise = this.storage.getActiveConfig();
+    const activeExperimentsPromise = this.storage.getActiveExperiments();
 
     // Note:
     // 1. we consistently check for undefined to avoid clobbering defined values
@@ -75,6 +81,11 @@ export class StorageCache {
     if (activeConfig) {
       this.activeConfig = activeConfig;
     }
+
+    const activeExperiments = await activeExperimentsPromise;
+    if (activeExperiments) {
+      this.activeExperiments = activeExperiments;
+    }
   }
 
   /**
@@ -95,5 +106,10 @@ export class StorageCache {
   setActiveConfig(activeConfig: FirebaseRemoteConfigObject): Promise<void> {
     this.activeConfig = activeConfig;
     return this.storage.setActiveConfig(activeConfig);
+  }
+
+  setActiveExperiments(activeExperiments: FirebaseRemoteConfigObject): Promise<void> {
+    this.activeExperiments = activeExperiments;
+    return this.storage.setActiveExperiments(activeExperiments);
   }
 }

@@ -134,6 +134,9 @@ export interface FetchResponse {
    */
   config?: FirebaseRemoteConfigObject;
 
+  // TODO cleanup
+  experiments?: {[key:string]: string};
+
   // Note: we're not extracting experiment metadata until
   // ABT and Analytics have Web SDKs.
 }

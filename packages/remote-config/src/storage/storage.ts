@@ -66,6 +66,7 @@ export interface ThrottleMetadata {
 type ProjectNamespaceKeyFieldValue =
   | 'active_config'
   | 'active_config_etag'
+  | 'active_experiments'
   | 'last_fetch_status'
   | 'last_successful_fetch_timestamp_millis'
   | 'last_successful_fetch_response'
@@ -151,6 +152,16 @@ export class Storage {
 
   setActiveConfig(config: FirebaseRemoteConfigObject): Promise<void> {
     return this.set<FirebaseRemoteConfigObject>('active_config', config);
+  }
+
+  // TODO types
+  getActiveExperiments(): Promise<FirebaseRemoteConfigObject | undefined> {
+    return this.get<FirebaseRemoteConfigObject>('active_experiments');
+  }
+
+  // TODO types
+  setActiveExperiments(experiments: FirebaseRemoteConfigObject): Promise<void> {
+    return this.set<FirebaseRemoteConfigObject>('active_experiments', experiments);
   }
 
   getActiveConfigEtag(): Promise<string | undefined> {
