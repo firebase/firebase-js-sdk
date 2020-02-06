@@ -7144,15 +7144,10 @@ google-closure-compiler@^20190415.0.0:
     google-closure-compiler-linux "^20190415.0.0"
     google-closure-compiler-osx "^20190415.0.0"
 
-google-closure-library@20190709.0.0:
-  version "20190709.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20190709.0.0.tgz#e2d10d1b05bc09b8b9fe9f924ba0c5ed49a143b5"
-  integrity sha512-AjctPpV+o+NbQ/o6ovRExj7ZCTpffpjFfOimwY1fAexmCiyZ6JFpFKOchibTZWTJY7GCRuJRg9KU8O2fTD8MlA==
-
-google-closure-library@20200101.0.0:
-  version "20200101.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200101.0.0.tgz#daa1fad3967d07ede670733c774fc51a22e556c5"
-  integrity sha512-BwCDk/aGyCWQr3UFfOL9QJMhNKV1F1i5hH45N6J1UsJtI0LDR3eD4U/plfc6ERef7wH03OyX00MubiyzKmkVMQ==
+google-closure-library@20200112.0.0:
+  version "20200112.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200112.0.0.tgz#87432c6d4c02582a9586935d665d5c1ce1dac4fd"
+  integrity sha512-6d0BOP812gEjCuPJiC6sixgmt2BASpy9TFgrBMFDHDXT9nnkfstV2jaqTCjEIGi0bShpBtLd6cljIsiyBLViZg==
   dependencies:
     promises-aplus-tests "^2.1.2"
 
