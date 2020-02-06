@@ -4,7 +4,9 @@ import { OAuthCredential } from '../../model/auth_credential';
 import { AuthError } from '../errors';
 import { LanguageCode } from '../../model/auth';
 
-export interface CustomParameters {[key: string]: string};
+export interface CustomParameters {
+  [key: string]: string;
+}
 
 export class OAuthProvider implements AuthProvider {
   private defaultLanguageCode: LanguageCode | null = null;

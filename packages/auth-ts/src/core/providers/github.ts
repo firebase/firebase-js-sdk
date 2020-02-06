@@ -22,7 +22,7 @@ import { AuthError } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 
 export class GithubAuthProvider extends OAuthProvider {
-  static readonly PROVIDER_ID =ProviderId.GITHUB;
+  static readonly PROVIDER_ID = ProviderId.GITHUB;
   static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
   readonly providerId: ProviderId = GithubAuthProvider.PROVIDER_ID;
   static credential(accessToken: string): OAuthCredential {

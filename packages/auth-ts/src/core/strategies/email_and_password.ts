@@ -18,7 +18,7 @@
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user_credential';
 import { User } from '../../model/user';
-import  * as api from '../../api/authentication';
+import * as api from '../../api/authentication';
 import { ActionCodeSettings } from '../../model/action_code';
 import { AUTH_ERROR_FACTORY, AuthError } from '../errors';
 
@@ -46,11 +46,14 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const { refreshToken, localId, idToken } = await api.signInWithPassword(auth, {
-    returnSecureToken: true,
-    email,
-    password
-  });
+  const { refreshToken, localId, idToken } = await api.signInWithPassword(
+    auth,
+    {
+      returnSecureToken: true,
+      email,
+      password
+    }
+  );
   if (!refreshToken || !idToken) {
     // TODO: throw proper AuthError
     throw new Error('token missing');
@@ -60,42 +63,52 @@ export async function signInWithEmailAndPassword(
   return new UserCredential(user!);
 }
 
-function setActionCodeSettingsOnRequest(request: api.GetOobCodeRequest, actionCodeSettings: ActionCodeSettings): void {
+function setActionCodeSettingsOnRequest(
+  request: api.GetOobCodeRequest,
+  actionCodeSettings: ActionCodeSettings
+): void {
   request.continueUrl = actionCodeSettings.url;
   request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
   request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
-  
-  if(actionCodeSettings.iOS) {
+
+  if (actionCodeSettings.iOS) {
     request.iosBundleId = actionCodeSettings.iOS.bundleId;
     request.iosAppStoreId = actionCodeSettings.iOS.appStoreId;
   }
-  
-  if(actionCodeSettings.android) {
+
+  if (actionCodeSettings.android) {
     request.androidInstallApp = actionCodeSettings.android.installApp;
-    request.androidMinimumVersionCode = actionCodeSettings.android.minimumVersion;
+    request.androidMinimumVersionCode =
+      actionCodeSettings.android.minimumVersion;
     request.androidPackageName = actionCodeSettings.android.packageName;
   }
 }
 
-export async function sendEmailVerification(auth: Auth, user: User, actionCodeSettings?: ActionCodeSettings): Promise<void> {
+export async function sendEmailVerification(
+  auth: Auth,
+  user: User,
+  actionCodeSettings?: ActionCodeSettings
+): Promise<void> {
   const email = user.email;
-  if(!email) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_EMAIL, { appName: auth.name });
+  if (!email) {
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_EMAIL, {
+      appName: auth.name
+    });
   }
-  
+
   const idToken = await user.getIdToken();
   const request: api.GetOobCodeRequest = {
     reqType: api.GetOobCodeRequestType.EMAIL_SIGNIN,
     email,
     idToken
   };
-  if(actionCodeSettings) {
+  if (actionCodeSettings) {
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
   const response = await api.sendEmailVerificationLink(auth, request);
-  
-  if(response.email !== email) {
+
+  if (response.email !== email) {
     await user.reload();
   }
 }

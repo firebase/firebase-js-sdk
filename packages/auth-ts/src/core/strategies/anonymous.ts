@@ -31,7 +31,9 @@ export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
     returnSecureToken: true
   });
   if (!refreshToken || !idToken) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_AUTH, { appName: auth.name });
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_AUTH, {
+      appName: auth.name
+    });
   }
   const user = new User(refreshToken, localId, idToken, true);
   await auth.setCurrentUser(user);

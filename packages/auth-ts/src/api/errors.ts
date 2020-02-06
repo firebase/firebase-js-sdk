@@ -64,14 +64,16 @@ export enum ServerError {
 
 export interface JsonError {
   error: {
-    code: number,
-    message: ServerError
-    errors: [{
-      message: ServerError,
-      domain: string,
-      reason: string
-    }]
-  }
+    code: number;
+    message: ServerError;
+    errors: [
+      {
+        message: ServerError;
+        domain: string;
+        reason: string;
+      }
+    ];
+  };
 }
 
 export declare type ServerErrorMap<ApiError extends string> = {
@@ -107,7 +109,8 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   // Verify assertion for sign in with credential errors:
   [ServerError.INVALID_IDP_RESPONSE]: AuthError.INVALID_IDP_RESPONSE,
   [ServerError.INVALID_PENDING_TOKEN]: AuthError.INVALID_IDP_RESPONSE,
-  [ServerError.FEDERATED_USER_ID_ALREADY_LINKED]: AuthError.CREDENTIAL_ALREADY_IN_USE,
+  [ServerError.FEDERATED_USER_ID_ALREADY_LINKED]:
+    AuthError.CREDENTIAL_ALREADY_IN_USE,
   [ServerError.MISSING_OR_INVALID_NONCE]: AuthError.MISSING_OR_INVALID_NONCE,
 
   // Email template errors while sending emails:
@@ -117,7 +120,8 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
 
   // Send Password reset email errors:
   [ServerError.EMAIL_NOT_FOUND]: AuthError.USER_DELETED,
-  [ServerError.RESET_PASSWORD_EXCEED_LIMIT]: AuthError.TOO_MANY_ATTEMPTS_TRY_LATER, 
+  [ServerError.RESET_PASSWORD_EXCEED_LIMIT]:
+    AuthError.TOO_MANY_ATTEMPTS_TRY_LATER,
 
   // Reset password errors:
   [ServerError.EXPIRED_OOB_CODE]: AuthError.EXPIRED_OOB_CODE,
@@ -129,7 +133,8 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   [ServerError.INVALID_PROVIDER_ID]: AuthError.INVALID_PROVIDER_ID,
 
   // Operations that require ID token in request:
-  [ServerError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN]: AuthError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN,
+  [ServerError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN]:
+    AuthError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN,
   [ServerError.INVALID_ID_TOKEN]: AuthError.INVALID_AUTH,
   [ServerError.TOKEN_EXPIRED]: AuthError.TOKEN_EXPIRED,
   [ServerError.USER_NOT_FOUND]: AuthError.TOKEN_EXPIRED,
@@ -138,13 +143,15 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   [ServerError.CORS_UNSUPPORTED]: AuthError.CORS_UNSUPPORTED,
 
   // Dynamic link not activated.
-  [ServerError.DYNAMIC_LINK_NOT_ACTIVATED]: AuthError.DYNAMIC_LINK_NOT_ACTIVATED,
+  [ServerError.DYNAMIC_LINK_NOT_ACTIVATED]:
+    AuthError.DYNAMIC_LINK_NOT_ACTIVATED,
 
   // iosBundleId or androidPackageName not valid error.
   [ServerError.INVALID_APP_ID]: AuthError.INVALID_APP_ID,
 
   // Other errors.
-  [ServerError.TOO_MANY_ATTEMPTS_TRY_LATER]: AuthError.TOO_MANY_ATTEMPTS_TRY_LATER,
+  [ServerError.TOO_MANY_ATTEMPTS_TRY_LATER]:
+    AuthError.TOO_MANY_ATTEMPTS_TRY_LATER,
   [ServerError.WEAK_PASSWORD]: AuthError.WEAK_PASSWORD,
   [ServerError.OPERATION_NOT_ALLOWED]: AuthError.OPERATION_NOT_ALLOWED,
   [ServerError.USER_CANCELLED]: AuthError.USER_CANCELLED,
@@ -168,10 +175,12 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   [ServerError.INVALID_CONTINUE_URI]: AuthError.INVALID_CONTINUE_URI,
   // MISSING_CONTINUE_URI is getting mapped to INTERNAL_ERROR above.
   // This is OK as this error will be caught by client side validation.
-  [ServerError.MISSING_ANDROID_PACKAGE_NAME]: AuthError.MISSING_ANDROID_PACKAGE_NAME,
+  [ServerError.MISSING_ANDROID_PACKAGE_NAME]:
+    AuthError.MISSING_ANDROID_PACKAGE_NAME,
   [ServerError.MISSING_IOS_BUNDLE_ID]: AuthError.MISSING_IOS_BUNDLE_ID,
   [ServerError.UNAUTHORIZED_DOMAIN]: AuthError.UNAUTHORIZED_DOMAIN,
-  [ServerError.INVALID_DYNAMIC_LINK_DOMAIN]: AuthError.INVALID_DYNAMIC_LINK_DOMAIN,
+  [ServerError.INVALID_DYNAMIC_LINK_DOMAIN]:
+    AuthError.INVALID_DYNAMIC_LINK_DOMAIN,
 
   // getProjectConfig errors when clientId is passed.
   [ServerError.INVALID_OAUTH_CLIENT_ID]: AuthError.INVALID_OAUTH_CLIENT_ID,
@@ -179,11 +188,11 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   [ServerError.INVALID_CERT_HASH]: AuthError.INVALID_CERT_HASH,
 
   // Multi-tenant related errors.
-  [ServerError.UNSUPPORTED_TENANT_OPERATION]: AuthError.UNSUPPORTED_TENANT_OPERATION,
+  [ServerError.UNSUPPORTED_TENANT_OPERATION]:
+    AuthError.UNSUPPORTED_TENANT_OPERATION,
   [ServerError.INVALID_TENANT_ID]: AuthError.INVALID_TENANT_ID,
   [ServerError.TENANT_ID_MISMATCH]: AuthError.TENANT_ID_MISMATCH,
 
   // User actions (sign-up or deletion) disabled errors.
-  [ServerError.ADMIN_ONLY_OPERATION]: AuthError.ADMIN_ONLY_OPERATION,
+  [ServerError.ADMIN_ONLY_OPERATION]: AuthError.ADMIN_ONLY_OPERATION
 };
-

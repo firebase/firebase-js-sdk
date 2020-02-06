@@ -21,14 +21,14 @@
 export enum ProviderId {
   ANONYMOUS = 'anonymous',
   CUSTOM = 'custom',
-  FACEBOOK ='facebook.com',
+  FACEBOOK = 'facebook.com',
   FIREBASE = 'firebase',
   GITHUB = 'github.com',
   GOOGLE = 'google.com',
   PASSWORD = 'password',
   PHONE = 'phone',
   TWITTER = 'twitter.com'
-};
+}
 
 export enum SignInMethod {
   EMAIL_LINK = 'emailLink',
@@ -38,7 +38,7 @@ export enum SignInMethod {
   GOOGLE = 'google.com',
   PHONE = 'phone',
   TWITTER = 'twitter.com'
-};
+}
 
 export interface AuthProvider {
   readonly providerId: ProviderId;

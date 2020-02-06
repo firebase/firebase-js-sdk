@@ -23,7 +23,7 @@ import { CustomParameters, OAuthProvider } from './oauth';
 
 export class TwitterAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.TWITTER;
-  static readonly TWITTER_SIGN_IN_METHOD  = SignInMethod.TWITTER;
+  static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
   readonly providerId = TwitterAuthProvider.PROVIDER_ID;
   static credential(token: string, secret: string): AuthCredential {
     throw new Error('not implemented');

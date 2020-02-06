@@ -1,7 +1,7 @@
-import { Auth } from "..";
-import { JsonError, SERVER_ERROR_MAP } from "./errors";
-import { AUTH_ERROR_FACTORY, AuthError } from "../core/errors";
-import { FirebaseError } from "@firebase/util";
+import { Auth } from '..';
+import { JsonError, SERVER_ERROR_MAP } from './errors';
+import { AUTH_ERROR_FACTORY, AuthError } from '../core/errors';
+import { FirebaseError } from '@firebase/util';
 
 // TODO: pass this in for emulator
 export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
@@ -17,7 +17,7 @@ export enum Endpoint {
   SEND_OOB_CODE = '/v1/accounts:sendOobCode'
 }
 
-export async function performApiRequest<T,V>(
+export async function performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
   path: Endpoint,
@@ -35,12 +35,12 @@ export async function performApiRequest<T,V>(
         body: JSON.stringify(request)
       }
     );
-    if(response.ok) {
+    if (response.ok) {
       return response.json();
     } else {
       const json: JsonError = await response.json();
       const authError = SERVER_ERROR_MAP[json.error.message];
-      if(authError) {
+      if (authError) {
         throw AUTH_ERROR_FACTORY.create(authError, { appName: auth.name });
       } else {
         // TODO probably should handle improperly formatted errors as well
@@ -49,9 +49,11 @@ export async function performApiRequest<T,V>(
       }
     }
   } catch (e) {
-    if(e instanceof FirebaseError) {
+    if (e instanceof FirebaseError) {
       throw e;
     }
-    throw AUTH_ERROR_FACTORY.create(AuthError.NETWORK_REQUEST_FAILED, { appName: auth.name });
+    throw AUTH_ERROR_FACTORY.create(AuthError.NETWORK_REQUEST_FAILED, {
+      appName: auth.name
+    });
   }
 }

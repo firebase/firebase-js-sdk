@@ -24,6 +24,9 @@ export { inMemoryPersistence } from './core/persistence/in_memory';
 export { browserLocalPersistence } from './core/persistence/browser_local';
 export { browserSessionPersistence } from './core/persistence/browser_session';
 
-export { signInWithRedirect } from "./core/strategies/redirect";
-export { signInAnonymously } from "./core/strategies/anonymous";
-export { createUserWithEmailAndPassword, signInWithEmailAndPassword } from './core/strategies/email_and_password';
+export { signInWithRedirect } from './core/strategies/redirect';
+export { signInAnonymously } from './core/strategies/anonymous';
+export {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from './core/strategies/email_and_password';

@@ -177,10 +177,10 @@ export class Auth {
 
   /**
    * Sets the current user, triggering any observable callbacks.
-   * 
+   *
    * Should only be called from inside a withLock() block to prevent race conditions
-   * 
-   * @param user 
+   *
+   * @param user
    */
   async setCurrentUser_(user: User | null): Promise<void> {
     this.currentUser = user;

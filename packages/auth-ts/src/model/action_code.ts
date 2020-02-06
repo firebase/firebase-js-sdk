@@ -5,14 +5,13 @@ export interface ActionCodeSettings {
     packageName: string;
   };
   handleCodeInApp?: boolean;
-  iOS?: { 
-    bundleId: string,
-    appStoreId: string,
+  iOS?: {
+    bundleId: string;
+    appStoreId: string;
   };
   url: string;
   dynamicLinkDomain?: string;
- };
-
+}
 
 export interface ActionCodeInfo {
   data: {
@@ -20,4 +19,4 @@ export interface ActionCodeInfo {
     fromEmail?: string | null;
   };
   operation: string;
- }
+}

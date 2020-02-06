@@ -15,37 +15,50 @@ const WIDGET_URL = '/__/auth/handler';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type Params = {
-  [key: string]: string | undefined
+  [key: string]: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type WidgetParams = {
-  apiKey: ApiKey,
-  appName: AppName,
-  authType: AuthEventType,
-  providerId?: ProviderId,
-  customParameters?: string
+  apiKey: ApiKey;
+  appName: AppName;
+  authType: AuthEventType;
+  providerId?: ProviderId;
+  customParameters?: string;
 };
 
 function queryString(params: Params): string {
-  return Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key] || "")}`).join('&');
+  return Object.keys(params)
+    .map(
+      key =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(params[key] || '')}`
+    )
+    .join('&');
 }
 
-function getRedirectUrl(auth: Auth, provider: AuthProvider, authType: AuthEventType): string {
+function getRedirectUrl(
+  auth: Auth,
+  provider: AuthProvider,
+  authType: AuthEventType
+): string {
   if (!auth.config.authDomain) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, { appName: auth.name });
+    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, {
+      appName: auth.name
+    });
   }
   if (!auth.config.apiKey) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, { appName: auth.name });
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, {
+      appName: auth.name
+    });
   }
 
   const params: WidgetParams = {
     apiKey: auth.config.apiKey,
     appName: auth.name,
-    authType,
+    authType
   };
 
-  if(provider instanceof OAuthProvider) {
+  if (provider instanceof OAuthProvider) {
     provider.setDefaultLanguage(auth.languageCode);
     params.providerId = provider.providerId;
     if (!isEmpty(provider.getCustomParameters())) {
@@ -53,17 +66,27 @@ function getRedirectUrl(auth: Auth, provider: AuthProvider, authType: AuthEventT
     }
   }
 
-  const url = new URL(`https://${auth.config.authDomain}/${WIDGET_URL}?${queryString(params)}`);
-  
+  const url = new URL(
+    `https://${auth.config.authDomain}/${WIDGET_URL}?${queryString(params)}`
+  );
+
   return url.toString();
 }
 
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
-  processPopup(auth: Auth, provider: AuthProvider, authType: AuthEventType): Promise<UserCredential> {
-    throw new Error("not implemented");
+  processPopup(
+    auth: Auth,
+    provider: AuthProvider,
+    authType: AuthEventType
+  ): Promise<UserCredential> {
+    throw new Error('not implemented');
   }
 
-  processRedirect(auth: Auth,provider: AuthProvider, authType: AuthEventType): Promise<never> {
+  processRedirect(
+    auth: Auth,
+    provider: AuthProvider,
+    authType: AuthEventType
+  ): Promise<never> {
     // Create iframe
     //        fireauth.iframeclient.IfcHandler.prototype.processRedirect =
     //        check origin validator(?)

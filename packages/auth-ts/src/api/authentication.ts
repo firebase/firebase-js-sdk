@@ -74,12 +74,10 @@ export async function signInWithPassword(
   auth: Auth,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
-  return performApiRequest<SignInWithPasswordRequest, SignInWithPasswordResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SIGN_IN_WITH_PASSWORD,
-    request
-  );
+  return performApiRequest<
+    SignInWithPasswordRequest,
+    SignInWithPasswordResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
 }
 
 // export interface SendVerificationCodeRequest {
@@ -107,34 +105,37 @@ export enum GetOobCodeRequestType {
 }
 
 export interface GetOobCodeRequest {
-  reqType: GetOobCodeRequestType,
-  email: string, // Everything except VERIFY_AND_CHANGE_EMAIL
+  reqType: GetOobCodeRequestType;
+  email: string; // Everything except VERIFY_AND_CHANGE_EMAIL
   // captchaResp?: string, // RESET_PASSWORD
   // userIp?: string, // RESET_PASSWORD,
   // newEmail?: string, // VERIFY_AND_CHANGE_EMAIL,
-  idToken: IdToken, // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
-  continueUrl?: string,
-  iosBundleId?: string,
-  iosAppStoreId?: string,
-  androidPackageName?: string,
-  androidInstallApp?: boolean,
-  androidMinimumVersionCode?: string,
-  canHandleCodeInApp?: boolean,
-  dynamicLinkDomain?: string,
+  idToken: IdToken; // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
+  continueUrl?: string;
+  iosBundleId?: string;
+  iosAppStoreId?: string;
+  androidPackageName?: string;
+  androidInstallApp?: boolean;
+  androidMinimumVersionCode?: string;
+  canHandleCodeInApp?: boolean;
+  dynamicLinkDomain?: string;
   // tenantId?: string,
   // targetProjectid?: string,
 }
 
 export interface GetOobCodeResponse {
-  kind: typeof Kind.SEND_OOB_CODE,
-  email: string,
+  kind: typeof Kind.SEND_OOB_CODE;
+  email: string;
 }
 
-export async function sendEmailVerificationLink(auth: Auth, request: GetOobCodeRequest): Promise<GetOobCodeResponse> {
+export async function sendEmailVerificationLink(
+  auth: Auth,
+  request: GetOobCodeRequest
+): Promise<GetOobCodeResponse> {
   return performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
-    auth, 
-    HttpMethod.POST, 
-    Endpoint.SEND_OOB_CODE, 
+    auth,
+    HttpMethod.POST,
+    Endpoint.SEND_OOB_CODE,
     request
   );
 }

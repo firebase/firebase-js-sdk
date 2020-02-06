@@ -7,7 +7,9 @@ import { UserCredential } from '../../model/user_credential';
 
 async function initAuthStateManager(auth: Auth): Promise<void> {
   if (!auth.config.authDomain) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, { appName: auth.name });
+    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, {
+      appName: auth.name
+    });
   }
 
   await auth.isInitialized();
@@ -18,10 +20,15 @@ async function initAuthStateManager(auth: Auth): Promise<void> {
 }
 
 export async function signInWithRedirect(
-  auth: Auth, provider: OAuthProvider, resolver?: PopupRedirectResolver): Promise<never> {
+  auth: Auth,
+  provider: OAuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<never> {
   resolver = resolver || auth.popupRedirectResolver;
-  if(!resolver) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.OPERATION_NOT_SUPPORTED, { appName: auth.name});
+  if (!resolver) {
+    throw AUTH_ERROR_FACTORY.create(AuthError.OPERATION_NOT_SUPPORTED, {
+      appName: auth.name
+    });
   }
 
   await initAuthStateManager(auth);
@@ -31,11 +38,17 @@ export async function signInWithRedirect(
   //       set popupRedirectEnabled_  = true on user (why?)
   // TODO: Set redirect out flag
   //       this.pendingRedirectStorageManager_.setPendingStatus()
-  
+
   // Redirect out
-  return resolver.processRedirect(auth, provider, AuthEventType.SIGN_IN_VIA_REDIRECT);
+  return resolver.processRedirect(
+    auth,
+    provider,
+    AuthEventType.SIGN_IN_VIA_REDIRECT
+  );
 }
 
-export async function getRedirectResult(auth: Auth): Promise<UserCredential | null> {
-  throw new Error("not implemented");
+export async function getRedirectResult(
+  auth: Auth
+): Promise<UserCredential | null> {
+  throw new Error('not implemented');
 }

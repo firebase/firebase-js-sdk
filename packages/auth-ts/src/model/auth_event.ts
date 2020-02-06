@@ -7,4 +7,4 @@ export enum AuthEventType {
   SIGN_IN_VIA_REDIRECT = 'signInViaRedirect',
   UNKNOWN = 'unknown',
   VERIFY_APP = 'verifyApp'
-};
+}

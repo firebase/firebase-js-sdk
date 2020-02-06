@@ -48,6 +48,6 @@ export class User implements UserInfo {
   }
 
   reload(): Promise<void> {
-    throw new Error("not implemented");
+    throw new Error('not implemented');
   }
 }
