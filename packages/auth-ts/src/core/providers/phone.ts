@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AuthProvider } from '.';
+import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { AuthCredential } from '../../model/auth_credential';
 import { UserCredential } from '../../model/user_credential';
 import { AuthError } from '../errors';
@@ -24,8 +24,8 @@ import { ApplicationVerifier } from '../../model/application_verifier';
 import { MultiFactorSession } from '../../model/multifactor';
 
 export class PhoneAuthProvider implements AuthProvider {
-  static readonly PROVIDER_ID: string;
-  static readonly PHONE_SIGN_IN_METHOD: string;
+  static readonly PROVIDER_ID = ProviderId.PHONE;
+  static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
   static credential(
     verificationId: string,
     verificationCode: string
@@ -46,7 +46,7 @@ export class PhoneAuthProvider implements AuthProvider {
   constructor(auth?: Auth | null) {
     throw new Error('not implemented');
   }
-  readonly providerId: string = 'phone';
+  readonly providerId: ProviderId = PhoneAuthProvider.PROVIDER_ID;
   verifyPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier,

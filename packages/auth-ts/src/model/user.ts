@@ -19,6 +19,10 @@ import { IdTokenResult, IdToken, parseIdToken } from './id_token';
 
 export interface UserInfo {
   readonly uid: string;
+  readonly displayName: string | null;
+  readonly email: string | null;
+  readonly phoneNumber: string | null;
+  readonly photoURL: string | null;
 }
 
 export class User implements UserInfo {
@@ -26,7 +30,11 @@ export class User implements UserInfo {
     public readonly refreshToken: string,
     public readonly uid: string,
     private idToken: IdToken,
-    public readonly isAnonymous: boolean = false
+    public readonly isAnonymous: boolean = false,
+    public readonly displayName = null,
+    public readonly email = null,
+    public readonly phoneNumber = null,
+    public readonly photoURL = null
   ) {}
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
@@ -37,5 +45,9 @@ export class User implements UserInfo {
     forceRefresh: boolean = false
   ): Promise<IdTokenResult> {
     return parseIdToken(this.idToken);
+  }
+
+  reload(): Promise<void> {
+    throw new Error("not implemented");
   }
 }

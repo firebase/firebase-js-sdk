@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -71,7 +71,7 @@ function openDatabase_(): Promise<IDBDatabase> {
       reject(request.error);
     });
 
-    request.addEventListener('upgradeneeded', (event: Event) => {
+    request.addEventListener('upgradeneeded', () => {
       const db = request.result;
 
       try {
@@ -101,10 +101,10 @@ function openDatabase_(): Promise<IDBDatabase> {
 async function putObject_(
   db: IDBDatabase,
   key: string,
-  value: PersistenceValue
+  value: PersistenceValue | string
 ): Promise<void> {
   const getRequest = getObjectStore_(db, false).get(key);
-  const data = await new DBPromise<DBObject<PersistenceValue> | null>(
+  const data = await new DBPromise<DBObject<PersistenceValue | string> | null>(
     getRequest
   ).toPromise();
   if (data) {
@@ -154,7 +154,7 @@ class IndexedDBLocalPersistence implements Persistence {
         return false;
       }
       const db = await openDatabase_();
-      await putObject_(db, STORAGE_AVAILABLE_KEY_, PersistenceType.LOCAL);
+      await putObject_(db, STORAGE_AVAILABLE_KEY_, '1');
       await deleteObject_(db, STORAGE_AVAILABLE_KEY_);
       return true;
     } catch (e) {}

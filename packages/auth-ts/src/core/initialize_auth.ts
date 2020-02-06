@@ -30,6 +30,7 @@ export function initializeAuth(
       appName: app.name
     });
   }
+  deps = deps || {};
 
   const auth = new Auth(
     app.name,
@@ -39,10 +40,11 @@ export function initializeAuth(
     {
       apiKey: app.options.apiKey,
       authDomain: app.options.authDomain
-    }
+    },
+    null, // currentUser
+    deps.popupRedirectResolver
   );
   // TODO: support multiple persistence
-  deps = deps || {};
   deps.persistence = deps.persistence || inMemoryPersistence;
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?

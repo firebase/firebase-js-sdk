@@ -18,24 +18,26 @@
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user_credential';
 import { User } from '../../model/user';
-import { signUp, signInWithPassword } from '../../api/authentication';
+import  * as api from '../../api/authentication';
+import { ActionCodeSettings } from '../../model/action_code';
+import { AUTH_ERROR_FACTORY, AuthError } from '../errors';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const { refreshToken, localId, idToken } = await signUp(auth, {
+  const { refreshToken, localId, idToken } = await api.signUp(auth, {
     returnSecureToken: true,
     email,
     password
   });
   if (!refreshToken || !idToken) {
+    // TODO: throw proper AuthError
     throw new Error('token missing');
   }
-  const user = await auth.setCurrentUser(
-    new User(refreshToken, localId, idToken)
-  );
+  const user = new User(refreshToken, localId, idToken);
+  await auth.setCurrentUser(user);
   return new UserCredential(user);
 }
 
@@ -44,16 +46,56 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const { refreshToken, localId, idToken } = await signInWithPassword(auth, {
+  const { refreshToken, localId, idToken } = await api.signInWithPassword(auth, {
     returnSecureToken: true,
     email,
     password
   });
   if (!refreshToken || !idToken) {
+    // TODO: throw proper AuthError
     throw new Error('token missing');
   }
-  const user = await auth.setCurrentUser(
-    new User(refreshToken, localId, idToken)
-  );
-  return new UserCredential(user);
+  const user = new User(refreshToken, localId, idToken);
+  await auth.setCurrentUser(user);
+  return new UserCredential(user!);
+}
+
+function setActionCodeSettingsOnRequest(request: api.GetOobCodeRequest, actionCodeSettings: ActionCodeSettings): void {
+  request.continueUrl = actionCodeSettings.url;
+  request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
+  request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
+  
+  if(actionCodeSettings.iOS) {
+    request.iosBundleId = actionCodeSettings.iOS.bundleId;
+    request.iosAppStoreId = actionCodeSettings.iOS.appStoreId;
+  }
+  
+  if(actionCodeSettings.android) {
+    request.androidInstallApp = actionCodeSettings.android.installApp;
+    request.androidMinimumVersionCode = actionCodeSettings.android.minimumVersion;
+    request.androidPackageName = actionCodeSettings.android.packageName;
+  }
+}
+
+export async function sendEmailVerification(auth: Auth, user: User, actionCodeSettings?: ActionCodeSettings): Promise<void> {
+  const email = user.email;
+  if(!email) {
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_EMAIL, { appName: auth.name });
+  }
+  
+  const idToken = await user.getIdToken();
+  const request: api.GetOobCodeRequest = {
+    reqType: api.GetOobCodeRequestType.EMAIL_SIGNIN,
+    email,
+    idToken
+  };
+  if(actionCodeSettings) {
+    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+  }
+
+  const response = await api.sendEmailVerificationLink(auth, request);
+  
+  if(response.email !== email) {
+    await user.reload();
+  }
 }

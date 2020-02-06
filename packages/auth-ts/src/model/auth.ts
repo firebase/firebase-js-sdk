@@ -29,17 +29,21 @@ import {
   ErrorFn,
   Unsubscribe
 } from '@firebase/util';
+import { PopupRedirectResolver } from './popup_redirect_resolver';
 
 export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
 }
 
-export interface Config {
-  apiKey: string;
-  authDomain?: string;
-}
+export type AppName = string;
+export type ApiKey = string;
+export type AuthDomain = string;
+export type LanguageCode = string;
 
-export interface PopupRedirectResolver {}
+export interface Config {
+  apiKey: ApiKey;
+  authDomain?: AuthDomain;
+}
 
 export interface Dependencies {
   // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
@@ -83,7 +87,8 @@ export class Auth {
     readonly settings: AuthSettings,
     readonly config: Config,
     public currentUser: User | null = null,
-    public languageCode?: string,
+    public readonly popupRedirectResolver?: PopupRedirectResolver,
+    public languageCode: LanguageCode | null = null,
     public tenantId?: string
   ) {}
   deferred?: Deferred<void>;
@@ -117,7 +122,8 @@ export class Auth {
         this.config.apiKey,
         this.name
       );
-      this.currentUser = await this.userManager.getCurrentUser();
+      const user = await this.userManager.getCurrentUser();
+      await this.setCurrentUser_(user);
     });
   }
 
@@ -170,29 +176,38 @@ export class Auth {
   }
 
   /**
+   * Sets the current user, triggering any observable callbacks.
+   * 
+   * Should only be called from inside a withLock() block to prevent race conditions
+   * 
+   * @param user 
+   */
+  async setCurrentUser_(user: User | null): Promise<void> {
+    this.currentUser = user;
+    if (user) {
+      await this.userManager!.setCurrentUser(user);
+    } else {
+      await this.userManager!.removeCurrentUser();
+    }
+    if (this.onAuthStateChangedObserver) {
+      this.onAuthStateChangedObserver.next(this.currentUser);
+    }
+  }
+
+  /**
    * Sets the current user, waiting for any other user mutating methods to complete first.
    *
    * @param user
    */
-  async setCurrentUser(user: User): Promise<User> {
-    await withLock(this, async () => {
-      this.currentUser = user;
-      await this.userManager!.setCurrentUser(user);
-      if (this.onAuthStateChangedObserver) {
-        this.onAuthStateChangedObserver.next(this.currentUser);
-      }
-    });
-    return user;
+  async setCurrentUser(user: User | null): Promise<void> {
+    return withLock(this, () => this.setCurrentUser_(user));
   }
 
   /**
    * Clears local persistence, effectively signing-out the user.
    */
   async signOut(): Promise<void> {
-    return withLock(this, async () => {
-      this.currentUser = null;
-      await this.userManager!.removeCurrentUser();
-    });
+    return withLock(this, () => this.setCurrentUser_(null));
   }
 }
 

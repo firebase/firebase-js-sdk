@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,12 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
+/**
+ * This is the file that people using Node.js will actually import. You should
+ * only include this file if you have something specific about your
+ * implementation that mandates having a separate entrypoint. Otherwise you can
+ * just use index.ts
+ */
 
-const files = [`test/**/*.test.ts`];
-
-module.exports = function(config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files: files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+// TODO: point this at node subpackage
+export * from './src';

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { Persistence } from '.';
+import { Persistence } from '../persistence';
 import { User } from '../../model/user';
+import { ApiKey, AppName } from '../../model/auth';
 
 export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
@@ -24,8 +25,8 @@ const NAMESPACE_ = 'firebase';
 
 export function fullKeyName_(
   key: string,
-  apiKey: string,
-  appName: string
+  apiKey: ApiKey,
+  appName: AppName
 ): string {
   return `${NAMESPACE_}:${key}:${apiKey}:${appName}`;
 }
@@ -33,8 +34,8 @@ export function fullKeyName_(
 export class UserManager {
   constructor(
     public persistence: Persistence,
-    private readonly apiKey: string,
-    private readonly appName: string
+    private readonly apiKey: ApiKey,
+    private readonly appName: AppName
   ) {}
 
   fullKeyName_(key: string): string {

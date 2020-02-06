@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-import { AuthProvider, ProviderId, SignInMethod } from '../providers';
+import { AuthProvider } from '../providers';
 import { UserCredential } from '../../model/user_credential';
 import { OAuthCredential } from '../../model/auth_credential';
 import { AuthError } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 
-export class GoogleAuthProvider extends OAuthProvider {
-  static readonly PROVIDER_ID = ProviderId.GOOGLE;
-  static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
-  readonly providerId: ProviderId = GoogleAuthProvider.PROVIDER_ID;
+export class CustomOAuthProvider extends OAuthProvider {
   static credentialFromResult(
     userCredential: UserCredential
   ): OAuthCredential | null {
@@ -33,16 +30,17 @@ export class GoogleAuthProvider extends OAuthProvider {
   static credentialFromError(error: AuthError): OAuthCredential | null {
     throw new Error('not implemented');
   }
-  static credential(
-    idToken?: string | null,
-    accessToken?: string | null
-  ): OAuthCredential {
-    throw new Error('not implemented');
-  }
   static credentialFromJSON(json: object): OAuthCredential {
     throw new Error('not implemented');
   }
   addScope(scope: string): AuthProvider {
+    throw new Error('not implemented');
+  }
+  credential(
+    idToken?: string,
+    accessToken?: string,
+    rawNonce?: string
+  ): OAuthCredential {
     throw new Error('not implemented');
   }
   setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {

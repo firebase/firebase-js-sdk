@@ -1,3 +1,5 @@
+import { ProviderId } from '../core/providers';
+
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -21,14 +23,6 @@
 export type IdToken = string;
 
 /**
- * Supported providers
- */
-export enum Provider {
-  ANONYMOUS = 'anonymous',
-  PASSWORD = 'password'
-}
-
-/**
  * JWT algorithm section
  */
 export interface IdTokenAlgorithm {
@@ -41,7 +35,7 @@ export interface IdTokenAlgorithm {
  * JWT payload section
  */
 export interface IdTokenPayload {
-  provider_id?: Provider; // eslint-disable-line camelcase
+  provider_id?: ProviderId; // eslint-disable-line camelcase
   iss: string;
   aud: string;
   auth_time: number; // eslint-disable-line camelcase
@@ -54,7 +48,7 @@ export interface IdTokenPayload {
     identities: {
       email?: string[];
     };
-    sign_in_provider: Provider; // eslint-disable-line camelcase
+    sign_in_provider: ProviderId; // eslint-disable-line camelcase
   };
 }
 
@@ -66,7 +60,7 @@ export interface IdTokenResult {
   authTime: string;
   expirationTime: string;
   issuedAtTime: string;
-  signInProvider: Provider | null;
+  signInProvider: ProviderId | null;
   signInSecondFactor: string | null;
   claims: {
     [claim: string]: string;
@@ -81,12 +75,14 @@ export interface IdTokenResult {
 export function parseIdToken(idToken: IdToken): IdTokenResult {
   const fields = idToken.split('.');
   if (fields.length !== 3) {
+    // TODO: throw proper AuthError
     throw new Error('Invalid JWT');
   }
   const payload: IdTokenPayload = JSON.parse(atob(fields[1]));
   const utcTimestampToDateString = (utcTimestamp: number): string => {
     const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
+      // TODO: throw proper AuthError
       throw new Error('Invalid timestamp');
     }
     return date.toUTCString();

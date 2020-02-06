@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { AuthProvider } from '.';
+import { AuthProvider, ProviderId } from '../providers';
 import { UserCredential } from '../../model/user_credential';
 import { AuthCredential } from '../../model/auth_credential';
 import { AuthError } from '../errors';
 
 export class SAMLAuthProvider implements AuthProvider {
-  constructor(readonly providerId: string) {}
+  constructor(readonly providerId: ProviderId) {}
   static credentialFromResult(
     userCredential: UserCredential
   ): AuthCredential | null {

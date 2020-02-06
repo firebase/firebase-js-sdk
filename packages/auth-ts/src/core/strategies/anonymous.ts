@@ -19,6 +19,7 @@ import { UserCredential } from '../../model/user_credential';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { signUp } from '../../api/authentication';
+import { AUTH_ERROR_FACTORY, AuthError } from '../errors';
 
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   await auth.isInitialized();
@@ -30,10 +31,9 @@ export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
     returnSecureToken: true
   });
   if (!refreshToken || !idToken) {
-    throw new Error('token missing');
+    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_AUTH, { appName: auth.name });
   }
-  const user = await auth.setCurrentUser(
-    new User(refreshToken, localId, idToken, true)
-  );
+  const user = new User(refreshToken, localId, idToken, true);
+  await auth.setCurrentUser(user);
   return new UserCredential(user);
 }

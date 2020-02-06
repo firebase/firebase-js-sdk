@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 

@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { AuthProvider } from '.';
+import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { AuthCredential } from '../../model/auth_credential';
 
 export class EmailAuthProvider implements AuthProvider {
-  static readonly PROVIDER_ID: string;
-  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: string;
-  static readonly EMAIL_LINK_SIGN_IN_METHOD: string;
-  readonly providerId: string = 'email';
+  static readonly PROVIDER_ID = ProviderId.PASSWORD;
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
+  static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
+  readonly providerId: ProviderId = EmailAuthProvider.PROVIDER_ID;
   static credential(email: string, password: string): AuthCredential {
     throw new Error('not implemented');
   }

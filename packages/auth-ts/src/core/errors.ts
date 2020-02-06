@@ -16,6 +16,7 @@
  */
 
 import { ErrorFactory, ErrorMap } from '@firebase/util';
+import { AppName } from '../model/auth';
 
 /*
  * Developer facing Firebase Auth error codes.
@@ -311,7 +312,7 @@ const ERRORS: ErrorMap<AuthError> = {
     'disabled.'
 };
 
-type AuthErrorParams = { [key in AuthError]: { appName: string } };
+type AuthErrorParams = { [key in AuthError]: { appName: AppName } };
 
 export const AUTH_ERROR_FACTORY = new ErrorFactory<AuthError, AuthErrorParams>(
   'auth',

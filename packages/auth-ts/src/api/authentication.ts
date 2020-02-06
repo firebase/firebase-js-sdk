@@ -17,12 +17,15 @@
 
 import { Auth } from '../model/auth';
 import { IdToken } from '../model/id_token';
+import { performApiRequest, Endpoint, HttpMethod } from '.';
 
-// TODO: pass this in for emulator
-export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
-export const SIGN_IN_WITH_PASSWORD_KIND =
-  'identitytoolkit#VerifyPasswordResponse';
-export const SIGN_UP_RESPONSE_KIND = 'identitytoolkit#SignupNewUserResponse';
+// TODO: do we really need this? probably safe to ignore
+enum Kind {
+  SIGN_UP = 'identitytoolkit#SignupNewUserResponse',
+  SIGN_IN_WITH_PASSWORD = 'identitytoolkit#VerifyPasswordResponse',
+  SEND_VERIFICATION_CODE = '',
+  SEND_OOB_CODE = ''
+}
 
 export interface SignUpRequest {
   returnSecureToken?: boolean;
@@ -31,7 +34,7 @@ export interface SignUpRequest {
 }
 
 export interface SignUpResponse {
-  kind: typeof SIGN_UP_RESPONSE_KIND;
+  kind: typeof Kind.SIGN_UP;
   localId: string;
   idToken?: IdToken;
   displayName?: string;
@@ -40,36 +43,16 @@ export interface SignUpResponse {
   expiresIn?: string;
 }
 
-async function performApiRequest(
-  auth: Auth,
-  method: string,
-  path: string,
-  request: object
-): Promise<object> {
-  const response = await fetch(
-    `${PRODUCTION_URL}${path}?key=${auth.config.apiKey}`,
-    {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      referrerPolicy: 'no-referrer',
-      body: JSON.stringify(request)
-    }
-  );
-  return response.json();
-}
-
 export async function signUp(
   auth: Auth,
   request: SignUpRequest
 ): Promise<SignUpResponse> {
-  return performApiRequest(
+  return performApiRequest<SignUpRequest, SignUpResponse>(
     auth,
-    'POST',
-    '/v1/accounts:signUp',
+    HttpMethod.POST,
+    Endpoint.SIGN_UP,
     request
-  ) as Promise<SignUpResponse>;
+  );
 }
 
 export interface SignInWithPasswordRequest {
@@ -79,7 +62,7 @@ export interface SignInWithPasswordRequest {
 }
 
 export interface SignInWithPasswordResponse {
-  kind: typeof SIGN_IN_WITH_PASSWORD_KIND;
+  kind: typeof Kind.SIGN_IN_WITH_PASSWORD;
   localId: string;
   email?: string;
   displayName?: string;
@@ -91,10 +74,67 @@ export async function signInWithPassword(
   auth: Auth,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
-  return performApiRequest(
+  return performApiRequest<SignInWithPasswordRequest, SignInWithPasswordResponse>(
     auth,
-    'POST',
-    '/v1/accounts:signInWithPassword',
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PASSWORD,
     request
-  ) as Promise<SignInWithPasswordResponse>;
+  );
+}
+
+// export interface SendVerificationCodeRequest {
+//   phoneNumber?: string,
+// }
+
+// export interface SendVerificationCodeResponse {
+
+// }
+
+// export async function sendVerificationCode(auth: Auth, request: SendVerificationCodeRequest): Promise<SendVerificationCodeResponse> {
+//   return performApiRequest<SendVerificationCodeRequest, SendVerificationCodeResponse>(
+//     auth,
+//     HttpMethod.POST,
+//     Endpoint.SEND_VERIFICATION_CODE,
+//     request
+//   );
+// };
+
+export enum GetOobCodeRequestType {
+  PASSWORD_RESET = 'PASSWORD_RESET',
+  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
+  VERIFY_EMAIL = 'VERIFY_EMAIL',
+  VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL'
+}
+
+export interface GetOobCodeRequest {
+  reqType: GetOobCodeRequestType,
+  email: string, // Everything except VERIFY_AND_CHANGE_EMAIL
+  // captchaResp?: string, // RESET_PASSWORD
+  // userIp?: string, // RESET_PASSWORD,
+  // newEmail?: string, // VERIFY_AND_CHANGE_EMAIL,
+  idToken: IdToken, // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
+  continueUrl?: string,
+  iosBundleId?: string,
+  iosAppStoreId?: string,
+  androidPackageName?: string,
+  androidInstallApp?: boolean,
+  androidMinimumVersionCode?: string,
+  canHandleCodeInApp?: boolean,
+  dynamicLinkDomain?: string,
+  // tenantId?: string,
+  // targetProjectid?: string,
+}
+
+export interface GetOobCodeResponse {
+  kind: typeof Kind.SEND_OOB_CODE,
+  email: string,
+}
+
+export async function sendEmailVerificationLink(auth: Auth, request: GetOobCodeRequest): Promise<GetOobCodeResponse> {
+  return performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
+    auth, 
+    HttpMethod.POST, 
+    Endpoint.SEND_OOB_CODE, 
+    request
+  );
 }

@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import { AuthProvider } from '.';
+import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { AuthCredential, OAuthCredential } from '../../model/auth_credential';
 import { UserCredential } from '../../model/user_credential';
 import { AuthError } from '../errors';
+import { CustomParameters, OAuthProvider } from './oauth';
 
-export class TwitterAuthProvider implements AuthProvider {
-  static readonly PROVIDER_ID: string;
-  static readonly TWITTER_SIGN_IN_METHOD: string;
-  readonly providerId: string = 'twitter';
+export class TwitterAuthProvider extends OAuthProvider {
+  static readonly PROVIDER_ID = ProviderId.TWITTER;
+  static readonly TWITTER_SIGN_IN_METHOD  = SignInMethod.TWITTER;
+  readonly providerId = TwitterAuthProvider.PROVIDER_ID;
   static credential(token: string, secret: string): AuthCredential {
     throw new Error('not implemented');
   }
@@ -39,7 +40,10 @@ export class TwitterAuthProvider implements AuthProvider {
     throw new Error('not implemented');
   }
 
-  setCustomParameters(customOAuthParameters: object): AuthProvider {
+  setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
     throw new Error('not implemented');
+  }
+  getCustomParameters(): CustomParameters {
+    return {};
   }
 }

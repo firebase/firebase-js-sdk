@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue } from '.';
+import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 class InMemoryPersistence implements Persistence {
   type: PersistenceType = PersistenceType.NONE;
