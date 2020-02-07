@@ -16,29 +16,25 @@
  */
 
 import { Auth } from '../../model/auth';
-import { UserCredential } from '../../model/user_credential';
+import { UserCredential, OperationType } from '../../model/user_credential';
 import { User } from '../../model/user';
 import * as api from '../../api/authentication';
-import { ActionCodeSettings } from '../../model/action_code';
-import { AUTH_ERROR_FACTORY, AuthError } from '../errors';
+import { EmailAuthProvider } from '../providers/email';
+import { signInWithIdTokenResponse } from '.';
+import { setActionCodeSettingsOnRequest, ActionCodeSettings } from '../../model/action_code_settings';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const { refreshToken, localId, idToken } = await api.signUp(auth, {
+  const response = await api.signUp(auth, {
     returnSecureToken: true,
     email,
     password
   });
-  if (!refreshToken || !idToken) {
-    // TODO: throw proper AuthError
-    throw new Error('token missing');
-  }
-  const user = new User(refreshToken, localId, idToken);
-  await auth.setCurrentUser(user);
-  return new UserCredential(user);
+  const user = await signInWithIdTokenResponse(auth, response);
+  return new UserCredential(user, EmailAuthProvider.PROVIDER_ID, OperationType.SIGN_IN);
 }
 
 export async function signInWithEmailAndPassword(
@@ -46,7 +42,7 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const { refreshToken, localId, idToken } = await api.signInWithPassword(
+  const response = await api.signInWithPassword(
     auth,
     {
       returnSecureToken: true,
@@ -54,34 +50,8 @@ export async function signInWithEmailAndPassword(
       password
     }
   );
-  if (!refreshToken || !idToken) {
-    // TODO: throw proper AuthError
-    throw new Error('token missing');
-  }
-  const user = new User(refreshToken, localId, idToken);
-  await auth.setCurrentUser(user);
-  return new UserCredential(user!);
-}
-
-function setActionCodeSettingsOnRequest(
-  request: api.GetOobCodeRequest,
-  actionCodeSettings: ActionCodeSettings
-): void {
-  request.continueUrl = actionCodeSettings.url;
-  request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
-  request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
-
-  if (actionCodeSettings.iOS) {
-    request.iosBundleId = actionCodeSettings.iOS.bundleId;
-    request.iosAppStoreId = actionCodeSettings.iOS.appStoreId;
-  }
-
-  if (actionCodeSettings.android) {
-    request.androidInstallApp = actionCodeSettings.android.installApp;
-    request.androidMinimumVersionCode =
-      actionCodeSettings.android.minimumVersion;
-    request.androidPackageName = actionCodeSettings.android.packageName;
-  }
+  const user = await signInWithIdTokenResponse(auth, response);
+  return new UserCredential(user!, EmailAuthProvider.PROVIDER_ID, OperationType.SIGN_IN);
 }
 
 export async function sendEmailVerification(
@@ -89,26 +59,30 @@ export async function sendEmailVerification(
   user: User,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const email = user.email;
-  if (!email) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_EMAIL, {
-      appName: auth.name
-    });
-  }
-
   const idToken = await user.getIdToken();
-  const request: api.GetOobCodeRequest = {
-    reqType: api.GetOobCodeRequestType.EMAIL_SIGNIN,
-    email,
+  const request: api.VerifyEmailRequest = {
+    requestType: api.GetOobCodeRequestType.VERIFY_EMAIL,
     idToken
   };
   if (actionCodeSettings) {
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  const response = await api.sendEmailVerificationLink(auth, request);
+  const response =  await api.sendOobCode(auth, request);
 
-  if (response.email !== email) {
+  if (response.email !== user.email) {
     await user.reload();
   }
+}
+
+export async function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void> {
+  const request: api.PasswordResetRequest = {
+    requestType: api.GetOobCodeRequestType.PASSWORD_RESET,
+    email
+  };
+  if (actionCodeSettings) {
+    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+  }
+
+  await api.sendOobCode(auth, request);
 }

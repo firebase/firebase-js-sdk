@@ -1,5 +1,3 @@
-import { ProviderId } from '../core/providers';
-
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -16,6 +14,8 @@ import { ProviderId } from '../core/providers';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { ProviderId } from '../core/providers';
 
 /**
  * Raw encoded JWT
@@ -114,4 +114,11 @@ export function encodeIdToken(
   return `${btoa(JSON.stringify(algorithm))}.${btoa(
     JSON.stringify(payload)
   )}.${signature}`;
+}
+
+export interface IdTokenResponse {
+  idToken: IdToken,
+  refreshToken: string,
+  expiresIn: string,
+  localId: string
 }

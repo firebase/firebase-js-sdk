@@ -17,7 +17,7 @@
 
 import { Auth } from '..';
 import { JsonError, SERVER_ERROR_MAP } from './errors';
-import { AUTH_ERROR_FACTORY, AuthError } from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { FirebaseError } from '@firebase/util';
 
 // TODO: pass this in for emulator
@@ -29,6 +29,7 @@ export enum HttpMethod {
 
 export enum Endpoint {
   SIGN_UP = '/v1/accounts:signUp',
+  SIGN_IN_WITH_EMAIL_LINK = '/v1/accounts:signInWithEmailLink',
   SIGN_IN_WITH_PASSWORD = '/v1/accounts:signInWithPassword',
   SEND_VERIFICATION_CODE = '/v1/accounts:sendVerificationCode',
   SEND_OOB_CODE = '/v1/accounts:sendOobCode'
@@ -69,7 +70,7 @@ export async function performApiRequest<T, V>(
     if (e instanceof FirebaseError) {
       throw e;
     }
-    throw AUTH_ERROR_FACTORY.create(AuthError.NETWORK_REQUEST_FAILED, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
       appName: auth.name
     });
   }

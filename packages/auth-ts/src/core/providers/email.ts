@@ -16,17 +16,31 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential } from '../../model/auth_credential';
+import { AuthCredential } from '../strategies/auth_credential';
+
+export class EmailAuthCredential implements AuthCredential {
+  constructor(readonly email: string, readonly password: string, readonly providerId: typeof EmailAuthProvider.PROVIDER_ID, readonly signInMethod: SignInMethod) {}
+  toJSON(): object {
+    return {
+      email: this.email,
+      password: this.password,
+      providerId: this.providerId,
+      signInMethod: this.signInMethod
+    };
+  }
+}
 
 export class EmailAuthProvider implements AuthProvider {
   static readonly PROVIDER_ID = ProviderId.PASSWORD;
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
   static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
   readonly providerId: ProviderId = EmailAuthProvider.PROVIDER_ID;
-  static credential(email: string, password: string): AuthCredential {
-    throw new Error('not implemented');
-  }
-  static credentialWithLink(email: string, emailLink: string): AuthCredential {
-    throw new Error('not implemented');
+  static credential(email: string, password: string, signInMethod: SignInMethod): EmailAuthCredential {
+    return new EmailAuthCredential(
+      email,
+      password,
+      EmailAuthProvider.PROVIDER_ID,
+      signInMethod
+    );
   }
 }

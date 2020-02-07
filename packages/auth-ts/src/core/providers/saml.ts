@@ -17,8 +17,8 @@
 
 import { AuthProvider, ProviderId } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { AuthCredential } from '../../model/auth_credential';
-import { AuthError } from '../errors';
+import { AuthCredential } from '../strategies/auth_credential';
+import { AuthErrorCode } from '../errors';
 
 export class SAMLAuthProvider implements AuthProvider {
   constructor(readonly providerId: ProviderId) {}
@@ -27,7 +27,7 @@ export class SAMLAuthProvider implements AuthProvider {
   ): AuthCredential | null {
     throw new Error('not implemented');
   }
-  static credentialFromError(error: AuthError): AuthCredential | null {
+  static credentialFromError(error: AuthErrorCode): AuthCredential | null {
     throw new Error('not implemented');
   }
   static credentialFromJSON(json: object): AuthCredential {

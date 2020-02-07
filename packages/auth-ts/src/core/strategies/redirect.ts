@@ -16,7 +16,7 @@
  */
 
 import { Auth } from '../../model/auth';
-import { AuthError, AUTH_ERROR_FACTORY } from '../errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { AuthEventType } from '../../model/auth_event';
 import { PopupRedirectResolver } from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
@@ -24,7 +24,7 @@ import { UserCredential } from '../../model/user_credential';
 
 async function initAuthStateManager(auth: Auth): Promise<void> {
   if (!auth.config.authDomain) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MISSING_AUTH_DOMAIN, {
       appName: auth.name
     });
   }
@@ -43,7 +43,7 @@ export async function signInWithRedirect(
 ): Promise<never> {
   resolver = resolver || auth.popupRedirectResolver;
   if (!resolver) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.OPERATION_NOT_SUPPORTED, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
       appName: auth.name
     });
   }

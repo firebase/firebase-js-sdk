@@ -22,7 +22,8 @@ import { signInAnonymously } from './core/strategies/anonymous';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendEmailVerification
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from './core/strategies/email_and_password';
 import {
   getRedirectResult,
@@ -33,10 +34,13 @@ import { OAuthProvider } from './core/providers/oauth';
 import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User } from './model/user';
-import { ActionCodeSettings } from './model/action_code';
+import { ActionCodeSettings } from './model/action_code_url';
 import { UserCredential } from './model/user_credential';
+import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from './core/strategies/email_link';
 
 interface FirebaseAuth extends Auth {
+  sendPasswordResetEmail(email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
+  sendSignInLinkToEmail(email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
   signInAnonymously(): Promise<UserCredential | null>;
   createUserWithEmailAndPassword(
     email: string,
@@ -75,6 +79,15 @@ let memo: FirebaseAuth;
     }
   });
   memo = Object.assign(auth, {
+    isSignInWithEmailLink(emailLink: string): boolean {
+      return isSignInWithEmailLink(auth, emailLink);
+    },
+    sendPasswordResetEmail(email: string, actionCodeSettings?: ActionCodeSettings) {
+      return sendPasswordResetEmail(auth, email, actionCodeSettings);
+    },
+    sendSignInLinkToEmail(email: string, actionCodeSettings?: ActionCodeSettings): Promise<void> {
+      return sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    },
     signInAnonymously() {
       return signInAnonymously(auth);
     },
@@ -83,6 +96,9 @@ let memo: FirebaseAuth;
     },
     signInWithEmailAndPassword(email: string, password: string) {
       return signInWithEmailAndPassword(auth, email, password);
+    },
+    signInWithEmailLink(email: string, emailLink?: string): Promise<UserCredential> {
+      return signInWithEmailLink(auth, email, emailLink)
     },
     signInWithRedirect(provider: OAuthProvider) {
       return signInWithRedirect(

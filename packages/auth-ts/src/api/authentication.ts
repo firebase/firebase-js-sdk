@@ -16,15 +16,16 @@
  */
 
 import { Auth } from '../model/auth';
-import { IdToken } from '../model/id_token';
+import { IdToken, IdTokenResponse } from '../model/id_token';
 import { performApiRequest, Endpoint, HttpMethod } from '.';
 
 // TODO: do we really need this? probably safe to ignore
 enum Kind {
   SIGN_UP = 'identitytoolkit#SignupNewUserResponse',
+  SIGN_IN_WITH_EMAIL_LINK = 'identitytoolkit#EmailLinkSigninResponse',
   SIGN_IN_WITH_PASSWORD = 'identitytoolkit#VerifyPasswordResponse',
   SEND_VERIFICATION_CODE = '',
-  SEND_OOB_CODE = ''
+  SEND_OOB_CODE = "identitytoolkit#GetOobConfirmationCodeResponse"
 }
 
 export interface SignUpRequest {
@@ -33,14 +34,10 @@ export interface SignUpRequest {
   password?: string;
 }
 
-export interface SignUpResponse {
+export interface SignUpResponse extends IdTokenResponse {
   kind: typeof Kind.SIGN_UP;
-  localId: string;
-  idToken?: IdToken;
   displayName?: string;
   email?: string;
-  refreshToken?: string;
-  expiresIn?: string;
 }
 
 export async function signUp(
@@ -61,13 +58,10 @@ export interface SignInWithPasswordRequest {
   password: string;
 }
 
-export interface SignInWithPasswordResponse {
+export interface SignInWithPasswordResponse extends IdTokenResponse {
   kind: typeof Kind.SIGN_IN_WITH_PASSWORD;
-  localId: string;
-  email?: string;
-  displayName?: string;
-  idToken?: IdToken;
-  refreshToken?: string;
+  email: string;
+  displayName: string;
 }
 
 export async function signInWithPassword(
@@ -80,23 +74,6 @@ export async function signInWithPassword(
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
 }
 
-// export interface SendVerificationCodeRequest {
-//   phoneNumber?: string,
-// }
-
-// export interface SendVerificationCodeResponse {
-
-// }
-
-// export async function sendVerificationCode(auth: Auth, request: SendVerificationCodeRequest): Promise<SendVerificationCodeResponse> {
-//   return performApiRequest<SendVerificationCodeRequest, SendVerificationCodeResponse>(
-//     auth,
-//     HttpMethod.POST,
-//     Endpoint.SEND_VERIFICATION_CODE,
-//     request
-//   );
-// };
-
 export enum GetOobCodeRequestType {
   PASSWORD_RESET = 'PASSWORD_RESET',
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
@@ -105,12 +82,12 @@ export enum GetOobCodeRequestType {
 }
 
 export interface GetOobCodeRequest {
-  reqType: GetOobCodeRequestType;
-  email: string; // Everything except VERIFY_AND_CHANGE_EMAIL
+  requestType: GetOobCodeRequestType;
+  email?: string; // Everything except VERIFY_AND_CHANGE_EMAIL
   // captchaResp?: string, // RESET_PASSWORD
   // userIp?: string, // RESET_PASSWORD,
   // newEmail?: string, // VERIFY_AND_CHANGE_EMAIL,
-  idToken: IdToken; // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
+  idToken?: IdToken; // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
   continueUrl?: string;
   iosBundleId?: string;
   iosAppStoreId?: string;
@@ -123,12 +100,27 @@ export interface GetOobCodeRequest {
   // targetProjectid?: string,
 }
 
+export interface VerifyEmailRequest extends GetOobCodeRequest {
+  requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+  idToken: IdToken
+}
+
+export interface PasswordResetRequest extends GetOobCodeRequest {
+  requestType: GetOobCodeRequestType.PASSWORD_RESET,
+  email: string
+}
+
+export interface EmailSigninRequest extends GetOobCodeRequest {
+  requestType: GetOobCodeRequestType.EMAIL_SIGNIN,
+  email: string
+}
+
 export interface GetOobCodeResponse {
   kind: typeof Kind.SEND_OOB_CODE;
   email: string;
 }
 
-export async function sendEmailVerificationLink(
+export async function sendOobCode(
   auth: Auth,
   request: GetOobCodeRequest
 ): Promise<GetOobCodeResponse> {
@@ -136,6 +128,26 @@ export async function sendEmailVerificationLink(
     auth,
     HttpMethod.POST,
     Endpoint.SEND_OOB_CODE,
+    request
+  );
+}
+
+export interface SignInWithEmailLinkRequest {
+  email: string,
+  oobCode: string,
+}
+
+export interface SignInWithEmailLinkResponse extends IdTokenResponse {
+  kind: Kind.SIGN_IN_WITH_EMAIL_LINK,
+  email: string,
+  isNewUser: boolean
+}
+
+export async function signInWithEmailLink(auth: Auth, request: SignInWithEmailLinkRequest): Promise< SignInWithEmailLinkResponse> {
+  return performApiRequest<SignInWithEmailLinkRequest, SignInWithEmailLinkResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_EMAIL_LINK,
     request
   );
 }

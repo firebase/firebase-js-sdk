@@ -16,9 +16,9 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential } from '../../model/auth_credential';
+import { AuthCredential } from '../strategies/auth_credential';
 import { UserCredential } from '../../model/user_credential';
-import { AuthError } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { MultiFactorSession } from '../../model/multifactor';
@@ -37,7 +37,7 @@ export class PhoneAuthProvider implements AuthProvider {
   ): AuthCredential | null {
     throw new Error('not implemented');
   }
-  static credentialFromError(error: AuthError): AuthCredential | null {
+  static credentialFromError(error: AuthErrorCode): AuthCredential | null {
     throw new Error('not implemented');
   }
   static credentialFromJSON(json: object): AuthCredential {

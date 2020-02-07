@@ -85,11 +85,11 @@ export class Auth {
   constructor(
     public readonly name: string,
     readonly settings: AuthSettings,
-    readonly config: Config,
+    public readonly config: Config,
     public currentUser: User | null = null,
     public readonly popupRedirectResolver?: PopupRedirectResolver,
     public languageCode: LanguageCode | null = null,
-    public tenantId?: string
+    public tenantId: string | null = null
   ) {}
   deferred?: Deferred<void>;
   private onIdTokenChangedObserver: Observer<User | null> | null = null;
@@ -182,7 +182,7 @@ export class Auth {
    *
    * @param user
    */
-  async setCurrentUser_(user: User | null): Promise<void> {
+  private async setCurrentUser_(user: User | null): Promise<void> {
     this.currentUser = user;
     if (user) {
       await this.userManager!.setCurrentUser(user);

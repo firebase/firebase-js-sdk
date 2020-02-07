@@ -21,7 +21,7 @@ import { AppName } from '../model/auth';
 /*
  * Developer facing Firebase Auth error codes.
  */
-export const enum AuthError {
+export const enum AuthErrorCode {
   ADMIN_ONLY_OPERATION = 'admin-restricted-operation',
   ARGUMENT_ERROR = 'argument-error',
   APP_NOT_AUTHORIZED = 'app-not-authorized',
@@ -105,216 +105,216 @@ export const enum AuthError {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
-const ERRORS: ErrorMap<AuthError> = {
-  [AuthError.ADMIN_ONLY_OPERATION]:
+const ERRORS: ErrorMap<AuthErrorCode> = {
+  [AuthErrorCode.ADMIN_ONLY_OPERATION]:
     'This operation is restricted to administrators only.',
-  [AuthError.ARGUMENT_ERROR]: '',
-  [AuthError.APP_NOT_AUTHORIZED]:
+  [AuthErrorCode.ARGUMENT_ERROR]: '',
+  [AuthErrorCode.APP_NOT_AUTHORIZED]:
     "This app]: identified by the domain where it's hosted]: is not " +
     'authorized to use Firebase Authentication with the provided API key. ' +
     'Review your key configuration in the Google API console.',
-  [AuthError.APP_NOT_INSTALLED]:
+  [AuthErrorCode.APP_NOT_INSTALLED]:
     'The requested mobile application corresponding to the identifier (' +
     'Android package name or iOS bundle ID) provided is not installed on ' +
     'this device.',
-  [AuthError.CAPTCHA_CHECK_FAILED]:
+  [AuthErrorCode.CAPTCHA_CHECK_FAILED]:
     'The reCAPTCHA response token provided is either invalid]: expired]: ' +
     'already used or the domain associated with it does not match the list ' +
     'of whitelisted domains.',
-  [AuthError.CODE_EXPIRED]:
+  [AuthErrorCode.CODE_EXPIRED]:
     'The SMS code has expired. Please re-send the verification code to try ' +
     'again.',
-  [AuthError.CORDOVA_NOT_READY]: 'Cordova framework is not ready.',
-  [AuthError.CORS_UNSUPPORTED]: 'This browser is not supported.',
-  [AuthError.CREDENTIAL_ALREADY_IN_USE]:
+  [AuthErrorCode.CORDOVA_NOT_READY]: 'Cordova framework is not ready.',
+  [AuthErrorCode.CORS_UNSUPPORTED]: 'This browser is not supported.',
+  [AuthErrorCode.CREDENTIAL_ALREADY_IN_USE]:
     'This credential is already associated with a different user account.',
-  [AuthError.CREDENTIAL_MISMATCH]:
+  [AuthErrorCode.CREDENTIAL_MISMATCH]:
     'The custom token corresponds to a different audience.',
-  [AuthError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN]:
+  [AuthErrorCode.CREDENTIAL_TOO_OLD_LOGIN_AGAIN]:
     'This operation is sensitive and requires recent authentication. Log in ' +
     'again before retrying this request.',
-  [AuthError.DYNAMIC_LINK_NOT_ACTIVATED]:
+  [AuthErrorCode.DYNAMIC_LINK_NOT_ACTIVATED]:
     'Please activate ' +
     'Dynamic Links in the Firebase Console and agree to the terms and ' +
     'conditions.',
-  [AuthError.EMAIL_EXISTS]:
+  [AuthErrorCode.EMAIL_EXISTS]:
     'The email address is already in use by another account.',
-  [AuthError.EXPIRED_OOB_CODE]: 'The action code has expired. ',
-  [AuthError.EXPIRED_POPUP_REQUEST]:
+  [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired. ',
+  [AuthErrorCode.EXPIRED_POPUP_REQUEST]:
     'This operation has been cancelled due to another conflicting popup ' +
     'being opened.',
-  [AuthError.INTERNAL_ERROR]: 'An internal AuthError has occurred.',
-  [AuthError.INVALID_APP_CREDENTIAL]:
+  [AuthErrorCode.INTERNAL_ERROR]: 'An internal AuthError has occurred.',
+  [AuthErrorCode.INVALID_APP_CREDENTIAL]:
     'The phone verification request contains an invalid application verifier.' +
     ' The reCAPTCHA token response is either invalid or expired.',
-  [AuthError.INVALID_APP_ID]:
+  [AuthErrorCode.INVALID_APP_ID]:
     'The mobile app identifier is not registed for the current project.',
-  [AuthError.INVALID_AUTH]:
+  [AuthErrorCode.INVALID_AUTH]:
     "This user's credential isn't valid for this project. This can happen " +
     "if the user's token has been tampered with]: or if the user isn't for " +
     'the project associated with this API key.',
-  [AuthError.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
-  [AuthError.INVALID_CODE]:
+  [AuthErrorCode.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
+  [AuthErrorCode.INVALID_CODE]:
     'The SMS verification code used to create the phone auth credential is ' +
     'invalid. Please resend the verification code sms and be sure use the ' +
     'verification code provided by the user.',
-  [AuthError.INVALID_CONTINUE_URI]:
+  [AuthErrorCode.INVALID_CONTINUE_URI]:
     'The continue URL provided in the request is invalid.',
-  [AuthError.INVALID_CORDOVA_CONFIGURATION]:
+  [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]:
     'The following' +
     ' Cordova plugins must be installed to enable OAuth sign-in= ' +
     'cordova-plugin-buildinfo]: cordova-universal-links-plugin]: ' +
     'cordova-plugin-browsertab]: cordova-plugin-inappbrowser and ' +
     'cordova-plugin-customurlscheme.',
-  [AuthError.INVALID_CUSTOM_TOKEN]:
+  [AuthErrorCode.INVALID_CUSTOM_TOKEN]:
     'The custom token format is incorrect. Please check the documentation.',
-  [AuthError.INVALID_DYNAMIC_LINK_DOMAIN]:
+  [AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN]:
     'The provided ' +
     'dynamic link domain is not configured or authorized for the current ' +
     'project.',
-  [AuthError.INVALID_EMAIL]: 'The email address is badly formatted.',
-  [AuthError.INVALID_API_KEY]:
+  [AuthErrorCode.INVALID_EMAIL]: 'The email address is badly formatted.',
+  [AuthErrorCode.INVALID_API_KEY]:
     'Your API key is invalid]: please check you have copied it correctly.',
-  [AuthError.INVALID_CERT_HASH]:
+  [AuthErrorCode.INVALID_CERT_HASH]:
     'The SHA-1 certificate hash provided is invalid.',
-  [AuthError.INVALID_IDP_RESPONSE]:
+  [AuthErrorCode.INVALID_IDP_RESPONSE]:
     'The supplied auth credential is malformed or has expired.',
-  [AuthError.INVALID_MESSAGE_PAYLOAD]:
+  [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
     'The email template corresponding to this action contains invalid charac' +
     'ters in its message. Please fix by going to the Auth email templates se' +
     'ction in the Firebase Console.',
-  [AuthError.INVALID_OAUTH_PROVIDER]:
+  [AuthErrorCode.INVALID_OAUTH_PROVIDER]:
     'EmailAuthProvider is not supported for this operation. This operation ' +
     'only supports OAuth providers.',
-  [AuthError.INVALID_OAUTH_CLIENT_ID]:
+  [AuthErrorCode.INVALID_OAUTH_CLIENT_ID]:
     'The OAuth client ID provided is either invalid or does not match the ' +
     'specified API key.',
-  [AuthError.INVALID_ORIGIN]:
+  [AuthErrorCode.INVALID_ORIGIN]:
     'This domain is not authorized for OAuth operations for your Firebase ' +
     'project. Edit the list of authorized domains from the Firebase console.',
-  [AuthError.INVALID_OOB_CODE]:
+  [AuthErrorCode.INVALID_OOB_CODE]:
     'The action code is invalid. This can happen if the code is malformed]: ' +
     'expired]: or has already been used.',
-  [AuthError.INVALID_PASSWORD]:
+  [AuthErrorCode.INVALID_PASSWORD]:
     'The password is invalid or the user does not have a password.',
-  [AuthError.INVALID_PERSISTENCE]:
+  [AuthErrorCode.INVALID_PERSISTENCE]:
     'The specified persistence type is invalid. It can only be local]: ' +
     'session or none.',
-  [AuthError.INVALID_PHONE_NUMBER]:
+  [AuthErrorCode.INVALID_PHONE_NUMBER]:
     'The format of the phone number provided is incorrect. Please enter the ' +
     'phone number in a format that can be parsed into E.164 format. E.164 ' +
     'phone numbers are written in the format [+,[country code,[subscriber ' +
     'number including area code,.',
-  [AuthError.INVALID_PROVIDER_ID]: 'The specified provider ID is invalid.',
-  [AuthError.INVALID_RECIPIENT_EMAIL]:
+  [AuthErrorCode.INVALID_PROVIDER_ID]: 'The specified provider ID is invalid.',
+  [AuthErrorCode.INVALID_RECIPIENT_EMAIL]:
     'The email corresponding to this action failed to send as the provided ' +
     'recipient email address is invalid.',
-  [AuthError.INVALID_SENDER]:
+  [AuthErrorCode.INVALID_SENDER]:
     'The email template corresponding to this action contains an invalid sen' +
     'der email or name. Please fix by going to the Auth email templates sect' +
     'ion in the Firebase Console.',
-  [AuthError.INVALID_SESSION_INFO]:
+  [AuthErrorCode.INVALID_SESSION_INFO]:
     'The verification ID used to create the phone auth credential is invalid.',
-  [AuthError.INVALID_TENANT_ID]: "The Auth instance's tenant ID is invalid.",
-  [AuthError.MISSING_ANDROID_PACKAGE_NAME]:
+  [AuthErrorCode.INVALID_TENANT_ID]: "The Auth instance's tenant ID is invalid.",
+  [AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME]:
     'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
     'installed.',
-  [AuthError.MISSING_AUTH_DOMAIN]:
+  [AuthErrorCode.MISSING_AUTH_DOMAIN]:
     'Be sure to include authDomain when calling firebase.initializeApp()]: ' +
     'by following the instructions in the Firebase console.',
-  [AuthError.MISSING_APP_CREDENTIAL]:
+  [AuthErrorCode.MISSING_APP_CREDENTIAL]:
     'The phone verification request is missing an application verifier ' +
     'assertion. A reCAPTCHA response token needs to be provided.',
-  [AuthError.MISSING_CODE]:
+  [AuthErrorCode.MISSING_CODE]:
     'The phone auth credential was created with an empty SMS verification ' +
     'code.',
-  [AuthError.MISSING_CONTINUE_URI]:
+  [AuthErrorCode.MISSING_CONTINUE_URI]:
     'A continue URL must be provided in the request.',
-  [AuthError.MISSING_IFRAME_START]: 'An internal AuthError has occurred.',
-  [AuthError.MISSING_IOS_BUNDLE_ID]:
+  [AuthErrorCode.MISSING_IFRAME_START]: 'An internal AuthError has occurred.',
+  [AuthErrorCode.MISSING_IOS_BUNDLE_ID]:
     'An iOS Bundle ID must be provided if an App Store ID is provided.',
-  [AuthError.MISSING_OR_INVALID_NONCE]:
+  [AuthErrorCode.MISSING_OR_INVALID_NONCE]:
     'The request does not contain a valid nonce. This can occur if the ' +
     'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
     'in the ID token payload.',
-  [AuthError.MISSING_PHONE_NUMBER]:
+  [AuthErrorCode.MISSING_PHONE_NUMBER]:
     'To send verification codes]: provide a phone number for the recipient.',
-  [AuthError.MISSING_SESSION_INFO]:
+  [AuthErrorCode.MISSING_SESSION_INFO]:
     'The phone auth credential was created with an empty verification ID.',
-  [AuthError.MODULE_DESTROYED]:
+  [AuthErrorCode.MODULE_DESTROYED]:
     'This instance of FirebaseApp has been deleted.',
-  [AuthError.NEED_CONFIRMATION]:
+  [AuthErrorCode.NEED_CONFIRMATION]:
     'An account already exists with the same email address but different ' +
     'sign-in credentials. Sign in using a provider associated with this ' +
     'email address.',
-  [AuthError.NETWORK_REQUEST_FAILED]:
+  [AuthErrorCode.NETWORK_REQUEST_FAILED]:
     'A network AuthError (such as timeout]: interrupted connection or ' +
     'unreachable host) has occurred.',
-  [AuthError.NO_AUTH_EVENT]: 'An internal AuthError has occurred.',
-  [AuthError.NO_SUCH_PROVIDER]:
+  [AuthErrorCode.NO_AUTH_EVENT]: 'An internal AuthError has occurred.',
+  [AuthErrorCode.NO_SUCH_PROVIDER]:
     'User was not linked to an account with the given provider.',
-  [AuthError.NULL_USER]:
+  [AuthErrorCode.NULL_USER]:
     'A null user object was provided as the argument for an operation which ' +
     'requires a non-null user object.',
-  [AuthError.OPERATION_NOT_ALLOWED]:
+  [AuthErrorCode.OPERATION_NOT_ALLOWED]:
     'The given sign-in provider is disabled for this Firebase project. ' +
     'Enable it in the Firebase console]: under the sign-in method tab of the ' +
     'Auth section.',
-  [AuthError.OPERATION_NOT_SUPPORTED]:
+  [AuthErrorCode.OPERATION_NOT_SUPPORTED]:
     'This operation is not supported in the environment this application is ' +
     'running on. "location.protocol" must be http]: https or chrome-extension' +
     ' and web storage must be enabled.',
-  [AuthError.POPUP_BLOCKED]:
+  [AuthErrorCode.POPUP_BLOCKED]:
     'Unable to establish a connection with the popup. It may have been ' +
     'blocked by the browser.',
-  [AuthError.POPUP_CLOSED_BY_USER]:
+  [AuthErrorCode.POPUP_CLOSED_BY_USER]:
     'The popup has been closed by the user before finalizing the operation.',
-  [AuthError.PROVIDER_ALREADY_LINKED]:
+  [AuthErrorCode.PROVIDER_ALREADY_LINKED]:
     'User can only be linked to one identity for the given provider.',
-  [AuthError.QUOTA_EXCEEDED]:
+  [AuthErrorCode.QUOTA_EXCEEDED]:
     "The project's quota for this operation has been exceeded.",
-  [AuthError.REDIRECT_CANCELLED_BY_USER]:
+  [AuthErrorCode.REDIRECT_CANCELLED_BY_USER]:
     'The redirect operation has been cancelled by the user before finalizing.',
-  [AuthError.REDIRECT_OPERATION_PENDING]:
+  [AuthErrorCode.REDIRECT_OPERATION_PENDING]:
     'A redirect sign-in operation is already pending.',
-  [AuthError.REJECTED_CREDENTIAL]:
+  [AuthErrorCode.REJECTED_CREDENTIAL]:
     'The request contains malformed or mismatching credentials.',
-  [AuthError.TENANT_ID_MISMATCH]:
+  [AuthErrorCode.TENANT_ID_MISMATCH]:
     "The provided tenant ID does not match the Auth instance's tenant ID",
-  [AuthError.TIMEOUT]: 'The operation has timed out.',
-  [AuthError.TOKEN_EXPIRED]:
+  [AuthErrorCode.TIMEOUT]: 'The operation has timed out.',
+  [AuthErrorCode.TOKEN_EXPIRED]:
     "The user's credential is no longer valid. The user must sign in again.",
-  [AuthError.TOO_MANY_ATTEMPTS_TRY_LATER]:
+  [AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER]:
     'We have blocked all requests from this device due to unusual activity. ' +
     'Try again later.',
-  [AuthError.UNAUTHORIZED_DOMAIN]:
+  [AuthErrorCode.UNAUTHORIZED_DOMAIN]:
     'The domain of the continue URL is not whitelisted.  Please whitelist ' +
     'the domain in the Firebase console.',
-  [AuthError.UNSUPPORTED_PERSISTENCE]:
+  [AuthErrorCode.UNSUPPORTED_PERSISTENCE]:
     'The current environment does not support the specified persistence type.',
-  [AuthError.UNSUPPORTED_TENANT_OPERATION]:
+  [AuthErrorCode.UNSUPPORTED_TENANT_OPERATION]:
     'This operation is not supported in a multi-tenant context.',
-  [AuthError.USER_CANCELLED]:
+  [AuthErrorCode.USER_CANCELLED]:
     'The user did not grant your application the permissions it requested.',
-  [AuthError.USER_DELETED]:
+  [AuthErrorCode.USER_DELETED]:
     'There is no user record corresponding to this identifier. The user may ' +
     'have been deleted.',
-  [AuthError.USER_DISABLED]:
+  [AuthErrorCode.USER_DISABLED]:
     'The user account has been disabled by an administrator.',
-  [AuthError.USER_MISMATCH]:
+  [AuthErrorCode.USER_MISMATCH]:
     'The supplied credentials do not correspond to the previously signed in ' +
     'user.',
-  [AuthError.USER_SIGNED_OUT]: '',
-  [AuthError.WEAK_PASSWORD]: 'The password must be 6 characters long or more.',
-  [AuthError.WEB_STORAGE_UNSUPPORTED]:
+  [AuthErrorCode.USER_SIGNED_OUT]: '',
+  [AuthErrorCode.WEAK_PASSWORD]: 'The password must be 6 characters long or more.',
+  [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
     'This browser is not supported or 3rd party cookies and data may be ' +
     'disabled.'
 };
 
-type AuthErrorParams = { [key in AuthError]: { appName: AppName } };
+type AuthErrorParams = { [key in AuthErrorCode]: { appName: AppName } };
 
-export const AUTH_ERROR_FACTORY = new ErrorFactory<AuthError, AuthErrorParams>(
+export const AUTH_ERROR_FACTORY = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
   'auth',
   'Firebase',
   ERRORS

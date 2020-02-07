@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { IdTokenResult, IdToken, parseIdToken } from './id_token';
+import { IdTokenResult, IdToken, parseIdToken, IdTokenResponse } from './id_token';
+import { Auth } from '..';
 
 export interface UserInfo {
   readonly uid: string;
@@ -26,28 +27,51 @@ export interface UserInfo {
 }
 
 export class User implements UserInfo {
+  readonly apiKey: string;
+  readonly appName: string;
+  readonly authDomain?: string;
   constructor(
-    public readonly refreshToken: string,
+    auth: Auth, 
+    public readonly stsTokenManager: StsTokenManager,
     public readonly uid: string,
-    private idToken: IdToken,
-    public readonly isAnonymous: boolean = false,
-    public readonly displayName = null,
-    public readonly email = null,
-    public readonly phoneNumber = null,
-    public readonly photoURL = null
-  ) {}
+    public readonly displayName: string | null = null,
+    public readonly email: string | null = null,
+    public readonly phoneNumber: string | null = null,
+    public readonly photoURL: string | null = null,
+    public readonly isAnonymous: boolean = false
+  ) {
+    this.apiKey = auth.config.apiKey;
+    this.appName = auth.name;
+    this.authDomain = auth.config.authDomain;
+  }
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
-    return Promise.resolve(this.idToken);
+    return Promise.resolve(this.stsTokenManager.accessToken);
   }
 
   async getIdTokenResult(
     forceRefresh: boolean = false
   ): Promise<IdTokenResult> {
-    return parseIdToken(this.idToken);
+    return parseIdToken(this.stsTokenManager.accessToken);
   }
 
-  reload(): Promise<void> {
-    throw new Error('not implemented');
+  async reload(): Promise<User> {
+    // TODO: this should call getAccountInfo and set all the additional fields
+    return this;
+  }
+}
+
+export class StsTokenManager {
+  readonly refreshToken: string;
+  readonly accessToken: IdToken;
+  readonly expirationTime: number;
+  constructor(public readonly apiKey: string, idTokenResponse: IdTokenResponse) {
+    this.refreshToken = idTokenResponse.refreshToken;
+    this.accessToken = idTokenResponse.idToken;
+    this.expirationTime = StsTokenManager.calcOffsetTimestamp_(idTokenResponse.expiresIn);
+  }
+
+  private static calcOffsetTimestamp_(offset: string): number {
+    return Date.now() + +offset * 1000;
   }
 }

@@ -16,7 +16,17 @@
  */
 
 import { User } from './user';
+import { ProviderId } from '../core/providers';
+
+export enum OperationType {
+  LINK = 'link',
+  REAUTHENTICATE = 'reauthenticate',
+  SIGN_IN = 'signIn'
+}
 
 export class UserCredential {
-  constructor(public readonly user: User) {}
+  constructor(
+    public readonly user: User,
+     public readonly providerid: ProviderId, 
+     public readonly operationType: OperationType) {}
 }

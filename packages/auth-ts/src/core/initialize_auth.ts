@@ -19,14 +19,14 @@ import { FirebaseApp } from '@firebase/app-types';
 import { Auth, Dependencies } from '../model/auth';
 import firebase from '@firebase/app';
 import { inMemoryPersistence } from './persistence/in_memory';
-import { AUTH_ERROR_FACTORY, AuthError } from './errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
 export function initializeAuth(
   app: FirebaseApp = firebase.app(),
   deps?: Dependencies
 ): Auth {
   if (!app.options.apiKey) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
   }

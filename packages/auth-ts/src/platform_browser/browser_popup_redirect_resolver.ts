@@ -3,7 +3,7 @@
  * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you maAuthErrorCode this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
@@ -20,7 +20,7 @@ import { Auth } from '../../src';
 import { ProviderId, AuthProvider } from '../core/providers';
 import { AuthEventType } from '../model/auth_event';
 import { UserCredential } from '../model/user_credential';
-import { AuthError, AUTH_ERROR_FACTORY } from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { ApiKey, AppName } from '../model/auth';
 import { isEmpty } from '@firebase/util';
 import { OAuthProvider } from '../core/providers/oauth';
@@ -59,12 +59,12 @@ function getRedirectUrl(
   authType: AuthEventType
 ): string {
   if (!auth.config.authDomain) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.MISSING_AUTH_DOMAIN, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MISSING_AUTH_DOMAIN, {
       appName: auth.name
     });
   }
   if (!auth.config.apiKey) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_API_KEY, {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_API_KEY, {
       appName: auth.name
     });
   }

@@ -17,8 +17,8 @@
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { OAuthCredential } from '../../model/auth_credential';
-import { AuthError } from '../errors';
+import { OAuthCredential } from '../strategies/auth_credential';
+import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 
 export class GoogleAuthProvider extends OAuthProvider {
@@ -30,7 +30,7 @@ export class GoogleAuthProvider extends OAuthProvider {
   ): OAuthCredential | null {
     throw new Error('not implemented');
   }
-  static credentialFromError(error: AuthError): OAuthCredential | null {
+  static credentialFromError(error: AuthErrorCode): OAuthCredential | null {
     throw new Error('not implemented');
   }
   static credential(

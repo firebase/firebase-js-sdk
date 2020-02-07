@@ -16,9 +16,9 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential, OAuthCredential } from '../../model/auth_credential';
+import { AuthCredential, OAuthCredential } from '../strategies/auth_credential';
 import { UserCredential } from '../../model/user_credential';
-import { AuthError } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { CustomParameters, OAuthProvider } from './oauth';
 
 export class TwitterAuthProvider extends OAuthProvider {
@@ -33,7 +33,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   ): OAuthCredential | null {
     throw new Error('not implemented');
   }
-  static credentialFromError(error: AuthError): OAuthCredential | null {
+  static credentialFromError(error: AuthErrorCode): OAuthCredential | null {
     throw new Error('not implemented');
   }
   static credentialFromJSON(json: object): OAuthCredential {

@@ -15,27 +15,26 @@
  * limitations under the License.
  */
 
-import { UserCredential } from '../../model/user_credential';
+import { UserCredential, OperationType } from '../../model/user_credential';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { signUp } from '../../api/authentication';
-import { AUTH_ERROR_FACTORY, AuthError } from '../errors';
+import { ProviderId } from '../providers';
+import { signInWithIdTokenResponse } from '.';
+
+function userCredentialFromUser(user: User): UserCredential {
+  return new UserCredential(user, ProviderId.ANONYMOUS, OperationType.SIGN_IN);
+}
 
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   await auth.isInitialized();
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign him again.
-    return new UserCredential(auth.currentUser);
+    return userCredentialFromUser(auth.currentUser);
   }
-  const { refreshToken, localId, idToken } = await signUp(auth, {
+  const response = await signUp(auth, {
     returnSecureToken: true
   });
-  if (!refreshToken || !idToken) {
-    throw AUTH_ERROR_FACTORY.create(AuthError.INVALID_AUTH, {
-      appName: auth.name
-    });
-  }
-  const user = new User(refreshToken, localId, idToken, true);
-  await auth.setCurrentUser(user);
-  return new UserCredential(user);
+  const user = await signInWithIdTokenResponse(auth, response);
+  return userCredentialFromUser(user);
 }

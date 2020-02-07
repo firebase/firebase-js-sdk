@@ -14,9 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { UserCredential, OperationType } from '../../model/user_credential';
+import { ProviderId } from '../providers';
+import { Auth } from '../..';
+import { User } from '../../model/user';
 
 export interface AuthCredential {
-  readonly providerId: string;
+  readonly providerId: ProviderId;
   readonly signInMethod: string;
   toJSON(): object;
 }
@@ -26,4 +30,10 @@ export interface OAuthCredential extends AuthCredential {
   readonly accessToken?: string;
   readonly secret?: string;
   toJSON(): object;
+}
+
+// TODO: can we do this without passing in user?
+export async function signInWithCredential(auth: Auth, credential: AuthCredential, user: User): Promise<UserCredential> {
+  await auth.setCurrentUser(user);
+  return new UserCredential(user, credential.providerId, OperationType.SIGN_IN);
 }
