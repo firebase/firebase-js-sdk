@@ -88,7 +88,10 @@ export class ActionCodeURL {
   }
 }
 
-export function actionCodeURLfromLink(auth: Auth, link: string): ActionCodeURL | null {
+export function actionCodeURLfromLink(
+  auth: Auth,
+  link: string
+): ActionCodeURL | null {
   const actionLink = parseDeepLink(link);
   try {
     return new ActionCodeURL(auth, actionLink);

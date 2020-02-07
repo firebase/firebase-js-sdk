@@ -34,22 +34,25 @@ export interface ActionCodeInfo {
   operation: string;
 }
 
-export function actionCodeInfoFromResetPasswordResponse(auth: Auth, response: ResetPasswordResponse): ActionCodeInfo {
+export function actionCodeInfoFromResetPasswordResponse(
+  auth: Auth,
+  response: ResetPasswordResponse
+): ActionCodeInfo {
   // Original email for email change revocation.
   var email = response.email;
   var operation = response.requestType;
   // Email could be empty only if the request type is EMAIL_SIGNIN.
-  if (!operation ||
-      (operation != Operation.EMAIL_SIGNIN &&
-      !email)) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name })
+  if (!operation || (operation != Operation.EMAIL_SIGNIN && !email)) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
   }
 
   return {
     data: {
       email: email || null,
-      fromEmail: response.newEmail || null,
+      fromEmail: response.newEmail || null
     },
     operation
-  }
+  };
 }

@@ -55,5 +55,8 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<UserCredential> {
-  return signInWithCredential(auth, emailAuthCredentialWithLink(auth, email, emailLink));
+  return signInWithCredential(
+    auth,
+    emailAuthCredentialWithLink(auth, email, emailLink)
+  );
 }

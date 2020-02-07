@@ -22,7 +22,10 @@ import { getCurrentUrl } from '../util/location';
 import { actionCodeURLfromLink } from '../../model/action_code_url';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { IdTokenResponse } from '../../model/id_token';
-import { signInWithEmailLink, signInWithPassword } from '../../api/authentication';
+import {
+  signInWithEmailLink,
+  signInWithPassword
+} from '../../api/authentication';
 
 export class EmailAuthCredential implements AuthCredential {
   constructor(
@@ -41,19 +44,21 @@ export class EmailAuthCredential implements AuthCredential {
   }
   async getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-    case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
-      return signInWithPassword(auth, {
-        returnSecureToken: true,
-        email: this.email,
-        password: this.password
-      });
-    case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
-      return signInWithEmailLink(auth, {
-        email: this.email,
-        oobCode: this.password
-      });
-    default:
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+        return signInWithPassword(auth, {
+          returnSecureToken: true,
+          email: this.email,
+          password: this.password
+        });
+      case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+        return signInWithEmailLink(auth, {
+          email: this.email,
+          oobCode: this.password
+        });
+      default:
+        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+          appName: auth.name
+        });
     }
   }
 }
@@ -72,19 +77,25 @@ export class EmailAuthProvider implements AuthProvider {
       email,
       password,
       EmailAuthProvider.PROVIDER_ID,
-      signInMethod === this.EMAIL_PASSWORD_SIGN_IN_METHOD ? signInMethod : this.EMAIL_LINK_SIGN_IN_METHOD
+      signInMethod === this.EMAIL_PASSWORD_SIGN_IN_METHOD
+        ? signInMethod
+        : this.EMAIL_LINK_SIGN_IN_METHOD
     );
   }
 }
 
 /**
  * Generates an AuthCredential from email & emailLink, using the actionCodeUrl.code in lieu of password
- * 
+ *
  * @param auth
- * @param email 
+ * @param email
  * @param emailLink Link from which to extract the credential
  */
-export function emailAuthCredentialWithLink(auth: Auth, email: string, emailLink?: string): EmailAuthCredential {
+export function emailAuthCredentialWithLink(
+  auth: Auth,
+  email: string,
+  emailLink?: string
+): EmailAuthCredential {
   const link = emailLink || getCurrentUrl();
   const actionCodeUrl = actionCodeURLfromLink(auth, link);
   if (!actionCodeUrl) {

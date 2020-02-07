@@ -27,7 +27,10 @@ import {
 } from '../../model/action_code_settings';
 import { signInWithCredential } from './auth_credential';
 import { resetPassword } from '../../api/account_management';
-import { ActionCodeInfo, actionCodeInfoFromResetPasswordResponse } from '../../model/action_code_info';
+import {
+  ActionCodeInfo,
+  actionCodeInfoFromResetPasswordResponse
+} from '../../model/action_code_info';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -52,7 +55,10 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  return signInWithCredential(auth, EmailAuthProvider.credential(email, password));
+  return signInWithCredential(
+    auth,
+    EmailAuthProvider.credential(email, password)
+  );
 }
 
 export async function sendEmailVerification(
@@ -92,7 +98,11 @@ export async function sendPasswordResetEmail(
   await api.sendOobCode(auth, request);
 }
 
-export async function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void> {
+export async function confirmPasswordReset(
+  auth: Auth,
+  oobCode: string,
+  newPassword: string
+): Promise<void> {
   await resetPassword(auth, {
     oobCode,
     newPassword
@@ -102,15 +112,21 @@ export async function confirmPasswordReset(auth: Auth, oobCode: string, newPassw
 
 // verifyBeforeUpdateEmail
 
-export async function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo> {
+export async function checkActionCode(
+  auth: Auth,
+  oobCode: string
+): Promise<ActionCodeInfo> {
   let response = await resetPassword(auth, {
     oobCode
-  })
-  return actionCodeInfoFromResetPasswordResponse(auth, response)
+  });
+  return actionCodeInfoFromResetPasswordResponse(auth, response);
 }
 
-export async function verifyPasswordResetCode(auth: Auth, code: string): Promise<string> {
-  const info: ActionCodeInfo = await checkActionCode(auth, code)
+export async function verifyPasswordResetCode(
+  auth: Auth,
+  code: string
+): Promise<string> {
+  const info: ActionCodeInfo = await checkActionCode(auth, code);
 
-  return info.data.email
+  return info.data.email;
 }

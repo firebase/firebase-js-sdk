@@ -44,8 +44,14 @@ import {
 } from './core/strategies/email_link';
 import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
-import { AuthCredential, signInWithCredential } from './core/strategies/auth_credential';
-import { EmailAuthProvider, emailAuthCredentialWithLink } from './core/providers/email';
+import {
+  AuthCredential,
+  signInWithCredential
+} from './core/strategies/auth_credential';
+import {
+  EmailAuthProvider,
+  emailAuthCredentialWithLink
+} from './core/providers/email';
 import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
 
 interface FirebaseAuth extends Auth {}
