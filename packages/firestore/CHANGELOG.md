@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed an issue where `CollectionReference.add()` would reject
+  custom types when using `withConverter()`. (#2606)
+
+# 1.9.3
 - [fixed] Fixed an issue where auth credentials were not respected in some
   Firefox or Chrome extensions. (#1491)
 - [changed] Firestore previously required that every document read in a
