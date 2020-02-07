@@ -33,7 +33,11 @@ export interface OAuthCredential extends AuthCredential {
 }
 
 // TODO: can we do this without passing in user?
-export async function signInWithCredential(auth: Auth, credential: AuthCredential, user: User): Promise<UserCredential> {
+export async function signInWithCredential(
+  auth: Auth,
+  credential: AuthCredential,
+  user: User
+): Promise<UserCredential> {
   await auth.setCurrentUser(user);
   return new UserCredential(user, credential.providerId, OperationType.SIGN_IN);
 }

@@ -3,7 +3,7 @@ export enum Operation {
   RECOVER_EMAIL = 'RECOVER_EMAIL',
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
   VERIFY_EMAIL = 'VERIFY_EMAIL'
-};
+}
 
 export interface ActionCodeInfo {
   data: {

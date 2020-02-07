@@ -117,8 +117,8 @@ export function encodeIdToken(
 }
 
 export interface IdTokenResponse {
-  idToken: IdToken,
-  refreshToken: string,
-  expiresIn: string,
-  localId: string
+  idToken: IdToken;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
 }

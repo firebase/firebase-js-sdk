@@ -25,7 +25,7 @@ enum Kind {
   SIGN_IN_WITH_EMAIL_LINK = 'identitytoolkit#EmailLinkSigninResponse',
   SIGN_IN_WITH_PASSWORD = 'identitytoolkit#VerifyPasswordResponse',
   SEND_VERIFICATION_CODE = '',
-  SEND_OOB_CODE = "identitytoolkit#GetOobConfirmationCodeResponse"
+  SEND_OOB_CODE = 'identitytoolkit#GetOobConfirmationCodeResponse'
 }
 
 export interface SignUpRequest {
@@ -101,18 +101,18 @@ export interface GetOobCodeRequest {
 }
 
 export interface VerifyEmailRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.VERIFY_EMAIL,
-  idToken: IdToken
+  requestType: GetOobCodeRequestType.VERIFY_EMAIL;
+  idToken: IdToken;
 }
 
 export interface PasswordResetRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.PASSWORD_RESET,
-  email: string
+  requestType: GetOobCodeRequestType.PASSWORD_RESET;
+  email: string;
 }
 
 export interface EmailSigninRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.EMAIL_SIGNIN,
-  email: string
+  requestType: GetOobCodeRequestType.EMAIL_SIGNIN;
+  email: string;
 }
 
 export interface GetOobCodeResponse {
@@ -133,21 +133,22 @@ export async function sendOobCode(
 }
 
 export interface SignInWithEmailLinkRequest {
-  email: string,
-  oobCode: string,
+  email: string;
+  oobCode: string;
 }
 
 export interface SignInWithEmailLinkResponse extends IdTokenResponse {
-  kind: Kind.SIGN_IN_WITH_EMAIL_LINK,
-  email: string,
-  isNewUser: boolean
+  kind: Kind.SIGN_IN_WITH_EMAIL_LINK;
+  email: string;
+  isNewUser: boolean;
 }
 
-export async function signInWithEmailLink(auth: Auth, request: SignInWithEmailLinkRequest): Promise< SignInWithEmailLinkResponse> {
-  return performApiRequest<SignInWithEmailLinkRequest, SignInWithEmailLinkResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SIGN_IN_WITH_EMAIL_LINK,
-    request
-  );
+export async function signInWithEmailLink(
+  auth: Auth,
+  request: SignInWithEmailLinkRequest
+): Promise<SignInWithEmailLinkResponse> {
+  return performApiRequest<
+    SignInWithEmailLinkRequest,
+    SignInWithEmailLinkResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
 }

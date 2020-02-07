@@ -19,7 +19,12 @@ import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { AuthCredential } from '../strategies/auth_credential';
 
 export class EmailAuthCredential implements AuthCredential {
-  constructor(readonly email: string, readonly password: string, readonly providerId: typeof EmailAuthProvider.PROVIDER_ID, readonly signInMethod: SignInMethod) {}
+  constructor(
+    readonly email: string,
+    readonly password: string,
+    readonly providerId: typeof EmailAuthProvider.PROVIDER_ID,
+    readonly signInMethod: SignInMethod
+  ) {}
   toJSON(): object {
     return {
       email: this.email,
@@ -35,7 +40,11 @@ export class EmailAuthProvider implements AuthProvider {
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
   static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
   readonly providerId: ProviderId = EmailAuthProvider.PROVIDER_ID;
-  static credential(email: string, password: string, signInMethod: SignInMethod): EmailAuthCredential {
+  static credential(
+    email: string,
+    password: string,
+    signInMethod: SignInMethod
+  ): EmailAuthCredential {
     return new EmailAuthCredential(
       email,
       password,

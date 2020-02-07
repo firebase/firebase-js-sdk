@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { IdTokenResult, IdToken, parseIdToken, IdTokenResponse } from './id_token';
+import {
+  IdTokenResult,
+  IdToken,
+  parseIdToken,
+  IdTokenResponse
+} from './id_token';
 import { Auth } from '..';
 
 export interface UserInfo {
@@ -31,7 +36,7 @@ export class User implements UserInfo {
   readonly appName: string;
   readonly authDomain?: string;
   constructor(
-    auth: Auth, 
+    auth: Auth,
     public readonly stsTokenManager: StsTokenManager,
     public readonly uid: string,
     public readonly displayName: string | null = null,
@@ -65,10 +70,15 @@ export class StsTokenManager {
   readonly refreshToken: string;
   readonly accessToken: IdToken;
   readonly expirationTime: number;
-  constructor(public readonly apiKey: string, idTokenResponse: IdTokenResponse) {
+  constructor(
+    public readonly apiKey: string,
+    idTokenResponse: IdTokenResponse
+  ) {
     this.refreshToken = idTokenResponse.refreshToken;
     this.accessToken = idTokenResponse.idToken;
-    this.expirationTime = StsTokenManager.calcOffsetTimestamp_(idTokenResponse.expiresIn);
+    this.expirationTime = StsTokenManager.calcOffsetTimestamp_(
+      idTokenResponse.expiresIn
+    );
   }
 
   private static calcOffsetTimestamp_(offset: string): number {

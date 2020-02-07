@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
 import { Operation } from './action_code_info';
 import { Auth } from '..';
 
@@ -25,14 +25,14 @@ import { Auth } from '..';
  */
 enum QueryField {
   API_KEY = 'apiKey',
-  CODE ='oobCode',
+  CODE = 'oobCode',
   CONTINUE_URL = 'continueUrl',
   LANGUAGE_CODE = 'languageCode',
   MODE = 'mode',
   TENANT_ID = 'tenantId'
-};
+}
 
-const ModeToOperationMap_: {[key: string]: Operation } = {
+const ModeToOperationMap_: { [key: string]: Operation } = {
   'recoverEmail': Operation.RECOVER_EMAIL,
   'resetPassword': Operation.PASSWORD_RESET,
   'signIn': Operation.EMAIL_SIGNIN,
@@ -44,16 +44,18 @@ const ModeToOperationMap_: {[key: string]: Operation } = {
  */
 function parseMode(mode: string | null): Operation | null {
   return mode ? ModeToOperationMap_[mode] || null : null;
-};
+}
 
 function parseDeepLink(url: string): string {
   const uri = new URL(url);
   const link = uri.searchParams.get('link');
   // Double link case (automatic redirect).
-  const doubleDeepLink = link ? (new URL(link)).searchParams.get('link') : null;
+  const doubleDeepLink = link ? new URL(link).searchParams.get('link') : null;
   // iOS custom scheme links.
   const iOSDeepLink = uri.searchParams.get('deep_link_id');
-  const iOSDoubleDeepLink = iOSDeepLink ? (new URL(iOSDeepLink)).searchParams.get('link') : null;
+  const iOSDoubleDeepLink = iOSDeepLink
+    ? new URL(iOSDeepLink).searchParams.get('link')
+    : null;
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
 
@@ -72,7 +74,9 @@ export class ActionCodeURL {
     const operation = parseMode(uri.searchParams.get(QueryField.MODE));
     // Validate API key, code and mode.
     if (!apiKey || !code || !operation) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, { appName: auth.name, });
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
+        appName: auth.name
+      });
     }
     this.apiKey = apiKey;
     this.operation = operation;
@@ -84,10 +88,10 @@ export class ActionCodeURL {
   }
 
   static fromEmailLink(auth: Auth, emailLink: string): ActionCodeURL | null {
-    let actionLink = parseDeepLink(emailLink)
+    let actionLink = parseDeepLink(emailLink);
     try {
       return new ActionCodeURL(auth, actionLink);
-    } catch(e) {
+    } catch (e) {
       return null;
     }
   }

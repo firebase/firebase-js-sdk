@@ -215,7 +215,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'ion in the Firebase Console.',
   [AuthErrorCode.INVALID_SESSION_INFO]:
     'The verification ID used to create the phone auth credential is invalid.',
-  [AuthErrorCode.INVALID_TENANT_ID]: "The Auth instance's tenant ID is invalid.",
+  [AuthErrorCode.INVALID_TENANT_ID]:
+    "The Auth instance's tenant ID is invalid.",
   [AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME]:
     'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
@@ -306,7 +307,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'The supplied credentials do not correspond to the previously signed in ' +
     'user.',
   [AuthErrorCode.USER_SIGNED_OUT]: '',
-  [AuthErrorCode.WEAK_PASSWORD]: 'The password must be 6 characters long or more.',
+  [AuthErrorCode.WEAK_PASSWORD]:
+    'The password must be 6 characters long or more.',
   [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
     'This browser is not supported or 3rd party cookies and data may be ' +
     'disabled.'
@@ -314,8 +316,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
 
 type AuthErrorParams = { [key in AuthErrorCode]: { appName: AppName } };
 
-export const AUTH_ERROR_FACTORY = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
-  'auth',
-  'Firebase',
-  ERRORS
-);
+export const AUTH_ERROR_FACTORY = new ErrorFactory<
+  AuthErrorCode,
+  AuthErrorParams
+>('auth', 'Firebase', ERRORS);

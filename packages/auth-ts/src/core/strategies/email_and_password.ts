@@ -21,7 +21,10 @@ import { User } from '../../model/user';
 import * as api from '../../api/authentication';
 import { EmailAuthProvider } from '../providers/email';
 import { signInWithIdTokenResponse } from '.';
-import { setActionCodeSettingsOnRequest, ActionCodeSettings } from '../../model/action_code_settings';
+import {
+  setActionCodeSettingsOnRequest,
+  ActionCodeSettings
+} from '../../model/action_code_settings';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -34,7 +37,11 @@ export async function createUserWithEmailAndPassword(
     password
   });
   const user = await signInWithIdTokenResponse(auth, response);
-  return new UserCredential(user, EmailAuthProvider.PROVIDER_ID, OperationType.SIGN_IN);
+  return new UserCredential(
+    user,
+    EmailAuthProvider.PROVIDER_ID,
+    OperationType.SIGN_IN
+  );
 }
 
 export async function signInWithEmailAndPassword(
@@ -42,16 +49,17 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const response = await api.signInWithPassword(
-    auth,
-    {
-      returnSecureToken: true,
-      email,
-      password
-    }
-  );
+  const response = await api.signInWithPassword(auth, {
+    returnSecureToken: true,
+    email,
+    password
+  });
   const user = await signInWithIdTokenResponse(auth, response);
-  return new UserCredential(user!, EmailAuthProvider.PROVIDER_ID, OperationType.SIGN_IN);
+  return new UserCredential(
+    user!,
+    EmailAuthProvider.PROVIDER_ID,
+    OperationType.SIGN_IN
+  );
 }
 
 export async function sendEmailVerification(
@@ -68,14 +76,18 @@ export async function sendEmailVerification(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  const response =  await api.sendOobCode(auth, request);
+  const response = await api.sendOobCode(auth, request);
 
   if (response.email !== user.email) {
     await user.reload();
   }
 }
 
-export async function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void> {
+export async function sendPasswordResetEmail(
+  auth: Auth,
+  email: string,
+  actionCodeSettings?: ActionCodeSettings
+): Promise<void> {
   const request: api.PasswordResetRequest = {
     requestType: api.GetOobCodeRequestType.PASSWORD_RESET,
     email

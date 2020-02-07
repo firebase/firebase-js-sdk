@@ -129,7 +129,8 @@ export const SERVER_ERROR_MAP: ServerErrorMap<ServerError> = {
   [ServerError.INVALID_PENDING_TOKEN]: AuthErrorCode.INVALID_IDP_RESPONSE,
   [ServerError.FEDERATED_USER_ID_ALREADY_LINKED]:
     AuthErrorCode.CREDENTIAL_ALREADY_IN_USE,
-  [ServerError.MISSING_OR_INVALID_NONCE]: AuthErrorCode.MISSING_OR_INVALID_NONCE,
+  [ServerError.MISSING_OR_INVALID_NONCE]:
+    AuthErrorCode.MISSING_OR_INVALID_NONCE,
 
   // Email template errors while sending emails:
   [ServerError.INVALID_MESSAGE_PAYLOAD]: AuthErrorCode.INVALID_MESSAGE_PAYLOAD,
