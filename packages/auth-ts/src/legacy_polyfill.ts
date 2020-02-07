@@ -25,7 +25,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   confirmPasswordReset,
-  verifyPasswordResetCode,
+  verifyPasswordResetCode
 } from './core/strategies/email_and_password';
 import {
   getRedirectResult,

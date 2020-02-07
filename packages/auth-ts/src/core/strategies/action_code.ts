@@ -1,5 +1,8 @@
 import { Auth } from '../..';
-import { ActionCodeInfo, actionCodeInfoFromResetPasswordResponse } from '../../model/action_code_info';
+import {
+  ActionCodeInfo,
+  actionCodeInfoFromResetPasswordResponse
+} from '../../model/action_code_info';
 import { resetPassword } from '../../api/account_management';
 
 export async function checkActionCode(

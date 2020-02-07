@@ -27,8 +27,7 @@ import {
 } from '../../model/action_code_settings';
 import { signInWithCredential } from './auth_credential';
 import { resetPassword } from '../../api/account_management';
-import {
-  ActionCodeInfo } from '../../model/action_code_info';
+import { ActionCodeInfo } from '../../model/action_code_info';
 import { checkActionCode } from './action_code';
 
 export async function createUserWithEmailAndPassword(
