@@ -16,10 +16,23 @@
  */
 
 import { Auth } from '../../model/auth';
+import * as api from '../../api/authentication';
+import { getCurrentUrl, isHttpOrHttps } from '../util/location';
 
-export function fetchSignInMethodsForEmail(
+export async function fetchSignInMethodsForEmail(
   auth: Auth,
   email: string
 ): Promise<string[]> {
-  throw new Error('not implemented');
+  // createAuthUri returns an error if continue URI is not http or https.
+  // For environments like Cordova, Chrome extensions, native frameworks, file
+  // systems, etc, use http://localhost as continue URL.
+  const continueUri = isHttpOrHttps() ? getCurrentUrl() : 'http://localhost';
+  const request: api.CreateAuthUriRequest = {
+    identifier: email,
+    continueUri
+  };
+
+  const response = await api.createAuthUri(auth, request);
+
+  return response.signinMethods || [];
 }

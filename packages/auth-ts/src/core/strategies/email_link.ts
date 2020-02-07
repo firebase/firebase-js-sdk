@@ -22,7 +22,7 @@ import { Operation } from '../../model/action_code_info';
 import { getCurrentUrl } from '../util/location';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { EmailAuthProvider, EmailAuthCredential } from '../providers/email';
-import { signInWithIdTokenResponse } from '.';
+import { initializeCurrentUserFromIdTokenResponse } from '.';
 import {
   ActionCodeSettings,
   setActionCodeSettingsOnRequest
@@ -86,7 +86,7 @@ export async function signInWithEmailLink(
     oobCode: credential.password
   });
 
-  const user = await signInWithIdTokenResponse(auth, response);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(
     user!,
     EmailAuthProvider.PROVIDER_ID,

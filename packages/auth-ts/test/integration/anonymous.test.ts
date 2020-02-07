@@ -23,7 +23,7 @@ import { initializeAuth } from '../../src/core/initialize_auth';
 import { FirebaseApp } from '@firebase/app-types';
 
 import * as PROJECT_CONFIG from '../../../../config/project.json';
-import { Provider } from '../../src/model/id_token';
+import { ProviderId } from '../../src/core/providers';
 
 describe('signInAnonymously', () => {
   let app: FirebaseApp;
@@ -40,7 +40,7 @@ describe('signInAnonymously', () => {
 
     const userCredential = await signInAnonymously(auth);
     expect(userCredential).to.be.instanceOf(UserCredential);
-    expect(userCredential.user.refreshToken).to.not.be.empty;
+    expect(userCredential.user.stsTokenManager.refreshToken).to.not.be.empty;
     expect(userCredential.user.isAnonymous).to.be.true;
     expect(userCredential.user.uid).to.not.be.empty;
 
@@ -52,7 +52,7 @@ describe('signInAnonymously', () => {
     expect(idTokenResult.claims).to.be.empty;
     expect(idTokenResult.expirationTime).to.not.be.empty;
     expect(idTokenResult.issuedAtTime).to.not.be.empty;
-    expect(idTokenResult.signInProvider).to.eq(Provider.ANONYMOUS);
+    expect(idTokenResult.signInProvider).to.eq(ProviderId.ANONYMOUS);
     expect(idTokenResult.signInSecondFactor).to.be.null;
   });
 });

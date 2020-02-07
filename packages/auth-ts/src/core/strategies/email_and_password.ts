@@ -20,7 +20,7 @@ import { UserCredential, OperationType } from '../../model/user_credential';
 import { User } from '../../model/user';
 import * as api from '../../api/authentication';
 import { EmailAuthProvider } from '../providers/email';
-import { signInWithIdTokenResponse } from '.';
+import { initializeCurrentUserFromIdTokenResponse } from '.';
 import {
   setActionCodeSettingsOnRequest,
   ActionCodeSettings
@@ -36,7 +36,7 @@ export async function createUserWithEmailAndPassword(
     email,
     password
   });
-  const user = await signInWithIdTokenResponse(auth, response);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(
     user,
     EmailAuthProvider.PROVIDER_ID,
@@ -54,7 +54,7 @@ export async function signInWithEmailAndPassword(
     email,
     password
   });
-  const user = await signInWithIdTokenResponse(auth, response);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(
     user!,
     EmailAuthProvider.PROVIDER_ID,

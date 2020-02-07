@@ -22,11 +22,11 @@ import { initializeAuth } from '../../src/core/initialize_auth';
 import { FirebaseApp } from '@firebase/app-types';
 
 import * as PROJECT_CONFIG from '../../../../config/project.json';
-import { Provider } from '../../src/model/id_token';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from '../../src/core/strategies/email_and_password';
+import { ProviderId } from '../../src/core/providers';
 
 describe('signUp & signInWithEmailAndPassword', () => {
   let app: FirebaseApp;
@@ -52,7 +52,7 @@ describe('signUp & signInWithEmailAndPassword', () => {
       password
     );
     expect(userCredential).to.be.instanceOf(UserCredential);
-    expect(userCredential.user.refreshToken).to.not.be.empty;
+    expect(userCredential.user.stsTokenManager.refreshToken).to.not.be.empty;
     expect(userCredential.user.isAnonymous).to.be.false;
     expect(userCredential.user.uid).to.not.be.empty;
 
@@ -64,7 +64,7 @@ describe('signUp & signInWithEmailAndPassword', () => {
     expect(idTokenResult.claims).to.be.empty;
     expect(idTokenResult.expirationTime).to.not.be.empty;
     expect(idTokenResult.issuedAtTime).to.not.be.empty;
-    expect(idTokenResult.signInProvider).to.eq(Provider.PASSWORD);
+    expect(idTokenResult.signInProvider).to.eq(ProviderId.PASSWORD);
     expect(idTokenResult.signInSecondFactor).to.be.null;
 
     await auth.signOut();

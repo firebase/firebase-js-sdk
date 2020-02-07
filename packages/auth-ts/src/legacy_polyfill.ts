@@ -34,35 +34,16 @@ import { OAuthProvider } from './core/providers/oauth';
 import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User } from './model/user';
-import { ActionCodeSettings } from './model/action_code_url';
 import { UserCredential } from './model/user_credential';
 import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink
 } from './core/strategies/email_link';
+import { ActionCodeSettings } from './model/action_code_settings';
+import { fetchSignInMethodsForEmail } from './core/strategies/email';
 
-interface FirebaseAuth extends Auth {
-  sendPasswordResetEmail(
-    email: string,
-    actionCodeSettings?: ActionCodeSettings
-  ): Promise<void>;
-  sendSignInLinkToEmail(
-    email: string,
-    actionCodeSettings?: ActionCodeSettings
-  ): Promise<void>;
-  signInAnonymously(): Promise<UserCredential | null>;
-  createUserWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<UserCredential | null>;
-  signInWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<UserCredential | null>;
-  signInWithRedirect(provider: OAuthProvider): Promise<never>;
-  getRedirectResult(): Promise<UserCredential | null>;
-}
+interface FirebaseAuth extends Auth {}
 
 interface FirebaseApp {
   auth?(): FirebaseAuth;
@@ -82,6 +63,12 @@ let memo: FirebaseAuth;
   auth.onAuthStateChanged((user: User | null) => {
     if (user) {
       Object.assign(user, {
+        apiKey: auth.config.apiKey,
+        appName: auth.name,
+        authDomain: auth.config.authDomain,
+        stsTokenManager: Object.assign(user.stsTokenManager, {
+          apiKey: auth.config.apiKey
+        }),
         sendEmailVerification(actionCodeSettings?: ActionCodeSettings) {
           return sendEmailVerification(auth, user, actionCodeSettings);
         }
@@ -89,6 +76,9 @@ let memo: FirebaseAuth;
     }
   });
   memo = Object.assign(auth, {
+    fetchSignInMethodsForEmail(email: string): Promise<string[]> {
+      return fetchSignInMethodsForEmail(auth, email);
+    },
     isSignInWithEmailLink(emailLink: string): boolean {
       return isSignInWithEmailLink(auth, emailLink);
     },

@@ -21,7 +21,6 @@ import {
   parseIdToken,
   IdTokenResponse
 } from './id_token';
-import { Auth } from '..';
 
 export interface UserInfo {
   readonly uid: string;
@@ -32,11 +31,7 @@ export interface UserInfo {
 }
 
 export class User implements UserInfo {
-  readonly apiKey: string;
-  readonly appName: string;
-  readonly authDomain?: string;
   constructor(
-    auth: Auth,
     public readonly stsTokenManager: StsTokenManager,
     public readonly uid: string,
     public readonly displayName: string | null = null,
@@ -45,9 +40,7 @@ export class User implements UserInfo {
     public readonly photoURL: string | null = null,
     public readonly isAnonymous: boolean = false
   ) {
-    this.apiKey = auth.config.apiKey;
-    this.appName = auth.name;
-    this.authDomain = auth.config.authDomain;
+
   }
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
@@ -71,7 +64,6 @@ export class StsTokenManager {
   readonly accessToken: IdToken;
   readonly expirationTime: number;
   constructor(
-    public readonly apiKey: string,
     idTokenResponse: IdTokenResponse
   ) {
     this.refreshToken = idTokenResponse.refreshToken;

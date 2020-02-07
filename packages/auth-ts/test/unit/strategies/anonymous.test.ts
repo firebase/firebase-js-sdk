@@ -30,21 +30,21 @@ import { User } from '../../../src/model/user';
 
 import * as PROJECT_CONFIG from '../../../../../config/project.json';
 import {
-  PRODUCTION_URL,
   SignUpResponse,
-  SIGN_UP_RESPONSE_KIND
 } from '../../../src/api/authentication';
 import { restoreFetch, mockFetch } from '../../util/fetch-mock';
-import { Provider, encodeIdToken, IdToken } from '../../../src/model/id_token';
+import { encodeIdToken, IdToken } from '../../../src/model/id_token';
 import { signOut } from '../../../src/model/auth';
 import {
   fullKeyName_,
   AUTH_USER_KEY_NAME_
 } from '../../../src/core/persistence/user_mananger';
+import { ProviderId } from '../../../src/core/providers';
+import { PRODUCTION_URL } from '../../../src/api';
 
 const EXPIRATION_TIME = 3600;
 
-function generateJWT(provider: Provider, uid: string): IdToken {
+function generateJWT(provider: ProviderId, uid: string): IdToken {
   const timestamp = Math.floor(Date.now() / 1000);
   return encodeIdToken(
     {
@@ -83,8 +83,7 @@ describe('signInAnonymously', () => {
   beforeEach(() => {
     const uid = 'abcdef123556';
     const response: SignUpResponse = {
-      kind: SIGN_UP_RESPONSE_KIND,
-      idToken: generateJWT(Provider.ANONYMOUS, uid),
+      idToken: generateJWT(ProviderId.ANONYMOUS, uid),
       refreshToken: 'super-long-refresh-token',
       expiresIn: `${EXPIRATION_TIME}`,
       localId: uid
@@ -104,7 +103,7 @@ describe('signInAnonymously', () => {
 
     const userCredential = await signInAnonymously(auth);
     expect(userCredential).to.be.instanceOf(UserCredential);
-    expect(userCredential.user.refreshToken).to.not.be.empty;
+    expect(userCredential.user.stsTokenManager.refreshToken).to.not.be.empty;
     expect(userCredential.user.isAnonymous).to.be.true;
     expect(userCredential.user.uid).to.not.be.empty;
 
@@ -116,7 +115,7 @@ describe('signInAnonymously', () => {
     expect(idTokenResult.claims).to.be.empty;
     expect(idTokenResult.expirationTime).to.not.be.empty;
     expect(idTokenResult.issuedAtTime).to.not.be.empty;
-    expect(idTokenResult.signInProvider).to.eq(Provider.ANONYMOUS);
+    expect(idTokenResult.signInProvider).to.eq(ProviderId.ANONYMOUS);
     expect(idTokenResult.signInSecondFactor).to.be.null;
   });
 
@@ -174,17 +173,17 @@ describe('signInAnonymously', () => {
       const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
           switch (++callbackNum) {
-            case 1:
-              expect(user).to.be.null;
-              break;
-            case 2:
-              expect(user).to.not.be.null;
-              expect(user).to.eq(auth.currentUser);
-              resolve();
-              break;
-            default:
-              fail('expected only 2 callbacks');
-              reject();
+          case 1:
+            expect(user).to.be.null;
+            break;
+          case 2:
+            expect(user).to.not.be.null;
+            expect(user).to.eq(auth.currentUser);
+            resolve();
+            break;
+          default:
+            fail('expected only 2 callbacks');
+            reject();
           }
         });
       });

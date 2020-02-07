@@ -19,13 +19,22 @@ import { Auth } from '../model/auth';
 import { IdToken, IdTokenResponse } from '../model/id_token';
 import { performApiRequest, Endpoint, HttpMethod } from '.';
 
-// TODO: do we really need this? probably safe to ignore
-enum Kind {
-  SIGN_UP = 'identitytoolkit#SignupNewUserResponse',
-  SIGN_IN_WITH_EMAIL_LINK = 'identitytoolkit#EmailLinkSigninResponse',
-  SIGN_IN_WITH_PASSWORD = 'identitytoolkit#VerifyPasswordResponse',
-  SEND_VERIFICATION_CODE = '',
-  SEND_OOB_CODE = 'identitytoolkit#GetOobConfirmationCodeResponse'
+export interface CreateAuthUriRequest {
+  identifier: string,
+  continueUri: string
+}
+
+export interface CreateAuthUriResponse {
+  signinMethods: string[]
+}
+
+export async function createAuthUri(auth: Auth, request: CreateAuthUriRequest): Promise<CreateAuthUriResponse> {
+  return performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.CREATE_AUTH_URI,
+    request
+  );
 }
 
 export interface SignUpRequest {
@@ -35,7 +44,6 @@ export interface SignUpRequest {
 }
 
 export interface SignUpResponse extends IdTokenResponse {
-  kind: typeof Kind.SIGN_UP;
   displayName?: string;
   email?: string;
 }
@@ -59,7 +67,6 @@ export interface SignInWithPasswordRequest {
 }
 
 export interface SignInWithPasswordResponse extends IdTokenResponse {
-  kind: typeof Kind.SIGN_IN_WITH_PASSWORD;
   email: string;
   displayName: string;
 }
@@ -116,7 +123,6 @@ export interface EmailSigninRequest extends GetOobCodeRequest {
 }
 
 export interface GetOobCodeResponse {
-  kind: typeof Kind.SEND_OOB_CODE;
   email: string;
 }
 
@@ -138,7 +144,6 @@ export interface SignInWithEmailLinkRequest {
 }
 
 export interface SignInWithEmailLinkResponse extends IdTokenResponse {
-  kind: Kind.SIGN_IN_WITH_EMAIL_LINK;
   email: string;
   isNewUser: boolean;
 }

@@ -88,7 +88,7 @@ export class ActionCodeURL {
   }
 
   static fromEmailLink(auth: Auth, emailLink: string): ActionCodeURL | null {
-    let actionLink = parseDeepLink(emailLink);
+    const actionLink = parseDeepLink(emailLink);
     try {
       return new ActionCodeURL(auth, actionLink);
     } catch (e) {

@@ -20,7 +20,7 @@ import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { signUp } from '../../api/authentication';
 import { ProviderId } from '../providers';
-import { signInWithIdTokenResponse } from '.';
+import { initializeCurrentUserFromIdTokenResponse } from '.';
 
 function userCredentialFromUser(user: User): UserCredential {
   return new UserCredential(user, ProviderId.ANONYMOUS, OperationType.SIGN_IN);
@@ -35,6 +35,6 @@ export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   const response = await signUp(auth, {
     returnSecureToken: true
   });
-  const user = await signInWithIdTokenResponse(auth, response);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return userCredentialFromUser(user);
 }
