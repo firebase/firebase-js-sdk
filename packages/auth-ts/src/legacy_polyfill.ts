@@ -25,7 +25,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   confirmPasswordReset,
-  verifyPasswordResetCode
+  verifyPasswordResetCode,
 } from './core/strategies/email_and_password';
 import {
   getRedirectResult,
@@ -53,6 +53,8 @@ import {
   emailAuthCredentialWithLink
 } from './core/providers/email';
 import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
+import { ActionCodeInfo } from './model/action_code_info';
+import { checkActionCode } from './core/strategies/action_code';
 
 interface FirebaseAuth extends Auth {}
 
@@ -97,6 +99,9 @@ let memo: FirebaseAuth;
         return emailAuthCredentialWithLink(auth, email, emailLink);
       }
     }),
+    checkActionCode(code: string): Promise<ActionCodeInfo> {
+      return checkActionCode(auth, code);
+    },
     confirmPasswordReset(code: string, newPassword: string): Promise<void> {
       return confirmPasswordReset(auth, code, newPassword);
     },

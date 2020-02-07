@@ -28,8 +28,8 @@ export enum Operation {
 
 export interface ActionCodeInfo {
   data: {
-    email?: string | null;
-    fromEmail?: string | null;
+    email: string | null;
+    fromEmail: string | null;
   };
   operation: string;
 }
@@ -39,10 +39,10 @@ export function actionCodeInfoFromResetPasswordResponse(
   response: ResetPasswordResponse
 ): ActionCodeInfo {
   // Original email for email change revocation.
-  var email = response.email;
-  var operation = response.requestType;
+  const email = response.email;
+  const operation = response.requestType;
   // Email could be empty only if the request type is EMAIL_SIGNIN.
-  if (!operation || (operation != Operation.EMAIL_SIGNIN && !email)) {
+  if (!operation || (operation !== Operation.EMAIL_SIGNIN && !email)) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
       appName: auth.name
     });
