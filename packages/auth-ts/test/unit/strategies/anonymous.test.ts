@@ -29,9 +29,7 @@ import { indexedDBLocalPersistence } from '../../../src/core/persistence/indexed
 import { User } from '../../../src/model/user';
 
 import * as PROJECT_CONFIG from '../../../../../config/project.json';
-import {
-  SignUpResponse,
-} from '../../../src/api/authentication';
+import { SignUpResponse } from '../../../src/api/authentication';
 import { restoreFetch, mockFetch } from '../../util/fetch-mock';
 import { encodeIdToken, IdToken } from '../../../src/model/id_token';
 import { signOut } from '../../../src/model/auth';
@@ -173,17 +171,17 @@ describe('signInAnonymously', () => {
       const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
           switch (++callbackNum) {
-          case 1:
-            expect(user).to.be.null;
-            break;
-          case 2:
-            expect(user).to.not.be.null;
-            expect(user).to.eq(auth.currentUser);
-            resolve();
-            break;
-          default:
-            fail('expected only 2 callbacks');
-            reject();
+            case 1:
+              expect(user).to.be.null;
+              break;
+            case 2:
+              expect(user).to.not.be.null;
+              expect(user).to.eq(auth.currentUser);
+              resolve();
+              break;
+            default:
+              fail('expected only 2 callbacks');
+              reject();
           }
         });
       });

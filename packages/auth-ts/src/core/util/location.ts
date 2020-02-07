@@ -21,9 +21,8 @@ export function getCurrentUrl(): string {
 
 export function isHttpOrHttps(): boolean {
   return getCurrentScheme() === 'http:' || getCurrentScheme() === 'https:';
-};
-
+}
 
 export function getCurrentScheme(): string | null {
   return (location && location.protocol) || null;
-};
+}

@@ -22,9 +22,7 @@ import { User, StsTokenManager } from '../../model/user';
 export function userFromIdTokenResponse(
   idTokenResponse: IdTokenResponse
 ): Promise<User> {
-  const stsTokenManager = new StsTokenManager(
-    idTokenResponse
-  );
+  const stsTokenManager = new StsTokenManager(idTokenResponse);
   // Initialize the Firebase Auth user.
   const user = new User(stsTokenManager, idTokenResponse.localId);
 

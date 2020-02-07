@@ -39,9 +39,7 @@ export class User implements UserInfo {
     public readonly phoneNumber: string | null = null,
     public readonly photoURL: string | null = null,
     public readonly isAnonymous: boolean = false
-  ) {
-
-  }
+  ) {}
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
     return Promise.resolve(this.stsTokenManager.accessToken);
@@ -63,9 +61,7 @@ export class StsTokenManager {
   readonly refreshToken: string;
   readonly accessToken: IdToken;
   readonly expirationTime: number;
-  constructor(
-    idTokenResponse: IdTokenResponse
-  ) {
+  constructor(idTokenResponse: IdTokenResponse) {
     this.refreshToken = idTokenResponse.refreshToken;
     this.accessToken = idTokenResponse.idToken;
     this.expirationTime = StsTokenManager.calcOffsetTimestamp_(

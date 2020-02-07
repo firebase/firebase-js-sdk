@@ -20,15 +20,18 @@ import { IdToken, IdTokenResponse } from '../model/id_token';
 import { performApiRequest, Endpoint, HttpMethod } from '.';
 
 export interface CreateAuthUriRequest {
-  identifier: string,
-  continueUri: string
+  identifier: string;
+  continueUri: string;
 }
 
 export interface CreateAuthUriResponse {
-  signinMethods: string[]
+  signinMethods: string[];
 }
 
-export async function createAuthUri(auth: Auth, request: CreateAuthUriRequest): Promise<CreateAuthUriResponse> {
+export async function createAuthUri(
+  auth: Auth,
+  request: CreateAuthUriRequest
+): Promise<CreateAuthUriResponse> {
   return performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
     auth,
     HttpMethod.POST,
