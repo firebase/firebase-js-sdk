@@ -61,10 +61,10 @@ function parseDeepLink(url: string): string {
 
 export class ActionCodeURL {
   readonly apiKey: string;
-  readonly operation: Operation;
   readonly code: string;
   readonly continueUrl: string | null;
   readonly languageCode: string | null;
+  readonly operation: Operation;
   readonly tenantId: string | null;
 
   constructor(auth: Auth, actionLink: string) {
@@ -86,13 +86,13 @@ export class ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
     return this;
   }
+}
 
-  static fromEmailLink(auth: Auth, emailLink: string): ActionCodeURL | null {
-    const actionLink = parseDeepLink(emailLink);
-    try {
-      return new ActionCodeURL(auth, actionLink);
-    } catch (e) {
-      return null;
-    }
+export function actionCodeURLfromLink(auth: Auth, link: string): ActionCodeURL | null {
+  const actionLink = parseDeepLink(link);
+  try {
+    return new ActionCodeURL(auth, actionLink);
+  } catch (e) {
+    return null;
   }
 }

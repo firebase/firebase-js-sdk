@@ -1,3 +1,7 @@
+import { ResetPasswordResponse } from '../api/account_management';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { Auth } from '..';
+
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -28,4 +32,24 @@ export interface ActionCodeInfo {
     fromEmail?: string | null;
   };
   operation: string;
+}
+
+export function actionCodeInfoFromResetPasswordResponse(auth: Auth, response: ResetPasswordResponse): ActionCodeInfo {
+  // Original email for email change revocation.
+  var email = response.email;
+  var operation = response.requestType;
+  // Email could be empty only if the request type is EMAIL_SIGNIN.
+  if (!operation ||
+      (operation != Operation.EMAIL_SIGNIN &&
+      !email)) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name })
+  }
+
+  return {
+    data: {
+      email: email || null,
+      fromEmail: response.newEmail || null,
+    },
+    operation
+  }
 }

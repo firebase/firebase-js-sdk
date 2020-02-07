@@ -23,7 +23,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  verifyPasswordResetCode
 } from './core/strategies/email_and_password';
 import {
   getRedirectResult,
@@ -42,6 +44,9 @@ import {
 } from './core/strategies/email_link';
 import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
+import { AuthCredential, signInWithCredential } from './core/strategies/auth_credential';
+import { EmailAuthProvider, emailAuthCredentialWithLink } from './core/providers/email';
+import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
 
 interface FirebaseAuth extends Auth {}
 
@@ -76,8 +81,24 @@ let memo: FirebaseAuth;
     }
   });
   memo = Object.assign(auth, {
+    ActionCodeURL: Object.assign(ActionCodeURL, {
+      parseLink(link: string): ActionCodeURL | null {
+        return actionCodeURLfromLink(auth, link);
+      }
+    }),
+    EmailAuthProvider: Object.assign(EmailAuthProvider, {
+      credentialWithLink(email: string, emailLink: string): AuthCredential {
+        return emailAuthCredentialWithLink(auth, email, emailLink);
+      }
+    }),
+    confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+      return confirmPasswordReset(auth, code, newPassword);
+    },
     fetchSignInMethodsForEmail(email: string): Promise<string[]> {
       return fetchSignInMethodsForEmail(auth, email);
+    },
+    getRedirectResult() {
+      return getRedirectResult(auth);
     },
     isSignInWithEmailLink(emailLink: string): boolean {
       return isSignInWithEmailLink(auth, emailLink);
@@ -96,6 +117,9 @@ let memo: FirebaseAuth;
     },
     signInAnonymously() {
       return signInAnonymously(auth);
+    },
+    signInWithCredential(credential: AuthCredential): Promise<UserCredential> {
+      return signInWithCredential(auth, credential);
     },
     createUserWithEmailAndPassword(email: string, password: string) {
       return createUserWithEmailAndPassword(auth, email, password);
@@ -118,8 +142,8 @@ let memo: FirebaseAuth;
           : browserPopupRedirectResolver
       );
     },
-    getRedirectResult() {
-      return getRedirectResult(auth);
+    verifyPasswordResetCode(code: string): Promise<string> {
+      return verifyPasswordResetCode(auth, code);
     }
   });
   return memo;

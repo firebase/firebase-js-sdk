@@ -29,6 +29,7 @@ export enum HttpMethod {
 
 export enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
+  RESET_PASSWORD = '/v1/accounts:resetPassword',
   SIGN_UP = '/v1/accounts:signUp',
   SIGN_IN_WITH_EMAIL_LINK = '/v1/accounts:signInWithEmailLink',
   SIGN_IN_WITH_PASSWORD = '/v1/accounts:signInWithPassword',

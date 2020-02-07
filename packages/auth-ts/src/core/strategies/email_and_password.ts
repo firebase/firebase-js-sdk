@@ -25,6 +25,9 @@ import {
   setActionCodeSettingsOnRequest,
   ActionCodeSettings
 } from '../../model/action_code_settings';
+import { signInWithCredential } from './auth_credential';
+import { resetPassword } from '../../api/account_management';
+import { ActionCodeInfo, actionCodeInfoFromResetPasswordResponse } from '../../model/action_code_info';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -49,17 +52,7 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  const response = await api.signInWithPassword(auth, {
-    returnSecureToken: true,
-    email,
-    password
-  });
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return new UserCredential(
-    user!,
-    EmailAuthProvider.PROVIDER_ID,
-    OperationType.SIGN_IN
-  );
+  return signInWithCredential(auth, EmailAuthProvider.credential(email, password));
 }
 
 export async function sendEmailVerification(
@@ -97,4 +90,27 @@ export async function sendPasswordResetEmail(
   }
 
   await api.sendOobCode(auth, request);
+}
+
+export async function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void> {
+  await resetPassword(auth, {
+    oobCode,
+    newPassword
+  });
+  // Do not return the email.
+}
+
+// verifyBeforeUpdateEmail
+
+export async function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo> {
+  let response = await resetPassword(auth, {
+    oobCode
+  })
+  return actionCodeInfoFromResetPasswordResponse(auth, response)
+}
+
+export async function verifyPasswordResetCode(auth: Auth, code: string): Promise<string> {
+  const info: ActionCodeInfo = await checkActionCode(auth, code)
+
+  return info.data.email
 }

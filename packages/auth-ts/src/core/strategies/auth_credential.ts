@@ -17,12 +17,14 @@
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { ProviderId } from '../providers';
 import { Auth } from '../..';
-import { User } from '../../model/user';
+import { initializeCurrentUserFromIdTokenResponse } from '.';
+import { IdTokenResponse } from '../../model/id_token';
 
 export interface AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: string;
   toJSON(): object;
+  getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse>;
 }
 
 export interface OAuthCredential extends AuthCredential {
@@ -32,12 +34,11 @@ export interface OAuthCredential extends AuthCredential {
   toJSON(): object;
 }
 
-// TODO: can we do this without passing in user?
 export async function signInWithCredential(
   auth: Auth,
-  credential: AuthCredential,
-  user: User
+  credential: AuthCredential
 ): Promise<UserCredential> {
-  await auth.setCurrentUser(user);
+  const response: IdTokenResponse = await credential.getIdTokenResponse_(auth);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(user, credential.providerId, OperationType.SIGN_IN);
 }
