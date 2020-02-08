@@ -163,7 +163,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
   });
 
   describe('Firestore', () => {
-    validationIt(
+    (persistence ? validationIt : validationIt.skip)(
       persistence,
       'disallows calling enablePersistence after use',
       db => {

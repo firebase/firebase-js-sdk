@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import firebase from '@firebase/app';
 import * as types from '@firebase/firestore-types';
-import { configureForFirebase } from './src/platform/config';
-import { registerFirestorePersistence } from './src/platform/persistence';
-import './src/platform_node/node_init';
 import { FirebaseNamespace } from '@firebase/app-types';
+
+import { configureForFirebase } from './src/platform/config';
+import './src/platform_browser/browser_init';
 
 import { name, version } from './package.json';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
-  registerFirestorePersistence(instance);
-  instance.registerVersion(name, version, 'node');
+  instance.registerVersion(name, version);
 }
 
 registerFirestore(firebase);

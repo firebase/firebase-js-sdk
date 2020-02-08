@@ -23,9 +23,8 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
   FirestoreClient,
-  IndexedDbPersistenceSettings,
-  InternalPersistenceSettings,
-  MemoryPersistenceSettings
+  PersistenceFactory,
+  newMemoryPersistence
 } from '../core/firestore_client';
 import {
   Bound,
@@ -38,7 +37,6 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -82,7 +80,6 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
-import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -121,8 +118,9 @@ const DEFAULT_FORCE_LONG_POLLING = false;
  */
 export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
-// enablePersistence() defaults:
-const DEFAULT_SYNCHRONIZE_TABS = false;
+const PERSISTENCE_MISSING_ERROR_MSG =
+  'You are using the in-memory build of Firestore. Persistence support is ' +
+  'only available via the main Firestore bundle.';
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -144,7 +142,7 @@ export interface FirestoreDatabase {
  * user-supplied firestore.Settings object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
-class FirestoreSettings {
+export class FirestoreSettings {
   /** The hostname to connect to. */
   readonly host: string;
 
@@ -382,65 +380,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
-    if (this._firestoreClient) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Firestore has already been started and persistence can no longer ' +
-          'be enabled. You can only call enablePersistence() before calling ' +
-          'any other methods on a Firestore object.'
-      );
-    }
-
-    let synchronizeTabs = false;
-
-    if (settings) {
-      if (settings.experimentalTabSynchronization !== undefined) {
-        log.error(
-          "The 'experimentalTabSynchronization' setting has been renamed to " +
-            "'synchronizeTabs'. In a future release, the setting will be removed " +
-            'and it is recommended that you update your ' +
-            "firestore.enablePersistence() call to use 'synchronizeTabs'."
-        );
-      }
-      synchronizeTabs = objUtils.defaulted(
-        settings.synchronizeTabs !== undefined
-          ? settings.synchronizeTabs
-          : settings.experimentalTabSynchronization,
-        DEFAULT_SYNCHRONIZE_TABS
-      );
-    }
-
-    return this.configureClient(
-      new IndexedDbPersistenceSettings(
-        this._settings.cacheSizeBytes,
-        synchronizeTabs
-      )
-    );
+    throw new Error(PERSISTENCE_MISSING_ERROR_MSG);
   }
 
   clearPersistence(): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.makeDatabaseInfo()
-    );
-    const deferred = new Deferred<void>();
-    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
-      try {
-        if (
-          this._firestoreClient !== undefined &&
-          !this._firestoreClient.clientTerminated
-        ) {
-          throw new FirestoreError(
-            Code.FAILED_PRECONDITION,
-            'Persistence cannot be cleared after this Firestore instance is initialized.'
-          );
-        }
-        await IndexedDbPersistence.clearPersistence(persistenceKey);
-        deferred.resolve();
-      } catch (e) {
-        deferred.reject(e);
-      }
-    });
-    return deferred.promise;
+    throw new Error(PERSISTENCE_MISSING_ERROR_MSG);
   }
 
   terminate(): Promise<void> {
@@ -499,7 +443,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryPersistenceSettings());
+      this._configureClient(newMemoryPersistence);
     }
     return this._firestoreClient as FirestoreClient;
   }
@@ -514,8 +458,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
-  private configureClient(
-    persistenceSettings: InternalPersistenceSettings
+  private _configureClient(
+    persistenceFactory: PersistenceFactory
   ): Promise<void> {
     assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
@@ -530,7 +474,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    return this._firestoreClient.start(persistenceSettings);
+    return this._firestoreClient.start(persistenceFactory);
   }
 
   private createDataConverter(databaseId: DatabaseId): UserDataConverter {

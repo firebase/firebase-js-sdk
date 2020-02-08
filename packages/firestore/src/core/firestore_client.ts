@@ -17,7 +17,6 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
@@ -28,7 +27,6 @@ import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
@@ -44,13 +42,12 @@ import { View } from './view';
 
 import {
   LruGarbageCollector,
-  LruParams,
   LruScheduler
 } from '../local/lru_garbage_collector';
 import {
+  ClientId,
   MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
+  SharedClientState
 } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
@@ -61,27 +58,22 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
-/** DOMException error code constants. */
-const DOM_EXCEPTION_INVALID_STATE = 11;
-const DOM_EXCEPTION_ABORTED = 20;
-const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
-
-export class IndexedDbPersistenceSettings {
-  constructor(
-    readonly cacheSizeBytes: number,
-    readonly synchronizeTabs: boolean
-  ) {}
-
-  lruParams(): LruParams {
-    return LruParams.withCacheSize(this.cacheSizeBytes);
-  }
-}
-
-export class MemoryPersistenceSettings {}
-
-export type InternalPersistenceSettings =
-  | IndexedDbPersistenceSettings
-  | MemoryPersistenceSettings;
+/**
+ * Function signature for a factory function that returns a fully configured
+ * persistence implementation, providing Persistence, the GarbageCollector, and
+ * the SharedClientState.
+ */
+export type PersistenceFactory = (
+  user: User,
+  asyncQueue: AsyncQueue,
+  databaseInfo: DatabaseInfo,
+  platform: Platform,
+  clientId: ClientId
+) => Promise<{
+  persistence: Persistence;
+  garbageCollector: LruGarbageCollector | null;
+  sharedClientState: SharedClientState;
+}>;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -157,7 +149,7 @@ export class FirestoreClient {
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  start(persistenceSettings: InternalPersistenceSettings): Promise<void> {
+  start(persistenceFactory: PersistenceFactory): Promise<void> {
     this.verifyNotTerminated();
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
@@ -181,8 +173,18 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        this.initializePersistence(persistenceSettings, persistenceResult, user)
-          .then(maybeLruGc => this.initializeRest(user, maybeLruGc))
+        persistenceFactory(
+          user,
+          this.asyncQueue,
+          this.databaseInfo,
+          this.platform,
+          this.clientId
+        )
+          .then(({ persistence, sharedClientState, garbageCollector }) => {
+            this.persistence = persistence;
+            this.sharedClientState = sharedClientState;
+            return this.initializeRest(user, garbageCollector);
+          })
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
@@ -211,96 +213,6 @@ export class FirestoreClient {
   }
 
   /**
-   * Initializes persistent storage, attempting to use IndexedDB if
-   * usePersistence is true or memory-only if false.
-   *
-   * If IndexedDB fails because it's already open in another tab or because the
-   * platform can't possibly support our implementation then this method rejects
-   * the persistenceResult and falls back on memory-only persistence.
-   *
-   * @param persistenceSettings Settings object to configure offline persistence
-   * @param persistenceResult A deferred result indicating the user-visible
-   *     result of enabling offline persistence. This method will reject this if
-   *     IndexedDB fails to start for any reason. If usePersistence is false
-   *     this is unconditionally resolved.
-   * @returns a Promise indicating whether or not initialization should
-   *     continue, i.e. that one of the persistence implementations actually
-   *     succeeded.
-   */
-  private initializePersistence(
-    persistenceSettings: InternalPersistenceSettings,
-    persistenceResult: Deferred<void>,
-    user: User
-  ): Promise<LruGarbageCollector | null> {
-    if (persistenceSettings instanceof IndexedDbPersistenceSettings) {
-      return this.startIndexedDbPersistence(user, persistenceSettings)
-        .then(maybeLruGc => {
-          persistenceResult.resolve();
-          return maybeLruGc;
-        })
-        .catch(error => {
-          // Regardless of whether or not the retry succeeds, from an user
-          // perspective, offline persistence has failed.
-          persistenceResult.reject(error);
-
-          // An unknown failure on the first stage shuts everything down.
-          if (!this.canFallback(error)) {
-            throw error;
-          }
-          console.warn(
-            'Error enabling offline persistence. Falling back to' +
-              ' persistence disabled: ' +
-              error
-          );
-          return this.startMemoryPersistence();
-        });
-    } else {
-      // When usePersistence == false, enabling offline persistence is defined
-      // to unconditionally succeed. This allows start() to have the same
-      // signature for both cases, despite the fact that the returned promise
-      // is only used in the enablePersistence call.
-      persistenceResult.resolve();
-      return this.startMemoryPersistence();
-    }
-  }
-
-  /**
-   * Decides whether the provided error allows us to gracefully disable
-   * persistence (as opposed to crashing the client).
-   */
-  private canFallback(error: FirestoreError | DOMException): boolean {
-    if (error instanceof FirestoreError) {
-      return (
-        error.code === Code.FAILED_PRECONDITION ||
-        error.code === Code.UNIMPLEMENTED
-      );
-    } else if (
-      typeof DOMException !== 'undefined' &&
-      error instanceof DOMException
-    ) {
-      // There are a few known circumstances where we can open IndexedDb but
-      // trying to read/write will fail (e.g. quota exceeded). For
-      // well-understood cases, we attempt to detect these and then gracefully
-      // fall back to memory persistence.
-      // NOTE: Rather than continue to add to this list, we could decide to
-      // always fall back, with the risk that we might accidentally hide errors
-      // representing actual SDK bugs.
-      return (
-        // When the browser is out of quota we could get either quota exceeded
-        // or an aborted error depending on whether the error happened during
-        // schema migration.
-        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-        error.code === DOM_EXCEPTION_ABORTED ||
-        // Firefox Private Browsing mode disables IndexedDb and returns
-        // INVALID_STATE for any usage.
-        error.code === DOM_EXCEPTION_INVALID_STATE
-      );
-    }
-
-    return true;
-  }
-
-  /**
    * Checks that the client has not been terminated. Ensures that other methods on
    * this class cannot be called after the client is terminated.
    */
@@ -311,77 +223,6 @@ export class FirestoreClient {
         'The client has already been terminated.'
       );
     }
-  }
-
-  /**
-   * Starts IndexedDB-based persistence.
-   *
-   * @returns A promise indicating success or failure.
-   */
-  private startIndexedDbPersistence(
-    user: User,
-    settings: IndexedDbPersistenceSettings
-  ): Promise<LruGarbageCollector> {
-    // TODO(http://b/33384523): For now we just disable garbage collection
-    // when persistence is enabled.
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
-    );
-    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
-    const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
-      useProto3Json: true
-    });
-
-    return Promise.resolve().then(async () => {
-      if (
-        settings.synchronizeTabs &&
-        !WebStorageSharedClientState.isAvailable(this.platform)
-      ) {
-        throw new FirestoreError(
-          Code.UNIMPLEMENTED,
-          'IndexedDB persistence is only available on platforms that support LocalStorage.'
-        );
-      }
-
-      const lruParams = settings.lruParams();
-
-      this.sharedClientState = settings.synchronizeTabs
-        ? new WebStorageSharedClientState(
-            this.asyncQueue,
-            this.platform,
-            persistenceKey,
-            this.clientId,
-            user
-          )
-        : new MemorySharedClientState();
-
-      const persistence = await IndexedDbPersistence.createIndexedDbPersistence(
-        {
-          allowTabSynchronization: settings.synchronizeTabs,
-          persistenceKey,
-          clientId: this.clientId,
-          platform: this.platform,
-          queue: this.asyncQueue,
-          serializer,
-          lruParams,
-          sequenceNumberSyncer: this.sharedClientState
-        }
-      );
-
-      this.persistence = persistence;
-      return persistence.referenceDelegate.garbageCollector;
-    });
-  }
-
-  /**
-   * Starts Memory-backed persistence. In practice this cannot fail.
-   *
-   * @returns A promise that will successfully resolve.
-   */
-  private startMemoryPersistence(): Promise<LruGarbageCollector | null> {
-    this.persistence = MemoryPersistence.createEagerPersistence(this.clientId);
-    this.sharedClientState = new MemorySharedClientState();
-    return Promise.resolve(null);
   }
 
   /**
@@ -642,4 +483,29 @@ export class FirestoreClient {
     });
     return deferred.promise;
   }
+}
+
+/**
+ * Starts Memory-backed persistence. In practice this cannot fail.
+ *
+ * @returns A promise that will successfully resolve.
+ */
+export function newMemoryPersistence(
+  user: User,
+  asyncQueue: AsyncQueue,
+  databaseInfo: DatabaseInfo,
+  platform: Platform,
+  clientId: ClientId
+): Promise<{
+  persistence: Persistence;
+  garbageCollector: LruGarbageCollector | null;
+  sharedClientState: SharedClientState;
+}> {
+  const persistence = MemoryPersistence.createEagerPersistence(clientId);
+  const sharedClientState = new MemorySharedClientState();
+  return Promise.resolve({
+    persistence,
+    sharedClientState,
+    garbageCollector: null
+  });
 }

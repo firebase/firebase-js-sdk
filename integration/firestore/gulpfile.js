@@ -27,6 +27,10 @@ function clean() {
   return del(['temp/**/*', 'dist/**/*']);
 }
 
+function isPersistenceEnabled() {
+  return process.env.USE_FIRESTORE_PERSISTENCE !== 'false';
+}
+
 function copyTests() {
   /**
    * NOTE: We intentionally don't copy src/ files (to make sure we are only
@@ -37,7 +41,9 @@ function copyTests() {
   const firebaseAppSdk = 'firebase/app/dist/index.esm.js';
   const firebaseFirestoreSdk = resolve(
     __dirname,
-    '../../packages/firestore/dist/index.esm.min.js'
+    isPersistenceEnabled()
+      ? '../../packages/firestore/dist/index.esm.min.js'
+      : '../../packages/firestore/dist/index.memory.esm.js'
   );
   return gulp
     .src(
@@ -63,7 +69,14 @@ function copyTests() {
          */
         /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
         `import firebase from '${firebaseAppSdk}';
-         import '${firebaseFirestoreSdk}';`
+         import '${firebaseFirestoreSdk}';
+         
+         if (typeof process === 'undefined') {
+           process = { env: { USE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+         } else {
+           process.env.USE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
+         }
+         `
       )
     )
     .pipe(

@@ -3,12 +3,19 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build": "(cd ../../ ; yarn build) ; gulp compile-tests",
+    "build:dependencies": "(cd ../../ ; yarn build)",
+    "build": "yarn build:dependencies; USE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
+    "build:memory": "yarn build:dependencies; USE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
+    "pretest": "yarn build:dependencies",
     "pretest:manual": "yarn build",
+    "pretest:manual:memory": "yarn build:memory",
     "pretest:debug": "yarn build",
-    "test": "echo 'Automated tests temporarily disabled, run `yarn test:manual` to execute these tests'",
+    "pretest:debug:memort": "yarn build:memory",
+    "test": "USE_FIRESTORE_PERSISTENCE=true gulp compile-tests; karma start --single-run; USE_FIRESTORE_PERSISTENCE=false gulp compile-tests; karma start --single-run;",
     "test:manual": "karma start --single-run",
-    "test:debug": "karma start --auto-watch --browsers Chrome"
+    "test:manual:memory": "karma start --single-run",
+    "test:debug": "karma start --auto-watch --browsers Chrome",
+    "test:debug:memory": "karma start --single-run"
   },
   "devDependencies": {
     "@types/mocha": "7.0.1",

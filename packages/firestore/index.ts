@@ -17,6 +17,7 @@
 
 import firebase from '@firebase/app';
 import { configureForFirebase } from './src/platform/config';
+import { registerFirestorePersistence } from './src/platform/persistence';
 import './src/platform_browser/browser_init';
 
 import * as types from '@firebase/firestore-types';
@@ -26,6 +27,7 @@ import { name, version } from './package.json';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
+  registerFirestorePersistence(instance);
   instance.registerVersion(name, version);
 }
 
