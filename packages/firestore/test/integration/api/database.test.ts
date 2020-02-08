@@ -1046,15 +1046,20 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     }
   );
-
-  it('can not clear persistence if the client has been initialized', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
-      );
-    });
-  });
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)(
+    'cannot clear persistence if the client has been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
+        await expect(
+          firestore.clearPersistence()
+        ).to.eventually.be.rejectedWith(
+          'Persistence cannot be cleared after this Firestore instance is initialized.'
+        );
+      });
+    }
+  );
 
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async docRef => {

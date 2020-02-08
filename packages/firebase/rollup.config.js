@@ -154,6 +154,13 @@ const firestoreMinifiedBuild = {
   external: ['@firebase/app']
 };
 
+const firestoreMemoryBuild = {
+  input: `firestore/index.memory.ts`,
+  output: createUmdOutputConfig(`firebase-firestore.memory.js`),
+  plugins: [...plugins, uglify()],
+  external: ['@firebase/app']
+};
+
 /**
  * Complete Package Builds
  */
@@ -271,5 +278,6 @@ export default [
   ...appBuilds,
   ...componentBuilds,
   firestoreMinifiedBuild,
+  firestoreMemoryBuild,
   ...completeBuilds
 ];
