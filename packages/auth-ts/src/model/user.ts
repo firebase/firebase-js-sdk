@@ -33,13 +33,13 @@ export interface UserInfo {
 }
 
 export interface UserParameters {
-  stsTokenManager: StsTokenManager,
-  uid: string,
-  displayName?: string,
-  email?: string,
-  phoneNumber?: string,
-  photoURL?: string,
-  isAnonymous?: boolean,
+  stsTokenManager: StsTokenManager;
+  uid: string;
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+  photoURL?: string;
+  isAnonymous?: boolean;
 }
 
 export class User implements UserInfo {
@@ -50,7 +50,7 @@ export class User implements UserInfo {
   readonly phoneNumber: string | null;
   readonly photoURL: string | null;
   readonly isAnonymous: boolean;
-  
+
   constructor(params: UserParameters) {
     this.stsTokenManager = params.stsTokenManager;
     this.uid = params.uid;

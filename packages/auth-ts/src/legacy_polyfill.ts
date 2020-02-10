@@ -83,7 +83,9 @@ let memo: FirebaseAuth;
         stsTokenManager: Object.assign(user.stsTokenManager, {
           apiKey: auth.config.apiKey
         }),
-        sendEmailVerification(actionCodeSettings?: ActionCodeSettings): Promise<void> {
+        sendEmailVerification(
+          actionCodeSettings?: ActionCodeSettings
+        ): Promise<void> {
           return sendEmailVerification(auth, user, actionCodeSettings);
         },
         delete(): Promise<void> {
@@ -112,7 +114,7 @@ let memo: FirebaseAuth;
     fetchSignInMethodsForEmail(email: string): Promise<string[]> {
       return fetchSignInMethodsForEmail(auth, email);
     },
-    getRedirectResult(): Promise<UserCredential|null> {
+    getRedirectResult(): Promise<UserCredential | null> {
       return getRedirectResult(auth);
     },
     isSignInWithEmailLink(emailLink: string): boolean {
@@ -136,10 +138,16 @@ let memo: FirebaseAuth;
     signInWithCredential(credential: AuthCredential): Promise<UserCredential> {
       return signInWithCredential(auth, credential);
     },
-    createUserWithEmailAndPassword(email: string, password: string): Promise<UserCredential>{
+    createUserWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<UserCredential> {
       return createUserWithEmailAndPassword(auth, email, password);
     },
-    signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
+    signInWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<UserCredential> {
       return signInWithEmailAndPassword(auth, email, password);
     },
     signInWithEmailLink(
