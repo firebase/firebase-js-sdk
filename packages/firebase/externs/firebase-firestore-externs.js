@@ -174,7 +174,7 @@ firebase.firestore.Firestore.prototype.doc = function(documentPath) {};
  * applied within the transaction. If any document read within the transaction
  * has changed, Cloud Firestore retries the `updateFunction`. If it fails to
  * commit after 5 attempts, the transaction fails.
- * 
+ *
  * @template T
  * @param {function(!firebase.firestore.Transaction)} updateFunction
  *   The function to execute within the transaction context.
@@ -324,7 +324,7 @@ firebase.firestore.Transaction.prototype.get = function(documentRef) {};
  * Writes to the document referred to by the provided `DocumentReference`.
  * If the document does not exist yet, it will be created. If you pass
  * options, the provided data can be merged into the existing document.
- * 
+ *
  * @template T
  * @param {!firebase.firestore.DocumentReference<T>} documentRef
  *   A reference to the document to be created.
@@ -583,7 +583,7 @@ firebase.firestore.DocumentReference.prototype.delete = function() {};
 
 /**
  * Reads the document referred to by this `DocumentReference`.
- * 
+ *
  * @template T
  * @param {!firebase.firestore.GetOptions=} options An options object to
  *   configure how the data is retrieved.
@@ -633,14 +633,16 @@ firebase.firestore.DocumentReference.prototype.onSnapshot = function(
  * set(), get(), etc. on the returned DocumentReference instance, the
  * provided converter will convert between Firestore data and your custom
  * type U.
- * 
+ *
  * @template U
  * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
  *   objects to and from Firestore.
  * @return {!firebase.firestore.DocumentReference<U>} A DocumentReference<U>
  *   that uses the provided converter.
  */
-firebase.firestore.DocumentReference.prototype.withConverter = function(converter) {};
+firebase.firestore.DocumentReference.prototype.withConverter = function(
+  converter
+) {};
 
 /**
  * Options that configure how data is retrieved from a `DocumentSnapshot`
@@ -1076,7 +1078,7 @@ firebase.firestore.Query.prototype.onSnapshot = function(
  * own custom model objects with Firestore. When you call get() on the
  * returned Query, the provided converter will convert between Firestore
  * data and your custom type U.
- * 
+ *
  * @template U
  * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
  *   objects to and from Firestore.
@@ -1271,14 +1273,16 @@ firebase.firestore.CollectionReference.prototype.isEqual = function(other) {};
  * to use your own custom model objects with Firestore. When you call add()
  * on the returned CollectionReference instance, the provided converter will
  * convert between Firestore data and your custom type U.
- * 
+ *
  * @template U
  * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
  *   objects to and from Firestore.
- * @return {!firebase.firestore.CollectionReference<U>} A CollectionReference<U> 
+ * @return {!firebase.firestore.CollectionReference<U>} A CollectionReference<U>
  *   that uses the provided converter.
  */
-firebase.firestore.CollectionReference.prototype.withConverter = function(converter) {};
+firebase.firestore.CollectionReference.prototype.withConverter = function(
+  converter
+) {};
 
 /**
  * Sentinel values that can be used when writing document fields with `set()`
