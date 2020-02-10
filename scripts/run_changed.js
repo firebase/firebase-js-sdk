@@ -16,7 +16,7 @@
  */
 
 const { resolve } = require('path');
-const { spawn } = require('child-process-promise');
+const { spawn, exec } = require('child-process-promise');
 const chalk = require('chalk');
 const simpleGit = require('simple-git/promise');
 
@@ -56,6 +56,7 @@ const alwaysRunTestPaths = [
  * Identify modified packages that require tests.
  */
 async function getChangedPackages() {
+  const packageInfo = JSON.parse((await exec('npx lerna ls --json', { cwd: root })).stdout);
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   const changedPackages = {};
@@ -70,7 +71,19 @@ async function getChangedPackages() {
     if (match && match[1]) {
       const pkg = require(resolve(root, match[1], 'package.json'));
       if (pkg && pkg.scripts.test) {
+        // Add the package itself.
         changedPackages[match[1]] = true;
+        // Add packages that depend on it.
+        const graph = JSON.parse(await exec('npx lerna ls --graph', { cwd: root }));
+        const deps = graph[pkg.name];
+        if (deps) {
+          for (const depName of deps) {
+            const depData = packageInfo.find(item => item.name === depName);
+            if (depData) {
+              changedPackages[depData.location.replace(root, '')] = true;
+            }
+          }
+        }
       }
     }
   }
@@ -104,10 +117,11 @@ async function runTests(pathList) {
 async function main() {
   try {
     const { testAll, packageDirs = [] } = await getChangedPackages();
+    console.log(packageDirs);
     if (testAll) {
-      await spawn('yarn', ['test'], {
-        stdio: 'inherit'
-      });
+      // await spawn('yarn', ['test'], {
+      //   stdio: 'inherit'
+      // });
     } else {
       console.log(chalk`{blue Running tests in:}`);
       for (const filename of alwaysRunTestPaths) {
@@ -116,8 +130,8 @@ async function main() {
       for (const filename of packageDirs) {
         console.log(chalk`{yellow ${filename} (contains modified files)}`);
       }
-      await runTests(alwaysRunTestPaths);
-      await runTests(packageDirs);
+      // await runTests(alwaysRunTestPaths);
+      // await runTests(packageDirs);
     }
   } catch (e) {
     console.error(e);
