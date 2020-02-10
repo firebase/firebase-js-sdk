@@ -46,6 +46,18 @@ firebase.firestore.Firestore = function() {};
 firebase.firestore.Settings = function() {};
 
 /**
+ * Converter used by `withConverter()` to transform user objects of type T
+ * into Firestore data.
+ *
+ * Using the converter allows you to specify generic type arguments when
+ * storing and retrieving objects from Firestore.
+ *
+ * @template T
+ * @interface
+ */
+firebase.firestore.FirestoreDataConverter = function() {};
+
+/**
  * Enables the use of `Timestamps` for timestamp fields in `DocumentSnapshots`.
  *
  * Currently, Firestore returns timestamp fields as `Date` but `Date` only
@@ -162,11 +174,12 @@ firebase.firestore.Firestore.prototype.doc = function(documentPath) {};
  * applied within the transaction. If any document read within the transaction
  * has changed, Cloud Firestore retries the `updateFunction`. If it fails to
  * commit after 5 attempts, the transaction fails.
- *
+ * 
+ * @template T
  * @param {function(!firebase.firestore.Transaction)} updateFunction
  *   The function to execute within the transaction context.
  *
- * @return {!Promise}
+ * @return {!Promise<T>}
  *   If the transaction completed successfully or was explicitly aborted
  *   (the `updateFunction` returned a failed promise),
  *   the promise returned by the updateFunction is returned here. Else, if the
@@ -298,10 +311,11 @@ firebase.firestore.Transaction = function() {};
 /**
  * Reads the document referenced by the provided `DocumentReference.`
  *
- * @param {!firebase.firestore.DocumentReference} documentRef
+ * @template T
+ * @param {!firebase.firestore.DocumentReference<T>} documentRef
  *   A reference to the document to be retrieved.
  *
- * @return {!Promise<!firebase.firestore.DocumentSnapshot>}
+ * @return {!Promise<!firebase.firestore.DocumentSnapshot<T>>}
  *   A promise of the read data in a `DocumentSnapshot`.
  */
 firebase.firestore.Transaction.prototype.get = function(documentRef) {};
@@ -310,11 +324,12 @@ firebase.firestore.Transaction.prototype.get = function(documentRef) {};
  * Writes to the document referred to by the provided `DocumentReference`.
  * If the document does not exist yet, it will be created. If you pass
  * options, the provided data can be merged into the existing document.
- *
- * @param {!firebase.firestore.DocumentReference} documentRef
+ * 
+ * @template T
+ * @param {!firebase.firestore.DocumentReference<T>} documentRef
  *   A reference to the document to be created.
  *
- * @param {!Object} data
+ * @param {T=} data
  *   An object of the fields and values for the document.
  *
  * @param {!firebase.firestore.SetOptions=} options
@@ -384,10 +399,11 @@ firebase.firestore.WriteBatch = function() {};
  * If the document does not exist yet, it will be created. If you pass
  * options, the provided data can be merged into the existing document.
  *
- * @param {!firebase.firestore.DocumentReference} documentRef
+ * @template T
+ * @param {!firebase.firestore.DocumentReference<T>} documentRef
  *   A reference to the document to be created.
  *
- * @param {!Object} data
+ * @param {T=} data
  *   An object of the fields and values for the document.
  *
  * @param {!firebase.firestore.SetOptions=} options
@@ -523,7 +539,8 @@ firebase.firestore.DocumentReference.prototype.collection = function(
  * If the document does not exist yet, it will be created. If you pass
  * options, the provided data can be merged into the existing document.
  *
- * @param {!Object} data
+ * @template T
+ * @param {T=} data
  *   An object of the fields and values for the document.
  *
  * @param {!firebase.firestore.SetOptions=} options
@@ -566,7 +583,8 @@ firebase.firestore.DocumentReference.prototype.delete = function() {};
 
 /**
  * Reads the document referred to by this `DocumentReference`.
- *
+ * 
+ * @template T
  * @param {!firebase.firestore.GetOptions=} options An options object to
  *   configure how the data is retrieved.
  *
@@ -574,7 +592,7 @@ firebase.firestore.DocumentReference.prototype.delete = function() {};
  * data when possible by waiting for data from the server, but may return cached
  * data or fail if you are offline and the server cannot be reached.
  *
- * @return {!Promise<!firebase.firestore.DocumentSnapshot>}
+ * @return {!Promise<!firebase.firestore.DocumentSnapshot<T>>}
  *   A promise that resolves with a `DocumentSnapshot` containing the current
  *   document contents.
  */
@@ -586,13 +604,14 @@ firebase.firestore.DocumentReference.prototype.get = function(options) {};
  * object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
  *
+ * @template T
  * @param {!firebase.firestore.SnapshotListenOptions|!Object|
-           function(!firebase.firestore.DocumentSnapshot)}
+           function(!firebase.firestore.DocumentSnapshot<T>)}
  *   optionsOrObserverOrOnNext This can be an observer object or an onNext
  *   function callback. It can also be an options object containing
  *   { includeMetadataChanges: true } to opt into events even when only metadata
  *   changed.
- * @param {!Object|function(!firebase.firestore.DocumentSnapshot)|
+ * @param {!Object|function(!firebase.firestore.DocumentSnapshot<T>)|
  *         function(!Error)}
  *   observerOrOnNextOrOnError If you provided options, this will be an observer
  *   object or your onNext callback. Else, it is an optional onError callback.
@@ -607,6 +626,21 @@ firebase.firestore.DocumentReference.prototype.onSnapshot = function(
   observerOrOnNextOrOnError,
   onError
 ) {};
+
+/**
+ * Applies a custom data converter to this DocumentReference, allowing you
+ * to use your own custom model objects with Firestore. When you call
+ * set(), get(), etc. on the returned DocumentReference instance, the
+ * provided converter will convert between Firestore data and your custom
+ * type U.
+ * 
+ * @template U
+ * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
+ *   objects to and from Firestore.
+ * @return {!firebase.firestore.DocumentReference<U>} A DocumentReference<U>
+ *   that uses the provided converter.
+ */
+firebase.firestore.DocumentReference.prototype.withConverter = function(converter) {};
 
 /**
  * Options that configure how data is retrieved from a `DocumentSnapshot`
@@ -767,7 +801,7 @@ firebase.firestore.DocumentData;
  *   behavior for server timestamps that have not yet been set to their final
  *   value).
  *
- * @return {(!firebase.firestore.DocumentData|undefined)}
+ * @return {(T=|undefined)}
  *   An object containing all fields in the specified document or 'undefined'
  *   if the document doesn't exist.
  */
@@ -801,7 +835,8 @@ firebase.firestore.DocumentSnapshot.prototype.get = function(
 /**
  * Returns 'true' if this `DocumentSnapshot` is equal to the provided one.
  *
- * @param {!firebase.firestore.DocumentSnapshot} other
+ * @template T
+ * @param {!firebase.firestore.DocumentSnapshot<T>} other
  *   The `DocumentSnapshot` to compare against.
  *
  * @return {boolean}
@@ -833,13 +868,13 @@ firebase.firestore.QueryDocumentSnapshot = function() {};
  * this by passing an options object.
  *
  * @override
- *
+ * @template T
  * @param {!firebase.firestore.SnapshotOptions=} options An options object to
  *   configure how data is retrieved from the snapshot (e.g. the desired
  *   behavior for server timestamps that have not yet been set to their
  *   final value).
  *
- * @return {!firebase.firestore.DocumentData}
+ * @return {T}
  *   An object containing all fields in the specified document.
  */
 firebase.firestore.QueryDocumentSnapshot.prototype.data = function(options) {};
@@ -879,6 +914,7 @@ firebase.firestore.Query.prototype.firestore;
  * Creates a new query that returns only documents that include the specified
  * fields and where the values satisfy the constraints provided.
  *
+ * @template T
  * @param {(string|!firebase.firestore.FieldPath)} fieldPath
  *   The path to compare.
  *
@@ -888,15 +924,16 @@ firebase.firestore.Query.prototype.firestore;
  * @param {*} value
  *   The value for comparison.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.where = function(fieldPath, opStr, value) {};
 
 /**
  * Creates a new query where the results are sorted by the
- * specified field, in descendin or ascending order.
+ * specified field, in descending or ascending order.
  *
+ * @template T
  * @param {(string|!firebase.firestore.FieldPath)} fieldPath
  *   The field to sort by.
  *
@@ -904,7 +941,7 @@ firebase.firestore.Query.prototype.where = function(fieldPath, opStr, value) {};
  *   Optional direction to sort by (`asc` or `desc`). If not specified, the
  *   default order is ascending.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.orderBy = function(
@@ -916,11 +953,11 @@ firebase.firestore.Query.prototype.orderBy = function(
  * Creates a new query where the results are limited to the specified number of
  * documents.
  *
+ * @template T
  * @param {number} limit
  *   The maximum number of items to return.
  *
- * @return {!firebase.firestore.Query}
- *   The created query.
+ * @return {!firebase.firestore.Query<T>}
  */
 firebase.firestore.Query.prototype.limit = function(limit) {};
 
@@ -930,11 +967,12 @@ firebase.firestore.Query.prototype.limit = function(limit) {};
  * The document must contain all of the fields provided in the `orderBy` of
  * the query.
  *
+ * @template T
  * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document you want the query to start at or
  *   the field values to start this query at, in order of the query's order by.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.startAt = function(snapshotOrVarArgs) {};
@@ -945,12 +983,13 @@ firebase.firestore.Query.prototype.startAt = function(snapshotOrVarArgs) {};
  * The document must contain all of the fields provided in the `orderBy` of
  * this query.
  *
+ * @template T
  * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document to start after or
  *   the field values to start this query after, in order of the query's order
  *   by.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.startAfter = function(snapshotOrVarArgs) {};
@@ -961,12 +1000,13 @@ firebase.firestore.Query.prototype.startAfter = function(snapshotOrVarArgs) {};
  * document must contain all of the fields provided in the `orderBy` of this
  * query.
  *
+ * @template T
  * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document the query results should end before or
  *   the field values to end this query before, in order of the query's order
  *   by.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.endBefore = function(snapshotOrVarArgs) {};
@@ -977,11 +1017,12 @@ firebase.firestore.Query.prototype.endBefore = function(snapshotOrVarArgs) {};
  * document must contain all of the fields provided in the `orderBy` of this
  * query.
  *
+ * @template T
  * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document the query results should end at or
  *   the field values to end this query at, in order of the query's order by.
  *
- * @return {!firebase.firestore.Query}
+ * @return {!firebase.firestore.Query<T>}
  *   The created query.
  */
 firebase.firestore.Query.prototype.endAt = function(snapshotOrVarArgs) {};
@@ -989,10 +1030,11 @@ firebase.firestore.Query.prototype.endAt = function(snapshotOrVarArgs) {};
 /**
  * Executes the query and returns the results as a `QuerySnapshot`.
  *
+ * @template T
  * @param {!firebase.firestore.GetOptions=} options An options object to
  *   configure how the data is retrieved.
  *
- * @return {!firebase.firestore.QuerySnapshot}
+ * @return {!firebase.firestore.QuerySnapshot<T>}
  *   A promise that will be resolved with the results of the query.
  */
 firebase.firestore.Query.prototype.get = function(options) {};
@@ -1006,13 +1048,14 @@ firebase.firestore.Query.prototype.get = function(options) {};
  * NOTE: Although an `onCompletion` callback can be provided, it will
  * never be called because the snapshot stream is never-ending.
  *
+ * @template T
  * @param {!firebase.firestore.SnapshotListenOptions|!Object|
- *         function(!firebase.firestore.DocumentSnapshot)}
+ *         function(!firebase.firestore.DocumentSnapshot<T>)}
  *   optionsOrObserverOrOnNext This can be an observer object or an onNext
  *   function callback. It can also be an options object containing
  *   { includeMetadataChanges: true } to opt into events even when only metadata
  *   changed.
- * @param {!Object|function(!firebase.firestore.DocumentSnapshot)|
+ * @param {!Object|function(!firebase.firestore.DocumentSnapshot<T>)|
  *         function(!Error)}
  *   observerOrOnNextOrOnError If you provided options, this will be an observer
  *   object or your onNext callback. Else, it is an optional onError callback.
@@ -1027,6 +1070,20 @@ firebase.firestore.Query.prototype.onSnapshot = function(
   observerOrOnNextOrOnError,
   onError
 ) {};
+
+/**
+ * Applies a custom data converter to this Query, allowing you to use your
+ * own custom model objects with Firestore. When you call get() on the
+ * returned Query, the provided converter will convert between Firestore
+ * data and your custom type U.
+ * 
+ * @template U
+ * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
+ *   objects to and from Firestore.
+ * @return {!firebase.firestore.Query<U>} A Query<U> that uses the provided
+ *   converter.
+ */
+firebase.firestore.Query.prototype.withConverter = function(converter) {};
 
 /**
  * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
@@ -1063,7 +1120,9 @@ firebase.firestore.QuerySnapshot.prototype.docChanges = function(options) {};
 
 /**
  * An array of all the documents in the `QuerySnapshot`.
- * @type {!Array<!firebase.firestore.QueryDocumentSnapshot>}
+ *
+ * @template T
+ * @type {!Array<!firebase.firestore.QueryDocumentSnapshot<T>>}
  */
 firebase.firestore.QuerySnapshot.prototype.docs;
 
@@ -1082,7 +1141,8 @@ firebase.firestore.QuerySnapshot.prototype.empty;
 /**
  * Enumerates all of the documents in the `QuerySnapshot`.
  *
- * @param {function(!firebase.firestore.QueryDocumentSnapshot)} callback
+ * @template T
+ * @param {function(!firebase.firestore.QueryDocumentSnapshot<T>)} callback
  * @param {*=} thisArg
  *   The `this` binding for the callback.
  */
@@ -1094,7 +1154,8 @@ firebase.firestore.QuerySnapshot.prototype.forEach = function(
 /**
  * Returns 'true' if this `QuerySnapshot` is equal to the provided one.
  *
- * @param {!firebase.firestore.QuerySnapshot} other
+ * @template T
+ * @param {!firebase.firestore.QuerySnapshot<T>} other
  *   The `QuerySnapshot` to compare against.
  *
  * @return {boolean}
@@ -1119,7 +1180,9 @@ firebase.firestore.DocumentChange.prototype.type;
 
 /**
  * The document affected by this change.
- * @type {!firebase.firestore.QueryDocumentSnapshot}
+ *
+ * @template T
+ * @type {!firebase.firestore.QueryDocumentSnapshot<T>}
  */
 firebase.firestore.DocumentChange.prototype.doc;
 
@@ -1169,10 +1232,11 @@ firebase.firestore.CollectionReference.prototype.parent;
  * specified path. If no path is specified, an automatically-generated
  * unique ID will be used for the returned `DocumentReference`.
  *
+ * @template T
  * @param {string=} documentPath
  *   A slash-separated path to a document.
  *
- * @return {!firebase.firestore.DocumentReference}
+ * @return {!firebase.firestore.DocumentReference<T>}
  */
 firebase.firestore.CollectionReference.prototype.doc = function(
   documentPath
@@ -1182,7 +1246,8 @@ firebase.firestore.CollectionReference.prototype.doc = function(
  * Adds a new document to this collection with the specified data, assigning
  * it a document ID automatically.
  *
- * @param {!firebase.firestore.DocumentData} data
+ * @template T
+ * @param {T=} data
  * @return {!Promise<!firebase.firestore.DocumentReference>}
  *   A Promise that resolves with a `DocumentReference` pointing to the newly
  *   created document after it has been written to the backend.
@@ -1192,13 +1257,28 @@ firebase.firestore.CollectionReference.prototype.add = function(data) {};
 /**
  * Returns 'true' if this `CollectionReference` is equal to the provided one.
  *
- * @param {!firebase.firestore.CollectionReference} other
+ * @template T
+ * @param {!firebase.firestore.CollectionReference<T>} other
  *   The `CollectionReference` to compare against.
  *
  * @return {boolean}
  *   'true' if this `CollectionReference` is equal to the provided one.
  */
 firebase.firestore.CollectionReference.prototype.isEqual = function(other) {};
+
+/**
+ * Applies a custom data converter to this CollectionReference, allowing you
+ * to use your own custom model objects with Firestore. When you call add()
+ * on the returned CollectionReference instance, the provided converter will
+ * convert between Firestore data and your custom type U.
+ * 
+ * @template U
+ * @param {!firebase.firestore.FirestoreDataConverter<U>} converter Converts
+ *   objects to and from Firestore.
+ * @return {!firebase.firestore.CollectionReference<U>} A CollectionReference<U> 
+ *   that uses the provided converter.
+ */
+firebase.firestore.CollectionReference.prototype.withConverter = function(converter) {};
 
 /**
  * Sentinel values that can be used when writing document fields with `set()`
