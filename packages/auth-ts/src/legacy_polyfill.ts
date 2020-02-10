@@ -53,6 +53,7 @@ import {
   emailAuthCredentialWithLink
 } from './core/providers/email';
 import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
+import { deleteUser } from './core/account_management/delete';
 
 interface FirebaseAuth extends Auth {}
 
@@ -80,8 +81,11 @@ let memo: FirebaseAuth;
         stsTokenManager: Object.assign(user.stsTokenManager, {
           apiKey: auth.config.apiKey
         }),
-        sendEmailVerification(actionCodeSettings?: ActionCodeSettings) {
+        sendEmailVerification(actionCodeSettings?: ActionCodeSettings): Promise<void> {
           return sendEmailVerification(auth, user, actionCodeSettings);
+        },
+        delete(): Promise<void> {
+          return deleteUser(auth, user);
         }
       });
     }
@@ -103,7 +107,7 @@ let memo: FirebaseAuth;
     fetchSignInMethodsForEmail(email: string): Promise<string[]> {
       return fetchSignInMethodsForEmail(auth, email);
     },
-    getRedirectResult() {
+    getRedirectResult(): Promise<UserCredential|null> {
       return getRedirectResult(auth);
     },
     isSignInWithEmailLink(emailLink: string): boolean {
@@ -112,7 +116,7 @@ let memo: FirebaseAuth;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: ActionCodeSettings
-    ) {
+    ): Promise<void> {
       return sendPasswordResetEmail(auth, email, actionCodeSettings);
     },
     sendSignInLinkToEmail(
@@ -121,16 +125,16 @@ let memo: FirebaseAuth;
     ): Promise<void> {
       return sendSignInLinkToEmail(auth, email, actionCodeSettings);
     },
-    signInAnonymously() {
+    signInAnonymously(): Promise<UserCredential> {
       return signInAnonymously(auth);
     },
     signInWithCredential(credential: AuthCredential): Promise<UserCredential> {
       return signInWithCredential(auth, credential);
     },
-    createUserWithEmailAndPassword(email: string, password: string) {
+    createUserWithEmailAndPassword(email: string, password: string): Promise<UserCredential>{
       return createUserWithEmailAndPassword(auth, email, password);
     },
-    signInWithEmailAndPassword(email: string, password: string) {
+    signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
       return signInWithEmailAndPassword(auth, email, password);
     },
     signInWithEmailLink(
@@ -139,7 +143,7 @@ let memo: FirebaseAuth;
     ): Promise<UserCredential> {
       return signInWithEmailLink(auth, email, emailLink);
     },
-    signInWithRedirect(provider: OAuthProvider) {
+    signInWithRedirect(provider: OAuthProvider): Promise<never> {
       return signInWithRedirect(
         auth,
         provider,

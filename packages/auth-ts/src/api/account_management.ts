@@ -41,3 +41,15 @@ export async function resetPassword(
     request
   );
 }
+
+export interface DeleteAccountRequest {
+  idToken: string;
+}
+
+export async function deleteAccount(auth: Auth, request: DeleteAccountRequest): Promise<void> {
+  return performApiRequest<DeleteAccountRequest, void>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.DELETE_ACCOUNT,
+    request);
+}

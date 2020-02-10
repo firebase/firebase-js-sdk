@@ -21,6 +21,8 @@ import {
   parseIdToken,
   IdTokenResponse
 } from './id_token';
+import { deleteUser } from '../core/account_management/delete';
+import { Auth } from './auth';
 
 export interface UserInfo {
   readonly uid: string;
@@ -30,16 +32,34 @@ export interface UserInfo {
   readonly photoURL: string | null;
 }
 
+export interface UserParameters {
+  stsTokenManager: StsTokenManager,
+  uid: string,
+  displayName?: string,
+  email?: string,
+  phoneNumber?: string,
+  photoURL?: string,
+  isAnonymous?: boolean,
+}
+
 export class User implements UserInfo {
-  constructor(
-    public readonly stsTokenManager: StsTokenManager,
-    public readonly uid: string,
-    public readonly displayName: string | null = null,
-    public readonly email: string | null = null,
-    public readonly phoneNumber: string | null = null,
-    public readonly photoURL: string | null = null,
-    public readonly isAnonymous: boolean = false
-  ) {}
+  readonly stsTokenManager: StsTokenManager;
+  readonly uid: string;
+  readonly displayName: string | null;
+  readonly email: string | null;
+  readonly phoneNumber: string | null;
+  readonly photoURL: string | null;
+  readonly isAnonymous: boolean;
+  
+  constructor(params: UserParameters) {
+    this.stsTokenManager = params.stsTokenManager;
+    this.uid = params.uid;
+    this.displayName = params.displayName || null;
+    this.email = params.email || null;
+    this.phoneNumber = params.phoneNumber || null;
+    this.photoURL = params.photoURL || null;
+    this.isAnonymous = params.isAnonymous || false;
+  }
 
   getIdToken(forceRefresh: boolean = false): Promise<IdToken> {
     return Promise.resolve(this.stsTokenManager.accessToken);
@@ -54,6 +74,10 @@ export class User implements UserInfo {
   async reload(): Promise<User> {
     // TODO: this should call getAccountInfo and set all the additional fields
     return this;
+  }
+
+  async delete(auth: Auth): Promise<void> {
+    return deleteUser(auth, this);
   }
 }
 
