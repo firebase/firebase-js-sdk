@@ -1,13 +1,6 @@
 name: Run All Tests
 
-on:
-  pull_request:
-    branches:
-      - master
-    types:
-      - closed
-  schedule:
-    - cron: '0 6,18 * * *'
+on: [push, pull_request]
 
 jobs:
   test:
@@ -20,6 +13,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
+    - name: install stable Chrome
+      run: sudo apt-get install google-chrome-stable
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
