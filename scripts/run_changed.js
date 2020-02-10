@@ -56,10 +56,13 @@ const alwaysRunTestPaths = [
  * Identify modified packages that require tests.
  */
 async function getChangedPackages() {
-  const packageInfo = JSON.parse((await exec('npx lerna ls --json', { cwd: root })).stdout);
+  const packageInfo = JSON.parse(
+    (await exec('npx lerna ls --json', { cwd: root })).stdout
+  );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   const changedPackages = {};
+  const downstreamPackages = {};
   for (const filename of changedFiles) {
     if (fullTestTriggerFiles.includes(filename)) {
       console.log(
@@ -69,18 +72,23 @@ async function getChangedPackages() {
     }
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
-      const pkg = require(resolve(root, match[1], 'package.json'));
-      if (pkg && pkg.scripts.test) {
+      const changedPackage = require(resolve(root, match[1], 'package.json'));
+      if (changedPackage && changedPackage.scripts.test) {
         // Add the package itself.
         changedPackages[match[1]] = true;
         // Add packages that depend on it.
-        const graph = JSON.parse(await exec('npx lerna ls --graph', { cwd: root }));
-        const deps = graph[pkg.name];
-        if (deps) {
-          for (const depName of deps) {
-            const depData = packageInfo.find(item => item.name === depName);
+        const graph = JSON.parse(
+          (await exec('npx lerna ls --graph', { cwd: root })).stdout
+        );
+        for (const package in graph) {
+          if (graph[package].includes(changedPackage.name)) {
+            const depData = packageInfo.find(item => item.name === package.name);
             if (depData) {
-              changedPackages[depData.location.replace(root, '')] = true;
+              const depPkgJson = require(resolve(depData.location, 'package.json'));
+              if (depPkgJson && depPkgJson.scripts.test) {
+                const depPath = depData.location.replace(`${root}/`, '');
+                downstreamPackages[depPath] = true;
+              }
             }
           }
         }
@@ -88,12 +96,16 @@ async function getChangedPackages() {
     }
   }
   if (Object.keys(changedPackages).length > 0) {
-    return { testAll: false, packageDirs: Object.keys(changedPackages) };
+    return {
+      testAll: false,
+      packageDirs: Object.keys(changedPackages),
+      downstreamDirs: Object.keys(downstreamPackages)
+    };
   } else {
     console.log(
       chalk`{green No changes detected in any package. Skipping all package-specific tests.}`
     );
-    return { testAll: false, packageDirs: [] };
+    return { testAll: false, packageDirs: [], downstreamDirs: [] };
   }
 }
 
@@ -116,7 +128,7 @@ async function runTests(pathList) {
 
 async function main() {
   try {
-    const { testAll, packageDirs = [] } = await getChangedPackages();
+    const { testAll, packageDirs = [], downstreamDirs = [] } = await getChangedPackages();
     console.log(packageDirs);
     if (testAll) {
       // await spawn('yarn', ['test'], {
@@ -130,8 +142,12 @@ async function main() {
       for (const filename of packageDirs) {
         console.log(chalk`{yellow ${filename} (contains modified files)}`);
       }
+      for (const filename of downstreamDirs) {
+        console.log(chalk`{yellow ${filename} (depends on modified package)}`);
+      }
       // await runTests(alwaysRunTestPaths);
       // await runTests(packageDirs);
+      // await runTests(downstreamDirs);
     }
   } catch (e) {
     console.error(e);
