@@ -53,41 +53,64 @@ const alwaysRunTestPaths = [
 ];
 
 /**
+ * These files trigger tests in other dirs
+ */
+const specialPaths = {
+  'scripts/emulator-testing/emulators/firestore-emulator.ts': ['packages/firestore'],
+  'scripts/emulator-testing/emulators/database-emulator.ts': ['packages/database'],
+  'scripts/emulator-testing/emulators/emulator.ts': ['packages/firestore', 'packages/database'],
+  'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
+  'scripts/emulator-testing/database-test-runner.ts': ['packages/database']
+};
+
+/**
  * Identify modified packages that require tests.
  */
 async function getChangedPackages() {
   const packageInfo = JSON.parse(
     (await exec('npx lerna ls --json', { cwd: root })).stdout
   );
+  const depGraph = JSON.parse(
+    (await exec('npx lerna ls --graph', { cwd: root })).stdout
+  );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   const changedPackages = {};
-  const downstreamPackages = {};
   for (const filename of changedFiles) {
+    // Files that trigger full test suite.
     if (fullTestTriggerFiles.includes(filename)) {
       console.log(
         chalk`{blue Running all tests because ${filename} was modified.}`
       );
       return { testAll: true };
     }
+    // Files outside a package dir that should trigger its tests.
+    if (specialPaths[filename]) {
+      for (const targetPackage of specialPaths[filename]) {
+        changedPackages[targetPackage] = 'dependency';
+      }
+    }
+    // Check for changed files inside package dirs.
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage && changedPackage.scripts.test) {
         // Add the package itself.
-        changedPackages[match[1]] = true;
+        changedPackages[match[1]] = 'direct';
         // Add packages that depend on it.
-        const graph = JSON.parse(
-          (await exec('npx lerna ls --graph', { cwd: root })).stdout
-        );
-        for (const package in graph) {
-          if (graph[package].includes(changedPackage.name)) {
-            const depData = packageInfo.find(item => item.name === package.name);
+        for (const package in depGraph) {
+          if (depGraph[package].includes(changedPackage.name)) {
+            const depData = packageInfo.find(item => item.name === package);
             if (depData) {
-              const depPkgJson = require(resolve(depData.location, 'package.json'));
+              const depPkgJson = require(resolve(
+                depData.location,
+                'package.json'
+              ));
               if (depPkgJson && depPkgJson.scripts.test) {
                 const depPath = depData.location.replace(`${root}/`, '');
-                downstreamPackages[depPath] = true;
+                if (!changedPackages[depPath]) {
+                  changedPackages[depPath] = 'dependency';
+                }
               }
             }
           }
@@ -98,14 +121,13 @@ async function getChangedPackages() {
   if (Object.keys(changedPackages).length > 0) {
     return {
       testAll: false,
-      packageDirs: Object.keys(changedPackages),
-      downstreamDirs: Object.keys(downstreamPackages)
+      changedPackages
     };
   } else {
     console.log(
       chalk`{green No changes detected in any package. Skipping all package-specific tests.}`
     );
-    return { testAll: false, packageDirs: [], downstreamDirs: [] };
+    return { testAll: false };
   }
 }
 
@@ -128,26 +150,28 @@ async function runTests(pathList) {
 
 async function main() {
   try {
-    const { testAll, packageDirs = [], downstreamDirs = [] } = await getChangedPackages();
-    console.log(packageDirs);
+    const {
+      testAll,
+      changedPackages = {}
+    } = await getChangedPackages();
     if (testAll) {
-      // await spawn('yarn', ['test'], {
-      //   stdio: 'inherit'
-      // });
+      await spawn('yarn', ['test'], {
+        stdio: 'inherit'
+      });
     } else {
       console.log(chalk`{blue Running tests in:}`);
-      for (const filename of alwaysRunTestPaths) {
+      for (const filename of alwaysRunTestPaths) { // array
         console.log(chalk`{green ${filename} (always runs)}`);
       }
-      for (const filename of packageDirs) {
-        console.log(chalk`{yellow ${filename} (contains modified files)}`);
+      for (const filename in changedPackages) { // obj
+        if (changedPackages[filename] === 'direct') {
+          console.log(chalk`{yellow ${filename} (contains modified files)}`);
+        } else {
+          console.log(chalk`{yellow ${filename} (depends on modified files)}`);
+        }
       }
-      for (const filename of downstreamDirs) {
-        console.log(chalk`{yellow ${filename} (depends on modified package)}`);
-      }
-      // await runTests(alwaysRunTestPaths);
-      // await runTests(packageDirs);
-      // await runTests(downstreamDirs);
+      await runTests(alwaysRunTestPaths);
+      await runTests(Object.keys(changedPackages));
     }
   } catch (e) {
     console.error(e);
