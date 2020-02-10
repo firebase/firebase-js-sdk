@@ -1,6 +1,6 @@
 name: Run All Tests
 
-on:
+on: 
   pull_request:
     branches:
       - master
@@ -20,6 +20,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
