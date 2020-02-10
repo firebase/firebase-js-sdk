@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 10.x
-    - name: install stable Chrome
+    - name: install Chrome stable
       run: |
         sudo apt-get update
         sudo apt-get install google-chrome-stable
