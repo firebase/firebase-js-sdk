@@ -27,10 +27,8 @@ import {
 } from '../../model/action_code_settings';
 import { signInWithCredential } from './auth_credential';
 import { resetPassword } from '../../api/account_management';
-import {
-  ActionCodeInfo,
-  actionCodeInfoFromResetPasswordResponse
-} from '../../model/action_code_info';
+import { ActionCodeInfo } from '../../model/action_code_info';
+import { checkActionCode } from './action_code';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -110,23 +108,10 @@ export async function confirmPasswordReset(
   // Do not return the email.
 }
 
-// verifyBeforeUpdateEmail
-
-export async function checkActionCode(
-  auth: Auth,
-  oobCode: string
-): Promise<ActionCodeInfo> {
-  let response = await resetPassword(auth, {
-    oobCode
-  });
-  return actionCodeInfoFromResetPasswordResponse(auth, response);
-}
-
 export async function verifyPasswordResetCode(
   auth: Auth,
   code: string
 ): Promise<string> {
   const info: ActionCodeInfo = await checkActionCode(auth, code);
-
-  return info.data.email;
+  return info.data.email!;
 }

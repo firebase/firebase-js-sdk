@@ -54,6 +54,8 @@ import {
 } from './core/providers/email';
 import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
 import { deleteUser } from './core/account_management/delete';
+import { ActionCodeInfo } from './model/action_code_info';
+import { checkActionCode } from './core/strategies/action_code';
 
 interface FirebaseAuth extends Auth {}
 
@@ -101,6 +103,9 @@ let memo: FirebaseAuth;
         return emailAuthCredentialWithLink(auth, email, emailLink);
       }
     }),
+    checkActionCode(code: string): Promise<ActionCodeInfo> {
+      return checkActionCode(auth, code);
+    },
     confirmPasswordReset(code: string, newPassword: string): Promise<void> {
       return confirmPasswordReset(auth, code, newPassword);
     },
