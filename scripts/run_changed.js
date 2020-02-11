@@ -94,9 +94,11 @@ async function getChangedPackages() {
     const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
-      if (changedPackage && changedPackage.scripts.test) {
-        // Add the package itself.
-        changedPackages[match[1]] = 'direct';
+      if (changedPackage) {
+        if (changedPackage.scripts.test) {
+          // Add the package itself.
+          changedPackages[match[1]] = 'direct';
+        }
         // Add packages that depend on it.
         for (const package in depGraph) {
           if (depGraph[package].includes(changedPackage.name)) {
