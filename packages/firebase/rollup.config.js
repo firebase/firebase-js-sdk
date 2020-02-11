@@ -23,16 +23,56 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import { terser } from 'rollup-plugin-terser';
+import json from 'rollup-plugin-json';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
+
+function createUmdOutputConfig(output) {
+  return {
+    file: output,
+    format: 'umd',
+    sourcemap: true,
+    extend: true,
+    name: GLOBAL_NAME,
+    globals: {
+      '@firebase/app': GLOBAL_NAME
+    },
+
+    /**
+     * use iife to avoid below error in the old Safari browser
+     * SyntaxError: Functions cannot be declared in a nested block in strict mode
+     * https://github.com/firebase/firebase-js-sdk/issues/1228
+     *
+     */
+    intro: `
+          try {
+            (function() {`,
+    outro: `
+          }).apply(this, arguments);
+        } catch(err) {
+            console.error(err);
+            throw new Error(
+              'Cannot instantiate ${output} - ' +
+              'be sure to load firebase-app.js first.'
+            );
+          }`
+  };
+}
 
 const plugins = [
   sourcemaps(),
   resolveModule(),
   typescriptPlugin({
-    typescript
+    typescript,
+    // Workaround for typescript plugins that use async functions.
+    // In this case, `rollup-plugin-sourcemaps`.
+    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+    objectHashIgnoreUnknownHack: true,
+    // For safety, given hack above (see link).
+    clean: true
   }),
+  json(),
   commonjs()
 ];
 
@@ -99,42 +139,20 @@ const componentBuilds = pkg.components
       },
       {
         input: `${component}/index.ts`,
-        output: {
-          file: `firebase-${component}.js`,
-          format: 'umd',
-          sourcemap: true,
-          extend: true,
-          name: GLOBAL_NAME,
-          globals: {
-            '@firebase/app': GLOBAL_NAME
-          },
-
-          /**
-           * use iife to avoid below error in the old Safari browser
-           * SyntaxError: Functions cannot be declared in a nested block in strict mode
-           * https://github.com/firebase/firebase-js-sdk/issues/1228
-           *
-           */
-
-          intro: `
-            try {
-              (function() {`,
-          outro: `
-            }).apply(this, arguments);
-          } catch(err) {
-              console.error(err);
-              throw new Error(
-                'Cannot instantiate firebase-${component} - ' +
-                'be sure to load firebase-app.js first.'
-              );
-            }`
-        },
+        output: createUmdOutputConfig(`firebase-${component}.js`),
         plugins: [...plugins, uglify()],
         external: ['@firebase/app']
       }
     ];
   })
   .reduce((a, b) => a.concat(b), []);
+
+const firestoreMinifiedBuild = {
+  input: `firestore/index.min.ts`,
+  output: createUmdOutputConfig(`firebase-firestore.min.js`),
+  plugins: [...plugins, uglify()],
+  external: ['@firebase/app']
+};
 
 /**
  * Complete Package Builds
@@ -197,8 +215,15 @@ const completeBuilds = [
         mainFields: ['lite', 'module', 'main']
       }),
       typescriptPlugin({
-        typescript
+        typescript,
+        // Workaround for typescript plugins that use async functions.
+        // In this case, `rollup-plugin-sourcemaps`.
+        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+        objectHashIgnoreUnknownHack: true,
+        // For safety, given hack above (see link).
+        clean: true
       }),
+      json(),
       commonjs(),
       uglify()
     ]
@@ -221,11 +246,20 @@ const completeBuilds = [
       }),
       typescriptPlugin({
         typescript,
+        // Workaround for typescript plugins that use async functions.
+        // In this case, `rollup-plugin-sourcemaps`.
+        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+        objectHashIgnoreUnknownHack: true,
+        // For safety, given hack above (see link).
+        clean: true,
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017'
           }
         }
+      }),
+      json({
+        preferConst: true
       }),
       commonjs(),
       terser()
@@ -233,4 +267,9 @@ const completeBuilds = [
   }
 ];
 
-export default [...appBuilds, ...componentBuilds, ...completeBuilds];
+export default [
+  ...appBuilds,
+  ...componentBuilds,
+  firestoreMinifiedBuild,
+  ...completeBuilds
+];

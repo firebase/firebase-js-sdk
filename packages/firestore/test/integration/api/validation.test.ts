@@ -18,15 +18,12 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
   apiDescribe,
-  arrayContainsAnyOp,
   DEFAULT_PROJECT_ID,
-  inOp,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -161,7 +158,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+      db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
   });
 
@@ -549,35 +546,43 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expectWriteToFail(
           db,
           { __baz__: 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__)'
         ),
         expectWriteToFail(
           db,
           { foo: { __baz__: 1 } },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             'foo.__baz__)'
         ),
         expectWriteToFail(
           db,
           { __baz__: { foo: 1 } },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__)'
         ),
 
         expectUpdateToFail(
           db,
           { 'foo.__baz__': 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             'foo.__baz__)'
         ),
         expectUpdateToFail(
           db,
           { '__baz__.foo': 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__.foo)'
         )
       ]);
+    });
+
+    validationIt(persistence, 'must not contain empty field names.', db => {
+      return expectSetToFail(
+        db,
+        { '': 'foo' },
+        'Document fields must not be empty (found in field ``)'
+      );
     });
 
     validationIt(
@@ -797,12 +802,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        'Invalid Query. Query limit (0) is invalid. Limit must be ' +
-          'positive.'
+        'Function "Query.limit()" requires its first argument to be a positive number, ' +
+          'but it was: 0.'
       );
-      expect(() => collection.limit(-1)).to.throw(
-        'Invalid Query. Query limit (-1) is invalid. Limit must be ' +
-          'positive.'
+      expect(() => collection.limitToLast(-1)).to.throw(
+        'Function "Query.limitToLast()" requires its first argument to be a positive number, ' +
+          'but it was: -1.'
       );
     });
 
@@ -810,7 +815,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
         'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-          'Acceptable values: <, <=, ==, >=, >, array-contains'
+          'Acceptable values: <, <=, ==, >=, >, array-contains, in, array-contains-any'
       );
     });
 
@@ -825,10 +830,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
           'Invalid query. Null supports only equality comparisons.'
         );
-        expect(() => collection.where('a', inOp, null)).to.throw(
+        expect(() => collection.where('a', 'in', null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
-        expect(() => collection.where('a', arrayContainsAnyOp, null)).to.throw(
+        expect(() =>
+          collection.where('a', 'array-contains-any', null)
+        ).to.throw(
           "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
         );
 
@@ -838,11 +845,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.where('a', 'array-contains', Number.NaN)
         ).to.throw('Invalid query. NaN supports only equality comparisons.');
-        expect(() => collection.where('a', inOp, Number.NaN)).to.throw(
+        expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
         expect(() =>
-          collection.where('a', arrayContainsAnyOp, Number.NaN)
+          collection.where('a', 'array-contains-any', Number.NaN)
         ).to.throw(
           "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
         );
@@ -950,10 +957,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const query = db
           .collection('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         const cgQuery = db
           .collectionGroup('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'
@@ -1027,7 +1034,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'array-contains', 1)
-          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', 'array-contains-any', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
           "'array-contains' filters."
@@ -1036,7 +1043,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', 'array-contains-any', [2, 3])
           .where('foo', 'array-contains', 1)
       ).to.throw(
         "Invalid query. You cannot use 'array-contains' filters with " +
@@ -1048,15 +1055,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', inOp, [1, 2])
-          .where('foo', inOp, [2, 3])
+          .where('foo', 'in', [1, 2])
+          .where('foo', 'in', [2, 3])
       ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
 
       expect(() =>
         db
           .collection('test')
-          .where('foo', arrayContainsAnyOp, [1, 2])
-          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', 'array-contains-any', [1, 2])
+          .where('foo', 'array-contains-any', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use more than one 'array-contains-any'" +
           ' filter.'
@@ -1065,8 +1072,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', arrayContainsAnyOp, [2, 3])
-          .where('foo', inOp, [2, 3])
+          .where('foo', 'array-contains-any', [2, 3])
+          .where('foo', 'in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'in' filters with " +
           "'array-contains-any' filters."
@@ -1075,8 +1082,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', inOp, [2, 3])
-          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', 'in', [2, 3])
+          .where('foo', 'array-contains-any', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
           "'in' filters."
@@ -1087,9 +1094,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', inOp, [2, 3])
+          .where('foo', 'in', [2, 3])
           .where('foo', 'array-contains', 1)
-          .where('foo', arrayContainsAnyOp, [2])
+          .where('foo', 'array-contains-any', [2])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
           "'in' filters."
@@ -1099,8 +1106,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'array-contains', 1)
-          .where('foo', inOp, [2, 3])
-          .where('foo', arrayContainsAnyOp, [2])
+          .where('foo', 'in', [2, 3])
+          .where('foo', 'array-contains-any', [2])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
           "'in' filters."
@@ -1115,20 +1122,20 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db
             .collection('test')
             .where('foo', 'array-contains', 1)
-            .where('foo', inOp, [2, 3])
+            .where('foo', 'in', [2, 3])
         ).not.to.throw();
 
         expect(() =>
           db
             .collection('test')
-            .where('foo', inOp, [2, 3])
+            .where('foo', 'in', [2, 3])
             .where('foo', 'array-contains', 1)
         ).not.to.throw();
 
         expect(() =>
           db
             .collection('test')
-            .where('foo', inOp, [2, 3])
+            .where('foo', 'in', [2, 3])
             .where('foo', 'array-contains', 1)
             .where('foo', 'array-contains', 2)
         ).to.throw(
@@ -1139,8 +1146,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db
             .collection('test')
             .where('foo', 'array-contains', 1)
-            .where('foo', inOp, [2, 3])
-            .where('foo', inOp, [2, 3])
+            .where('foo', 'in', [2, 3])
+            .where('foo', 'in', [2, 3])
         ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
       }
     );
@@ -1149,12 +1156,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'enforce array requirements for disjunctive filters',
       db => {
-        expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
+        expect(() => db.collection('test').where('foo', 'in', 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
-          db.collection('test').where('foo', arrayContainsAnyOp, 2)
+          db.collection('test').where('foo', 'array-contains-any', 2)
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
@@ -1164,7 +1171,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db
             .collection('test')
             // The 10 element max includes duplicates.
-            .where('foo', inOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
+            .where('foo', 'in', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'in' filters support a maximum of 10 elements in " +
             'the value array.'
@@ -1173,38 +1180,50 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', arrayContainsAnyOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
+            .where('foo', 'array-contains-any', [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              9,
+              9
+            ])
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters support a maximum of " +
             '10 elements in the value array.'
         );
 
-        expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
+        expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
-          db.collection('test').where('foo', arrayContainsAnyOp, [])
+          db.collection('test').where('foo', 'array-contains-any', [])
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
         );
 
         expect(() =>
-          db.collection('test').where('foo', inOp, [3, null])
+          db.collection('test').where('foo', 'in', [3, null])
         ).to.throw(
           "Invalid Query. 'in' filters cannot contain 'null' in the value array."
         );
 
         expect(() =>
-          db.collection('test').where('foo', arrayContainsAnyOp, [3, null])
+          db.collection('test').where('foo', 'array-contains-any', [3, null])
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters cannot contain 'null' " +
             'in the value array.'
         );
 
         expect(() =>
-          db.collection('test').where('foo', inOp, [2, Number.NaN])
+          db.collection('test').where('foo', 'in', [2, Number.NaN])
         ).to.throw(
           "Invalid Query. 'in' filters cannot contain 'NaN' in the value array."
         );
@@ -1212,7 +1231,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', arrayContainsAnyOp, [2, Number.NaN])
+            .where('foo', 'array-contains-any', [2, Number.NaN])
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters cannot contain 'NaN' " +
             'in the value array.'
@@ -1280,7 +1299,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
 
         expect(() =>
-          collection.where(FieldPath.documentId(), arrayContainsAnyOp, 1)
+          collection.where(FieldPath.documentId(), 'array-contains-any', 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
             'FieldPath.documentId().'
@@ -1295,18 +1314,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test');
 
         expect(() =>
-          collection.where(FieldPath.documentId(), inOp, [collection.path])
+          collection.where(FieldPath.documentId(), 'in', [collection.path])
         ).not.to.throw();
 
         expect(() =>
-          collection.where(FieldPath.documentId(), inOp, [''])
+          collection.where(FieldPath.documentId(), 'in', [''])
         ).to.throw(
           'Invalid query. When querying with FieldPath.documentId(), you ' +
             'must provide a valid document ID, but it was an empty string.'
         );
 
         expect(() =>
-          collection.where(FieldPath.documentId(), inOp, ['foo/bar/baz'])
+          collection.where(FieldPath.documentId(), 'in', ['foo/bar/baz'])
         ).to.throw(
           `Invalid query. When querying a collection by ` +
             `FieldPath.documentId(), you must provide a plain document ID, but ` +
@@ -1314,14 +1333,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
 
         expect(() =>
-          collection.where(FieldPath.documentId(), inOp, [1, 2])
+          collection.where(FieldPath.documentId(), 'in', [1, 2])
         ).to.throw(
           'Invalid query. When querying with FieldPath.documentId(), you must ' +
             'provide a valid string or a DocumentReference, but it was: 1.'
         );
 
         expect(() =>
-          db.collectionGroup('foo').where(FieldPath.documentId(), inOp, ['foo'])
+          db.collectionGroup('foo').where(FieldPath.documentId(), 'in', ['foo'])
         ).to.throw(
           `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +

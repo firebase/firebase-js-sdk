@@ -25,8 +25,9 @@ import * as integrationHelpers from '../util/helpers';
 // tslint:disable:no-floating-promises
 
 const apiDescribe = integrationHelpers.apiDescribe;
-const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
+const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Database batch writes', (persistence: boolean) => {
   it('supports empty batches', () => {
@@ -108,13 +109,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
       return doc.firestore
         .batch()
         .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
+        .update(doc, 'owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .commit()
         .then(() => doc.get())
         .then(docSnapshot => {
@@ -353,6 +348,46 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           expect(serverSnap.data()).to.deep.equal({ a: 1, b: 2, when });
           unsubscribe();
         });
+    });
+  });
+
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('for Writebatch.set<T>()', () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options);
+              return new Post(data.title, data.author);
+            }
+          });
+        return docRef.firestore
+          .batch()
+          .set(docRef, new Post('post', 'author'))
+          .commit()
+          .then(() => docRef.get())
+          .then(snapshot => {
+            expect(snapshot.exists).to.equal(true);
+            expect(snapshot.data()!.byline()).to.deep.equal('post, by author');
+          });
+      });
     });
   });
 });

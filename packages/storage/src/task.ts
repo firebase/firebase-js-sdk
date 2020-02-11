@@ -609,7 +609,7 @@ export class UploadTask {
           break;
         case TaskState.CANCELED:
         case TaskState.ERROR:
-          const toCall = this.reject_ as ((p1: Error) => void);
+          const toCall = this.reject_ as (p1: Error) => void;
           fbsAsync(toCall.bind(null, this.error_ as Error))();
           break;
         default:

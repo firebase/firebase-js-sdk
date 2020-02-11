@@ -27,6 +27,7 @@ import { PROTOCOL_VERSION } from './Constants';
 import { TransportManager } from './TransportManager';
 import { RepoInfo } from '../core/RepoInfo';
 import { Transport, TransportConstructor } from './Transport';
+import { Indexable } from '../core/util/misc';
 
 // Abort upgrade attempt if it takes longer than 60s.
 const UPGRADE_TIMEOUT = 60000;
@@ -67,13 +68,13 @@ const SERVER_HELLO = 'h';
  */
 export class Connection {
   connectionCount = 0;
-  pendingDataMessages: any[] = [];
+  pendingDataMessages: unknown[] = [];
   sessionId: string;
 
   private conn_: Transport;
   private healthyTimeout_: number;
   private isHealthy_: boolean;
-  private log_: (...args: any[]) => void;
+  private log_: (...args: unknown[]) => void;
   private primaryResponsesRequired_: number;
   private rx_: Transport;
   private secondaryConn_: Transport;
@@ -94,7 +95,7 @@ export class Connection {
   constructor(
     public id: string,
     private repoInfo_: RepoInfo,
-    private onMessage_: (a: Object) => void,
+    private onMessage_: (a: {}) => void,
     private onReady_: (a: number, b: string) => void,
     private onDisconnect_: () => void,
     private onKill_: (a: string) => void,
@@ -110,7 +111,7 @@ export class Connection {
    * Starts a connection attempt
    * @private
    */
-  private start_() {
+  private start_(): void {
     const conn = this.transportManager_.initialTransport();
     this.conn_ = new conn(
       this.nextTransportId_(),
@@ -141,8 +142,8 @@ export class Connection {
       this.conn_ && this.conn_.open(onMessageReceived, onConnectionLost);
     }, Math.floor(0));
 
-    const healthyTimeout_ms = conn['healthyTimeout'] || 0;
-    if (healthyTimeout_ms > 0) {
+    const healthyTimeoutMS = conn['healthyTimeout'] || 0;
+    if (healthyTimeoutMS > 0) {
       this.healthyTimeout_ = setTimeoutNonBlocking(() => {
         this.healthyTimeout_ = null;
         if (!this.isHealthy_) {
@@ -173,7 +174,8 @@ export class Connection {
             this.close();
           }
         }
-      }, Math.floor(healthyTimeout_ms)) as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }, Math.floor(healthyTimeoutMS)) as any;
     }
   }
 
@@ -199,8 +201,8 @@ export class Connection {
   }
 
   private connReceiver_(conn: Transport) {
-    return (message: object) => {
-      if (this.state_ != RealtimeState.DISCONNECTED) {
+    return (message: Indexable) => {
+      if (this.state_ !== RealtimeState.DISCONNECTED) {
         if (conn === this.rx_) {
           this.onPrimaryMessageReceived_(message);
         } else if (conn === this.secondaryConn_) {
@@ -233,7 +235,7 @@ export class Connection {
     }
   }
 
-  private onSecondaryControl_(controlData: { [k: string]: any }) {
+  private onSecondaryControl_(controlData: { [k: string]: unknown }) {
     if (MESSAGE_TYPE in controlData) {
       const cmd = controlData[MESSAGE_TYPE] as string;
       if (cmd === SWITCH_ACK) {
@@ -257,12 +259,12 @@ export class Connection {
     }
   }
 
-  private onSecondaryMessageReceived_(parsedData: object) {
-    const layer: string = requireKey('t', parsedData);
-    const data: any = requireKey('d', parsedData);
-    if (layer == 'c') {
-      this.onSecondaryControl_(data);
-    } else if (layer == 'd') {
+  private onSecondaryMessageReceived_(parsedData: Indexable) {
+    const layer: string = requireKey('t', parsedData) as string;
+    const data: unknown = requireKey('d', parsedData);
+    if (layer === 'c') {
+      this.onSecondaryControl_(data as Indexable);
+    } else if (layer === 'd') {
       // got a data message, but we're still second connection. Need to buffer it up
       this.pendingDataMessages.push(data);
     } else {
@@ -299,18 +301,18 @@ export class Connection {
     this.tryCleanupConnection();
   }
 
-  private onPrimaryMessageReceived_(parsedData: { [k: string]: any }) {
+  private onPrimaryMessageReceived_(parsedData: { [k: string]: unknown }) {
     // Must refer to parsedData properties in quotes, so closure doesn't touch them.
-    const layer: string = requireKey('t', parsedData);
-    const data: any = requireKey('d', parsedData);
-    if (layer == 'c') {
-      this.onControl_(data);
-    } else if (layer == 'd') {
+    const layer: string = requireKey('t', parsedData) as string;
+    const data: unknown = requireKey('d', parsedData);
+    if (layer === 'c') {
+      this.onControl_(data as { [k: string]: unknown });
+    } else if (layer === 'd') {
       this.onDataMessage_(data);
     }
   }
 
-  private onDataMessage_(message: any) {
+  private onDataMessage_(message: unknown) {
     this.onPrimaryResponse_();
 
     // We don't do anything with data messages, just kick them up a level
@@ -328,12 +330,19 @@ export class Connection {
     }
   }
 
-  private onControl_(controlData: { [k: string]: any }) {
-    const cmd: string = requireKey(MESSAGE_TYPE, controlData);
+  private onControl_(controlData: { [k: string]: unknown }) {
+    const cmd: string = requireKey(MESSAGE_TYPE, controlData) as string;
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
-        this.onHandshake_(payload);
+        this.onHandshake_(
+          payload as {
+            ts: number;
+            v: string;
+            h: string;
+            s: string;
+          }
+        );
       } else if (cmd === END_TRANSMISSION) {
         this.log_('recvd end transmission on primary');
         this.rx_ = this.secondaryConn_;
@@ -345,10 +354,10 @@ export class Connection {
       } else if (cmd === CONTROL_SHUTDOWN) {
         // This was previously the 'onKill' callback passed to the lower-level connection
         // payload in this case is the reason for the shutdown. Generally a human-readable error
-        this.onConnectionShutdown_(payload);
+        this.onConnectionShutdown_(payload as string);
       } else if (cmd === CONTROL_RESET) {
         // payload in this case is the host we should contact
-        this.onReset_(payload);
+        this.onReset_(payload as string);
       } else if (cmd === CONTROL_ERROR) {
         error('Server Error: ' + payload);
       } else if (cmd === CONTROL_PONG) {
@@ -371,14 +380,14 @@ export class Connection {
     v: string;
     h: string;
     s: string;
-  }) {
+  }): void {
     const timestamp = handshake.ts;
     const version = handshake.v;
     const host = handshake.h;
     this.sessionId = handshake.s;
     this.repoInfo_.updateHost(host);
     // if we've already closed the connection, then don't bother trying to progress further
-    if (this.state_ == RealtimeState.CONNECTING) {
+    if (this.state_ === RealtimeState.CONNECTING) {
       this.conn_.start();
       this.onConnectionEstablished_(this.conn_, timestamp);
       if (PROTOCOL_VERSION !== version) {

@@ -239,11 +239,15 @@ export class OAuthProvider implements AuthProvider {
   constructor(providerId: string);
   providerId: string;
   addScope(scope: string): AuthProvider;
-  credential(idToken?: string, accessToken?: string): OAuthCredential;
+  credential(
+    optionsOrIdToken: OAuthCredentialOptions | string | null,
+    accessToken?: string
+  ): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
 export class SAMLAuthProvider implements AuthProvider {
+  constructor(providerId: string);
   providerId: string;
 }
 
@@ -328,6 +332,12 @@ export class OAuthCredential extends AuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;
+}
+
+export interface OAuthCredentialOptions {
+  idToken?: string;
+  accessToken?: string;
+  rawNonce?: string;
 }
 
 export class PhoneAuthCredential extends AuthCredential {
@@ -472,5 +482,11 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     auth?(): FirebaseAuth;
+  }
+}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth': FirebaseAuth;
   }
 }

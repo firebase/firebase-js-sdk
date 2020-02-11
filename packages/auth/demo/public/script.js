@@ -468,12 +468,16 @@ function onSignInAnonymously() {
  */
 function onSignInWithGenericIdPCredential() {
   var providerId = $('#signin-generic-idp-provider-id').val();
-  var idToken = $('#signin-generic-idp-id-token').val();
-  var accessToken = $('#signin-generic-idp-access-token').val();
+  var idToken = $('#signin-generic-idp-id-token').val() || undefined;
+  var rawNonce = $('#signin-generic-idp-raw-nonce').val() || undefined;
+  var accessToken = $('#signin-generic-idp-access-token').val() || undefined;
   var provider = new firebase.auth.OAuthProvider(providerId);
   auth.signInWithCredential(
-      provider.credential(idToken, accessToken))
-      .then(onAuthUserCredentialSuccess, onAuthError);
+      provider.credential({
+        idToken: idToken,
+        accessToken: accessToken,
+        rawNonce: rawNonce,
+      })).then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 
@@ -890,12 +894,16 @@ function onLinkWithEmailAndPassword() {
  */
 function onLinkWithGenericIdPCredential() {
   var providerId = $('#link-generic-idp-provider-id').val();
-  var idToken = $('#link-generic-idp-id-token').val();
-  var accessToken = $('#link-generic-idp-access-token').val();
+  var idToken = $('#link-generic-idp-id-token').val() || undefined;
+  var rawNonce = $('#link-generic-idp-raw-nonce').val() || undefined;
+  var accessToken = $('#link-generic-idp-access-token').val() || undefined;
   var provider = new firebase.auth.OAuthProvider(providerId);
   activeUser().linkWithCredential(
-      provider.credential(idToken, accessToken))
-      .then(onAuthUserCredentialSuccess, onAuthError);
+     provider.credential({
+      idToken: idToken,
+      accessToken: accessToken,
+      rawNonce: rawNonce,
+    })).then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 
@@ -1384,6 +1392,9 @@ function logAdditionalUserInfo(response) {
     if (typeof response.additionalUserInfo.isNewUser !== 'undefined') {
       log(response.additionalUserInfo['providerId'] + ' isNewUser: ' +
           response.additionalUserInfo.isNewUser);
+    }
+    if (response.credential) {
+      log('credential: ' + JSON.stringify(response.credential.toJSON()));
     }
   }
 }

@@ -25,9 +25,9 @@ export class ChildChangeAccumulator {
     const type = change.type;
     const childKey = change.childName!;
     assert(
-      type == Change.CHILD_ADDED ||
-        type == Change.CHILD_CHANGED ||
-        type == Change.CHILD_REMOVED,
+      type === Change.CHILD_ADDED ||
+        type === Change.CHILD_CHANGED ||
+        type === Change.CHILD_REMOVED,
       'Only child changes supported for tracking'
     );
     assert(
@@ -37,7 +37,7 @@ export class ChildChangeAccumulator {
     const oldChange = this.changeMap.get(childKey);
     if (oldChange) {
       const oldType = oldChange.type;
-      if (type == Change.CHILD_ADDED && oldType == Change.CHILD_REMOVED) {
+      if (type === Change.CHILD_ADDED && oldType === Change.CHILD_REMOVED) {
         this.changeMap.set(
           childKey,
           Change.childChangedChange(
@@ -47,29 +47,29 @@ export class ChildChangeAccumulator {
           )
         );
       } else if (
-        type == Change.CHILD_REMOVED &&
-        oldType == Change.CHILD_ADDED
+        type === Change.CHILD_REMOVED &&
+        oldType === Change.CHILD_ADDED
       ) {
         this.changeMap.delete(childKey);
       } else if (
-        type == Change.CHILD_REMOVED &&
-        oldType == Change.CHILD_CHANGED
+        type === Change.CHILD_REMOVED &&
+        oldType === Change.CHILD_CHANGED
       ) {
         this.changeMap.set(
           childKey,
           Change.childRemovedChange(childKey, oldChange.oldSnap)
         );
       } else if (
-        type == Change.CHILD_CHANGED &&
-        oldType == Change.CHILD_ADDED
+        type === Change.CHILD_CHANGED &&
+        oldType === Change.CHILD_ADDED
       ) {
         this.changeMap.set(
           childKey,
           Change.childAddedChange(childKey, change.snapshotNode)
         );
       } else if (
-        type == Change.CHILD_CHANGED &&
-        oldType == Change.CHILD_CHANGED
+        type === Change.CHILD_CHANGED &&
+        oldType === Change.CHILD_CHANGED
       ) {
         this.changeMap.set(
           childKey,

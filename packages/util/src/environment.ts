@@ -73,6 +73,24 @@ export function isBrowser(): boolean {
 }
 
 /**
+ * Detect browser extensions (Chrome and Firefox at least).
+ */
+interface BrowserRuntime {
+  id?: unknown;
+}
+declare const chrome: { runtime?: BrowserRuntime };
+declare const browser: { runtime?: BrowserRuntime };
+export function isBrowserExtension(): boolean {
+  const runtime =
+    typeof chrome === 'object'
+      ? chrome.runtime
+      : typeof browser === 'object'
+      ? browser.runtime
+      : undefined;
+  return typeof runtime === 'object' && runtime.id !== undefined;
+}
+
+/**
  * Detect React Native.
  *
  * @return true if ReactNative environment is detected.
@@ -81,6 +99,22 @@ export function isReactNative(): boolean {
   return (
     typeof navigator === 'object' && navigator['product'] === 'ReactNative'
   );
+}
+
+/** Detects Electron apps. */
+export function isElectron(): boolean {
+  return getUA().indexOf('Electron/') >= 0;
+}
+
+/** Detects Internet Explorer. */
+export function isIE(): boolean {
+  const ua = getUA();
+  return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
+}
+
+/** Detects Universal Windows Platform apps. */
+export function isUWP(): boolean {
+  return getUA().indexOf('MSAppHost/') >= 0;
 }
 
 /**

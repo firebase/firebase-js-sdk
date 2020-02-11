@@ -16,15 +16,13 @@
  */
 
 import { User } from '../auth/user';
-import { MaybeDocument } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
-import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
@@ -36,8 +34,8 @@ import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
-import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
+import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
@@ -47,9 +45,9 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -68,7 +66,7 @@ export class MemoryPersistence implements Persistence {
   private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
-  private readonly queryCache: MemoryQueryCache;
+  private readonly targetCache: MemoryTargetCache;
   private readonly listenSequence = new ListenSequence(0);
 
   private _started = false;
@@ -77,11 +75,10 @@ export class MemoryPersistence implements Persistence {
 
   static createLruPersistence(
     clientId: ClientId,
-    serializer: JsonProtoSerializer,
     params: LruParams
   ): MemoryPersistence {
     const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, new LocalSerializer(serializer), params);
+      new MemoryLruDelegate(p, params);
     return new MemoryPersistence(clientId, factory);
   }
 
@@ -105,7 +102,7 @@ export class MemoryPersistence implements Persistence {
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
-    this.queryCache = new MemoryQueryCache(this);
+    this.targetCache = new MemoryTargetCache(this);
     const sizer = (doc: MaybeDocument): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
@@ -160,8 +157,8 @@ export class MemoryPersistence implements Persistence {
     return queue;
   }
 
-  getQueryCache(): MemoryQueryCache {
-    return this.queryCache;
+  getTargetCache(): MemoryTargetCache {
+    return this.targetCache;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {
@@ -257,15 +254,15 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const cache = this.persistence.getQueryCache();
+    const cache = this.persistence.getTargetCache();
     return cache
-      .getMatchingKeysForTargetId(txn, queryData.targetId)
+      .getMatchingKeysForTargetId(txn, targetData.targetId)
       .next(keys => {
         keys.forEach(key => this.orphanedDocuments.add(key));
       })
-      .next(() => cache.removeQueryData(txn, queryData));
+      .next(() => cache.removeTargetData(txn, targetData));
   }
 
   onTransactionStarted(): void {
@@ -316,7 +313,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
-      () => this.persistence.getQueryCache().containsKey(txn, key),
+      () => this.persistence.getTargetCache().containsKey(txn, key),
       () => this.persistence.mutationQueuesContainKey(txn, key),
       () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key))
     ]);
@@ -334,7 +331,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   constructor(
     private readonly persistence: MemoryPersistence,
-    private readonly serializer: LocalSerializer,
     lruParams: LruParams
   ) {
     this.garbageCollector = new LruGarbageCollector(this, lruParams);
@@ -352,9 +348,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
-    return this.persistence.getQueryCache().forEachTarget(txn, f);
+    return this.persistence.getTargetCache().forEachTarget(txn, f);
   }
 
   getSequenceNumberCount(
@@ -362,7 +358,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocumentCount(txn);
     const targetCountPromise = this.persistence
-      .getQueryCache()
+      .getTargetCache()
       .getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
@@ -408,7 +404,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     return this.persistence
-      .getQueryCache()
+      .getTargetCache()
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
@@ -440,10 +436,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.persistence.getQueryCache().updateQueryData(txn, updated);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
+    return this.persistence.getTargetCache().updateTargetData(txn, updated);
   }
 
   addReference(
@@ -471,21 +467,11 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 
   documentSize(maybeDoc: MaybeDocument): number {
-    const remoteDocument = this.serializer.toDbRemoteDocument(
-      maybeDoc,
-      maybeDoc.version
-    );
-    let value: unknown;
-    if (remoteDocument.document) {
-      value = remoteDocument.document;
-    } else if (remoteDocument.unknownDocument) {
-      value = remoteDocument.unknownDocument;
-    } else if (remoteDocument.noDocument) {
-      value = remoteDocument.noDocument;
-    } else {
-      throw fail('Unknown remote document type');
+    let documentSize = maybeDoc.key.toString().length;
+    if (maybeDoc instanceof Document) {
+      documentSize += maybeDoc.data().approximateByteSize();
     }
-    return JSON.stringify(value).length;
+    return documentSize;
   }
 
   private isPinned(
@@ -496,7 +482,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return PersistencePromise.or([
       () => this.persistence.mutationQueuesContainKey(txn, key),
       () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key)),
-      () => this.persistence.getQueryCache().containsKey(txn, key),
+      () => this.persistence.getTargetCache().containsKey(txn, key),
       () => {
         const orphanedAt = this.orphanedSequenceNumbers.get(key);
         return PersistencePromise.resolve(

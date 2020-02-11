@@ -50,3 +50,5 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 
   return namespace;
 }
+
+export const firebase = createFirebaseNamespace();

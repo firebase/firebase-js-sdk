@@ -48,7 +48,7 @@ describe('TargetIdGenerator', () => {
   });
 
   it('can return correct generator for query cache and sync engine', () => {
-    expect(TargetIdGenerator.forQueryCache().next()).to.equal(2);
+    expect(TargetIdGenerator.forTargetCache().next()).to.equal(2);
     expect(TargetIdGenerator.forSyncEngine().next()).to.equal(1);
   });
 

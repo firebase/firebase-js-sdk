@@ -16,15 +16,17 @@
  */
 
 import firebase from '@firebase/app';
-import { FirebaseNamespace } from '@firebase/app-types';
-import { Firestore } from './src/api/database';
 import { configureForFirebase } from './src/platform/config';
 import './src/platform_browser/browser_init';
 
 import * as types from '@firebase/firestore-types';
+import { FirebaseNamespace } from '@firebase/app-types';
+
+import { name, version } from './package.json';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
+  instance.registerVersion(name, version);
 }
 
 registerFirestore(firebase);
@@ -42,6 +44,7 @@ declare module '@firebase/app-types' {
       Firestore: typeof types.FirebaseFirestore;
       GeoPoint: typeof types.GeoPoint;
       Query: typeof types.Query;
+      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
       QuerySnapshot: typeof types.QuerySnapshot;
       Timestamp: typeof types.Timestamp;
       Transaction: typeof types.Transaction;

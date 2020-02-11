@@ -34,7 +34,7 @@ export abstract class ServerActions {
     query: Query,
     currentHashFn: () => string,
     tag: number | null,
-    onComplete: (a: string, b: any) => void
+    onComplete: (a: string, b: unknown) => void
   ): void;
 
   /**
@@ -53,7 +53,7 @@ export abstract class ServerActions {
    */
   put(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void,
     hash?: string
   ) {}
@@ -66,7 +66,7 @@ export abstract class ServerActions {
    */
   merge(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete: (a: string, b: string | null) => void,
     hash?: string
   ) {}
@@ -84,7 +84,7 @@ export abstract class ServerActions {
    */
   onDisconnectPut(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {}
 
@@ -95,7 +95,7 @@ export abstract class ServerActions {
    */
   onDisconnectMerge(
     pathString: string,
-    data: any,
+    data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {}
 
@@ -111,5 +111,5 @@ export abstract class ServerActions {
   /**
    * @param {Object.<string, *>} stats
    */
-  reportStats(stats: { [k: string]: any }) {}
+  reportStats(stats: { [k: string]: unknown }) {}
 }

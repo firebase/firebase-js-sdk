@@ -16,9 +16,12 @@
  */
 
 import firebase from '../app';
+import { name, version } from '../package.json';
 
 import '../auth';
 import '../database';
 import '../storage';
+
+firebase.registerVersion(name, version, 'rn');
 
 export default firebase;

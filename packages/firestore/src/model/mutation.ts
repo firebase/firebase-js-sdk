@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
@@ -121,7 +121,8 @@ export enum MutationType {
   Set,
   Patch,
   Transform,
-  Delete
+  Delete,
+  Verify
 }
 
 /**
@@ -187,7 +188,7 @@ export class Precondition {
  * A mutation describes a self-contained change to a document. Mutations can
  * create, replace, delete, and update subsets of documents.
  *
- * Mutations not only act on the value of the document but also it version.
+ * Mutations not only act on the value of the document but also its version.
  *
  * For local mutations (mutations that haven't been committed yet), we preserve
  * the existing version for Set, Patch, and Transform mutations. For Delete
@@ -283,7 +284,7 @@ export abstract class Mutation {
    *
    * The base value is a sparse object that consists of only the document
    * fields for which this mutation contains a non-idempotent transformation
-   * (e.g. a numeric increment). The provided alue guarantees consistent
+   * (e.g. a numeric increment). The provided value guarantees consistent
    * behavior for non-idempotent transforms and allow us to return the same
    * latency-compensated value even if the backend has already applied the
    * mutation. The base value is null for idempotent mutations, as they can be
@@ -654,12 +655,11 @@ export class TransformMutation extends Mutation {
       maybeDoc instanceof Document,
       'Unknown MaybeDocument type ' + maybeDoc
     );
-    const doc = maybeDoc! as Document;
     assert(
-      doc.key.isEqual(this.key),
+      maybeDoc.key.isEqual(this.key),
       'Can only transform a document with the same key'
     );
-    return doc;
+    return maybeDoc;
   }
 
   /**
@@ -813,6 +813,48 @@ export class DeleteMutation extends Mutation {
   isEqual(other: Mutation): boolean {
     return (
       other instanceof DeleteMutation &&
+      this.key.isEqual(other.key) &&
+      this.precondition.isEqual(other.precondition)
+    );
+  }
+}
+
+/**
+ * A mutation that verifies the existence of the document at the given key with
+ * the provided precondition.
+ *
+ * The `verify` operation is only used in Transactions, and this class serves
+ * primarily to facilitate serialization into protos.
+ */
+export class VerifyMutation extends Mutation {
+  constructor(readonly key: DocumentKey, readonly precondition: Precondition) {
+    super();
+  }
+
+  readonly type: MutationType = MutationType.Verify;
+
+  applyToRemoteDocument(
+    maybeDoc: MaybeDocument | null,
+    mutationResult: MutationResult
+  ): MaybeDocument {
+    fail('VerifyMutation should only be used in Transactions.');
+  }
+
+  applyToLocalView(
+    maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
+    localWriteTime: Timestamp
+  ): MaybeDocument | null {
+    fail('VerifyMutation should only be used in Transactions.');
+  }
+
+  extractBaseValue(maybeDoc: MaybeDocument | null): null {
+    fail('VerifyMutation should only be used in Transactions.');
+  }
+
+  isEqual(other: Mutation): boolean {
+    return (
+      other instanceof VerifyMutation &&
       this.key.isEqual(other.key) &&
       this.precondition.isEqual(other.precondition)
     );

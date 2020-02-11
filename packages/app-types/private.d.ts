@@ -23,6 +23,7 @@
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { Observer, Subscribe } from '@firebase/util';
 import { FirebaseError, ErrorFactory } from '@firebase/util';
+import { Component, ComponentContainer } from '@firebase/component';
 
 export interface FirebaseServiceInternals {
   /**
@@ -54,6 +55,10 @@ export interface FirebaseServiceFactory {
   ): FirebaseService;
 }
 
+export interface PlatformLoggerService {
+  getPlatformInfoString(): string;
+}
+
 /**
  * All ServiceNamespaces extend from FirebaseServiceNamespace
  */
@@ -80,8 +85,10 @@ export interface FirebaseAppInternals {
 }
 
 export interface _FirebaseApp extends FirebaseApp {
-  INTERNAL: FirebaseAppInternals;
-  _removeServiceInstance: (name: string, instanceIdentifier?: string) => void;
+  container: ComponentContainer;
+  _addComponent(component: Component): void;
+  _addOrOverwriteComponent(component: Component): void;
+  _removeServiceInstance(name: string, instanceIdentifier?: string): void;
 }
 export interface _FirebaseNamespace extends FirebaseNamespace {
   INTERNAL: {
@@ -99,13 +106,9 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      * @param allowMultipleInstances Whether the registered service supports
      *   multiple instances per app. If not specified, the default is false.
      */
-    registerService(
-      name: string,
-      createService: FirebaseServiceFactory,
-      serviceProperties?: { [prop: string]: any },
-      appHook?: AppHook,
-      allowMultipleInstances?: boolean
-    ): FirebaseServiceNamespace<FirebaseService>;
+    registerComponent(
+      component: Component
+    ): FirebaseServiceNamespace<FirebaseService> | null;
 
     /**
      * Just used for testing to start from a fresh namespace.
@@ -139,9 +142,9 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
     removeApp(name: string): void;
 
     /**
-     * Service factories for each registered service.
+     * registered components.
      */
-    factories: { [name: string]: FirebaseServiceFactory };
+    components: Map<string, Component>;
 
     /*
      * Convert service name to factory name to use.
@@ -153,4 +156,10 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      */
     ErrorFactory: typeof ErrorFactory;
   };
+}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'platform-logger': PlatformLoggerService;
+  }
 }

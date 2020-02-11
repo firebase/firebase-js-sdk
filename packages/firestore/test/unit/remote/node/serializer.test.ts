@@ -36,14 +36,16 @@ import {
   Query
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
-import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
+import { Target } from '../../../../src/core/target';
+import { TargetData, TargetPurpose } from '../../../../src/local/target_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
   Mutation,
   Precondition,
-  SetMutation
+  SetMutation,
+  VerifyMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
 import {
@@ -99,12 +101,12 @@ describe('Serializer', () => {
   // tslint:enable:variable-name
 
   /**
-   * Wraps the given query in QueryData. This is useful because the APIs we're
-   * testing accept QueryData, but for the most part we're just testing
-   * variations on Query.
+   * Wraps the given target in TargetData. This is useful because the APIs we're
+   * testing accept TargetData, but for the most part we're just testing
+   * variations on Target.
    */
-  function wrapQueryData(query: Query): QueryData {
-    return new QueryData(query, 1, QueryPurpose.Listen, 2);
+  function wrapTargetData(target: Target): TargetData {
+    return new TargetData(target, 1, TargetPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -695,6 +697,20 @@ describe('Serializer', () => {
       };
       verifyMutation(mutation, proto);
     });
+
+    it('VerifyMutation', () => {
+      const mutation = new VerifyMutation(
+        key('foo/bar'),
+        Precondition.updateTime(version(4))
+      );
+      const proto = {
+        verify: s.toName(mutation.key),
+        currentDocument: {
+          updateTime: { seconds: '0', nanos: 4000 }
+        }
+      };
+      verifyMutation(mutation, proto);
+    });
   });
 
   it('toDocument() / fromDocument', () => {
@@ -901,23 +917,23 @@ describe('Serializer', () => {
   });
 
   it('encodes listen request labels', () => {
-    const query = Query.atPath(path('collection/key'));
-    let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
+    const target = Query.atPath(path('collection/key')).toTarget();
+    let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
 
-    let result = s.toListenRequestLabels(queryData);
+    let result = s.toListenRequestLabels(targetData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution, 3);
-    result = s.toListenRequestLabels(queryData);
+    targetData = new TargetData(target, 2, TargetPurpose.LimboResolution, 3);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
-    queryData = new QueryData(
-      query,
+    targetData = new TargetData(
+      target,
       2,
-      QueryPurpose.ExistenceFilterMismatch,
+      TargetPurpose.ExistenceFilterMismatch,
       3
     );
-    result = s.toListenRequestLabels(queryData);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({
       'goog-listen-tags': 'existence-filter-mismatch'
     });
@@ -927,8 +943,8 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('converts first-level key queries', () => {
-      const q = Query.atPath(path('docs/1'));
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('docs/1')).toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       expect(result).to.deep.equal({
         documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
         targetId: 1
@@ -937,8 +953,8 @@ describe('Serializer', () => {
     });
 
     it('converts first-level ancestor queries', () => {
-      const q = Query.atPath(path('messages'));
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('messages')).toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       expect(result).to.deep.equal({
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -958,8 +974,10 @@ describe('Serializer', () => {
     });
 
     it('converts nested ancestor queries', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments'));
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(
+        path('rooms/1/messages/10/attachments')
+      ).toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -980,8 +998,10 @@ describe('Serializer', () => {
     });
 
     it('converts single filters at first-level collections', () => {
-      const q = Query.atPath(path('docs')).addFilter(filter('prop', '<', 42));
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('docs'))
+        .addFilter(filter('prop', '<', 42))
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1018,8 +1038,9 @@ describe('Serializer', () => {
         .addFilter(filter('name', '==', 'dimond'))
         .addFilter(filter('nan', '==', NaN))
         .addFilter(filter('null', '==', null))
-        .addFilter(filter('tags', 'array-contains', 'pending'));
-      const result = s.toTarget(wrapQueryData(q));
+        .addFilter(filter('tags', 'array-contains', 'pending'))
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1084,10 +1105,10 @@ describe('Serializer', () => {
     });
 
     it('converts single filters on deeper collections', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments')).addFilter(
-        filter('prop', '<', 42)
-      );
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('rooms/1/messages/10/attachments'))
+        .addFilter(filter('prop', '<', 42))
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -1119,8 +1140,10 @@ describe('Serializer', () => {
     });
 
     it('converts order bys', () => {
-      const q = Query.atPath(path('docs')).addOrderBy(orderBy('prop', 'asc'));
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('docs'))
+        .addOrderBy(orderBy('prop', 'asc'))
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1145,8 +1168,10 @@ describe('Serializer', () => {
     });
 
     it('converts limits', () => {
-      const q = Query.atPath(path('docs')).withLimit(26);
-      const result = s.toTarget(wrapQueryData(q));
+      const q = Query.atPath(path('docs'))
+        .withLimitToFirst(26)
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1180,8 +1205,9 @@ describe('Serializer', () => {
             [[DOCUMENT_KEY_NAME, ref('p/d', 'foo/bar'), 'asc']],
             /*before=*/ false
           )
-        );
-      const result = s.toTarget(wrapQueryData(q));
+        )
+        .toTarget();
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1214,12 +1240,12 @@ describe('Serializer', () => {
     });
 
     it('converts resume tokens', () => {
-      const q = Query.atPath(path('docs'));
+      const q = Query.atPath(path('docs')).toTarget();
       const result = s.toTarget(
-        new QueryData(
+        new TargetData(
           q,
           1,
-          QueryPurpose.Listen,
+          TargetPurpose.Listen,
           4,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,

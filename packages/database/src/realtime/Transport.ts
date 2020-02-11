@@ -56,6 +56,7 @@ export abstract class Transport {
    * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
    * @interface
    */
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(
     connId: string,
     repoInfo: RepoInfo,
@@ -68,7 +69,7 @@ export abstract class Transport {
    * @param {function()} onDisconnect Callback with connection lost.
    */
   abstract open(
-    onMessage: (a: Object) => void,
+    onMessage: (a: {}) => void,
     onDisconnect: (a?: boolean) => void
   ): void;
 
@@ -79,7 +80,7 @@ export abstract class Transport {
   /**
    * @param {!Object} data The JSON data to transmit
    */
-  abstract send(data: Object): void;
+  abstract send(data: {}): void;
 
   abstract markConnectionHealthy(): void;
 

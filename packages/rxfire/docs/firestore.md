@@ -33,6 +33,35 @@ doc(davidDoc).subscribe(snapshot => {
 });
 ```
 
+### `docData()`
+The `docData()` function returns a stream of a document, mapped to its data payload and optionally the document ID.
+
+|                 |                                          |
+|-----------------|------------------------------------------|
+| **function**    | `docData()`                              |
+| **params**      | ref: `firestore.DocumentReference` <br> idField?: `string` |
+| **import path** | `rxfire/firestore`                       |
+| **return**      | `Observable<T>` |
+
+#### TypeScript Example
+```ts
+import { docData } from 'rxfire/firestore';
+import { firestore, initializeApp } from 'firebase';
+import 'firebase/firestore';
+
+// Set up Firebase
+const app = initializeApp({ /* config */ });
+const db = app.firestore();
+const davidDocRef = db.doc('users/david');
+
+// Seed the firestore
+davidDocRef.set({ name: 'David' });
+
+docData(davidDocRef,'uid').subscribe(userData => {
+  console.log(`${userData.name} has id ${userData.uid}`);
+});
+```
+
 ## Collection Observables
 
 ### `collection()`
@@ -62,6 +91,34 @@ davidDoc.set({ name: 'David' });
 
 collection(db.collection('users'))
   .pipe(map(docs => docs.map(d => d.data())))
+  .subscribe(users => { console.log(users) });
+```
+
+### `collectionData()`
+The `collectionData()` function creates an observable that emits a stream of collection documents payload with optional document ID.
+
+|                 |                                          |
+|-----------------|------------------------------------------|
+| **function**    | `collection()`                           |
+| **params**      | query: `firestore.CollectionReference` | `firestore.Query`, idField?: `string`  |
+| **import path** | `rxfire/firestore`                       |
+| **return**      | `Observable<T[]>`    |
+
+#### TypeScript Example
+```ts
+import { collectionData } from 'rxfire/firestore';
+import { firestore, initializeApp } from 'firebase';
+import 'firebase/firestore';
+
+// Set up Firebase
+const app = initializeApp({ /* config */ });
+const db = app.firestore();
+const davidDoc = db.doc('users/david');
+
+// Seed the firestore
+davidDoc.set({ name: 'David' });
+
+collectionData(db.collection('users'), 'uid')
   .subscribe(users => { console.log(users) });
 ```
 

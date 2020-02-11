@@ -40,6 +40,7 @@ const EmptyChildren = (): SortedMap<string, ImmutableTree<null>> => {
  * A tree with immutable elements.
  */
 export class ImmutableTree<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static Empty = new ImmutableTree<any>(null);
 
   /**
@@ -273,12 +274,11 @@ export class ImmutableTree<T> {
     fn: (path: Path, value: T | null, children: { [k: string]: V }) => V
   ): V {
     const accum: { [k: string]: V } = {};
-    this.children.inorderTraversal(function(
-      childKey: string,
-      childTree: ImmutableTree<T>
-    ) {
-      accum[childKey] = childTree.fold_(pathSoFar.child(childKey), fn);
-    });
+    this.children.inorderTraversal(
+      (childKey: string, childTree: ImmutableTree<T>) => {
+        accum[childKey] = childTree.fold_(pathSoFar.child(childKey), fn);
+      }
+    );
     return fn(pathSoFar, this.value, accum);
   }
 
@@ -373,7 +373,7 @@ export class ImmutableTree<T> {
     currentRelativePath: Path,
     f: (path: Path, value: T) => void
   ) {
-    this.children.inorderTraversal(function(childName, childTree) {
+    this.children.inorderTraversal((childName, childTree) => {
       childTree.foreach_(currentRelativePath.child(childName), f);
     });
     if (this.value) {

@@ -28,9 +28,7 @@ const enum ServiceWorkerStatus {
 export enum VisibilityState {
   UNKNOWN = 0,
   VISIBLE = 1,
-  HIDDEN = 2,
-  PRERENDER = 3,
-  UNLOADED = 4
+  HIDDEN = 2
 }
 
 const enum EffectiveConnectionType {
@@ -39,6 +37,19 @@ const enum EffectiveConnectionType {
   CONNECTION_2G = 2,
   CONNECTION_3G = 3,
   CONNECTION_4G = 4
+}
+
+/**
+ * NetworkInformation
+ *
+ * ref: https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
+ */
+interface NetworkInformation {
+  readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
+}
+
+interface NavigatorWithConnection extends Navigator {
+  readonly connection: NetworkInformation;
 }
 
 const RESERVED_ATTRIBUTE_PREFIXES = ['firebase_', 'google_', 'ga_'];
@@ -67,8 +78,6 @@ export function getVisibilityState(): VisibilityState {
       return VisibilityState.VISIBLE;
     case 'hidden':
       return VisibilityState.HIDDEN;
-    case 'prerender':
-      return VisibilityState.PRERENDER;
     default:
       return VisibilityState.UNKNOWN;
   }
@@ -76,8 +85,7 @@ export function getVisibilityState(): VisibilityState {
 
 export function getEffectiveConnectionType(): EffectiveConnectionType {
   const navigator = Api.getInstance().navigator;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigatorConnection = (navigator as any).connection;
+  const navigatorConnection = (navigator as NavigatorWithConnection).connection;
   const effectiveType =
     navigatorConnection && navigatorConnection.effectiveType;
   switch (effectiveType) {

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
@@ -29,6 +29,9 @@ import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
+import { Component, ComponentType } from '@firebase/component';
+
+import { name, version } from './package.json';
 
 const ServerValue = Database.ServerValue;
 
@@ -37,23 +40,40 @@ export function registerDatabase(instance: FirebaseNamespace) {
   setSDKVersion(instance.SDK_VERSION);
 
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
-    'database',
-    (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
-    // firebase.database namespace properties
-    {
-      Reference,
-      Query,
-      Database,
-      DataSnapshot,
-      enableLogging,
-      INTERNAL,
-      ServerValue,
-      TEST_ACCESS
-    },
-    null,
-    true
+  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
+    new Component(
+      'database',
+      (container, url) => {
+        /* Dependencies */
+        // getImmediate for FirebaseApp will always succeed
+        const app = container.getProvider('app').getImmediate();
+        const authProvider = container.getProvider('auth-internal');
+
+        return RepoManager.getInstance().databaseFromApp(
+          app,
+          authProvider,
+          url
+        );
+      },
+      ComponentType.PUBLIC
+    )
+      .setServiceProps(
+        // firebase.database namespace properties
+        {
+          Reference,
+          Query,
+          Database,
+          DataSnapshot,
+          enableLogging,
+          INTERNAL,
+          ServerValue,
+          TEST_ACCESS
+        }
+      )
+      .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version);
 
   if (isNodeSdk()) {
     module.exports = namespace;

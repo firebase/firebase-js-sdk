@@ -30,8 +30,7 @@ import {
   isPerfInitialized,
   getInitializationPromise
 } from './initialization_service';
-import { Logger } from '@firebase/logger';
-import { ccHandler } from './cc_service';
+import { transportHandler } from './transport_service';
 import { SDK_VERSION } from '../constants';
 
 const enum ResourceType {
@@ -80,21 +79,25 @@ interface TraceMetric {
   is_auto: boolean;
   client_start_time_us: number;
   duration_us: number;
-  counters?: Array<{ key: string; value: number }>;
-  custom_attributes?: Array<{ key: string; value: string }>;
+  counters?: { [key: string]: number };
+  custom_attributes?: { [key: string]: string };
 }
+
 /* eslint-enble camelcase */
 
-let logger: Logger | undefined;
+let logger: (
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+) => void | undefined;
 // This method is not called before initialization.
-function getLogger(): Logger {
-  if (logger) {
-    return logger;
+function sendLog(
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+): void {
+  if (!logger) {
+    logger = transportHandler(serializer);
   }
-  const ccLogger = ccHandler(serializer);
-  logger = new Logger('@firebase/performance/cc');
-  logger.logHandler = ccLogger;
-  return logger;
+  logger(resource, resourceType);
 }
 
 export function logTrace(trace: Trace): void {
@@ -137,7 +140,7 @@ export function logTrace(trace: Trace): void {
 
 function sendTraceLog(trace: Trace): void {
   if (getIid()) {
-    setTimeout(() => getLogger().log(trace, ResourceType.Trace), 0);
+    setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
   }
 }
 
@@ -159,13 +162,13 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
     return;
   }
 
-  setTimeout(
-    () => getLogger().log(networkRequest, ResourceType.NetworkRequest),
-    0
-  );
+  setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
 }
 
-function serializer(resource: {}, resourceType: ResourceType): string {
+function serializer(
+  resource: NetworkRequest | Trace,
+  resourceType: ResourceType
+): string {
   if (resourceType === ResourceType.NetworkRequest) {
     return serializeNetworkRequest(resource as NetworkRequest);
   }
@@ -198,11 +201,11 @@ function serializeTrace(trace: Trace): string {
   };
 
   if (Object.keys(trace.counters).length !== 0) {
-    traceMetric.counters = convertToKeyValueArray(trace.counters);
+    traceMetric.counters = trace.counters;
   }
   const customAttributes = trace.getAttributes();
   if (Object.keys(customAttributes).length !== 0) {
-    traceMetric.custom_attributes = convertToKeyValueArray(customAttributes);
+    traceMetric.custom_attributes = customAttributes;
   }
 
   const perfMetric: PerfTraceLog = {
@@ -225,14 +228,4 @@ function getApplicationInfo(): ApplicationInfo {
     },
     application_process_state: 0
   };
-}
-
-function convertToKeyValueArray<T>(obj: {
-  [key: string]: T;
-}): Array<{
-  key: string;
-  value: T;
-}> {
-  const keys = Object.keys(obj);
-  return keys.map(key => ({ key, value: obj[key] }));
 }

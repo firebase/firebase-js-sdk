@@ -38,6 +38,7 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
+import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -49,7 +50,6 @@ import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import {
   ClientId,
   MemorySharedClientState,
@@ -57,7 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -113,6 +113,31 @@ import {
 import { MULTI_CLIENT_TAG } from './describe_spec';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
+
+export function parseQuery(querySpec: string | SpecQuery): Query {
+  if (typeof querySpec === 'string') {
+    return Query.atPath(path(querySpec));
+  } else {
+    let query = new Query(path(querySpec.path), querySpec.collectionGroup);
+    if (querySpec.limit) {
+      query =
+        querySpec.limitType === 'LimitToFirst'
+          ? query.withLimitToFirst(querySpec.limit)
+          : query.withLimitToLast(querySpec.limit);
+    }
+    if (querySpec.filters) {
+      querySpec.filters.forEach(([field, op, value]) => {
+        query = query.addFilter(filter(field, op, value));
+      });
+    }
+    if (querySpec.orderBys) {
+      querySpec.orderBys.forEach(([filter, direction]) => {
+        query = query.addOrderBy(orderBy(filter, direction));
+      });
+    }
+    return query;
+  }
+}
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -376,7 +401,7 @@ abstract class TestRunner {
 
   private expectedLimboDocs: DocumentKey[];
   private expectedActiveTargets: {
-    [targetId: number]: { query: SpecQuery; resumeToken: string };
+    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
   };
 
   private networkEnabled = true;
@@ -438,8 +463,7 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    // TODO(index-free): Update to index-free query engine when it becomes default.
-    const queryEngine = new SimpleQueryEngine();
+    const queryEngine = new IndexFreeQueryEngine();
     this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
     await this.localStore.start();
 
@@ -594,7 +618,7 @@ abstract class TestRunner {
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
     const expectedTargetId = listenSpec[0];
     const querySpec = listenSpec[1];
-    const query = this.parseQuery(querySpec);
+    const query = parseQuery(querySpec);
     const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
@@ -632,7 +656,7 @@ abstract class TestRunner {
     // TODO(dimond): make sure correct target IDs are assigned
     // let targetId = listenSpec[0];
     const querySpec = listenSpec[1];
-    const query = this.parseQuery(querySpec);
+    const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     assert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
@@ -965,8 +989,8 @@ abstract class TestRunner {
       );
       const expectedEventsSorted = expectedEvents.sort((a, b) =>
         primitiveComparator(
-          this.parseQuery(a.query).canonicalId(),
-          this.parseQuery(b.query).canonicalId()
+          parseQuery(a.query).canonicalId(),
+          parseQuery(b.query).canonicalId()
         )
       );
       for (let i = 0; i < expectedEventsSorted.length; i++) {
@@ -1112,10 +1136,10 @@ abstract class TestRunner {
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
       const expectedTarget = this.serializer.toTarget(
-        new QueryData(
-          this.parseQuery(expected.query),
+        new TargetData(
+          parseQuery(expected.queries[0]).toTarget(),
           targetId,
-          QueryPurpose.Listen,
+          TargetPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,
@@ -1138,7 +1162,7 @@ abstract class TestRunner {
     expected: SnapshotEvent,
     actual: QueryEvent
   ): void {
-    const expectedQuery = this.parseQuery(expected.query);
+    const expectedQuery = parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
       expectFirestoreError(actual.error!);
@@ -1184,28 +1208,6 @@ abstract class TestRunner {
     this.eventList.push(e);
   }
 
-  private parseQuery(querySpec: string | SpecQuery): Query {
-    if (typeof querySpec === 'string') {
-      return Query.atPath(path(querySpec));
-    } else {
-      let query = new Query(path(querySpec.path), querySpec.collectionGroup);
-      if (querySpec.limit) {
-        query = query.withLimit(querySpec.limit);
-      }
-      if (querySpec.filters) {
-        querySpec.filters.forEach(([field, op, value]) => {
-          query = query.addFilter(filter(field, op, value));
-        });
-      }
-      if (querySpec.orderBys) {
-        querySpec.orderBys.forEach(([filter, direction]) => {
-          query = query.addOrderBy(orderBy(filter, direction));
-        });
-      }
-      return query;
-    }
-  }
-
   private parseChange(
     type: ChangeType,
     change: SpecDocument
@@ -1236,7 +1238,6 @@ class MemoryTestRunner extends TestRunner {
         ? MemoryPersistence.createEagerPersistence(this.clientId)
         : MemoryPersistence.createLruPersistence(
             this.clientId,
-            serializer,
             LruParams.DEFAULT
           )
     );
@@ -1293,8 +1294,6 @@ export async function runSpec(
   steps: SpecStep[]
 ): Promise<void> {
   // eslint-disable-next-line no-console
-  console.log('Running spec: ' + name);
-
   const sharedMockStorage = new SharedFakeWebStorage();
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
@@ -1566,6 +1565,8 @@ export interface SpecWatchFilter
   '1': string | undefined;
 }
 
+export type SpecLimitType = 'LimitToFirst' | 'LimitToLast';
+
 /**
  * [field, op, value]
  * Op must be the `name` of an `Operator`.
@@ -1585,6 +1586,7 @@ export interface SpecQuery {
   path: string;
   collectionGroup?: string;
   limit?: number;
+  limitType?: SpecLimitType;
   filters?: SpecQueryFilter[];
   orderBys?: SpecQueryOrderBy[];
 }
@@ -1634,7 +1636,7 @@ export interface StateExpectation {
    * Current expected active targets. Verified in each step until overwritten.
    */
   activeTargets?: {
-    [targetId: number]: { query: SpecQuery; resumeToken: string };
+    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
   };
   /**
    * Expected set of callbacks for previously written docs.

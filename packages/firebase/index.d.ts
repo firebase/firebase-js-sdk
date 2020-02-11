@@ -84,6 +84,18 @@ declare namespace firebase {
   var SDK_VERSION: string;
 
   /**
+   * Registers a library's name and version for platform logging purposes.
+   * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
+   * @param version Current version of that library.
+   * @param variant Bundle variant, e.g., node, rn, etc.
+   */
+  function registerVersion(
+    library: string,
+    version: string,
+    variant?: string
+  ): void;
+
+  /**
    * @hidden
    */
   type Unsubscribe = () => void;
@@ -1143,9 +1155,6 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
-  /**
-   * @webonly
-   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 
   /**
@@ -1341,9 +1350,6 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    /**
-     * @webonly
-     */
     functions(region?: string): firebase.functions.Functions;
     /**
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
@@ -1419,6 +1425,12 @@ declare namespace firebase.installations {
      * Deletes the Firebase Installation and all associated data.
      */
     delete(): Promise<void>;
+
+    /**
+     * Sets a new callback that will get called when Installlation ID changes.
+     * Returns an unsubscribe function that will remove the callback when called.
+     */
+    onIdChange(callback: (installationId: string) => void): () => void;
   }
 }
 
@@ -1704,9 +1716,6 @@ declare namespace firebase.remoteConfig {
   export type LogLevel = 'debug' | 'error' | 'silent';
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -3746,23 +3755,27 @@ declare namespace firebase.auth {
     addScope(scope: string): firebase.auth.AuthProvider;
     /**
      * Creates a Firebase credential from a generic OAuth provider's access token or
-     * ID token.
+     * ID token. The raw nonce is required when an ID token with a nonce field is
+     * provided. The SHA-256 hash of the raw nonce must match the nonce field in
+     * the ID token.
      *
      * @example
      * ```javascript
      * // `googleUser` from the onsuccess Google Sign In callback.
      * // Initialize a generate OAuth provider with a `google.com` providerId.
      * var provider = new firebase.auth.OAuthProvider('google.com');
-     * var credential = provider.credential(
-     *     googleUser.getAuthResponse().id_token);
+     * var credential = provider.credential({
+     *   idToken: googleUser.getAuthResponse().id_token,
+     * });
      * firebase.auth().signInWithCredential(credential)
      * ```
      *
-     * @param idToken The OAuth ID token if OIDC compliant.
+     * @param optionsOrIdToken Either the options object containing
+     *     the ID token, access token and raw nonce or the ID token string.
      * @param accessToken The OAuth access token.
      */
     credential(
-      idToken?: string,
+      optionsOrIdToken: firebase.auth.OAuthCredentialOptions | string | null,
       accessToken?: string
     ): firebase.auth.OAuthCredential;
     /**
@@ -3780,6 +3793,7 @@ declare namespace firebase.auth {
   }
 
   class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
   }
 
@@ -3828,6 +3842,28 @@ declare namespace firebase.auth {
     claims: {
       [key: string]: any;
     };
+  }
+
+  /**
+   * Defines the options for initializing an
+   * {@link firebase.auth.OAuthCredential}. For ID tokens with nonce claim,
+   * the raw nonce has to also be provided.
+   */
+  interface OAuthCredentialOptions {
+    /**
+     * The OAuth ID token used to initialize the OAuthCredential.
+     */
+    idToken?: string;
+    /**
+     * The OAuth access token used to initialize the OAuthCredential.
+     */
+    accessToken?: string;
+    /**
+     * The raw nonce associated with the ID token. It is required when an ID token
+     * with a nonce field is provided. The SHA-256 hash of the raw nonce must match
+     * the nonce field in the ID token.
+     */
+    rawNonce?: string;
   }
 
   /**
@@ -4343,6 +4379,20 @@ declare namespace firebase.analytics {
      * the gtag.js reference documentation}.
      */
     logEvent(
+      eventName: 'add_payment_info',
+      eventParams?: { [key: string]: any },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
       eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
       eventParams: {
         currency?: EventParams['currency'];
@@ -4444,6 +4494,25 @@ declare namespace firebase.analytics {
       eventName: 'login',
       eventParams: {
         method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'page_view',
+      eventParams: {
+        page_title?: string;
+        page_location?: string;
+        page_path?: string;
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
@@ -6727,7 +6796,7 @@ declare namespace firebase.messaging {
    */
   interface Messaging {
     /**
-     * To forceably stop a registration token from being used, delete it
+     * To forcibly stop a registration token from being used, delete it
      * by calling this method.
      *
      * @param token The token to delete.
@@ -6736,14 +6805,16 @@ declare namespace firebase.messaging {
      */
     deleteToken(token: string): Promise<boolean>;
     /**
-     * After calling `requestPermission()` you can call this method to get an FCM
-     * registration token that can be used to send push messages to this user.
+     * Subscribes the user to push notifications and returns an FCM registration
+     * token that can be used to send push messages to the user.
      *
-     * @return The promise resolves if an FCM token can
-     *   be retrieved. This method returns null if the current origin does not have
-     *   permission to show notifications.
+     * If notification permission isn't already granted, this method asks the
+     * user for permission. The returned promise rejects if the user does not
+     * allow the app to show notifications.
+     *
+     * @return The promise resolves with the FCM token string.
      */
-    getToken(): Promise<string | null>;
+    getToken(): Promise<string>;
     /**
      * When a push message is received and the user is currently on a page
      * for your origin, the message is passed to the page and an `onMessage()`
@@ -6782,7 +6853,8 @@ declare namespace firebase.messaging {
     /**
      * Notification permissions are required to send a user push messages.
      * Calling this method displays the permission dialog to the user and
-     * resolves if the permission is granted.
+     * resolves if the permission is granted. It is not necessary to call this
+     * method, as `getToken()` will do this automatically if required.
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
@@ -7357,7 +7429,7 @@ declare namespace firebase.storage {
         | null
         | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
-      complete?: (firebase.Unsubscribe) | null
+      complete?: firebase.Unsubscribe | null
     ): Function;
     /**
      * Pauses a running task. Has no effect on a paused or failed task.
@@ -7547,12 +7619,72 @@ declare namespace firebase.firestore {
    *
    *   <ul>
    *     <li><code>debug</code> for the most verbose logging level, primarily for
-   *     dubugging.</li>
+   *     debugging.</li>
    *     <li><code>error</code> to log errors only.</li>
    *     <li><code>silent</code> to turn off logging.</li>
    *   </ul>
    */
   export function setLogLevel(logLevel: LogLevel): void;
+
+  /**
+   * Converter used by `withConverter()` to transform user objects of type T
+   * into Firestore data.
+   *
+   * Using the converter allows you to specify generic type arguments when
+   * storing and retrieving objects from Firestore.
+   *
+   * @example
+   * ```typescript
+   * class Post {
+   *   constructor(readonly title: string, readonly author: string) {}
+   *
+   *   toString(): string {
+   *     return this.title + ', by ' + this.author;
+   *   }
+   * }
+   *
+   * const postConverter = {
+   *   toFirestore(post: Post): firebase.firestore.DocumentData {
+   *     return {title: post.title, author: post.author};
+   *   },
+   *   fromFirestore(
+   *     snapshot: firebase.firestore.QueryDocumentSnapshot,
+   *     options: firebase.firestore.SnapshotOptions
+   *   ): Post {
+   *     const data = snapshot.data(options)!;
+   *     return new Post(data.title, data.author);
+   *   }
+   * };
+   *
+   * const postSnap = await firebase.firestore()
+   *   .collection('posts')
+   *   .withConverter(postConverter)
+   *   .doc().get();
+   * const post = postSnap.data();
+   * if (post !== undefined) {
+   *   post.title; // string
+   *   post.toString(); // Should be defined
+   *   post.someNonExistentProperty; // TS error
+   * }
+   * ```
+   */
+  export interface FirestoreDataConverter<T> {
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type T
+     * into a plain Javascript object (suitable for writing directly to the
+     * Firestore database).
+     */
+    toFirestore(modelObject: T): DocumentData;
+
+    /**
+     * Called by the Firestore SDK to convert Firestore data into an object of
+     * type T. You can access your data by calling: `snapshot.data(options)`.
+     *
+     * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
+     * @param options The SnapshotOptions from the initial call to `data()`.
+     */
+    fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
+  }
 
   /**
    * The Cloud Firestore service interface.
@@ -7600,7 +7732,7 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference;
+    collection(collectionPath: string): CollectionReference<DocumentData>;
 
     /**
      * Gets a `DocumentReference` instance that refers to the document at the
@@ -7609,7 +7741,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath: string): DocumentReference;
+    doc(documentPath: string): DocumentReference<DocumentData>;
 
     /**
      * Creates and returns a new Query that includes all documents in the
@@ -7621,7 +7753,7 @@ declare namespace firebase.firestore {
      * will be included. Cannot contain a slash.
      * @return The created Query.
      */
-    collectionGroup(collectionId: string): Query;
+    collectionGroup(collectionId: string): Query<DocumentData>;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes
@@ -7840,6 +7972,19 @@ declare namespace firebase.firestore {
    */
   export class Timestamp {
     /**
+     * Creates a new timestamp.
+     *
+     * @param seconds The number of seconds of UTC time since Unix epoch
+     *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+     *     9999-12-31T23:59:59Z inclusive.
+     * @param nanoseconds The non-negative fractions of a second at nanosecond
+     *     resolution. Negative second values with fractions must still have
+     *     non-negative nanoseconds values that count forward in time. Must be
+     *     from 0 to 999,999,999 inclusive.
+     */
+    constructor(seconds: number, nanoseconds: number);
+
+    /**
      * Creates a new timestamp with the current date, with millisecond precision.
      *
      * @return a new timestamp representing the current date.
@@ -7864,19 +8009,6 @@ declare namespace firebase.firestore {
      *     number of milliseconds.
      */
     static fromMillis(milliseconds: number): Timestamp;
-
-    /**
-     * Creates a new timestamp.
-     *
-     * @param seconds The number of seconds of UTC time since Unix epoch
-     *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
-     *     9999-12-31T23:59:59Z inclusive.
-     * @param nanoseconds The non-negative fractions of a second at nanosecond
-     *     resolution. Negative second values with fractions must still have
-     *     non-negative nanoseconds values that count forward in time. Must be
-     *     from 0 to 999,999,999 inclusive.
-     */
-    constructor(seconds: number, nanoseconds: number);
 
     readonly seconds: number;
     readonly nanoseconds: number;
@@ -7971,7 +8103,7 @@ declare namespace firebase.firestore {
      * @param documentRef A reference to the document to be read.
      * @return A DocumentSnapshot for the read data.
      */
-    get(documentRef: DocumentReference): Promise<DocumentSnapshot>;
+    get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
     /**
      * Writes to the document referred to by the provided `DocumentReference`.
@@ -7983,9 +8115,9 @@ declare namespace firebase.firestore {
      * @param options An object to configure the set behavior.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    set(
-      documentRef: DocumentReference,
-      data: DocumentData,
+    set<T>(
+      documentRef: DocumentReference<T>,
+      data: T,
       options?: SetOptions
     ): Transaction;
 
@@ -8000,7 +8132,7 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    update(documentRef: DocumentReference, data: UpdateData): Transaction;
+    update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -8018,7 +8150,7 @@ declare namespace firebase.firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-      documentRef: DocumentReference,
+      documentRef: DocumentReference<any>,
       field: string | FieldPath,
       value: any,
       ...moreFieldsAndValues: any[]
@@ -8030,7 +8162,7 @@ declare namespace firebase.firestore {
      * @param documentRef A reference to the document to be deleted.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    delete(documentRef: DocumentReference): Transaction;
+    delete(documentRef: DocumentReference<any>): Transaction;
   }
 
   /**
@@ -8057,9 +8189,9 @@ declare namespace firebase.firestore {
      * @param options An object to configure the set behavior.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    set(
-      documentRef: DocumentReference,
-      data: DocumentData,
+    set<T>(
+      documentRef: DocumentReference<T>,
+      data: T,
       options?: SetOptions
     ): WriteBatch;
 
@@ -8074,7 +8206,7 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    update(documentRef: DocumentReference, data: UpdateData): WriteBatch;
+    update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.
@@ -8091,7 +8223,7 @@ declare namespace firebase.firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-      documentRef: DocumentReference,
+      documentRef: DocumentReference<any>,
       field: string | FieldPath,
       value: any,
       ...moreFieldsAndValues: any[]
@@ -8103,7 +8235,7 @@ declare namespace firebase.firestore {
      * @param documentRef A reference to the document to be deleted.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    delete(documentRef: DocumentReference): WriteBatch;
+    delete(documentRef: DocumentReference<any>): WriteBatch;
 
     /**
      * Commits all of the writes in this write batch as a single atomic unit.
@@ -8189,7 +8321,7 @@ declare namespace firebase.firestore {
    * the referenced location may or may not exist. A `DocumentReference` can
    * also be used to create a `CollectionReference` to a subcollection.
    */
-  export class DocumentReference {
+  export class DocumentReference<T = DocumentData> {
     private constructor();
 
     /**
@@ -8206,7 +8338,7 @@ declare namespace firebase.firestore {
     /**
      * The Collection this `DocumentReference` belongs to.
      */
-    readonly parent: CollectionReference;
+    readonly parent: CollectionReference<T>;
 
     /**
      * A string representing the path of the referenced document (relative
@@ -8221,7 +8353,7 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference;
+    collection(collectionPath: string): CollectionReference<DocumentData>;
 
     /**
      * Returns true if this `DocumentReference` is equal to the provided one.
@@ -8229,7 +8361,7 @@ declare namespace firebase.firestore {
      * @param other The `DocumentReference` to compare against.
      * @return true if this `DocumentReference` is equal to the provided one.
      */
-    isEqual(other: DocumentReference): boolean;
+    isEqual(other: DocumentReference<T>): boolean;
 
     /**
      * Writes to the document referred to by this `DocumentReference`. If the
@@ -8241,7 +8373,7 @@ declare namespace firebase.firestore {
      * @return A Promise resolved once the data has been successfully written
      * to the backend (Note that it won't resolve while you're offline).
      */
-    set(data: DocumentData, options?: SetOptions): Promise<void>;
+    set(data: T, options?: SetOptions): Promise<void>;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.
@@ -8295,7 +8427,7 @@ declare namespace firebase.firestore {
      * @return A Promise resolved with a DocumentSnapshot containing the
      * current document contents.
      */
-    get(options?: GetOptions): Promise<DocumentSnapshot>;
+    get(options?: GetOptions): Promise<DocumentSnapshot<T>>;
 
     /**
      * Attaches a listener for DocumentSnapshot events. You may either pass
@@ -8310,7 +8442,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(observer: {
-      next?: (snapshot: DocumentSnapshot) => void;
+      next?: (snapshot: DocumentSnapshot<T>) => void;
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
@@ -8330,7 +8462,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       observer: {
-        next?: (snapshot: DocumentSnapshot) => void;
+        next?: (snapshot: DocumentSnapshot<T>) => void;
         error?: (error: Error) => void;
         complete?: () => void;
       }
@@ -8351,7 +8483,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(
-      onNext: (snapshot: DocumentSnapshot) => void,
+      onNext: (snapshot: DocumentSnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
@@ -8373,10 +8505,24 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       options: SnapshotListenOptions,
-      onNext: (snapshot: DocumentSnapshot) => void,
+      onNext: (snapshot: DocumentSnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
+
+    /**
+     * Applies a custom data converter to this DocumentReference, allowing you
+     * to use your own custom model objects with Firestore. When you call
+     * set(), get(), etc. on the returned DocumentReference instance, the
+     * provided converter will convert between Firestore data and your custom
+     * type U.
+     *
+     * @param converter Converts objects to and from Firestore.
+     * @return A DocumentReference<U> that uses the provided converter.
+     */
+    withConverter<U>(
+      converter: FirestoreDataConverter<U>
+    ): DocumentReference<U>;
   }
 
   /**
@@ -8417,11 +8563,10 @@ declare namespace firebase.firestore {
     readonly hasPendingWrites: boolean;
 
     /**
-     * True if the snapshot includes local writes (`set()` or
-     * `update()` calls) that haven't been committed to the backend yet.
-     * If your listener has opted into
-     * metadata updates (via `SnapshotListenOptions`)
-     * you will receive another snapshot with `fromCache` equal to false once
+     * True if the snapshot was created from cached data rather than guaranteed
+     * up-to-date server data. If your listener has opted into metadata updates
+     * (via `SnapshotListenOptions`)
+     * you will receive another snapshot with `fromCache` set to false once
      * the client has received up-to-date data from the backend.
      */
     readonly fromCache: boolean;
@@ -8444,7 +8589,7 @@ declare namespace firebase.firestore {
    * access will return 'undefined'. You can use the `exists` property to
    * explicitly verify a document's existence.
    */
-  export class DocumentSnapshot {
+  export class DocumentSnapshot<T = DocumentData> {
     protected constructor();
 
     /**
@@ -8455,7 +8600,7 @@ declare namespace firebase.firestore {
     /**
      * The `DocumentReference` for the document included in the `DocumentSnapshot`.
      */
-    readonly ref: DocumentReference;
+    readonly ref: DocumentReference<T>;
     /**
      * Property of the `DocumentSnapshot` that provides the document's ID.
      */
@@ -8480,7 +8625,7 @@ declare namespace firebase.firestore {
      * @return An Object containing all fields in the document or 'undefined' if
      * the document doesn't exist.
      */
-    data(options?: SnapshotOptions): DocumentData | undefined;
+    data(options?: SnapshotOptions): T | undefined;
 
     /**
      * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
@@ -8505,7 +8650,7 @@ declare namespace firebase.firestore {
      * @param other The `DocumentSnapshot` to compare against.
      * @return true if this `DocumentSnapshot` is equal to the provided one.
      */
-    isEqual(other: DocumentSnapshot): boolean;
+    isEqual(other: DocumentSnapshot<T>): boolean;
   }
 
   /**
@@ -8519,7 +8664,9 @@ declare namespace firebase.firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export class QueryDocumentSnapshot extends DocumentSnapshot {
+  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+    T
+  > {
     private constructor();
 
     /**
@@ -8535,7 +8682,7 @@ declare namespace firebase.firestore {
      * not yet been set to their final value).
      * @return An Object containing all fields in the document.
      */
-    data(options?: SnapshotOptions): DocumentData;
+    data(options?: SnapshotOptions): T;
   }
 
   /**
@@ -8546,17 +8693,23 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
    */
-  // TODO(in-queries): Add 'array-contains-any' and 'in' once backend support
-  // lands.
-  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
+  export type WhereFilterOp =
+    | '<'
+    | '<='
+    | '=='
+    | '>='
+    | '>'
+    | 'array-contains'
+    | 'in'
+    | 'array-contains-any';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
    * construct refined `Query` objects by adding filters and ordering.
    */
-  export class Query {
+  export class Query<T = DocumentData> {
     protected constructor();
 
     /**
@@ -8579,7 +8732,7 @@ declare namespace firebase.firestore {
       fieldPath: string | FieldPath,
       opStr: WhereFilterOp,
       value: any
-    ): Query;
+    ): Query<T>;
 
     /**
      * Creates and returns a new Query that's additionally sorted by the
@@ -8593,16 +8746,28 @@ declare namespace firebase.firestore {
     orderBy(
       fieldPath: string | FieldPath,
       directionStr?: OrderByDirection
-    ): Query;
+    ): Query<T>;
 
     /**
-     * Creates and returns a new Query where the results are limited to the
-     * specified number of documents.
+     * Creates and returns a new Query that only returns the first matching
+     * documents.
      *
      * @param limit The maximum number of items to return.
      * @return The created Query.
      */
-    limit(limit: number): Query;
+    limit(limit: number): Query<T>;
+
+    /**
+     * Creates and returns a new Query that only returns the last matching
+     * documents.
+     *
+     * You must specify at least one `orderBy` clause for `limitToLast` queries,
+     * otherwise an exception will be thrown during execution.
+     *
+     * @param limit The maximum number of items to return.
+     * @return The created Query.
+     */
+    limitToLast(limit: number): Query<T>;
 
     /**
      * Creates and returns a new Query that starts at the provided document
@@ -8613,7 +8778,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to start at.
      * @return The created Query.
      */
-    startAt(snapshot: DocumentSnapshot): Query;
+    startAt(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that starts at the provided fields
@@ -8624,7 +8789,7 @@ declare namespace firebase.firestore {
      * of the query's order by.
      * @return The created Query.
      */
-    startAt(...fieldValues: any[]): Query;
+    startAt(...fieldValues: any[]): Query<T>;
 
     /**
      * Creates and returns a new Query that starts after the provided document
@@ -8635,7 +8800,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to start after.
      * @return The created Query.
      */
-    startAfter(snapshot: DocumentSnapshot): Query;
+    startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that starts after the provided fields
@@ -8646,7 +8811,7 @@ declare namespace firebase.firestore {
      * of the query's order by.
      * @return The created Query.
      */
-    startAfter(...fieldValues: any[]): Query;
+    startAfter(...fieldValues: any[]): Query<T>;
 
     /**
      * Creates and returns a new Query that ends before the provided document
@@ -8657,7 +8822,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to end before.
      * @return The created Query.
      */
-    endBefore(snapshot: DocumentSnapshot): Query;
+    endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that ends before the provided fields
@@ -8668,7 +8833,7 @@ declare namespace firebase.firestore {
      * of the query's order by.
      * @return The created Query.
      */
-    endBefore(...fieldValues: any[]): Query;
+    endBefore(...fieldValues: any[]): Query<T>;
 
     /**
      * Creates and returns a new Query that ends at the provided document
@@ -8679,7 +8844,7 @@ declare namespace firebase.firestore {
      * @param snapshot The snapshot of the document to end at.
      * @return The created Query.
      */
-    endAt(snapshot: DocumentSnapshot): Query;
+    endAt(snapshot: DocumentSnapshot<any>): Query<T>;
 
     /**
      * Creates and returns a new Query that ends at the provided fields
@@ -8690,7 +8855,7 @@ declare namespace firebase.firestore {
      * of the query's order by.
      * @return The created Query.
      */
-    endAt(...fieldValues: any[]): Query;
+    endAt(...fieldValues: any[]): Query<T>;
 
     /**
      * Returns true if this `Query` is equal to the provided one.
@@ -8698,7 +8863,7 @@ declare namespace firebase.firestore {
      * @param other The `Query` to compare against.
      * @return true if this `Query` is equal to the provided one.
      */
-    isEqual(other: Query): boolean;
+    isEqual(other: Query<T>): boolean;
 
     /**
      * Executes the query and returns the results as a `QuerySnapshot`.
@@ -8711,7 +8876,7 @@ declare namespace firebase.firestore {
      * @param options An object to configure the get behavior.
      * @return A Promise that will be resolved with the results of the Query.
      */
-    get(options?: GetOptions): Promise<QuerySnapshot>;
+    get(options?: GetOptions): Promise<QuerySnapshot<T>>;
 
     /**
      * Attaches a listener for QuerySnapshot events. You may either pass
@@ -8727,7 +8892,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(observer: {
-      next?: (snapshot: QuerySnapshot) => void;
+      next?: (snapshot: QuerySnapshot<T>) => void;
       error?: (error: Error) => void;
       complete?: () => void;
     }): () => void;
@@ -8748,7 +8913,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       observer: {
-        next?: (snapshot: QuerySnapshot) => void;
+        next?: (snapshot: QuerySnapshot<T>) => void;
         error?: (error: Error) => void;
         complete?: () => void;
       }
@@ -8770,7 +8935,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(
-      onNext: (snapshot: QuerySnapshot) => void,
+      onNext: (snapshot: QuerySnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
@@ -8793,10 +8958,21 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       options: SnapshotListenOptions,
-      onNext: (snapshot: QuerySnapshot) => void,
+      onNext: (snapshot: QuerySnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
+
+    /**
+     * Applies a custom data converter to this Query, allowing you to use your
+     * own custom model objects with Firestore. When you call get() on the
+     * returned Query, the provided converter will convert between Firestore
+     * data and your custom type U.
+     *
+     * @param converter Converts objects to and from Firestore.
+     * @return A Query<U> that uses the provided converter.
+     */
+    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   }
 
   /**
@@ -8806,14 +8982,14 @@ declare namespace firebase.firestore {
    * number of documents can be determined via the `empty` and `size`
    * properties.
    */
-  export class QuerySnapshot {
+  export class QuerySnapshot<T = DocumentData> {
     private constructor();
 
     /**
      * The query on which you called `get` or `onSnapshot` in order to get this
      * `QuerySnapshot`.
      */
-    readonly query: Query;
+    readonly query: Query<T>;
     /**
      * Metadata about this snapshot, concerning its source and if it has local
      * modifications.
@@ -8821,7 +8997,7 @@ declare namespace firebase.firestore {
     readonly metadata: SnapshotMetadata;
 
     /** An array of all the documents in the `QuerySnapshot`. */
-    readonly docs: QueryDocumentSnapshot[];
+    readonly docs: Array<QueryDocumentSnapshot<T>>;
 
     /** The number of documents in the `QuerySnapshot`. */
     readonly size: number;
@@ -8837,7 +9013,7 @@ declare namespace firebase.firestore {
      * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
      * snapshot events.
      */
-    docChanges(options?: SnapshotListenOptions): DocumentChange[];
+    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
 
     /**
      * Enumerates all of the documents in the `QuerySnapshot`.
@@ -8847,7 +9023,7 @@ declare namespace firebase.firestore {
      * @param thisArg The `this` binding for the callback.
      */
     forEach(
-      callback: (result: QueryDocumentSnapshot) => void,
+      callback: (result: QueryDocumentSnapshot<T>) => void,
       thisArg?: any
     ): void;
 
@@ -8857,7 +9033,7 @@ declare namespace firebase.firestore {
      * @param other The `QuerySnapshot` to compare against.
      * @return true if this `QuerySnapshot` is equal to the provided one.
      */
-    isEqual(other: QuerySnapshot): boolean;
+    isEqual(other: QuerySnapshot<T>): boolean;
   }
 
   /**
@@ -8869,12 +9045,12 @@ declare namespace firebase.firestore {
    * A `DocumentChange` represents a change to the documents matching a query.
    * It contains the document affected and the type of change that occurred.
    */
-  export interface DocumentChange {
+  export interface DocumentChange<T = DocumentData> {
     /** The type of change ('added', 'modified', or 'removed'). */
     readonly type: DocumentChangeType;
 
     /** The document affected by this change. */
-    readonly doc: QueryDocumentSnapshot;
+    readonly doc: QueryDocumentSnapshot<T>;
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -8897,7 +9073,7 @@ declare namespace firebase.firestore {
    * document references, and querying for documents (using the methods
    * inherited from `Query`).
    */
-  export class CollectionReference extends Query {
+  export class CollectionReference<T = DocumentData> extends Query<T> {
     private constructor();
 
     /** The collection's identifier. */
@@ -8907,7 +9083,7 @@ declare namespace firebase.firestore {
      * A reference to the containing `DocumentReference` if this is a subcollection.
      * If this isn't a subcollection, the reference is null.
      */
-    readonly parent: DocumentReference | null;
+    readonly parent: DocumentReference<DocumentData> | null;
 
     /**
      * A string representing the path of the referenced collection (relative
@@ -8923,7 +9099,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath?: string): DocumentReference;
+    doc(documentPath?: string): DocumentReference<T>;
 
     /**
      * Add a new document to this collection with the specified data, assigning
@@ -8933,7 +9109,7 @@ declare namespace firebase.firestore {
      * @return A Promise resolved with a `DocumentReference` pointing to the
      * newly created document after it has been written to the backend.
      */
-    add(data: DocumentData): Promise<DocumentReference>;
+    add(data: T): Promise<DocumentReference<T>>;
 
     /**
      * Returns true if this `CollectionReference` is equal to the provided one.
@@ -8941,7 +9117,20 @@ declare namespace firebase.firestore {
      * @param other The `CollectionReference` to compare against.
      * @return true if this `CollectionReference` is equal to the provided one.
      */
-    isEqual(other: CollectionReference): boolean;
+    isEqual(other: CollectionReference<T>): boolean;
+
+    /**
+     * Applies a custom data converter to this CollectionReference, allowing you
+     * to use your own custom model objects with Firestore. When you call add()
+     * on the returned CollectionReference instance, the provided converter will
+     * convert between Firestore data and your custom type U.
+     *
+     * @param converter Converts objects to and from Firestore.
+     * @return A CollectionReference<U> that uses the provided converter.
+     */
+    withConverter<U>(
+      converter: FirestoreDataConverter<U>
+    ): CollectionReference<U>;
   }
 
   /**

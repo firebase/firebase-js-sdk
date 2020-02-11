@@ -16,11 +16,7 @@
  */
 
 import firebase from '@firebase/app';
-import { FirebaseApp } from '@firebase/app-types';
-import {
-  FirebaseServiceFactory,
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent, TaskState } from './src/implementation/taskenums';
 
@@ -28,6 +24,13 @@ import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';
 import * as types from '@firebase/storage-types';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
+
+import { name, version } from './package.json';
 
 /**
  * Type constant for Firebase Storage.
@@ -35,12 +38,16 @@ import * as types from '@firebase/storage-types';
 const STORAGE_TYPE = 'storage';
 
 function factory(
-  app: FirebaseApp,
-  unused: unknown,
+  container: ComponentContainer,
   url?: string
 ): types.FirebaseStorage {
+  // Dependencies
+  const app = container.getProvider('app').getImmediate();
+  const authProvider = container.getProvider('auth-internal');
+
   return (new Service(
     app,
+    authProvider,
     new XhrIoPool(),
     url
   ) as unknown) as types.FirebaseStorage;
@@ -55,14 +62,13 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     Storage: Service,
     Reference
   };
-  instance.INTERNAL.registerService(
-    STORAGE_TYPE,
-    factory as FirebaseServiceFactory,
-    namespaceExports,
-    undefined,
-    // Allow multiple storage instances per app.
-    true
+  instance.INTERNAL.registerComponent(
+    new Component(STORAGE_TYPE, factory, ComponentType.PUBLIC)
+      .setServiceProps(namespaceExports)
+      .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version);
 }
 
 registerStorage(firebase as _FirebaseNamespace);

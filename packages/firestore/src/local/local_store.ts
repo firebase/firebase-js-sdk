@@ -19,6 +19,7 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import {
   DocumentKeySet,
@@ -37,6 +38,7 @@ import {
 } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -46,17 +48,20 @@ import { SortedMap } from '../util/sorted_map';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import {
+  Persistence,
+  PersistenceTransaction,
+  PRIMARY_LEASE_LOST_ERROR_MSG
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { QueryData, QueryPurpose } from './query_data';
+import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
+import { TargetData, TargetPurpose } from './target_data';
 
 const LOG_TAG = 'LocalStore';
 
@@ -160,22 +165,23 @@ export class LocalStore {
    */
   private localViewReferences = new ReferenceSet();
 
-  /** Maps a query to the data about that query. */
-  private queryCache: QueryCache;
+  /** Maps a target to its `TargetData`. */
+  private targetCache: TargetCache;
 
   /**
-   * Maps a targetID to data about its query.
+   * Maps a targetID to data about its target.
    *
    * PORTING NOTE: We are using an immutable data structure on Web to make re-runs
    * of `applyRemoteEvent()` idempotent.
    */
-  private queryDataByTarget = new SortedMap<TargetId, QueryData>(
+  private targetDataByTarget = new SortedMap<TargetId, TargetData>(
     primitiveComparator
   );
 
-  /** Maps a query to its targetID. */
-  private targetIdByQuery = new ObjectMap<Query, TargetId>(q =>
-    q.canonicalId()
+  /** Maps a target to its targetID. */
+  // TODO(wuandy): Evaluate if TargetId can be part of Target.
+  private targetIdByTarget = new ObjectMap<Target, TargetId>(t =>
+    t.canonicalId()
   );
 
   /**
@@ -200,7 +206,7 @@ export class LocalStore {
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
-    this.queryCache = persistence.getQueryCache();
+    this.targetCache = persistence.getTargetCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
@@ -430,8 +436,8 @@ export class LocalStore {
           .lookupMutationBatch(txn, batchId)
           .next((batch: MutationBatch | null) => {
             assert(batch !== null, 'Attempt to reject nonexistent batch!');
-            affectedKeys = batch!.keys();
-            return this.mutationQueue.removeMutationBatch(txn, batch!);
+            affectedKeys = batch.keys();
+            return this.mutationQueue.removeMutationBatch(txn, batch);
           })
           .next(() => {
             return this.mutationQueue.performConsistencyCheck(txn);
@@ -491,7 +497,7 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Get last remote snapshot version',
       'readonly-idempotent',
-      txn => this.queryCache.getLastRemoteSnapshotVersion(txn)
+      txn => this.targetCache.getLastRemoteSnapshotVersion(txn)
     );
   }
 
@@ -505,7 +511,7 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const remoteVersion = remoteEvent.snapshotVersion;
-    let newQueryDataByTargetMap = this.queryDataByTarget;
+    let newTargetDataByTargetMap = this.targetDataByTarget;
 
     return this.persistence
       .runTransaction(
@@ -516,26 +522,26 @@ export class LocalStore {
             trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
           });
 
-          // Reset newQueryDataByTargetMap in case this transaction gets re-run.
-          newQueryDataByTargetMap = this.queryDataByTarget;
+          // Reset newTargetDataByTargetMap in case this transaction gets re-run.
+          newTargetDataByTargetMap = this.targetDataByTarget;
 
           const promises = [] as Array<PersistencePromise<void>>;
           objUtils.forEachNumber(
             remoteEvent.targetChanges,
             (targetId: TargetId, change: TargetChange) => {
-              const oldQueryData = newQueryDataByTargetMap.get(targetId);
-              if (!oldQueryData) {
+              const oldTargetData = newTargetDataByTargetMap.get(targetId);
+              if (!oldTargetData) {
                 return;
               }
 
-              // Only update the remote keys if the query is still active. This
-              // ensures that we can persist the updated query data along with
+              // Only update the remote keys if the target is still active. This
+              // ensures that we can persist the updated target data along with
               // the updated assignment.
               promises.push(
-                this.queryCache
+                this.targetCache
                   .removeMatchingKeys(txn, change.removedDocuments, targetId)
                   .next(() => {
-                    return this.queryCache.addMatchingKeys(
+                    return this.targetCache.addMatchingKeys(
                       txn,
                       change.addedDocuments,
                       targetId
@@ -546,25 +552,25 @@ export class LocalStore {
               const resumeToken = change.resumeToken;
               // Update the resume token if the change includes one.
               if (resumeToken.length > 0) {
-                const newQueryData = oldQueryData
+                const newTargetData = oldTargetData
                   .withResumeToken(resumeToken, remoteVersion)
                   .withSequenceNumber(txn.currentSequenceNumber);
-                newQueryDataByTargetMap = newQueryDataByTargetMap.insert(
+                newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
                   targetId,
-                  newQueryData
+                  newTargetData
                 );
 
-                // Update the query data if there are target changes (or if
+                // Update the target data if there are target changes (or if
                 // sufficient time has passed since the last update).
                 if (
-                  LocalStore.shouldPersistQueryData(
-                    oldQueryData,
-                    newQueryData,
+                  LocalStore.shouldPersistTargetData(
+                    oldTargetData,
+                    newTargetData,
                     change
                   )
                 ) {
                   promises.push(
-                    this.queryCache.updateQueryData(txn, newQueryData)
+                    this.targetCache.updateTargetData(txn, newTargetData)
                   );
                 }
               }
@@ -603,14 +609,10 @@ export class LocalStore {
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
-                  // TODO(index-free): Make this an assert when we enable
-                  // Index-Free queries
-                  if (SnapshotVersion.MIN.isEqual(remoteVersion)) {
-                    log.error(
-                      LOG_TAG,
-                      'Cannot add a document when the remote version is zero'
-                    );
-                  }
+                  assert(
+                    !SnapshotVersion.MIN.isEqual(remoteVersion),
+                    'Cannot add a document when the remote version is zero'
+                  );
                   documentBuffer.addEntry(doc, remoteVersion);
                   changedDocs = changedDocs.insert(key, doc);
                 } else {
@@ -642,7 +644,7 @@ export class LocalStore {
           // trying to resolve the state of a locally cached document that is in
           // limbo.
           if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
-            const updateRemoteVersion = this.queryCache
+            const updateRemoteVersion = this.targetCache
               .getLastRemoteSnapshotVersion(txn)
               .next(lastRemoteSnapshotVersion => {
                 assert(
@@ -652,7 +654,7 @@ export class LocalStore {
                     ' < ' +
                     lastRemoteSnapshotVersion
                 );
-                return this.queryCache.setTargetsMetadata(
+                return this.targetCache.setTargetsMetadata(
                   txn,
                   txn.currentSequenceNumber,
                   remoteVersion
@@ -672,34 +674,34 @@ export class LocalStore {
         }
       )
       .then(changedDocs => {
-        this.queryDataByTarget = newQueryDataByTargetMap;
+        this.targetDataByTarget = newTargetDataByTargetMap;
         return changedDocs;
       });
   }
 
   /**
-   * Returns true if the newQueryData should be persisted during an update of
-   * an active target. QueryData should always be persisted when a target is
+   * Returns true if the newTargetData should be persisted during an update of
+   * an active target. TargetData should always be persisted when a target is
    * being released and should not call this function.
    *
-   * While the target is active, QueryData updates can be omitted when nothing
+   * While the target is active, TargetData updates can be omitted when nothing
    * about the target has changed except metadata like the resume token or
    * snapshot version. Occasionally it's worth the extra write to prevent these
    * values from getting too stale after a crash, but this doesn't have to be
    * too frequent.
    */
-  private static shouldPersistQueryData(
-    oldQueryData: QueryData,
-    newQueryData: QueryData,
+  private static shouldPersistTargetData(
+    oldTargetData: TargetData,
+    newTargetData: TargetData,
     change: TargetChange
   ): boolean {
     assert(
-      newQueryData.resumeToken.length > 0,
-      'Attempted to persist query data with no resume token'
+      newTargetData.resumeToken.length > 0,
+      'Attempted to persist target data with no resume token'
     );
 
-    // Always persist query data if we don't already have a resume token.
-    if (oldQueryData.resumeToken.length === 0) {
+    // Always persist target data if we don't already have a resume token.
+    if (oldTargetData.resumeToken.length === 0) {
       return true;
     }
 
@@ -709,8 +711,8 @@ export class LocalStore {
     // we may not get time to do anything interesting while the current tab is
     // closing.
     const timeDelta =
-      newQueryData.snapshotVersion.toMicroseconds() -
-      oldQueryData.snapshotVersion.toMicroseconds();
+      newTargetData.snapshotVersion.toMicroseconds() -
+      oldTargetData.snapshotVersion.toMicroseconds();
     if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {
       return true;
     }
@@ -741,20 +743,20 @@ export class LocalStore {
       );
 
       if (!viewChange.fromCache) {
-        const queryData = this.queryDataByTarget.get(targetId);
+        const targetData = this.targetDataByTarget.get(targetId);
         assert(
-          queryData !== null,
+          targetData !== null,
           `Can't set limbo-free snapshot version for unknown target: ${targetId}`
         );
 
         // Advance the last limbo free snapshot version
-        const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
-        const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
+        const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
+        const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
           lastLimboFreeSnapshotVersion
         );
-        this.queryDataByTarget = this.queryDataByTarget.insert(
+        this.targetDataByTarget = this.targetDataByTarget.insert(
           targetId,
-          updatedQueryData
+          updatedTargetData
         );
       }
     }
@@ -813,95 +815,97 @@ export class LocalStore {
   }
 
   /**
-   * Assigns the given query an internal ID so that its results can be pinned so
-   * they don't get GC'd. A query must be allocated in the local store before
+   * Assigns the given target an internal ID so that its results can be pinned so
+   * they don't get GC'd. A target must be allocated in the local store before
    * the store can be used to manage its view.
+   *
+   * Allocating an already allocated `Target` will return the existing `TargetData`
+   * for that `Target`.
    */
-  allocateQuery(query: Query): Promise<QueryData> {
+  allocateTarget(target: Target): Promise<TargetData> {
     return this.persistence
-      .runTransaction('Allocate query', 'readwrite-idempotent', txn => {
-        let queryData: QueryData;
-        return this.queryCache
-          .getQueryData(txn, query)
-          .next((cached: QueryData | null) => {
+      .runTransaction('Allocate target', 'readwrite-idempotent', txn => {
+        let targetData: TargetData;
+        return this.targetCache
+          .getTargetData(txn, target)
+          .next((cached: TargetData | null) => {
             if (cached) {
-              // This query has been listened to previously, so reuse the
+              // This target has been listened to previously, so reuse the
               // previous targetID.
               // TODO(mcg): freshen last accessed date?
-              queryData = cached;
-              return PersistencePromise.resolve(queryData);
+              targetData = cached;
+              return PersistencePromise.resolve(targetData);
             } else {
-              return this.queryCache.allocateTargetId(txn).next(targetId => {
-                queryData = new QueryData(
-                  query,
+              return this.targetCache.allocateTargetId(txn).next(targetId => {
+                targetData = new TargetData(
+                  target,
                   targetId,
-                  QueryPurpose.Listen,
+                  TargetPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache
-                  .addQueryData(txn, queryData)
-                  .next(() => queryData);
+                return this.targetCache
+                  .addTargetData(txn, targetData)
+                  .next(() => targetData);
               });
             }
           });
       })
-      .then(queryData => {
-        assert(
-          this.queryDataByTarget.get(queryData.targetId) === null,
-          'Tried to allocate an already allocated query: ' + query
-        );
-        this.queryDataByTarget = this.queryDataByTarget.insert(
-          queryData.targetId,
-          queryData
-        );
-        this.targetIdByQuery.set(query, queryData.targetId);
-        return queryData;
+      .then(targetData => {
+        if (this.targetDataByTarget.get(targetData.targetId) === null) {
+          this.targetDataByTarget = this.targetDataByTarget.insert(
+            targetData.targetId,
+            targetData
+          );
+          this.targetIdByTarget.set(target, targetData.targetId);
+        }
+        return targetData;
       });
   }
 
   /**
-   * Returns the QueryData as seen by the LocalStore, including updates that may
-   * have not yet been persisted to the QueryCache.
+   * Returns the TargetData as seen by the LocalStore, including updates that may
+   * have not yet been persisted to the TargetCache.
    */
   // Visible for testing.
-  getQueryData(
+  getTargetData(
     transaction: PersistenceTransaction,
-    query: Query
-  ): PersistencePromise<QueryData | null> {
-    const targetId = this.targetIdByQuery.get(query);
+    target: Target
+  ): PersistencePromise<TargetData | null> {
+    const targetId = this.targetIdByTarget.get(target);
     if (targetId !== undefined) {
-      return PersistencePromise.resolve<QueryData | null>(
-        this.queryDataByTarget.get(targetId)
+      return PersistencePromise.resolve<TargetData | null>(
+        this.targetDataByTarget.get(targetId)
       );
     } else {
-      return this.queryCache.getQueryData(transaction, query);
+      return this.targetCache.getTargetData(transaction, target);
     }
   }
 
   /**
-   * Unpin all the documents associated with the given query. If
-   * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
-   * directly removes the associated query data from the query cache.
+   * Unpin all the documents associated with the given target. If
+   * `keepPersistedTargetData` is set to false and Eager GC enabled, the method
+   * directly removes the associated target data from the target cache.
+   *
+   * Releasing a non-existing `Target` is a no-op.
    */
-  // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
-  releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    let targetId: number;
+  // PORTING NOTE: `keepPersistedTargetData` is multi-tab only.
+  releaseTarget(
+    targetId: number,
+    keepPersistedTargetData: boolean
+  ): Promise<void> {
+    const targetData = this.targetDataByTarget.get(targetId);
+    assert(
+      targetData !== null,
+      `Tried to release nonexistent target: ${targetId}`
+    );
 
-    const mode = keepPersistedQueryData
+    const mode = keepPersistedTargetData
       ? 'readwrite-idempotent'
       : 'readwrite-primary-idempotent';
     return this.persistence
-      .runTransaction('Release query', mode, txn => {
-        const cachedTargetId = this.targetIdByQuery.get(query);
-        assert(
-          cachedTargetId !== undefined,
-          'Tried to release nonexistent query: ' + query
-        );
-        targetId = cachedTargetId!;
-        const queryData = this.queryDataByTarget.get(targetId)!;
-
+      .runTransaction('Release target', mode, txn => {
         // References for documents sent via Watch are automatically removed
-        // when we delete a query's target data from the reference delegate.
+        // when we delete a target's data from the reference delegate.
         // Since this does not remove references for locally mutated documents,
         // we have to remove the target associations for these documents
         // manually.
@@ -914,19 +918,19 @@ export class LocalStore {
           targetId
         );
 
-        if (!keepPersistedQueryData) {
+        if (!keepPersistedTargetData) {
           return PersistencePromise.forEach(removed, (key: DocumentKey) =>
             this.persistence.referenceDelegate.removeReference(txn, key)
           ).next(() => {
-            this.persistence.referenceDelegate.removeTarget(txn, queryData);
+            this.persistence.referenceDelegate.removeTarget(txn, targetData!);
           });
         } else {
           return PersistencePromise.resolve();
         }
       })
       .then(() => {
-        this.queryDataByTarget = this.queryDataByTarget.remove(targetId);
-        this.targetIdByQuery.delete(query);
+        this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
+        this.targetIdByTarget.delete(targetData!.target);
       });
   }
 
@@ -949,13 +953,13 @@ export class LocalStore {
       'Execute query',
       'readonly-idempotent',
       txn => {
-        return this.getQueryData(txn, query)
-          .next(queryData => {
-            if (queryData) {
+        return this.getTargetData(txn, query.toTarget())
+          .next(targetData => {
+            if (targetData) {
               lastLimboFreeSnapshotVersion =
-                queryData.lastLimboFreeSnapshotVersion;
-              return this.queryCache
-                .getMatchingKeysForTargetId(txn, queryData.targetId)
+                targetData.lastLimboFreeSnapshotVersion;
+              return this.targetCache
+                .getMatchingKeysForTargetId(txn, targetData.targetId)
                 .next(result => {
                   remoteKeys = result;
                 });
@@ -987,7 +991,7 @@ export class LocalStore {
       'Remote document keys',
       'readonly-idempotent',
       txn => {
-        return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
+        return this.targetCache.getMatchingKeysForTargetId(txn, targetId);
       }
     );
   }
@@ -1056,24 +1060,24 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Collect garbage',
       'readwrite-primary-idempotent',
-      txn => garbageCollector.collect(txn, this.queryDataByTarget)
+      txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
 
   // PORTING NOTE: Multi-tab only.
-  getQueryForTarget(targetId: TargetId): Promise<Query | null> {
-    const cachedQueryData = this.queryDataByTarget.get(targetId);
+  getTarget(targetId: TargetId): Promise<Target | null> {
+    const cachedTargetData = this.targetDataByTarget.get(targetId);
 
-    if (cachedQueryData) {
-      return Promise.resolve(cachedQueryData.query);
+    if (cachedTargetData) {
+      return Promise.resolve(cachedTargetData.target);
     } else {
       return this.persistence.runTransaction(
-        'Get query data',
+        'Get target data',
         'readonly-idempotent',
         txn => {
-          return this.queryCache
-            .getQueryDataForTarget(txn, targetId)
-            .next(queryData => (queryData ? queryData.query : null));
+          return this.targetCache
+            .getTargetDataForTarget(txn, targetId)
+            .next(targetData => (targetData ? targetData.target : null));
         }
       );
     }
@@ -1107,17 +1111,33 @@ export class LocalStore {
    */
   // PORTING NOTE: Multi-tab only.
   async synchronizeLastDocumentChangeReadTime(): Promise<void> {
-    if (this.remoteDocuments instanceof IndexedDbRemoteDocumentCache) {
-      const remoteDocumentCache = this.remoteDocuments;
-      return this.persistence
-        .runTransaction(
-          'Synchronize last document change read time',
-          'readonly-idempotent',
-          txn => remoteDocumentCache.getLastDocumentChange(txn)
-        )
-        .then(({ readTime }) => {
-          this.lastDocumentChangeReadTime = readTime;
-        });
-    }
+    this.lastDocumentChangeReadTime = await this.persistence.runTransaction(
+      'Synchronize last document change read time',
+      'readonly-idempotent',
+      txn => this.remoteDocuments.getLastReadTime(txn)
+    );
+  }
+}
+
+/**
+ * Verifies the error thrown by a LocalStore operation. If a LocalStore
+ * operation fails because the primary lease has been taken by another client,
+ * we ignore the error (the persistence layer will immediately call
+ * `applyPrimaryLease` to propagate the primary state change). All other errors
+ * are re-thrown.
+ *
+ * @param err An error returned by a LocalStore operation.
+ * @return A Promise that resolves after we recovered, or the original error.
+ */
+export async function ignoreIfPrimaryLeaseLoss(
+  err: FirestoreError
+): Promise<void> {
+  if (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  ) {
+    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+  } else {
+    throw err;
   }
 }

@@ -179,7 +179,7 @@ function initializePlugins(
 function setOAuthSignInHandlerEnvironment(isCordova) {
   stubs.replace(
       fireauth.util,
-      'isAndroidOrIosFileEnvironment',
+      'isAndroidOrIosCordovaScheme',
       function() {
         return isCordova;
       });
@@ -1777,7 +1777,7 @@ function testAuthEventManager_nonCordovaIosOrAndroidFileEnvironment() {
   setOAuthSignInHandlerEnvironment(false);
   stubs.replace(
       fireauth.util,
-      'isAndroidOrIosFileEnvironment',
+      'isAndroidOrIosCordovaScheme',
       function() {
         return true;
       });

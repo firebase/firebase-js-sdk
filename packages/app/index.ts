@@ -16,9 +16,10 @@
  */
 
 import { FirebaseNamespace } from '@firebase/app-types';
-import { createFirebaseNamespace } from './src/firebaseNamespace';
+import { firebase as firebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
 import { logger } from './src/logger';
+import { registerCoreComponents } from './src/registerCoreComponents';
 
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,7 +39,6 @@ if (isBrowser() && (self as any).firebase !== undefined) {
   }
 }
 
-const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
 // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
@@ -67,6 +67,8 @@ firebaseNamespace.initializeApp = function(...args: any) {
 };
 
 export const firebase = firebaseNamespace;
+
+registerCoreComponents(firebase);
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;

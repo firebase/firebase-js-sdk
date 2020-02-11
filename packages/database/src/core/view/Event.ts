@@ -46,6 +46,13 @@ export interface Event {
   toString(): string;
 }
 
+export type EventType =
+  | 'value'
+  | ' child_added'
+  | ' child_changed'
+  | ' child_moved'
+  | ' child_removed';
+
 /**
  * Encapsulates the data needed to raise an event
  * @implements {Event}
@@ -58,12 +65,7 @@ export class DataEvent implements Event {
    * @param {?string=} prevName Optional, the name of the previous child for child_* events.
    */
   constructor(
-    public eventType:
-      | 'value'
-      | ' child_added'
-      | ' child_changed'
-      | ' child_moved'
-      | ' child_removed',
+    public eventType: EventType,
     public eventRegistration: EventRegistration,
     public snapshot: DataSnapshot,
     public prevName?: string | null

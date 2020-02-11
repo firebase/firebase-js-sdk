@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { _FirebaseNamespace, _FirebaseApp } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
 import { Query } from './src/api/Query';
@@ -30,6 +30,15 @@ import { setSDKVersion } from './src/core/version';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 import { Client } from 'faye-websocket';
+import {
+  Component,
+  ComponentType,
+  Provider,
+  ComponentContainer
+} from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+
+import { name, version } from './package.json';
 
 setWebSocketImpl(Client);
 
@@ -51,8 +60,28 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
   CONSTANTS.NODE_ADMIN = true;
   setSDKVersion(version);
 
+  /**
+   * Create a 'auth-internal' component using firebase-admin-node's implementation
+   * that implements FirebaseAuthInternal.
+   * ComponentContainer('database-admin') is just a placeholder that doesn't perform
+   * any actual function.
+   */
+  const authProvider = new Provider<FirebaseAuthInternalName>(
+    'auth-internal',
+    new ComponentContainer('database-admin')
+  );
+  authProvider.setComponent(
+    new Component(
+      'auth-internal',
+      // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      () => (app as any).INTERNAL,
+      ComponentType.PRIVATE
+    )
+  );
+
   return {
-    instance: RepoManager.getInstance().databaseFromApp(app, url),
+    instance: RepoManager.getInstance().databaseFromApp(app, authProvider, url),
     namespace: {
       Reference,
       Query,
@@ -71,23 +100,40 @@ export function registerDatabase(instance: FirebaseNamespace) {
   setSDKVersion(instance.SDK_VERSION);
 
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
-    'database',
-    (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
-    // firebase.database namespace properties
-    {
-      Reference,
-      Query,
-      Database,
-      DataSnapshot,
-      enableLogging,
-      INTERNAL,
-      ServerValue,
-      TEST_ACCESS
-    },
-    null,
-    true
+  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
+    new Component(
+      'database',
+      (container, url) => {
+        /* Dependencies */
+        // getImmediate for FirebaseApp will always succeed
+        const app = container.getProvider('app').getImmediate();
+        const authProvider = container.getProvider('auth-internal');
+
+        return RepoManager.getInstance().databaseFromApp(
+          app,
+          authProvider,
+          url
+        );
+      },
+      ComponentType.PUBLIC
+    )
+      .setServiceProps(
+        // firebase.database namespace properties
+        {
+          Reference,
+          Query,
+          Database,
+          DataSnapshot,
+          enableLogging,
+          INTERNAL,
+          ServerValue,
+          TEST_ACCESS
+        }
+      )
+      .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version, 'node');
 
   if (isNodeSdk()) {
     module.exports = Object.assign({}, namespace, { initStandalone });
@@ -100,6 +146,7 @@ try {
   // Previously firebase-admin depends on @firebase/app, which causes version conflict on
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
+  // eslint-disable-next-line import/no-extraneous-dependencies, @typescript-eslint/no-require-imports
   const firebase = require('@firebase/app').default;
   registerDatabase(firebase);
 } catch (err) {

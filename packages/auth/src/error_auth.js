@@ -378,7 +378,9 @@ fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL] =
     'The request is missing proof of first factor successful sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
-    'The OIDC ID token requires a valid unhashed nonce.';
+    'The request does not contain a valid nonce. This can occur if the ' +
+    'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
+    'in the ID token payload.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_PHONE_NUMBER] =
     'To send verification codes, provide a phone number for the recipient.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =
@@ -455,7 +457,7 @@ fireauth.AuthError.MESSAGES_[
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNVERIFIED_EMAIL] =
     'The operation requires a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
-    'User did not grant your application the permissions it requested.';
+    'The user did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =
     'There is no user record corresponding to this identifier. The user may ' +
     'have been deleted.';

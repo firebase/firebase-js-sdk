@@ -54,23 +54,23 @@ packages/storage  @schmidt-sebastian @firebase/jssdk-global-approvers
 packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
-packages/messaging-types  @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
-integration/messaging  @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
+packages/messaging  @firebase/jssdk-global-approvers
+packages/messaging-types  @firebase/jssdk-global-approvers
+integration/messaging  @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 
 # Testing Code
-packages/testing  @ryanpbrewster @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
+packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
 
 # RxFire Code
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
 
 # Installations
-packages/installations @mmermerkaya @dwoffinden @andirayo @firebase/jssdk-global-approvers
-packages/installations-types @mmermerkaya @dwoffinden @andirayo @firebase/jssdk-global-approvers
+packages/installations @andirayo @firebase/jssdk-global-approvers
+packages/installations-types @andirayo @firebase/jssdk-global-approvers
 
 # Performance Code
 packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
@@ -83,3 +83,7 @@ packages/analytics-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
 # Remote Config Code
 packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
+
+# Documentation Changes
+packages/firebase/index.d.ts @egilmorez
+scripts/docgen/content-sources/ @egilmorez

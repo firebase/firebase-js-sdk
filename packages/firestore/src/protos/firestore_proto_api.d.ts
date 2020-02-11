@@ -363,7 +363,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     booleanValue?: boolean;
     integerValue?: string;
     doubleValue?: number;
-    timestampValue?: string | { seconds: long; nanos: long };
+    timestampValue?: string | { seconds: string; nanos: number };
     stringValue?: string;
     bytesValue?: string | Uint8Array;
     referenceValue?: string;
@@ -374,6 +374,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Write {
     update?: Document;
     delete?: string;
+    verify?: string;
     transform?: DocumentTransform;
     updateMask?: DocumentMask;
     currentDocument?: Precondition;

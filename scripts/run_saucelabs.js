@@ -44,6 +44,8 @@ const testFiles = configFiles.length
 // Get CI build number or generate one if running locally.
 const buildNumber =
   process.env.TRAVIS_BUILD_NUMBER ||
+  // GitHub Actions does not have a build number, but the feature has been requested.
+  process.env.GITHUB_SHA ||
   `local_${process.env.USER}_${new Date().getTime()}`;
 
 /**

@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as firebase from '../src/api';
 import { base64 } from '@firebase/util';
+import { _FirebaseApp } from '@firebase/app-types/private';
 
 const expect = chai.expect;
 
@@ -60,8 +61,12 @@ describe('Testing Module Tests', function() {
       projectId: 'foo',
       auth: undefined
     });
-    const token = await (app as any).INTERNAL.getToken();
-    expect(token).to.be.null;
+
+    const authInternal = ((app as unknown) as _FirebaseApp).container
+      .getProvider('auth-internal')
+      .getImmediate({ optional: true });
+    // Auth instance will not be available because no API Key is provided
+    expect(authInternal).to.be.null;
   });
 
   it('initializeTestApp() with auth sets the correct access token', async function() {
@@ -70,10 +75,14 @@ describe('Testing Module Tests', function() {
       projectId: 'foo',
       auth: auth
     });
-    const token = await (app as any).INTERNAL.getToken();
+    const authInternal = ((app as unknown) as _FirebaseApp).container
+      .getProvider('auth-internal')
+      .getImmediate();
+
+    const token = await authInternal.getToken();
     expect(token).to.have.keys('accessToken');
     const claims = JSON.parse(
-      base64.decodeString(token.accessToken.split('.')[1], /*webSafe=*/ false)
+      base64.decodeString(token!.accessToken.split('.')[1], /*webSafe=*/ false)
     );
     // We add an 'iat' field.
     expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
@@ -81,9 +90,13 @@ describe('Testing Module Tests', function() {
 
   it('initializeAdminApp() sets the access token to "owner"', async function() {
     const app = firebase.initializeAdminApp({ projectId: 'foo' });
-    const token = await (app as any).INTERNAL.getToken();
+    const authInternal = ((app as unknown) as _FirebaseApp).container
+      .getProvider('auth-internal')
+      .getImmediate();
+
+    const token = await authInternal.getToken();
     expect(token).to.have.keys('accessToken');
-    expect(token.accessToken).to.be.string('owner');
+    expect(token!.accessToken).to.be.string('owner');
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function() {
@@ -92,9 +105,11 @@ describe('Testing Module Tests', function() {
       /databaseName not specified/
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await expect((firebase as any).loadDatabaseRules.bind(null, {
-      databaseName: 'foo'
-    }) as Promise<void>).to.throw(/must provide rules/);
+    await expect(
+      (firebase as any).loadDatabaseRules.bind(null, {
+        databaseName: 'foo'
+      }) as Promise<void>
+    ).to.throw(/must provide rules/);
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (firebase as any).loadDatabaseRules.bind(null, { rules: '{}' })

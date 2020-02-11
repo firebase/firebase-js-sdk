@@ -21,6 +21,10 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
+const Blob = firebase.firestore!.Blob;
+const GeoPoint = firebase.firestore!.GeoPoint;
+const Timestamp = firebase.firestore!.Timestamp;
+
 apiDescribe('Firestore', (persistence: boolean) => {
   addEqualityMatcher();
 
@@ -52,15 +56,13 @@ apiDescribe('Firestore', (persistence: boolean) => {
   it('can read and write geo point fields', () => {
     return withTestDoc(persistence, doc => {
       return doc
-        .set({ geopoint: new firebase.firestore!.GeoPoint(1.23, 4.56) })
+        .set({ geopoint: new GeoPoint(1.23, 4.56) })
         .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
           const latLong = docSnapshot.data()!['geopoint'];
-          expect(latLong instanceof firebase.firestore!.GeoPoint).to.equal(
-            true
-          );
+          expect(latLong instanceof GeoPoint).to.equal(true);
           expect(latLong.latitude).to.equal(1.23);
           expect(latLong.longitude).to.equal(4.56);
         });
@@ -71,16 +73,14 @@ apiDescribe('Firestore', (persistence: boolean) => {
     return withTestDoc(persistence, doc => {
       return doc
         .set({
-          bytes: firebase.firestore!.Blob.fromUint8Array(
-            new Uint8Array([0, 1, 255])
-          )
+          bytes: Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
         })
         .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
           const blob = docSnapshot.data()!['bytes'];
-          expect(blob instanceof firebase.firestore!.Blob).to.equal(true);
+          expect(blob instanceof Blob).to.equal(true);
           expect(blob.toUint8Array()).to.deep.equal(
             new Uint8Array([0, 1, 255])
           );
@@ -99,7 +99,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.data()).to.deep.equal({
-            date: firebase.firestore!.Timestamp.fromDate(dateValue)
+            date: Timestamp.fromDate(dateValue)
           });
         });
     });
@@ -107,7 +107,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
 
   it('can read and write timestamp fields', () => {
     return withTestDb(persistence, db => {
-      const timestampValue = firebase.firestore!.Timestamp.now();
+      const timestampValue = Timestamp.now();
       return expectRoundtrip(db, { timestamp: timestampValue });
     });
   });

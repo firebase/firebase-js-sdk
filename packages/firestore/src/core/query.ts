@@ -28,14 +28,27 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+import { Target } from './target';
 
+export enum LimitType {
+  First = 'F',
+  Last = 'L'
+}
+
+/**
+ * Query encapsulates all the query attributes we support in the SDK. It can
+ * be run against the LocalStore, as well as be converted to a `Target` to
+ * query the RemoteStore results.
+ */
 export class Query {
   static atPath(path: ResourcePath): Query {
     return new Query(path);
   }
 
-  private memoizedCanonicalId: string | null = null;
   private memoizedOrderBy: OrderBy[] | null = null;
+
+  // The corresponding `Target` of this `Query` instance.
+  private memoizedTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -47,6 +60,7 @@ export class Query {
     readonly explicitOrderBy: OrderBy[] = [],
     readonly filters: Filter[] = [],
     readonly limit: number | null = null,
+    readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
     readonly endAt: Bound | null = null
   ) {
@@ -125,6 +139,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       newFilters,
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -140,18 +155,33 @@ export class Query {
       newOrderBy,
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
   }
 
-  withLimit(limit: number | null): Query {
+  withLimitToFirst(limit: number | null): Query {
     return new Query(
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       limit,
+      LimitType.First,
+      this.startAt,
+      this.endAt
+    );
+  }
+
+  withLimitToLast(limit: number | null): Query {
+    return new Query(
+      this.path,
+      this.collectionGroup,
+      this.explicitOrderBy.slice(),
+      this.filters.slice(),
+      limit,
+      LimitType.Last,
       this.startAt,
       this.endAt
     );
@@ -164,6 +194,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       bound,
       this.endAt
     );
@@ -176,6 +207,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       bound
     );
@@ -194,6 +226,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -219,107 +252,20 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
-      canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
-    }
-    return this.memoizedCanonicalId;
+    return `${this.toTarget().canonicalId()}|lt:${this.limitType}`;
   }
 
   toString(): string {
-    let str = 'Query(' + this.path.canonicalString();
-    if (this.isCollectionGroupQuery()) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.explicitOrderBy.length > 0) {
-      str += `, orderBy: [${this.explicitOrderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
-
-    return str + ')';
+    return `Query(target=${this.toTarget().toString()}; limitType=${
+      this.limitType
+    })`;
   }
 
   isEqual(other: Query): boolean {
-    if (this.limit !== other.limit) {
-      return false;
-    }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
+    return (
+      this.toTarget().isEqual(other.toTarget()) &&
+      this.limitType === other.limitType
+    );
   }
 
   docComparator(d1: Document, d2: Document): number {
@@ -348,8 +294,12 @@ export class Query {
     );
   }
 
-  hasLimit(): boolean {
-    return !isNullOrUndefined(this.limit);
+  hasLimitToFirst(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
+  }
+
+  hasLimitToLast(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.Last;
   }
 
   getFirstOrderByField(): FieldPath | null {
@@ -381,15 +331,61 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+    return this.toTarget().isDocumentQuery();
   }
 
   isCollectionGroupQuery(): boolean {
     return this.collectionGroup !== null;
+  }
+
+  /**
+   * Converts this `Query` instance to it's corresponding `Target`
+   * representation.
+   */
+  toTarget(): Target {
+    if (!this.memoizedTarget) {
+      if (this.limitType === LimitType.First) {
+        this.memoizedTarget = new Target(
+          this.path,
+          this.collectionGroup,
+          this.orderBy,
+          this.filters,
+          this.limit,
+          this.startAt,
+          this.endAt
+        );
+      } else {
+        // Flip the orderBy directions since we want the last results
+        const orderBys = [] as OrderBy[];
+        for (const orderBy of this.orderBy) {
+          const dir =
+            orderBy.dir === Direction.DESCENDING
+              ? Direction.ASCENDING
+              : Direction.DESCENDING;
+          orderBys.push(new OrderBy(orderBy.field, dir));
+        }
+
+        // We need to swap the cursors to match the now-flipped query ordering.
+        const startAt = this.endAt
+          ? new Bound(this.endAt.position, !this.endAt.before)
+          : null;
+        const endAt = this.startAt
+          ? new Bound(this.startAt.position, !this.startAt.before)
+          : null;
+
+        // Now return as a LimitType.First query.
+        this.memoizedTarget = new Target(
+          this.path,
+          this.collectionGroup,
+          orderBys,
+          this.filters,
+          this.limit,
+          startAt,
+          endAt
+        );
+      }
+    }
+    return this.memoizedTarget!;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
@@ -528,12 +524,12 @@ export class FieldFilter extends Filter {
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
         assert(
-          (value as ArrayValue).internalValue.every(elem => {
+          value.internalValue.every(elem => {
             return elem instanceof RefValue;
           }),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
-        return new KeyFieldInFilter(field, value as ArrayValue);
+        return new KeyFieldInFilter(field, value);
       } else {
         assert(
           value instanceof RefValue,
@@ -543,7 +539,7 @@ export class FieldFilter extends Filter {
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
-        return new KeyFieldFilter(field, op, value as RefValue);
+        return new KeyFieldFilter(field, op, value);
       }
     } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
@@ -568,13 +564,13 @@ export class FieldFilter extends Filter {
         value instanceof ArrayValue,
         'IN filter has invalid value: ' + value.toString()
       );
-      return new InFilter(field, value as ArrayValue);
+      return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
       assert(
         value instanceof ArrayValue,
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
-      return new ArrayContainsAnyFilter(field, value as ArrayValue);
+      return new ArrayContainsAnyFilter(field, value);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -768,17 +764,14 @@ export class Bound {
           component instanceof RefValue,
           'Bound has a non-key value where the key path is being used.'
         );
-        comparison = DocumentKey.comparator(
-          (component as RefValue).key,
-          doc.key
-        );
+        comparison = DocumentKey.comparator(component.key, doc.key);
       } else {
         const docValue = doc.field(orderByComponent.field);
         assert(
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = component.compareTo(docValue!);
+        comparison = component.compareTo(docValue);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;

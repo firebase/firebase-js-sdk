@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, contains } from '@firebase/util';
 import { doubleToIEEE754String } from '../util/util';
-import { contains } from '@firebase/util';
+
 import { Node } from './Node';
+import { Indexable } from '../util/misc';
 
 let MAX_NODE: Node;
 
@@ -31,9 +32,11 @@ export function setMaxNode(val: Node) {
  * @return {!string}
  */
 export const priorityHashText = function(priority: string | number): string {
-  if (typeof priority === 'number')
+  if (typeof priority === 'number') {
     return 'number:' + doubleToIEEE754String(priority);
-  else return 'string:' + priority;
+  } else {
+    return 'string:' + priority;
+  }
 };
 
 /**
@@ -47,8 +50,7 @@ export const validatePriorityNode = function(priorityNode: Node) {
     assert(
       typeof val === 'string' ||
         typeof val === 'number' ||
-        (typeof val === 'object' &&
-          contains(val as { [key: string]: unknown }, '.sv')),
+        (typeof val === 'object' && contains(val as Indexable, '.sv')),
       'Priority must be a string or number.'
     );
   } else {

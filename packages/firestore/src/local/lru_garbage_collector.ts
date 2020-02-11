@@ -24,11 +24,10 @@ import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
-import { LocalStore } from './local_store';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
@@ -38,10 +37,10 @@ import { QueryData } from './query_data';
 export interface LruDelegate {
   readonly garbageCollector: LruGarbageCollector;
 
-  /** Enumerates all the targets in the QueryCache. */
+  /** Enumerates all the targets in the TargetCache. */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (target: QueryData) => void
+    f: (target: TargetData) => void
   ): PersistencePromise<void>;
 
   getSequenceNumberCount(

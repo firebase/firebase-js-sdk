@@ -14,15 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import firebase from '@firebase/app';
-import { FirebaseNamespace } from '@firebase/app-types';
 import * as types from '@firebase/firestore-types';
 import { configureForFirebase } from './src/platform/config';
 import './src/platform_node/node_init';
+import { FirebaseNamespace } from '@firebase/app-types';
+
+import { name, version } from './package.json';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
+  instance.registerVersion(name, version, 'node');
 }
 
 registerFirestore(firebase);
@@ -40,6 +42,7 @@ declare module '@firebase/app-types' {
       Firestore: typeof types.FirebaseFirestore;
       GeoPoint: typeof types.GeoPoint;
       Query: typeof types.Query;
+      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
       QuerySnapshot: typeof types.QuerySnapshot;
       Timestamp: typeof types.Timestamp;
       Transaction: typeof types.Transaction;

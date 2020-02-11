@@ -16,9 +16,9 @@
  */
 
 import { DataSnapshot } from '../../api/DataSnapshot';
-import { DataEvent, CancelEvent, Event } from './Event';
-import { contains } from '@firebase/util';
-import { assert } from '@firebase/util';
+import { DataEvent, CancelEvent, Event, EventType } from './Event';
+import { contains, assert } from '@firebase/util';
+
 import { Path } from '../util/Path';
 import { Change } from './Change';
 import { Query } from '../../api/Query';
@@ -90,7 +90,7 @@ export class ValueEventRegistration implements EventRegistration {
   constructor(
     private callback_: ((d: DataSnapshot) => void) | null,
     private cancelCallback_: ((e: Error) => void) | null,
-    private context_: Object | null
+    private context_: {} | null
   ) {}
 
   /**
@@ -186,11 +186,11 @@ export class ChildEventRegistration implements EventRegistration {
    * @param {Object=} context_
    */
   constructor(
-    private callbacks_:
-      | ({ [k: string]: (d: DataSnapshot, s?: string | null) => void })
-      | null,
+    private callbacks_: {
+      [k: string]: (d: DataSnapshot, s?: string | null) => void;
+    } | null,
     private cancelCallback_: ((e: Error) => void) | null,
-    private context_?: Object
+    private context_?: {}
   ) {}
 
   /**
@@ -223,9 +223,9 @@ export class ChildEventRegistration implements EventRegistration {
     const ref = query.getRef().child(/** @type {!string} */ change.childName);
     const index = query.getQueryParams().getIndex();
     return new DataEvent(
-      change.type as any,
+      change.type as EventType,
       this,
-      new DataSnapshot(change.snapshotNode, ref, index as any),
+      new DataSnapshot(change.snapshotNode, ref, index),
       change.prevName
     );
   }

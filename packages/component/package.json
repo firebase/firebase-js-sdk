@@ -1,0 +1,49 @@
+{
+  "name": "@firebase/component",
+  "version": "0.1.5",
+  "description": "Firebase Component Platform",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "type-check": "tsc -p . --noEmit",
+    "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --opts ../../config/mocha.node.opts",
+    "prepare": "yarn build"
+  },
+  "dependencies": {
+    "@firebase/util": "0.2.40",
+    "tslib": "1.10.0"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "rollup": "1.28.0",
+    "rollup-plugin-typescript2": "0.25.3",
+    "typescript": "3.7.5"
+  },
+  "repository": {
+    "directory": "packages/component",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

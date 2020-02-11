@@ -28,7 +28,11 @@ import { XhrIoPool } from '../src/implementation/xhriopool';
 import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
-import { assertObjectIncludes, fakeXhrIo } from './testshared';
+import {
+  assertObjectIncludes,
+  fakeXhrIo,
+  fakeAuthProvider
+} from './testshared';
 import {
   DEFAULT_HOST,
   CONFIG_STORAGE_BUCKET_KEY
@@ -56,11 +60,12 @@ describe('Firebase Storage > Requests', () => {
       [CONFIG_STORAGE_BUCKET_KEY]: 'fredzqm-staging'
     },
     automaticDataCollectionEnabled: false,
-    delete: () => Promise.resolve()
+    delete: async () => undefined
   };
 
   const authWrapper = new AuthWrapper(
     mockApp,
+    fakeAuthProvider,
     (authWrapper, loc) => {
       return new Reference(authWrapper, loc);
     },

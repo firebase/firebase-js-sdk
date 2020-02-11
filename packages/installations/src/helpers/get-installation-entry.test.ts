@@ -17,7 +17,7 @@
 
 import { AssertionError, expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as createInstallationModule from '../api/create-installation';
+import * as createInstallationRequestModule from '../api/create-installation-request';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
@@ -25,7 +25,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
-import { getFakeAppConfig } from '../testing/get-fake-app';
+import { getFakeAppConfig } from '../testing/fake-generators';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
@@ -38,20 +38,20 @@ const FID = 'cry-of-the-black-birds';
 describe('getInstallationEntry', () => {
   let clock: SinonFakeTimers;
   let appConfig: AppConfig;
-  let createInstallationSpy: SinonStub<
+  let createInstallationRequestSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
 
   beforeEach(() => {
-    clock = useFakeTimers();
+    clock = useFakeTimers({ now: 1_000_000 });
     appConfig = getFakeAppConfig();
-    createInstallationSpy = stub(
-      createInstallationModule,
-      'createInstallation'
+    createInstallationRequestSpy = stub(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
-        await sleep(100); // Request would take some time
+        await sleep(500); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
           // Returns new FID if client FID is invalid.
           fid: installationEntry.fid || FID,
@@ -67,6 +67,11 @@ describe('getInstallationEntry', () => {
         return registeredInstallationEntry;
       }
     );
+  });
+
+  afterEach(() => {
+    // Clean up all pending requests.
+    clock.runAll();
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
@@ -112,8 +117,8 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
-    createInstallationSpy.callsFake(async () => {
-      await sleep(100); // Request would take some time
+    createInstallationRequestSpy.callsFake(async () => {
+      await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 500,
@@ -142,8 +147,8 @@ describe('getInstallationEntry', () => {
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
-    createInstallationSpy.callsFake(async () => {
-      await sleep(100); // Request would take some time
+    createInstallationRequestSpy.callsFake(async () => {
+      await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 409,
@@ -205,7 +210,7 @@ describe('getInstallationEntry', () => {
         registrationTime: installationEntry.registrationTime
       });
       expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationSpy).to.be.called;
+      expect(createInstallationRequestSpy).to.be.called;
     });
 
     it('returns a new unregistered InstallationEntry if app is offline', async () => {
@@ -218,14 +223,14 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.NOT_STARTED
       });
       expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
 
     it('does not trigger createInstallation REST call on subsequent calls', async () => {
       await getInstallationEntry(appConfig);
       await getInstallationEntry(appConfig);
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('returns a registrationPromise on subsequent calls before initial promise resolves', async () => {
@@ -236,7 +241,7 @@ describe('getInstallationEntry', () => {
         appConfig
       );
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
       expect(promise1).to.be.an.instanceOf(Promise);
       expect(promise2).to.be.an.instanceOf(Promise);
     });
@@ -255,13 +260,15 @@ describe('getInstallationEntry', () => {
       );
       expect(promise2).to.be.undefined;
 
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('waits for the FID from the server if FID generation fails', async () => {
       clock.restore();
-      // Needed to allow the createInstallation request to complete.
-      clock = useFakeTimers({ shouldAdvanceTime: true });
+      clock = useFakeTimers({
+        now: 1_000_000,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
 
       // FID generation fails.
       generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
@@ -304,7 +311,7 @@ describe('getInstallationEntry', () => {
         // https://github.com/chaijs/chai/issues/644
         registrationTime: installationEntry.registrationTime
       });
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
     it('returns the same InstallationEntry if the app is offline', async () => {
@@ -316,7 +323,7 @@ describe('getInstallationEntry', () => {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 
@@ -331,7 +338,7 @@ describe('getInstallationEntry', () => {
     });
 
     it("returns the same InstallationEntry if the request hasn't timed out", async () => {
-      stub(Date, 'now').returns(1_001_000); // One second later
+      clock.now = 1_001_000; // One second after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
@@ -340,11 +347,85 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_000_000
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
 
-    it('returns a new pending InstallationEntry and triggers createInstallation if the request timed out', async () => {
-      stub(Date, 'now').returns(1_015_000); // Fifteen seconds later
+    it('updates the InstallationEntry and triggers createInstallation if the request fails', async () => {
+      clock.restore();
+      clock = useFakeTimers({
+        now: 1_001_000 /* One second after the request was initiated. */,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
+
+      const installationEntryPromise = getInstallationEntry(appConfig);
+
+      // The pending request fails after a while.
+      clock.tick(3000);
+      await set(appConfig, {
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      const { registrationPromise } = await installationEntryPromise;
+
+      // Let the new getInstallationEntry process start.
+      await sleep(250);
+
+      const tokenDetails = (await get(
+        appConfig
+      )) as InProgressInstallationEntry;
+      expect(tokenDetails.registrationTime).to.be.at.least(
+        /* When the first pending request failed. */ 1_004_000
+      );
+      expect(tokenDetails).to.deep.equal({
+        fid: FID,
+        registrationStatus: RequestStatus.IN_PROGRESS,
+        // Ignore registrationTime as we already checked it.
+        registrationTime: tokenDetails.registrationTime
+      });
+
+      expect(registrationPromise).to.be.an.instanceOf(Promise);
+      await registrationPromise;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
+    });
+
+    it('updates the InstallationEntry if the request fails and the app is offline', async () => {
+      stub(navigator, 'onLine').value(false);
+
+      clock.restore();
+      clock = useFakeTimers({
+        now: 1_001_000 /* One second after the request was initiated. */,
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+      });
+
+      const installationEntryPromise = getInstallationEntry(appConfig);
+
+      // The pending request fails after a while.
+      clock.tick(3000);
+      await set(appConfig, {
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      const { registrationPromise } = await installationEntryPromise;
+
+      // Let the new getInstallationEntry process start.
+      await sleep(250);
+
+      expect(await get(appConfig)).to.deep.equal({
+        fid: FID,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+
+      expect(registrationPromise).to.be.an.instanceOf(Promise);
+      await expect(registrationPromise).to.be.rejectedWith(
+        'Application offline'
+      );
+      expect(createInstallationRequestSpy).not.to.be.called;
+    });
+
+    it('returns a new pending InstallationEntry and triggers createInstallation if the request had already timed out', async () => {
+      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
@@ -353,12 +434,12 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_015_000
       });
-      expect(createInstallationSpy).to.be.calledOnce;
+      expect(createInstallationRequestSpy).to.be.calledOnce;
     });
 
-    it('returns a new unregistered InstallationEntry if the request timed out and the app is offline', async () => {
+    it('returns a new unregistered InstallationEntry if the request had already timed out and the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
-      stub(Date, 'now').returns(1_015_000); // Fifteen seconds later
+      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
       const { installationEntry } = await getInstallationEntry(appConfig);
 
@@ -366,7 +447,7 @@ describe('getInstallationEntry', () => {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 
@@ -390,7 +471,7 @@ describe('getInstallationEntry', () => {
         refreshToken: 'refreshToken',
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       });
-      expect(createInstallationSpy).not.to.be.called;
+      expect(createInstallationRequestSpy).not.to.be.called;
     });
   });
 });

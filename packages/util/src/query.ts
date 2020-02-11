@@ -21,7 +21,7 @@
  * Note: You must prepend it with ? when adding it to a URL.
  */
 export function querystring(querystringParams: {
-  [key: string]: string;
+  [key: string]: string | number;
 }): string {
   const params = [];
   for (const [key, value] of Object.entries(querystringParams)) {

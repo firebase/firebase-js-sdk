@@ -166,7 +166,7 @@ export class View {
         'A cancel should cancel all event registrations.'
       );
       const path = this.query_.path;
-      this.eventRegistrations_.forEach(function(registration) {
+      this.eventRegistrations_.forEach(registration => {
         cancelError /** @type {!Error} */ = cancelError;
         const maybeEvent = registration.createCancelEvent(cancelError, path);
         if (maybeEvent) {
@@ -254,7 +254,7 @@ export class View {
     const initialChanges: Change[] = [];
     if (!eventSnap.getNode().isLeafNode()) {
       const eventNode = eventSnap.getNode() as ChildrenNode;
-      eventNode.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+      eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
         initialChanges.push(Change.childAddedChange(key, childNode));
       });
     }

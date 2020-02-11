@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { safeGet } from '@firebase/util';
-import { assert, assertionError } from '@firebase/util';
+import { safeGet, assert, assertionError } from '@firebase/util';
+
 import { Path } from './util/Path';
 import { CompoundWrite } from './CompoundWrite';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
@@ -94,10 +94,10 @@ export class WriteTree {
       visible = true;
     }
     this.allWrites_.push({
-      path: path,
-      snap: snap,
-      writeId: writeId,
-      visible: visible
+      path,
+      snap,
+      writeId,
+      visible
     });
 
     if (visible) {
@@ -123,9 +123,9 @@ export class WriteTree {
       'Stacking an older merge on top of newer ones'
     );
     this.allWrites_.push({
-      path: path,
+      path,
       children: changedChildren,
-      writeId: writeId,
+      writeId,
       visible: true
     });
 
@@ -161,7 +161,7 @@ export class WriteTree {
     //const validClear = revert || this.allWrites_.length === 0 || writeId <= this.allWrites_[0].writeId;
     //assert(validClear, "Either we don't have this write, or it's the first one in the queue");
 
-    const idx = this.allWrites_.findIndex(function(s) {
+    const idx = this.allWrites_.findIndex(s => {
       return s.writeId === writeId;
     });
     assert(idx >= 0, 'removeWrite called with nonexistent writeId.');
@@ -310,10 +310,7 @@ export class WriteTree {
     if (topLevelSet) {
       if (!topLevelSet.isLeafNode()) {
         // we're shadowing everything. Return the children.
-        topLevelSet.forEachChild(PRIORITY_INDEX, function(
-          childName,
-          childSnap
-        ) {
+        topLevelSet.forEachChild(PRIORITY_INDEX, (childName, childSnap) => {
           completeChildren = completeChildren.updateImmediateChild(
             childName,
             childSnap
@@ -325,20 +322,20 @@ export class WriteTree {
       // Layer any children we have on top of this
       // We know we don't have a top-level set, so just enumerate existing children
       const merge = this.visibleWrites_.childCompoundWrite(treePath);
-      completeServerChildren.forEachChild(PRIORITY_INDEX, function(
-        childName,
-        childNode
-      ) {
-        const node = merge
-          .childCompoundWrite(new Path(childName))
-          .apply(childNode);
-        completeChildren = completeChildren.updateImmediateChild(
-          childName,
-          node
-        );
-      });
+      completeServerChildren.forEachChild(
+        PRIORITY_INDEX,
+        (childName, childNode) => {
+          const node = merge
+            .childCompoundWrite(new Path(childName))
+            .apply(childNode);
+          completeChildren = completeChildren.updateImmediateChild(
+            childName,
+            node
+          );
+        }
+      );
       // Add any complete children we have from the set
-      merge.getCompleteChildren().forEach(function(namedNode) {
+      merge.getCompleteChildren().forEach(namedNode => {
         completeChildren = completeChildren.updateImmediateChild(
           namedNode.name,
           namedNode.node
@@ -349,7 +346,7 @@ export class WriteTree {
       // We don't have anything to layer on top of. Layer on any children we have
       // Note that we can return an empty snap if we have a defined delete
       const merge = this.visibleWrites_.childCompoundWrite(treePath);
-      merge.getCompleteChildren().forEach(function(namedNode) {
+      merge.getCompleteChildren().forEach(namedNode => {
         completeChildren = completeChildren.updateImmediateChild(
           namedNode.name,
           namedNode.node

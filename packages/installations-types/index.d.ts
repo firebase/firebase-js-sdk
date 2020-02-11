@@ -37,4 +37,18 @@ export interface FirebaseInstallations {
    * Deletes the Firebase Installation and all associated data.
    */
   delete(): Promise<void>;
+
+  /**
+   * Sets a new callback that will get called when Installlation ID changes.
+   * Returns an unsubscribe function that will remove the callback when called.
+   */
+  onIdChange(callback: (installationId: string) => void): () => void;
+}
+
+export type FirebaseInstallationsName = 'installations';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'installations': FirebaseInstallations;
+  }
 }

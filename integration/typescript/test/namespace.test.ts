@@ -25,7 +25,8 @@ firebase.initializeApp({
   databaseURL: 'https://test-project-name.firebaseio.com',
   projectId: 'test-project-name',
   storageBucket: 'test-project-name.appspot.com',
-  messagingSenderId: '012345678910'
+  messagingSenderId: '012345678910',
+  appId: 'myAppId'
 });
 
 describe('Firebase Namespace Validation', function() {

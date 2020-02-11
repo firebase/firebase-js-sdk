@@ -20,20 +20,27 @@ import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
 import { AppConfig } from '../interfaces/app-config';
-import { RequestStatus } from '../interfaces/installation-entry';
-import { getFakeApp } from '../testing/get-fake-app';
+import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  RegisteredInstallationEntry,
+  RequestStatus
+} from '../interfaces/installation-entry';
+import { getFakeDependencies } from '../testing/fake-generators';
 import '../testing/setup';
 import { getId } from './get-id';
 
 const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
+  let dependencies: FirebaseDependencies;
   let getInstallationEntrySpy: SinonStub<
     [AppConfig],
     Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>
   >;
 
   beforeEach(() => {
+    dependencies = getFakeDependencies();
+
     getInstallationEntrySpy = stub(
       getInstallationEntryModule,
       'getInstallationEntry'
@@ -45,11 +52,11 @@ describe('getId', () => {
       installationEntry: {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
-      }
+      },
+      registrationPromise: Promise.resolve({} as RegisteredInstallationEntry)
     });
 
-    const firebaseApp = getFakeApp();
-    const fid = await getId(firebaseApp);
+    const fid = await getId(dependencies);
     expect(fid).to.equal(FID);
     expect(getInstallationEntrySpy).to.be.calledOnce;
   });
@@ -69,10 +76,14 @@ describe('getId', () => {
     const refreshAuthTokenSpy = stub(
       refreshAuthTokenModule,
       'refreshAuthToken'
-    ).resolves('authToken');
+    ).resolves({
+      token: 'authToken',
+      expiresIn: 123456,
+      requestStatus: RequestStatus.COMPLETED,
+      creationTime: Date.now()
+    });
 
-    const firebaseApp = getFakeApp();
-    await getId(firebaseApp);
+    await getId(dependencies);
     expect(refreshAuthTokenSpy).to.be.calledOnce;
   });
 });

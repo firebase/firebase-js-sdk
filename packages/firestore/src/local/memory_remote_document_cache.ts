@@ -188,6 +188,12 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     );
   }
 
+  getLastReadTime(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion> {
+    return PersistencePromise.resolve(SnapshotVersion.MIN);
+  }
+
   newChangeBuffer(options?: {
     trackRemovals: boolean;
   }): RemoteDocumentChangeBuffer {

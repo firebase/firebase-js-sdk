@@ -1,0 +1,33 @@
+name: Cross-Browser Test Flow
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  cross-browser-test:
+    name: Cross-Browser (Saucelabs) Tests
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
+    env:
+      SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+      SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 10.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build
+      run: yarn build
+    - name: Run Saucelabs tests
+      run: xvfb-run yarn test:saucelabs
+

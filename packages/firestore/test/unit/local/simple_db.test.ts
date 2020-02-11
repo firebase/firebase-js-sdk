@@ -28,6 +28,7 @@ import {
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 import { fail } from '../../../src/util/assert';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 use(chaiAsPromised);
 
@@ -212,7 +213,10 @@ describe('SimpleDb', () => {
         return store.put(dummyUser).next(() => {
           throw new Error('Generated error');
         });
-      }).then(() => {}, error => Promise.reject(error))
+      }).then(
+        () => {},
+        error => Promise.reject(error)
+      )
     ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
@@ -551,8 +555,8 @@ describe('SimpleDb', () => {
     await expect(
       db.runTransaction('readwrite-idempotent', ['users'], txn => {
         ++attemptCount;
-        txn.abort();
-        return PersistencePromise.reject(new Error('Aborted'));
+        txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
+        return PersistencePromise.reject(new Error());
       })
     ).to.eventually.be.rejected;
 

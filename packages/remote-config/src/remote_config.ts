@@ -129,41 +129,38 @@ export class RemoteConfig implements RemoteConfigType {
    * {@link DEFAULT_FETCH_TIMEOUT_SECONDS}.
    */
   async fetch(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      // Aborts the request after the given timeout, causing the fetch call to
-      // reject with an AbortError.
-      //
-      // <p>Aborting after the request completes is a no-op, so we don't need a
-      // corresponding clearTimeout.
-      //
-      // Locating abort logic here because:
-      // * it uses a developer setting (timeout)
-      // * it applies to all retries (like curl's max-time arg)
-      // * it is consistent with the Fetch API's signal input
-      const abortSignal = new RemoteConfigAbortSignal();
+    // Aborts the request after the given timeout, causing the fetch call to
+    // reject with an AbortError.
+    //
+    // <p>Aborting after the request completes is a no-op, so we don't need a
+    // corresponding clearTimeout.
+    //
+    // Locating abort logic here because:
+    // * it uses a developer setting (timeout)
+    // * it applies to all retries (like curl's max-time arg)
+    // * it is consistent with the Fetch API's signal input
+    const abortSignal = new RemoteConfigAbortSignal();
 
-      setTimeout(async () => {
-        // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
-        abortSignal.abort();
-      }, this.settings.fetchTimeoutMillis);
+    setTimeout(async () => {
+      // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
+      abortSignal.abort();
+    }, this.settings.fetchTimeoutMillis);
 
-      // Catches *all* errors thrown by client so status can be set consistently.
-      try {
-        await this._client.fetch({
-          cacheMaxAgeMillis: this.settings.minimumFetchIntervalMillis,
-          signal: abortSignal
-        });
+    // Catches *all* errors thrown by client so status can be set consistently.
+    try {
+      await this._client.fetch({
+        cacheMaxAgeMillis: this.settings.minimumFetchIntervalMillis,
+        signal: abortSignal
+      });
 
-        await this._storageCache.setLastFetchStatus('success');
-        resolve();
-      } catch (e) {
-        const lastFetchStatus = hasErrorCode(e, ErrorCode.FETCH_THROTTLE)
-          ? 'throttle'
-          : 'failure';
-        await this._storageCache.setLastFetchStatus(lastFetchStatus);
-        reject(e);
-      }
-    });
+      await this._storageCache.setLastFetchStatus('success');
+    } catch (e) {
+      const lastFetchStatus = hasErrorCode(e, ErrorCode.FETCH_THROTTLE)
+        ? 'throttle'
+        : 'failure';
+      await this._storageCache.setLastFetchStatus(lastFetchStatus);
+      throw e;
+    }
   }
 
   async fetchAndActivate(): Promise<boolean> {
@@ -175,13 +172,10 @@ export class RemoteConfig implements RemoteConfigType {
     return getAllKeys(
       this._storageCache.getActiveConfig(),
       this.defaultConfig
-    ).reduce(
-      (allConfigs, key) => {
-        allConfigs[key] = this.getValue(key);
-        return allConfigs;
-      },
-      {} as { [key: string]: ValueType }
-    );
+    ).reduce((allConfigs, key) => {
+      allConfigs[key] = this.getValue(key);
+      return allConfigs;
+    }, {} as { [key: string]: ValueType });
   }
 
   getBoolean(key: string): boolean {

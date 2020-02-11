@@ -1,4 +1,42 @@
 # Unreleased
+- [fixed] Fixed an issue where `CollectionReference.add()` would reject
+  custom types when using `withConverter()`. (#2606)
+
+# 1.9.3
+- [fixed] Fixed an issue where auth credentials were not respected in some
+  Firefox or Chrome extensions. (#1491)
+- [changed] Firestore previously required that every document read in a
+  transaction must also be written. This requirement has been removed, and
+  you can now read a document in transaction without writing to it.
+
+# 1.9.2
+- [fixed] Fixed an issue where auth credentials were not respected in certain
+  browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
+
+# 1.9.0
+- [feature] Added support for storing and retrieving custom types in Firestore.
+  Added support for strongly typed collections, documents, and
+  queries. You can now use `withConverter()` to supply a custom data
+  converter that will convert between Firestore data and your custom type.
+
+# 1.8.0
+- [changed] Improved the performance of repeatedly executed queries when
+  persistence is enabled. Recently executed queries should see dramatic
+  improvements. This benefit is reduced if changes accumulate while the query
+  is inactive. Queries that use the `limit()` API may not always benefit,
+  depending on the accumulated changes.
+
+# 1.7.0
+- [changed] The client can now recover if certain periodic IndexedDB operations
+  fail.
+- [feature] Added `in` and `array-contains-any` query operators for use with
+  `.where()`. `in` finds documents where a specified field’s value is IN a
+  specified array. `array-contains-any` finds documents where a specified field
+  is an array and contains ANY element of a specified array.
+- [feature] Added `Query.limitToLast(n: number)` , which returns the last 
+  `n` documents as the result.
+
+# 1.6.3
 - [changed] Improved iOS 13 support by eliminating an additional crash in our
   IndexedDB persistence layer.
 

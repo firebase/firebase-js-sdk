@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, contains, safeGet } from '@firebase/util';
 import { Path } from './Path';
-import { contains, safeGet } from '@firebase/util';
+
 import { each } from './util';
 
 /**
@@ -59,11 +59,12 @@ export class Tree<T> {
     // TODO: Require pathObj to be Path?
     let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
     let child = this as Tree<T>,
-      next;
-    while ((next = path.getFront()) !== null) {
+      next = path.getFront();
+    while (next !== null) {
       const childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
       path = path.popFront();
+      next = path.getFront();
     }
 
     return child;
@@ -138,13 +139,17 @@ export class Tree<T> {
     includeSelf?: boolean,
     childrenFirst?: boolean
   ) {
-    if (includeSelf && !childrenFirst) action(this);
+    if (includeSelf && !childrenFirst) {
+      action(this);
+    }
 
-    this.forEachChild(function(child) {
+    this.forEachChild(child => {
       child.forEachDescendant(action, /*includeSelf=*/ true, childrenFirst);
     });
 
-    if (includeSelf && childrenFirst) action(this);
+    if (includeSelf && childrenFirst) {
+      action(this);
+    }
   }
 
   /**
@@ -177,9 +182,12 @@ export class Tree<T> {
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
   forEachImmediateDescendantWithValue(action: (tree: Tree<T>) => void) {
-    this.forEachChild(function(child) {
-      if (child.getValue() !== null) action(child);
-      else child.forEachImmediateDescendantWithValue(action);
+    this.forEachChild(child => {
+      if (child.getValue() !== null) {
+        action(child);
+      } else {
+        child.forEachImmediateDescendantWithValue(action);
+      }
     });
   }
 
@@ -214,7 +222,9 @@ export class Tree<T> {
    * @private
    */
   private updateParents_() {
-    if (this.parent_ !== null) this.parent_.updateChild_(this.name_, this);
+    if (this.parent_ !== null) {
+      this.parent_.updateChild_(this.name_, this);
+    }
   }
 
   /**
