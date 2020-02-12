@@ -51,7 +51,7 @@ type WidgetParams = {
   appName: AppName;
   authType: AuthEventType;
   redirectUrl: string;
-  v: string,
+  v: string;
   providerId?: ProviderId;
   scopes?: string;
   customParameters?: string;
@@ -97,8 +97,8 @@ function getRedirectUrl(
       params.customParameters = JSON.stringify(provider.getCustomParameters());
     }
     const scopes = provider.getScopes();
-    if(scopes.length > 0) {
-      params.scopes = scopes.join(",");
+    if (scopes.length > 0) {
+      params.scopes = scopes.join(',');
     }
     // TODO set additionalParams?
     // let additionalParams = provider.getAdditionalParams();
@@ -155,9 +155,9 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
           postBody: message.authEvent.postBody,
           sessionId: message.authEvent.sessionId!,
           returnSecureToken: true
-        })
-        let credential = GoogleAuthProvider.credential(response.idToken)
-        let user_credential = signInWithCredential(auth, credential)
+        });
+        let credential = GoogleAuthProvider.credential(response.idToken);
+        let user_credential = signInWithCredential(auth, credential);
         console.log(message);
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER

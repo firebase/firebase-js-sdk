@@ -44,21 +44,21 @@ export class EmailAuthCredential implements AuthCredential {
   }
   async getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-    case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
-      return signInWithPassword(auth, {
-        returnSecureToken: true,
-        email: this.email,
-        password: this.password
-      });
-    case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
-      return signInWithEmailLink(auth, {
-        email: this.email,
-        oobCode: this.password
-      });
-    default:
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-        appName: auth.name
-      });
+      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+        return signInWithPassword(auth, {
+          returnSecureToken: true,
+          email: this.email,
+          password: this.password
+        });
+      case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+        return signInWithEmailLink(auth, {
+          email: this.email,
+          oobCode: this.password
+        });
+      default:
+        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+          appName: auth.name
+        });
     }
   }
 }

@@ -181,23 +181,24 @@ export async function sendPhoneVerificationCode(
 }
 
 export interface SignInWithIdpRequest {
-  requestUri: string,
-  postBody: string | null,
-  sessionId: string,
-  tenantId?: string,
-  returnSecureToken: true,
-  idToken?: IdToken,
+  requestUri: string;
+  postBody: string | null;
+  sessionId: string;
+  tenantId?: string;
+  returnSecureToken: true;
+  idToken?: IdToken;
 }
 
-export interface SignInWithIdpResponse extends IdTokenResponse {
+export interface SignInWithIdpResponse extends IdTokenResponse {}
 
-}
-
-export async function SignInWithIdp(auth: Auth, request: SignInWithIdpRequest): Promise<SignInWithIdpResponse> {
+export async function SignInWithIdp(
+  auth: Auth,
+  request: SignInWithIdpRequest
+): Promise<SignInWithIdpResponse> {
   return performApiRequest<SignInWithIdpRequest, SignInWithIdpResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_IDP,
     request
-  )
+  );
 }

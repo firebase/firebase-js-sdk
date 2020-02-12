@@ -179,17 +179,17 @@ describe('signInAnonymously', () => {
       const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
           switch (++callbackNum) {
-          case 1:
-            expect(user).to.be.null;
-            break;
-          case 2:
-            expect(user).to.not.be.null;
-            expect(user).to.eq(auth.currentUser);
-            resolve();
-            break;
-          default:
-            fail('expected only 2 callbacks');
-            reject();
+            case 1:
+              expect(user).to.be.null;
+              break;
+            case 2:
+              expect(user).to.not.be.null;
+              expect(user).to.eq(auth.currentUser);
+              resolve();
+              break;
+            default:
+              fail('expected only 2 callbacks');
+              reject();
           }
         });
       });
