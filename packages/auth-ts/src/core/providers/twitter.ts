@@ -39,7 +39,6 @@ export class TwitterAuthProvider extends OAuthProvider {
   static credentialFromJSON(json: object): OAuthCredential {
     throw new Error('not implemented');
   }
-
   setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
     throw new Error('not implemented');
   }

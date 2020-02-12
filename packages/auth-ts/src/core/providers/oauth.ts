@@ -27,6 +27,8 @@ export interface CustomParameters {
 
 export class OAuthProvider implements AuthProvider {
   private defaultLanguageCode: LanguageCode | null = null;
+  private scopes: string[] = []
+  private customParameters: CustomParameters = {};
   constructor(readonly providerId: ProviderId) {}
   static credentialFromResult(
     userCredential: UserCredential
@@ -39,16 +41,25 @@ export class OAuthProvider implements AuthProvider {
   static credentialFromJSON(json: object): OAuthCredential {
     throw new Error('not implemented');
   }
-  addScope(scope: string): AuthProvider {
-    throw new Error('not implemented');
-  }
   setDefaultLanguage(languageCode: LanguageCode | null): void {
     this.defaultLanguageCode = languageCode;
   }
   setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
+    this.customParameters = customOAuthParameters
     throw new Error('not implemented');
   }
   getCustomParameters(): CustomParameters {
-    return {};
+    return this.customParameters;
   }
+  addScope(scope: string) {
+    // If not already added, add scope to list.
+    if (!this.scopes.includes(scope)) {
+      this.scopes.push(scope);
+    }
+    return this;
+  };
+  
+  protected getScopes() {
+    return this.scopes
+  };
 }

@@ -16,8 +16,8 @@
  */
 
 import { Auth } from '../../model/auth';
-import * as api from '../../api/authentication';
 import { getCurrentUrl, isHttpOrHttps } from '../util/location';
+import { CreateAuthUriRequest, createAuthUri } from '../../api/authentication';
 
 export async function fetchSignInMethodsForEmail(
   auth: Auth,
@@ -27,12 +27,12 @@ export async function fetchSignInMethodsForEmail(
   // For environments like Cordova, Chrome extensions, native frameworks, file
   // systems, etc, use http://localhost as continue URL.
   const continueUri = isHttpOrHttps() ? getCurrentUrl() : 'http://localhost';
-  const request: api.CreateAuthUriRequest = {
+  const request: CreateAuthUriRequest = {
     identifier: email,
     continueUri
   };
 
-  const response = await api.createAuthUri(auth, request);
+  const response = await createAuthUri(auth, request);
 
   return response.signinMethods || [];
 }

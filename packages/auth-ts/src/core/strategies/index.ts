@@ -25,7 +25,7 @@ export async function userFromIdTokenResponse(
 ): Promise<User> {
   const stsTokenManager = new StsTokenManager(idTokenResponse);
   // Initialize the Firebase Auth user.
-  const user = new User({stsTokenManager, uid: idTokenResponse.localId});
+  const user = new User({ stsTokenManager, uid: idTokenResponse.localId });
 
   // Updates the user info and data and resolves with a user instance.
   await user.reload(auth);

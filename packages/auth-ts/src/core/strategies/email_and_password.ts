@@ -43,7 +43,7 @@ export async function createUserWithEmailAndPassword(
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(
     user,
-    EmailAuthProvider.PROVIDER_ID,
+    EmailAuthProvider.credential(email, password),
     OperationType.SIGN_IN
   );
 }

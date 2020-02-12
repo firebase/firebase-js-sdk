@@ -16,7 +16,7 @@
  */
 
 import { User } from './user';
-import { ProviderId } from '../core/providers';
+import { AuthCredential } from '../core/strategies/auth_credential';
 
 export enum OperationType {
   LINK = 'link',
@@ -27,7 +27,7 @@ export enum OperationType {
 export class UserCredential {
   constructor(
     public readonly user: User,
-    public readonly providerid: ProviderId,
-    public readonly operationType: OperationType
+    public readonly credential: AuthCredential,
+    public readonly operationType: OperationType,
   ) {}
 }
