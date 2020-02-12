@@ -28,6 +28,6 @@ export class UserCredential {
   constructor(
     public readonly user: User,
     public readonly credential: AuthCredential,
-    public readonly operationType: OperationType,
+    public readonly operationType: OperationType
   ) {}
 }

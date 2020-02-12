@@ -25,7 +25,11 @@ import {
 } from '../../model/action_code_settings';
 import { actionCodeURLfromLink } from '../../model/action_code_url';
 import { signInWithCredential } from './auth_credential';
-import { EmailSigninRequest, GetOobCodeRequestType, sendOobCode } from '../../api/authentication';
+import {
+  EmailSigninRequest,
+  GetOobCodeRequestType,
+  sendOobCode
+} from '../../api/authentication';
 
 export async function sendSignInLinkToEmail(
   auth: Auth,

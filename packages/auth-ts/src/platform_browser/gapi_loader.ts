@@ -35,13 +35,13 @@ export function resetUnloadedGapiModules(): void {
 }
 
 function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
-  const headElements = document.getElementsByTagName("head");
+  const headElements = document.getElementsByTagName('head');
   if (!headElements || headElements.length < 1) {
     return document;
   } else {
     return headElements[0];
   }
-};
+}
 
 function loadJS(url: string): Promise<Event> {
   // TODO: consider adding timeout support & cancellation
@@ -79,7 +79,11 @@ function loadGapi_(auth: Auth): Promise<gapi.iframes.Context> {
           // failed attempt.
           // Timeout when gapi.iframes.Iframe not loaded.
           resetUnloadedGapiModules();
-          reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name }));
+          reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+              appName: auth.name
+            })
+          );
         },
         timeout: NETWORK_TIMEOUT_.get()
       });
@@ -98,19 +102,23 @@ function loadGapi_(auth: Auth): Promise<gapi.iframes.Context> {
       // timeout.
       const cbName = generateCallbackName();
       // GApi loader not available, dynamically load platform.js.
-      (window as any )[cbName] = () => {
+      (window as any)[cbName] = () => {
         // GApi loader should be ready.
         if (gapi.load !== undefined) {
           loadGapiIframe();
         } else {
           // Gapi loader failed, throw error.
-          reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name }));
+          reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+              appName: auth.name
+            })
+          );
         }
       };
       // Load GApi loader.
       return loadJS(`https://apis.google.com/js/api.js?onload=${cbName}`);
     }
-  }).catch((error) => {
+  }).catch(error => {
     // Reset cached promise to allow for retrial.
     cachedGApiLoader_ = null;
     throw error;
@@ -121,5 +129,4 @@ let cachedGApiLoader_: Promise<gapi.iframes.Context> | null = null;
 export function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
   cachedGApiLoader_ = cachedGApiLoader_ || loadGapi_(auth);
   return cachedGApiLoader_;
-};
-
+}

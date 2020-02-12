@@ -1,4 +1,4 @@
-import { isMobileCordova, isReactNative } from "@firebase/util";
+import { isMobileCordova, isReactNative } from '@firebase/util';
 import { isOnline } from './environment';
 
 export class Delay {
@@ -11,7 +11,10 @@ export class Delay {
    * mobile environments whereas short delays are used for desktop environments.
    */
   private readonly isMobile: boolean;
-  constructor(private readonly shortDelay: number, private readonly longDelay: number) {
+  constructor(
+    private readonly shortDelay: number,
+    private readonly longDelay: number
+  ) {
     // Internal error when improperly initialized.
     if (shortDelay > longDelay) {
       throw new Error('Short delay should be less than long delay!');
@@ -29,5 +32,5 @@ export class Delay {
     // This could be improved in the future to dynamically change based on other
     // variables instead of just reading the current environment.
     return this.isMobile ? this.longDelay : this.shortDelay;
-  };
+  }
 }

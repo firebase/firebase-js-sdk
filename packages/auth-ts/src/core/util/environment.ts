@@ -15,7 +15,8 @@ interface CordovaNavigator extends Navigator {
  *     returned. If this cannot be determined, true is returned.
  */
 export function isOnline(): boolean {
-  if (navigator &&
+  if (
+    navigator &&
     typeof navigator.onLine === 'boolean' &&
     // Apply only for traditional web apps and Chrome extensions.
     // This is especially true for Cordova apps which have unreliable
@@ -24,9 +25,10 @@ export function isOnline(): boolean {
     // defines navigator.connection.
     (isHttpOrHttps() ||
       isChromeExtension() ||
-      typeof (navigator as CordovaNavigator).connection !== 'undefined')) {
+      typeof (navigator as CordovaNavigator).connection !== 'undefined')
+  ) {
     return navigator.onLine;
   }
   // If we can't determine the state, assume it is online.
   return true;
-};
+}

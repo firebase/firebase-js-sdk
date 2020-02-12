@@ -15,47 +15,58 @@ function getIframeUrl(auth: Auth): string {
   searchParams.set('v', firebase.SDK_VERSION);
   // Can pass 'eid' as one of 'p' (production), 's' (staging), or 't' (test)
   // TODO: do we care about frameworks? pass them as fw=
-  
+
   url.search = searchParams.toString();
   return url.toString();
 }
 
 export async function openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
   const context = await loadGapi(auth);
-  return context.open({
-    where: document.body,
-    url: getIframeUrl(auth),
-    messageHandlersFilter: gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
-    attributes: {
-      style: {
-        position: 'absolute',
-        top: '-100px',
-        width: '1px',
-        height: '1px'
-      }
+  return context.open(
+    {
+      where: document.body,
+      url: getIframeUrl(auth),
+      messageHandlersFilter: gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
+      attributes: {
+        style: {
+          position: 'absolute',
+          top: '-100px',
+          width: '1px',
+          height: '1px'
+        }
+      },
+      dontclear: true
     },
-    dontclear: true
-  }, (iframe: gapi.iframes.Iframe) => {
-    return new Promise(async (resolve, reject) => {
-      await iframe.restyle({
-        // Prevent iframe from closing on mouse out.
-        setHideOnLeave: false
+    (iframe: gapi.iframes.Iframe) => {
+      return new Promise(async (resolve, reject) => {
+        await iframe.restyle({
+          // Prevent iframe from closing on mouse out.
+          setHideOnLeave: false
+        });
+        // Confirm iframe is correctly loaded.
+        // To fallback on failure, set a timeout.
+        const networkErrorTimer = setTimeout(() => {
+          reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+              appName: auth.name
+            })
+          );
+        }, PING_TIMEOUT.get());
+        // Clear timer and resolve pending iframe ready promise.
+        const clearTimerAndResolve = (): void => {
+          clearTimeout(networkErrorTimer);
+          resolve(iframe);
+        };
+        // This returns an IThenable. However the reject part does not call
+        // when the iframe is not loaded.
+        iframe.ping(clearTimerAndResolve).then(clearTimerAndResolve, () => {
+          reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+              appName: auth.name
+            })
+          );
+        });
       });
-      // Confirm iframe is correctly loaded.
-      // To fallback on failure, set a timeout.
-      const networkErrorTimer = setTimeout(() => {
-        reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name }));
-      }, PING_TIMEOUT.get());
-      // Clear timer and resolve pending iframe ready promise.
-      const clearTimerAndResolve = (): void => {
-        clearTimeout(networkErrorTimer);
-        resolve(iframe);
-      };
-      // This returns an IThenable. However the reject part does not call
-      // when the iframe is not loaded.
-      iframe.ping(clearTimerAndResolve).then(clearTimerAndResolve, () => {
-        reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name })); 
-      });
-    });
-  });
+    }
+  );
 }

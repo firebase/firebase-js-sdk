@@ -17,7 +17,7 @@ import { AuthErrorCode } from '../core/errors';
  * limitations under the License.
  */
 
-export const AUTH_EVENT_MESSAGE_TYPE = 'authEvent'
+export const AUTH_EVENT_MESSAGE_TYPE = 'authEvent';
 
 export enum AuthEventType {
   LINK_VIA_POPUP = 'linkViaPopup',
@@ -32,18 +32,18 @@ export enum AuthEventType {
 
 // TODO: convert from these to FirebaseError
 export interface AuthEventError {
-  code: string, // in the form of auth/${AuthErrorCode}
-  message: string
+  code: string; // in the form of auth/${AuthErrorCode}
+  message: string;
 }
 
 export interface AuthEvent extends gapi.iframes.Message {
   authEvent: {
-    type: AuthEventType
-    eventId: string | null
-    urlResponse: string | null
-    sessionId: string | null
-    postBody: string | null
-    tenantId: string | null
-    error: AuthEventError
-  }
+    type: AuthEventType;
+    eventId: string | null;
+    urlResponse: string | null;
+    sessionId: string | null;
+    postBody: string | null;
+    tenantId: string | null;
+    error: AuthEventError;
+  };
 }

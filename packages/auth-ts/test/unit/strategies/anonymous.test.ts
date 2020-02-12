@@ -129,7 +129,11 @@ describe('signInAnonymously', () => {
           const auth = initializeAuth(app, { persistence });
           await auth.signOut();
           const beforeSignin = await persistence.get(
-            persistenceKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name)
+            persistenceKeyName_(
+              AUTH_USER_KEY_NAME_,
+              PROJECT_CONFIG.apiKey,
+              auth.name
+            )
           );
           expect(beforeSignin).to.be.null;
           expect(auth.currentUser).to.be.null;
@@ -139,7 +143,11 @@ describe('signInAnonymously', () => {
           expect(auth.currentUser).to.eq(userCredential.user);
 
           const user = await persistence.get<User>(
-            persistenceKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name)
+            persistenceKeyName_(
+              AUTH_USER_KEY_NAME_,
+              PROJECT_CONFIG.apiKey,
+              auth.name
+            )
           );
           expect(user).to.not.be.null;
           expect(userCredential.user.uid).to.eq(user!.uid);
@@ -171,17 +179,17 @@ describe('signInAnonymously', () => {
       const promise = new Promise((resolve, reject) => {
         auth.onAuthStateChanged((user: User | null) => {
           switch (++callbackNum) {
-          case 1:
-            expect(user).to.be.null;
-            break;
-          case 2:
-            expect(user).to.not.be.null;
-            expect(user).to.eq(auth.currentUser);
-            resolve();
-            break;
-          default:
-            fail('expected only 2 callbacks');
-            reject();
+            case 1:
+              expect(user).to.be.null;
+              break;
+            case 2:
+              expect(user).to.not.be.null;
+              expect(user).to.eq(auth.currentUser);
+              resolve();
+              break;
+            default:
+              fail('expected only 2 callbacks');
+              reject();
           }
         });
       });

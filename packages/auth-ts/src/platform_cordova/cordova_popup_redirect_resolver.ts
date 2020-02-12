@@ -38,10 +38,8 @@ export class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     throw new Error('not implemented');
   }
 
-  async getRedirectResult(
-    auth: Auth
-  ): Promise<UserCredential | null> {
-    throw new Error("not implemented");
+  async getRedirectResult(auth: Auth): Promise<UserCredential | null> {
+    throw new Error('not implemented');
   }
 }
 

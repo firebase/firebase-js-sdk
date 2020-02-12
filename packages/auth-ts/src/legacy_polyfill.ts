@@ -67,9 +67,9 @@ import { TwitterAuthProvider } from './core/providers/twitter';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
-  user: User | null,
-  credential: AuthCredential | null,
-  operationType: OperationType | null
+  user: User | null;
+  credential: AuthCredential | null;
+  operationType: OperationType | null;
 }
 
 interface FirebaseApp {
@@ -134,10 +134,12 @@ let memo: FirebaseAuth;
       return fetchSignInMethodsForEmail(auth, email);
     },
     async getRedirectResult(): Promise<UserCredential> {
-      const result = await getRedirectResult(auth,         
+      const result = await getRedirectResult(
+        auth,
         isMobileCordova()
           ? cordovaPopupRedirectResolver
-          : browserPopupRedirectResolver);
+          : browserPopupRedirectResolver
+      );
       if (!result) {
         return { user: null, credential: null, operationType: null };
       }
@@ -223,4 +225,4 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   SAMLAuthProvider,
   PhoneAuthProvider,
   TwitterAuthProvider
-})
+});
