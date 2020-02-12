@@ -36,7 +36,6 @@ import { OAuthProvider } from './core/providers/oauth';
 import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User, ProfileInfo } from './model/user';
-import { UserCredential } from './model/user_credential';
 import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
@@ -58,8 +57,20 @@ import { ActionCodeInfo } from './model/action_code_info';
 import { checkActionCode } from './core/strategies/action_code';
 import { updateProfile } from './core/account_management/update_profile';
 import { reload } from './core/account_management/reload';
+import { GoogleAuthProvider } from './core/providers/google';
+import { OperationType } from './model/user_credential';
+import { FacebookAuthProvider } from './core/providers/facebook';
+import { GithubAuthProvider } from './core/providers/github';
+import { SAMLAuthProvider } from './core/providers/saml';
+import { PhoneAuthProvider } from './core/providers/phone';
+import { TwitterAuthProvider } from './core/providers/twitter';
 
 interface FirebaseAuth extends Auth {}
+interface UserCredential {
+  user: User | null;
+  credential: AuthCredential | null;
+  operationType: OperationType | null;
+}
 
 interface FirebaseApp {
   auth?(): FirebaseAuth;
@@ -122,8 +133,17 @@ let memo: FirebaseAuth;
     fetchSignInMethodsForEmail(email: string): Promise<string[]> {
       return fetchSignInMethodsForEmail(auth, email);
     },
-    getRedirectResult(): Promise<UserCredential | null> {
-      return getRedirectResult(auth);
+    async getRedirectResult(): Promise<UserCredential> {
+      const result = await getRedirectResult(
+        auth,
+        isMobileCordova()
+          ? cordovaPopupRedirectResolver
+          : browserPopupRedirectResolver
+      );
+      if (!result) {
+        return { user: null, credential: null, operationType: null };
+      }
+      return result;
     },
     isSignInWithEmailLink(emailLink: string): boolean {
       return isSignInWithEmailLink(auth, emailLink);
@@ -179,3 +199,30 @@ let memo: FirebaseAuth;
   });
   return memo;
 };
+
+interface FirebaseNamespace {
+  auth?: {
+    (app?: FirebaseApp): FirebaseAuth;
+    // Auth: typeof FirebaseAuth;
+    EmailAuthProvider: typeof EmailAuthProvider;
+    FacebookAuthProvider: typeof FacebookAuthProvider;
+    GithubAuthProvider: typeof GithubAuthProvider;
+    GoogleAuthProvider: typeof GoogleAuthProvider;
+    OAuthProvider: typeof OAuthProvider;
+    SAMLAuthProvider: typeof SAMLAuthProvider;
+    PhoneAuthProvider: typeof PhoneAuthProvider;
+    // RecaptchaVerifier: typeof RecaptchaVerifier;
+    TwitterAuthProvider: typeof TwitterAuthProvider;
+  };
+}
+
+Object.assign((firebase as FirebaseNamespace).auth, {
+  EmailAuthProvider,
+  FacebookAuthProvider,
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  SAMLAuthProvider,
+  PhoneAuthProvider,
+  TwitterAuthProvider
+});

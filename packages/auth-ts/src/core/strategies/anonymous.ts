@@ -17,24 +17,19 @@
 
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { signUp } from '../../api/authentication';
-import { ProviderId } from '../providers';
-import { initializeCurrentUserFromIdTokenResponse } from '.';
-
-function userCredentialFromUser(user: User): UserCredential {
-  return new UserCredential(user, ProviderId.ANONYMOUS, OperationType.SIGN_IN);
-}
+import { AnonymousProvider } from '../providers/anonymous';
+import { signInWithCredential } from './auth_credential';
 
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   await auth.isInitialized();
+  const credential = AnonymousProvider.credential();
   if (auth.currentUser && auth.currentUser.isAnonymous) {
-    // If an anonymous user is already signed in, no need to sign him again.
-    return userCredentialFromUser(auth.currentUser);
+    // If an anonymous user is already signed in, no need to sign them in again.
+    return new UserCredential(
+      auth.currentUser,
+      credential,
+      OperationType.SIGN_IN
+    );
   }
-  const response = await signUp(auth, {
-    returnSecureToken: true
-  });
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return userCredentialFromUser(user);
+  return signInWithCredential(auth, credential);
 }

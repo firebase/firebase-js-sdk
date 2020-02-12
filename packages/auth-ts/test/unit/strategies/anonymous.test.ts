@@ -34,7 +34,7 @@ import { restoreFetch, mockFetch } from '../../util/fetch-mock';
 import { encodeIdToken, IdToken } from '../../../src/model/id_token';
 import { signOut } from '../../../src/model/auth';
 import {
-  fullKeyName_,
+  persistenceKeyName_,
   AUTH_USER_KEY_NAME_
 } from '../../../src/core/persistence/user_mananger';
 import { ProviderId } from '../../../src/core/providers';
@@ -129,7 +129,11 @@ describe('signInAnonymously', () => {
           const auth = initializeAuth(app, { persistence });
           await auth.signOut();
           const beforeSignin = await persistence.get(
-            fullKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name)
+            persistenceKeyName_(
+              AUTH_USER_KEY_NAME_,
+              PROJECT_CONFIG.apiKey,
+              auth.name
+            )
           );
           expect(beforeSignin).to.be.null;
           expect(auth.currentUser).to.be.null;
@@ -139,7 +143,11 @@ describe('signInAnonymously', () => {
           expect(auth.currentUser).to.eq(userCredential.user);
 
           const user = await persistence.get<User>(
-            fullKeyName_(AUTH_USER_KEY_NAME_, PROJECT_CONFIG.apiKey, auth.name)
+            persistenceKeyName_(
+              AUTH_USER_KEY_NAME_,
+              PROJECT_CONFIG.apiKey,
+              auth.name
+            )
           );
           expect(user).to.not.be.null;
           expect(userCredential.user.uid).to.eq(user!.uid);

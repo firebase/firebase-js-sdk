@@ -37,6 +37,10 @@ export class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   ): Promise<never> {
     throw new Error('not implemented');
   }
+
+  async getRedirectResult(auth: Auth): Promise<UserCredential | null> {
+    throw new Error('not implemented');
+  }
 }
 
 export const cordovaPopupRedirectResolver: CordovaPopupRedirectResolver = new CordovaPopupRedirectResolver();

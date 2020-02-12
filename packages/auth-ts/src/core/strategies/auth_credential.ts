@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { UserCredential, OperationType } from '../../model/user_credential';
-import { ProviderId } from '../providers';
+import { ProviderId, SignInMethod } from '../providers';
 import { Auth } from '../..';
 import { initializeCurrentUserFromIdTokenResponse } from '.';
 import { IdTokenResponse } from '../../model/id_token';
@@ -31,7 +31,6 @@ export interface OAuthCredential extends AuthCredential {
   readonly idToken?: string;
   readonly accessToken?: string;
   readonly secret?: string;
-  toJSON(): object;
 }
 
 export async function signInWithCredential(
@@ -40,5 +39,5 @@ export async function signInWithCredential(
 ): Promise<UserCredential> {
   const response: IdTokenResponse = await credential.getIdTokenResponse_(auth);
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return new UserCredential(user, credential.providerId, OperationType.SIGN_IN);
+  return new UserCredential(user, credential, OperationType.SIGN_IN);
 }

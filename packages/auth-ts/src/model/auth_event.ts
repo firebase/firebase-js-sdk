@@ -1,3 +1,5 @@
+import { AuthErrorCode } from '../core/errors';
+
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -15,6 +17,8 @@
  * limitations under the License.
  */
 
+export const AUTH_EVENT_MESSAGE_TYPE = 'authEvent';
+
 export enum AuthEventType {
   LINK_VIA_POPUP = 'linkViaPopup',
   LINK_VIA_REDIRECT = 'linkViaRedirect',
@@ -24,4 +28,22 @@ export enum AuthEventType {
   SIGN_IN_VIA_REDIRECT = 'signInViaRedirect',
   UNKNOWN = 'unknown',
   VERIFY_APP = 'verifyApp'
+}
+
+// TODO: convert from these to FirebaseError
+export interface AuthEventError {
+  code: string; // in the form of auth/${AuthErrorCode}
+  message: string;
+}
+
+export interface AuthEvent extends gapi.iframes.Message {
+  authEvent: {
+    type: AuthEventType;
+    eventId: string | null;
+    urlResponse: string | null;
+    sessionId: string | null;
+    postBody: string | null;
+    tenantId: string | null;
+    error: AuthEventError;
+  };
 }

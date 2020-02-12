@@ -21,14 +21,14 @@ import { ApiKey, AppName } from '../../model/auth';
 
 export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
-const NAMESPACE_ = 'firebase';
+const PERSISTENCE_NAMESPACE_ = 'firebase';
 
-export function fullKeyName_(
+export function persistenceKeyName_(
   key: string,
   apiKey: ApiKey,
   appName: AppName
 ): string {
-  return `${NAMESPACE_}:${key}:${apiKey}:${appName}`;
+  return `${PERSISTENCE_NAMESPACE_}:${key}:${apiKey}:${appName}`;
 }
 
 export class UserManager {
@@ -39,7 +39,7 @@ export class UserManager {
   ) {}
 
   fullKeyName_(key: string): string {
-    return fullKeyName_(key, this.apiKey, this.appName);
+    return persistenceKeyName_(key, this.apiKey, this.appName);
   }
 
   setCurrentUser(user: User): Promise<void> {

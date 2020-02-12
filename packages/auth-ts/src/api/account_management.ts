@@ -58,7 +58,6 @@ export async function deleteAccount(
     request
   );
 }
-
 export interface UpdateProfileRequest {
   idToken: string,
   displayName?: string | null,

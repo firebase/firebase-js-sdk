@@ -22,20 +22,6 @@ import { PopupRedirectResolver } from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
 import { UserCredential } from '../../model/user_credential';
 
-async function initAuthStateManager(auth: Auth): Promise<void> {
-  if (!auth.config.authDomain) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MISSING_AUTH_DOMAIN, {
-      appName: auth.name
-    });
-  }
-
-  await auth.isInitialized();
-
-  // TODO: throw OPERATION_NOT_SUPPORTED if persistence is not local or indexedDB
-
-  // TODO: what else to do here?
-}
-
 export async function signInWithRedirect(
   auth: Auth,
   provider: OAuthProvider,
@@ -48,7 +34,7 @@ export async function signInWithRedirect(
     });
   }
 
-  await initAuthStateManager(auth);
+  // await initAuthStateManager(auth);
   // TODO: Persist current type of persistence
   // TODO: Init event listener & subscribe to events
   //       self.authEventManager_.subscribe(self);
@@ -64,8 +50,113 @@ export async function signInWithRedirect(
   );
 }
 
+// async function onDomReady(): Promise<void> {
+//   if (document.readyState == 'complete') {
+//     return;
+//   }
+//   return new Promise((resolve) => {
+//     const resolver = () => {
+//       resolve();
+//       window.removeEventListener('load', resolver, );
+//     };
+//     window.addEventListener('load', resolver);
+//   });
+// }
+
+// class RedirectUserManager {
+//   private readonly key: string;
+//   persistence: Persistence;
+//   constructor(auth: Auth) {
+//     this.key = persistenceKeyName_('redirectUser', auth.config.apiKey, auth.name);
+//     this.persistence = browserSessionPersistence;
+//   }
+//   getRedirectUser(): Promise<User | null> {
+//     return this.persistence.get<User>(this.key);
+//   }
+//   setRedirectUser(user: User): Promise<void> {
+//     return this.persistence.set(this.key, user);
+//   }
+//   removeRedirectUser(): Promise<void> {
+//     return this.persistence.remove(this.key);
+//   }
+// }
+
+// async function initRedirectUser_(auth: Auth): Promise<User | null> {
+//   const redirectUserStorageManager_ = new RedirectUserManager(auth);
+//   const user = await redirectUserStorageManager_.getRedirectUser();
+//   await redirectUserStorageManager_.removeRedirectUser();
+//   return user;
+// }
+
+// class AuthEventManager {
+//   private popupRedirectEnabled_: boolean = false;
+//   constructor() {}
+
+//   static getManager(auth: Auth): AuthEventManager {
+//     throw "not implemented";
+//   }
+
+//   subscribe(subscriber: User | Auth) {
+
+//   }
+
+//   getRedirectResult(): Promise<UserCredential | null> {
+//     throw "not implemented";
+//   }
+
+//   enablePopupRedirect(user: User) {
+//     if (!this.popupRedirectEnabled_) {
+//       this.popupRedirectEnabled_ = true;
+//       this.subscribe(user);
+//     }
+//   }
+// }
+
+// async function initEventManager(auth: Auth): Promise<AuthEventManager> {
+//   // By this time currentUser should be ready if available and will be able
+//   // to resolve linkWithRedirect if detected.
+//   const authEventManager_ = AuthEventManager.getManager(auth);
+//   // Subscribe Auth instance.
+//   authEventManager_.subscribe(auth);
+//   // Subscribe current user by enabling popup and redirect on that user.
+//   if (auth.currentUser) {
+//     authEventManager_.enablePopupRedirect(auth.currentUser);
+//   }
+//   // If a redirect user is present, subscribe to popup and redirect events.
+//   // In case current user was not available and the developer called link
+//   // with redirect on a signed out user, this will work and the linked
+//   // logged out user will be returned in getRedirectResult.
+//   // current user and redirect user are the same (was already logged in),
+//   // currentUser will have priority as it is subscribed before redirect
+//   // user. This change will also allow further popup and redirect events on
+//   // the redirect user going forward.
+//   const redirectUser = await initRedirectUser_(auth);
+//   if (redirectUser) {
+//     authEventManager_.enablePopupRedirect(redirectUser);
+//     // Set the user language for the redirect user.
+//     // TODO: setUserLanguage_(redirectUser_);
+//     // Set the user Firebase frameworks for the redirect user.
+//     // TODO: setUserFramework_(redirectUser_);
+//   }
+//   return authEventManager_;
+// }
+
+// let eventManagerProviderPromise_: Promise<AuthEventManager> | null = null;
+
+// async function getAuthEventManager_(auth: Auth): Promise<AuthEventManager> {
+//   eventManagerProviderPromise_ = eventManagerProviderPromise_ || initEventManager(auth);
+//   return eventManagerProviderPromise_;
+// }
+
 export async function getRedirectResult(
-  auth: Auth
+  auth: Auth,
+  resolver?: PopupRedirectResolver
 ): Promise<UserCredential | null> {
-  throw new Error('not implemented');
+  resolver = resolver || auth.popupRedirectResolver;
+  if (!resolver) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
+      appName: auth.name
+    });
+  }
+  return resolver.getRedirectResult(auth);
 }

@@ -16,7 +16,6 @@
  */
 
 import { Auth } from '../../model/auth';
-import * as api from '../../api/authentication';
 import { UserCredential } from '../../model/user_credential';
 import { Operation } from '../../model/action_code_info';
 import { emailAuthCredentialWithLink } from '../providers/email';
@@ -26,21 +25,26 @@ import {
 } from '../../model/action_code_settings';
 import { actionCodeURLfromLink } from '../../model/action_code_url';
 import { signInWithCredential } from './auth_credential';
+import {
+  EmailSigninRequest,
+  GetOobCodeRequestType,
+  sendOobCode
+} from '../../api/authentication';
 
 export async function sendSignInLinkToEmail(
   auth: Auth,
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const request: api.EmailSigninRequest = {
-    requestType: api.GetOobCodeRequestType.EMAIL_SIGNIN,
+  const request: EmailSigninRequest = {
+    requestType: GetOobCodeRequestType.EMAIL_SIGNIN,
     email
   };
   if (actionCodeSettings) {
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await api.sendOobCode(auth, request);
+  await sendOobCode(auth, request);
 }
 
 export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {

@@ -31,6 +31,7 @@ export enum ProviderId {
 }
 
 export enum SignInMethod {
+  ANONYMOUS = 'anonymous',
   EMAIL_LINK = 'emailLink',
   EMAIL_PASSWORD = 'password',
   FACEBOOK = 'facebook.com',

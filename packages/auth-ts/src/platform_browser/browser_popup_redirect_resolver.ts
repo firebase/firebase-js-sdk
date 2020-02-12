@@ -18,12 +18,17 @@
 import { PopupRedirectResolver } from '../model/popup_redirect_resolver';
 import { Auth } from '../../src';
 import { ProviderId, AuthProvider } from '../core/providers';
-import { AuthEventType } from '../model/auth_event';
+import {
+  AuthEventType,
+  AuthEvent,
+  AUTH_EVENT_MESSAGE_TYPE
+} from '../model/auth_event';
 import { UserCredential } from '../model/user_credential';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { ApiKey, AppName } from '../model/auth';
 import { isEmpty } from '@firebase/util';
 import { OAuthProvider } from '../core/providers/oauth';
+import { openIframe } from './iframe';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -111,6 +116,23 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     location.href = getRedirectUrl(auth, provider, authType);
     return new Promise(() => {});
+  }
+
+  async getRedirectResult(auth: Auth): Promise<UserCredential | null> {
+    const iframe = await openIframe(auth);
+
+    iframe.register<AuthEvent>(
+      AUTH_EVENT_MESSAGE_TYPE,
+      (message: AuthEvent) => {
+        console.log(message);
+      },
+      gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
+    );
+
+    return null;
+
+    // const authEventManager_ = await getAuthEventManager_(auth);
+    // return authEventManager_.getRedirectResult();
   }
 }
 
