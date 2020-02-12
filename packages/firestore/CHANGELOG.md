@@ -1,4 +1,5 @@
 # Unreleased
+- [fixed] Fixed a performance regression introduced in 1.7.0. (#2620)
 - [fixed] Fixed an issue where `CollectionReference.add()` would reject
   custom types when using `withConverter()`. (#2606)
 
