@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-import '@firebase/auth';
+// import '@firebase/auth';
+import '../../auth-ts/dist/index.cjs.js';

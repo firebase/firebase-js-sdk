@@ -23,13 +23,26 @@ import {
 } from './id_token';
 import { deleteUser } from '../core/account_management/delete';
 import { Auth } from './auth';
+import { ProviderId } from '../core/providers/index';
+import { reload } from '../core/account_management/reload';
 
 export interface UserInfo {
   readonly uid: string;
   readonly displayName: string | null;
   readonly email: string | null;
   readonly phoneNumber: string | null;
+  readonly providerId: string | null;
   readonly photoURL: string | null;
+}
+
+export interface UserMetadata {
+  readonly creationTime?: string;
+  readonly lastSignInTime?: string;
+}
+
+export interface ProfileInfo {
+  displayName?: string | null;
+  photoURL?: string | null;
 }
 
 export interface UserParameters {
@@ -47,9 +60,16 @@ export class User implements UserInfo {
   readonly uid: string;
   readonly displayName: string | null;
   readonly email: string | null;
+  readonly emailVerified: boolean = false;
   readonly phoneNumber: string | null;
   readonly photoURL: string | null;
+  readonly metadata: UserMetadata = {};
+  readonly tenantId?: string | null = null;
   readonly isAnonymous: boolean;
+  readonly providerData: UserInfo[] = [];
+
+  // On the root user object
+  readonly providerId = ProviderId.FIREBASE;
 
   constructor(params: UserParameters) {
     this.stsTokenManager = params.stsTokenManager;
@@ -71,9 +91,8 @@ export class User implements UserInfo {
     return parseIdToken(this.stsTokenManager.accessToken);
   }
 
-  async reload(): Promise<User> {
-    // TODO: this should call getAccountInfo and set all the additional fields
-    return this;
+  async reload(auth: Auth): Promise<void> {
+    return reload(auth, this);
   }
 
   async delete(auth: Auth): Promise<void> {

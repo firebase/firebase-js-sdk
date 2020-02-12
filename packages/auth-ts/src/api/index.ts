@@ -35,7 +35,9 @@ export enum Endpoint {
   SIGN_IN_WITH_EMAIL_LINK = '/v1/accounts:signInWithEmailLink',
   SIGN_IN_WITH_PASSWORD = '/v1/accounts:signInWithPassword',
   SEND_VERIFICATION_CODE = '/v1/accounts:sendVerificationCode',
-  SEND_OOB_CODE = '/v1/accounts:sendOobCode'
+  SEND_OOB_CODE = '/v1/accounts:sendOobCode',
+  SET_ACCOUNT_INFO = '/v1/accounts:update',
+  GET_ACCOUNT_INFO = '/v1/accounts:lookup',
 }
 
 export async function performApiRequest<T, V>(

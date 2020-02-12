@@ -76,7 +76,7 @@ export async function sendEmailVerification(
   const response = await api.sendOobCode(auth, request);
 
   if (response.email !== user.email) {
-    await user.reload();
+    await user.reload(auth);
   }
 }
 

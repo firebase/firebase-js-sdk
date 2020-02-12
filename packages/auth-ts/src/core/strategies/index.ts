@@ -19,15 +19,17 @@ import { Auth } from '../..';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, StsTokenManager } from '../../model/user';
 
-export function userFromIdTokenResponse(
+export async function userFromIdTokenResponse(
+  auth: Auth,
   idTokenResponse: IdTokenResponse
 ): Promise<User> {
   const stsTokenManager = new StsTokenManager(idTokenResponse);
   // Initialize the Firebase Auth user.
-  const user = new User(stsTokenManager, idTokenResponse.localId);
+  const user = new User({stsTokenManager, uid: idTokenResponse.localId});
 
   // Updates the user info and data and resolves with a user instance.
-  return user.reload();
+  await user.reload(auth);
+  return user;
 }
 
 export async function initializeCurrentUserFromIdTokenResponse(
@@ -36,7 +38,7 @@ export async function initializeCurrentUserFromIdTokenResponse(
 ): Promise<User> {
   await auth.isInitialized();
 
-  const user: User = await userFromIdTokenResponse(idTokenResponse);
+  const user: User = await userFromIdTokenResponse(auth, idTokenResponse);
   await auth.setCurrentUser(user);
   return user;
 }

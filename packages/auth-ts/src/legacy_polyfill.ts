@@ -35,7 +35,7 @@ import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
 import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
-import { User } from './model/user';
+import { User, ProfileInfo } from './model/user';
 import { UserCredential } from './model/user_credential';
 import {
   sendSignInLinkToEmail,
@@ -56,6 +56,8 @@ import { ActionCodeURL, actionCodeURLfromLink } from './model/action_code_url';
 import { deleteUser } from './core/account_management/delete';
 import { ActionCodeInfo } from './model/action_code_info';
 import { checkActionCode } from './core/strategies/action_code';
+import { updateProfile } from './core/account_management/update_profile';
+import { reload } from './core/account_management/reload';
 
 interface FirebaseAuth extends Auth {}
 
@@ -90,6 +92,12 @@ let memo: FirebaseAuth;
         },
         delete(): Promise<void> {
           return deleteUser(auth, user);
+        },
+        reload(): Promise<void> {
+          return reload(auth, user);
+        },
+        updateProfile(profile: ProfileInfo): Promise<void> {
+          return updateProfile(auth, user, profile);
         }
       });
     }

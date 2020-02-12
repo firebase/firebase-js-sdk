@@ -77,9 +77,7 @@ export class EmailAuthProvider implements AuthProvider {
       email,
       password,
       EmailAuthProvider.PROVIDER_ID,
-      signInMethod === this.EMAIL_PASSWORD_SIGN_IN_METHOD
-        ? signInMethod
-        : this.EMAIL_LINK_SIGN_IN_METHOD
+      signInMethod || this.EMAIL_PASSWORD_SIGN_IN_METHOD
     );
   }
 }
