@@ -25,8 +25,7 @@ import { Logger } from '@firebase/logger';
 import { registerCoreComponents } from '../src/registerCoreComponents';
 import {
   Component,
-  ComponentType,
-  ComponentContainer
+  ComponentType
 } from '@firebase/component';
 
 declare module '@firebase/component' {
@@ -41,9 +40,9 @@ describe('User Log Methods', () => {
   describe('Integration Tests', () => {
     let firebase: FirebaseNamespace;
     let result: any = null;
-    let warnSpy = Spy(console, 'warn');
-    let infoSpy = Spy(console, 'info');
-    let logSpy = Spy(console, 'log');
+    const warnSpy = Spy(console, 'warn');
+    const infoSpy = Spy(console, 'info');
+    const logSpy = Spy(console, 'log');
 
     beforeEach(() => {
       firebase = createFirebaseNamespace();
@@ -55,8 +54,7 @@ describe('User Log Methods', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async (container: ComponentContainer) => {
-
+          async () => {
             const logger = new Logger('@firebase/logger-test');
             logger.warn('hello');
             expect(warnSpy.called).to.be.true;
@@ -85,8 +83,7 @@ describe('User Log Methods', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async (container: ComponentContainer) => {
-
+          async () => {
             const logger = new Logger('@firebase/logger-test');
             (firebase as _FirebaseNamespace).onLog((logData) => {
               result = logData;
