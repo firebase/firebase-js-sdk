@@ -59,7 +59,7 @@ export class OAuthProvider implements AuthProvider {
     return this;
   }
 
-  protected getScopes() {
+  getScopes() {
     return this.scopes;
   }
 }

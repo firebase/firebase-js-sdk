@@ -29,11 +29,16 @@ import { ApiKey, AppName } from '../model/auth';
 import { isEmpty } from '@firebase/util';
 import { OAuthProvider } from '../core/providers/oauth';
 import { openIframe } from './iframe';
+import { getCurrentUrl } from '../core/util/location';
+import firebase from '@firebase/app';
+import { SignInWithIdp } from '../api/authentication';
+import { GoogleAuthProvider } from '../core/providers/google';
+import { signInWithCredential } from '../core/strategies/auth_credential';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
  */
-const WIDGET_URL = '/__/auth/handler';
+const WIDGET_URL = '__/auth/handler';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type Params = {
@@ -45,7 +50,10 @@ type WidgetParams = {
   apiKey: ApiKey;
   appName: AppName;
   authType: AuthEventType;
+  redirectUrl: string;
+  v: string,
   providerId?: ProviderId;
+  scopes?: string;
   customParameters?: string;
 };
 
@@ -77,7 +85,9 @@ function getRedirectUrl(
   const params: WidgetParams = {
     apiKey: auth.config.apiKey,
     appName: auth.name,
-    authType
+    authType,
+    redirectUrl: getCurrentUrl(),
+    v: firebase.SDK_VERSION
   };
 
   if (provider instanceof OAuthProvider) {
@@ -86,7 +96,23 @@ function getRedirectUrl(
     if (!isEmpty(provider.getCustomParameters())) {
       params.customParameters = JSON.stringify(provider.getCustomParameters());
     }
+    const scopes = provider.getScopes();
+    if(scopes.length > 0) {
+      params.scopes = scopes.join(",");
+    }
+    // TODO set additionalParams?
+    // let additionalParams = provider.getAdditionalParams();
+    // for (let key in additionalParams) {
+    //   if (!params.hasOwnProperty(key)) {
+    //     params[key] = additionalParams[key]
+    //   }
+    // }
   }
+
+  // TODO: maybe need to set eventId?
+  // TODO: maybe set tid as tenantId
+  // TODO: maybe set eid as endipointId
+  // TODO: maybe set fw as Frameworks.join(",")
 
   const url = new URL(
     `https://${auth.config.authDomain}/${WIDGET_URL}?${queryString(params)}`
@@ -123,7 +149,15 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     iframe.register<AuthEvent>(
       AUTH_EVENT_MESSAGE_TYPE,
-      (message: AuthEvent) => {
+      async (message: AuthEvent) => {
+        let response = await SignInWithIdp(auth, {
+          requestUri: message.authEvent.urlResponse!,
+          postBody: message.authEvent.postBody,
+          sessionId: message.authEvent.sessionId!,
+          returnSecureToken: true
+        })
+        let credential = GoogleAuthProvider.credential(response.idToken)
+        let user_credential = signInWithCredential(auth, credential)
         console.log(message);
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
