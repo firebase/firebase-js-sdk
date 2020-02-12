@@ -110,7 +110,7 @@ export interface FirebaseNamespace {
   setLogLevel(logLevel: LogLevelString): void;
 
   // Sets log handler for all Firebase components.
-  onLog(logCallback: LogCallback, options: LogOptions): void;
+  onLog(logCallback: LogCallback, options?: LogOptions): void;
 
   // The current SDK version.
   SDK_VERSION: string;

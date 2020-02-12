@@ -138,7 +138,7 @@ declare namespace firebase {
        */
       type: string;
     }) => void,
-    options: {
+    options?: {
       /**
        * Threshhold log level. Only logs at or above this level will trigger the `logCallback`
        * passed to `onLog`.

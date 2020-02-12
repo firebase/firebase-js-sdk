@@ -27,12 +27,14 @@ export interface LogOptions {
   level: LogLevelString;
 }
 
-export type LogCallback = (callbackParams: {
+export type LogCallback = (callbackParams: LogCallbackParams) => void;
+
+export interface LogCallbackParams {
   level: LogLevelString;
   message: string;
   args: unknown[];
   type: string;
-}) => void;
+};
 
 /**
  * A container for all of the Logger instances
@@ -211,7 +213,7 @@ export function setLogLevel(level: LogLevelString | LogLevel): void {
 
 export function setUserLogHandler(
   logCallback: LogCallback | null,
-  options: LogOptions
+  options?: LogOptions
 ): void {
   if (logCallback !== null && typeof logCallback !== 'function') {
     throw new TypeError(
