@@ -17,9 +17,11 @@
 
 import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
+import { generateCallbackName, loadJS } from './load_js';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 
 const NETWORK_TIMEOUT_ = new Delay(30000, 60000);
+const LOADJS_CALLBACK_PREFIX = 'iframefcb';
 
 /**
  * Reset unlaoded GApi modules. If gapi.load fails due to a network error,
@@ -49,32 +51,6 @@ export function resetUnloadedGapiModules(): void {
       }
     }
   }
-}
-
-function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
-  const headElements = document.getElementsByTagName('head');
-  if (!headElements || headElements.length < 1) {
-    return document;
-  } else {
-    return headElements[0];
-  }
-}
-
-function loadJS(url: string): Promise<Event> {
-  // TODO: consider adding timeout support & cancellation
-  return new Promise((resolve, reject) => {
-    const el = document.createElement('script');
-    el.setAttribute('src', url);
-    el.onload = resolve;
-    el.onerror = reject;
-    el.type = 'text/javascript';
-    el.charset = 'UTF-8';
-    getScriptParentElement().appendChild(el);
-  });
-}
-
-function generateCallbackName(): string {
-  return `__iframefcb${Math.floor(Math.random() * 1000000)}`;
 }
 
 function loadGapi_(auth: Auth): Promise<gapi.iframes.Context> {
@@ -117,7 +93,7 @@ function loadGapi_(auth: Auth): Promise<gapi.iframes.Context> {
       // multiple times in parallel and could result in the later callback
       // overwriting the previous one. This would end up with a iframe
       // timeout.
-      const cbName = generateCallbackName();
+      const cbName = generateCallbackName(LOADJS_CALLBACK_PREFIX);
       // GApi loader not available, dynamically load platform.js.
       (window as any)[cbName] = () => {
         // GApi loader should be ready.
