@@ -59,17 +59,20 @@ export async function deleteAccount(
   );
 }
 export interface UpdateProfileRequest {
-  idToken: string,
-  displayName?: string | null,
-  photoUrl?: string | null,
+  idToken: string;
+  displayName?: string | null;
+  photoUrl?: string | null;
 }
 
 export interface UpdateProfileResponse extends IdTokenResponse {
-  displayName?: string | null,
-  photoUrl?: string | null,
+  displayName?: string | null;
+  photoUrl?: string | null;
 }
 
-export async function updateProfile(auth: Auth, request: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+export async function updateProfile(
+  auth: Auth,
+  request: UpdateProfileRequest
+): Promise<UpdateProfileResponse> {
   return performApiRequest<UpdateProfileRequest, UpdateProfileResponse>(
     auth,
     HttpMethod.POST,
@@ -109,11 +112,14 @@ export interface GetAccountInfoResponse {
   users: APIUserInfo[];
 }
 
-export async function getAccountInfo(auth: Auth, request: GetAccountInfoRequest): Promise<GetAccountInfoResponse> {
+export async function getAccountInfo(
+  auth: Auth,
+  request: GetAccountInfoRequest
+): Promise<GetAccountInfoResponse> {
   return performApiRequest<GetAccountInfoRequest, GetAccountInfoResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.GET_ACCOUNT_INFO,
-    request,
+    request
   );
 }

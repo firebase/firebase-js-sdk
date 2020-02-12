@@ -37,7 +37,7 @@ export enum Endpoint {
   SEND_VERIFICATION_CODE = '/v1/accounts:sendVerificationCode',
   SEND_OOB_CODE = '/v1/accounts:sendOobCode',
   SET_ACCOUNT_INFO = '/v1/accounts:update',
-  GET_ACCOUNT_INFO = '/v1/accounts:lookup',
+  GET_ACCOUNT_INFO = '/v1/accounts:lookup'
 }
 
 export async function performApiRequest<T, V>(
