@@ -39,6 +39,6 @@ export async function initializeCurrentUserFromIdTokenResponse(
   await auth.isInitialized();
 
   const user: User = await userFromIdTokenResponse(auth, idTokenResponse);
-  await auth.setCurrentUser(user);
+  await auth.updateCurrentUser(user);
   return user;
 }

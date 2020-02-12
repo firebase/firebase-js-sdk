@@ -49,7 +49,7 @@ export async function reload(auth: Auth, user: User): Promise<void> {
   const mutUser: Mutable<User> = user;
   Object.assign(mutUser, updates);
   
-  await auth.setCurrentUser(mutUser);
+  await auth.updateCurrentUser(mutUser);
 }
 
 function mergeProviderData(original: UserInfo[], newData: UserInfo[]): UserInfo[] {

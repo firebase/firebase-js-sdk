@@ -199,7 +199,7 @@ export class Auth {
    *
    * @param user
    */
-  async setCurrentUser(user: User | null): Promise<void> {
+  async updateCurrentUser(user: User | null): Promise<void> {
     return withLock(this, () => this.setCurrentUser_(user));
   }
 

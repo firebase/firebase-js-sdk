@@ -160,3 +160,22 @@ export async function signInWithEmailLink(
     SignInWithEmailLinkResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
 }
+
+export interface SendPhoneVerificationCodeRequest {
+  phoneNumber: string;
+  recaptchaToken: string;
+}
+
+export interface SendPhoneVerificationCodeResponse {
+  sessionInfo: string;
+}
+
+export async function sendPhoneVerificationCode(
+  auth: Auth,
+  request: SendPhoneVerificationCodeRequest,
+): Promise<SendPhoneVerificationCodeResponse> {
+  return performApiRequest<
+    SendPhoneVerificationCodeRequest,
+    SendPhoneVerificationCodeResponse
+  >(auth, HttpMethod.POST, Endpoint.SEND_VERIFICATION_CODE, request);
+}
