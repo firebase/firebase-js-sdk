@@ -29,6 +29,7 @@ import {
   isBrowserExtension,
   isElectron,
   isIE,
+  isMobileCordova,
   isReactNative,
   isUWP
 } from '@firebase/util';
@@ -275,6 +276,7 @@ export class WebChannelConnection implements Connection {
     // known to (sometimes) not include an Origin. See
     // https://github.com/firebase/firebase-js-sdk/issues/1491.
     if (
+      !isMobileCordova() &&
       !isReactNative() &&
       !isElectron() &&
       !isIE() &&
