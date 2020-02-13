@@ -16,17 +16,24 @@
  */
 
 import { User, ProfileInfo, StsTokenManager } from '../../model/user';
-import { UpdateProfileRequest, updateProfile as apiUpdateProfile } from '../../api/account_management';
+import {
+  UpdateProfileRequest,
+  updateProfile as apiUpdateProfile
+} from '../../api/account_management';
 import { Auth } from '../../model/auth';
 import { Mutable } from '../util/mutable';
 import { reload } from './reload';
 
-export async function updateProfile(auth: Auth, user: User, profile: ProfileInfo): Promise<void> {
+export async function updateProfile(
+  auth: Auth,
+  user: User,
+  profile: ProfileInfo
+): Promise<void> {
   const idToken = await user.getIdToken();
   const request: UpdateProfileRequest = {
     idToken,
     displayName: profile.displayName,
-    photoUrl: profile.photoURL,
+    photoUrl: profile.photoURL
   };
 
   const response = await apiUpdateProfile(auth, request);

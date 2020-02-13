@@ -23,14 +23,18 @@ import { Mutable } from '../util/mutable';
 
 export async function reload(auth: Auth, user: User): Promise<void> {
   const idToken = await user.getIdToken();
-  const response = await getAccountInfo(auth, {idToken});
+  const response = await getAccountInfo(auth, { idToken });
 
   if (!response?.users.length) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {appName: auth.name})
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
   }
 
   const coreAccount = response.users[0];
-  const newProviderData = coreAccount.providerUserInfo?.length ? extractProviderData(coreAccount.providerUserInfo) : [];
+  const newProviderData = coreAccount.providerUserInfo?.length
+    ? extractProviderData(coreAccount.providerUserInfo)
+    : [];
   const updates: Partial<User> = {
     uid: coreAccount.localId,
     displayName: coreAccount.displayName || null,
@@ -42,18 +46,22 @@ export async function reload(auth: Auth, user: User): Promise<void> {
     providerData: mergeProviderData(user.providerData, newProviderData),
     metadata: {
       creationTime: coreAccount.createdAt?.toString(),
-      lastSignInTime: coreAccount.lastLoginAt?.toString(),
-    },
+      lastSignInTime: coreAccount.lastLoginAt?.toString()
+    }
   };
 
   const mutUser: Mutable<User> = user;
   Object.assign(mutUser, updates);
-  
   await auth.updateCurrentUser(mutUser);
 }
 
-function mergeProviderData(original: UserInfo[], newData: UserInfo[]): UserInfo[] {
-  const deduped = original.filter(o => !newData.some(n => n.providerId == o.providerId));
+function mergeProviderData(
+  original: UserInfo[],
+  newData: UserInfo[]
+): UserInfo[] {
+  const deduped = original.filter(
+    o => !newData.some(n => n.providerId == o.providerId)
+  );
   return [...deduped, ...newData];
 }
 
@@ -64,6 +72,6 @@ function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {
     email: provider.email || null,
     phoneNumber: provider.phoneNumber || null,
     providerId: provider.providerId || null,
-    photoURL: provider.photoUrl || null,
+    photoURL: provider.photoUrl || null
   }));
 }
