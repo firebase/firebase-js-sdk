@@ -24,7 +24,8 @@ import { FirebaseError } from '@firebase/util';
 export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
 
 export enum HttpMethod {
-  POST = 'POST'
+  POST = 'POST',
+  GET = 'GET',
 }
 
 export enum Endpoint {
@@ -38,16 +39,20 @@ export enum Endpoint {
   SEND_VERIFICATION_CODE = '/v1/accounts:sendVerificationCode',
   SEND_OOB_CODE = '/v1/accounts:sendOobCode',
   SET_ACCOUNT_INFO = '/v1/accounts:update',
-  GET_ACCOUNT_INFO = '/v1/accounts:lookup'
+  GET_ACCOUNT_INFO = '/v1/accounts:lookup',
+  GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
 }
 
 export async function performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
   path: Endpoint,
-  request: T
+  request?: T
 ): Promise<V> {
   try {
+    const body = request ? {
+      body: JSON.stringify(request)
+    } : {};
     const response = await fetch(
       `${PRODUCTION_URL}${path}?key=${auth.config.apiKey}`,
       {
@@ -56,7 +61,7 @@ export async function performApiRequest<T, V>(
           'Content-Type': 'application/json'
         },
         referrerPolicy: 'no-referrer',
-        body: JSON.stringify(request)
+        ...body,
       }
     );
     if (response.ok) {

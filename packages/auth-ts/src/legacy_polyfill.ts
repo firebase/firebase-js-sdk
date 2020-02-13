@@ -64,6 +64,7 @@ import { GithubAuthProvider } from './core/providers/github';
 import { SAMLAuthProvider } from './core/providers/saml';
 import { PhoneAuthProvider } from './core/providers/phone';
 import { TwitterAuthProvider } from './core/providers/twitter';
+import { RecaptchaVerifier } from './platform_browser/recaptcha_verifier';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -211,7 +212,7 @@ interface FirebaseNamespace {
     OAuthProvider: typeof OAuthProvider;
     SAMLAuthProvider: typeof SAMLAuthProvider;
     PhoneAuthProvider: typeof PhoneAuthProvider;
-    // RecaptchaVerifier: typeof RecaptchaVerifier;
+    RecaptchaVerifier: typeof RecaptchaVerifier;
     TwitterAuthProvider: typeof TwitterAuthProvider;
   };
 }
@@ -226,3 +227,5 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   PhoneAuthProvider,
   TwitterAuthProvider
 });
+
+(window as any).RecaptchaVerifier = RecaptchaVerifier;
