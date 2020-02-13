@@ -17,5 +17,5 @@
 
 /** Extend the Window type to include arbitrary keys (to avoid use of `any`) */
 export interface AuthWindow extends Window {
-  [key: string]: unknown;
+  [key: string]: any;
 }
