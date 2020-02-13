@@ -1214,12 +1214,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
-        const docRef = db
-          .collection('posts')
-          .withConverter(postConverter)
-          .doc();
+        const coll = db.collection('posts').withConverter(postConverter);
 
-        await docRef.set(new Post('post', 'author'));
+        const docRef = await coll.add(new Post('post', 'author'));
         const postData = await docRef.get();
         const post = postData.data();
         expect(post).to.not.equal(undefined);
