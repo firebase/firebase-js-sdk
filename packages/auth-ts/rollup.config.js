@@ -21,7 +21,7 @@ import pkg from './package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+).map(k => k.replace('@types/', ''));
 
 /**
  * ES5 Builds

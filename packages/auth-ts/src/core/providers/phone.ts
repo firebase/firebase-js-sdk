@@ -22,6 +22,8 @@ import { AuthErrorCode } from '../errors';
 import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { MultiFactorSession } from '../../model/multifactor';
+import { initializeAuth } from '../initialize_auth';
+import { sendPhoneVerificationCode } from '../../api/authentication';
 
 export class PhoneAuthProvider implements AuthProvider {
   static readonly PROVIDER_ID = ProviderId.PHONE;
@@ -43,15 +45,21 @@ export class PhoneAuthProvider implements AuthProvider {
   static credentialFromJSON(json: object): AuthCredential {
     throw new Error('not implemented');
   }
-  constructor(auth?: Auth | null) {
-    throw new Error('not implemented');
-  }
+  
+  readonly auth: Auth;
   readonly providerId: ProviderId = PhoneAuthProvider.PROVIDER_ID;
-  verifyPhoneNumber(
+  constructor(auth?: Auth | null) {
+    // This is what the current SDK does but perhaps it's worth revisiting
+    this.auth = auth || initializeAuth();
+  }
+
+  async verifyPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier,
     multiFactorSession?: MultiFactorSession
   ): Promise<string> {
     throw new Error('not implemented');
+    // const 
+    // const response = await sendPhoneVerificationCode(this.auth, {})
   }
 }

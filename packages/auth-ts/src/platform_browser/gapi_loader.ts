@@ -19,9 +19,10 @@ import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
 import { generateCallbackName, loadJS } from './load_js';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { AuthWindow } from './auth_window';
 
 const NETWORK_TIMEOUT_ = new Delay(30000, 60000);
-const LOADJS_CALLBACK_PREFIX = 'iframefcb';
+const LOADJS_CALLBACK_PREFIX_ = 'iframefcb';
 
 /**
  * Reset unlaoded GApi modules. If gapi.load fails due to a network error,
@@ -31,7 +32,7 @@ export function resetUnloadedGapiModules(): void {
   // Clear last failed gapi.load state to force next gapi.load to first
   // load the failed gapi.iframes module.
   // Get gapix.beacon context.
-  const beacon = (window as any)['___jsl'];
+  const beacon = (window as AuthWindow)['___jsl'];
   // Get current hint.
   if (beacon?.H) {
     // Get gapi hint.
@@ -93,9 +94,9 @@ function loadGapi_(auth: Auth): Promise<gapi.iframes.Context> {
       // multiple times in parallel and could result in the later callback
       // overwriting the previous one. This would end up with a iframe
       // timeout.
-      const cbName = generateCallbackName(LOADJS_CALLBACK_PREFIX);
+      const cbName = generateCallbackName(LOADJS_CALLBACK_PREFIX_);
       // GApi loader not available, dynamically load platform.js.
-      (window as any)[cbName] = () => {
+      (window as AuthWindow)[cbName] = () => {
         // GApi loader should be ready.
         if (gapi.load !== undefined) {
           loadGapiIframe();
