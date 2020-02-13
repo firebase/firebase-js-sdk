@@ -21,23 +21,25 @@ import { Reference } from '../src/api/Reference';
 import { EventAccumulator } from './helpers/EventAccumulator';
 import { eventTestHelper } from './helpers/events';
 
-describe('Order Tests', function() {
+describe('Order Tests', () => {
   // Kind of a hack, but a lot of these tests are written such that they'll fail if run before we're
   // connected to Firebase because they do a bunch of sets and then a listen and assume that they'll
   // arrive in that order.  But if we aren't connected yet, the "reconnection" code will send them
   // in the opposite order.
-  beforeEach(function() {
+  beforeEach(() => {
     return new Promise(resolve => {
       const ref = getRandomNode() as Reference;
       let connected = false;
-      ref.root.child('.info/connected').on('value', function(s) {
-        connected = s.val() == true;
-        if (connected) resolve();
+      ref.root.child('.info/connected').on('value', s => {
+        connected = s.val() === true;
+        if (connected) {
+          resolve();
+        }
       });
     });
   });
 
-  it('Push a bunch of data, enumerate it back; ensure order is correct.', async function() {
+  it('Push a bunch of data, enumerate it back; ensure order is correct.', async () => {
     const node = getRandomNode() as Reference;
     for (let i = 0; i < 10; i++) {
       node.push().set(i);
@@ -46,14 +48,14 @@ describe('Order Tests', function() {
     const snap = await node.once('value');
 
     let expected = 0;
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
     expect(expected).to.equal(10);
   });
 
-  it('Push a bunch of paths, then write; ensure order is correct.', async function() {
+  it('Push a bunch of paths, then write; ensure order is correct.', async () => {
     const node = getRandomNode() as Reference;
     const paths = [];
     // Push them first to try to call push() multiple times in the same ms.
@@ -67,21 +69,21 @@ describe('Order Tests', function() {
     const snap = await node.once('value');
 
     let expected = 0;
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
     expect(expected).to.equal(20);
   });
 
-  it('Push a bunch of data, reconnect, read it back; ensure order is chronological.', async function() {
+  it('Push a bunch of data, reconnect, read it back; ensure order is chronological.', async () => {
     const nodePair = getRandomNode(2) as Reference[];
     let expected;
 
     const node = nodePair[0];
     let nodesSet = 0;
     for (let i = 0; i < 10; i++) {
-      node.push().set(i, function() {
+      node.push().set(i, () => {
         ++nodesSet;
       });
     }
@@ -90,7 +92,7 @@ describe('Order Tests', function() {
     const snap = await node.once('value');
 
     expected = 0;
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
@@ -99,7 +101,7 @@ describe('Order Tests', function() {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', function(snap) {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
@@ -107,14 +109,14 @@ describe('Order Tests', function() {
     await ea.promise;
 
     expected = 0;
-    readSnap.forEach(function(child) {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected++;
     });
     expect(expected).to.equal(10);
   });
 
-  it('Push a bunch of data with explicit priority, reconnect, read it back; ensure order is correct.', async function() {
+  it('Push a bunch of data with explicit priority, reconnect, read it back; ensure order is correct.', async () => {
     const nodePair = getRandomNode(2) as Reference[];
     let expected;
 
@@ -122,7 +124,7 @@ describe('Order Tests', function() {
     let nodesSet = 0;
     for (let i = 0; i < 10; i++) {
       const pushedNode = node.push();
-      pushedNode.setWithPriority(i, 10 - i, function() {
+      pushedNode.setWithPriority(i, 10 - i, () => {
         ++nodesSet;
       });
     }
@@ -130,7 +132,7 @@ describe('Order Tests', function() {
     // read it back locally and make sure it's correct.
     const snap = await node.once('value');
     expected = 9;
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -142,21 +144,21 @@ describe('Order Tests', function() {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', function(snap) {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
     await ea.promise;
 
     expected = 9;
-    readSnap.forEach(function(child) {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
     expect(expected).to.equal(-1);
   });
 
-  it('Push data with exponential priority and ensure order is correct.', async function() {
+  it('Push data with exponential priority and ensure order is correct.', async () => {
     const nodePair = getRandomNode(2) as Reference[];
     let expected;
 
@@ -167,7 +169,7 @@ describe('Order Tests', function() {
       pushedNode.setWithPriority(
         i,
         111111111111111111111111111111 / Math.pow(10, i),
-        function() {
+        () => {
           ++nodesSet;
         }
       );
@@ -176,7 +178,7 @@ describe('Order Tests', function() {
     // read it back locally and make sure it's correct.
     const snap = await node.once('value');
     expected = 9;
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
@@ -185,7 +187,7 @@ describe('Order Tests', function() {
     // read it back
     let readSnap;
     const ea = new EventAccumulator(() => readSnap);
-    nodePair[1].on('value', function(snap) {
+    nodePair[1].on('value', snap => {
       readSnap = snap;
       ea.addEvent();
     });
@@ -193,21 +195,21 @@ describe('Order Tests', function() {
     await ea.promise;
 
     expected = 9;
-    readSnap.forEach(function(child) {
+    readSnap.forEach(child => {
       expect(child.val()).to.equal(expected);
       expected--;
     });
     expect(expected).to.equal(-1);
   });
 
-  it("Verify nodes without values aren't enumerated.", async function() {
+  it("Verify nodes without values aren't enumerated.", async () => {
     const node = getRandomNode() as Reference;
     node.child('foo');
     node.child('bar').set('test');
 
     let items = 0;
     const snap = await node.once('value');
-    snap.forEach(function(child) {
+    snap.forEach(child => {
       items++;
       expect(child.key).to.equal('bar');
     });
@@ -215,7 +217,7 @@ describe('Order Tests', function() {
     expect(items).to.equal(1);
   });
 
-  it.skip('Receive child_moved event when priority changes.', async function() {
+  it.skip('Receive child_moved event when priority changes.', async () => {
     const node = getRandomNode() as Reference;
 
     // const ea = new EventAccumulator(() => eventHelper.watchesInitializedWaiter);
@@ -245,15 +247,14 @@ describe('Order Tests', function() {
     expect(eventHelper.waiter()).to.equal(true);
   });
 
-  it.skip('Can reset priority to null.', async function() {
+  it.skip('Can reset priority to null.', async () => {
     const node = getRandomNode() as Reference;
 
     node.child('a').setWithPriority('a', 1);
     node.child('b').setWithPriority('b', 2);
-    let eventHelper;
 
     // const ea = new EventAccumulator(() => eventHelper.waiter());
-    eventHelper = eventTestHelper([
+    const eventHelper = eventTestHelper([
       [node, ['child_added', 'a']],
       [node, ['child_added', 'b']],
       [node, ['value', '']]
@@ -273,11 +274,11 @@ describe('Order Tests', function() {
     expect((await node.once('value')).child('b').getPriority()).to.equal(null);
   });
 
-  it('Inserting a node under a leaf node preserves its priority.', function() {
+  it('Inserting a node under a leaf node preserves its priority.', () => {
     const node = getRandomNode() as Reference;
 
     let snap = null;
-    node.on('value', function(s) {
+    node.on('value', s => {
       snap = s;
     });
 
@@ -286,7 +287,7 @@ describe('Order Tests', function() {
     expect(snap.getPriority()).to.equal(10);
   });
 
-  it('Verify order of mixed numbers / strings / no priorities.', async function() {
+  it('Verify order of mixed numbers / strings / no priorities.', async () => {
     const nodePair = getRandomNode(2) as Reference[];
     const nodeAndPriorities = [
       'alpha42',
@@ -332,7 +333,7 @@ describe('Order Tests', function() {
     let setsCompleted = 0;
     for (let i = 0; i < nodeAndPriorities.length; i++) {
       const n = nodePair[0].child(nodeAndPriorities[i++] as string);
-      n.setWithPriority(1, nodeAndPriorities[i], function() {
+      n.setWithPriority(1, nodeAndPriorities[i], () => {
         setsCompleted++;
       });
     }
@@ -343,7 +344,7 @@ describe('Order Tests', function() {
     const snap = await nodePair[0].once('value');
 
     let output = '';
-    snap.forEach(function(n) {
+    snap.forEach(n => {
       output += n.key + ', ';
     });
 
@@ -351,8 +352,8 @@ describe('Order Tests', function() {
 
     let eventsFired = false;
     output = '';
-    nodePair[1].on('value', function(snap) {
-      snap.forEach(function(n) {
+    nodePair[1].on('value', snap => {
+      snap.forEach(n => {
         output += n.key + ', ';
       });
       expect(output).to.equal(expectedOutput);
@@ -360,14 +361,14 @@ describe('Order Tests', function() {
     });
   });
 
-  it('Verify order of integer keys.', async function() {
+  it('Verify order of integer keys.', async () => {
     const ref = getRandomNode() as Reference;
     const keys = ['foo', 'bar', '03', '0', '100', '20', '5', '3', '003', '9'];
 
     let setsCompleted = 0;
     for (let i = 0; i < keys.length; i++) {
       const child = ref.child(keys[i]);
-      child.set(true, function() {
+      child.set(true, () => {
         setsCompleted++;
       });
     }
@@ -376,18 +377,18 @@ describe('Order Tests', function() {
 
     const snap = await ref.once('value');
     let output = '';
-    snap.forEach(function(n) {
+    snap.forEach(n => {
       output += n.key + ', ';
     });
 
     expect(output).to.equal(expectedOutput);
   });
 
-  it('Ensure prevName is correct on child_added event.', function() {
+  it('Ensure prevName is correct on child_added event.', () => {
     const node = getRandomNode() as Reference;
 
     let added = '';
-    node.on('child_added', function(snap, prevName) {
+    node.on('child_added', (snap, prevName) => {
       added += snap.key + ' ' + prevName + ', ';
     });
 
@@ -396,11 +397,11 @@ describe('Order Tests', function() {
     expect(added).to.equal('a null, b a, c b, ');
   });
 
-  it('Ensure prevName is correct when adding new nodes.', function() {
+  it('Ensure prevName is correct when adding new nodes.', () => {
     const node = getRandomNode() as Reference;
 
     let added = '';
-    node.on('child_added', function(snap, prevName) {
+    node.on('child_added', (snap, prevName) => {
       added += snap.key + ' ' + prevName + ', ';
     });
 
@@ -417,11 +418,11 @@ describe('Order Tests', function() {
     expect(added).to.equal('e d, ');
   });
 
-  it('Ensure prevName is correct when adding new nodes with JSON.', function() {
+  it('Ensure prevName is correct when adding new nodes with JSON.', () => {
     const node = getRandomNode() as Reference;
 
     let added = '';
-    node.on('child_added', function(snap, prevName) {
+    node.on('child_added', (snap, prevName) => {
       added += snap.key + ' ' + prevName + ', ';
     });
 
@@ -438,11 +439,11 @@ describe('Order Tests', function() {
     expect(added).to.equal('e d, ');
   });
 
-  it('Ensure prevName is correct when moving nodes.', function() {
+  it('Ensure prevName is correct when moving nodes.', () => {
     const node = getRandomNode() as Reference;
 
     let moved = '';
-    node.on('child_moved', function(snap, prevName) {
+    node.on('child_moved', (snap, prevName) => {
       moved += snap.key + ' ' + prevName + ', ';
     });
 
@@ -463,11 +464,11 @@ describe('Order Tests', function() {
     expect(moved).to.equal('c d, ');
   });
 
-  it('Ensure prevName is correct when moving nodes by setting whole JSON.', function() {
+  it('Ensure prevName is correct when moving nodes by setting whole JSON.', () => {
     const node = getRandomNode() as Reference;
 
     let moved = '';
-    node.on('child_moved', function(snap, prevName) {
+    node.on('child_moved', (snap, prevName) => {
       moved += snap.key + ' ' + prevName + ', ';
     });
 
@@ -505,10 +506,10 @@ describe('Order Tests', function() {
     expect(moved).to.equal('c d, ');
   });
 
-  it('Case 595: Should not get child_moved event when deleting prioritized grandchild.', function() {
+  it('Case 595: Should not get child_moved event when deleting prioritized grandchild.', () => {
     const f = getRandomNode() as Reference;
     let moves = 0;
-    f.on('child_moved', function() {
+    f.on('child_moved', () => {
       moves++;
     });
 
@@ -520,11 +521,11 @@ describe('Order Tests', function() {
     expect(moves).to.equal(0, 'Should *not* have received any move events.');
   });
 
-  it('Can set value with priority of 0.', function() {
+  it('Can set value with priority of 0.', () => {
     const f = getRandomNode() as Reference;
 
     let snap = null;
-    f.on('value', function(s) {
+    f.on('value', s => {
       snap = s;
     });
 
@@ -533,11 +534,11 @@ describe('Order Tests', function() {
     expect(snap.getPriority()).to.equal(0);
   });
 
-  it('Can set object with priority of 0.', function() {
+  it('Can set object with priority of 0.', () => {
     const f = getRandomNode() as Reference;
 
     let snap = null;
-    f.on('value', function(s) {
+    f.on('value', s => {
       snap = s;
     });
 
@@ -546,10 +547,10 @@ describe('Order Tests', function() {
     expect(snap.getPriority()).to.equal(0);
   });
 
-  it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering.', function() {
+  it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering.', () => {
     const f = getRandomNode() as Reference;
     const moved = [];
-    f.on('child_moved', function(snap) {
+    f.on('child_moved', snap => {
       moved.push(snap.key);
     });
     f.set({
@@ -564,10 +565,10 @@ describe('Order Tests', function() {
     expect(moved).to.deep.equal(['b']);
   });
 
-  it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering (2).', function() {
+  it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering (2).', () => {
     const f = getRandomNode() as Reference;
     const moved = [];
-    f.on('child_moved', function(snap) {
+    f.on('child_moved', snap => {
       moved.push(snap.key);
     });
     f.set({

@@ -25,8 +25,9 @@ import * as integrationHelpers from '../util/helpers';
 // tslint:disable:no-floating-promises
 
 const apiDescribe = integrationHelpers.apiDescribe;
-const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
+const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Database batch writes', (persistence: boolean) => {
   it('supports empty batches', () => {
@@ -108,13 +109,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
       return doc.firestore
         .batch()
         .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
+        .update(doc, 'owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .commit()
         .then(() => doc.get())
         .then(docSnapshot => {

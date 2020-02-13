@@ -18,7 +18,7 @@
 import { EventEmitter } from './EventEmitter';
 import { assert } from '@firebase/util';
 
-declare const document: any;
+declare const document: Document;
 
 /**
  * @extends {EventEmitter}

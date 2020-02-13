@@ -15,64 +15,73 @@
  * limitations under the License.
  */
 
-import { _FirebaseApp } from '@firebase/app-types/private';
+import { getToken, deleteToken } from '../core/token-management';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
-} from '@firebase/util';
+  CONSOLE_CAMPAIGN_ID,
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_NAME,
+  CONSOLE_CAMPAIGN_TIME,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE,
+  DEFAULT_VAPID_KEY
+} from '../util/constants';
+import { FirebaseApp } from '@firebase/app-types';
+import { ConsoleMessageData } from '../interfaces/message-payload';
+import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseService } from '@firebase/app-types/private';
 
-import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
-import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
-import { ErrorCode, errorFactory } from '../models/errors';
-import {
-  DEFAULT_PUBLIC_VAPID_KEY,
-  FN_CAMPAIGN_ID,
-  FN_CAMPAIGN_NAME,
-  FN_CAMPAIGN_TIME,
-  FN_CAMPAIGN_ANALYTICS_ENABLED
-} from '../models/fcm-details';
-import { InternalMessage, MessageType } from '../models/worker-page-message';
-import { BaseController } from './base-controller';
-import { FirebaseInternalServices } from '../interfaces/internal-services';
+export class WindowController implements FirebaseMessaging, FirebaseService {
+  private vapidKey: string | null = null;
+  private swRegistration?: ServiceWorkerRegistration;
+  private onMessageCallback: NextFn<object> | null = null;
 
-export class WindowController extends BaseController {
-  private registrationToUse: ServiceWorkerRegistration | null = null;
-  private publicVapidKeyToUse: Uint8Array | null = null;
+  constructor(
+    private readonly firebaseDependencies: FirebaseInternalDependencies
+  ) {
+    navigator.serviceWorker.addEventListener('message', e =>
+      this.messageEventListener(e)
+    );
+  }
 
-  private messageObserver: Observer<object> | null = null;
-  // @ts-ignore: Unused variable error, this is not implemented yet.
-  private tokenRefreshObserver: Observer<object> | null = null;
+  get app(): FirebaseApp {
+    return this.firebaseDependencies.app;
+  }
 
-  private readonly onMessageInternal: Subscribe<object> = createSubscribe(
-    observer => {
-      this.messageObserver = observer;
+  async getToken(): Promise<string> {
+    if (!this.vapidKey) {
+      this.vapidKey = DEFAULT_VAPID_KEY;
     }
-  );
 
-  private readonly onTokenRefreshInternal: Subscribe<object> = createSubscribe(
-    observer => {
-      this.tokenRefreshObserver = observer;
+    const swRegistration = await this.getServiceWorkerRegistration();
+
+    // Check notification permission.
+    if (Notification.permission === 'default') {
+      // The user hasn't allowed or denied notifications yet. Ask them.
+      await Notification.requestPermission();
     }
-  );
 
-  /**
-   * A service that provides a MessagingService instance.
-   */
-  constructor(services: FirebaseInternalServices) {
-    super(services);
+    if (Notification.permission !== 'granted') {
+      throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
+    }
 
-    this.setupSWMessageListener_();
+    return getToken(this.firebaseDependencies, swRegistration, this.vapidKey);
+  }
+
+  async deleteToken(): Promise<boolean> {
+    const swRegistration = await this.getServiceWorkerRegistration();
+
+    return deleteToken(this.firebaseDependencies, swRegistration);
   }
 
   /**
-   * Request permission if it is not currently granted
+   * Request permission if it is not currently granted.
    *
-   * @return Resolves if the permission was granted, otherwise rejects
+   * @return Resolves if the permission was granted, rejects otherwise.
    *
    * @deprecated Use Notification.requestPermission() instead.
    * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
@@ -86,244 +95,124 @@ export class WindowController extends BaseController {
     if (permissionResult === 'granted') {
       return;
     } else if (permissionResult === 'denied') {
-      throw errorFactory.create(ErrorCode.PERMISSION_BLOCKED);
+      throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
     } else {
-      throw errorFactory.create(ErrorCode.PERMISSION_DEFAULT);
+      throw ERROR_FACTORY.create(ErrorCode.PERMISSION_DEFAULT);
     }
   }
 
-  /**
-   * This method allows a developer to override the default service worker and
-   * instead use a custom service worker.
-   *
-   * @param registration The service worker registration that should be used to
-   * receive the push messages.
-   */
-  useServiceWorker(registration: ServiceWorkerRegistration): void {
-    if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw errorFactory.create(ErrorCode.SW_REGISTRATION_EXPECTED);
+  // TODO: Deprecate this and make VAPID key a parameter in getToken.
+  usePublicVapidKey(vapidKey: string): void {
+    if (this.vapidKey !== null) {
+      throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
     }
 
-    if (this.registrationToUse != null) {
-      throw errorFactory.create(ErrorCode.USE_SW_BEFORE_GET_TOKEN);
+    if (typeof vapidKey !== 'string' || vapidKey.length === 0) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_VAPID_KEY);
     }
 
-    this.registrationToUse = registration;
+    this.vapidKey = vapidKey;
+  }
+
+  useServiceWorker(swRegistration: ServiceWorkerRegistration): void {
+    if (!(swRegistration instanceof ServiceWorkerRegistration)) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_SW_REGISTRATION);
+    }
+
+    if (this.swRegistration) {
+      throw ERROR_FACTORY.create(ErrorCode.USE_SW_AFTER_GET_TOKEN);
+    }
+
+    this.swRegistration = swRegistration;
   }
 
   /**
-   * This method allows a developer to override the default vapid key
-   * and instead use a custom VAPID public key.
-   *
-   * @param publicKey A URL safe base64 encoded string.
-   */
-  usePublicVapidKey(publicKey: string): void {
-    if (typeof publicKey !== 'string') {
-      throw errorFactory.create(ErrorCode.INVALID_PUBLIC_VAPID_KEY);
-    }
-
-    if (this.publicVapidKeyToUse != null) {
-      throw errorFactory.create(ErrorCode.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
-    }
-
-    const parsedKey = base64ToArrayBuffer(publicKey);
-
-    if (parsedKey.length !== 65) {
-      throw errorFactory.create(ErrorCode.PUBLIC_KEY_DECRYPTION_FAILED);
-    }
-
-    this.publicVapidKeyToUse = parsedKey;
-  }
-
-  /**
-   * @export
    * @param nextOrObserver An observer object or a function triggered on
    * message.
-   * @param error A function triggered on message error.
-   * @param completed function triggered when the observer is removed.
    * @return The unsubscribe function for the observer.
    */
-  onMessage(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    if (typeof nextOrObserver === 'function') {
-      return this.onMessageInternal(nextOrObserver, error, completed);
-    } else {
-      return this.onMessageInternal(nextOrObserver);
-    }
+  // TODO: Simplify this to only accept a function and not an Observer.
+  onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
+    this.onMessageCallback =
+      typeof nextOrObserver === 'function'
+        ? nextOrObserver
+        : nextOrObserver.next;
+
+    return () => {
+      this.onMessageCallback = null;
+    };
+  }
+
+  setBackgroundMessageHandler(): void {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
+  }
+
+  // Unimplemented
+  onTokenRefresh(): Unsubscribe {
+    return () => {};
   }
 
   /**
-   * @param nextOrObserver An observer object or a function triggered on token
-   * refresh.
-   * @param error A function triggered on token refresh error.
-   * @param completed function triggered when the observer is removed.
-   * @return The unsubscribe function for the observer.
-   */
-  onTokenRefresh(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    if (typeof nextOrObserver === 'function') {
-      return this.onTokenRefreshInternal(nextOrObserver, error, completed);
-    } else {
-      return this.onTokenRefreshInternal(nextOrObserver);
-    }
-  }
-
-  /**
-   * Given a registration, wait for the service worker it relates to
-   * become activer
-   * @param registration Registration to wait for service worker to become active
-   * @return Wait for service worker registration to become active
-   */
-  // Visible for testing
-  // TODO: Make private
-  waitForRegistrationToActivate_(
-    registration: ServiceWorkerRegistration
-  ): Promise<ServiceWorkerRegistration> {
-    const serviceWorker =
-      registration.installing || registration.waiting || registration.active;
-
-    return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
-      if (!serviceWorker) {
-        // This is a rare scenario but has occured in firefox
-        reject(errorFactory.create(ErrorCode.NO_SW_IN_REG));
-        return;
-      }
-      // Because the Promise function is called on next tick there is a
-      // small chance that the worker became active or redundant already.
-      if (serviceWorker.state === 'activated') {
-        resolve(registration);
-        return;
-      }
-
-      if (serviceWorker.state === 'redundant') {
-        reject(errorFactory.create(ErrorCode.SW_REG_REDUNDANT));
-        return;
-      }
-
-      const stateChangeListener = (): void => {
-        if (serviceWorker.state === 'activated') {
-          resolve(registration);
-        } else if (serviceWorker.state === 'redundant') {
-          reject(errorFactory.create(ErrorCode.SW_REG_REDUNDANT));
-        } else {
-          // Return early and wait to next state change
-          return;
-        }
-        serviceWorker.removeEventListener('statechange', stateChangeListener);
-      };
-      serviceWorker.addEventListener('statechange', stateChangeListener);
-    });
-  }
-
-  /**
-   * This will register the default service worker and return the registration
+   * Creates or updates the default service worker registration.
    * @return The service worker registration to be used for the push service.
    */
-  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    if (this.registrationToUse) {
-      return this.waitForRegistrationToActivate_(this.registrationToUse);
+  private async getServiceWorkerRegistration(): Promise<
+    ServiceWorkerRegistration
+  > {
+    if (!this.swRegistration) {
+      try {
+        this.swRegistration = await navigator.serviceWorker.register(
+          DEFAULT_SW_PATH,
+          {
+            scope: DEFAULT_SW_SCOPE
+          }
+        );
+      } catch (e) {
+        throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
+          browserErrorMessage: e.message
+        });
+      }
     }
 
-    // Make the registration null so we know useServiceWorker will not
-    // use a new service worker as registrationToUse is no longer undefined
-    this.registrationToUse = null;
-
-    return navigator.serviceWorker
-      .register(DEFAULT_SW_PATH, {
-        scope: DEFAULT_SW_SCOPE
-      })
-      .catch((err: Error) => {
-        throw errorFactory.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
-          browserErrorMessage: err.message
-        });
-      })
-      .then((registration: ServiceWorkerRegistration) => {
-        return this.waitForRegistrationToActivate_(registration).then(() => {
-          this.registrationToUse = registration;
-
-          // We update after activation due to an issue with Firefox v49 where
-          // a race condition occassionally causes the service worker to not
-          // install
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          registration.update();
-
-          return registration;
-        });
-      });
+    return this.swRegistration;
   }
 
-  /**
-   * This will return the default VAPID key or the uint8array version of the
-   * public VAPID key provided by the developer.
-   */
-  async getPublicVapidKey_(): Promise<Uint8Array> {
-    if (this.publicVapidKeyToUse) {
-      return this.publicVapidKeyToUse;
+  private async messageEventListener(event: MessageEvent): Promise<void> {
+    if (!event.data?.firebaseMessaging) {
+      // Not a message from FCM
+      return;
     }
 
-    return DEFAULT_PUBLIC_VAPID_KEY;
+    const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
+
+    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
+      this.onMessageCallback(payload);
+    }
+
+    const { data } = payload;
+    if (
+      isConsoleMessage(data) &&
+      data[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+    ) {
+      // Analytics is enabled on this message, so we should log it.
+      await this.logEvent(type, data);
+    }
   }
 
-  /**
-   * This method will set up a message listener to handle
-   * events from the service worker that should trigger
-   * events in the page.
-   */
-  // Visible for testing
-  // TODO: Make private
-  setupSWMessageListener_(): void {
-    navigator.serviceWorker.addEventListener(
-      'message',
-      async event => {
-        if (
-          !event.data ||
-          !event.data.firebaseMessagingType ||
-          !event.data.firebaseMessagingData
-        ) {
-          // Not a message from FCM
-          return;
-        }
-
-        const {
-          firebaseMessagingType,
-          firebaseMessagingData
-        }: InternalMessage = event.data;
-
-        if (this.messageObserver) {
-          this.messageObserver.next(firebaseMessagingData);
-        }
-
-        const { data } = firebaseMessagingData;
-        if (
-          data &&
-          FN_CAMPAIGN_ID in data &&
-          data[FN_CAMPAIGN_ANALYTICS_ENABLED] === '1'
-        ) {
-          // This message has a campaign id, meaning it was sent using the FN Console.
-          // Analytics is enabled on this message, so we should log it.
-          const eventType = getEventType(firebaseMessagingType);
-          const analytics = await this.services.analyticsProvider.get();
-          analytics.logEvent(
-            eventType,
-            /* eslint-disable camelcase */
-            {
-              message_name: data[FN_CAMPAIGN_NAME],
-              message_id: data[FN_CAMPAIGN_ID],
-              message_time: data[FN_CAMPAIGN_TIME],
-              message_device_time: Math.floor(Date.now() / 1000)
-            }
-            /* eslint-enable camelcase */
-          );
-        }
-      },
-      false
-    );
+  private async logEvent(
+    messageType: MessageType,
+    data: ConsoleMessageData
+  ): Promise<void> {
+    const eventType = getEventType(messageType);
+    const analytics = await this.firebaseDependencies.analyticsProvider.get();
+    analytics.logEvent(eventType, {
+      /* eslint-disable camelcase */
+      message_id: data[CONSOLE_CAMPAIGN_ID],
+      message_name: data[CONSOLE_CAMPAIGN_NAME],
+      message_time: data[CONSOLE_CAMPAIGN_TIME],
+      message_device_time: Math.floor(Date.now() / 1000)
+      /* eslint-enable camelcase */
+    });
   }
 }
 
@@ -331,7 +220,7 @@ function getEventType(messageType: MessageType): string {
   switch (messageType) {
     case MessageType.NOTIFICATION_CLICKED:
       return 'notification_open';
-    case MessageType.PUSH_MSG_RECEIVED:
+    case MessageType.PUSH_RECEIVED:
       return 'notification_foreground';
     default:
       throw new Error();

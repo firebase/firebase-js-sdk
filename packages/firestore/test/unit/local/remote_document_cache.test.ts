@@ -90,16 +90,13 @@ describe('IndexedDbRemoteDocumentCache', () => {
     await persistenceHelpers.clearTestPersistence();
   });
 
-  function getLastDocumentChange(): Promise<{
-    changedDoc: MaybeDocument | undefined;
-    readTime: SnapshotVersion;
-  }> {
+  function getLastReadTime(): Promise<SnapshotVersion> {
     return persistence.runTransaction(
-      'getLastDocumentChange',
+      'getLastReadTime',
       'readonly-idempotent',
       txn => {
         const remoteDocuments = persistence.getRemoteDocumentCache();
-        return remoteDocuments.getLastDocumentChange(txn);
+        return remoteDocuments.getLastReadTime(txn);
       }
     );
   }
@@ -115,7 +112,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
       dontPurgeData: true
     });
     cache = new TestRemoteDocumentCache(persistence);
-    const { readTime } = await getLastDocumentChange();
+    const readTime = await getLastReadTime();
     const { changedDocs } = await cache.getNewDocumentChanges(readTime);
     assertMatches([], changedDocs);
   });

@@ -38,6 +38,8 @@ import {
 } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
+import { name, version } from './package.json';
+
 setWebSocketImpl(Client);
 
 const ServerValue = Database.ServerValue;
@@ -72,7 +74,7 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
     new Component(
       'auth-internal',
       // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
-      // eslint-disable-next-line @eslint-tslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       () => (app as any).INTERNAL,
       ComponentType.PRIVATE
     )
@@ -131,6 +133,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
       .setMultipleInstances(true)
   );
 
+  instance.registerVersion(name, version, 'node');
+
   if (isNodeSdk()) {
     module.exports = Object.assign({}, namespace, { initStandalone });
   }
@@ -142,6 +146,7 @@ try {
   // Previously firebase-admin depends on @firebase/app, which causes version conflict on
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
+  // eslint-disable-next-line import/no-extraneous-dependencies, @typescript-eslint/no-require-imports
   const firebase = require('@firebase/app').default;
   registerDatabase(firebase);
 } catch (err) {

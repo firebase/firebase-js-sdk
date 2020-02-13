@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, isMobileCordova } from '@firebase/util';
 import { EventEmitter } from './EventEmitter';
-import { isMobileCordova } from '@firebase/util';
 
 /**
  * Monitors online state (as reported by window.online/offline events).

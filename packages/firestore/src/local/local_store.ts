@@ -38,6 +38,7 @@ import {
 } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -47,9 +48,12 @@ import { SortedMap } from '../util/sorted_map';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import {
+  Persistence,
+  PersistenceTransaction,
+  PRIMARY_LEASE_LOST_ERROR_MSG
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
@@ -1107,17 +1111,33 @@ export class LocalStore {
    */
   // PORTING NOTE: Multi-tab only.
   async synchronizeLastDocumentChangeReadTime(): Promise<void> {
-    if (this.remoteDocuments instanceof IndexedDbRemoteDocumentCache) {
-      const remoteDocumentCache = this.remoteDocuments;
-      return this.persistence
-        .runTransaction(
-          'Synchronize last document change read time',
-          'readonly-idempotent',
-          txn => remoteDocumentCache.getLastDocumentChange(txn)
-        )
-        .then(({ readTime }) => {
-          this.lastDocumentChangeReadTime = readTime;
-        });
-    }
+    this.lastDocumentChangeReadTime = await this.persistence.runTransaction(
+      'Synchronize last document change read time',
+      'readonly-idempotent',
+      txn => this.remoteDocuments.getLastReadTime(txn)
+    );
+  }
+}
+
+/**
+ * Verifies the error thrown by a LocalStore operation. If a LocalStore
+ * operation fails because the primary lease has been taken by another client,
+ * we ignore the error (the persistence layer will immediately call
+ * `applyPrimaryLease` to propagate the primary state change). All other errors
+ * are re-thrown.
+ *
+ * @param err An error returned by a LocalStore operation.
+ * @return A Promise that resolves after we recovered, or the original error.
+ */
+export async function ignoreIfPrimaryLeaseLoss(
+  err: FirestoreError
+): Promise<void> {
+  if (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  ) {
+    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+  } else {
+    throw err;
   }
 }

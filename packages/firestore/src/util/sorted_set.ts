@@ -135,6 +135,13 @@ export class SortedSet<T> {
 
   unionWith(other: SortedSet<T>): SortedSet<T> {
     let result: SortedSet<T> = this;
+
+    // Make sure `result` always refers to the larger one of the two sets.
+    if (result.size < other.size) {
+      result = other;
+      other = this;
+    }
+
     other.forEach(elem => {
       result = result.add(elem);
     });

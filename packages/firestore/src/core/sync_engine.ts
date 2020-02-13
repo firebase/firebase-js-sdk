@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { LocalStore } from '../local/local_store';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -40,7 +40,6 @@ import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 
-import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,

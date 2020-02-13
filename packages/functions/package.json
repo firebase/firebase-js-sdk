@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.27",
+  "version": "0.4.32",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -15,7 +15,8 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser test:node",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
@@ -28,10 +29,10 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/messaging": "0.5.8",
-    "rollup": "1.27.2",
-    "rollup-plugin-typescript2": "0.25.2",
-    "typescript": "3.7.3"
+    "@firebase/messaging": "0.6.4",
+    "rollup": "1.28.0",
+    "rollup-plugin-typescript2": "0.25.3",
+    "typescript": "3.7.5"
   },
   "repository": {
     "directory": "packages/functions",
@@ -43,9 +44,9 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/functions-types": "0.3.12",
-    "@firebase/messaging-types": "0.3.6",
-    "@firebase/component": "0.1.0",
+    "@firebase/functions-types": "0.3.14",
+    "@firebase/messaging-types": "0.4.2",
+    "@firebase/component": "0.1.5",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.10.0"
   },

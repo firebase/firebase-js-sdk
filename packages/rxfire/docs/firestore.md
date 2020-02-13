@@ -33,6 +33,35 @@ doc(davidDoc).subscribe(snapshot => {
 });
 ```
 
+### `docData()`
+The `docData()` function returns a stream of a document, mapped to its data payload and optionally the document ID.
+
+|                 |                                          |
+|-----------------|------------------------------------------|
+| **function**    | `docData()`                              |
+| **params**      | ref: `firestore.DocumentReference` <br> idField?: `string` |
+| **import path** | `rxfire/firestore`                       |
+| **return**      | `Observable<T>` |
+
+#### TypeScript Example
+```ts
+import { docData } from 'rxfire/firestore';
+import { firestore, initializeApp } from 'firebase';
+import 'firebase/firestore';
+
+// Set up Firebase
+const app = initializeApp({ /* config */ });
+const db = app.firestore();
+const davidDocRef = db.doc('users/david');
+
+// Seed the firestore
+davidDocRef.set({ name: 'David' });
+
+docData(davidDocRef,'uid').subscribe(userData => {
+  console.log(`${userData.name} has id ${userData.uid}`);
+});
+```
+
 ## Collection Observables
 
 ### `collection()`

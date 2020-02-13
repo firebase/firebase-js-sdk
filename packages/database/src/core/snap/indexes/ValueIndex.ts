@@ -56,6 +56,7 @@ export class ValueIndex extends Index {
    * @inheritDoc
    */
   minPost(): NamedNode {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
 
@@ -63,6 +64,7 @@ export class ValueIndex extends Index {
    * @inheritDoc
    */
   maxPost(): NamedNode {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MAX;
   }
 

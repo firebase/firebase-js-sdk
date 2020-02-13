@@ -96,6 +96,15 @@ export interface RemoteDocumentCache {
   }>;
 
   /**
+   * Returns the read time of the most recently read document in the cache, or
+   * SnapshotVersion.MIN if not available.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  getLastReadTime(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion>;
+
+  /**
    * Provides access to add or update the contents of the cache. The buffer
    * handles proper size accounting for the change.
    *

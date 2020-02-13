@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { _FirebaseApp } from '@firebase/app-types/private';
 import { User } from '../auth/user';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';

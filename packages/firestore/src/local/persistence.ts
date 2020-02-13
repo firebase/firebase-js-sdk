@@ -28,6 +28,10 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 
+export const PRIMARY_LEASE_LOST_ERROR_MSG =
+  'The current tab is not in the required state to perform this operation. ' +
+  'It might be necessary to refresh the browser tab.';
+
 /**
  * A base class representing a persistence transaction, encapsulating both the
  * transaction's sequence numbers as well as a list of onCommitted listeners.

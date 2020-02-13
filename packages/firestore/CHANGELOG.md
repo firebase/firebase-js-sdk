@@ -1,4 +1,21 @@
 # Unreleased
+- [fixed] Fixed a performance regression introduced by the addition of
+  `Query.limitToLast(n: number)` in Firestore 1.7.0 (Firebase 7.3.0) (#2620).
+- [fixed] Fixed an issue where `CollectionReference.add()` would reject
+  custom types when using `withConverter()`. (#2606)
+
+# 1.9.3
+- [fixed] Fixed an issue where auth credentials were not respected in some
+  Firefox or Chrome extensions. (#1491)
+- [changed] Firestore previously required that every document read in a
+  transaction must also be written. This requirement has been removed, and
+  you can now read a document in transaction without writing to it.
+
+# 1.9.2
+- [fixed] Fixed an issue where auth credentials were not respected in certain
+  browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
+
+# 1.9.0
 - [feature] Added support for storing and retrieving custom types in Firestore.
   Added support for strongly typed collections, documents, and
   queries. You can now use `withConverter()` to supply a custom data

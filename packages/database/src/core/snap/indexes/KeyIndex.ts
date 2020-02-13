@@ -59,6 +59,7 @@ export class KeyIndex extends Index {
    * @inheritDoc
    */
   minPost() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
 

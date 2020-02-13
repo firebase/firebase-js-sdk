@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
@@ -30,6 +30,8 @@ import { isNodeSdk } from '@firebase/util';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
 import { Component, ComponentType } from '@firebase/component';
+
+import { name, version } from './package.json';
 
 const ServerValue = Database.ServerValue;
 
@@ -70,6 +72,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
       )
       .setMultipleInstances(true)
   );
+
+  instance.registerVersion(name, version);
 
   if (isNodeSdk()) {
     module.exports = namespace;

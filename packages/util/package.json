@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "0.2.35",
+  "version": "0.2.40",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -15,7 +15,8 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser test:node",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"
@@ -25,9 +26,9 @@
     "tslib": "1.10.0"
   },
   "devDependencies": {
-    "rollup": "1.27.2",
-    "rollup-plugin-typescript2": "0.25.2",
-    "typescript": "3.7.3"
+    "rollup": "1.28.0",
+    "rollup-plugin-typescript2": "0.25.3",
+    "typescript": "3.7.5"
   },
   "repository": {
     "directory": "packages/util",

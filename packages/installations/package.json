@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.3.7",
+  "version": "0.4.2",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -21,22 +21,22 @@
     "prepare": "yarn build"
   },
   "devDependencies": {
-    "rollup": "1.27.2",
+    "rollup": "1.28.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.25.2",
-    "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.7.3"
+    "rollup-plugin-typescript2": "0.25.3",
+    "rollup-plugin-uglify": "6.0.4",
+    "typescript": "3.7.5"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.2.3",
-    "@firebase/util": "0.2.35",
-    "@firebase/component": "0.1.0",
+    "@firebase/installations-types": "0.3.1",
+    "@firebase/util": "0.2.40",
+    "@firebase/component": "0.1.5",
     "idb": "3.0.2",
     "tslib": "1.10.0"
   }

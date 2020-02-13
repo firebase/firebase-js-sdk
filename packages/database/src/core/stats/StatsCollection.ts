@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { deepCopy } from '@firebase/util';
-import { contains } from '@firebase/util';
+import { deepCopy, contains } from '@firebase/util';
 
 /**
  * Tracks a collection of stats.
@@ -27,7 +26,9 @@ export class StatsCollection {
   private counters_: { [k: string]: number } = {};
 
   incrementCounter(name: string, amount: number = 1) {
-    if (!contains(this.counters_, name)) this.counters_[name] = 0;
+    if (!contains(this.counters_, name)) {
+      this.counters_[name] = 0;
+    }
 
     this.counters_[name] += amount;
   }

@@ -23,7 +23,6 @@
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { Observer, Subscribe } from '@firebase/util';
 import { FirebaseError, ErrorFactory } from '@firebase/util';
-import { Deferred } from '../firestore/test/util/promise';
 import { Component, ComponentContainer } from '@firebase/component';
 
 export interface FirebaseServiceInternals {

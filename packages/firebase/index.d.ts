@@ -87,8 +87,13 @@ declare namespace firebase {
    * Registers a library's name and version for platform logging purposes.
    * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
    * @param version Current version of that library.
+   * @param variant Bundle variant, e.g., node, rn, etc.
    */
-  function registerVersion(library: string, version: string): void;
+  function registerVersion(
+    library: string,
+    version: string,
+    variant?: string
+  ): void;
 
   /**
    * @hidden
@@ -1347,6 +1352,12 @@ declare namespace firebase.installations {
      * Deletes the Firebase Installation and all associated data.
      */
     delete(): Promise<void>;
+
+    /**
+     * Sets a new callback that will get called when Installlation ID changes.
+     * Returns an unsubscribe function that will remove the callback when called.
+     */
+    onIdChange(callback: (installationId: string) => void): () => void;
   }
 }
 
@@ -3651,6 +3662,7 @@ declare namespace firebase.auth {
   }
 
   class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
   }
 
@@ -6267,7 +6279,7 @@ declare namespace firebase.messaging {
    */
   interface Messaging {
     /**
-     * To forceably stop a registration token from being used, delete it
+     * To forcibly stop a registration token from being used, delete it
      * by calling this method.
      *
      * @param token The token to delete.
@@ -6276,14 +6288,16 @@ declare namespace firebase.messaging {
      */
     deleteToken(token: string): Promise<boolean>;
     /**
-     * After calling `requestPermission()` you can call this method to get an FCM
-     * registration token that can be used to send push messages to this user.
+     * Subscribes the user to push notifications and returns an FCM registration
+     * token that can be used to send push messages to the user.
      *
-     * @return The promise resolves if an FCM token can
-     *   be retrieved. This method returns null if the current origin does not have
-     *   permission to show notifications.
+     * If notification permission isn't already granted, this method asks the
+     * user for permission. The returned promise rejects if the user does not
+     * allow the app to show notifications.
+     *
+     * @return The promise resolves with the FCM token string.
      */
-    getToken(): Promise<string | null>;
+    getToken(): Promise<string>;
     /**
      * When a push message is received and the user is currently on a page
      * for your origin, the message is passed to the page and an `onMessage()`
@@ -6322,7 +6336,8 @@ declare namespace firebase.messaging {
     /**
      * Notification permissions are required to send a user push messages.
      * Calling this method displays the permission dialog to the user and
-     * resolves if the permission is granted.
+     * resolves if the permission is granted. It is not necessary to call this
+     * method, as `getToken()` will do this automatically if required.
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
@@ -8040,11 +8055,10 @@ declare namespace firebase.firestore {
     readonly hasPendingWrites: boolean;
 
     /**
-     * True if the snapshot includes local writes (`set()` or
-     * `update()` calls) that haven't been committed to the backend yet.
-     * If your listener has opted into
-     * metadata updates (via `SnapshotListenOptions`)
-     * you will receive another snapshot with `fromCache` equal to false once
+     * True if the snapshot was created from cached data rather than guaranteed
+     * up-to-date server data. If your listener has opted into metadata updates
+     * (via `SnapshotListenOptions`)
+     * you will receive another snapshot with `fromCache` set to false once
      * the client has received up-to-date data from the backend.
      */
     readonly fromCache: boolean;

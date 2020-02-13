@@ -22,6 +22,7 @@ import { Node } from './Node';
 import { Path } from '../util/Path';
 import { Index } from './indexes/Index';
 import { ChildrenNodeConstructor } from './ChildrenNode';
+import { Indexable } from '../util/misc';
 
 let __childrenNodeConstructor: ChildrenNodeConstructor;
 
@@ -56,7 +57,7 @@ export class LeafNode implements Node {
    * @param {!Node=} priorityNode_ The priority of this node.
    */
   constructor(
-    private readonly value_: string | number | boolean | object,
+    private readonly value_: string | number | boolean | Indexable,
     private priorityNode_: Node = LeafNode.__childrenNodeConstructor.EMPTY_NODE
   ) {
     assert(
@@ -111,7 +112,7 @@ export class LeafNode implements Node {
   }
 
   /** @inheritDoc */
-  getPredecessorChildName(childName: String, childNode: Node): null {
+  getPredecessorChildName(childName: string, childNode: Node): null {
     return null;
   }
 
@@ -163,31 +164,34 @@ export class LeafNode implements Node {
   }
 
   /** @inheritDoc */
-  forEachChild(index: Index, action: (s: string, n: Node) => void): any {
+  forEachChild(index: Index, action: (s: string, n: Node) => void): boolean {
     return false;
   }
 
   /**
    * @inheritDoc
    */
-  val(exportFormat?: boolean): Object {
-    if (exportFormat && !this.getPriority().isEmpty())
+  val(exportFormat?: boolean): {} {
+    if (exportFormat && !this.getPriority().isEmpty()) {
       return {
         '.value': this.getValue(),
         '.priority': this.getPriority().val()
       };
-    else return this.getValue();
+    } else {
+      return this.getValue();
+    }
   }
 
   /** @inheritDoc */
   hash(): string {
     if (this.lazyHash_ === null) {
       let toHash = '';
-      if (!this.priorityNode_.isEmpty())
+      if (!this.priorityNode_.isEmpty()) {
         toHash +=
           'priority:' +
           priorityHashText(this.priorityNode_.val() as number | string) +
           ':';
+      }
 
       const type = typeof this.value_;
       toHash += type + ':';
@@ -205,7 +209,7 @@ export class LeafNode implements Node {
    * Returns the value of the leaf node.
    * @return {Object|string|number|boolean} The value of the node.
    */
-  getValue(): object | string | number | boolean {
+  getValue(): Indexable | string | number | boolean {
     return this.value_;
   }
 

@@ -2466,7 +2466,10 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
 
   add(value: T): Promise<firestore.DocumentReference<T>> {
     validateExactNumberOfArgs('CollectionReference.add', arguments, 1);
-    validateArgType('CollectionReference.add', 'object', 1, value);
+    const convertedValue = this._converter
+      ? this._converter.toFirestore(value)
+      : value;
+    validateArgType('CollectionReference.add', 'object', 1, convertedValue);
     const docRef = this.doc();
     return docRef.set(value).then(() => docRef);
   }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
@@ -24,7 +24,6 @@ import { PathIndex } from '../snap/indexes/PathIndex';
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';
 import { RangedFilter } from './filter/RangedFilter';
-import { stringify } from '@firebase/util';
 import { NodeFilter } from './filter/NodeFilter';
 import { Index } from '../snap/indexes/Index';
 
@@ -43,9 +42,9 @@ export class QueryParams {
 
   private limit_ = 0;
   private viewFrom_ = '';
-  private indexStartValue_: any | null = null;
+  private indexStartValue_: unknown | null = null;
   private indexStartName_ = '';
-  private indexEndValue_: any | null = null;
+  private indexEndValue_: unknown | null = null;
   private indexEndName_ = '';
 
   private index_ = PRIORITY_INDEX;
@@ -120,7 +119,7 @@ export class QueryParams {
    * Only valid to call if hasStart() returns true
    * @return {*}
    */
-  getIndexStartValue(): any {
+  getIndexStartValue(): unknown {
     assert(this.startSet_, 'Only valid if start has been set');
     return this.indexStartValue_;
   }
@@ -150,7 +149,7 @@ export class QueryParams {
    * Only valid to call if hasEnd() returns true.
    * @return {*}
    */
-  getIndexEndValue(): any {
+  getIndexEndValue(): unknown {
     assert(this.endSet_, 'Only valid if end has been set');
     return this.indexEndValue_;
   }
@@ -261,7 +260,7 @@ export class QueryParams {
    * @param {?string=} key
    * @return {!QueryParams}
    */
-  startAt(indexValue: any, key?: string | null): QueryParams {
+  startAt(indexValue: unknown, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.startSet_ = true;
     if (indexValue === undefined) {
@@ -283,7 +282,7 @@ export class QueryParams {
    * @param {?string=} key
    * @return {!QueryParams}
    */
-  endAt(indexValue: any, key?: string | null): QueryParams {
+  endAt(indexValue: unknown, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.endSet_ = true;
     if (indexValue === undefined) {
@@ -313,9 +312,9 @@ export class QueryParams {
   /**
    * @return {!Object}
    */
-  getQueryObject(): Object {
+  getQueryObject(): {} {
     const WIRE_PROTOCOL_CONSTANTS = QueryParams.WIRE_PROTOCOL_CONSTANTS_;
-    const obj: { [k: string]: any } = {};
+    const obj: { [k: string]: unknown } = {};
     if (this.startSet_) {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_VALUE] = this.indexStartValue_;
       if (this.startNameSet_) {
@@ -358,7 +357,7 @@ export class QueryParams {
    * @return {boolean}
    */
   isDefault(): boolean {
-    return this.loadsAllData() && this.index_ == PRIORITY_INDEX;
+    return this.loadsAllData() && this.index_ === PRIORITY_INDEX;
   }
 
   /**
@@ -379,7 +378,7 @@ export class QueryParams {
    *
    * @return {!Object.<string,*>} query string parameters
    */
-  toRestQueryStringParameters(): { [k: string]: any } {
+  toRestQueryStringParameters(): { [k: string]: string | number } {
     const REST_CONSTANTS = QueryParams.REST_QUERY_CONSTANTS_;
     const qs: { [k: string]: string | number } = {};
 

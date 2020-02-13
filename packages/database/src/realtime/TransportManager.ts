@@ -58,10 +58,11 @@ export class TransportManager {
       isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
 
     if (repoInfo.webSocketOnly) {
-      if (!isWebSocketsAvailable)
+      if (!isWebSocketsAvailable) {
         warn(
           "wss:// URL used, but browser isn't known to support websockets.  Trying anyway."
         );
+      }
 
       isSkipPollConnection = true;
     }

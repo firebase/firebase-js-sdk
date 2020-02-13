@@ -1,0 +1,65 @@
+name: Run All Tests
+
+on: 
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+  schedule:
+    - cron: '0 6,18 * * *'
+
+jobs:
+  test:
+    name: Node.js and Browser (Chrome) Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build
+      run: yarn build
+    - name: Run unit tests
+      run: xvfb-run yarn test
+    - name: Generate coverage file
+      run: yarn ci:coverage
+    - name: Run coverage
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./lcov-all.info
+      continue-on-error: true
+  deploy:
+    name: Canary Deploy
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+        registry-url: 'https://registry.npmjs.org'
+    - name: Yarn install
+      run: yarn
+    - name: yarn build
+      run: yarn build
+    - name: Deploy canary
+      run: |
+        npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+        yarn release --canary
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

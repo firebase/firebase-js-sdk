@@ -20,7 +20,12 @@ import { documentVersionMap } from '../model/collections';
 import { Document, NoDocument, MaybeDocument } from '../model/document';
 
 import { DocumentKey } from '../model/document_key';
-import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition,
+  VerifyMutation
+} from '../model/mutation';
 import { Datastore } from '../remote/datastore';
 import { fail, assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -46,7 +51,7 @@ export class Transaction {
    * Set of documents that have been written in the transaction.
    *
    * When there's more than one write to the same key in a transaction, any
-   * writes after hte first are handled differently.
+   * writes after the first are handled differently.
    */
   private writtenDocs: Set<DocumentKey> = new Set();
 
@@ -102,12 +107,11 @@ export class Transaction {
     this.mutations.forEach(mutation => {
       unwritten = unwritten.remove(mutation.key);
     });
-    if (!unwritten.isEmpty()) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Every document read in a transaction must also be written.'
-      );
-    }
+    // For each document that was read but not written to, we want to perform
+    // a `verify` operation.
+    unwritten.forEach((key, _version) => {
+      this.mutations.push(new VerifyMutation(key, this.precondition(key)));
+    });
     await this.datastore.commit(this.mutations);
     this.committed = true;
   }

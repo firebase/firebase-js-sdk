@@ -129,11 +129,7 @@ export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return MemoryPersistence.createLruPersistence(
-    AutoId.newId(),
-    JSON_SERIALIZER,
-    params
-  );
+  return MemoryPersistence.createLruPersistence(AutoId.newId(), params);
 }
 
 /** Clears the persistence in tests */

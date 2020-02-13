@@ -44,7 +44,7 @@ export class SortedMapIterator<K, V, T> {
   /** @private
    * @type {Array.<!LLRBNode>}
    */
-  private nodeStack_: (LLRBNode<K, V> | LLRBEmptyNode<K, V>)[] = [];
+  private nodeStack_: Array<LLRBNode<K, V> | LLRBEmptyNode<K, V>> = [];
 
   /**
    * @template K, V, T
@@ -66,7 +66,9 @@ export class SortedMapIterator<K, V, T> {
       node = node as LLRBNode<K, V>;
       cmp = startKey ? comparator(node.key, startKey) : 1;
       // flip the comparison if we're going in reverse
-      if (isReverse_) cmp *= -1;
+      if (isReverse_) {
+        cmp *= -1;
+      }
 
       if (cmp < 0) {
         // This node is less than our start key. ignore it
@@ -92,13 +94,17 @@ export class SortedMapIterator<K, V, T> {
   }
 
   getNext(): T {
-    if (this.nodeStack_.length === 0) return null;
+    if (this.nodeStack_.length === 0) {
+      return null;
+    }
 
     let node = this.nodeStack_.pop();
     let result: T;
-    if (this.resultGenerator_)
+    if (this.resultGenerator_) {
       result = this.resultGenerator_(node.key, node.value);
-    else result = { key: node.key, value: node.value } as any;
+    } else {
+      result = ({ key: node.key, value: node.value } as unknown) as T;
+    }
 
     if (this.isReverse_) {
       node = node.left;
@@ -122,13 +128,15 @@ export class SortedMapIterator<K, V, T> {
   }
 
   peek(): T {
-    if (this.nodeStack_.length === 0) return null;
+    if (this.nodeStack_.length === 0) {
+      return null;
+    }
 
     const node = this.nodeStack_[this.nodeStack_.length - 1];
     if (this.resultGenerator_) {
       return this.resultGenerator_(node.key, node.value);
     } else {
-      return { key: node.key, value: node.value } as any;
+      return ({ key: node.key, value: node.value } as unknown) as T;
     }
   }
 }
@@ -215,10 +223,10 @@ export class LLRBNode<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return (
       this.left.inorderTraversal(action) ||
-      action(this.key, this.value) ||
+      !!action(this.key, this.value) ||
       this.right.inorderTraversal(action)
     );
   }
@@ -277,9 +285,8 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree, with the key/value added.
    */
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let cmp, n;
-    n = this;
-    cmp = comparator(key, n.key);
+    let n: LLRBNode<K, V> = this;
+    const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
     } else if (cmp === 0) {
@@ -305,7 +312,9 @@ export class LLRBNode<K, V> {
       return SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
     }
     let n: LLRBNode<K, V> = this;
-    if (!n.left.isRed_() && !n.left.left.isRed_()) n = n.moveRedLeft_();
+    if (!n.left.isRed_() && !n.left.left.isRed_()) {
+      n = n.moveRedLeft_();
+    }
     n = n.copy(null, null, null, (n.left as LLRBNode<K, V>).removeMin_(), null);
     return n.fixUp_();
   }
@@ -327,7 +336,9 @@ export class LLRBNode<K, V> {
       }
       n = n.copy(null, null, null, n.left.remove(key, comparator), null);
     } else {
-      if (n.left.isRed_()) n = n.rotateRight_();
+      if (n.left.isRed_()) {
+        n = n.rotateRight_();
+      }
       if (!n.right.isEmpty() && !n.right.isRed_() && !n.right.left.isRed_()) {
         n = n.moveRedRight_();
       }
@@ -363,10 +374,16 @@ export class LLRBNode<K, V> {
    * @return {!LLRBNode} New tree after performing any needed rotations.
    */
   private fixUp_(): LLRBNode<K, V> {
-    let n = this as any;
-    if (n.right.isRed_() && !n.left.isRed_()) n = n.rotateLeft_();
-    if (n.left.isRed_() && n.left.left.isRed_()) n = n.rotateRight_();
-    if (n.left.isRed_() && n.right.isRed_()) n = n.colorFlip_();
+    let n: LLRBNode<K, V> = this;
+    if (n.right.isRed_() && !n.left.isRed_()) {
+      n = n.rotateLeft_();
+    }
+    if (n.left.isRed_() && n.left.left.isRed_()) {
+      n = n.rotateRight_();
+    }
+    if (n.left.isRed_() && n.right.isRed_()) {
+      n = n.colorFlip_();
+    }
     return n;
   }
 
@@ -447,7 +464,6 @@ export class LLRBNode<K, V> {
    * @return {number} Not sure what this returns exactly. :-).
    */
   check_(): number {
-    let blackDepth;
     if (this.isRed_() && this.left.isRed_()) {
       throw new Error(
         'Red node has red child(' + this.key + ',' + this.value + ')'
@@ -458,7 +474,7 @@ export class LLRBNode<K, V> {
         'Right child of (' + this.key + ',' + this.value + ') is red'
       );
     }
-    blackDepth = this.left.check_();
+    const blackDepth = this.left.check_();
     if (blackDepth !== this.right.check_()) {
       throw new Error('Black depths differ');
     } else {
@@ -537,7 +553,7 @@ export class LLRBEmptyNode<K, V> {
    * node.  If it returns true, traversal is aborted.
    * @return {boolean} True if traversal was aborted.
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return false;
   }
 
@@ -676,7 +692,9 @@ export class SortedMap<K, V> {
       if (cmp === 0) {
         if (!node.left.isEmpty()) {
           node = node.left;
-          while (!node.right.isEmpty()) node = node.right;
+          while (!node.right.isEmpty()) {
+            node = node.right;
+          }
           return node.key;
         } else if (rightParent) {
           return rightParent.key;
@@ -733,7 +751,7 @@ export class SortedMap<K, V> {
    * @return {*} The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
-  inorderTraversal(action: (k: K, v: V) => any): boolean {
+  inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return this.root_.inorderTraversal(action);
   }
 

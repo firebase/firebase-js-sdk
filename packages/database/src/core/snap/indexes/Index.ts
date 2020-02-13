@@ -64,6 +64,7 @@ export abstract class Index {
    * any other node wrapper, using this index
    */
   minPost(): NamedNode {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
 
@@ -78,7 +79,7 @@ export abstract class Index {
    * @param {string} name
    * @return {!NamedNode}
    */
-  abstract makePost(indexValue: any, name: string): NamedNode;
+  abstract makePost(indexValue: unknown, name: string): NamedNode;
 
   /**
    * @return {!string} String representation for inclusion in a query spec

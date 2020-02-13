@@ -16,14 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { clearTestPersistence } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
-import {
-  EmptyCredentialsProvider,
-  CredentialChangeListener
-} from '../../../src/api/credentials';
-import { User } from '../../../src/auth/user';
-
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
@@ -131,19 +124,6 @@ apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
-export class MockCredentialsProvider extends EmptyCredentialsProvider {
-  private listener: CredentialChangeListener | null = null;
-
-  triggerUserChange(newUser: User): void {
-    this.listener!(newUser);
-  }
-
-  setChangeListener(listener: CredentialChangeListener): void {
-    super.setChangeListener(listener);
-    this.listener = listener;
-  }
-}
-
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
@@ -181,30 +161,6 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
-}
-
-export function withMockCredentialProviderTestDb(
-  persistence: boolean,
-  fn: (
-    db: firestore.FirebaseFirestore,
-    mockCredential: MockCredentialsProvider
-  ) => Promise<void>
-): Promise<void> {
-  const mockCredentialsProvider = new MockCredentialsProvider();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    credentials: { client: mockCredentialsProvider, type: 'provider' }
-  };
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    settings,
-    1,
-    ([db]) => {
-      return fn(db, mockCredentialsProvider);
-    }
-  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
@@ -278,10 +234,8 @@ export async function withTestDbsSettings(
   } finally {
     await wipeDb(dbs[0]);
     for (const db of dbs) {
-      await db.INTERNAL.delete();
-    }
-    if (persistence) {
-      await clearTestPersistence();
+      await db.terminate();
+      await db.clearPersistence();
     }
   }
 }

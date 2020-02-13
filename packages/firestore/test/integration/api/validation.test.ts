@@ -18,7 +18,6 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
@@ -159,7 +158,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+      db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
   });
 
@@ -958,10 +957,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const query = db
           .collection('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         const cgQuery = db
           .collectionGroup('collection')
-          .orderBy(firebase.firestore!.FieldPath.documentId());
+          .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'

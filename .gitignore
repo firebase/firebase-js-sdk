@@ -2,6 +2,7 @@
 node_modules
 dist
 .awcache
+.cache
 /config/project.json
 scripts/docgen/html
 
