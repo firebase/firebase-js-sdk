@@ -33,6 +33,7 @@ import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
+import { Blob } from '../api/blob';
 
 const LOG_TAG = 'Connection';
 
@@ -196,9 +197,17 @@ export class GrpcConnection implements Connection {
     const stream = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
-          log.debug(LOG_TAG, 'GRPC stream sending:', msg);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const msg2 = msg as any;
+          // if (!!msg2.addTarget && !!msg2.addTarget.resumeToken )
+          // { 
+          //   const resume = new Uint8Array([10, 9, 8, 179, 245, 197, 212, 212, 207, 231, 2]);
+          //   // const token = Blob.fromUint8Array(resume).
+          //   msg2.addTarget.resumeToken = resume;
+          // } 
+          log.debug(LOG_TAG, 'GRPC stream sending:', msg2);
           try {
-            grpcStream.write(msg);
+            grpcStream.write(msg2);
           } catch (e) {
             // This probably means we didn't conform to the proto.  Make sure to
             // log the message we sent.

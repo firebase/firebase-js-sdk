@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
+import { BatchId, ListenSequenceNumber, TargetId, ProtoByteString } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
@@ -772,7 +772,7 @@ export class DbTarget {
      *
      * This is the same value as TargetChange.resume_token in the protos.
      */
-    public resumeToken: string,
+    public resumeToken: ProtoByteString,
     /**
      * A sequence number representing the last time this query was
      * listened to, used for garbage collection purposes.

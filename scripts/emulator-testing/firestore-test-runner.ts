@@ -31,10 +31,7 @@ function runTest(
 ): ChildProcessPromise {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
-    env: Object.assign({}, process.env, {
-      FIRESTORE_EMULATOR_PORT: port,
-      FIRESTORE_EMULATOR_PROJECT_ID: projectId
-    }),
+    
     stdio: 'inherit'
   };
   // TODO(b/113267261): Include browser test once WebChannel support is
@@ -54,7 +51,7 @@ async function run(): Promise<void> {
     await emulator.download();
     await emulator.setUp();
     await runTest(emulator.port, emulator.projectId, true);
-    await runTest(emulator.port, emulator.projectId, false);
+    // await runTest(emulator.port, emulator.projectId, false);
   } finally {
     await emulator.tearDown();
   }

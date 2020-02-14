@@ -96,7 +96,7 @@
         "--require", "ts-node/register/type-check",
         "--require", "index.node.ts",
         "--require", "test/util/node_persistence.ts",
-        "--timeout", "5000",
+        "--timeout", "5000000",
         "test/{,!(browser|unit)/**/}*.test.ts",
         "--exit"
       ],

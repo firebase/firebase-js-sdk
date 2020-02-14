@@ -1288,6 +1288,7 @@ export class DocumentReference<T = firestore.DocumentData>
           // Remove query first before passing event to user to avoid
           // user actions affecting the now stale query.
           unlisten();
+          // console.log('bchen snapshot acquired', snap.exists, snap);
 
           if (!snap.exists && snap.metadata.fromCache) {
             // TODO(dimond): If we're online and the document doesn't

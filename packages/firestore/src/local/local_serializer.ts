@@ -44,6 +44,7 @@ import {
 } from './indexeddb_schema';
 import { SimpleDb } from './simple_db';
 import { TargetData, TargetPurpose } from './target_data';
+import { ProtoByteString } from '../core/types';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -247,7 +248,7 @@ export class LocalSerializer {
       queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
-    let resumeToken: string;
+    let resumeToken: ProtoByteString;
 
     if (targetData.resumeToken instanceof Uint8Array) {
       // TODO(b/78771403): Convert tokens to strings during deserialization
@@ -255,7 +256,7 @@ export class LocalSerializer {
         SimpleDb.isMockPersistence(),
         'Persisting non-string stream tokens is only supported with mock persistence .'
       );
-      resumeToken = targetData.resumeToken.toString();
+      resumeToken = targetData.resumeToken;
     } else {
       resumeToken = targetData.resumeToken;
     }

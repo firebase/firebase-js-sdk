@@ -32,6 +32,8 @@ import {
   withTestDocAndInitialData,
   DEFAULT_SETTINGS
 } from '../util/helpers';
+import { setLogLevel } from '@firebase/logger';
+import { LogLevel } from '../../../src/util/log';
 
 // tslint:disable:no-floating-promises
 
@@ -68,16 +70,27 @@ apiDescribe('Database', (persistence: boolean) => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
+          // eslint-disable-next-line no-console
+          console.log('starting first get');
           return docRef.get();
         })
         .then(doc => {
+          // eslint-disable-next-line no-console
+          console.log('first get success');
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
           return docRef.delete();
         })
-        .then(() => {
-          return docRef.get();
+        .then(async () => {
+          console.log('delete success');
+          setLogLevel(LogLevel.DEBUG);
+          const result = await docRef.get();
+          setLogLevel(LogLevel.ERROR);
+
+          return result;
         })
         .then(doc => {
+          // eslint-disable-next-line no-console
+          console.log('first get success');
           expect(doc.exists).to.equal(false);
         });
     });
@@ -1214,9 +1227,12 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
-        const coll = db.collection('posts').withConverter(postConverter);
+        const docRef = db
+          .collection('posts')
+          .withConverter(postConverter)
+          .doc();
 
-        const docRef = await coll.add(new Post('post', 'author'));
+        await docRef.set(new Post('post', 'author'));
         const postData = await docRef.get();
         const post = postData.data();
         expect(post).to.not.equal(undefined);
