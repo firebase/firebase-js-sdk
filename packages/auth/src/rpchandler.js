@@ -325,15 +325,6 @@ fireauth.RpcHandler.GetOobCodeRequestType = {
 
 
 /**
- * Firebase Auth startMfaEnrollment mfaProvider possible values.
- * @enum {string}
- */
-fireauth.RpcHandler.MfaProvider = {
-  PHONE_SMS: 'PHONE_SMS'
-};
-
-
-/**
  * Firebase Auth response field names.
  * @enum {string}
  */
@@ -1803,8 +1794,6 @@ fireauth.RpcHandler.validateStartPhoneMfaEnrollmentResponse_ =
  * @return {!goog.Promise<string>}
  */
 fireauth.RpcHandler.prototype.startPhoneMfaEnrollment = function(request) {
-  // Inject mfaProvider for Phone MFA enrollment.
-  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.START_PHONE_MFA_ENROLLMENT, request)
       .then(function(response) {
@@ -1841,8 +1830,6 @@ fireauth.RpcHandler.validateFinalizePhoneMfaRequest_ = function(request) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.finalizePhoneMfaEnrollment = function(request) {
-  // Inject mfaProvider for Phone MFA enrollment.
-  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.FINALIZE_PHONE_MFA_ENROLLMENT, request);
 };
@@ -1884,8 +1871,6 @@ fireauth.RpcHandler.validateStartPhoneMfaSignInResponse_ = function(response) {
  * @return {!goog.Promise<string>}
  */
 fireauth.RpcHandler.prototype.startPhoneMfaSignIn = function(request) {
-  // Inject mfaProvider for Phone MFA sign-in.
-  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.START_PHONE_MFA_SIGN_IN, request)
       .then(function(response) {
@@ -1903,8 +1888,6 @@ fireauth.RpcHandler.prototype.startPhoneMfaSignIn = function(request) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.finalizePhoneMfaSignIn = function(request) {
-  // Inject mfaProvider for Phone MFA sign-in.
-  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.FINALIZE_PHONE_MFA_SIGN_IN, request);
 };
@@ -2388,7 +2371,7 @@ fireauth.RpcHandler.ApiMethod = {
   },
   FINALIZE_PHONE_MFA_ENROLLMENT: {
     endpoint: 'accounts/mfaEnrollment:finalize',
-    requestRequiredFields: ['idToken', 'mfaProvider', 'phoneVerificationInfo'],
+    requestRequiredFields: ['idToken', 'phoneVerificationInfo'],
     requestValidator:
         fireauth.RpcHandler.validateFinalizePhoneMfaRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
@@ -2397,8 +2380,7 @@ fireauth.RpcHandler.ApiMethod = {
   },
   FINALIZE_PHONE_MFA_SIGN_IN: {
     endpoint: 'accounts/mfaSignIn:finalize',
-    requestRequiredFields: ['mfaPendingCredential', 'mfaProvider',
-                            'phoneVerificationInfo'],
+    requestRequiredFields: ['mfaPendingCredential', 'phoneVerificationInfo'],
     requestValidator:
         fireauth.RpcHandler.validateFinalizePhoneMfaRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
@@ -2501,7 +2483,7 @@ fireauth.RpcHandler.ApiMethod = {
   },
   START_PHONE_MFA_ENROLLMENT: {
     endpoint: 'accounts/mfaEnrollment:start',
-    requestRequiredFields: ['idToken', 'mfaProvider', 'phoneEnrollmentInfo'],
+    requestRequiredFields: ['idToken', 'phoneEnrollmentInfo'],
     requestValidator:
         fireauth.RpcHandler.validateStartPhoneMfaEnrollmentRequest_,
     responseValidator:
@@ -2511,8 +2493,8 @@ fireauth.RpcHandler.ApiMethod = {
   },
   START_PHONE_MFA_SIGN_IN: {
     endpoint: 'accounts/mfaSignIn:start',
-    requestRequiredFields: ['mfaPendingCredential', 'mfaProvider',
-                            'mfaEnrollmentId', 'phoneSignInInfo'],
+    requestRequiredFields: ['mfaPendingCredential', 'mfaEnrollmentId',
+                            'phoneSignInInfo'],
     requestValidator:
         fireauth.RpcHandler.validateStartPhoneMfaSignInRequest_,
     responseValidator:

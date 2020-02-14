@@ -8288,12 +8288,6 @@ function testStartPhoneMfaEnrollment_success() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var expectedRequest = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var expectedResponse = {
     'phoneSessionInfo': {
       'sessionInfo': 'SESSION_INFO'
@@ -8303,7 +8297,7 @@ function testStartPhoneMfaEnrollment_success() {
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaEnrollment:start?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(enrollmentRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8375,12 +8369,6 @@ function testStartPhoneMfaEnrollment_unknownServerResponse() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var expectedRequest = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   // No sessionInfo returned.
   var expectedResponse = {
     'phoneSessionInfo': {
@@ -8390,7 +8378,7 @@ function testStartPhoneMfaEnrollment_unknownServerResponse() {
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaEnrollment:start?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(enrollmentRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8417,12 +8405,6 @@ function testStartPhoneMfaEnrollment_caughtServerError() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var requestBody = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      requestBody,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var errorMap = {};
   // All related server errors for StartPhoneMfaEnrollment.
   errorMap[fireauth.RpcHandler.ServerError.CAPTCHA_CHECK_FAILED] =
@@ -8450,7 +8432,7 @@ function testStartPhoneMfaEnrollment_caughtServerError() {
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.startPhoneMfaEnrollment(enrollmentRequest);
-  }, errorMap, expectedUrl, requestBody);
+  }, errorMap, expectedUrl, enrollmentRequest);
 }
 
 
@@ -8465,17 +8447,11 @@ function testFinalizePhoneMfaEnrollment_success() {
       'code': '123456'
     }
   };
-  var expectedRequest = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaEnrollment:finalize?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(enrollmentRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       tokenResponse);
@@ -8500,17 +8476,11 @@ function testFinalizePhoneMfaEnrollment_success_displayName() {
       'code': '123456'
     }
   };
-  var expectedRequest = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaEnrollment:finalize?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(enrollmentRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       tokenResponse);
@@ -8577,19 +8547,13 @@ function testFinalizePhoneMfaEnrollment_unknownServerResponse() {
       'code': '123456'
     }
   };
-  var expectedRequest = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   // No idToken returned.
   var expectedResponse = {};
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaEnrollment:finalize?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(enrollmentRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8616,12 +8580,6 @@ function testFinalizePhoneMfaEnrollment_caughtServerError() {
       'code': '123456'
     }
   };
-  var requestBody = goog.object.clone(enrollmentRequest);
-  goog.object.extend(
-      requestBody,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var errorMap = {};
   // All related server errors for finalizePhoneMfaEnrollment.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CODE] =
@@ -8649,7 +8607,7 @@ function testFinalizePhoneMfaEnrollment_caughtServerError() {
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.finalizePhoneMfaEnrollment(enrollmentRequest);
-  }, errorMap, expectedUrl, requestBody);
+  }, errorMap, expectedUrl, enrollmentRequest);
 }
 
 
@@ -8664,12 +8622,6 @@ function testStartPhoneMfaSignIn_success() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var expectedRequest = goog.object.clone(signInRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var expectedResponse = {
     'phoneResponseInfo': {
       'sessionInfo': 'SESSION_INFO'
@@ -8679,7 +8631,7 @@ function testStartPhoneMfaSignIn_success() {
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaSignIn:start?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(signInRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8722,12 +8674,6 @@ function testStartPhoneMfaSignIn_unknownServerResponse() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var expectedRequest = goog.object.clone(signInRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   // No sessionInfo returned.
   var expectedResponse = {
     'phoneResponseInfo': {
@@ -8737,7 +8683,7 @@ function testStartPhoneMfaSignIn_unknownServerResponse() {
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaSignIn:start?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(signInRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8763,12 +8709,6 @@ function testStartPhoneMfaSignIn_caughtServerError() {
       'recaptchaToken': 'RECAPTCHA_TOKEN'
     }
   };
-  var requestBody = goog.object.clone(signInRequest);
-  goog.object.extend(
-      requestBody,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var errorMap = {};
   // All related server errors for StartPhoneMfaSignIn.
   errorMap[fireauth.RpcHandler.ServerError.CAPTCHA_CHECK_FAILED] =
@@ -8796,7 +8736,7 @@ function testStartPhoneMfaSignIn_caughtServerError() {
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.startPhoneMfaSignIn(signInRequest);
-  }, errorMap, expectedUrl, requestBody);
+  }, errorMap, expectedUrl, signInRequest);
 }
 
 
@@ -8811,17 +8751,11 @@ function testFinalizePhoneMfaSignIn_success() {
       'code': '123456'
     }
   };
-  var expectedRequest = goog.object.clone(signInRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaSignIn:finalize?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(signInRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       tokenResponse);
@@ -8884,19 +8818,13 @@ function testFinalizePhoneMfaSignIn_unknownServerResponse() {
       'code': '123456'
     }
   };
-  var expectedRequest = goog.object.clone(signInRequest);
-  goog.object.extend(
-      expectedRequest,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   // No idToken returned.
   var expectedResponse = {};
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
       identityPlatformEndpoint + 'accounts/mfaSignIn:finalize?key=apiKey',
       'POST',
-      goog.json.serialize(expectedRequest),
+      goog.json.serialize(signInRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
@@ -8922,12 +8850,6 @@ function testFinalizePhoneMfaSignIn_caughtServerError() {
       'code': '123456'
     }
   };
-  var requestBody = goog.object.clone(signInRequest);
-  goog.object.extend(
-      requestBody,
-      {
-        'mfaProvider': 'PHONE_SMS'
-      });
   var errorMap = {};
   // All related server errors for finalizePhoneMfaSignIn.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CODE] =
@@ -8951,7 +8873,7 @@ function testFinalizePhoneMfaSignIn_caughtServerError() {
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.finalizePhoneMfaSignIn(signInRequest);
-  }, errorMap, expectedUrl, requestBody);
+  }, errorMap, expectedUrl, signInRequest);
 }
 
 
