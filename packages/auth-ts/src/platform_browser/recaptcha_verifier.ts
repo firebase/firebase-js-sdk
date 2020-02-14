@@ -21,7 +21,7 @@ import { initializeAuth } from '../core/initialize_auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { isHttpOrHttps } from '../core/util/location';
 import { AuthWindow } from './auth_window';
-import { RECAPTCHA_LOADER } from './recaptcha_loader';
+import { RECAPTCHA_LOADER, ReCaptchaLoader, MOCK_RECAPTCHA_LOADER } from './recaptcha_loader';
 import { getRecaptchaParams } from '../api/authentication';
 
 const DEFAULT_PARAMS_: ReCaptchaV2.Parameters = {
@@ -44,6 +44,8 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
+  
+  private readonly recaptchaLoader: ReCaptchaLoader;
   private recaptcha: ReCaptchaV2.ReCaptcha | null = null;
   
   constructor(
@@ -61,6 +63,9 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
     this.container = container;
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
+
+    this.recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting ?
+        MOCK_RECAPTCHA_LOADER : RECAPTCHA_LOADER;
 
     this.validateStartingState();
     // TODO: Figure out if sdk version is needed
@@ -113,7 +118,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   clear() {
     this.checkIfDestroyed();
     this.destroyed = true;
-    RECAPTCHA_LOADER.clearedOneInstance();
+    this.recaptchaLoader.clearedOneInstance();
     if (!this.isInvisible) {
       this.container.childNodes.forEach(node => {
         this.container.removeChild(node);
@@ -177,7 +182,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
     }
 
     await domReady_();
-    this.recaptcha = await RECAPTCHA_LOADER.load(this.auth, this.auth.languageCode || undefined);
+    this.recaptcha = await this.recaptchaLoader.load(this.auth, this.auth.languageCode || undefined);
     const siteKey = await getRecaptchaParams(this.auth);
 
     if (!siteKey) {

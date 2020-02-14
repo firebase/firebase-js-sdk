@@ -22,6 +22,7 @@ import { Auth } from '../model/auth';
 import { Delay } from '../core/util/delay';
 import { querystring } from '@firebase/util';
 import { AuthWindow } from './auth_window';
+import { MOCK_RECAPTCHA } from './recaptcha_mock';
 
 // ReCaptcha will load using the same callback, so the callback function needs
 // to be kept around
@@ -110,4 +111,13 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   }
 }
 
+class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
+  async load(auth: Auth, hl?: string | undefined): Promise<ReCaptchaV2.ReCaptcha> {
+    return MOCK_RECAPTCHA;
+  }
+  
+  clearedOneInstance(): void {}
+}
+
+export const MOCK_RECAPTCHA_LOADER: ReCaptchaLoader = new MockReCaptchaLoaderImpl();
 export const RECAPTCHA_LOADER: ReCaptchaLoader = new ReCaptchaLoaderImpl();
