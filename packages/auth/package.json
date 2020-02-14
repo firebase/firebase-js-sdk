@@ -22,7 +22,7 @@
     "@firebase/auth-types": "0.9.5"
   },
   "devDependencies": {
-    "google-closure-compiler": "20200112.0.0",
+    "google-closure-compiler": "20200204.0.0",
     "google-closure-library": "20190709.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5"
