@@ -33,7 +33,6 @@ import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
-import { Blob } from '../api/blob';
 
 const LOG_TAG = 'Connection';
 
