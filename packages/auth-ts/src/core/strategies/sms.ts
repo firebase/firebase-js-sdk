@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
-export interface ApplicationVerifier {
-  readonly type: string;
-  verify(): Promise<string>;
-  reset(): void;
+import { Auth } from '../../model/auth';
+import { ApplicationVerifier } from '../../model/application_verifier';
+import { ConfirmationResult } from '../../model/confirmation_result';
+import { PhoneAuthProvider } from '../providers/phone';
+
+export async function signInWithPhoneNumber(
+    auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+  const provider = new PhoneAuthProvider(auth);
+  const verificationId = await provider.verifyPhoneNumber(phoneNumber, appVerifier);
+  return new ConfirmationResult(verificationId, auth);
 }

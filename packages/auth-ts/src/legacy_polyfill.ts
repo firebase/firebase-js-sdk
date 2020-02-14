@@ -65,6 +65,9 @@ import { SAMLAuthProvider } from './core/providers/saml';
 import { PhoneAuthProvider } from './core/providers/phone';
 import { TwitterAuthProvider } from './core/providers/twitter';
 import { RecaptchaVerifier } from './platform_browser/recaptcha_verifier';
+import { ApplicationVerifier } from './model/application_verifier';
+import { ConfirmationResult } from './model/confirmation_result';
+import { signInWithPhoneNumber } from './core/strategies/sms';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -194,6 +197,9 @@ let memo: FirebaseAuth;
           : browserPopupRedirectResolver
       );
     },
+    signInWithPhoneNumber(phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+      return signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    },
     verifyPasswordResetCode(code: string): Promise<string> {
       return verifyPasswordResetCode(auth, code);
     }
@@ -225,7 +231,6 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   OAuthProvider,
   SAMLAuthProvider,
   PhoneAuthProvider,
-  TwitterAuthProvider
+  RecaptchaVerifier,
+  TwitterAuthProvider,
 });
-
-(window as any).RecaptchaVerifier = RecaptchaVerifier;

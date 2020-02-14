@@ -44,6 +44,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
+  private recaptcha: ReCaptchaV2.ReCaptcha | null = null;
   
   constructor(
     containerOrId: HTMLElement | string,
@@ -68,9 +69,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   async verify(): Promise<string> {
     this.checkIfDestroyed();
     const id = await this.render();
-
-    // ReCaptcha will be immediately available by this time
-    const recaptcha = await this.init();
+    const recaptcha = this.assertedRecaptcha;
 
     const response = recaptcha.getResponse(id);
     if (response) return response;
@@ -102,6 +101,13 @@ export class RecaptchaVerifier implements ApplicationVerifier {
     });
 
     return this.renderPromise;
+  }
+
+  reset(): void {
+    this.checkIfDestroyed();
+    if (this.widgetId !== null) {
+      this.assertedRecaptcha.reset(this.widgetId);
+    }
   }
 
   clear() {
@@ -150,7 +156,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   }
 
   private async makeRenderPromise(): Promise<number> {
-    const recaptcha = await this.init();
+    await this.init();
     if (!this.widgetId) {
       let container = this.container;
       if (!this.isInvisible) {
@@ -159,19 +165,19 @@ export class RecaptchaVerifier implements ApplicationVerifier {
         container = guaranteedEmpty;
       }
 
-      this.widgetId = recaptcha.render(container, this.parameters);
+      this.widgetId = this.assertedRecaptcha.render(container, this.parameters);
     }
 
     return this.widgetId;
   }
 
-  private async init(): Promise<ReCaptchaV2.ReCaptcha> {
+  private async init(): Promise<void> {
     if (!isHttpOrHttps() || isWorker_()) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, this.errorParams);
     }
 
     await domReady_();
-    const recaptcha = await RECAPTCHA_LOADER.load(this.auth, this.auth.languageCode || undefined);
+    this.recaptcha = await RECAPTCHA_LOADER.load(this.auth, this.auth.languageCode || undefined);
     const siteKey = await getRecaptchaParams(this.auth);
 
     if (!siteKey) {
@@ -179,7 +185,14 @@ export class RecaptchaVerifier implements ApplicationVerifier {
     }
 
     this.parameters.sitekey = siteKey;
-    return recaptcha;
+  }
+
+  private get assertedRecaptcha(): ReCaptchaV2.ReCaptcha {
+    if (!this.recaptcha) {
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, this.errorParams);
+    }
+
+    return this.recaptcha;
   }
 }
 

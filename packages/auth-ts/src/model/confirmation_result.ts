@@ -15,8 +15,17 @@
  * limitations under the License.
  */
 
-export interface ApplicationVerifier {
-  readonly type: string;
-  verify(): Promise<string>;
-  reset(): void;
+import { UserCredential } from './user_credential';
+import { Auth } from './auth';
+import { PhoneAuthProvider } from '../core/providers/phone';
+import { signInWithCredential } from '../core/strategies/auth_credential';
+
+export class ConfirmationResult {
+  constructor(readonly verificationId: string, private readonly auth: Auth) {}
+  
+  async confirm(verificationCode: string): Promise<UserCredential> {
+    const authCredential =
+        PhoneAuthProvider.credential(this.verificationId, verificationCode);
+    return signInWithCredential(this.auth, authCredential);
+  }
 }

@@ -216,3 +216,24 @@ export async function getRecaptchaParams(
     Endpoint.GET_RECAPTCHA_PARAM,
   )).recaptchaSiteKey || '';
 }
+
+export interface SignInWithPhoneNumberRequest {
+  temporaryProof?: string,
+  phoneNumber?: string,
+  sessionInfo?: string;
+  code?: string;
+}
+
+export interface SignInWithPhoneNumberResponse extends IdTokenResponse {}
+
+export async function signInWithPhoneNumber(
+  auth: Auth,
+  request: SignInWithPhoneNumberRequest
+): Promise<SignInWithPhoneNumberResponse> {
+  return performApiRequest<SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    request
+  );
+}

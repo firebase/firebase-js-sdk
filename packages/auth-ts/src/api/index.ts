@@ -36,6 +36,7 @@ export enum Endpoint {
   SIGN_IN_WITH_EMAIL_LINK = '/v1/accounts:signInWithEmailLink',
   SIGN_IN_WITH_IDP = '/v1/accounts:signInWithIdp',
   SIGN_IN_WITH_PASSWORD = '/v1/accounts:signInWithPassword',
+  SIGN_IN_WITH_PHONE_NUMBER = '/v1/accounts:signInWithPhoneNumber',
   SEND_VERIFICATION_CODE = '/v1/accounts:sendVerificationCode',
   SEND_OOB_CODE = '/v1/accounts:sendOobCode',
   SET_ACCOUNT_INFO = '/v1/accounts:update',
