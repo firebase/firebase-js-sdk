@@ -178,7 +178,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   }
 
   private async messageEventListener(event: MessageEvent): Promise<void> {
-    if (!event.data?.firebaseMessaging) {
+    if (
+      !event.data?.firebaseMessaging &&
+      (!event.data?.firebaseMessagingType || !event.data?.firebaseMessagingData)
+      ) {
       // Not a message from FCM
       return;
     }
