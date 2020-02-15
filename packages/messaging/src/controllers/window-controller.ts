@@ -167,6 +167,12 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
             scope: DEFAULT_SW_SCOPE
           }
         );
+        
+        // The timing when browser updates sw when sw has an update is unreliable by my experiment. 
+        // It leads to version conflict when the SDK upgrades to a newer version in the main page, but 
+        // sw is stuck with the old version. For example, https://github.com/firebase/firebase-js-sdk/issues/2590
+        // The following line reliably updates sw if there was an update.
+        this.swRegistration.update().catch(() => { /* it is non blocking and we don't care if it failed */ });
       } catch (e) {
         throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
           browserErrorMessage: e.message
