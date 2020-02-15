@@ -26,7 +26,6 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
@@ -52,6 +51,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { emptyByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'RemoteStore';
 

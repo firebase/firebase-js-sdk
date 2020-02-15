@@ -26,7 +26,6 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { debug } from '../util/log';
@@ -36,6 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
+import { emptyByteString } from '../util/proto_byte_string';
 
 /**
  * Internal representation of the watcher API protocol buffers.

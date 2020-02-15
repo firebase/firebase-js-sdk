@@ -45,10 +45,6 @@ import {
   MutationBatchResult,
   BATCHID_UNKNOWN
 } from '../../../src/model/mutation_batch';
-import {
-  emptyByteString,
-  byteStringFromString
-} from '../../../src/platform/platform';
 import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
@@ -81,6 +77,7 @@ import {
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
+import { emptyByteString, byteStringFromString } from '../../../src/util/proto_byte_string';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();

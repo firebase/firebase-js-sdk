@@ -21,7 +21,6 @@ import { TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { emptyByteString } from '../../../src/platform/platform';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
@@ -43,6 +42,7 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
+import { emptyByteString } from '../../../src/util/proto_byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;

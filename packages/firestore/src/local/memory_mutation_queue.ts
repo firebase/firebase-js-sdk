@@ -22,7 +22,6 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
@@ -33,6 +32,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { emptyByteString } from '../util/proto_byte_string';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

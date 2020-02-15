@@ -83,7 +83,7 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
-import { byteStringFromString } from '../../../../src/platform/platform';
+import { byteStringFromString } from '../../../../src/util/proto_byte_string';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
