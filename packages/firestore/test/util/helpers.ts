@@ -75,7 +75,6 @@ import {
   TransformMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
-import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
@@ -89,6 +88,10 @@ import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
+import {
+  emptyByteString,
+  byteStringFromString
+} from '../../src/util/proto_byte_string';
 
 export type TestSnapshotVersion = number;
 
@@ -488,7 +491,7 @@ export function resumeTokenForSnapshot(
   if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
     return emptyByteString();
   } else {
-    return snapshotVersion.toString();
+    return byteStringFromString(snapshotVersion.toString());
   }
 }
 

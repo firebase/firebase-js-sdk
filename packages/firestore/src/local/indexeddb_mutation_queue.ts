@@ -47,7 +47,8 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { Blob } from '../api/blob';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -124,7 +125,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // Convert the streamToken to base64 in order to store it as a string that can
+      // be reconstructed into a Blob type.
+      metadata.lastStreamToken = streamToken.toBase64();
 
       return mutationQueuesStore(transaction).put(metadata);
     });
@@ -134,7 +137,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
     return this.getMutationQueueMetadata(transaction).next<ProtoByteString>(
-      metadata => metadata.lastStreamToken
+      metadata => Blob.fromBase64String(metadata.lastStreamToken)
     );
   }
 
@@ -143,7 +146,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // Convert the streamToken to base64 in order to store it as a string that can
+      // be reconstructed into a Blob type.
+      metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });
   }
@@ -669,19 +674,6 @@ export function removeMutationBatch(
     removedDocuments.push(mutation.key);
   }
   return PersistencePromise.waitFor(promises).next(() => removedDocuments);
-}
-
-function convertStreamToken(token: ProtoByteString): string {
-  if (token instanceof Uint8Array) {
-    // TODO(b/78771403): Convert tokens to strings during deserialization
-    assert(
-      SimpleDb.isMockPersistence(),
-      'Persisting non-string stream tokens is only supported with mock persistence.'
-    );
-    return token.toString();
-  } else {
-    return token;
-  }
 }
 
 /**

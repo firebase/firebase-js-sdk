@@ -25,6 +25,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
+import { Blob } from '../../../src/api/blob';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -64,23 +65,17 @@ export class TestMutationQueue {
     );
   }
 
-  getLastStreamToken(): Promise<string> {
+  getLastStreamToken(): Promise<Blob> {
     return this.persistence.runTransaction(
       'getLastStreamToken',
       'readonly-idempotent',
       txn => {
-        return this.queue.getLastStreamToken(txn).next(token => {
-          if (typeof token === 'string') {
-            return token;
-          } else {
-            throw new Error('Test mutation queue cannot handle Uint8Arrays');
-          }
-        });
+        return this.queue.getLastStreamToken(txn);
       }
     );
   }
 
-  setLastStreamToken(streamToken: string): Promise<void> {
+  setLastStreamToken(streamToken: Blob): Promise<void> {
     return this.persistence.runTransaction(
       'setLastStreamToken',
       'readwrite-primary-idempotent',

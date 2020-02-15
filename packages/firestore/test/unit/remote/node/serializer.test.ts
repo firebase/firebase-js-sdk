@@ -83,6 +83,7 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
+import { byteStringFromString } from '../../../../src/platform/platform';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
@@ -1249,7 +1250,7 @@ describe('Serializer', () => {
           4,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,
-          new Uint8Array([1, 2, 3])
+          Blob.fromUint8Array(new Uint8Array([1, 2, 3]))
         )
       );
       const expected = {
@@ -1347,14 +1348,14 @@ describe('Serializer', () => {
       const expected = new WatchTargetChange(
         WatchTargetChangeState.Removed,
         [1, 4],
-        'token',
+        byteStringFromString('token'),
         new FirestoreError(Code.CANCELLED, 'message')
       );
       const actual = s.fromWatchChange({
         targetChange: {
           targetChangeType: 'REMOVE',
           targetIds: [1, 4],
-          resumeToken: 'token',
+          resumeToken: s.toBytes(byteStringFromString('token')),
           cause: { code: 1, message: 'message' }
         }
       });
@@ -1392,14 +1393,14 @@ describe('Serializer', () => {
       const expected = new WatchTargetChange(
         WatchTargetChangeState.Removed,
         [1, 4],
-        'resume',
+        byteStringFromString('resume'),
         new FirestoreError(Code.CANCELLED, 'message')
       );
       const actual = s.fromWatchChange({
         targetChange: {
           targetChangeType: 'REMOVE',
           targetIds: [1, 4],
-          resumeToken: 'resume',
+          resumeToken: s.toBytes(byteStringFromString('resume')),
           cause: { code: 1, message: 'message' }
         }
       });

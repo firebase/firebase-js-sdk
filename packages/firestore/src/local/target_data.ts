@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
-import { emptyByteString } from '../platform/platform';
+import { emptyByteString } from '../util/proto_byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
 export enum TargetPurpose {
@@ -128,7 +128,7 @@ export class TargetData {
       this.lastLimboFreeSnapshotVersion.isEqual(
         other.lastLimboFreeSnapshotVersion
       ) &&
-      this.resumeToken === other.resumeToken &&
+      this.resumeToken.isEqual(other.resumeToken) &&
       this.target.isEqual(other.target)
     );
   }

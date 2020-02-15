@@ -30,7 +30,6 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   OnlineState,
   OnlineStateSource,
-  ProtoByteString,
   TargetId
 } from '../../../src/core/types';
 import {
@@ -62,10 +61,7 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import {
-  emptyByteString,
-  PlatformSupport
-} from '../../../src/platform/platform';
+import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
@@ -111,6 +107,10 @@ import {
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
+import {
+  byteStringFromString,
+  emptyByteString
+} from '../../../src/util/proto_byte_string';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -723,7 +723,7 @@ abstract class TestRunner {
 
   private doWatchCurrent(currentTargets: SpecWatchCurrent): Promise<void> {
     const targets = currentTargets[0];
-    const resumeToken = currentTargets[1] as ProtoByteString;
+    const resumeToken = byteStringFromString(currentTargets[1]);
     const change = new WatchTargetChange(
       WatchTargetChangeState.Current,
       targets,
@@ -831,7 +831,8 @@ abstract class TestRunner {
     const protoJSON: api.ListenResponse = {
       targetChange: {
         readTime: this.serializer.toVersion(version(watchSnapshot.version)),
-        resumeToken: watchSnapshot.resumeToken,
+        // Convert to base64 string to be compatible with Blob format.
+        resumeToken: this.platform.btoa(watchSnapshot.resumeToken || ''),
         targetIds: watchSnapshot.targetIds
       }
     };
@@ -1143,13 +1144,17 @@ abstract class TestRunner {
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,
-          expected.resumeToken
+          byteStringFromString(expected.resumeToken)
         )
       );
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
+      // actualTarget's resumeToken is a hexadecimal string, but the serialized
+      // resumeToken will be a base64 string, so we need to convert it back.
+      expect(actualTarget.resumeToken || '').to.equal(
+        this.platform.atob(expectedTarget.resumeToken || '')
+      );
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(

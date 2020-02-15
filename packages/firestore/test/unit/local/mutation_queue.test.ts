@@ -23,7 +23,6 @@ import { Persistence } from '../../../src/local/persistence';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutationBatch } from '../../../src/model/mutation_batch';
-import { emptyByteString } from '../../../src/platform/platform';
 import {
   expectEqualArrays,
   key,
@@ -35,6 +34,10 @@ import {
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
+import {
+  emptyByteString,
+  byteStringFromString
+} from '../../../src/util/proto_byte_string';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
@@ -307,8 +310,8 @@ function genericMutationQueueTests(): void {
   });
 
   it('can save the last stream token', async () => {
-    const streamToken1 = 'token1';
-    const streamToken2 = 'token2';
+    const streamToken1 = byteStringFromString('token1');
+    const streamToken2 = byteStringFromString('token2');
 
     await mutationQueue.setLastStreamToken(streamToken1);
 

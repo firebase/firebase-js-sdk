@@ -45,7 +45,10 @@ import {
   MutationBatchResult,
   BATCHID_UNKNOWN
 } from '../../../src/model/mutation_batch';
-import { emptyByteString } from '../../../src/platform/platform';
+import {
+  emptyByteString,
+  byteStringFromString
+} from '../../../src/platform/platform';
 import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
@@ -1124,7 +1127,7 @@ function genericLocalStoreTests(
     const query = Query.atPath(path('foo/bar'));
     const targetData = await localStore.allocateTarget(query.toTarget());
     const targetId = targetData.targetId;
-    const resumeToken = 'abc';
+    const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [targetId],
@@ -1156,12 +1159,12 @@ function genericLocalStoreTests(
       const query = Query.atPath(path('foo/bar'));
       const targetData = await localStore.allocateTarget(query.toTarget());
       const targetId = targetData.targetId;
-      const resumeToken = 'abc';
+      const resumeToken = byteStringFromString('abc');
 
       const watchChange1 = new WatchTargetChange(
         WatchTargetChangeState.Current,
         [targetId],
-        resumeToken
+        byteStringFromString('abc')
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
@@ -1527,7 +1530,11 @@ function genericLocalStoreTests(
             )
           )
           .after(
-            noChangeEvent(/* targetId= */ 2, /* snapshotVersion= */ 10, 'foo')
+            noChangeEvent(
+              /* targetId= */ 2,
+              /* snapshotVersion= */ 10,
+              /* resumeToken= */ byteStringFromString('foo')
+            )
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))
           .afterExecutingQuery(query)
@@ -1552,7 +1559,11 @@ function genericLocalStoreTests(
 
     // Advance the query snapshot
     await localStore.applyRemoteEvent(
-      noChangeEvent(targetData.targetId, 10, 'resumeToken')
+      noChangeEvent(
+        /* targetId= */ targetData.targetId,
+        /* snapshotVersion= */ 10,
+        /* resumeToken= */ byteStringFromString('foo')
+      )
     );
 
     // At this point, we have not yet confirmed that the query is limbo free.
@@ -1665,7 +1676,7 @@ function genericLocalStoreTests(
             noChangeEvent(
               /* targetId= */ 2,
               /* snapshotVersion= */ 10,
-              'resumeToken'
+              /* resumeToken= */ byteStringFromString('foo')
             )
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))
@@ -1727,7 +1738,7 @@ function genericLocalStoreTests(
             noChangeEvent(
               /* targetId= */ 2,
               /* snapshotVersion= */ 10,
-              'resumeToken'
+              /* resumeToken= */ byteStringFromString('foo')
             )
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))

@@ -162,7 +162,7 @@ class TargetState {
    * value. Empty resumeTokens are discarded.
    */
   updateResumeToken(resumeToken: ProtoByteString): void {
-    if (resumeToken.length > 0) {
+    if (resumeToken._approximateByteSize() > 0) {
       this._hasPendingChanges = true;
       this._resumeToken = resumeToken;
     }

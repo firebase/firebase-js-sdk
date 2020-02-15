@@ -77,7 +77,7 @@ function expectTargetChangeEquals(
   expected: TargetChange
 ): void {
   expect(actual.current).to.equal(expected.current, 'TargetChange.current');
-  expect(actual.resumeToken).to.equal(
+  expect(actual.resumeToken).to.deep.equal(
     expected.resumeToken,
     'TargetChange.resumeToken'
   );

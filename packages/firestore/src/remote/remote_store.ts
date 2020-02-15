@@ -431,7 +431,7 @@ export class RemoteStore implements TargetMetadataProvider {
     // Update in-memory resume tokens. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
     objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
-      if (change.resumeToken.length > 0) {
+      if (change.resumeToken._approximateByteSize() > 0) {
         const targetData = this.listenTargets[targetId];
         // A watched target might have been removed already.
         if (targetData) {

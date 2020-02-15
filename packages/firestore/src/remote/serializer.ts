@@ -31,7 +31,7 @@ import {
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -139,20 +139,6 @@ export class JsonProtoSerializer {
     private databaseId: DatabaseId,
     private options: SerializerOptions
   ) {}
-
-  private emptyByteString(): ProtoByteString {
-    if (this.options.useProto3Json) {
-      return '';
-    } else {
-      return new Uint8Array(0);
-    }
-  }
-
-  private unsafeCastProtoByteString(byteString: ProtoByteString): string {
-    // byteStrings can be either string or UInt8Array, but the typings say
-    // it's always a string. Cast as string to avoid type check failing
-    return byteString as string;
-  }
 
   fromRpcStatus(status: api.Status): FirestoreError {
     const code =
@@ -278,13 +264,35 @@ export class JsonProtoSerializer {
    * This method cheats. It's typed as returning "string" because that's what
    * our generated proto interfaces say bytes must be. But it should return
    * an Uint8Array in Node.
+   *
+   * Visible for testing.
    */
-  private toBytes(bytes: Blob): string {
+  toBytes(bytes: Blob): string {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
       // The typings say it's a string, but it needs to be a Uint8Array in Node.
-      return this.unsafeCastProtoByteString(bytes.toUint8Array());
+      // Cast as string to avoid type check failing.
+      return (bytes.toUint8Array() as unknown) as string;
+    }
+  }
+
+  /**
+   * Returns a Blob based on the proto string value.
+   * DO NOT USE THIS FOR ANYTHING ELSE.
+   * This method cheats. Value is typed as "string" because that's what
+   * our generated proto interfaces say bytes must be, but it is actually
+   * an Uint8Array in Node.
+   */
+  fromBytes(value: string | undefined): Blob {
+    if (this.options.useProto3Json) {
+      return Blob.fromBase64String(value ? value : '');
+    } else {
+      // The typings say it's a string, but it will actually be a Uint8Array
+      // in Node. Cast to Uint8Array when creating the Blob.
+      return Blob.fromUint8Array(
+        value ? ((value as unknown) as Uint8Array) : new Uint8Array()
+      );
     }
   }
 
@@ -700,7 +708,7 @@ export class JsonProtoSerializer {
         targetChange: {
           targetChangeType: this.toWatchTargetChangeState(watchChange.state),
           targetIds: watchChange.targetIds,
-          resumeToken: this.unsafeCastProtoByteString(watchChange.resumeToken),
+          resumeToken: this.toBytes(watchChange.resumeToken),
           cause
         }
       };
@@ -718,8 +726,10 @@ export class JsonProtoSerializer {
         change.targetChange.targetChangeType || 'NO_CHANGE'
       );
       const targetIds: TargetId[] = change.targetChange.targetIds || [];
-      const resumeToken =
-        change.targetChange.resumeToken || this.emptyByteString();
+
+      // Depending on the platform, the resumeToken could be a Uint8Array or
+      // string, even though it is typed as "string".
+      const resumeToken = this.fromBytes(change.targetChange.resumeToken);
       const causeProto = change.targetChange!.cause;
       const cause = causeProto && this.fromRpcStatus(causeProto);
       watchChange = new WatchTargetChange(
@@ -1184,10 +1194,8 @@ export class JsonProtoSerializer {
 
     result.targetId = targetData.targetId;
 
-    if (targetData.resumeToken.length > 0) {
-      result.resumeToken = this.unsafeCastProtoByteString(
-        targetData.resumeToken
-      );
+    if (targetData.resumeToken._approximateByteSize() > 0) {
+      result.resumeToken = this.toBytes(targetData.resumeToken);
     }
 
     return result;

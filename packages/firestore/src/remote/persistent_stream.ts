@@ -698,7 +698,7 @@ export class PersistentWriteStream extends PersistentStream<
       !!responseProto.streamToken,
       'Got a write response without a stream token'
     );
-    this.lastStreamToken = responseProto.streamToken;
+    this.lastStreamToken = this.serializer.fromBytes(responseProto.streamToken);
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
@@ -748,7 +748,7 @@ export class PersistentWriteStream extends PersistentStream<
       'Handshake must be complete before writing mutations'
     );
     assert(
-      this.lastStreamToken.length > 0,
+      this.lastStreamToken._approximateByteSize() > 0,
       'Trying to write mutation without a token'
     );
 

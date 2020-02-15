@@ -551,7 +551,7 @@ export class LocalStore {
 
               const resumeToken = change.resumeToken;
               // Update the resume token if the change includes one.
-              if (resumeToken.length > 0) {
+              if (resumeToken._approximateByteSize() > 0) {
                 const newTargetData = oldTargetData
                   .withResumeToken(resumeToken, remoteVersion)
                   .withSequenceNumber(txn.currentSequenceNumber);
@@ -696,12 +696,12 @@ export class LocalStore {
     change: TargetChange
   ): boolean {
     assert(
-      newTargetData.resumeToken.length > 0,
+      newTargetData.resumeToken._approximateByteSize() > 0,
       'Attempted to persist target data with no resume token'
     );
 
     // Always persist target data if we don't already have a resume token.
-    if (oldTargetData.resumeToken.length === 0) {
+    if (oldTargetData.resumeToken._approximateByteSize() === 0) {
       return true;
     }
 
