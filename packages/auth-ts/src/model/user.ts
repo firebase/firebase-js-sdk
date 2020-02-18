@@ -101,10 +101,17 @@ export class User implements UserInfo {
 }
 
 export class StsTokenManager {
-  readonly refreshToken: string;
-  readonly accessToken: IdToken;
-  readonly expirationTime: number;
+  // Bang-assert all of these as they are set in the constructor no
+  // matter what (just using a helper method)
+  refreshToken!: string;
+  accessToken!: IdToken;
+  expirationTime!: number;
+
   constructor(idTokenResponse: IdTokenResponse) {
+    this.updateFromServerResponse(idTokenResponse);
+  }
+
+  updateFromServerResponse(idTokenResponse: IdTokenResponse) {
     this.refreshToken = idTokenResponse.refreshToken;
     this.accessToken = idTokenResponse.idToken;
     this.expirationTime = StsTokenManager.calcOffsetTimestamp_(

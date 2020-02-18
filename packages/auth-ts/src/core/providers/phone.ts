@@ -120,6 +120,10 @@ export class PhoneAuthCredential implements AuthCredential {
     return signInWithPhoneNumber(auth, this.makeVerificationRequest());
   }
 
+  linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+    throw new Error("Method not implemented.");
+  }
+
   private makeVerificationRequest() {
     const {temporaryProof, phoneNumber, verificationId, verificationCode} =
         this.params;

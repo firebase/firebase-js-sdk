@@ -17,14 +17,17 @@
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { ProviderId, SignInMethod } from '../providers';
 import { Auth } from '../..';
-import { initializeCurrentUserFromIdTokenResponse } from '.';
+import { initializeCurrentUserFromIdTokenResponse, checkIfAlreadyLinked } from '.';
 import { IdTokenResponse } from '../../model/id_token';
+import { User } from '../../model/user';
+import { PhoneOrOauthTokenResponse } from '../../api/authentication';
 
 export interface AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: string;
   toJSON(): object;
-  getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse>;
+  getIdTokenResponse_(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
+  linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse>;
 }
 
 export interface OAuthCredential extends AuthCredential {
@@ -40,4 +43,28 @@ export async function signInWithCredential(
   const response: IdTokenResponse = await credential.getIdTokenResponse_(auth);
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(user, credential, OperationType.SIGN_IN);
+}
+
+export async function linkWithCredential(
+  auth: Auth,
+  user: User,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  await checkIfAlreadyLinked(auth, user, credential.providerId);
+  const token = await user.getIdToken();
+  const response = await credential.linkToIdToken_(auth, token);
+  const newCred = authCredentialFromTokenResponse(response);
+
+  if (response.idToken) {
+    user.stsTokenManager.updateFromServerResponse(response);
+  }
+
+  await user.reload(auth);
+  return new UserCredential(user, newCred, OperationType.LINK);
+}
+
+export function authCredentialFromTokenResponse(
+  response: PhoneOrOauthTokenResponse
+): AuthCredential | null {
+  return null;
 }

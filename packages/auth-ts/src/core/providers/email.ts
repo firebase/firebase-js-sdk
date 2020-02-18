@@ -26,6 +26,7 @@ import {
   signInWithEmailLink,
   signInWithPassword
 } from '../../api/authentication';
+import { updateEmailPassword } from '../../api/account_management';
 
 export class EmailAuthCredential implements AuthCredential {
   constructor(
@@ -54,6 +55,22 @@ export class EmailAuthCredential implements AuthCredential {
         return signInWithEmailLink(auth, {
           email: this.email,
           oobCode: this.password
+        });
+      default:
+        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+          appName: auth.name
+        });
+    }
+  }
+
+  linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+    switch (this.signInMethod) {
+      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+        return updateEmailPassword(auth, {
+          idToken,
+          returnSecureToken: true,
+          email: this.email,
+          password: this.password,
         });
       default:
         throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {

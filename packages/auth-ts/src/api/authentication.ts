@@ -224,7 +224,10 @@ export interface SignInWithPhoneNumberRequest {
   code?: string;
 }
 
-export interface SignInWithPhoneNumberResponse extends IdTokenResponse {}
+export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
+  temporaryProof?: string;
+  phoneNumber?: string;
+}
 
 export async function signInWithPhoneNumber(
   auth: Auth,
@@ -237,3 +240,5 @@ export async function signInWithPhoneNumber(
     request
   );
 }
+
+export type PhoneOrOauthTokenResponse = SignInWithPhoneNumberResponse | SignInWithPhoneNumberResponse | IdTokenResponse;

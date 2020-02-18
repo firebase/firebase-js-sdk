@@ -27,7 +27,7 @@ export enum OperationType {
 export class UserCredential {
   constructor(
     public readonly user: User,
-    public readonly credential: AuthCredential,
+    public readonly credential: AuthCredential|null,
     public readonly operationType: OperationType
   ) {}
 }

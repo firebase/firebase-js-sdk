@@ -45,7 +45,8 @@ import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
 import {
   AuthCredential,
-  signInWithCredential
+  signInWithCredential,
+  linkWithCredential
 } from './core/strategies/auth_credential';
 import {
   EmailAuthProvider,
@@ -113,6 +114,9 @@ let memo: FirebaseAuth;
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
+        },
+        linkWithCredential(credential: AuthCredential): Promise<UserCredential> {
+          return linkWithCredential(auth, user, credential);
         }
       });
     }

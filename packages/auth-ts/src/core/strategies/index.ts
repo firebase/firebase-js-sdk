@@ -18,6 +18,9 @@
 import { Auth } from '../..';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, StsTokenManager } from '../../model/user';
+import { ProviderId } from '../providers';
+import { reloadWithoutSaving } from '../account_management/reload';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export async function userFromIdTokenResponse(
   auth: Auth,
@@ -41,4 +44,18 @@ export async function initializeCurrentUserFromIdTokenResponse(
   const user: User = await userFromIdTokenResponse(auth, idTokenResponse);
   await auth.updateCurrentUser(user);
   return user;
+}
+
+export async function checkIfAlreadyLinked(
+  auth: Auth,
+  user: User,
+  provider: ProviderId) {
+  await reloadWithoutSaving(auth, user);
+  const providerIds = user.providerData.map(({providerId}) => providerId);
+  if (providerIds.includes(provider)) {
+    throw AUTH_ERROR_FACTORY.create(
+      AuthErrorCode.PROVIDER_ALREADY_LINKED, {
+        appName: auth.name,
+      });
+  }
 }

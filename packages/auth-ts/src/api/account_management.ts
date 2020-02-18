@@ -81,6 +81,27 @@ export async function updateProfile(
   );
 }
 
+export interface UpdateEmailPasswordRequest {
+  idToken: string;
+  returnSecureToken: boolean;
+  email?: string;
+  password?: string;
+}
+
+export interface UpdateEmailPasswordResponse extends IdTokenResponse {};
+
+export async function updateEmailPassword(
+  auth: Auth,
+  request: UpdateEmailPasswordRequest
+): Promise<UpdateEmailPasswordResponse> {
+  return performApiRequest<UpdateEmailPasswordRequest, UpdateEmailPasswordResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SET_ACCOUNT_INFO,
+    request,
+  );
+}
+
 export interface APIUserInfo {
   localId?: string;
   displayName?: string;

@@ -21,7 +21,7 @@ import { getAccountInfo, ProviderUserInfo } from '../../api/account_management';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Mutable } from '../util/mutable';
 
-export async function reload(auth: Auth, user: User): Promise<void> {
+export async function reloadWithoutSaving(auth: Auth, user: User): Promise<void> {
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
 
@@ -52,7 +52,11 @@ export async function reload(auth: Auth, user: User): Promise<void> {
 
   const mutUser: Mutable<User> = user;
   Object.assign(mutUser, updates);
-  await auth.updateCurrentUser(mutUser);
+}
+
+export async function reload(auth: Auth, user: User): Promise<void> {
+  await reloadWithoutSaving(auth, user);
+  await auth.updateCurrentUser(user);
 }
 
 function mergeProviderData(
