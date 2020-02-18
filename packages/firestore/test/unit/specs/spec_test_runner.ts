@@ -200,7 +200,10 @@ class MockConnection implements Connection {
 
   ackWrite(commitTime?: string, mutationResults?: api.WriteResult[]): void {
     this.writeStream!.callOnMessage({
-      streamToken: 'write-stream-token-' + this.nextWriteStreamToken,
+      // Convert to base64 string to be compatible with Blob format.
+      streamToken: PlatformSupport.getPlatform().btoa(
+        'write-stream-token-' + this.nextWriteStreamToken
+      ),
       commitTime,
       writeResults: mutationResults
     });

@@ -77,7 +77,10 @@ import {
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { emptyByteString, byteStringFromString } from '../../../src/util/proto_byte_string';
+import {
+  emptyByteString,
+  byteStringFromString
+} from '../../../src/util/proto_byte_string';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
