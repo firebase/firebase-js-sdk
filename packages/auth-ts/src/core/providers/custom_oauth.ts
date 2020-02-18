@@ -17,9 +17,9 @@
 
 import { AuthProvider } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { OAuthCredential } from '../strategies/auth_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
+import { OAuthCredential } from '../../model/auth_credential';
 
 export class CustomOAuthProvider extends OAuthProvider {
   static credentialFromResult(

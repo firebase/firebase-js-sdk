@@ -16,7 +16,6 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential } from '../strategies/auth_credential';
 import { Auth } from '../../model/auth';
 import { getCurrentUrl } from '../util/location';
 import { actionCodeURLfromLink } from '../../model/action_code_url';
@@ -27,6 +26,7 @@ import {
   signInWithPassword
 } from '../../api/authentication';
 import { updateEmailPassword } from '../../api/account_management';
+import { AuthCredential } from '../../model/auth_credential';
 
 export class EmailAuthCredential implements AuthCredential {
   constructor(

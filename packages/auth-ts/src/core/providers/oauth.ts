@@ -17,9 +17,9 @@
 
 import { AuthProvider, ProviderId } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { OAuthCredential } from '../strategies/auth_credential';
 import { AuthErrorCode } from '../errors';
 import { LanguageCode } from '../../model/auth';
+import { OAuthCredential } from '../../model/auth_credential';
 
 export interface CustomParameters {
   [key: string]: string;

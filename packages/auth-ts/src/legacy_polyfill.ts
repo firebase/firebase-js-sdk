@@ -44,7 +44,6 @@ import {
 import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
 import {
-  AuthCredential,
   signInWithCredential,
   linkWithCredential
 } from './core/strategies/auth_credential';
@@ -68,7 +67,8 @@ import { TwitterAuthProvider } from './core/providers/twitter';
 import { RecaptchaVerifier } from './platform_browser/recaptcha_verifier';
 import { ApplicationVerifier } from './model/application_verifier';
 import { ConfirmationResult } from './model/confirmation_result';
-import { signInWithPhoneNumber } from './core/strategies/sms';
+import { signInWithPhoneNumber, linkWithPhoneNumber } from './core/strategies/sms';
+import { AuthCredential } from './model/auth_credential';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -117,7 +117,10 @@ let memo: FirebaseAuth;
         },
         linkWithCredential(credential: AuthCredential): Promise<UserCredential> {
           return linkWithCredential(auth, user, credential);
-        }
+        },
+        linkWithPhoneNumber(phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+          return linkWithPhoneNumber(auth, user, phoneNumber, appVerifier);
+        },
       });
     }
   });

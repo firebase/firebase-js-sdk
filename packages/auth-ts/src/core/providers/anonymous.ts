@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { AuthCredential } from '../strategies/auth_credential';
 import { ProviderId, SignInMethod, AuthProvider } from '.';
 import { Auth } from '../..';
 import { IdTokenResponse } from '../../model/id_token';
 import { signUp } from '../../api/authentication';
+import { AuthCredential } from '../../model/auth_credential';
 
 export class AnonymousCredential implements AuthCredential {
   providerId = ProviderId.ANONYMOUS;

@@ -16,16 +16,21 @@
  */
 
 import { UserCredential } from './user_credential';
-import { Auth } from './auth';
 import { PhoneAuthProvider } from '../core/providers/phone';
-import { signInWithCredential } from '../core/strategies/auth_credential';
+import { AuthCredential } from './auth_credential';
+
+export interface OnConfirmationCallback {
+  (credential: AuthCredential): Promise<UserCredential>;
+}
 
 export class ConfirmationResult {
-  constructor(readonly verificationId: string, private readonly auth: Auth) {}
+  constructor(
+      readonly verificationId: string,
+      private readonly onConfirmation: OnConfirmationCallback) {}
   
   async confirm(verificationCode: string): Promise<UserCredential> {
     const authCredential =
         PhoneAuthProvider.credential(this.verificationId, verificationCode);
-    return signInWithCredential(this.auth, authCredential);
+    return this.onConfirmation(authCredential);
   }
 }

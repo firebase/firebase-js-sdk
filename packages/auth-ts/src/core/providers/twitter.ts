@@ -16,10 +16,10 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential, OAuthCredential } from '../strategies/auth_credential';
 import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { CustomParameters, OAuthProvider } from './oauth';
+import { AuthCredential, OAuthCredential } from '../../model/auth_credential';
 
 export class TwitterAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.TWITTER;

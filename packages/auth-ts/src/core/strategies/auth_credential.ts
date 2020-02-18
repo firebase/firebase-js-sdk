@@ -15,26 +15,13 @@
  * limitations under the License.
  */
 import { UserCredential, OperationType } from '../../model/user_credential';
-import { ProviderId, SignInMethod } from '../providers';
 import { Auth } from '../..';
 import { initializeCurrentUserFromIdTokenResponse, checkIfAlreadyLinked } from '.';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { PhoneOrOauthTokenResponse } from '../../api/authentication';
-
-export interface AuthCredential {
-  readonly providerId: ProviderId;
-  readonly signInMethod: string;
-  toJSON(): object;
-  getIdTokenResponse_(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
-  linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse>;
-}
-
-export interface OAuthCredential extends AuthCredential {
-  readonly idToken?: string;
-  readonly accessToken?: string;
-  readonly secret?: string;
-}
+import { PhoneOrOauthTokenResponse, SignInWithPhoneNumberResponse } from '../../api/authentication';
+import { AuthCredential } from '../../model/auth_credential';
+import { PhoneAuthProvider } from '../providers/phone';
 
 export async function signInWithCredential(
   auth: Auth,
@@ -66,5 +53,13 @@ export async function linkWithCredential(
 export function authCredentialFromTokenResponse(
   response: PhoneOrOauthTokenResponse
 ): AuthCredential | null {
+  const {temporaryProof, phoneNumber} =
+      response as SignInWithPhoneNumberResponse;
+  if (temporaryProof && phoneNumber) {
+    return PhoneAuthProvider.credentialFromProof(
+      temporaryProof,
+      phoneNumber
+    );
+  }
   return null;
 }

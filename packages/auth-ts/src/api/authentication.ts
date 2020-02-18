@@ -224,6 +224,10 @@ export interface SignInWithPhoneNumberRequest {
   code?: string;
 }
 
+export interface LinkWithPhoneNumberRequest extends SignInWithPhoneNumberRequest {
+  idToken: string,
+}
+
 export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
   temporaryProof?: string;
   phoneNumber?: string;
@@ -234,6 +238,18 @@ export async function signInWithPhoneNumber(
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   return performApiRequest<SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    request
+  );
+}
+
+export async function linkWithPhoneNumber(
+  auth: Auth,
+  request: LinkWithPhoneNumberRequest
+): Promise<SignInWithPhoneNumberResponse> {
+  return performApiRequest<LinkWithPhoneNumberRequest, SignInWithPhoneNumberResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,

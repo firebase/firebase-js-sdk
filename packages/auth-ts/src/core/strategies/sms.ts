@@ -19,10 +19,32 @@ import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { ConfirmationResult } from '../../model/confirmation_result';
 import { PhoneAuthProvider } from '../providers/phone';
+import { signInWithCredential, linkWithCredential } from './auth_credential';
+import { User } from '../../model/user';
+import { checkIfAlreadyLinked } from '.';
+import { ProviderId } from '../providers';
 
 export async function signInWithPhoneNumber(
-    auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+  auth: Auth,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
+  const provider = new PhoneAuthProvider(auth);
+  const verificationId =
+      await provider.verifyPhoneNumber(phoneNumber, appVerifier);
+  return new ConfirmationResult(
+      verificationId, cred => signInWithCredential(auth, cred));
+}
+
+export async function linkWithPhoneNumber(
+  auth: Auth,
+  user: User,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier,
+): Promise<ConfirmationResult> {
+  checkIfAlreadyLinked(auth, user, ProviderId.PHONE);
   const provider = new PhoneAuthProvider(auth);
   const verificationId = await provider.verifyPhoneNumber(phoneNumber, appVerifier);
-  return new ConfirmationResult(verificationId, auth);
+  return new ConfirmationResult(
+      verificationId, cred => linkWithCredential(auth, user, cred));
 }

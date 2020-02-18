@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-import { User } from './user';
-import { AuthCredential } from './auth_credential';
+import { ProviderId } from '../core/providers';
+import { Auth } from '..';
+import { PhoneOrOauthTokenResponse } from '../api/authentication';
+import { IdTokenResponse } from './id_token';
 
-export enum OperationType {
-  LINK = 'link',
-  REAUTHENTICATE = 'reauthenticate',
-  SIGN_IN = 'signIn'
+export interface AuthCredential {
+  readonly providerId: ProviderId;
+  readonly signInMethod: string;
+  toJSON(): object;
+  getIdTokenResponse_(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
+  linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse>;
 }
 
-export class UserCredential {
-  constructor(
-    public readonly user: User,
-    public readonly credential: AuthCredential|null,
-    public readonly operationType: OperationType
-  ) {}
+export interface OAuthCredential extends AuthCredential {
+  readonly idToken?: string;
+  readonly accessToken?: string;
+  readonly secret?: string;
 }

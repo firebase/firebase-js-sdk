@@ -17,8 +17,8 @@
 
 import { AuthProvider, ProviderId } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { AuthCredential } from '../strategies/auth_credential';
 import { AuthErrorCode } from '../errors';
+import { AuthCredential } from '../../model/auth_credential';
 
 export class SAMLAuthProvider implements AuthProvider {
   constructor(readonly providerId: ProviderId) {}

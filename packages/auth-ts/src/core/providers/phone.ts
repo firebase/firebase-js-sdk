@@ -16,16 +16,16 @@
  */
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
-import { AuthCredential } from '../strategies/auth_credential';
 import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { MultiFactorSession } from '../../model/multifactor';
 import { initializeAuth } from '../initialize_auth';
-import { sendPhoneVerificationCode, signInWithPhoneNumber } from '../../api/authentication';
+import { sendPhoneVerificationCode, signInWithPhoneNumber, linkWithPhoneNumber } from '../../api/authentication';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha_verifier';
 import { IdTokenResponse } from '../../model/id_token';
+import { AuthCredential } from '../../model/auth_credential';
 
 export class PhoneAuthProvider implements AuthProvider {
   static readonly PROVIDER_ID = ProviderId.PHONE;
@@ -35,6 +35,10 @@ export class PhoneAuthProvider implements AuthProvider {
     verificationCode: string
   ): AuthCredential {
     return new PhoneAuthCredential({verificationId, verificationCode});
+  }
+  static credentialFromProof(temporaryProof: string, phoneNumber: string
+  ): AuthCredential {
+    return new PhoneAuthCredential({temporaryProof, phoneNumber});
   }
   static credentialFromResult(
     userCredential: UserCredential
@@ -121,7 +125,10 @@ export class PhoneAuthCredential implements AuthCredential {
   }
 
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
-    throw new Error("Method not implemented.");
+    return linkWithPhoneNumber(auth, {
+      idToken,
+      ...this.makeVerificationRequest(),
+    });
   }
 
   private makeVerificationRequest() {

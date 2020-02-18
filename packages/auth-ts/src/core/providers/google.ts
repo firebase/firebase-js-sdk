@@ -17,9 +17,9 @@
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { OAuthCredential } from '../strategies/auth_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
+import { OAuthCredential } from '../../model/auth_credential';
 
 export class GoogleAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.GOOGLE;
