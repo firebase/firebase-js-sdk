@@ -63,7 +63,12 @@ async function doPrettierCommit() {
     console.error(e);
     return process.exit(1);
   }
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff([
+    '--name-only',
+    'origin/master...HEAD',
+    '--diff-filter',
+    'd'
+  ]);
   // Only run on .js or .ts files.
   const targetFiles = diff.split('\n').filter(line => line.match(/(js|ts)$/));
   if (targetFiles.length === 0) return;
@@ -90,13 +95,13 @@ async function doPrettierCommit() {
 
   if (!hasDiff) return;
 
-  // const gitSpinner = ora(' Creating automated style commit').start();
-  // await git.add(targetFiles);
+  const gitSpinner = ora(' Creating automated style commit').start();
+  await git.add(targetFiles);
 
-  // await git.commit('[AUTOMATED]: Prettier Code Styling');
-  // gitSpinner.stopAndPersist({
-  //   symbol: '✅'
-  // });
+  await git.commit('[AUTOMATED]: Prettier Code Styling');
+  gitSpinner.stopAndPersist({
+    symbol: '✅'
+  });
 }
 
 module.exports = {
