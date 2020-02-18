@@ -46,6 +46,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
+    "@types/node": "8.10.59",
     "protobufjs": "6.8.8",
     "rollup": "1.28.0",
     "rollup-plugin-copy-assets": "1.1.0",
