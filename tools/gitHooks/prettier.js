@@ -90,13 +90,13 @@ async function doPrettierCommit() {
 
   if (!hasDiff) return;
 
-  const gitSpinner = ora(' Creating automated style commit').start();
-  await git.add(targetFiles);
+  // const gitSpinner = ora(' Creating automated style commit').start();
+  // await git.add(targetFiles);
 
-  await git.commit('[AUTOMATED]: Prettier Code Styling');
-  gitSpinner.stopAndPersist({
-    symbol: '✅'
-  });
+  // await git.commit('[AUTOMATED]: Prettier Code Styling');
+  // gitSpinner.stopAndPersist({
+  //   symbol: '✅'
+  // });
 }
 
 module.exports = {
