@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { emptyByteString, ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -94,7 +94,7 @@ export class WatchTargetChange {
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    public resumeToken: ByteString = emptyByteString(),
+    public resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING,
     /** An RPC error indicating why the watch failed. */
     public cause: FirestoreError | null = null
   ) {}
@@ -120,7 +120,7 @@ class TargetState {
   > = snapshotChangesMap();
 
   /** See public getters for explanations of these fields. */
-  private _resumeToken: ByteString = emptyByteString();
+  private _resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING;
   private _current = false;
 
   /**

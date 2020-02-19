@@ -88,10 +88,7 @@ import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
-import {
-  emptyByteString,
-  ByteString
-} from '../../src/util/proto_byte_string';
+import { ByteString } from '../../src/util/proto_byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 
 export type TestSnapshotVersion = number;
@@ -292,7 +289,7 @@ export function targetData(
 export function noChangeEvent(
   targetId: number,
   snapshotVersion: number,
-  resumeToken: ByteString = emptyByteString()
+  resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
@@ -486,8 +483,7 @@ export function localViewChanges(
 }
 
 /**
- * Returns a ByteString representation for the platform from the given hexadecimal
- * string.
+ * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
   const base64 = PlatformSupport.getPlatform().btoa(value);
@@ -499,7 +495,7 @@ export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ByteString {
   if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-    return emptyByteString();
+    return ByteString.EMPTY_BYTE_STRING;
   } else {
     return byteStringFromString(snapshotVersion.toString());
   }

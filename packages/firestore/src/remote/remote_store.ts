@@ -51,7 +51,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { emptyByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -455,7 +455,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Clear the resume token for the target, since we're in a known mismatch
       // state.
       this.listenTargets[targetId] = targetData.withResumeToken(
-        emptyByteString(),
+        ByteString.EMPTY_BYTE_STRING,
         targetData.snapshotVersion
       );
 
@@ -665,10 +665,10 @@ export class RemoteStore implements TargetMetadataProvider {
         'RemoteStore error before completed handshake; resetting stream token: ',
         this.writeStream.lastStreamToken
       );
-      this.writeStream.lastStreamToken = emptyByteString();
+      this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
 
       return this.localStore
-        .setLastStreamToken(emptyByteString())
+        .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
         .catch(ignoreIfPrimaryLeaseLoss);
     } else {
       // Some other error, don't reset stream token. Our stream logic will

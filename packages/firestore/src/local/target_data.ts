@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { emptyByteString, ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
 export enum TargetPurpose {
@@ -66,7 +66,7 @@ export class TargetData {
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    readonly resumeToken: ByteString = emptyByteString()
+    readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */

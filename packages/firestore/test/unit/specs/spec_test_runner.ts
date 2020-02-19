@@ -108,7 +108,7 @@ import {
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
-import { emptyByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/proto_byte_string';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -751,7 +751,7 @@ abstract class TestRunner {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Removed,
       removed.targetIds,
-      emptyByteString(),
+      ByteString.EMPTY_BYTE_STRING,
       cause || null
     );
     if (cause) {

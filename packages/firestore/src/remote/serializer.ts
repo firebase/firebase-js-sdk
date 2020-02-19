@@ -53,6 +53,7 @@ import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
+import { ByteString } from '../util/proto_byte_string';
 import * as typeUtils from '../util/types';
 
 import {
@@ -71,7 +72,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ByteString } from '../util/proto_byte_string';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -272,8 +272,6 @@ export class JsonProtoSerializer {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      // The typings say it's a string, but it needs to be a Uint8Array in Node.
-      // Cast as string to avoid type check failing.
       return (bytes.toUint8Array() as unknown) as string;
     }
   }
@@ -285,15 +283,19 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say bytes must be, but it is actually
    * an Uint8Array in Node.
    */
-  fromBytes(value: string | undefined): ByteString {
+  fromBytes(value: string | Uint8Array | undefined): ByteString {
     if (this.options.useProto3Json) {
+      assert(
+        typeof value === 'string',
+        'value must be a string when using proto3 Json '
+      );
       return ByteString.fromBase64String(value ? value : '');
     } else {
-      // The typings say it's a string, but it will actually be a Uint8Array
-      // in Node. Cast to Uint8Array when creating the Blob.
-      return ByteString.fromUint8Array(
-        value ? ((value as unknown) as Uint8Array) : new Uint8Array()
+      assert(
+        value === undefined || value instanceof Uint8Array,
+        'value must be undefined or Uint8Array'
       );
+      return ByteString.fromUint8Array(value ? value : new Uint8Array());
     }
   }
 

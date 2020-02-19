@@ -78,7 +78,7 @@ import {
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { emptyByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/proto_byte_string';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -176,7 +176,7 @@ class LocalStoreTester {
           batch,
           ver,
           mutationResults,
-          /*streamToken=*/ emptyByteString()
+          /*streamToken=*/ ByteString.EMPTY_BYTE_STRING
         );
 
         return this.localStore.acknowledgeBatch(write);
@@ -1175,7 +1175,7 @@ function genericLocalStoreTests(
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
         [targetId],
-        emptyByteString()
+        ByteString.EMPTY_BYTE_STRING
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),

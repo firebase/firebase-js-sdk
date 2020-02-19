@@ -24,6 +24,7 @@ import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { ByteString } from '../util/proto_byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
@@ -32,7 +33,6 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { emptyByteString, ByteString } from '../util/proto_byte_string';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -48,7 +48,7 @@ export class MemoryMutationQueue implements MutationQueue {
    * responses the client has processed. Stream tokens are opaque checkpoint
    * markers whose only real value is their inclusion in the next request.
    */
-  private lastStreamToken: ByteString = emptyByteString();
+  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
 
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);

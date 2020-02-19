@@ -28,6 +28,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
+import { ByteString } from '../util/proto_byte_string';
 
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { Target } from '../core/target';
@@ -43,7 +44,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { ByteString } from '../util/proto_byte_string';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

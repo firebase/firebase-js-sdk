@@ -22,11 +22,11 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
+import { ByteString } from '../util/proto_byte_string';
 import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { ByteString } from '../util/proto_byte_string';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {

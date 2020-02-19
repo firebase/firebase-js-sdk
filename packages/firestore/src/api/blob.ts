@@ -26,7 +26,7 @@ import {
 import { primitiveComparator } from '../util/misc';
 import {
   binaryStringFromUint8Array,
-  Uint8ArrayFromBinaryString
+  uint8ArrayFromBinaryString
 } from '../util/proto_byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
@@ -102,7 +102,7 @@ export class Blob {
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    const buffer = Uint8ArrayFromBinaryString(this._binaryString);
+    const buffer = uint8ArrayFromBinaryString(this._binaryString);
     return buffer;
   }
 

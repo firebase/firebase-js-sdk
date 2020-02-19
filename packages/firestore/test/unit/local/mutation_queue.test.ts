@@ -35,7 +35,7 @@ import {
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
-import { emptyByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/proto_byte_string';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
@@ -154,7 +154,7 @@ function genericMutationQueueTests(): void {
     const batch1 = await addMutationBatch();
     expect(await mutationQueue.countBatches()).to.equal(1);
 
-    await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
+    await mutationQueue.acknowledgeBatch(batch1, ByteString.EMPTY_BYTE_STRING);
     await mutationQueue.removeMutationBatch(batch1);
 
     expect(await mutationQueue.countBatches()).to.equal(0);

@@ -42,7 +42,7 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
-import { emptyByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/proto_byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -475,7 +475,7 @@ describe('RemoteEvent', () => {
     const markCurrent = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [1],
-      emptyByteString()
+      ByteString.EMPTY_BYTE_STRING
     );
 
     const aggregator = createAggregator({

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import { PlatformSupport } from '../platform/platform';
  * must be converted into a string before being sent as a proto.
  */
 export class ByteString {
+  static EMPTY_BYTE_STRING = ByteString.fromBase64String('');
+
   private _binaryString: string;
 
   private constructor(binaryString: string) {
@@ -47,7 +49,7 @@ export class ByteString {
   }
 
   toUint8Array(): Uint8Array {
-    const buffer = Uint8ArrayFromBinaryString(this._binaryString);
+    const buffer = uint8ArrayFromBinaryString(this._binaryString);
     return buffer;
   }
 
@@ -77,17 +79,10 @@ export function binaryStringFromUint8Array(array: Uint8Array): string {
 /**
  * Helper function to convert a binary string to an Uint8Array.
  */
-export function Uint8ArrayFromBinaryString(binaryString: string): Uint8Array {
+export function uint8ArrayFromBinaryString(binaryString: string): Uint8Array {
   const buffer = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
     buffer[i] = binaryString.charCodeAt(i);
   }
   return buffer;
-}
-
-/**
- * Returns an empty ByteString.
- */
-export function emptyByteString(): ByteString {
-  return ByteString.fromBase64String('');
 }
