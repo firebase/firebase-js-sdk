@@ -18,7 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -48,7 +48,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { Blob } from '../api/blob';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -137,7 +137,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
     return this.getMutationQueueMetadata(transaction).next<ProtoByteString>(
-      metadata => Blob.fromBase64String(metadata.lastStreamToken)
+      metadata => ProtoByteString.fromBase64String(metadata.lastStreamToken)
     );
   }
 
@@ -147,7 +147,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
       // Convert the streamToken to base64 in order to store it as a string that can
-      // be reconstructed into a Blob type.
+      // be reconstructed into a Blob.
       metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });

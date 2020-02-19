@@ -17,8 +17,8 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
-import { emptyByteString } from '../util/proto_byte_string';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
 export enum TargetPurpose {

@@ -34,7 +34,7 @@ import {
   OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { ProtoByteString, TargetId } from '../../src/core/types';
+import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -90,8 +90,9 @@ import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
 import {
   emptyByteString,
-  byteStringFromString
+  ProtoByteString
 } from '../../src/util/proto_byte_string';
+import { PlatformSupport } from '../../src/platform/platform';
 
 export type TestSnapshotVersion = number;
 
@@ -482,6 +483,15 @@ export function localViewChanges(
   );
 
   return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
+}
+
+/**
+ * Returns a ProtoByteString representation for the platform from the given hexadecimal
+ * string.
+ */
+export function byteStringFromString(value: string): ProtoByteString {
+  const base64 = PlatformSupport.getPlatform().btoa(value);
+  return ProtoByteString.fromBase64String(base64);
 }
 
 /** Creates a resume token to match the given snapshot version. */

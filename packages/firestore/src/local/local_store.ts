@@ -20,7 +20,7 @@ import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { BatchId, ProtoByteString, TargetId } from '../core/types';
+import { BatchId, TargetId } from '../core/types';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -62,6 +62,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'LocalStore';
 
@@ -551,7 +552,7 @@ export class LocalStore {
 
               const resumeToken = change.resumeToken;
               // Update the resume token if the change includes one.
-              if (resumeToken._approximateByteSize() > 0) {
+              if (resumeToken.approximateByteSize() > 0) {
                 const newTargetData = oldTargetData
                   .withResumeToken(resumeToken, remoteVersion)
                   .withSequenceNumber(txn.currentSequenceNumber);
@@ -696,12 +697,12 @@ export class LocalStore {
     change: TargetChange
   ): boolean {
     assert(
-      newTargetData.resumeToken._approximateByteSize() > 0,
+      newTargetData.resumeToken.approximateByteSize() > 0,
       'Attempted to persist target data with no resume token'
     );
 
     // Always persist target data if we don't already have a resume token.
-    if (oldTargetData.resumeToken._approximateByteSize() === 0) {
+    if (oldTargetData.resumeToken.approximateByteSize() === 0) {
       return true;
     }
 

@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -26,6 +26,7 @@ import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {

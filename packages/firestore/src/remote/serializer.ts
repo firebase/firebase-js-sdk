@@ -71,6 +71,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -267,7 +268,7 @@ export class JsonProtoSerializer {
    *
    * Visible for testing.
    */
-  toBytes(bytes: Blob): string {
+  toBytes(bytes: Blob | ProtoByteString): string {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
@@ -284,13 +285,13 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say bytes must be, but it is actually
    * an Uint8Array in Node.
    */
-  fromBytes(value: string | undefined): Blob {
+  fromBytes(value: string | undefined): ProtoByteString {
     if (this.options.useProto3Json) {
-      return Blob.fromBase64String(value ? value : '');
+      return ProtoByteString.fromBase64String(value ? value : '');
     } else {
       // The typings say it's a string, but it will actually be a Uint8Array
       // in Node. Cast to Uint8Array when creating the Blob.
-      return Blob.fromUint8Array(
+      return ProtoByteString.fromUint8Array(
         value ? ((value as unknown) as Uint8Array) : new Uint8Array()
       );
     }
@@ -1194,7 +1195,7 @@ export class JsonProtoSerializer {
 
     result.targetId = targetData.targetId;
 
-    if (targetData.resumeToken._approximateByteSize() > 0) {
+    if (targetData.resumeToken.approximateByteSize() > 0) {
       result.resumeToken = this.toBytes(targetData.resumeToken);
     }
 

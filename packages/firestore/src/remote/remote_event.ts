@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -25,7 +25,7 @@ import {
   targetIdSet
 } from '../model/collections';
 import { SortedSet } from '../util/sorted_set';
-import { emptyByteString } from '../util/proto_byte_string';
+import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the

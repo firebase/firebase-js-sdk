@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
-import { BatchId, ProtoByteString } from '../../../src/core/types';
+import { BatchId } from '../../../src/core/types';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
@@ -25,7 +25,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { Blob } from '../../../src/api/blob';
+import { ProtoByteString } from '../../../src/util/proto_byte_string';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -65,7 +65,7 @@ export class TestMutationQueue {
     );
   }
 
-  getLastStreamToken(): Promise<Blob> {
+  getLastStreamToken(): Promise<ProtoByteString> {
     return this.persistence.runTransaction(
       'getLastStreamToken',
       'readonly-idempotent',
@@ -75,7 +75,7 @@ export class TestMutationQueue {
     );
   }
 
-  setLastStreamToken(streamToken: Blob): Promise<void> {
+  setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
     return this.persistence.runTransaction(
       'setLastStreamToken',
       'readwrite-primary-idempotent',

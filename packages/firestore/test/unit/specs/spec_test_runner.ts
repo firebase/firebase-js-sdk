@@ -97,7 +97,8 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version
+  version,
+  byteStringFromString
 } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
@@ -107,10 +108,7 @@ import {
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
-import {
-  byteStringFromString,
-  emptyByteString
-} from '../../../src/util/proto_byte_string';
+import { emptyByteString } from '../../../src/util/proto_byte_string';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

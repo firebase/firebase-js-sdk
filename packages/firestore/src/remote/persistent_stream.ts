@@ -17,7 +17,7 @@
 
 import { CredentialsProvider, Token } from '../api/credentials';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
@@ -32,7 +32,7 @@ import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
-import { emptyByteString } from '../util/proto_byte_string';
+import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -748,7 +748,7 @@ export class PersistentWriteStream extends PersistentStream<
       'Handshake must be complete before writing mutations'
     );
     assert(
-      this.lastStreamToken._approximateByteSize() > 0,
+      this.lastStreamToken.approximateByteSize() > 0,
       'Trying to write mutation without a token'
     );
 

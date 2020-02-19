@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { Blob } from '../api/blob';
-
 /**
  * BatchID is a locally assigned ID for a batch of mutations that have been
  * applied.
@@ -30,8 +28,6 @@ export type BatchId = number;
 export type TargetId = number;
 
 export type ListenSequenceNumber = number;
-
-export type ProtoByteString = Blob;
 
 /** The different states of a mutation batch. */
 export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';

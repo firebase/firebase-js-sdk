@@ -43,7 +43,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Blob } from '../api/blob';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -221,7 +221,7 @@ export class LocalSerializer {
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
-      Blob.fromBase64String(dbTarget.resumeToken)
+      ProtoByteString.fromBase64String(dbTarget.resumeToken)
     );
   }
 

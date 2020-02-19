@@ -24,6 +24,10 @@ import {
   validateExactNumberOfArgs
 } from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
+import {
+  binaryStringFromUint8Array,
+  Uint8ArrayFromBinaryString
+} from '../util/proto_byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -85,14 +89,7 @@ export class Blob {
     if (!(array instanceof Uint8Array)) {
       throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
     }
-    // We can't call array.map directly because it expects the return type to
-    // be a Uint8Array, whereas we can convert it to a regular array by invoking
-    // map on the Array prototype.
-    const binaryString = Array.prototype.map
-      .call(array, (char: number) => {
-        return String.fromCharCode(char);
-      })
-      .join('');
+    const binaryString = binaryStringFromUint8Array(array);
     return new Blob(binaryString);
   }
 
@@ -105,10 +102,7 @@ export class Blob {
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    const buffer = new Uint8Array(this._binaryString.length);
-    for (let i = 0; i < this._binaryString.length; i++) {
-      buffer[i] = this._binaryString.charCodeAt(i);
-    }
+    const buffer = Uint8ArrayFromBinaryString(this._binaryString);
     return buffer;
   }
 

@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { emptyByteString } from '../util/proto_byte_string';
+import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -162,7 +162,7 @@ class TargetState {
    * value. Empty resumeTokens are discarded.
    */
   updateResumeToken(resumeToken: ProtoByteString): void {
-    if (resumeToken._approximateByteSize() > 0) {
+    if (resumeToken.approximateByteSize() > 0) {
       this._hasPendingChanges = true;
       this._resumeToken = resumeToken;
     }

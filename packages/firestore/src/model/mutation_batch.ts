@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
 import {
@@ -30,6 +30,7 @@ import {
 import { MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
 import { Mutation, MutationResult } from './mutation';
+import { ProtoByteString } from '../util/proto_byte_string';
 
 export const BATCHID_UNKNOWN = -1;
 

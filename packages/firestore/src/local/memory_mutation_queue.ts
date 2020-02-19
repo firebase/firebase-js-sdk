@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -32,7 +32,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { emptyByteString } from '../util/proto_byte_string';
+import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
