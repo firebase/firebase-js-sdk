@@ -45,7 +45,7 @@ import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
 import {
   signInWithCredential,
-  linkWithCredential
+  linkWithCredential,
 } from './core/strategies/auth_credential';
 import {
   EmailAuthProvider,
@@ -69,6 +69,8 @@ import { ApplicationVerifier } from './model/application_verifier';
 import { ConfirmationResult } from './model/confirmation_result';
 import { signInWithPhoneNumber, linkWithPhoneNumber } from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
+import { ProviderId } from './core/providers';
+import { unlink } from './core/account_management/unlink';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -121,6 +123,9 @@ let memo: FirebaseAuth;
         linkWithPhoneNumber(phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
           return linkWithPhoneNumber(auth, user, phoneNumber, appVerifier);
         },
+        unlink(providerId: string): Promise<User> {
+          return unlink(auth, user, providerId as ProviderId);
+        }
       });
     }
   });

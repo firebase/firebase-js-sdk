@@ -49,12 +49,14 @@ export async function initializeCurrentUserFromIdTokenResponse(
 export async function checkIfAlreadyLinked(
   auth: Auth,
   user: User,
-  provider: ProviderId) {
+  provider: ProviderId,
+  expected = false) {
   await reloadWithoutSaving(auth, user);
   const providerIds = user.providerData.map(({providerId}) => providerId);
-  if (providerIds.includes(provider)) {
-    throw AUTH_ERROR_FACTORY.create(
-      AuthErrorCode.PROVIDER_ALREADY_LINKED, {
+  if (providerIds.includes(provider) !== expected) {
+    const code = expected === false ? AuthErrorCode.PROVIDER_ALREADY_LINKED :
+                                      AuthErrorCode.NO_SUCH_PROVIDER;
+    throw AUTH_ERROR_FACTORY.create(code, {
         appName: auth.name,
       });
   }

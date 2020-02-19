@@ -102,6 +102,27 @@ export async function updateEmailPassword(
   );
 }
 
+export interface DeleteLinkedAccountsRequest {
+  idToken: string;
+  deleteProvider: string[];
+}
+
+export interface DeleteLinkedAccountsResponse {
+  providerUserInfo: ProviderUserInfo[];
+}
+
+export async function deleteLinkedAccounts(
+  auth: Auth,
+  request: DeleteLinkedAccountsRequest,
+): Promise<DeleteLinkedAccountsResponse> {
+  return performApiRequest<DeleteLinkedAccountsRequest, DeleteLinkedAccountsResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SET_ACCOUNT_INFO,
+    request,
+  );
+}
+
 export interface APIUserInfo {
   localId?: string;
   displayName?: string;

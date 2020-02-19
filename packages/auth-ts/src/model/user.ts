@@ -56,17 +56,17 @@ export interface UserParameters {
 }
 
 export class User implements UserInfo {
-  readonly stsTokenManager: StsTokenManager;
-  readonly uid: string;
-  readonly displayName: string | null;
-  readonly email: string | null;
-  readonly emailVerified: boolean = false;
-  readonly phoneNumber: string | null;
-  readonly photoURL: string | null;
-  readonly metadata: UserMetadata = {};
-  readonly tenantId?: string | null = null;
-  readonly isAnonymous: boolean;
-  readonly providerData: UserInfo[] = [];
+  stsTokenManager: StsTokenManager;
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  emailVerified: boolean = false;
+  phoneNumber: string | null;
+  photoURL: string | null;
+  metadata: UserMetadata = {};
+  tenantId?: string | null = null;
+  isAnonymous: boolean;
+  providerData: UserInfo[] = [];
 
   // On the root user object
   readonly providerId = ProviderId.FIREBASE;
