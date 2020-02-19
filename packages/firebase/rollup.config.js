@@ -147,13 +147,6 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-const firestoreMinifiedBuild = {
-  input: `firestore/index.min.ts`,
-  output: createUmdOutputConfig(`firebase-firestore.min.js`),
-  plugins: [...plugins, uglify()],
-  external: ['@firebase/app']
-};
-
 /**
  * Complete Package Builds
  */
@@ -267,9 +260,4 @@ const completeBuilds = [
   }
 ];
 
-export default [
-  ...appBuilds,
-  ...componentBuilds,
-  firestoreMinifiedBuild,
-  ...completeBuilds
-];
+export default [...appBuilds, ...componentBuilds, ...completeBuilds];
