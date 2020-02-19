@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
-import * as types from '@firebase/firestore-types';
 import { configureForFirebase } from './src/platform/config';
+import './register-module';
 import './src/platform_node/node_init';
 import { FirebaseNamespace } from '@firebase/app-types';
 
@@ -28,29 +28,3 @@ export function registerFirestore(instance: FirebaseNamespace): void {
 }
 
 registerFirestore(firebase);
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    firestore?: {
-      (app?: FirebaseApp): types.FirebaseFirestore;
-      Blob: typeof types.Blob;
-      CollectionReference: typeof types.CollectionReference;
-      DocumentReference: typeof types.DocumentReference;
-      DocumentSnapshot: typeof types.DocumentSnapshot;
-      FieldPath: typeof types.FieldPath;
-      FieldValue: typeof types.FieldValue;
-      Firestore: typeof types.FirebaseFirestore;
-      GeoPoint: typeof types.GeoPoint;
-      Query: typeof types.Query;
-      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
-      QuerySnapshot: typeof types.QuerySnapshot;
-      Timestamp: typeof types.Timestamp;
-      Transaction: typeof types.Transaction;
-      WriteBatch: typeof types.WriteBatch;
-      setLogLevel: typeof types.setLogLevel;
-    };
-  }
-  interface FirebaseApp {
-    firestore?(): types.FirebaseFirestore;
-  }
-}
