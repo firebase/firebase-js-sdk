@@ -41,11 +41,7 @@ export async function linkWithCredential(
   const token = await user.getIdToken();
   const response = await credential.linkToIdToken_(auth, token);
   const newCred = authCredentialFromTokenResponse(response);
-
-  if (response.idToken) {
-    user.stsTokenManager.updateFromServerResponse(response);
-  }
-
+  user.stsTokenManager.updateFromServerResponse(response);
   await user.reload(auth);
   return new UserCredential(user, newCred, OperationType.LINK);
 }

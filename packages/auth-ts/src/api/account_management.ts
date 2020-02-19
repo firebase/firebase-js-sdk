@@ -83,7 +83,7 @@ export async function updateProfile(
 
 export interface UpdateEmailPasswordRequest {
   idToken: string;
-  returnSecureToken: boolean;
+  returnSecureToken?: boolean;
   email?: string;
   password?: string;
 }

@@ -71,6 +71,7 @@ import { signInWithPhoneNumber, linkWithPhoneNumber } from './core/strategies/sm
 import { AuthCredential } from './model/auth_credential';
 import { ProviderId } from './core/providers';
 import { unlink } from './core/account_management/unlink';
+import { updateEmail, updatePassword } from './core/account_management/update_email_password';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -125,7 +126,13 @@ let memo: FirebaseAuth;
         },
         unlink(providerId: string): Promise<User> {
           return unlink(auth, user, providerId as ProviderId);
-        }
+        },
+        updateEmail(newEmail: string): Promise<void> {
+          return updateEmail(auth, user, newEmail);
+        },
+        updatePassword(newPassword: string): Promise<void> {
+          return updatePassword(auth, user, newPassword);
+        },
       });
     }
   });

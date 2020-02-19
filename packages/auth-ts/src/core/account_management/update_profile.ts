@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { User, ProfileInfo, StsTokenManager } from '../../model/user';
+import { User, ProfileInfo } from '../../model/user';
 import {
   UpdateProfileRequest,
   updateProfile as apiUpdateProfile
@@ -40,11 +40,7 @@ export async function updateProfile(
   const mutUser: Mutable<User> = user;
   mutUser.displayName = response.displayName || null;
   mutUser.photoURL = response.photoUrl || null;
-
-  // Only update the token manager if the response has a new token
-  if (response.idToken) {
-    mutUser.stsTokenManager = new StsTokenManager(response);
-  }
+  mutUser.stsTokenManager.updateFromServerResponse(response);
 
   await reload(auth, user);
 }
