@@ -84,7 +84,7 @@ import {
   wrapObject,
   byteStringFromString
 } from '../../../util/helpers';
-import { ProtoByteString } from '../../../../src/util/proto_byte_string';
+import { ByteString } from '../../../../src/util/proto_byte_string';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
@@ -1251,7 +1251,7 @@ describe('Serializer', () => {
           4,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,
-          ProtoByteString.fromUint8Array(new Uint8Array([1, 2, 3]))
+          ByteString.fromUint8Array(new Uint8Array([1, 2, 3]))
         )
       );
       const expected = {

@@ -25,7 +25,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { ProtoByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/proto_byte_string';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -54,7 +54,7 @@ export class TestMutationQueue {
 
   acknowledgeBatch(
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): Promise<void> {
     return this.persistence.runTransaction(
       'acknowledgeThroughBatchId',
@@ -65,7 +65,7 @@ export class TestMutationQueue {
     );
   }
 
-  getLastStreamToken(): Promise<ProtoByteString> {
+  getLastStreamToken(): Promise<ByteString> {
     return this.persistence.runTransaction(
       'getLastStreamToken',
       'readonly-idempotent',
@@ -75,7 +75,7 @@ export class TestMutationQueue {
     );
   }
 
-  setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
+  setLastStreamToken(streamToken: ByteString): Promise<void> {
     return this.persistence.runTransaction(
       'setLastStreamToken',
       'readwrite-primary-idempotent',

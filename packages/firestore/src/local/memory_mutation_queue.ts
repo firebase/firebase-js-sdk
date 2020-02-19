@@ -32,7 +32,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
+import { emptyByteString, ByteString } from '../util/proto_byte_string';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -48,7 +48,7 @@ export class MemoryMutationQueue implements MutationQueue {
    * responses the client has processed. Stream tokens are opaque checkpoint
    * markers whose only real value is their inclusion in the next request.
    */
-  private lastStreamToken: ProtoByteString = emptyByteString();
+  private lastStreamToken: ByteString = emptyByteString();
 
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
@@ -65,7 +65,7 @@ export class MemoryMutationQueue implements MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
@@ -90,13 +90,13 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString> {
+  ): PersistencePromise<ByteString> {
     return PersistencePromise.resolve(this.lastStreamToken);
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     this.lastStreamToken = streamToken;
     return PersistencePromise.resolve();

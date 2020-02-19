@@ -25,21 +25,21 @@ import { PlatformSupport } from '../platform/platform';
  * this differentiation by holding the proto byte string in a common class that
  * must be converted into a string before being sent as a proto.
  */
-export class ProtoByteString {
+export class ByteString {
   private _binaryString: string;
 
   private constructor(binaryString: string) {
     this._binaryString = binaryString;
   }
 
-  static fromBase64String(base64: string): ProtoByteString {
+  static fromBase64String(base64: string): ByteString {
     const binaryString = PlatformSupport.getPlatform().atob(base64);
-    return new ProtoByteString(binaryString);
+    return new ByteString(binaryString);
   }
 
-  static fromUint8Array(array: Uint8Array): ProtoByteString {
+  static fromUint8Array(array: Uint8Array): ByteString {
     const binaryString = binaryStringFromUint8Array(array);
-    return new ProtoByteString(binaryString);
+    return new ByteString(binaryString);
   }
 
   toBase64(): string {
@@ -55,7 +55,7 @@ export class ProtoByteString {
     return this._binaryString.length * 2;
   }
 
-  isEqual(other: ProtoByteString): boolean {
+  isEqual(other: ByteString): boolean {
     return this._binaryString === other._binaryString;
   }
 }
@@ -86,8 +86,8 @@ export function Uint8ArrayFromBinaryString(binaryString: string): Uint8Array {
 }
 
 /**
- * Returns an empty ProtoByteString.
+ * Returns an empty ByteString.
  */
-export function emptyByteString(): ProtoByteString {
-  return ProtoByteString.fromBase64String('');
+export function emptyByteString(): ByteString {
+  return ByteString.fromBase64String('');
 }

@@ -30,7 +30,7 @@ import {
 import { MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
 import { Mutation, MutationResult } from './mutation';
-import { ProtoByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 export const BATCHID_UNKNOWN = -1;
 
@@ -187,7 +187,7 @@ export class MutationBatchResult {
     readonly batch: MutationBatch,
     readonly commitVersion: SnapshotVersion,
     readonly mutationResults: MutationResult[],
-    readonly streamToken: ProtoByteString,
+    readonly streamToken: ByteString,
     /**
      * A pre-computed mapping from each mutated document to the resulting
      * version.
@@ -204,7 +204,7 @@ export class MutationBatchResult {
     batch: MutationBatch,
     commitVersion: SnapshotVersion,
     results: MutationResult[],
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): MutationBatchResult {
     assert(
       batch.mutations.length === results.length,

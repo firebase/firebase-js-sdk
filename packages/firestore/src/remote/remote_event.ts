@@ -25,7 +25,7 @@ import {
   targetIdSet
 } from '../model/collections';
 import { SortedSet } from '../util/sorted_set';
-import { emptyByteString, ProtoByteString } from '../util/proto_byte_string';
+import { emptyByteString, ByteString } from '../util/proto_byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -101,7 +101,7 @@ export class TargetChange {
      * query. The resume token essentially identifies a point in time from which
      * the server should resume sending results.
      */
-    readonly resumeToken: ProtoByteString,
+    readonly resumeToken: ByteString,
     /**
      * The "current" (synced) status of this target. Note that "current"
      * has special meaning in the RPC protocol that implies that a target is

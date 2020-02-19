@@ -43,7 +43,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { ProtoByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -221,7 +221,7 @@ export class LocalSerializer {
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
-      ProtoByteString.fromBase64String(dbTarget.resumeToken)
+      ByteString.fromBase64String(dbTarget.resumeToken)
     );
   }
 
@@ -245,7 +245,7 @@ export class LocalSerializer {
       queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
-    // We can't store the resumeToken as a ProtoByteString in IndexedDb, so we
+    // We can't store the resumeToken as a ByteString in IndexedDb, so we
     // convert it to a base64 string for storage.
     const resumeToken = targetData.resumeToken.toBase64();
 

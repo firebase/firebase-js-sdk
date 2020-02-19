@@ -90,7 +90,7 @@ import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
 import {
   emptyByteString,
-  ProtoByteString
+  ByteString
 } from '../../src/util/proto_byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 
@@ -292,7 +292,7 @@ export function targetData(
 export function noChangeEvent(
   targetId: number,
   snapshotVersion: number,
-  resumeToken: ProtoByteString = emptyByteString()
+  resumeToken: ByteString = emptyByteString()
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
@@ -486,18 +486,18 @@ export function localViewChanges(
 }
 
 /**
- * Returns a ProtoByteString representation for the platform from the given hexadecimal
+ * Returns a ByteString representation for the platform from the given hexadecimal
  * string.
  */
-export function byteStringFromString(value: string): ProtoByteString {
+export function byteStringFromString(value: string): ByteString {
   const base64 = PlatformSupport.getPlatform().btoa(value);
-  return ProtoByteString.fromBase64String(base64);
+  return ByteString.fromBase64String(base64);
 }
 
 /** Creates a resume token to match the given snapshot version. */
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
-): ProtoByteString {
+): ByteString {
   if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
     return emptyByteString();
   } else {

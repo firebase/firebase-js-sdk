@@ -48,7 +48,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { ProtoByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -122,11 +122,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
       // Convert the streamToken to base64 in order to store it as a string that can
-      // be reconstructed into a ProtoByteString.
+      // be reconstructed into a ByteString.
       metadata.lastStreamToken = streamToken.toBase64();
 
       return mutationQueuesStore(transaction).put(metadata);
@@ -135,19 +135,19 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString> {
-    return this.getMutationQueueMetadata(transaction).next<ProtoByteString>(
-      metadata => ProtoByteString.fromBase64String(metadata.lastStreamToken)
+  ): PersistencePromise<ByteString> {
+    return this.getMutationQueueMetadata(transaction).next<ByteString>(
+      metadata => ByteString.fromBase64String(metadata.lastStreamToken)
     );
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
       // Convert the streamToken to base64 in order to store it as a string that can
-      // be reconstructed into a ProtoByteString.
+      // be reconstructed into a ByteString.
       metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });

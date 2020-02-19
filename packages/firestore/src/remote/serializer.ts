@@ -71,7 +71,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ProtoByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -268,7 +268,7 @@ export class JsonProtoSerializer {
    *
    * Visible for testing.
    */
-  toBytes(bytes: Blob | ProtoByteString): string {
+  toBytes(bytes: Blob | ByteString): string {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
@@ -279,19 +279,19 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Returns a ProtoByteString based on the proto string value.
+   * Returns a ByteString based on the proto string value.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. Value is typed as "string" because that's what
    * our generated proto interfaces say bytes must be, but it is actually
    * an Uint8Array in Node.
    */
-  fromBytes(value: string | undefined): ProtoByteString {
+  fromBytes(value: string | undefined): ByteString {
     if (this.options.useProto3Json) {
-      return ProtoByteString.fromBase64String(value ? value : '');
+      return ByteString.fromBase64String(value ? value : '');
     } else {
       // The typings say it's a string, but it will actually be a Uint8Array
       // in Node. Cast to Uint8Array when creating the Blob.
-      return ProtoByteString.fromUint8Array(
+      return ByteString.fromUint8Array(
         value ? ((value as unknown) as Uint8Array) : new Uint8Array()
       );
     }

@@ -26,7 +26,7 @@ import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { ProtoByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/proto_byte_string';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {
@@ -39,18 +39,18 @@ export interface MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void>;
 
   /** Returns the current stream token for this mutation queue. */
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString>;
+  ): PersistencePromise<ByteString>;
 
   /** Sets the stream token for this mutation queue. */
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void>;
 
   /**
