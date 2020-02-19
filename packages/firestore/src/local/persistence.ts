@@ -19,13 +19,17 @@ import { User } from '../auth/user';
 
 import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
+import { AsyncQueue } from '../util/async_queue';
+import { DatabaseInfo } from '../core/database_info';
+import { Platform } from '../platform/platform';
 import { IndexManager } from './index_manager';
+import { LruGarbageCollector } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientId } from './shared_client_state';
+import { ClientId, SharedClientState } from './shared_client_state';
 import { TargetData } from './target_data';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
@@ -285,3 +289,21 @@ export interface Persistence {
     ) => PersistencePromise<T>
   ): Promise<T>;
 }
+
+/**
+ * Function signature for a factory function that returns a fully configured
+ * persistence implementation, providing Persistence, the GarbageCollector, and
+ * the SharedClientState.
+ */
+export type PersistenceFactory<T> = (
+  user: User,
+  asyncQueue: AsyncQueue,
+  databaseInfo: DatabaseInfo,
+  platform: Platform,
+  clientId: ClientId,
+  settings: T
+) => Promise<{
+  persistence: Persistence;
+  garbageCollector: LruGarbageCollector | null;
+  sharedClientState: SharedClientState;
+}>;

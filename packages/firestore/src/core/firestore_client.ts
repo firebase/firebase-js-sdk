@@ -19,8 +19,7 @@ import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { LocalStore } from '../local/local_store';
-import { MemoryPersistence } from '../local/memory_persistence';
-import { Persistence } from '../local/persistence';
+import { Persistence, PersistenceFactory } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -44,11 +43,7 @@ import {
   LruGarbageCollector,
   LruScheduler
 } from '../local/lru_garbage_collector';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState
-} from '../local/shared_client_state';
+import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
@@ -57,23 +52,6 @@ import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
-
-/**
- * Function signature for a factory function that returns a fully configured
- * persistence implementation, providing Persistence, the GarbageCollector, and
- * the SharedClientState.
- */
-export type PersistenceFactory = (
-  user: User,
-  asyncQueue: AsyncQueue,
-  databaseInfo: DatabaseInfo,
-  platform: Platform,
-  clientId: ClientId
-) => Promise<{
-  persistence: Persistence;
-  garbageCollector: LruGarbageCollector | null;
-  sharedClientState: SharedClientState;
-}>;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -149,7 +127,10 @@ export class FirestoreClient {
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  start(persistenceFactory: PersistenceFactory): Promise<void> {
+  start<T>(
+    persistenceFactory: PersistenceFactory<T>,
+    settings: T
+  ): Promise<void> {
     this.verifyNotTerminated();
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
@@ -178,7 +159,8 @@ export class FirestoreClient {
           this.asyncQueue,
           this.databaseInfo,
           this.platform,
-          this.clientId
+          this.clientId,
+          settings
         )
           .then(({ persistence, sharedClientState, garbageCollector }) => {
             this.persistence = persistence;
@@ -483,29 +465,4 @@ export class FirestoreClient {
     });
     return deferred.promise;
   }
-}
-
-/**
- * Starts Memory-backed persistence. In practice this cannot fail.
- *
- * @returns A promise that will successfully resolve.
- */
-export function newMemoryPersistence(
-  user: User,
-  asyncQueue: AsyncQueue,
-  databaseInfo: DatabaseInfo,
-  platform: Platform,
-  clientId: ClientId
-): Promise<{
-  persistence: Persistence;
-  garbageCollector: LruGarbageCollector | null;
-  sharedClientState: SharedClientState;
-}> {
-  const persistence = MemoryPersistence.createEagerPersistence(clientId);
-  const sharedClientState = new MemorySharedClientState();
-  return Promise.resolve({
-    persistence,
-    sharedClientState,
-    garbageCollector: null
-  });
 }

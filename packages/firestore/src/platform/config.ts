@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
+
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
@@ -24,7 +26,6 @@ import {
   PublicCollectionReference,
   PublicDocumentReference,
   PublicDocumentSnapshot,
-  PublicFirestore,
   PublicQuery,
   PublicQueryDocumentSnapshot,
   PublicQuerySnapshot,
@@ -35,11 +36,10 @@ import { FieldPath } from '../api/field_path';
 import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
-import { shallowCopy } from '../util/obj';
+import { Dict, shallowCopy } from '../util/obj';
 import { Component, ComponentType } from '@firebase/component';
 
-const firestoreNamespace = {
-  Firestore: PublicFirestore,
+const firestoreNamespace: Dict<unknown> = {
   GeoPoint,
   Timestamp,
   Blob: PublicBlob,
@@ -60,30 +60,24 @@ const firestoreNamespace = {
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  */
-export function configureForFirebase(firebase: FirebaseNamespace): void {
+export function configureForFirebase<T extends Function>(
+  firebase: FirebaseNamespace,
+  publicFirestore: T,
+  internalFirestore: typeof Firestore
+): void {
+  const copiedNamespace = shallowCopy(firestoreNamespace);
+  copiedNamespace.Firestore = publicFirestore;
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'firestore',
       container => {
         const app = container.getProvider('app').getImmediate()!;
-        return new Firestore(app, container.getProvider('auth-internal'));
+        return new internalFirestore(
+          app,
+          container.getProvider('auth-internal')
+        );
       },
       ComponentType.PUBLIC
-    ).setServiceProps(shallowCopy(firestoreNamespace))
+    ).setServiceProps(copiedNamespace)
   );
-}
-
-/**
- * Exports the Firestore namespace into the provided `exportObject` object under
- * the key 'firestore'. This is used for wrapped binary that exposes Firestore
- * as a goog module.
- */
-export function configureForStandalone(exportObject: {
-  [key: string]: {};
-}): void {
-  const copiedNamespace = shallowCopy(firestoreNamespace);
-  // Unlike the use with Firebase, the standalone allows the use of the
-  // constructor, so export it's internal class
-  copiedNamespace['Firestore'] = Firestore;
-  exportObject['firestore'] = copiedNamespace;
 }

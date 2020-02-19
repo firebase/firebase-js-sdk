@@ -61,6 +61,7 @@ import {
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
+  PersistenceFactory,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG,
@@ -69,9 +70,15 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -1299,3 +1306,72 @@ function writeSentinelKey(
     sentinelRow(key, txn.currentSequenceNumber)
   );
 }
+
+/** Settings to use for IndexedDB persistence. */
+export class IndexedDbPersistenceSettings {
+  constructor(
+    readonly cacheSizeBytes: number,
+    readonly synchronizeTabs: boolean
+  ) {}
+
+  lruParams(): LruParams {
+    return LruParams.withCacheSize(this.cacheSizeBytes);
+  }
+}
+
+/**
+ * Factory method that starts IndexedDB-based persistence.
+ *
+ * @returns A Promise that resolves with the various persistence components.
+ */
+export const newIndexedDbPersistence: PersistenceFactory<IndexedDbPersistenceSettings> = async (
+  user: User,
+  asyncQueue: AsyncQueue,
+  databaseInfo: DatabaseInfo,
+  platform: Platform,
+  clientId: ClientId,
+  settings: IndexedDbPersistenceSettings
+) => {
+  const persistenceKey = IndexedDbPersistence.buildStoragePrefix(databaseInfo);
+
+  // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
+  const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
+    useProto3Json: true
+  });
+
+  if (!WebStorageSharedClientState.isAvailable(platform)) {
+    throw new FirestoreError(
+      Code.UNIMPLEMENTED,
+      'IndexedDB persistence is only available on platforms that support LocalStorage.'
+    );
+  }
+
+  const lruParams = settings.lruParams();
+
+  const sharedClientState = settings.synchronizeTabs
+    ? new WebStorageSharedClientState(
+        asyncQueue,
+        platform,
+        persistenceKey,
+        clientId,
+        user
+      )
+    : new MemorySharedClientState();
+
+  const persistence = await IndexedDbPersistence.createIndexedDbPersistence({
+    allowTabSynchronization: settings.synchronizeTabs,
+    persistenceKey,
+    clientId,
+    platform,
+    queue: asyncQueue,
+    serializer,
+    lruParams,
+    sequenceNumberSyncer: sharedClientState
+  });
+
+  return {
+    persistence,
+    garbageCollector: persistence.referenceDelegate.garbageCollector,
+    sharedClientState
+  };
+};

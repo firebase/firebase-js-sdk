@@ -28,7 +28,7 @@ function clean() {
 }
 
 function isPersistenceEnabled() {
-  return process.env.USE_FIRESTORE_PERSISTENCE !== 'false';
+  return process.env.DISABLE_FIRESTORE_PERSISTENCE !== 'true';
 }
 
 function copyTests() {
@@ -72,9 +72,9 @@ function copyTests() {
          import '${firebaseFirestoreSdk}';
          
          if (typeof process === 'undefined') {
-           process = { env: { USE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+           process = { env: { DISABLE_FIRESTORE_PERSISTENCE: '${!isPersistenceEnabled()}' } } as any;
          } else {
-           process.env.USE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
+           process.env.DISABLE_FIRESTORE_PERSISTENCE = '${!isPersistenceEnabled()}';
          }
          `
       )

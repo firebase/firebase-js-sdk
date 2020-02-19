@@ -85,19 +85,34 @@ const nodeBuildPlugins = [
 ];
 
 /**
- * List of source paths that are used by Firestore's persistence implementation.
+ * Returns the externs locations for the Memory-based Firestore implementation. 
+ * Verifies that no persistence sources are used by Firestore's memory-only 
+ * implementation.
  */
-const persistenceDeps = [
-  'local/indexeddb_persistence.ts',
-  'local/indexeddb_index_manager.ts',
-  'local/indexeddb_mutation_queue.ts',
-  'local/indexeddb_remote_document_cache.ts',
-  'local/indexeddb_schema.ts',
-  'local/indexeddb_target_cache.ts',
-  'local/local_serializer.ts',
-  'local/simple_db.ts',
-  'api/persistence.ts'
-].map(p => path.resolve(__dirname, 'src', p));
+function resolveMemoryExterns(id, referencedBy) {
+  const externalRef = path
+    .resolve(path.dirname(referencedBy), id)
+    .replace('.ts', '');
+  
+  const persistenceRef = [
+    'local/indexeddb_persistence.ts',
+    'local/indexeddb_index_manager.ts',
+    'local/indexeddb_mutation_queue.ts',
+    'local/indexeddb_remote_document_cache.ts',
+    'local/indexeddb_schema.ts',
+    'local/indexeddb_target_cache.ts',
+    'local/local_serializer.ts',
+    'local/simple_db.ts',
+    'api/persistence.ts'
+  ].map(p => path.resolve(__dirname, 'src', p));
+  
+  if (persistenceRef.indexOf(externalRef) !== -1) {
+    throw new Error('Unexpected reference in Memory-only client on ' + id);
+  }
+  return [...deps, 'util', 'path'].some(
+    dep => id === dep || id.startsWith(`${dep}/`)
+  );
+}
 
 const es5Builds = [
   /**
@@ -118,17 +133,7 @@ const es5Builds = [
       { file: pkg.mainMemoryPersistence, format: 'cjs', sourcemap: true }
     ],
     plugins: nodeBuildPlugins,
-    external: (id, referencedBy) => {
-      const externalRef = path
-        .resolve(path.dirname(referencedBy), id)
-        .replace('.ts', '');
-      if (persistenceDeps.indexOf(externalRef) !== -1) {
-        throw new Error('Unexpected reference in Memory-only client on ' + id);
-      }
-      return [...deps, 'util', 'path'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      );
-    }
+    external: resolveMemoryExterns
   },
   /**
    * Browser Builds
@@ -157,15 +162,7 @@ const es5Builds = [
       }
     ],
     plugins: es5BuildPlugins,
-    external: (id, referencedBy) => {
-      const externalRef = path
-        .resolve(path.dirname(referencedBy), id)
-        .replace('.ts', '');
-      if (persistenceDeps.indexOf(externalRef) !== -1) {
-        throw new Error('Unexpected reference in Memory-only client on ' + id);
-      }
-      return deps.some(dep => id === dep || id.startsWith(`${dep}/`));
-    }
+    external: resolveMemoryExterns
   }
 ];
 
@@ -200,17 +197,6 @@ const es2017Builds = [
     },
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-<<<<<<< HEAD
-  },
-  {
-    input: 'index.ts',
-    output: {
-      file: pkg.esm2017Minified,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017MinifiedBuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.memory.ts',
@@ -220,15 +206,7 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: (id, referencedBy) => {
-      const externalRef = path.resolve(path.dirname(referencedBy), id);
-      if (persistenceDeps.indexOf(externalRef) !== -1) {
-        throw new Error('Unexpected reference in Memory-only client on ' + id);
-      }
-      return deps.some(dep => id === dep || id.startsWith(`${dep}/`));
-    }
-=======
->>>>>>> master
+    external: resolveMemoryExterns
   }
 ];
 

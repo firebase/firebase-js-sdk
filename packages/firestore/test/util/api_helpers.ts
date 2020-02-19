@@ -26,6 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
+import { PersistenceFirestore } from '../../src/api/persistence';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -42,7 +43,7 @@ import { Provider, ComponentContainer } from '@firebase/component';
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore(
+export const FIRESTORE = new PersistenceFirestore(
   {
     projectId: 'projectid',
     database: 'database'

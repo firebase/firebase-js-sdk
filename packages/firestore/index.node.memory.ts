@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,19 @@
  */
 
 import firebase from '@firebase/app';
-import * as types from '@firebase/firestore-types';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { configureForFirebase } from './src/platform/config';
-import './src/platform_browser/browser_init';
+import './register-module';
+import './src/platform_node/node_init';
 
 import { name, version } from './package.json';
+import {Firestore, PublicMemoryFirestore} from "./src/api/database";
 
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance);
+  configureForFirebase(instance, PublicMemoryFirestore, Firestore);
   instance.registerVersion(name, version);
 }
 
 registerFirestore(firebase);
 
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    firestore?: {
-      (app?: FirebaseApp): types.FirebaseFirestore;
-      Blob: typeof types.Blob;
-      CollectionReference: typeof types.CollectionReference;
-      DocumentReference: typeof types.DocumentReference;
-      DocumentSnapshot: typeof types.DocumentSnapshot;
-      FieldPath: typeof types.FieldPath;
-      FieldValue: typeof types.FieldValue;
-      Firestore: typeof types.FirebaseFirestore;
-      GeoPoint: typeof types.GeoPoint;
-      Query: typeof types.Query;
-      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
-      QuerySnapshot: typeof types.QuerySnapshot;
-      Timestamp: typeof types.Timestamp;
-      Transaction: typeof types.Transaction;
-      WriteBatch: typeof types.WriteBatch;
-      setLogLevel: typeof types.setLogLevel;
-    };
-  }
-  interface FirebaseApp {
-    firestore?(): types.FirebaseFirestore;
-  }
-}

@@ -19,6 +19,7 @@ import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -29,9 +30,10 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-
+import { DatabaseInfo } from '../core/database_info';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { Platform } from '../platform/platform';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
@@ -39,6 +41,7 @@ import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
+  PersistenceFactory,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PrimaryStateListener,
@@ -46,7 +49,7 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
+import { ClientId, MemorySharedClientState } from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
@@ -496,3 +499,28 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return this.persistence.getRemoteDocumentCache().getSize(txn);
   }
 }
+
+export class MemoryPersistenceSettings {}
+
+/**
+ * Creates and starts a new Memory-backed persistence. In practice this cannot
+ * fail.
+ *
+ * @returns A promise that will successfully resolve.
+ */
+export const newMemoryPersistence: PersistenceFactory<MemoryPersistenceSettings> = (
+  user: User,
+  asyncQueue: AsyncQueue,
+  databaseInfo: DatabaseInfo,
+  platform: Platform,
+  clientId: ClientId,
+  settings: MemoryPersistenceSettings
+) => {
+  const persistence = MemoryPersistence.createEagerPersistence(clientId);
+  const sharedClientState = new MemorySharedClientState();
+  return Promise.resolve({
+    persistence,
+    sharedClientState,
+    garbageCollector: null
+  });
+};

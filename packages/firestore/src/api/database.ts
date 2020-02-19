@@ -21,11 +21,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import {
-  FirestoreClient,
-  PersistenceFactory,
-  newMemoryPersistence
-} from '../core/firestore_client';
+import { FirestoreClient } from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -104,6 +100,8 @@ import {
 } from './user_data_converter';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { newMemoryPersistence } from '../local/memory_persistence';
+import { PersistenceFactory } from '../local/persistence';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -142,7 +140,7 @@ export interface FirestoreDatabase {
  * user-supplied firestore.Settings object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
-export class FirestoreSettings {
+class FirestoreSettings {
   /** The hostname to connect to. */
   readonly host: string;
 
@@ -292,7 +290,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _persistenceKey: string;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
-  private _settings: FirestoreSettings;
+  protected _settings: FirestoreSettings;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -300,7 +298,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  private _firestoreClient: FirestoreClient | undefined;
+  protected _firestoreClient: FirestoreClient | undefined;
 
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
@@ -443,12 +441,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._configureClient(newMemoryPersistence);
+      this._configureClient(
+        newMemoryPersistence,
+        /* persistenceSettings= */ {}
+      );
     }
     return this._firestoreClient as FirestoreClient;
   }
 
-  private makeDatabaseInfo(): DatabaseInfo {
+  protected makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       this._persistenceKey,
@@ -458,8 +459,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
-  private _configureClient(
-    persistenceFactory: PersistenceFactory
+  protected _configureClient<T>(
+    persistenceFactory: PersistenceFactory<T>,
+    persistenceSettings: T
   ): Promise<void> {
     assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
@@ -474,7 +476,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    return this._firestoreClient.start(persistenceFactory);
+    return this._firestoreClient.start(persistenceFactory, persistenceSettings);
   }
 
   private createDataConverter(databaseId: DatabaseId): UserDataConverter {
@@ -2622,7 +2624,7 @@ function applyFirestoreDataConverter<T>(
 
 // We're treating the variables as class names, so disable checking for lower
 // case variable names.
-export const PublicFirestore = makeConstructorPrivate(
+export const PublicMemoryFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
 );
