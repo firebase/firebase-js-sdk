@@ -46,12 +46,8 @@ export function makeConstructorPrivate<T extends Function>(
   PublicConstructor.prototype = cls.prototype;
 
   // Copy any static methods/members
-  for (const staticProperty in cls) {
-    if (cls.hasOwnProperty(staticProperty)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (PublicConstructor as any)[staticProperty] = (cls as any)[staticProperty];
-    }
-  }
+  Object.assign(PublicConstructor, cls);
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return PublicConstructor as any;
 }
