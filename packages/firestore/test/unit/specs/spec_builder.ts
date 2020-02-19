@@ -952,20 +952,20 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          // Convert to base64 string to be compatible with Blob format.
+          // Convert to base64 string to be compatible with ProtoByteString.
           resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          // Convert to base64 string to be compatible with Blob format.
+          // Convert to base64 string to be compatible with ProtoByteString.
           resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        // Convert to base64 string to be compatible with Blob format.
+        // Convert to base64 string to be compatible with ProtoByteString.
         resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
       };
     }

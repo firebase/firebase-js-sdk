@@ -279,7 +279,7 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Returns a Blob based on the proto string value.
+   * Returns a ProtoByteString based on the proto string value.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. Value is typed as "string" because that's what
    * our generated proto interfaces say bytes must be, but it is actually

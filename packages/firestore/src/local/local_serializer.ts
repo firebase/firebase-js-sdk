@@ -245,8 +245,8 @@ export class LocalSerializer {
       queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
-    // We can't store the resumeToken as a Blob in IndexedDb, so we convert it
-    // to a base64 string for storage.
+    // We can't store the resumeToken as a ProtoByteString in IndexedDb, so we
+    // convert it to a base64 string for storage.
     const resumeToken = targetData.resumeToken.toBase64();
 
     // lastListenSequenceNumber is always 0 until we do real GC.

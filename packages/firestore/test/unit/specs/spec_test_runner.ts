@@ -198,7 +198,7 @@ class MockConnection implements Connection {
 
   ackWrite(commitTime?: string, mutationResults?: api.WriteResult[]): void {
     this.writeStream!.callOnMessage({
-      // Convert to base64 string to be compatible with Blob format.
+      // Convert to base64 string to be compatible with ProtoByteString.
       streamToken: PlatformSupport.getPlatform().btoa(
         'write-stream-token-' + this.nextWriteStreamToken
       ),
@@ -832,7 +832,7 @@ abstract class TestRunner {
     const protoJSON: api.ListenResponse = {
       targetChange: {
         readTime: this.serializer.toVersion(version(watchSnapshot.version)),
-        // Convert to base64 string to be compatible with Blob format.
+        // Convert to base64 string to be compatible with ProtoByteString.
         resumeToken: this.platform.btoa(watchSnapshot.resumeToken || ''),
         targetIds: watchSnapshot.targetIds
       }
