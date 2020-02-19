@@ -62,7 +62,7 @@ import { OperationType } from './model/user_credential';
 import { FacebookAuthProvider } from './core/providers/facebook';
 import { GithubAuthProvider } from './core/providers/github';
 import { SAMLAuthProvider } from './core/providers/saml';
-import { PhoneAuthProvider } from './core/providers/phone';
+import { PhoneAuthProvider, PhoneAuthCredential } from './core/providers/phone';
 import { TwitterAuthProvider } from './core/providers/twitter';
 import { RecaptchaVerifier } from './platform_browser/recaptcha_verifier';
 import { ApplicationVerifier } from './model/application_verifier';
@@ -72,6 +72,7 @@ import { AuthCredential } from './model/auth_credential';
 import { ProviderId } from './core/providers';
 import { unlink } from './core/account_management/unlink';
 import { updateEmail, updatePassword } from './core/account_management/update_email_password';
+import { updatePhoneNumber } from './core/account_management/update_phone_number';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -132,6 +133,9 @@ let memo: FirebaseAuth;
         },
         updatePassword(newPassword: string): Promise<void> {
           return updatePassword(auth, user, newPassword);
+        },
+        updatePhoneNumber(phoneCredential: PhoneAuthCredential): Promise<void> {
+          return updatePhoneNumber(auth, user, phoneCredential);
         },
       });
     }
