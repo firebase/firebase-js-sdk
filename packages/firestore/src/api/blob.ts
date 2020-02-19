@@ -85,14 +85,10 @@ export class Blob {
     if (!(array instanceof Uint8Array)) {
       throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
     }
-    // We can't call array.map directly because it expects the return type to
-    // be a Uint8Array, whereas we can convert it to a regular array by invoking
-    // map on the Array prototype.
-    const binaryString = Array.prototype.map
-      .call(array, (char: number) => {
-        return String.fromCharCode(char);
-      })
-      .join('');
+    let binaryString = '';
+    for (let i = 0; i < array.length; ++i) {
+      binaryString += String.fromCharCode(array[i]);
+    }
     return new Blob(binaryString);
   }
 
