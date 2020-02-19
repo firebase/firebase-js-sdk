@@ -42,7 +42,7 @@ function copyTests() {
   const firebaseFirestoreSdk = resolve(
     __dirname,
     isPersistenceEnabled()
-      ? '../../packages/firestore/dist/index.esm.min.js'
+      ? '../../packages/firestore/dist/index.esm.js'
       : '../../packages/firestore/dist/index.memory.esm.js'
   );
   return gulp

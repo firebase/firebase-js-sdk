@@ -1,4 +1,12 @@
 # Unreleased
+- [fixed] Fixed an issue where auth credentials were not respected in Cordova
+  environments (#2626).
+- [fixed] Fixed a performance regression introduced by the addition of
+  `Query.limitToLast(n: number)` in Firestore 1.7.0 (Firebase 7.3.0) (#2620).
+- [fixed] Fixed an issue where `CollectionReference.add()` would reject
+  custom types when using `withConverter()` (#2606).
+
+# 1.9.3
 - [fixed] Fixed an issue where auth credentials were not respected in some
   Firefox or Chrome extensions. (#1491)
 - [changed] Firestore previously required that every document read in a

@@ -66,14 +66,6 @@ const terserOptions = {
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
-    cacheRoot: './.cache/es5/'
-  }),
-  json()
-];
-
-const es5MinifiedBuildPlugins = [
-  typescriptPlugin({
-    typescript,
     transformers,
     cacheRoot: './.cache/es5.min/'
   }),
@@ -151,15 +143,6 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
-    input: 'index.ts',
-    output: [
-      { file: pkg.browserMinified, format: 'cjs', sourcemap: true },
-      { file: pkg.moduleMinified, format: 'es', sourcemap: true }
-    ],
-    plugins: es5MinifiedBuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
     input: 'index.memory.ts',
     output: [
       {
@@ -197,19 +180,6 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
-    cacheRoot: './.cache/es2017/'
-  }),
-  json({ preferConst: true })
-];
-
-const es2017MinifiedBuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
     cacheRoot: './.cache/es2017.min/',
     transformers
   }),
@@ -230,6 +200,7 @@ const es2017Builds = [
     },
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+<<<<<<< HEAD
   },
   {
     input: 'index.ts',
@@ -256,6 +227,8 @@ const es2017Builds = [
       }
       return deps.some(dep => id === dep || id.startsWith(`${dep}/`));
     }
+=======
+>>>>>>> master
   }
 ];
 

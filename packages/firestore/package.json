@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -26,13 +26,10 @@
   "main": "dist/index.node.cjs.js",
   "mainMemoryPersistence": "dist/index.node.memory.cjs.js",
   "browser": "dist/index.cjs.js",
-  "browserMinified": "dist/index.cjs.min.js",
   "browserMemoryPersistence": "dist/index.memory.cjs.js",
   "module": "dist/index.esm.js",
-  "moduleMinified": "dist/index.esm.min.js",
   "moduleMemoryPersistence": "dist/index.memory.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "esm2017Minified": "dist/index.esm2017.min.js",
   "esm2017MemoryPersistence": "dist/index.memory.esm2017.js",
   "license": "Apache-2.0",
   "files": [
