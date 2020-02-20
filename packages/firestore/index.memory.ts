@@ -16,7 +16,6 @@
  */
 
 import firebase from '@firebase/app';
-import * as types from '@firebase/firestore-types';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { configureForFirebase } from './src/platform/config';
