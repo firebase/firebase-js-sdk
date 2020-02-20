@@ -1048,6 +1048,35 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
+/**
+ * A record of named query.
+ */
+export class DbNamedQuery {
+  /** Name of the IndexedDb object store. */
+  static store = 'namedQuery';
+
+  /** Keys are automatically assigned via the clientId properties. */
+  static keyPath = ['bundleId', 'name'];
+
+  constructor(
+    public bundleId: string,
+    public bundleCreateTime: DbTimestampKey,
+
+    public name: string,
+    public queryReadTime: DbTimestampKey,
+
+    // TODO(149936981): This should not be `DbQuery`, features like limitToLast
+    // should be saved too.
+    public query: DbQuery
+) {}
+}
+
+function createNamedQueryStore(db: IDBDatabase): void {
+  db.createObjectStore(DbNamedQuery.store, {
+    keyPath: DbNamedQuery.keyPath
+  });
+}
+
 // Visible for testing
 export const V1_STORES = [
   DbMutationQueue.store,
@@ -1079,9 +1108,11 @@ export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 // V9 does not change the set of stores.
 
+export const V10_STORES = [...V8_STORES, DbNamedQuery.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V8_STORES;
+export const ALL_STORES = V10_STORES;
