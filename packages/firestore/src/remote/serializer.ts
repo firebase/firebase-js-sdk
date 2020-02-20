@@ -286,8 +286,8 @@ export class JsonProtoSerializer {
   fromBytes(value: string | Uint8Array | undefined): ByteString {
     if (this.options.useProto3Json) {
       assert(
-        typeof value === 'string',
-        'value must be a string when using proto3 Json '
+        value === undefined || typeof value === 'string',
+        'value must be undefined or a string when using proto3 Json'
       );
       return ByteString.fromBase64String(value ? value : '');
     } else {
