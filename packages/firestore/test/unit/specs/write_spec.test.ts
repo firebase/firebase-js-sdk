@@ -48,7 +48,8 @@ describeSpec('Writes:', [], () => {
       const docAv2 = doc('collection/a', 2000, { v: 2 });
       const docBv2 = doc('collection/b', 2500, { v: 2 });
 
-      return spec()
+      return spec()ackages/firestore/index.node.ts
+
         .userListens(query)
         .watchAcksFull(query, 1000, docAv1, docBv1)
         .expectEvents(query, { added: [docAv1, docBv1] })

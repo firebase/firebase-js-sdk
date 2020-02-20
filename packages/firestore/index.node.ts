@@ -32,4 +32,3 @@ export function registerFirestore(instance: FirebaseNamespace): void {
 }
 
 registerFirestore(firebase);
-

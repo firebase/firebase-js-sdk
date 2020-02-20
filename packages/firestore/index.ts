@@ -17,6 +17,7 @@
 
 import firebase from '@firebase/app';
 import { configureForFirebase } from './src/platform/config';
+import './register-module';
 import './src/platform_browser/browser_init';
 
 import { FirebaseNamespace } from '@firebase/app-types';
