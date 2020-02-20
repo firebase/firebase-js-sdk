@@ -66,14 +66,11 @@ export class ByteString {
  * Helper function to convert an Uint8array to a binary string.
  */
 export function binaryStringFromUint8Array(array: Uint8Array): string {
-  // We can't call array.map directly because it expects the return type to
-  // be a Uint8Array, whereas we can convert it to a regular array by invoking
-  // map on the Array prototype.
-  return Array.prototype.map
-    .call(array, (char: number) => {
-      return String.fromCharCode(char);
-    })
-    .join('');
+  let binaryString = '';
+  for (let i = 0; i < array.length; ++i) {
+    binaryString += String.fromCharCode(array[i]);
+  }
+  return binaryString;
 }
 
 /**
