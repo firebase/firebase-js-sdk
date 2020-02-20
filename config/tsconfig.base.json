@@ -2,6 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "declaration": true,
+    "declarationMap": true,
     "importHelpers": true,
     "strict": true,
     "lib": [

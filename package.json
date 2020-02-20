@@ -37,7 +37,9 @@
     "docgen:node": "node scripts/docgen/generate-docs.js --api node",
     "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
-    "lint": "lerna run --scope @firebase/* --scope rxfire lint"
+    "lint": "lerna run --scope @firebase/* --scope rxfire lint",
+    "api-report": "lerna run --scope @firebase/* --scope firebase api-report",
+    "doc": "node scripts/docgen-markdown.js"
   },
   "repository": {
     "type": "git",
@@ -121,6 +123,8 @@
     "watch": "1.0.2",
     "webpack": "4.41.5",
     "yargs": "15.1.0",
-    "lodash": "4.17.15"
+    "lodash": "4.17.15",
+    "@microsoft/api-extractor": "7.7.8",
+    "@microsoft/api-documenter": "7.7.12"
   }
 }

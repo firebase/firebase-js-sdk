@@ -75,6 +75,8 @@ function mapPackagesToDepGraph(packagePaths) {
   return graph;
 }
 
+exports.mapWorkspaceToPackages = mapWorkspaceToPackages;
+
 exports.mapPkgNameToPkgPath = async pkgName => {
   const packages = await mapWorkspaceToPackages(workspaces);
   return packages
