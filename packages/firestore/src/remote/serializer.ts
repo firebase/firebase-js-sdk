@@ -278,10 +278,6 @@ export class JsonProtoSerializer {
 
   /**
    * Returns a ByteString based on the proto string value.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. Value is typed as "string" because that's what
-   * our generated proto interfaces say bytes must be, but it is actually
-   * an Uint8Array in Node.
    */
   fromBytes(value: string | Uint8Array | undefined): ByteString {
     if (this.options.useProto3Json) {
@@ -730,8 +726,6 @@ export class JsonProtoSerializer {
       );
       const targetIds: TargetId[] = change.targetChange.targetIds || [];
 
-      // Depending on the platform, the resumeToken could be a Uint8Array or
-      // string, even though it is typed as "string".
       const resumeToken = this.fromBytes(change.targetChange.resumeToken);
       const causeProto = change.targetChange!.cause;
       const cause = causeProto && this.fromRpcStatus(causeProto);

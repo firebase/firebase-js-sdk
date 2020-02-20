@@ -20,15 +20,15 @@ import { PlatformSupport } from '../platform/platform';
 /**
  * Immutable class that represents a "proto" byte string.
  *
- * Proto byte strings can either be base64 strings or Uint8Arrays when sent
- * on the wire, but they are always typed to string. This class abstracts away
- * this differentiation by holding the proto byte string in a common class that
- * must be converted into a string before being sent as a proto.
+ * Proto byte strings can either be Base64-encoded strings or Uint8Arrays when
+ * sent on the wire. This class abstracts away this differentiation by holding
+ * the proto byte string in a common class that must be converted into a string
+ * before being sent as a proto.
  */
 export class ByteString {
   static readonly EMPTY_BYTE_STRING = new ByteString('');
 
-  private _binaryString: string;
+  private readonly _binaryString: string;
 
   private constructor(binaryString: string) {
     this._binaryString = binaryString;
@@ -49,8 +49,7 @@ export class ByteString {
   }
 
   toUint8Array(): Uint8Array {
-    const buffer = uint8ArrayFromBinaryString(this._binaryString);
-    return buffer;
+    return uint8ArrayFromBinaryString(this._binaryString);
   }
 
   approximateByteSize(): number {

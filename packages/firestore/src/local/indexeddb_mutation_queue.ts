@@ -126,7 +126,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
       // We can't store the resumeToken as a ByteString in IndexedDB, so we
-      // convert it to a base64 string for storage.
+      // convert it to a Base64 string for storage.
       metadata.lastStreamToken = streamToken.toBase64();
 
       return mutationQueuesStore(transaction).put(metadata);
@@ -146,8 +146,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // Convert the streamToken to base64 in order to store it as a string that can
-      // be reconstructed into a ByteString.
+      // We can't store the resumeToken as a ByteString in IndexedDB, so we
+      // convert it to a Base64 string for storage.
       metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });
