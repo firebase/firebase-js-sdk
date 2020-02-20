@@ -1151,7 +1151,7 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      // actualTarget's resumeToken is a hexadecimal string, but the serialized
+      // actualTarget's resumeToken is a string, but the serialized
       // resumeToken will be a base64 string, so we need to convert it back.
       expect(actualTarget.resumeToken || '').to.equal(
         this.platform.atob(expectedTarget.resumeToken || '')

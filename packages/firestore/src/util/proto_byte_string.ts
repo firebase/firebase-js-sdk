@@ -26,7 +26,7 @@ import { PlatformSupport } from '../platform/platform';
  * must be converted into a string before being sent as a proto.
  */
 export class ByteString {
-  static EMPTY_BYTE_STRING = ByteString.fromBase64String('');
+  static readonly EMPTY_BYTE_STRING = new ByteString('');
 
   private _binaryString: string;
 
