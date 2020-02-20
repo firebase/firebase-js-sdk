@@ -105,5 +105,5 @@ export function shallowCopy<V>(obj: Dict<V>): Dict<V> {
     obj && typeof obj === 'object',
     'shallowCopy() expects object parameter.'
   );
-  return Object.assign({}, obj);
+  return { ...obj };
 }
