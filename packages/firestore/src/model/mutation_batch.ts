@@ -17,9 +17,10 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
+import { ByteString } from '../util/proto_byte_string';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -186,7 +187,7 @@ export class MutationBatchResult {
     readonly batch: MutationBatch,
     readonly commitVersion: SnapshotVersion,
     readonly mutationResults: MutationResult[],
-    readonly streamToken: ProtoByteString,
+    readonly streamToken: ByteString,
     /**
      * A pre-computed mapping from each mutated document to the resulting
      * version.
@@ -203,7 +204,7 @@ export class MutationBatchResult {
     batch: MutationBatch,
     commitVersion: SnapshotVersion,
     results: MutationResult[],
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): MutationBatchResult {
     assert(
       batch.mutations.length === results.length,

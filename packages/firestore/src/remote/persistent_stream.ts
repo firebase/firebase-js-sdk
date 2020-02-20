@@ -17,7 +17,7 @@
 
 import { CredentialsProvider, Token } from '../api/credentials';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
@@ -32,7 +32,7 @@ import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
-import { emptyByteString } from '../platform/platform';
+import { ByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -661,7 +661,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  lastStreamToken: ProtoByteString = emptyByteString();
+  lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and
@@ -698,7 +698,7 @@ export class PersistentWriteStream extends PersistentStream<
       !!responseProto.streamToken,
       'Got a write response without a stream token'
     );
-    this.lastStreamToken = responseProto.streamToken;
+    this.lastStreamToken = this.serializer.fromBytes(responseProto.streamToken);
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
@@ -748,14 +748,12 @@ export class PersistentWriteStream extends PersistentStream<
       'Handshake must be complete before writing mutations'
     );
     assert(
-      this.lastStreamToken.length > 0,
+      this.lastStreamToken.approximateByteSize() > 0,
       'Trying to write mutation without a token'
     );
 
     const request: WriteRequest = {
-      // Protos are typed with string, but we support UInt8Array on Node
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      streamToken: this.lastStreamToken as any,
+      streamToken: this.serializer.toBytes(this.lastStreamToken),
       writes: mutations.map(mutation => this.serializer.toMutation(mutation))
     };
 

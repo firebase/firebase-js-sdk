@@ -20,7 +20,7 @@ import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { BatchId, ProtoByteString, TargetId } from '../core/types';
+import { BatchId, TargetId } from '../core/types';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -62,6 +62,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
+import { ByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'LocalStore';
 
@@ -464,7 +465,7 @@ export class LocalStore {
   }
 
   /** Returns the last recorded stream token for the current user. */
-  getLastStreamToken(): Promise<ProtoByteString> {
+  getLastStreamToken(): Promise<ByteString> {
     return this.persistence.runTransaction(
       'Get last stream token',
       'readonly-idempotent',
@@ -479,7 +480,7 @@ export class LocalStore {
    * mutation batch. This is usually only useful after a stream handshake or in
    * response to an error that requires clearing the stream token.
    */
-  setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
+  setLastStreamToken(streamToken: ByteString): Promise<void> {
     return this.persistence.runTransaction(
       'Set last stream token',
       'readwrite-primary-idempotent',
@@ -551,7 +552,7 @@ export class LocalStore {
 
               const resumeToken = change.resumeToken;
               // Update the resume token if the change includes one.
-              if (resumeToken.length > 0) {
+              if (resumeToken.approximateByteSize() > 0) {
                 const newTargetData = oldTargetData
                   .withResumeToken(resumeToken, remoteVersion)
                   .withSequenceNumber(txn.currentSequenceNumber);
@@ -696,12 +697,12 @@ export class LocalStore {
     change: TargetChange
   ): boolean {
     assert(
-      newTargetData.resumeToken.length > 0,
+      newTargetData.resumeToken.approximateByteSize() > 0,
       'Attempted to persist target data with no resume token'
     );
 
     // Always persist target data if we don't already have a resume token.
-    if (oldTargetData.resumeToken.length === 0) {
+    if (oldTargetData.resumeToken.approximateByteSize() === 0) {
       return true;
     }
 

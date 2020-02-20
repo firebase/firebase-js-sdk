@@ -29,10 +29,6 @@ export type TargetId = number;
 
 export type ListenSequenceNumber = number;
 
-// TODO(b/35918695): In GRPC / node, tokens are Uint8Array. In WebChannel,
-// they're strings. We should probably (de-)serialize to a common internal type.
-export type ProtoByteString = Uint8Array | string;
-
 /** The different states of a mutation batch. */
 export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
 

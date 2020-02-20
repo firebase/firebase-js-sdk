@@ -18,7 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -26,6 +26,7 @@ import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { ByteString } from '../util/proto_byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
@@ -47,7 +48,7 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -121,10 +122,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // We can't store the resumeToken as a ByteString in IndexedDB, so we
+      // convert it to a Base64 string for storage.
+      metadata.lastStreamToken = streamToken.toBase64();
 
       return mutationQueuesStore(transaction).put(metadata);
     });
@@ -132,18 +135,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString> {
-    return this.getMutationQueueMetadata(transaction).next<ProtoByteString>(
-      metadata => metadata.lastStreamToken
+  ): PersistencePromise<ByteString> {
+    return this.getMutationQueueMetadata(transaction).next<ByteString>(
+      metadata => ByteString.fromBase64String(metadata.lastStreamToken)
     );
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // We can't store the resumeToken as a ByteString in IndexedDB, so we
+      // convert it to a Base64 string for storage.
+      metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });
   }
@@ -669,19 +674,6 @@ export function removeMutationBatch(
     removedDocuments.push(mutation.key);
   }
   return PersistencePromise.waitFor(promises).next(() => removedDocuments);
-}
-
-function convertStreamToken(token: ProtoByteString): string {
-  if (token instanceof Uint8Array) {
-    // TODO(b/78771403): Convert tokens to strings during deserialization
-    assert(
-      SimpleDb.isMockPersistence(),
-      'Persisting non-string stream tokens is only supported with mock persistence.'
-    );
-    return token.toString();
-  } else {
-    return token;
-  }
 }
 
 /**

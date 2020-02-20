@@ -31,8 +31,6 @@ import { loadProtos } from './load_protos';
 export class NodePlatform implements Platform {
   readonly base64Available = true;
 
-  readonly emptyByteString = new Uint8Array(0);
-
   readonly document = null;
 
   get window(): Window | null {

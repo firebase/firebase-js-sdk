@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
@@ -26,7 +26,6 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { debug } from '../util/log';
@@ -36,6 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
+import { ByteString } from '../util/proto_byte_string';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -94,7 +94,7 @@ export class WatchTargetChange {
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    public resumeToken: ProtoByteString = emptyByteString(),
+    public resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING,
     /** An RPC error indicating why the watch failed. */
     public cause: FirestoreError | null = null
   ) {}
@@ -120,7 +120,7 @@ class TargetState {
   > = snapshotChangesMap();
 
   /** See public getters for explanations of these fields. */
-  private _resumeToken: ProtoByteString = emptyByteString();
+  private _resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING;
   private _current = false;
 
   /**
@@ -143,7 +143,7 @@ class TargetState {
   }
 
   /** The last resume token sent to us for this target. */
-  get resumeToken(): ProtoByteString {
+  get resumeToken(): ByteString {
     return this._resumeToken;
   }
 
@@ -161,8 +161,8 @@ class TargetState {
    * Applies the resume token to the TargetChange, but only when it has a new
    * value. Empty resumeTokens are discarded.
    */
-  updateResumeToken(resumeToken: ProtoByteString): void {
-    if (resumeToken.length > 0) {
+  updateResumeToken(resumeToken: ByteString): void {
+    if (resumeToken.approximateByteSize() > 0) {
       this._hasPendingChanges = true;
       this._resumeToken = resumeToken;
     }

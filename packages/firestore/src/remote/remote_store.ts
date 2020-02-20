@@ -26,7 +26,6 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
@@ -52,6 +51,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { ByteString } from '../util/proto_byte_string';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -431,7 +431,7 @@ export class RemoteStore implements TargetMetadataProvider {
     // Update in-memory resume tokens. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
     objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
-      if (change.resumeToken.length > 0) {
+      if (change.resumeToken.approximateByteSize() > 0) {
         const targetData = this.listenTargets[targetId];
         // A watched target might have been removed already.
         if (targetData) {
@@ -455,7 +455,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Clear the resume token for the target, since we're in a known mismatch
       // state.
       this.listenTargets[targetId] = targetData.withResumeToken(
-        emptyByteString(),
+        ByteString.EMPTY_BYTE_STRING,
         targetData.snapshotVersion
       );
 
@@ -665,10 +665,10 @@ export class RemoteStore implements TargetMetadataProvider {
         'RemoteStore error before completed handshake; resetting stream token: ',
         this.writeStream.lastStreamToken
       );
-      this.writeStream.lastStreamToken = emptyByteString();
+      this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
 
       return this.localStore
-        .setLastStreamToken(emptyByteString())
+        .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
         .catch(ignoreIfPrimaryLeaseLoss);
     } else {
       // Some other error, don't reset stream token. Our stream logic will

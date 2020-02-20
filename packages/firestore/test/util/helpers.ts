@@ -34,7 +34,7 @@ import {
   OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { ProtoByteString, TargetId } from '../../src/core/types';
+import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -75,7 +75,6 @@ import {
   TransformMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
-import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
@@ -89,6 +88,8 @@ import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
+import { ByteString } from '../../src/util/proto_byte_string';
+import { PlatformSupport } from '../../src/platform/platform';
 
 export type TestSnapshotVersion = number;
 
@@ -288,7 +289,7 @@ export function targetData(
 export function noChangeEvent(
   targetId: number,
   snapshotVersion: number,
-  resumeToken: ProtoByteString = emptyByteString()
+  resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
@@ -481,14 +482,22 @@ export function localViewChanges(
   return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
+/**
+ * Returns a ByteString representation for the platform from the given string.
+ */
+export function byteStringFromString(value: string): ByteString {
+  const base64 = PlatformSupport.getPlatform().btoa(value);
+  return ByteString.fromBase64String(base64);
+}
+
 /** Creates a resume token to match the given snapshot version. */
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
-): ProtoByteString {
+): ByteString {
   if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-    return emptyByteString();
+    return ByteString.EMPTY_BYTE_STRING;
   } else {
-    return snapshotVersion.toString();
+    return byteStringFromString(snapshotVersion.toString());
   }
 }
 
