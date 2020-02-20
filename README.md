@@ -88,11 +88,12 @@ $ yarn build
 A production project is required to test the Firebase JS SDK. You can create a
 new project by visiting the [Firebase Console](https://console.firebase.google.com/).
 
-#### Firestore Support
+#### Firestore Database Setup
 
-Visit the database section of the console and enable the Cloud Firestore Beta.
-You can select either of the default permissions settings as we will overwrite
-them below.
+Visit the "Database" section of the console and create a Cloud Firestore
+database. When prompted to select the set of initial security rules, select
+any option (e.g. "Start in Production Mode") since these permission settings
+will be overwritten below.
 
 #### Authentication Support
 
@@ -101,17 +102,25 @@ sign-in provider to complete your project config.
 
 #### Automated Setup
 
-The remainder of the test setup requires choosing a test project. You can 
-choose the project manually or specify the project directly at the root of 
-the package.
+The tests need to be configured to use the Firebase production project that you
+created in the "Test Setup" section above. To do this, run the `yarn test:setup`
+command, as follows:
+
 
 ```bash
-# Select a project manually when running setup
+# Select the Firebase project via the text-based UI.
 $ yarn test:setup
 
-# Specify the specific project for setup
-$ yarn test:setup --projectId=<your-test-project>
+# Specify the Firebase project via the command-line arguments.
+$ yarn test:setup --projectId=<test_firebase_project_id>
 ```
+
+If you see an error like
+```
+HTTP Error: 404, Project '<test_firebase_project_id>' does not exist.
+```
+then make sure that you have created the database as specified in the "Firestore
+Database Setup" section above.
 
 ### Running the tests
 
