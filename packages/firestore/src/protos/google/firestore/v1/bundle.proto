@@ -1,0 +1,76 @@
+// Copyright 2020 Google LLC.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+syntax = "proto3";
+
+package google.firestore.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Google.Cloud.Firestore.V1";
+option go_package = "google.golang.org/genproto/googleapis/firestore/v1;firestore";
+option java_multiple_files = true;
+option java_outer_classname = "BundleProto";
+option java_package = "com.google.firestore.v1";
+option objc_class_prefix = "GCFS";
+option php_namespace = "Google\\Cloud\\Firestore\\V1";
+
+message NamedQuery {
+  // Name of the query, such that client can use the name to load this query
+  // from bundle, and resume from when the query results are materialized
+  // into this bundle.
+  string name = 1;
+
+  // Information about the query. The format is defined in `BundleMetadata`'s 
+  // `target_document_format`.
+  QueryTarget query_target = 2;
+
+  // Resume tokens to resume this query from point of bundling.
+  google.protobuf.Timestamp read_time = 3;
+}
+
+message BundledDocumentMetadata {
+  // The document key of a bundled document.
+  string document_key = 1;
+
+  // The snapshot version of the document data bundled.
+  google.protobuf.Timestamp read_time = 2;
+}
+
+// Describes a Firestore bundle.
+message BundleMetadata {
+  string name = 1;
+
+  // Time at which the documents snapshot is taken for this bundle.
+  google.protobuf.Timestamp create_time = 2;
+
+}
+
+// A Firestore bundle is a length-prefixed stream of JSON representations of 
+// `BundleElement`.
+// Only one `BundleMetadata` is expected, and it should be the first element.
+// `NameQuery`s and `BundledDocument`s are expected to have no conflict among
+// themselves.
+message BundleElement {
+  oneof element_type {
+    BundleMetadata metadata = 1;
+
+    NamedQuery named_query = 2;
+
+    BundledDocumentMetadata document_metadata = 3;
+
+    Document document = 4;
+  }
+}
