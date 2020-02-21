@@ -27,6 +27,7 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
+import {NamedQueryCache} from './named_query_cache';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
@@ -236,6 +237,8 @@ export interface Persistence {
    * to emulate the persisted implementation to the extent possible.
    */
   getTargetCache(): TargetCache;
+
+  getNamedQueryCache(): NamedQueryCache;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote

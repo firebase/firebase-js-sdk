@@ -435,6 +435,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
+  async loadBundle(bundleData: Uint8Array): Promise<void> {
+
+  }
+
   /**
    * Applies an OnlineState change to the sync engine and notifies any views of
    * the change.

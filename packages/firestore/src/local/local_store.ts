@@ -63,6 +63,8 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/proto_byte_string';
+import {NamedQueryCache} from './named_query_cache';
+import {NamedQuery} from '../core/named_query';
 
 const LOG_TAG = 'LocalStore';
 
@@ -169,6 +171,8 @@ export class LocalStore {
   /** Maps a target to its `TargetData`. */
   private targetCache: TargetCache;
 
+  private namedQueryCache: NamedQueryCache;
+
   /**
    * Maps a targetID to data about its target.
    *
@@ -208,6 +212,7 @@ export class LocalStore {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
+    this.namedQueryCache = persistence.getNamedQueryCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
@@ -728,6 +733,22 @@ export class LocalStore {
       change.modifiedDocuments.size +
       change.removedDocuments.size;
     return changes > 0;
+  }
+
+  newerBundleExists(bundleId: string, createTime: SnapshotVersion): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
+  saveNamedQueries(bundleId: string, namedQueries: Array<NamedQuery>): Promise<void> {
+    return Promise.resolve();
+  }
+
+  clearNamedQueryOlderThan(bundleId: string, createTime: SnapshotVersion): Promise<void> {
+    return Promise.resolve();
+  }
+
+  getNamedQuery(name: string): Promise<NamedQuery> {
+    return Promise.resolve(null);
   }
 
   /**

@@ -642,4 +642,8 @@ export class FirestoreClient {
     });
     return deferred.promise;
   }
+
+  loadBundle(bundleData: Uint8Array) {
+
+  }
 }

@@ -495,6 +495,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     };
   }
 
+  // TODO(): Add other overloads, like `Stream` and `URL`.
+  loadBundle(bundleStream: Uint8Array): Promise<void>{
+    return Promise.resolve();
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
