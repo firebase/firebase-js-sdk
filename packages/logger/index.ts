@@ -1,4 +1,12 @@
 /**
+ * Logger for Firebase packages.
+ * 
+ * @remark This is specifically tailored for Firebase JS SDK usage, if you are not a
+member of the Firebase team, please avoid using this package
+* @packageDocumentation
+*/
+
+/**
  * @license
  * Copyright 2017 Google Inc.
  *
