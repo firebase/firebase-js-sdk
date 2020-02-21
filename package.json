@@ -38,7 +38,7 @@
     "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
-    "api-report": "lerna run --scope @firebase/* --scope firebase api-report",
+    "api-report": "yarn build && lerna run --scope @firebase/* --scope firebase api-report",
     "doc": "node scripts/docgen-markdown.js"
   },
   "repository": {

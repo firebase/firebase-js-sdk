@@ -7,6 +7,7 @@ const glob = require('glob');
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs() {
+    // TODO: stream output
     await spawn('yarn', ['api-report']);
     if (!fs.existsSync(tmpDir)) {
         fs.mkdirSync(tmpDir);

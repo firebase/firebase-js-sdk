@@ -24,8 +24,8 @@
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
     "prepare": "yarn build",
-    "api-report": "api-extractor run --local --verbose",
-    "doc": "api-extractor run --local --verbose && api-documenter markdown --input temp --output docs"
+    "api-report": "yarn build && api-extractor run --local --verbose",
+    "doc": "yarn api-report && api-documenter markdown --input temp --output docs"
   },
   "license": "Apache-2.0",
   "dependencies": {
