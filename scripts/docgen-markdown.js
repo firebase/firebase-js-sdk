@@ -7,19 +7,20 @@ const glob = require('glob');
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs() {
-    // TODO: stream output
-    await spawn('yarn', ['api-report']);
+    await spawn('yarn', ['api-report'], {
+        stdio: 'inherit'
+    });
     if (!fs.existsSync(tmpDir)) {
         fs.mkdirSync(tmpDir);
     }
 
     // TODO: Throw error if path doesn't exist, once all packages add markdown support.
     const apiJsonDirectories = (await mapWorkspaceToPackages([`${projectRoot}/packages/*`]))
-                            .map(path => `${path}/temp`)
-                            .filter(path => fs.existsSync(path));
+        .map(path => `${path}/temp`)
+        .filter(path => fs.existsSync(path));
 
     for (const dir of apiJsonDirectories) {
-        const paths = await new Promise( resolve => glob(`${dir}/*.api.json`, (err, paths) => {
+        const paths = await new Promise(resolve => glob(`${dir}/*.api.json`, (err, paths) => {
             if (err) throw err;
             resolve(paths);
         }));
