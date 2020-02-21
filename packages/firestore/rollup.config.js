@@ -51,7 +51,8 @@ const transformers = [
 
 const terserOptions = {
   output: {
-    comments: false
+    comments: "all",
+    beautify: true
   },
   mangle: {
     properties: {
@@ -59,19 +60,6 @@ const terserOptions = {
     }
   }
 };
-
-/**
- * ES5 Builds
- */
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    transformers,
-    cacheRoot: './.cache/es5.min/'
-  }),
-  json(),
-  terser(terserOptions)
-];
 
 const es5Builds = [
   /**
@@ -81,7 +69,11 @@ const es5Builds = [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: [
-      ...es5BuildPlugins,
+      typescriptPlugin({
+        typescript,
+        cacheRoot: './.cache/node.cjs/'
+      }),
+      json(),
       // Needed as we also use the *.proto files
       copy({
         assets: ['./src/protos']
@@ -96,15 +88,37 @@ const es5Builds = [
       )
   },
   /**
-   * Browser Builds
+   * Browser CJS Build
+   * 
+   * The Browser CJS build is not mangled as Terser's property name mangling 
+   * does not work well with CommonJS-style files.
    */
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+    output:{ file: pkg.browser, format: 'cjs', sourcemap: true },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        cacheRoot: './.cache/cjs/'
+      }),
+      json()
     ],
-    plugins: es5BuildPlugins,
+  },
+  /**
+   * Browser ESM Build
+   */
+  {
+    input: 'index.ts',
+    output: { file: pkg.module, format: 'es', sourcemap: true },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        transformers,
+        cacheRoot: './.cache/esm/'
+      }),
+      json(),
+      terser(terserOptions)
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -120,7 +134,7 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
-    cacheRoot: './.cache/es2017.min/',
+    cacheRoot: './.cache/esm2017/',
     transformers
   }),
   json({ preferConst: true }),
