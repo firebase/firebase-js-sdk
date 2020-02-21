@@ -28,7 +28,7 @@
   "devDependencies": {
     "rollup": "1.28.0",
     "rollup-plugin-typescript2": "0.25.3",
-    "typescript": "3.7.5"
+    "typescript": "3.8.2"
   },
   "repository": {
     "directory": "packages/util",
