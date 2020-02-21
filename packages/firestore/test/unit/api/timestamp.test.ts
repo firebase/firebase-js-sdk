@@ -16,11 +16,54 @@
  */
 
 import { expect } from 'chai';
+import { Code } from '../../../src/util/error';
 import { Timestamp } from '../../../src/api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 describe('Timestamp', () => {
   addEqualityMatcher();
+
+  it('constructor should validate the "seconds" argument and store it.', () => {
+    expect(new Timestamp(1, 0)).to.have.property('seconds', 1);
+    expect(new Timestamp(-62135596800, 0)).to.have.property(
+      'seconds',
+      -62135596800
+    );
+    expect(new Timestamp(253402300799, 0)).to.have.property(
+      'seconds',
+      253402300799
+    );
+
+    expect(() => {
+      new Timestamp(-62135596801, 0);
+    })
+      .to.throw(/seconds/)
+      .with.property('code', Code.INVALID_ARGUMENT);
+
+    expect(() => {
+      new Timestamp(253402300800, 0);
+    })
+      .to.throw(/seconds/)
+      .with.property('code', Code.INVALID_ARGUMENT);
+  });
+
+  it('constructor should validate the "nanoseconds" argument and store it.', () => {
+    expect(new Timestamp(0, 1)).to.have.property('nanoseconds', 1);
+    expect(new Timestamp(0, 0)).to.have.property('nanoseconds', 0);
+    expect(new Timestamp(0, 1e9 - 1)).to.have.property('nanoseconds', 1e9 - 1);
+
+    expect(() => {
+      new Timestamp(0, -1);
+    })
+      .to.throw(/nanoseconds/)
+      .with.property('code', Code.INVALID_ARGUMENT);
+
+    expect(() => {
+      new Timestamp(0, 1e9);
+    })
+      .to.throw(/nanoseconds/)
+      .with.property('code', Code.INVALID_ARGUMENT);
+  });
 
   it('fromDate', () => {
     expect(Timestamp.fromDate(new Date(1488872578916))).to.deep.equal({
