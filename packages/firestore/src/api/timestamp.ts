@@ -89,4 +89,31 @@ export class Timestamp {
       ')'
     );
   }
+
+  // Overriding valueOf() allows Timestamp objects to be compared in JavaScript using the
+  // arithmetic comparison operators, such as < and >.
+  // https://github.com/firebase/firebase-js-sdk/issues/2632
+  valueOf(): string {
+    const formattedSeconds = Timestamp.normalizeAndPad(
+      this.seconds,
+      Timestamp.MIN_SECONDS,
+      Timestamp.MAX_SECONDS
+    );
+    const formattedNanoseconds = Timestamp.normalizeAndPad(
+      this.nanoseconds,
+      Timestamp.MIN_NANOSECONDS,
+      Timestamp.MAX_NANOSECONDS
+    );
+    return formattedSeconds + '.' + formattedNanoseconds;
+  }
+
+  private static normalizeAndPad(
+    value: number,
+    minValue: number,
+    maxValue: number
+  ): string {
+    const padLength = Math.ceil(Math.log10(maxValue - minValue));
+    const normalizedValue = value - minValue;
+    return normalizedValue.toString().padStart(padLength, '0');
+  }
 }
