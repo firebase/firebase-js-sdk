@@ -95,6 +95,4 @@ export class Provider<T extends Name> {
 }
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

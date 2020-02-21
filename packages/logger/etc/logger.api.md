@@ -49,6 +49,4 @@ export enum LogLevel {
 export function setLogLevel(level: LogLevel): void;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

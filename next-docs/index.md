@@ -9,5 +9,7 @@
 |  Package | Description |
 |  --- | --- |
 |  [@firebase/app](./app.md) |  |
+|  [@firebase/component](./component.md) | Firebase component framework. This is specifically tailored for Firebase JS SDK usage, if you are not a member of the Firebase team, please avoid using this package |
+|  [@firebase/logger](./logger.md) | Logger for Firebase packages. This is specifically tailored for Firebase JS SDK usage, if you are not a member of the Firebase team, please avoid using this package |
 |  [@firebase/util](./util.md) | Utility functions for Firebase packages. This is specifically tailored for Firebase JS SDK usage, if you are not a member of the Firebase team, please avoid using this package |
 

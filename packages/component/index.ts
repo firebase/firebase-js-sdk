@@ -1,5 +1,5 @@
 /**
- * Firebase component framework
+ * Firebase component framework.
  * 
  * @remark This is specifically tailored for Firebase JS SDK usage, if you are not a
 member of the Firebase team, please avoid using this package

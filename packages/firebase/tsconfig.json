@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "declaration": false,
+    "declarationMap": false,
     "allowSyntheticDefaultImports": true
   },
   "exclude": [
