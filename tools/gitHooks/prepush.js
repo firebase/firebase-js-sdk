@@ -44,11 +44,18 @@ $ git stash pop
       return process.exit(1);
     }
 
+    const diff = await git.diff([
+      '--name-only',
+      '--diff-filter=d',
+      'origin/master...HEAD'
+    ]);
+    const changedFiles = diff.split('\n');
+
     // Style the code
-    await doPrettierCommit();
+    await doPrettierCommit(changedFiles);
 
     // Validate License headers exist
-    await doLicenseCommit();
+    await doLicenseCommit(changedFiles);
 
     console.log(chalk`
 Pre-Push Validation Succeeded

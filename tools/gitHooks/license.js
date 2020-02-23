@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-const { promisify } = require('util');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
-const globRaw = require('glob');
 const fs = require('mz/fs');
 const ora = require('ora');
 
-const glob = promisify(globRaw);
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 const licenseHeader = `/**
@@ -78,12 +75,11 @@ function rewriteCopyrightLine(contents) {
   return newLines.join('\n');
 }
 
-async function doLicenseCommit() {
+async function doLicenseCommit(changedFiles) {
   const licenseSpinner = ora(' Validating License Headers').start();
 
-  const paths = await glob('**/*.+(ts|js)', {
-    ignore: ['**/node_modules/**', '**/dist/**']
-  });
+  const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
+  if (paths.length === 0) return;
 
   const files = await readFiles(paths);
 
