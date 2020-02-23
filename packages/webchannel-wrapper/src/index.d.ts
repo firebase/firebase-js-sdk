@@ -85,11 +85,9 @@ export interface WebChannelOptions {
   clientProtocolHeaderRequired?: boolean;
   concurrentRequestLimit?: number;
   supportsCrossDomainXhr?: boolean;
-  testUrl?: string;
   sendRawJson?: boolean;
   httpSessionIdParam?: string;
   httpHeadersOverwriteParam?: string;
-  backgroundChannelTest?: boolean;
   forceLongPolling?: boolean;
   fastHandshake?: boolean;
   disableRedac?: boolean;
