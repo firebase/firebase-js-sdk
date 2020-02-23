@@ -44,6 +44,29 @@ const licenseHeader = `/**
 
 `;
 
+const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
+
+async function readFiles(paths) {
+  const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
+  return fileContents.map((buffer, idx) => ({
+    contents: String(buffer),
+    path: paths[idx]
+  }));
+}
+
+function addLicenceTag(contents) {
+  const lines = contents.split('\n');
+  let newLines = [];
+  for (const line of lines) {
+    if (line.match(copyrightPattern)) {
+      const indent = line.split('*')[0]; // Get whitespace to match
+      newLines.push(indent + '* @license');
+    }
+    newLines.push(line);
+  }
+  return newLines.join('\n');
+}
+
 async function doLicenseCommit() {
   const licenseSpinner = ora(' Validating License Headers').start();
 
@@ -51,41 +74,27 @@ async function doLicenseCommit() {
     ignore: ['**/node_modules/**', '**/dist/**']
   });
 
-  const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
-
-  // Files with no license block at all.
-  const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
-  const filesMissingLicensePaths = fileContents
-    .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(({ buffer }) => String(buffer).match(copyrightPattern) == null);
+  const files = await readFiles(paths);
 
   await Promise.all(
-    filesMissingLicensePaths.map(({ buffer, path }) => {
-      const contents = Buffer.concat([new Buffer(licenseHeader), buffer]);
-      return fs.writeFile(path, contents, 'utf8');
-    })
-  );
+    files.map(({ contents, path }) => {
+      let result = contents;
 
-  // Files with no @license tag.
-  const appendedFileContents = await Promise.all(
-    paths.map(path => fs.readFile(path))
-  );
-  const filesMissingTagPaths = appendedFileContents
-    .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(({ buffer }) => String(buffer).match(/@license/) == null);
-
-  await Promise.all(
-    filesMissingTagPaths.map(({ buffer, path }) => {
-      const lines = String(buffer).split('\n');
-      let newLines = [];
-      for (const line of lines) {
-        if (line.match(copyrightPattern)) {
-          const indent = line.split('*')[0]; // Get whitespace to match
-          newLines.push(indent + '* @license');
-        }
-        newLines.push(line);
+      // Files with no license block at all.
+      if (result.match(copyrightPattern) == null) {
+        result = licenseHeader + result;
       }
-      return fs.writeFile(path, newLines.join('\n'), 'utf8');
+
+      // Files with no @license tag.
+      if (result.match(/@license/) == null) {
+        result = addLicenceTag(result);
+      }
+
+      if (contents !== result) {
+        return fs.writeFile(path, result, 'utf8');
+      } else {
+        return Promise.resolve();
+      }
     })
   );
 
