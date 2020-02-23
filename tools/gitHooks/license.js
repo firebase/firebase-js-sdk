@@ -45,6 +45,7 @@ const licenseHeader = `/**
 `;
 
 const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
+const oldCopyrightPattern = /(\s*\*\s*Copyright \d{4}) Google Inc\./;
 
 async function readFiles(paths) {
   const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
@@ -64,6 +65,16 @@ function addLicenceTag(contents) {
     }
     newLines.push(line);
   }
+  return newLines.join('\n');
+}
+
+function rewriteCopyrightLine(contents) {
+  const lines = contents.split('\n');
+  let newLines = lines.map(line => {
+    return line.replace(oldCopyrightPattern, (_, leader) => {
+      return leader + ' Google LLC';
+    });
+  });
   return newLines.join('\n');
 }
 
@@ -88,6 +99,11 @@ async function doLicenseCommit() {
       // Files with no @license tag.
       if (result.match(/@license/) == null) {
         result = addLicenceTag(result);
+      }
+
+      // Files with the old form of copyright notice.
+      if (result.match(oldCopyrightPattern) != null) {
+        result = rewriteCopyrightLine(result);
       }
 
       if (contents !== result) {
