@@ -11,7 +11,7 @@ const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 const licenseHeader = `/**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,13 @@ async function doLicenseCommit() {
     ignore: ['**/node_modules/**', '**/dist/**']
   });
 
+  const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
+
   // Files with no license block at all.
   const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
   const filesMissingLicensePaths = fileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(
-      ({ buffer }) =>
-        String(buffer).match(/Copyright \d{4} Google Inc\./) == null
-    );
+    .filter(({ buffer }) => String(buffer).match(copyrightPattern) == null);
 
   await Promise.all(
     filesMissingLicensePaths.map(({ buffer, path }) => {
@@ -64,7 +63,7 @@ async function doLicenseCommit() {
       const lines = String(buffer).split('\n');
       let newLines = [];
       for (const line of lines) {
-        if (line.match(/Copyright \d{4} Google Inc\./)) {
+        if (line.match(copyrightPattern)) {
           const indent = line.split('*')[0]; // Get whitespace to match
           newLines.push(indent + '* @license');
         }
