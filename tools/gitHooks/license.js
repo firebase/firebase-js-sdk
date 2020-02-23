@@ -18,7 +18,6 @@
 const { promisify } = require('util');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
-const chalk = require('chalk');
 const globRaw = require('glob');
 const fs = require('mz/fs');
 const ora = require('ora');
