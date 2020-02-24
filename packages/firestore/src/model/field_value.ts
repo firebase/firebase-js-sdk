@@ -703,7 +703,7 @@ export class ObjectValueBuilder {
       this.internalValue = this.internalValue.insert(childName, value);
     } else {
       // nested field
-      let child = this.internalValue.get(childName);
+      const child = this.internalValue.get(childName);
       let obj: ObjectValue;
       if (child instanceof ObjectValue) {
         obj = child;
