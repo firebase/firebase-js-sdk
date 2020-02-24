@@ -280,17 +280,25 @@ export function addVersionHeader_(headers: Headers): void {
   headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
 }
 
+export function addGmpidHeader_(headers: Headers, appId: string | null): void {
+  if (appId) {
+    headers['X-Firebase-GMPID'] = appId;
+  }
+}
+
 /**
  * @template T
  */
 export function makeRequest<T>(
   requestInfo: RequestInfo<T>,
+  appId: string | null,
   authToken: string | null,
   pool: XhrIoPool
 ): Request<T> {
   const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
   const headers = Object.assign({}, requestInfo.headers);
+  addGmpidHeader_(headers, appId);
   addAuthHeader_(headers, authToken);
   addVersionHeader_(headers);
   return new NetworkRequest<T>(
