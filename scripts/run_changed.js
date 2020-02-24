@@ -56,9 +56,16 @@ const alwaysRunTestPaths = [
  * These files trigger tests in other dirs
  */
 const specialPaths = {
-  'scripts/emulator-testing/emulators/firestore-emulator.ts': ['packages/firestore'],
-  'scripts/emulator-testing/emulators/database-emulator.ts': ['packages/database'],
-  'scripts/emulator-testing/emulators/emulator.ts': ['packages/firestore', 'packages/database'],
+  'scripts/emulator-testing/emulators/firestore-emulator.ts': [
+    'packages/firestore'
+  ],
+  'scripts/emulator-testing/emulators/database-emulator.ts': [
+    'packages/database'
+  ],
+  'scripts/emulator-testing/emulators/emulator.ts': [
+    'packages/firestore',
+    'packages/database'
+  ],
   'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
   'scripts/emulator-testing/database-test-runner.ts': ['packages/database']
 };
@@ -152,20 +159,19 @@ async function runTests(pathList) {
 
 async function main() {
   try {
-    const {
-      testAll,
-      changedPackages = {}
-    } = await getChangedPackages();
+    const { testAll, changedPackages = {} } = await getChangedPackages();
     if (testAll) {
       await spawn('yarn', ['test'], {
         stdio: 'inherit'
       });
     } else {
       console.log(chalk`{blue Running tests in:}`);
-      for (const filename of alwaysRunTestPaths) { // array
+      for (const filename of alwaysRunTestPaths) {
+        // array
         console.log(chalk`{green ${filename} (always runs)}`);
       }
-      for (const filename in changedPackages) { // obj
+      for (const filename in changedPackages) {
+        // obj
         if (changedPackages[filename] === 'direct') {
           console.log(chalk`{yellow ${filename} (contains modified files)}`);
         } else {

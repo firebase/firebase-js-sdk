@@ -51,7 +51,7 @@ const transformers = [
 
 const terserOptions = {
   output: {
-    comments: "all",
+    comments: 'all',
     beautify: true
   },
   mangle: {
@@ -89,20 +89,20 @@ const es5Builds = [
   },
   /**
    * Browser CJS Build
-   * 
-   * The Browser CJS build is not mangled as Terser's property name mangling 
+   *
+   * The Browser CJS build is not mangled as Terser's property name mangling
    * does not work well with CommonJS-style files.
    */
   {
     input: 'index.ts',
-    output:{ file: pkg.browser, format: 'cjs', sourcemap: true },
+    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
     plugins: [
       typescriptPlugin({
         typescript,
         cacheRoot: './.cache/cjs/'
       }),
       json()
-    ],
+    ]
   },
   /**
    * Browser ESM Build
