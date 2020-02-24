@@ -53,7 +53,7 @@ import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 import * as typeUtils from '../util/types';
 
 import {

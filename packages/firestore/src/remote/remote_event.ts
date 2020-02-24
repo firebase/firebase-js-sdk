@@ -25,7 +25,7 @@ import {
   targetIdSet
 } from '../model/collections';
 import { SortedSet } from '../util/sorted_set';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the

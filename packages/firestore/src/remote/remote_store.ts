@@ -51,7 +51,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'RemoteStore';
 

@@ -27,7 +27,7 @@ import { primitiveComparator } from '../util/misc';
 import {
   binaryStringFromUint8Array,
   uint8ArrayFromBinaryString
-} from '../util/proto_byte_string';
+} from '../util/byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
