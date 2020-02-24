@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 import {
   documentKeySet,
   DocumentKeySet,

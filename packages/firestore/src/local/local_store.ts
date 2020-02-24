@@ -62,7 +62,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'LocalStore';
 

@@ -25,7 +25,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { ByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/byte_string';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a

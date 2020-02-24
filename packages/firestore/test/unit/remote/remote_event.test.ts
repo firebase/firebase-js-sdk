@@ -42,7 +42,7 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
-import { ByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;

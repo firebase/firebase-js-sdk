@@ -88,7 +88,7 @@ import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
-import { ByteString } from '../../src/util/proto_byte_string';
+import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 
 export type TestSnapshotVersion = number;

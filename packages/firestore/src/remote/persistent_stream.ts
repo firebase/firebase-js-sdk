@@ -32,7 +32,7 @@ import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'PersistentStream';
 

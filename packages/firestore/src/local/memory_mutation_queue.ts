@@ -24,7 +24,7 @@ import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 

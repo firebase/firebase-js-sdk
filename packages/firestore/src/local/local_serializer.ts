@@ -28,7 +28,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
-import { ByteString } from '../util/proto_byte_string';
+import { ByteString } from '../util/byte_string';
 
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { Target } from '../core/target';

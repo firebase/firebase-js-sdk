@@ -35,7 +35,7 @@ import {
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
-import { ByteString } from '../../../src/util/proto_byte_string';
+import { ByteString } from '../../../src/util/byte_string';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
