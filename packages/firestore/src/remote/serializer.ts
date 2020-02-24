@@ -577,11 +577,11 @@ export class JsonProtoSerializer {
   fromFields(object: {}): fieldValue.ObjectValue {
     // Proto map<string, Value> gets mapped to Object, so cast it.
     const map = object as { [key: string]: api.Value };
-    let result = fieldValue.ObjectValue.EMPTY;
+    let result = fieldValue.ObjectValue.newBuilder();
     obj.forEach(map, (key, value) => {
-      result = result.set(new FieldPath([key]), this.fromValue(value));
+      result.set(new FieldPath([key]), this.fromValue(value));
     });
-    return result;
+    return result.build();
   }
 
   toMapValue(map: fieldValue.ObjectValue): api.MapValue {
