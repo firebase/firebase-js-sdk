@@ -240,11 +240,11 @@ describe('FieldValue', () => {
       .build();
     objValue = objValue
       .toBuilder()
-      .set(field('b'), wrap('c'))
+      .set(field('b'), wrap('b'))
       .set(field('c'), wrap('c'))
       .build();
 
-    expect(objValue.value()).to.deep.equal({ a: 'a', b: 'a', c: 'c' });
+    expect(objValue.value()).to.deep.equal({ a: 'a', b: 'b', c: 'c' });
   });
 
   it('can implicitly create objects', () => {
