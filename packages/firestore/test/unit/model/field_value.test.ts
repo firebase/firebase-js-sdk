@@ -308,7 +308,11 @@ describe('FieldValue', () => {
   it('can delete added keys', () => {
     let objValue = wrapObject({});
 
-    objValue = objValue.toBuilder().set(field('a'), wrap('a') ).delete(field('a')).build();
+    objValue = objValue
+      .toBuilder()
+      .set(field('a'), wrap('a'))
+      .delete(field('a'))
+      .build();
 
     expect(objValue.value()).to.deep.equal({});
   });
