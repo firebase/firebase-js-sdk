@@ -39,16 +39,6 @@ function assertUint8ArrayAvailable(): void {
   }
 }
 
-/** Helper function to assert Base64 functions are available at runtime. */
-function assertBase64Available(): void {
-  if (!PlatformSupport.getPlatform().base64Available) {
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'Blobs are unavailable in Firestore in this environment.'
-    );
-  }
-}
-
 /**
  * Immutable class holding a blob (binary data).
  * This class is directly exposed in the public API.
@@ -64,14 +54,12 @@ export class Blob {
   private _binaryString: string;
 
   private constructor(binaryString: string) {
-    assertBase64Available();
     this._binaryString = binaryString;
   }
 
   static fromBase64String(base64: string): Blob {
     validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
     validateArgType('Blob.fromBase64String', 'string', 1, base64);
-    assertBase64Available();
     try {
       const binaryString = PlatformSupport.getPlatform().atob(base64);
       return new Blob(binaryString);
@@ -95,7 +83,6 @@ export class Blob {
 
   toBase64(): string {
     validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
-    assertBase64Available();
     return PlatformSupport.getPlatform().btoa(this._binaryString);
   }
 

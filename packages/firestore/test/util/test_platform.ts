@@ -229,10 +229,6 @@ export class TestPlatform implements Platform {
     return this.mockWindow as any; //eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
-  get base64Available(): boolean {
-    return this.basePlatform.base64Available;
-  }
-
   raiseVisibilityEvent(visibility: VisibilityState): void {
     if (this.mockDocument) {
       this.mockDocument.raiseVisibilityEvent(visibility);

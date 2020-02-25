@@ -24,12 +24,11 @@ import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
+import { base64 } from '@firebase/util';
 
 export class BrowserPlatform implements Platform {
-  readonly base64Available: boolean;
 
   constructor() {
-    this.base64Available = typeof atob !== 'undefined';
   }
 
   get document(): Document | null {
@@ -61,10 +60,10 @@ export class BrowserPlatform implements Platform {
   }
 
   atob(encoded: string): string {
-    return atob(encoded);
+    return base64.decodeString(encoded, /*webSafe=*/ false);
   }
 
   btoa(raw: string): string {
-    return btoa(raw);
+    return base64.encodeString(raw, /*webSafe=*/ false);
   }
 }

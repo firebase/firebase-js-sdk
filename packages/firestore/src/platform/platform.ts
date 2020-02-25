@@ -48,9 +48,6 @@ export interface Platform {
 
   /** The Platform's 'document' implementation or null if not available. */
   readonly document: Document | null;
-
-  /** True if and only if the Base64 conversion functions are available. */
-  readonly base64Available: boolean;
 }
 
 /**
