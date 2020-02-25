@@ -305,6 +305,14 @@ describe('FieldValue', () => {
     expect(objValue2.value()).to.deep.equal({ foo: { baz: 'baz-value' } });
   });
 
+  it('can delete added keys', () => {
+    let objValue = wrapObject({});
+
+    objValue = objValue.toBuilder().set(field('a'), wrap('a') ).delete(field('a')).build();
+
+    expect(objValue.value()).to.deep.equal({});
+  });
+
   it('can delete, resulting in empty object', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
 
