@@ -29,7 +29,6 @@ import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
 export class NodePlatform implements Platform {
-
   readonly document = null;
 
   get window(): Window | null {

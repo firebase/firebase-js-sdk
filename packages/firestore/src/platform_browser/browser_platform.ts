@@ -27,10 +27,6 @@ import { WebChannelConnection } from './webchannel_connection';
 import { base64 } from '@firebase/util';
 
 export class BrowserPlatform implements Platform {
-
-  constructor() {
-  }
-
   get document(): Document | null {
     return typeof document !== 'undefined' ? document : null;
   }
