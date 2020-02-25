@@ -24,11 +24,15 @@ import { DocumentKeyReference } from '../../src/api/user_data_converter';
 import { DatabaseId } from '../../src/core/database_info';
 import { DocumentKey } from '../../src/model/document_key';
 import { fail } from '../../src/util/assert';
+import { Dict, forEach } from '../../src/util/obj';
 
 /** Test helper to create Firestore Value protos from JavaScript types. */
 
 // TODO(mrschmidt): Move into UserDataConverter
-export function valueOf(input: unknown, useProto3Json: boolean = false): api.Value {
+export function valueOf(
+  input: unknown,
+  useProto3Json: boolean = false
+): api.Value {
   if (input === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof input === 'number') {
@@ -39,11 +43,11 @@ export function valueOf(input: unknown, useProto3Json: boolean = false): api.Val
         // Proto 3 let's us encode NaN and Infinity as string values as
         // expected by the backend. This is currently not checked by our unit
         // tests because they rely on protobuf.js.
-        if (isNaN(doubleValue)) {
+        if (isNaN(input)) {
           return { doubleValue: 'NaN' } as {};
-        } else if (doubleValue === Infinity) {
+        } else if (input === Infinity) {
           return { doubleValue: 'Infinity' } as {};
-        } else if (doubleValue === -Infinity) {
+        } else if (input === -Infinity) {
           return { doubleValue: '-Infinity' } as {};
         }
       }
@@ -64,7 +68,7 @@ export function valueOf(input: unknown, useProto3Json: boolean = false): api.Val
     return {
       geoPointValue: {
         latitude: input.latitude,
-        nanos: input.longitude
+        longitude: input.longitude
       }
     };
   } else if (input instanceof Blob) {
@@ -76,7 +80,7 @@ export function valueOf(input: unknown, useProto3Json: boolean = false): api.Val
   } else if (input instanceof DocumentKeyReference) {
     return {
       referenceValue:
-        'projects/project/databases/(default)/documents/' + input.ref.path
+        'projects/project/databases/(default)/documents/' + input.key.path
     };
   } else if (Array.isArray(input)) {
     return {
@@ -84,9 +88,9 @@ export function valueOf(input: unknown, useProto3Json: boolean = false): api.Val
     };
   } else if (typeof input === 'object') {
     const result: api.Value = { mapValue: { fields: {} } };
-    for (const key of input) {
-      result[key] = valueOf(input[key], useProto3Json);
-    }
+    forEach(input as Dict<unknown>, (key: string, val: unknown) => {
+      result.mapValue!.fields![key] = valueOf(val, useProto3Json);
+    });
     return result;
   } else {
     fail(`Failed to serialize field: ${input}`);
@@ -97,13 +101,16 @@ export function valueOf(input: unknown, useProto3Json: boolean = false): api.Val
 export function mapOf(...entries: unknown[]): api.Value {
   const result: api.Value = { mapValue: { fields: {} } };
   for (let i = 0; i < entries.length; i += 2) {
-    result[entries[i]] = valueOf(entries[i + 1], /* useProto3Json= */ false);
+    result.mapValue!.fields![entries[i] as string] = valueOf(
+      entries[i + 1],
+      /* useProto3Json= */ false
+    );
   }
   return result;
 }
 
 export function refValue(dbId: DatabaseId, key: DocumentKey): api.Value {
   return {
-    referenceValue: `projects/${dbId.projectId}/databases/${dbId.databaseId}/documents/${key.path}`
+    referenceValue: `projects/${dbId.projectId}/databases/${dbId.database}/documents/${key.path}`
   };
 }
