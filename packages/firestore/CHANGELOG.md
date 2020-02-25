@@ -1,8 +1,4 @@
 # Unreleased
-- [fixed] Fixed an issue with our field ordering if the field values that were 
-  compared where both boolean.
-
-#  1.9.4
 - [fixed] Fixed an issue where auth credentials were not respected in Cordova
   environments (#2626).
 - [fixed] Fixed a performance regression introduced by the addition of
