@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import * as Long from 'long';
 import * as ProtobufJS from 'protobufjs';
 
-import { Blob } from '../../../../src/api/blob';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
 import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
@@ -353,7 +352,7 @@ describe('Serializer', () => {
 
     it('converts BlobValue to Uint8Array', () => {
       const bytes = [0, 1, 2, 3, 4, 5];
-      const example = Blob.fromUint8Array(new Uint8Array(bytes));
+      const example = ByteString.fromUint8Array(new Uint8Array(bytes));
       const expected = new Uint8Array(bytes);
 
       verifyFieldValueRoundTrip({
@@ -366,7 +365,7 @@ describe('Serializer', () => {
     it('converts BlobValue to Base64 string (useProto3Json=true)', () => {
       const base64 = 'AAECAwQF';
       verifyFieldValueRoundTrip({
-        value: new fieldValue.BlobValue(Blob.fromBase64String(base64)),
+        value: new fieldValue.BlobValue(ByteString.fromBase64String(base64)),
         valueType: 'bytesValue',
         jsonValue: base64,
         useProto3Json: true

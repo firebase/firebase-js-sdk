@@ -721,7 +721,7 @@ export class UserDataConverter {
     } else if (value instanceof GeoPoint) {
       return new GeoPointValue(value);
     } else if (value instanceof Blob) {
-      return new BlobValue(value);
+      return new BlobValue(value._byteString);
     } else if (value instanceof DocumentKeyReference) {
       return new RefValue(value.databaseId, value.key);
     } else {
