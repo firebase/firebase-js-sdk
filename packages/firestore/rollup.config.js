@@ -21,6 +21,7 @@ import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 
@@ -113,6 +114,7 @@ const es5Builds = [
   {
     input: pkg.module,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+    plugins: [ sourcemaps() ]
   },
 ];
 
