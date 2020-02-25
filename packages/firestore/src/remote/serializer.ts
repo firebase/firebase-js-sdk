@@ -72,6 +72,11 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import {
+  normalizeByteString,
+  normalizeNumber,
+  normalizeTimestamp
+} from '../model/proto_values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -93,22 +98,8 @@ const OPERATORS = (() => {
   return ops;
 })();
 
-// A RegExp matching ISO 8601 UTC timestamps with optional fraction.
-const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
-
 function assertPresent(value: unknown, description: string): asserts value {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
-}
-
-function parseInt64(value: number | string): number {
-  // TODO(bjornick): Handle int64 greater than 53 bits.
-  if (typeof value === 'number') {
-    return value;
-  } else if (typeof value === 'string') {
-    return Number(value);
-  } else {
-    return fail("can't parse " + value);
-  }
 }
 
 // This is a supplement to the generated proto interfaces, which fail to account
@@ -218,45 +209,8 @@ export class JsonProtoSerializer {
   }
 
   private fromTimestamp(date: string | TimestampProto): Timestamp {
-    // The json interface (for the browser) will return an iso timestamp string,
-    // while the proto js library (for node) will return a
-    // google.protobuf.Timestamp instance.
-    if (typeof date === 'string') {
-      // TODO(b/37282237): Use strings for Proto3 timestamps
-      // assert(this.options.useProto3Json,
-      //   'The timestamp string format requires Proto3.');
-      return this.fromIso8601String(date);
-    } else {
-      assert(!!date, 'Cannot deserialize null or undefined timestamp.');
-      // TODO(b/37282237): Use strings for Proto3 timestamps
-      // assert(!this.options.useProto3Json,
-      //   'The timestamp instance format requires Proto JS.');
-      const seconds = parseInt64(date.seconds || '0');
-      const nanos = date.nanos || 0;
-      return new Timestamp(seconds, nanos);
-    }
-  }
-
-  private fromIso8601String(utc: string): Timestamp {
-    // The date string can have higher precision (nanos) than the Date class
-    // (millis), so we do some custom parsing here.
-
-    // Parse the nanos right out of the string.
-    let nanos = 0;
-    const fraction = ISO_REG_EXP.exec(utc);
-    assert(!!fraction, 'invalid timestamp: ' + utc);
-    if (fraction[1]) {
-      // Pad the fraction out to 9 digits (nanos).
-      let nanoStr = fraction[1];
-      nanoStr = (nanoStr + '000000000').substr(0, 9);
-      nanos = Number(nanoStr);
-    }
-
-    // Parse the date to get the seconds.
-    const date = new Date(utc);
-    const seconds = Math.floor(date.getTime() / 1000);
-
-    return new Timestamp(seconds, nanos);
+    const timestamp = normalizeTimestamp(date);
+    return new Timestamp(timestamp.seconds, timestamp.nanos);
   }
 
   /**
@@ -292,27 +246,6 @@ export class JsonProtoSerializer {
         'value must be undefined or Uint8Array'
       );
       return ByteString.fromUint8Array(value ? value : new Uint8Array());
-    }
-  }
-
-  /**
-   * Parse the blob from the protos into the internal ByteString class. Note
-   * that the typings assume all blobs are strings, but they are actually
-   * Uint8Arrays on Node.
-   */
-  private fromBlob(blob: string | Uint8Array): ByteString {
-    if (typeof blob === 'string') {
-      assert(
-        this.options.useProto3Json,
-        'Expected bytes to be passed in as Uint8Array, but got a string instead.'
-      );
-      return ByteString.fromBase64String(blob);
-    } else {
-      assert(
-        !this.options.useProto3Json,
-        'Expected bytes to be passed in as Uint8Array, but got a string instead.'
-      );
-      return ByteString.fromUint8Array(blob);
     }
   }
 
@@ -477,7 +410,7 @@ export class JsonProtoSerializer {
     } else if ('booleanValue' in obj) {
       return fieldValue.BooleanValue.of(obj.booleanValue!);
     } else if ('integerValue' in obj) {
-      return new fieldValue.IntegerValue(parseInt64(obj.integerValue!));
+      return new fieldValue.IntegerValue(normalizeNumber(obj.integerValue!));
     } else if ('doubleValue' in obj) {
       if (this.options.useProto3Json) {
         // Proto 3 uses the string values 'NaN' and 'Infinity'.
@@ -512,8 +445,8 @@ export class JsonProtoSerializer {
       return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
     } else if ('bytesValue' in obj) {
       assertPresent(obj.bytesValue, 'bytesValue');
-      const blob = this.fromBlob(obj.bytesValue);
-      return new fieldValue.BlobValue(blob);
+      const byteString = normalizeByteString(obj.bytesValue);
+      return new fieldValue.BlobValue(byteString);
     } else if ('referenceValue' in obj) {
       assertPresent(obj.referenceValue, 'referenceValue');
       const resourceName = this.fromResourceName(obj.referenceValue);
