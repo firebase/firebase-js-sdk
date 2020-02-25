@@ -72,6 +72,7 @@ import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {NamedQueryCache} from './named_query_cache';
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -725,6 +726,10 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize TargetCache before persistence is started.'
     );
     return this.targetCache;
+  }
+
+  getNamedQueryCache(): NamedQueryCache{
+    return {} as NamedQueryCache;
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {

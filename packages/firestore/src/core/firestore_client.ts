@@ -30,6 +30,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { AsyncQueue } from '../util/async_queue';
+import { Bundle } from '../util/bundle';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -643,7 +644,7 @@ export class FirestoreClient {
     return deferred.promise;
   }
 
-  loadBundle(bundleData: Uint8Array) {
-
+  loadBundle(bundleData: Blob): Promise<void> {
+    return this.syncEngine.loadBundle(bundleData);
   }
 }

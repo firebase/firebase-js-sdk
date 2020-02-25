@@ -748,7 +748,7 @@ export class LocalStore {
   }
 
   getNamedQuery(name: string): Promise<NamedQuery> {
-    return Promise.resolve(null);
+    return Promise.resolve({} as NamedQuery);
   }
 
   /**

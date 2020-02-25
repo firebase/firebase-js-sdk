@@ -71,6 +71,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import {Bundle} from '../util/bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -435,8 +436,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  async loadBundle(bundleData: Uint8Array): Promise<void> {
-
+  async loadBundle(bundleData: Blob): Promise<void> {
+    const bundle = new Bundle(bundleData);
+    bundle.getBundleMetadata();
   }
 
   /**
