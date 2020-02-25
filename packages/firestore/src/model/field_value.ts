@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Blob } from '../api/blob';
 import { SnapshotOptions } from '../api/database';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
@@ -25,6 +24,7 @@ import { primitiveComparator } from '../util/misc';
 import { DocumentKey } from './document_key';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
+import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
@@ -455,11 +455,11 @@ export class ServerTimestampValue extends FieldValue {
 export class BlobValue extends FieldValue {
   typeOrder = TypeOrder.BlobValue;
 
-  constructor(readonly internalValue: Blob) {
+  constructor(readonly internalValue: ByteString) {
     super();
   }
 
-  value(options?: FieldValueOptions): Blob {
+  value(options?: FieldValueOptions): ByteString {
     return this.internalValue;
   }
 
@@ -472,13 +472,13 @@ export class BlobValue extends FieldValue {
 
   compareTo(other: FieldValue): number {
     if (other instanceof BlobValue) {
-      return this.internalValue._compareTo(other.internalValue);
+      return this.internalValue.compareTo(other.internalValue);
     }
     return this.defaultCompareTo(other);
   }
 
   approximateByteSize(): number {
-    return this.internalValue._approximateByteSize();
+    return this.internalValue.approximateByteSize();
   }
 }
 

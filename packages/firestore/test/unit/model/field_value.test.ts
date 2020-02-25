@@ -345,8 +345,11 @@ describe('FieldValue', () => {
       // Doubles and Integers order the same but are not considered equal.
       [new fieldValue.DoubleValue(1)],
       [wrap(1.1), new fieldValue.DoubleValue(1.1)],
-      [wrap(blob(0, 1, 2)), new fieldValue.BlobValue(blob(0, 1, 2))],
-      [new fieldValue.BlobValue(blob(0, 1))],
+      [
+        wrap(blob(0, 1, 2)),
+        new fieldValue.BlobValue(blob(0, 1, 2)._byteString)
+      ],
+      [new fieldValue.BlobValue(blob(0, 1)._byteString)],
       [wrap('string'), new fieldValue.StringValue('string')],
       [new fieldValue.StringValue('strin')],
       // latin small letter e + combining acute accent

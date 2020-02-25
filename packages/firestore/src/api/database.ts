@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
+import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -44,6 +45,7 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   ArrayValue,
+  BlobValue,
   FieldValue,
   FieldValueOptions,
   ObjectValue,
@@ -1483,6 +1485,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         );
       }
       return new DocumentReference(key, this._firestore, this._converter);
+    } else if (value instanceof BlobValue) {
+      return new Blob(value.internalValue);
     } else {
       return value.value(options);
     }

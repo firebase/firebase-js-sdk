@@ -296,23 +296,23 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Parse the blob from the protos into the internal Blob class. Note that the
-   * typings assume all blobs are strings, but they are actually Uint8Arrays
-   * on Node.
+   * Parse the blob from the protos into the internal ByteString class. Note
+   * that the typings assume all blobs are strings, but they are actually
+   * Uint8Arrays on Node.
    */
-  private fromBlob(blob: string | Uint8Array): Blob {
+  private fromBlob(blob: string | Uint8Array): ByteString {
     if (typeof blob === 'string') {
       assert(
         this.options.useProto3Json,
         'Expected bytes to be passed in as Uint8Array, but got a string instead.'
       );
-      return Blob.fromBase64String(blob);
+      return ByteString.fromBase64String(blob);
     } else {
       assert(
         !this.options.useProto3Json,
         'Expected bytes to be passed in as Uint8Array, but got a string instead.'
       );
-      return Blob.fromUint8Array(blob);
+      return ByteString.fromUint8Array(blob);
     }
   }
 

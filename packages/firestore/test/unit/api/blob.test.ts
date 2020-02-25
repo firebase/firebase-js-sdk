@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 import { Blob, PublicBlob } from '../../../src/api/blob';
-import {
-  blob,
-  expectCorrectComparisons,
-  expectEqual,
-  expectNotEqual
-} from '../../util/helpers';
+import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('Blob', () => {
   const base64Mappings: { [base64: string]: number[] } = {
@@ -68,26 +63,6 @@ describe('Blob', () => {
 
   it('PublicBlob works with instanceof checks', () => {
     expect(Blob.fromBase64String('') instanceof PublicBlob).to.equal(true);
-  });
-
-  it('compares correctly', () => {
-    const values = [
-      blob(0),
-      blob(0, 1),
-      blob(0, 1, 2),
-      blob(0, 2),
-      blob(0, 255),
-      blob(1),
-      blob(1, 0),
-      blob(1, 2),
-      blob(1, 255),
-      blob(2),
-      blob(255)
-    ];
-
-    expectCorrectComparisons(values, (left: Blob, right: Blob) => {
-      return left._compareTo(right);
-    });
   });
 
   it('support equality checking with isEqual()', () => {
