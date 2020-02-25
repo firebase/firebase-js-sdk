@@ -105,7 +105,10 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
-   * Browser CJS Build (based on the mangling in the ESM build above)
+   * Browser CJS Build 
+   * 
+   * This build is based on the mangling in the ESM build above, since
+   * Terser's Property name mangling doesn't work well with CJS's syntax.
    */
   {
     input: pkg.module,
