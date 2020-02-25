@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 202 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,9 @@ import {
 const ISO_TIMESTAMP_REG_EXP = new RegExp(
   /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/
 );
+
+// Denotes the possible representations for timestamps in the Value type.
+type ProtoTimestampValue = string | { seconds?: string; nanos?: number };
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: api.Value): TypeOrder {
@@ -186,7 +189,7 @@ function compare(left: api.Value, right: api.Value): number {
     case TypeOrder.NullValue:
       return 0;
     case TypeOrder.BooleanValue:
-      return compareBooleans(left.booleanValue!, right.booleanValue!);
+      return primitiveComparator(left.booleanValue!, right.booleanValue!);
     case TypeOrder.NumberValue:
       return compareNumbers(left, right);
     case TypeOrder.TimestampValue:
@@ -208,10 +211,6 @@ function compare(left: api.Value, right: api.Value): number {
   }
 }
 
-function compareBooleans(b1: boolean, b2: boolean): number {
-  return b1 !== b2 ? (b1 ? 1 : -1) : 0;
-}
-
 function compareNumbers(left: api.Value, right: api.Value): number {
   const leftNumber =
     'doubleValue' in left
@@ -225,8 +224,8 @@ function compareNumbers(left: api.Value, right: api.Value): number {
 }
 
 function compareTimestamps(
-  left: string | { seconds?: string; nanos?: number },
-  right: string | { seconds?: string; nanos?: number }
+  left: ProtoTimestampValue,
+  right: ProtoTimestampValue
 ): number {
   const leftTimestamp = normalizeTimestamp(left);
   const rightTimestamp = normalizeTimestamp(right);
@@ -295,6 +294,10 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
   const rightMap = right.fields || {};
   const rightKeys = keys(leftMap);
 
+  // Even though MapValues are likely sorted correctly based on their insertion
+  // order (e.g. when received from the backend), local modifications can bring
+  // elements out of order. We need to re-sort the elements to ensure that
+  // canonical IDs are independent of insertion order.
   leftKeys.sort();
   rightKeys.sort();
 
@@ -317,9 +320,9 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
  * nanos" representation.
  */
 export function normalizeTimestamp(
-  date: string | { seconds?: string; nanos?: number }
+  date: ProtoTimestampValue
 ): { seconds: number; nanos: number } {
-  assert(!!date, 'Cannot deserialize null or undefined timestamp.');
+  assert(!!date, 'Cannot normalize null or undefined timestamp.');
 
   // The json interface (for the browser) will return an iso timestamp string,
   // while the proto js library (for node) will return a
@@ -360,15 +363,6 @@ export function normalizeNumber(value: number | string | undefined): number {
   if (typeof value === 'number') {
     return value;
   } else if (typeof value === 'string') {
-    // Proto 3 uses the string values 'NaN' and 'Infinity'.
-    if (value === 'NaN') {
-      return Number.NaN;
-    } else if (value === 'Infinity') {
-      return Number.POSITIVE_INFINITY;
-    } else if (value === '-Infinity') {
-      return Number.NEGATIVE_INFINITY;
-    }
-
     return Number(value);
   } else {
     return 0;

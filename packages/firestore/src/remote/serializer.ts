@@ -445,8 +445,8 @@ export class JsonProtoSerializer {
       return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
     } else if ('bytesValue' in obj) {
       assertPresent(obj.bytesValue, 'bytesValue');
-      const blob = normalizeByteString(obj.bytesValue);
-      return new fieldValue.BlobValue(blob);
+      const byteString = normalizeByteString(obj.bytesValue);
+      return new fieldValue.BlobValue(byteString);
     } else if ('referenceValue' in obj) {
       assertPresent(obj.referenceValue, 'referenceValue');
       const resourceName = this.fromResourceName(obj.referenceValue);
