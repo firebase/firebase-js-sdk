@@ -20,7 +20,11 @@ import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { assert, fail } from '../util/assert';
-import { primitiveComparator } from '../util/misc';
+import {
+  numericComparator,
+  numericEquals,
+  primitiveComparator
+} from '../util/misc';
 import { DocumentKey } from './document_key';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
@@ -241,40 +245,6 @@ export abstract class NumberValue extends FieldValue {
 
   approximateByteSize(): number {
     return 8;
-  }
-}
-
-/** Utility function to compare doubles (using Firestore semantics for NaN). */
-function numericComparator(left: number, right: number): number {
-  if (left < right) {
-    return -1;
-  } else if (left > right) {
-    return 1;
-  } else if (left === right) {
-    return 0;
-  } else {
-    // one or both are NaN.
-    if (isNaN(left)) {
-      return isNaN(right) ? 0 : -1;
-    } else {
-      return 1;
-    }
-  }
-}
-
-/**
- * Utility function to check numbers for equality using Firestore semantics
- * (NaN === NaN, -0.0 !== 0.0).
- */
-function numericEquals(left: number, right: number): boolean {
-  // Implemented based on Object.is() polyfill from
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-  if (left === right) {
-    // +0 != -0
-    return left !== 0 || 1 / left === 1 / right;
-  } else {
-    // NaN == NaN
-    return left !== left && right !== right;
   }
 }
 
