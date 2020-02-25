@@ -23,7 +23,7 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 describe('Timestamp', () => {
   addEqualityMatcher();
 
-  it('constructor should validate the "seconds" argument and store it.', () => {
+  it('constructor should validate the "seconds" argument and store it', () => {
     expect(new Timestamp(1, 0)).to.have.property('seconds', 1);
     expect(new Timestamp(-62135596800, 0)).to.have.property(
       'seconds',
@@ -47,7 +47,7 @@ describe('Timestamp', () => {
       .with.property('code', Code.INVALID_ARGUMENT);
   });
 
-  it('constructor should validate the "nanoseconds" argument and store it.', () => {
+  it('constructor should validate the "nanoseconds" argument and store it', () => {
     expect(new Timestamp(0, 1)).to.have.property('nanoseconds', 1);
     expect(new Timestamp(0, 0)).to.have.property('nanoseconds', 0);
     expect(new Timestamp(0, 1e9 - 1)).to.have.property('nanoseconds', 1e9 - 1);
@@ -87,5 +87,61 @@ describe('Timestamp', () => {
     expect(new Timestamp(253402300799, 1e9 - 1).valueOf()).to.equal(
       '315537897599.999999999'
     );
+  });
+
+  it('valueOf', () => {
+    expect(new Timestamp(-62135596677, 456).valueOf()).to.equal(
+      '000000000123.000000456'
+    );
+    expect(new Timestamp(-62135596800, 0).valueOf()).to.equal(
+      '000000000000.000000000'
+    );
+    expect(new Timestamp(253402300799, 1e9 - 1).valueOf()).to.equal(
+      '315537897599.999999999'
+    );
+  });
+
+  it('arithmetic comparison of a Timestamp object to itself', () => {
+    const timestamp = new Timestamp(1, 1);
+    expect(timestamp < timestamp).to.be.false;
+    expect(timestamp <= timestamp).to.be.true;
+    expect(timestamp > timestamp).to.be.false;
+    expect(timestamp >= timestamp).to.be.true;
+  });
+
+  it('arithmetic comparison of equivalent, but distinct, Timestamp objects', () => {
+    const t1 = new Timestamp(1, 1);
+    const t2 = new Timestamp(1, 1);
+    expect(t1 < t2).to.be.false;
+    expect(t1 <= t2).to.be.true;
+    expect(t1 > t2).to.be.false;
+    expect(t1 >= t2).to.be.true;
+  });
+
+  it('arithmetic comparison of Timestamp objects whose nanoseconds differ', () => {
+    const t1 = new Timestamp(1, 1);
+    const t2 = new Timestamp(1, 2);
+    expect(t1 < t2).to.be.true;
+    expect(t1 <= t2).to.be.true;
+    expect(t1 > t2).to.be.false;
+    expect(t1 >= t2).to.be.false;
+  });
+
+  it('arithmetic comparison of Timestamp objects whose seconds differ', () => {
+    const t1 = new Timestamp(100, 0);
+    const t2 = new Timestamp(200, 0);
+    expect(t1 < t2).to.be.true;
+    expect(t1 <= t2).to.be.true;
+    expect(t1 > t2).to.be.false;
+    expect(t1 >= t2).to.be.false;
+  });
+
+  it('arithmetic comparison of the smallest and largest Timestamp objects', () => {
+    const t1 = new Timestamp(-62135596800, 0);
+    const t2 = new Timestamp(253402300799, 999999999);
+    expect(t1 < t2).to.be.true;
+    expect(t1 <= t2).to.be.true;
+    expect(t1 > t2).to.be.false;
+    expect(t1 >= t2).to.be.false;
   });
 });

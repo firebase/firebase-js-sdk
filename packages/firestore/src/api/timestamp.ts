@@ -18,14 +18,12 @@
 import { Code, FirestoreError } from '../util/error';
 import { primitiveComparator } from '../util/misc';
 
-export class Timestamp {
-  // Midnight at the beginning of 1/1/1 is the earliest Firestore supports.
-  private static readonly MIN_SECONDS = -62135596800;
-  // This will break in the year 10,000.
-  private static readonly MAX_SECONDS = 253402300799;
-  private static readonly MIN_NANOSECONDS = 0;
-  private static readonly MAX_NANOSECONDS = 1e9 - 1;
+// The lowest valid timestamp is 0001-01-01T00:00:00Z (January 01, 0001).
+const MIN_SECONDS = -62135596800;
+// The highest valid timestamp is 9999-12-31T23:59:59.999999999Z (Dec 31, 9999).
+const MAX_SECONDS = 253402300799;
 
+export class Timestamp {
   static now(): Timestamp {
     return Timestamp.fromMillis(Date.now());
   }
@@ -41,17 +39,13 @@ export class Timestamp {
   }
 
   constructor(readonly seconds: number, readonly nanoseconds: number) {
-    if (
-      nanoseconds < Timestamp.MIN_NANOSECONDS ||
-      nanoseconds > Timestamp.MAX_NANOSECONDS
-    ) {
+    if (nanoseconds < 0 || nanoseconds >= 1e9) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Timestamp nanoseconds out of range: ' + nanoseconds
       );
     }
-
-    if (seconds < Timestamp.MIN_SECONDS || seconds > Timestamp.MAX_SECONDS) {
+    if (seconds < MIN_SECONDS || seconds > MAX_SECONDS) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Timestamp seconds out of range: ' + seconds
@@ -93,27 +87,17 @@ export class Timestamp {
   // Overriding valueOf() allows Timestamp objects to be compared in JavaScript using the
   // arithmetic comparison operators, such as < and >.
   // https://github.com/firebase/firebase-js-sdk/issues/2632
+  //
+  // This method returns a string of the form <seconds>.<nanoseconds> where <seconds> is translated
+  // to have a non-negative value and both <seconds> and <nanoseconds> are left-padded with zeroes
+  // to be a consistent length. Strings with this format then have a lexiographical ordering that
+  // matches the relative ordering of the Timestamp objects whose valueOf() method returned them.
+  // The <seconds> translation is done to avoid having a leading negative sign (i.e. a leading '-'
+  // character) in its string representation, which would affect its lexiographical ordering.
   valueOf(): string {
-    const formattedSeconds = Timestamp.normalizeAndPad(
-      this.seconds,
-      Timestamp.MIN_SECONDS,
-      Timestamp.MAX_SECONDS
-    );
-    const formattedNanoseconds = Timestamp.normalizeAndPad(
-      this.nanoseconds,
-      Timestamp.MIN_NANOSECONDS,
-      Timestamp.MAX_NANOSECONDS
-    );
+    const adjustedSeconds = this.seconds - MIN_SECONDS;
+    const formattedSeconds = adjustedSeconds.toString().padStart(12, '0');
+    const formattedNanoseconds = this.nanoseconds.toString().padStart(9, '0');
     return formattedSeconds + '.' + formattedNanoseconds;
-  }
-
-  private static normalizeAndPad(
-    value: number,
-    minValue: number,
-    maxValue: number
-  ): string {
-    const padLength = Math.ceil(Math.log10(maxValue - minValue));
-    const normalizedValue = value - minValue;
-    return normalizedValue.toString().padStart(padLength, '0');
   }
 }
