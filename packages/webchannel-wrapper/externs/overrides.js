@@ -45,9 +45,6 @@ goog.net.WebChannel.Options.concurrentRequestLimit;
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.supportsCrossDomainXhr;
 
-/** @type {string|undefined} */
-goog.net.WebChannel.Options.testUrl;
-
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.sendRawJson;
 
@@ -57,7 +54,6 @@ goog.net.WebChannel.Options.httpSessionIdParam;
 /** @type {string|undefined} */
 goog.net.WebChannel.Options.httpHeadersOverwriteParam;
 
-/** @type {boolean|undefined} */
 goog.net.WebChannel.Options.backgroundChannelTest;
 
 /** @type {boolean|undefined} */

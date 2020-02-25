@@ -198,7 +198,10 @@ describe('Mutation', () => {
     const data = wrapObject({
       foo: { bar: '<server-timestamp>' },
       baz: 'baz-value'
-    }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
+    })
+      .toBuilder()
+      .set(field('foo.bar'), new ServerTimestampValue(timestamp, null))
+      .build();
     const expectedDoc = new Document(
       key('collection/key'),
       version(0),
