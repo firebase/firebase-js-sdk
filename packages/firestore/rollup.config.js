@@ -88,23 +88,6 @@ const es5Builds = [
       )
   },
   /**
-   * Browser CJS Build
-   *
-   * The Browser CJS build is not mangled as Terser's property name mangling
-   * does not work well with CommonJS-style files.
-   */
-  {
-    input: 'index.ts',
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        cacheRoot: './.cache/cjs/'
-      }),
-      json()
-    ]
-  },
-  /**
    * Browser ESM Build
    */
   {
@@ -120,7 +103,14 @@ const es5Builds = [
       terser(terserOptions)
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
+  },
+  /**
+   * Browser CJS Build (based on the mangling in the ESM build above)
+   */
+  {
+    input: pkg.module,
+    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+  },
 ];
 
 /**
