@@ -203,7 +203,7 @@ export class BooleanValue extends FieldValue {
 
   compareTo(other: FieldValue): number {
     if (other instanceof BooleanValue) {
-      return primitiveComparator(this, other);
+      return primitiveComparator(this.internalValue, other.internalValue);
     }
     return this.defaultCompareTo(other);
   }
