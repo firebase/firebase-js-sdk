@@ -48,6 +48,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Checkout
+      # Canary release script requires git history and tags.
+      run: git fetch --prune --unshallow
     - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
