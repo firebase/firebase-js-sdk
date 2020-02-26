@@ -23,6 +23,7 @@ import { nodeFromJSON } from '../snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Node } from '../snap/Node';
 import { ChildrenNode } from '../snap/ChildrenNode';
+import { SyncTree } from '../SyncTree';
 import { Indexable } from './misc';
 
 /**
@@ -48,17 +49,63 @@ export const generateWithValues = function(
  * @return {!(string|number|boolean)}
  */
 export const resolveDeferredValue = function(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: { [k: string]: any } | string | number | boolean,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  serverValues: { [k: string]: any }
+  value: { [k: string]: unknown } | string | number | boolean,
+  existing: Node,
+  serverValues: { [k: string]: unknown }
 ): string | number | boolean {
   if (!value || typeof value !== 'object') {
     return value as string | number | boolean;
-  } else {
-    assert('.sv' in value, 'Unexpected leaf node or priority contents');
-    return serverValues[value['.sv']];
   }
+  assert('.sv' in value, 'Unexpected leaf node or priority contents');
+
+  if (typeof value['.sv'] === 'string') {
+    return resolveScalarDeferredValue(value['.sv'], existing, serverValues);
+  } else if (typeof value['.sv'] === 'object') {
+    return resolveComplexDeferredValue(value['.sv'], existing, serverValues);
+  } else {
+    assert(false, 'Unexpected server value: ' + JSON.stringify(value, null, 2));
+  }
+};
+
+const resolveScalarDeferredValue = function(
+  op: string,
+  existing: Node,
+  serverValues: { [k: string]: unknown }
+): string | number | boolean {
+  switch (op) {
+    case 'timestamp':
+      return serverValues['timestamp'] as string | number | boolean;
+    default:
+      assert(false, 'Unexpected server value: ' + op);
+  }
+};
+
+const resolveComplexDeferredValue = function(
+  op: object,
+  existing: Node,
+  unused: { [k: string]: unknown }
+): string | number | boolean {
+  if (!op.hasOwnProperty('increment')) {
+    assert(false, 'Unexpected server value: ' + JSON.stringify(op, null, 2));
+  }
+  const delta = op['increment'];
+  if (typeof delta !== 'number') {
+    assert(false, 'Unexpected increment value: ' + delta);
+  }
+
+  // Incrementing a non-number sets the value to the incremented amount
+  if (!existing.isLeafNode()) {
+    return delta;
+  }
+
+  const leaf = existing as LeafNode;
+  const existingVal = leaf.getValue();
+  if (typeof existingVal !== 'number') {
+    return delta;
+  }
+
+  // No need to do over/underflow arithmetic here because JS only handles floats under the covers
+  return existingVal + delta;
 };
 
 /**
@@ -70,13 +117,19 @@ export const resolveDeferredValue = function(
  */
 export const resolveDeferredValueTree = function(
   tree: SparseSnapshotTree,
-  serverValues: object
+  syncTree: SyncTree,
+  serverValues: Indexable
 ): SparseSnapshotTree {
   const resolvedTree = new SparseSnapshotTree();
   tree.forEachTree(new Path(''), (path, node) => {
+    const existing = syncTree.calcCompleteEventCache(path);
+    assert(
+      existing !== null && typeof existing !== 'undefined',
+      'Expected ChildrenNode.EMPTY_NODE for nulls'
+    );
     resolvedTree.remember(
       path,
-      resolveDeferredValueSnapshot(node, serverValues)
+      resolveDeferredValueSnapshot(node, existing, serverValues)
     );
   });
   return resolvedTree;
@@ -92,7 +145,8 @@ export const resolveDeferredValueTree = function(
  */
 export const resolveDeferredValueSnapshot = function(
   node: Node,
-  serverValues: object
+  existing: Node,
+  serverValues: Indexable
 ): Node {
   const rawPri = node.getPriority().val() as
     | Indexable
@@ -100,12 +154,20 @@ export const resolveDeferredValueSnapshot = function(
     | null
     | number
     | string;
-  const priority = resolveDeferredValue(rawPri, serverValues);
+  const priority = resolveDeferredValue(
+    rawPri,
+    existing.getPriority(),
+    serverValues
+  );
   let newNode: Node;
 
   if (node.isLeafNode()) {
     const leafNode = node as LeafNode;
-    const value = resolveDeferredValue(leafNode.getValue(), serverValues);
+    const value = resolveDeferredValue(
+      leafNode.getValue(),
+      existing,
+      serverValues
+    );
     if (
       value !== leafNode.getValue() ||
       priority !== leafNode.getPriority().val()
@@ -123,6 +185,7 @@ export const resolveDeferredValueSnapshot = function(
     childrenNode.forEachChild(PRIORITY_INDEX, (childName, childNode) => {
       const newChildNode = resolveDeferredValueSnapshot(
         childNode,
+        existing.getImmediateChild(childName),
         serverValues
       );
       if (newChildNode !== childNode) {
