@@ -89,18 +89,6 @@ describe('Timestamp', () => {
     );
   });
 
-  it('valueOf', () => {
-    expect(new Timestamp(-62135596677, 456).valueOf()).to.equal(
-      '000000000123.000000456'
-    );
-    expect(new Timestamp(-62135596800, 0).valueOf()).to.equal(
-      '000000000000.000000000'
-    );
-    expect(new Timestamp(253402300799, 1e9 - 1).valueOf()).to.equal(
-      '315537897599.999999999'
-    );
-  });
-
   it('arithmetic comparison of a Timestamp object to itself', () => {
     const timestamp = new Timestamp(1, 1);
     expect(timestamp < timestamp).to.be.false;

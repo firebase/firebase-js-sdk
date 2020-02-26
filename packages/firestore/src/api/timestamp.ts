@@ -96,8 +96,8 @@ export class Timestamp {
   // character) in its string representation, which would affect its lexiographical ordering.
   valueOf(): string {
     const adjustedSeconds = this.seconds - MIN_SECONDS;
-    const formattedSeconds = adjustedSeconds.toString().padStart(12, '0');
-    const formattedNanoseconds = this.nanoseconds.toString().padStart(9, '0');
+    const formattedSeconds = String(adjustedSeconds).padStart(12, '0');
+    const formattedNanoseconds = String(this.nanoseconds).padStart(9, '0');
     return formattedSeconds + '.' + formattedNanoseconds;
   }
 }
