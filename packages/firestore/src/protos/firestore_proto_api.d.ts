@@ -361,7 +361,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Value {
     nullValue?: ValueNullValue;
     booleanValue?: boolean;
-    integerValue?: string;
+    integerValue?: string | number;
     doubleValue?: number;
     timestampValue?: string | { seconds: string; nanos: number };
     stringValue?: string;

@@ -219,6 +219,24 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('update with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.update('a', {});
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+    });
+  });
+
+  it('merge with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.set({ 'a': {} }, { merge: true });
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+    });
+  });
+
   it('can delete field using merge', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {

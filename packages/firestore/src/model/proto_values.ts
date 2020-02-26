@@ -64,10 +64,10 @@ export function typeOrder(value: api.Value): TypeOrder {
 
 /** Returns whether `value` is defined and corresponds to the given type order. */
 export function isType(
-  value: api.Value | undefined,
+  value: api.Value | null | undefined,
   expectedTypeOrder: TypeOrder
-): boolean {
-  return value !== undefined && typeOrder(value) === expectedTypeOrder;
+): value is api.Value {
+  return !!value && typeOrder(value) === expectedTypeOrder;
 }
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
@@ -130,8 +130,9 @@ function blobEquals(left: api.Value, right: api.Value): boolean {
 
 export function numberEquals(left: api.Value, right: api.Value): boolean {
   if ('integerValue' in left && 'integerValue' in right) {
-    return (
-      normalizeNumber(left.integerValue) === normalizeNumber(right.integerValue)
+    return numericEquals(
+      normalizeNumber(left.integerValue),
+      normalizeNumber(right.integerValue)
     );
   } else if ('doubleValue' in left && 'doubleValue' in right) {
     return numericEquals(
@@ -177,7 +178,7 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
   return true;
 }
 
-function compare(left: api.Value, right: api.Value): number {
+export function compare(left: api.Value, right: api.Value): number {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
 
@@ -292,7 +293,7 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
   const leftMap = left.fields || {};
   const leftKeys = keys(leftMap);
   const rightMap = right.fields || {};
-  const rightKeys = keys(leftMap);
+  const rightKeys = keys(rightMap);
 
   // Even though MapValues are likely sorted correctly based on their insertion
   // order (e.g. when received from the backend), local modifications can bring

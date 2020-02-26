@@ -37,7 +37,7 @@ export function valueOf(
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof input === 'number') {
     if (typeUtils.isSafeInteger(input)) {
-      return { integerValue: String(input) };
+      return { integerValue: input };
     } else {
       if (useProto3Json) {
         // Proto 3 let's us encode NaN and Infinity as string values as
@@ -57,6 +57,14 @@ export function valueOf(
     return { booleanValue: input };
   } else if (typeof input === 'string') {
     return { stringValue: input };
+  } else if (input instanceof Date) {
+    const timestamp = Timestamp.fromDate(input);
+    return {
+      timestampValue: {
+        seconds: String(timestamp.seconds),
+        nanos: timestamp.nanoseconds
+      }
+    };
   } else if (input instanceof Timestamp) {
     return {
       timestampValue: {
