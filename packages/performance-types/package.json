@@ -11,7 +11,7 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "typescript": "3.7.5"
+    "typescript": "3.8.2"
   },
   "repository": {
     "type": "git",
