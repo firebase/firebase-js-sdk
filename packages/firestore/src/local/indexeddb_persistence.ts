@@ -73,7 +73,6 @@ import { ReferenceSet } from './reference_set';
 import {
   ClientId,
   MemorySharedClientState,
-  SharedClientState,
   WebStorageSharedClientState
 } from './shared_client_state';
 import { TargetData } from './target_data';
