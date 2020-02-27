@@ -18,10 +18,7 @@
 import { Code, FirestoreError } from '../util/error';
 import { primitiveComparator } from '../util/misc';
 
-// The lowest valid timestamp is 0001-01-01T00:00:00Z (January 01, 0001).
 const MIN_SECONDS = -62135596800;
-// The highest valid timestamp is 9999-12-31T23:59:59.999999999Z (Dec 31, 9999).
-const MAX_SECONDS = 253402300799;
 
 export class Timestamp {
   static now(): Timestamp {
@@ -39,13 +36,27 @@ export class Timestamp {
   }
 
   constructor(readonly seconds: number, readonly nanoseconds: number) {
-    if (nanoseconds < 0 || nanoseconds >= 1e9) {
+    if (nanoseconds < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Timestamp nanoseconds out of range: ' + nanoseconds
       );
     }
-    if (seconds < MIN_SECONDS || seconds > MAX_SECONDS) {
+    if (nanoseconds >= 1e9) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Timestamp nanoseconds out of range: ' + nanoseconds
+      );
+    }
+    // Midnight at the beginning of 1/1/1 is the earliest Firestore supports.
+    if (seconds < MIN_SECONDS) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Timestamp seconds out of range: ' + seconds
+      );
+    }
+    // This will break in the year 10,000.
+    if (seconds >= 253402300800) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Timestamp seconds out of range: ' + seconds
