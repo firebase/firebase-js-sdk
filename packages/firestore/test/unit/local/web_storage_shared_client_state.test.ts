@@ -97,7 +97,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
   } = {};
   private activeTargets = targetIdSet();
-  private onlineState = OnlineState.Unknown;
+  private onlineState: OnlineState = 'Unknown';
 
   constructor(public activeClients: ClientId[]) {}
 
@@ -412,27 +412,27 @@ describe('WebStorageSharedClientState', () => {
 
     it('with targets from existing client', async () => {
       // The prior client has two active query targets
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       sharedClientState.addLocalQueryTarget(4);
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       sharedClientState.addLocalQueryTarget(5);
-      await verifyState([3, 4, 5], OnlineState.Unknown);
+      await verifyState([3, 4, 5], 'Unknown');
 
       sharedClientState.removeLocalQueryTarget(5);
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
     });
 
     it('with targets from new client', async () => {
       // The prior client has two active query targets
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
 
       writeToWebStorage(secondaryClientStateKey, oldState.toWebStorageJSON());
-      await verifyState([3, 4, 5], OnlineState.Unknown);
+      await verifyState([3, 4, 5], 'Unknown');
 
       const updatedState = new LocalClientState();
       updatedState.addQueryTarget(5);
@@ -442,15 +442,15 @@ describe('WebStorageSharedClientState', () => {
         secondaryClientStateKey,
         updatedState.toWebStorageJSON()
       );
-      await verifyState([3, 4, 5, 6], OnlineState.Unknown);
+      await verifyState([3, 4, 5, 6], 'Unknown');
 
       writeToWebStorage(secondaryClientStateKey, null);
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
     });
 
     it('with online state from new client', async () => {
       // The prior client has two active query targets
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
@@ -463,7 +463,7 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       writeToWebStorage(
         onlineStateKey(),
@@ -472,7 +472,7 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState([3, 4], OnlineState.Offline);
+      await verifyState([3, 4], 'Offline');
 
       writeToWebStorage(
         onlineStateKey(),
@@ -481,12 +481,12 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState([3, 4], OnlineState.Online);
+      await verifyState([3, 4], 'Online');
     });
 
     it('ignores online state from inactive client', async () => {
       // The prior client has two active query targets
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       // The secondary client is inactive and its online state is ignored.
       writeToWebStorage(
@@ -497,7 +497,7 @@ describe('WebStorageSharedClientState', () => {
         })
       );
 
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
@@ -511,7 +511,7 @@ describe('WebStorageSharedClientState', () => {
         })
       );
 
-      await verifyState([3, 4], OnlineState.Online);
+      await verifyState([3, 4], 'Online');
     });
 
     it('ignores invalid data', async () => {
@@ -522,11 +522,11 @@ describe('WebStorageSharedClientState', () => {
       };
 
       // The prior instance has two active query targets
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
 
       // We ignore the newly added target.
       writeToWebStorage(secondaryClientStateKey, JSON.stringify(invalidState));
-      await verifyState([3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], 'Unknown');
     });
   });
 
