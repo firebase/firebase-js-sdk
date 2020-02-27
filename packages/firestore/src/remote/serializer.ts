@@ -483,14 +483,10 @@ export class JsonProtoSerializer {
   ): Document {
     const key = this.fromName(document.name!);
     const version = this.fromVersion(document.updateTime!);
-    return new Document(
-      key,
-      version,
-      { hasCommittedMutations: !!hasCommittedMutations },
-      undefined,
-      document,
-      v => this.fromValue(v)
-    );
+    const data = this.fromFields(document.fields!);
+    return new Document(key, version, data, {
+      hasCommittedMutations: !!hasCommittedMutations
+    });
   }
 
   toFields(fields: fieldValue.ObjectValue): { [key: string]: api.Value } {
@@ -534,9 +530,8 @@ export class JsonProtoSerializer {
     assertPresent(doc.found.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found.name);
     const version = this.fromVersion(doc.found.updateTime);
-    return new Document(key, version, {}, undefined, doc.found, v =>
-      this.fromValue(v)
-    );
+    const data = this.fromFields(doc.found.fields!);
+    return new Document(key, version, data, {});
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -673,14 +668,8 @@ export class JsonProtoSerializer {
       );
       const key = this.fromName(entityChange.document.name);
       const version = this.fromVersion(entityChange.document.updateTime);
-      const doc = new Document(
-        key,
-        version,
-        {},
-        undefined,
-        entityChange.document!,
-        v => this.fromValue(v)
-      );
+      const data = this.fromFields(entityChange.document.fields!);
+      const doc = new Document(key, version, data, {});
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
