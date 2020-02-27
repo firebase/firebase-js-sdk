@@ -93,7 +93,9 @@ export class Document extends MaybeDocument {
 
   toString(): string {
     return (
-      `Document(${this.key}, ${this.version}, ${this.objectValue.toString()}, ` +
+      `Document(${this.key}, ${
+        this.version
+      }, ${this.objectValue.toString()}, ` +
       `{hasLocalMutations: ${this.hasLocalMutations}}), ` +
       `{hasCommittedMutations: ${this.hasCommittedMutations}})`
     );

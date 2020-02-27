@@ -336,6 +336,88 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
 }
 
 /**
+ * Generate the canonical ID for the provided field value (as used in Target
+ * serialization).
+ */
+export function canonicalId(value: api.Value): string {
+  return canonifyValue(value);
+}
+
+function canonifyValue(value: api.Value): string {
+  if ('nullValue' in value) {
+    return 'null';
+  } else if ('booleanValue' in value) {
+    return '' + value.booleanValue!;
+  } else if ('integerValue' in value) {
+    return '' + value.integerValue!;
+  } else if ('doubleValue' in value) {
+    return '' + value.doubleValue!;
+  } else if ('timestampValue' in value) {
+    return canonifyTimestamp(value.timestampValue!);
+  } else if ('stringValue' in value) {
+    return value.stringValue!;
+  } else if ('bytesValue' in value) {
+    return canonifyByteString(value.bytesValue!);
+  } else if ('referenceValue' in value) {
+    // TODO(mrschmidt): Use document key only
+    return value.referenceValue!;
+  } else if ('geoPointValue' in value) {
+    return canonifyGeoPoint(value.geoPointValue!);
+  } else if ('arrayValue' in value) {
+    return canonifyArray(value.arrayValue!);
+  } else if ('mapValue' in value) {
+    return canoifyMap(value.mapValue!);
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+function canonifyByteString(byteString: string | Uint8Array) : string {
+  return normalizeByteString(byteString).toBase64();
+}
+
+function canonifyTimestamp(timestamp: ProtoTimestampValue) : string {
+  const normalizedTimestamp = normalizeTimestamp(timestamp);
+  return `time(${normalizedTimestamp.seconds},${normalizedTimestamp.nanos})`;
+}
+
+function canonifyGeoPoint(geoPoint: api.LatLng) : string {
+  return `geo(${geoPoint.latitude},${geoPoint.longitude})`;
+}
+
+function canoifyMap(mapValue: api.MapValue) : string {
+  // Iteration order in JavaScript is not guaranteed. To ensure that we generate
+  // matching canonical IDs for identical maps, we need to sort the keys.
+  const sortedKeys = keys(mapValue.fields || {}).sort();
+
+  let result = '{';
+  let first = true;
+  for (const key of sortedKeys) {
+    if (!first) {
+      result += ',';
+    } else {
+      first = false;
+    }
+    result += `${key}:${canonifyValue(mapValue.fields![key])}`;
+  }
+  return result + '}';
+}
+
+function canonifyArray(arrayValue: api.ArrayValue) : string {
+  let result = '[';
+  let first = true;
+  for (const value of arrayValue.values || []) {
+    if (!first) {
+      result += ',';
+    } else {
+      first = false;
+    }
+    result += canonifyValue(value);
+  }
+  return result + ']';
+}
+
+/**
  * Converts the possible Proto values for a timestamp value into a "seconds and
  * nanos" representation.
  */

@@ -29,6 +29,7 @@ import {
   ObjectValue,
   PrimitiveValue
 } from '../../../src/model/proto_field_value';
+import { canonicalId } from '../../../src/model/proto_values';
 import { ByteString } from '../../../src/util/byte_string';
 import { primitiveComparator } from '../../../src/util/misc';
 import * as typeUtils from '../../../src/util/types';
@@ -718,6 +719,59 @@ describe('FieldValue', () => {
         );
       expect(expectedOrder).to.deep.equal(actualOrder);
     }
+  });
+
+  it('canonicalizes values', () => {
+    expect(canonicalId(wrap(null).proto)).to.equal('null');
+    expect(canonicalId(wrap(true).proto)).to.equal('true');
+    expect(canonicalId(wrap(false).proto)).to.equal('false');
+    expect(canonicalId(wrap(1).proto)).to.equal('1');
+    expect(canonicalId(wrap(1.1).proto)).to.equal('1.1');
+    expect(canonicalId(wrap(new Timestamp(30, 60)).proto)).to.equal(
+      'time(30,60)'
+    );
+    expect(canonicalId(wrap('a').proto)).to.equal('a');
+    expect(canonicalId(wrap(blob(1, 2, 3)).proto)).to.equal('AQID');
+    expect(
+      canonicalId(wrapRef(dbId('p1', 'd1'), key('c1/doc1')).proto)
+    ).to.equal('projects/p1/databases/d1/documents/c1/doc1');
+    expect(canonicalId(wrap(new GeoPoint(30, 60)).proto)).to.equal(
+      'geo(30,60)'
+    );
+    expect(canonicalId(wrap([1, 2, 3]).proto)).to.equal('[1,2,3]');
+    expect(
+      canonicalId(
+        wrap({
+          'a': 1,
+          'b': 2,
+          'c': '3'
+        }).proto
+      )
+    ).to.equal('{a:1,b:2,c:3}');
+    expect(
+      canonicalId(wrap({ 'a': ['b', { 'c': new GeoPoint(30, 60) }] }).proto)
+    ).to.equal('{a:[b,{c:geo(30,60)}]}');
+  });
+
+  it('canonical IDs ignore sort order', () => {
+    expect(
+      canonicalId(
+        wrap({
+          'a': 1,
+          'b': 2,
+          'c': '3'
+        }).proto
+      )
+    ).to.equal('{a:1,b:2,c:3}');
+    expect(
+      canonicalId(
+        wrap({
+          'c': 3,
+          'b': 2,
+          'a': '1'
+        }).proto
+      )
+    ).to.equal('{a:1,b:2,c:3}');
   });
 
   function setField(
