@@ -105,7 +105,7 @@ function assertPresent(value: unknown, description: string): asserts value {
 // This is a supplement to the generated proto interfaces, which fail to account
 // for the fact that a timestamp may be encoded as either a string OR this.
 interface TimestampProto {
-  seconds?: string;
+  seconds?: string | number;
   nanos?: number;
 }
 
@@ -352,6 +352,9 @@ export class JsonProtoSerializer {
     );
   }
 
+  // TODO(mrschmidt): Even when we remove our custom FieldValues, we still
+  // need to re-encode field values to their expected type based on the
+  // `useProto3Json` setting.
   toValue(val: fieldValue.FieldValue): api.Value {
     if (val instanceof fieldValue.NullValue) {
       return { nullValue: 'NULL_VALUE' };
@@ -412,18 +415,9 @@ export class JsonProtoSerializer {
     } else if ('integerValue' in obj) {
       return new fieldValue.IntegerValue(normalizeNumber(obj.integerValue!));
     } else if ('doubleValue' in obj) {
-      if (this.options.useProto3Json) {
-        // Proto 3 uses the string values 'NaN' and 'Infinity'.
-        if ((obj.doubleValue as {}) === 'NaN') {
-          return fieldValue.DoubleValue.NAN;
-        } else if ((obj.doubleValue as {}) === 'Infinity') {
-          return fieldValue.DoubleValue.POSITIVE_INFINITY;
-        } else if ((obj.doubleValue as {}) === '-Infinity') {
-          return fieldValue.DoubleValue.NEGATIVE_INFINITY;
-        }
-      }
-
-      return new fieldValue.DoubleValue(obj.doubleValue!);
+      // Note: Proto 3 uses the string values 'NaN' and 'Infinity'.
+      const parsedNumber = Number(obj.doubleValue!);
+      return new fieldValue.DoubleValue(parsedNumber);
     } else if ('stringValue' in obj) {
       return new fieldValue.StringValue(obj.stringValue!);
     } else if ('mapValue' in obj) {

@@ -33,7 +33,9 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 );
 
 // Denotes the possible representations for timestamps in the Value type.
-type ProtoTimestampValue = string | { seconds?: string; nanos?: number };
+type ProtoTimestampValue =
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: api.Value): TypeOrder {
@@ -105,6 +107,15 @@ export function equals(left: api.Value, right: api.Value): boolean {
 }
 
 function timestampEquals(left: api.Value, right: api.Value): boolean {
+  if (
+    typeof left.timestampValue === 'string' &&
+    typeof right.timestampValue === 'string' &&
+    left.timestampValue.length === right.timestampValue.length
+  ) {
+    // Use string equality for ISO 8601 timestamps
+    return left.timestampValue === right.timestampValue;
+  }
+
   const leftTimestamp = normalizeTimestamp(left.timestampValue!);
   const rightTimestamp = normalizeTimestamp(right.timestampValue!);
   return (
@@ -228,6 +239,14 @@ function compareTimestamps(
   left: ProtoTimestampValue,
   right: ProtoTimestampValue
 ): number {
+  if (typeof left === 'string' && typeof right === 'string') {
+    // Use string ordering for ISO 8601 timestamps, but strip the timezone
+    // suffix to ensure proper ordering for timestamps of different precision.
+    // The only supported timezone is UTC (i.e. 'Z') based on 
+    // ISO_TIMESTAMP_REG_EXP.
+    return primitiveComparator(left.slice(0, -1), right.slice(0, -1));
+  }
+
   const leftTimestamp = normalizeTimestamp(left);
   const rightTimestamp = normalizeTimestamp(right);
 
