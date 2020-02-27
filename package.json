@@ -110,7 +110,7 @@
     "rxjs": "6.5.4",
     "semver": "7.1.1",
     "simple-git": "1.129.0",
-    "sinon": "8.0.4",
+    "sinon": "9.0.0",
     "sinon-chai": "3.4.0",
     "source-map-loader": "0.2.4",
     "ts-loader": "6.2.1",
