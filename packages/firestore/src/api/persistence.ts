@@ -31,8 +31,8 @@ import { makeConstructorPrivate } from '../util/api';
 import { PersistenceFactory } from '../local/persistence';
 import { newMemoryPersistence } from '../local/memory_persistence';
 
-// This module provides a subclasses of the memory-only Firestore class that 
-// provides IndexedDb support via `enablePersistence()` and 
+// This module provides a subclasses of the memory-only Firestore class that
+// provides IndexedDb support via `enablePersistence()` and
 // `clearPersistence()`.
 
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -126,7 +126,7 @@ export class PersistenceFirestore extends Firestore {
       this._settings.cacheSizeBytes,
       synchronizeTabs
     );
-    
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this._configureClient(
       persistenceWithFallback,

@@ -147,7 +147,6 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-
 const firestoreMemoryBuild = {
   input: `firestore/index.memory.ts`,
   output: createUmdOutputConfig(`firebase-firestore.memory.js`),

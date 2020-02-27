@@ -24,6 +24,10 @@ import {
   validateExactNumberOfArgs
 } from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
+import {
+  binaryStringFromUint8Array,
+  uint8ArrayFromBinaryString
+} from '../util/byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -85,10 +89,7 @@ export class Blob {
     if (!(array instanceof Uint8Array)) {
       throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
     }
-    let binaryString = '';
-    for (let i = 0; i < array.length; ++i) {
-      binaryString += String.fromCharCode(array[i]);
-    }
+    const binaryString = binaryStringFromUint8Array(array);
     return new Blob(binaryString);
   }
 
@@ -101,10 +102,7 @@ export class Blob {
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    const buffer = new Uint8Array(this._binaryString.length);
-    for (let i = 0; i < this._binaryString.length; i++) {
-      buffer[i] = this._binaryString.charCodeAt(i);
-    }
+    const buffer = uint8ArrayFromBinaryString(this._binaryString);
     return buffer;
   }
 

@@ -31,7 +31,7 @@ import {
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -53,6 +53,7 @@ import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
+import { ByteString } from '../util/byte_string';
 import * as typeUtils from '../util/types';
 
 import {
@@ -139,20 +140,6 @@ export class JsonProtoSerializer {
     private databaseId: DatabaseId,
     private options: SerializerOptions
   ) {}
-
-  private emptyByteString(): ProtoByteString {
-    if (this.options.useProto3Json) {
-      return '';
-    } else {
-      return new Uint8Array(0);
-    }
-  }
-
-  private unsafeCastProtoByteString(byteString: ProtoByteString): string {
-    // byteStrings can be either string or UInt8Array, but the typings say
-    // it's always a string. Cast as string to avoid type check failing
-    return byteString as string;
-  }
 
   fromRpcStatus(status: api.Status): FirestoreError {
     const code =
@@ -278,13 +265,33 @@ export class JsonProtoSerializer {
    * This method cheats. It's typed as returning "string" because that's what
    * our generated proto interfaces say bytes must be. But it should return
    * an Uint8Array in Node.
+   *
+   * Visible for testing.
    */
-  private toBytes(bytes: Blob): string {
+  toBytes(bytes: Blob | ByteString): string {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      // The typings say it's a string, but it needs to be a Uint8Array in Node.
-      return this.unsafeCastProtoByteString(bytes.toUint8Array());
+      return (bytes.toUint8Array() as unknown) as string;
+    }
+  }
+
+  /**
+   * Returns a ByteString based on the proto string value.
+   */
+  fromBytes(value: string | Uint8Array | undefined): ByteString {
+    if (this.options.useProto3Json) {
+      assert(
+        value === undefined || typeof value === 'string',
+        'value must be undefined or a string when using proto3 Json'
+      );
+      return ByteString.fromBase64String(value ? value : '');
+    } else {
+      assert(
+        value === undefined || value instanceof Uint8Array,
+        'value must be undefined or Uint8Array'
+      );
+      return ByteString.fromUint8Array(value ? value : new Uint8Array());
     }
   }
 
@@ -570,11 +577,11 @@ export class JsonProtoSerializer {
   fromFields(object: {}): fieldValue.ObjectValue {
     // Proto map<string, Value> gets mapped to Object, so cast it.
     const map = object as { [key: string]: api.Value };
-    let result = fieldValue.ObjectValue.EMPTY;
+    const result = fieldValue.ObjectValue.newBuilder();
     obj.forEach(map, (key, value) => {
-      result = result.set(new FieldPath([key]), this.fromValue(value));
+      result.set(new FieldPath([key]), this.fromValue(value));
     });
-    return result;
+    return result.build();
   }
 
   toMapValue(map: fieldValue.ObjectValue): api.MapValue {
@@ -700,7 +707,7 @@ export class JsonProtoSerializer {
         targetChange: {
           targetChangeType: this.toWatchTargetChangeState(watchChange.state),
           targetIds: watchChange.targetIds,
-          resumeToken: this.unsafeCastProtoByteString(watchChange.resumeToken),
+          resumeToken: this.toBytes(watchChange.resumeToken),
           cause
         }
       };
@@ -718,8 +725,8 @@ export class JsonProtoSerializer {
         change.targetChange.targetChangeType || 'NO_CHANGE'
       );
       const targetIds: TargetId[] = change.targetChange.targetIds || [];
-      const resumeToken =
-        change.targetChange.resumeToken || this.emptyByteString();
+
+      const resumeToken = this.fromBytes(change.targetChange.resumeToken);
       const causeProto = change.targetChange!.cause;
       const cause = causeProto && this.fromRpcStatus(causeProto);
       watchChange = new WatchTargetChange(
@@ -1184,10 +1191,8 @@ export class JsonProtoSerializer {
 
     result.targetId = targetData.targetId;
 
-    if (targetData.resumeToken.length > 0) {
-      result.resumeToken = this.unsafeCastProtoByteString(
-        targetData.resumeToken
-      );
+    if (targetData.resumeToken.approximateByteSize() > 0) {
+      result.resumeToken = this.toBytes(targetData.resumeToken);
     }
 
     return result;

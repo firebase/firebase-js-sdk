@@ -8,16 +8,15 @@
     "test:manual": "mocha --exit"
   },
   "dependencies": {
-    "firebase": "7.8.2"
+    "firebase": "7.9.1"
   },
   "devDependencies": {
     "chai": "4.2.0",
-    "chromedriver": "79.0.0",
+    "chromedriver": "80.0.1",
     "express": "4.17.1",
     "geckodriver": "1.19.1",
     "mocha": "7.0.1",
     "node-fetch": "2.6.0",
-    "selenium-assistant": "6.0.0",
-    "sinon": "8.0.4"
+    "selenium-assistant": "6.0.0"
   }
 }

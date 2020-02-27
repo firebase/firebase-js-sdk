@@ -24,10 +24,14 @@ import { name, version } from './package.json';
 import {
   PersistenceFirestore,
   PublicPersistenceFirestore
-} from "./src/api/persistence";
+} from './src/api/persistence';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance, PublicPersistenceFirestore, PersistenceFirestore);
+  configureForFirebase(
+    instance,
+    PublicPersistenceFirestore,
+    PersistenceFirestore
+  );
   instance.registerVersion(name, version, 'node');
 }
 

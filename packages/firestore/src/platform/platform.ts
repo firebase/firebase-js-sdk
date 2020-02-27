@@ -16,7 +16,6 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { ProtoByteString } from '../core/types';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
@@ -52,8 +51,6 @@ export interface Platform {
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;
-
-  readonly emptyByteString: ProtoByteString;
 }
 
 /**
@@ -76,12 +73,4 @@ export class PlatformSupport {
     }
     return PlatformSupport.platform;
   }
-}
-
-/**
- * Returns the representation of an empty "proto" byte string for the
- * platform.
- */
-export function emptyByteString(): ProtoByteString {
-  return PlatformSupport.getPlatform().emptyByteString;
 }

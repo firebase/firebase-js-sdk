@@ -23,7 +23,7 @@ import './register-module';
 import './src/platform_node/node_init';
 
 import { name, version } from './package.json';
-import {Firestore, PublicMemoryFirestore} from "./src/api/database";
+import { Firestore, PublicMemoryFirestore } from './src/api/database';
 
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance, PublicMemoryFirestore, Firestore);
@@ -31,4 +31,3 @@ export function registerFirestore(instance: FirebaseNamespace): void {
 }
 
 registerFirestore(firebase);
-

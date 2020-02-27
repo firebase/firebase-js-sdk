@@ -16,7 +16,8 @@
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
     "test:browser": "karma start --single-run",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -32,7 +33,7 @@
   "devDependencies": {
     "rollup": "1.28.0",
     "rollup-plugin-typescript2": "0.25.3",
-    "typescript": "3.7.5"
+    "typescript": "3.8.2"
   },
   "repository": {
     "directory": "packages/storage",

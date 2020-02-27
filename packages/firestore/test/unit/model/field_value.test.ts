@@ -212,7 +212,7 @@ describe('FieldValue', () => {
   it('can overwrite existing fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
-    const objValue2 = objValue.set(field('foo'), wrap('new-foo-value'));
+    const objValue2 = setField(objValue, 'foo', wrap('new-foo-value'));
     expect(objValue.value()).to.deep.equal({
       foo: 'foo-value'
     }); // unmodified original
@@ -222,7 +222,7 @@ describe('FieldValue', () => {
   it('can add new fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
-    const objValue2 = objValue.set(field('bar'), wrap('bar-value'));
+    const objValue2 = setField(objValue, 'bar', wrap('bar-value'));
     expect(objValue.value()).to.deep.equal({
       foo: 'foo-value'
     }); // unmodified original
@@ -232,10 +232,25 @@ describe('FieldValue', () => {
     });
   });
 
+  it('can add multiple new fields', () => {
+    let objValue = fieldValue.ObjectValue.EMPTY;
+    objValue = objValue
+      .toBuilder()
+      .set(field('a'), wrap('a'))
+      .build();
+    objValue = objValue
+      .toBuilder()
+      .set(field('b'), wrap('b'))
+      .set(field('c'), wrap('c'))
+      .build();
+
+    expect(objValue.value()).to.deep.equal({ a: 'a', b: 'b', c: 'c' });
+  });
+
   it('can implicitly create objects', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
-    const objValue2 = objValue.set(field('a.b'), wrap('b-value'));
+    const objValue2 = setField(objValue, 'a.b', wrap('b-value'));
     expect(objValue.value()).to.deep.equal({
       foo: 'foo-value'
     }); // unmodified original
@@ -248,7 +263,7 @@ describe('FieldValue', () => {
   it('can overwrite primitive values to create objects', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
-    const objValue2 = objValue.set(field('foo.bar'), wrap('bar-value'));
+    const objValue2 = setField(objValue, 'foo.bar', wrap('bar-value'));
     expect(objValue.value()).to.deep.equal({
       foo: 'foo-value'
     }); // unmodified original
@@ -258,7 +273,7 @@ describe('FieldValue', () => {
   it('can add to nested objects', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
 
-    const objValue2 = objValue.set(field('foo.baz'), wrap('baz-value'));
+    const objValue2 = setField(objValue, 'foo.baz', wrap('baz-value'));
     expect(objValue.value()).to.deep.equal({
       foo: { bar: 'bar-value' }
     }); // unmodified original
@@ -270,7 +285,7 @@ describe('FieldValue', () => {
   it('can delete keys', () => {
     const objValue = wrapObject({ foo: 'foo-value', bar: 'bar-value' });
 
-    const objValue2 = objValue.delete(field('foo'));
+    const objValue2 = deleteField(objValue, 'foo');
     expect(objValue.value()).to.deep.equal({
       foo: 'foo-value',
       bar: 'bar-value'
@@ -283,17 +298,29 @@ describe('FieldValue', () => {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
 
-    const objValue2 = objValue.delete(field('foo.bar'));
+    const objValue2 = deleteField(objValue, 'foo.bar');
     expect(objValue.value()).to.deep.equal({
       foo: { bar: 'bar-value', baz: 'baz-value' }
     }); // unmodified original
     expect(objValue2.value()).to.deep.equal({ foo: { baz: 'baz-value' } });
   });
 
+  it('can delete added keys', () => {
+    let objValue = wrapObject({});
+
+    objValue = objValue
+      .toBuilder()
+      .set(field('a'), wrap('a'))
+      .delete(field('a'))
+      .build();
+
+    expect(objValue.value()).to.deep.equal({});
+  });
+
   it('can delete, resulting in empty object', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
 
-    const objValue2 = objValue.delete(field('foo.bar'));
+    const objValue2 = deleteField(objValue, 'foo.bar');
     expect(objValue.value()).to.deep.equal({
       foo: { bar: 'bar-value' }
     }); // unmodified original
@@ -304,13 +331,29 @@ describe('FieldValue', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' }, a: 1 });
 
     const expected = { foo: { bar: 'bar-value' }, a: 1 };
-    const objValue2 = objValue.delete(field('foo.baz'));
-    const objValue3 = objValue.delete(field('foo.bar.baz'));
-    const objValue4 = objValue.delete(field('a.b'));
+    const objValue2 = deleteField(objValue, 'foo.baz');
+    const objValue3 = deleteField(objValue, 'foo.bar.baz');
+    const objValue4 = deleteField(objValue, 'a.b');
     expect(objValue.value()).to.deep.equal(expected);
     expect(objValue2.value()).to.deep.equal(expected);
     expect(objValue3.value()).to.deep.equal(expected);
     expect(objValue4.value()).to.deep.equal(expected);
+  });
+
+  it('can delete multiple fields', () => {
+    let objValue = wrapObject({ a: 'a', b: 'a', c: 'c' });
+
+    objValue = objValue
+      .toBuilder()
+      .delete(field('a'))
+      .build();
+    objValue = objValue
+      .toBuilder()
+      .delete(field('b'))
+      .delete(field('c'))
+      .build();
+
+    expect(objValue.value()).to.deep.equal({});
   });
 
   it('provides field mask', () => {
@@ -578,4 +621,25 @@ describe('FieldValue', () => {
       expect(expectedOrder).to.deep.equal(actualOrder);
     }
   });
+
+  function setField(
+    objectValue: fieldValue.ObjectValue,
+    fieldPath: string,
+    value: fieldValue.FieldValue
+  ): fieldValue.ObjectValue {
+    return objectValue
+      .toBuilder()
+      .set(field(fieldPath), value)
+      .build();
+  }
+
+  function deleteField(
+    objectValue: fieldValue.ObjectValue,
+    fieldPath: string
+  ): fieldValue.ObjectValue {
+    return objectValue
+      .toBuilder()
+      .delete(field(fieldPath))
+      .build();
+  }
 });
