@@ -144,9 +144,9 @@ describe('EventManager', () => {
     const eventManager = new EventManager(syncEngineSpy);
 
     await eventManager.listen(fakeListener1);
-    expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.onOnlineStateChange(OnlineState.Online);
-    expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
+    expect(events).to.deep.equal(['Unknown']);
+    eventManager.onOnlineStateChange('Online');
+    expect(events).to.deep.equal(['Unknown', 'Online']);
   });
 });
 
@@ -478,10 +478,10 @@ describe('QueryListener', () => {
     const snap3 = view.applyChanges(changes3, true, ackTarget(doc1, doc2))
       .snapshot!;
 
-    listener.applyOnlineStateChange(OnlineState.Online); // no event
+    listener.applyOnlineStateChange('Online'); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.applyOnlineStateChange(OnlineState.Unknown); // no event
-    listener.applyOnlineStateChange(OnlineState.Online); // no event
+    listener.applyOnlineStateChange('Unknown'); // no event
+    listener.applyOnlineStateChange('Online'); // no event
     listener.onViewSnapshot(snap2); // no event
     listener.onViewSnapshot(snap3); // event because synced
 
@@ -516,11 +516,11 @@ describe('QueryListener', () => {
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
     const snap2 = view.applyChanges(changes2, true).snapshot!;
 
-    listener.applyOnlineStateChange(OnlineState.Online); // no event
+    listener.applyOnlineStateChange('Online'); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.applyOnlineStateChange(OnlineState.Offline); // event
-    listener.applyOnlineStateChange(OnlineState.Online); // no event
-    listener.applyOnlineStateChange(OnlineState.Offline); // no event
+    listener.applyOnlineStateChange('Offline'); // event
+    listener.applyOnlineStateChange('Online'); // no event
+    listener.applyOnlineStateChange('Offline'); // no event
     listener.onViewSnapshot(snap2); // another event
 
     const expectedSnap1 = {
@@ -554,9 +554,9 @@ describe('QueryListener', () => {
     const changes1 = view.computeDocChanges(documentUpdates());
     const snap1 = view.applyChanges(changes1, true).snapshot!;
 
-    listener.applyOnlineStateChange(OnlineState.Online); // no event
+    listener.applyOnlineStateChange('Online'); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.applyOnlineStateChange(OnlineState.Offline); // event
+    listener.applyOnlineStateChange('Offline'); // event
 
     const expectedSnap = {
       query,
@@ -580,7 +580,7 @@ describe('QueryListener', () => {
     const changes1 = view.computeDocChanges(documentUpdates());
     const snap1 = view.applyChanges(changes1, true).snapshot!;
 
-    listener.applyOnlineStateChange(OnlineState.Offline);
+    listener.applyOnlineStateChange('Offline');
     listener.onViewSnapshot(snap1);
 
     const expectedSnap = {
