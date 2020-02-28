@@ -39,28 +39,29 @@ export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
  * offline (e.g. get() calls shouldn't wait for data from the server and
  * snapshot events should set metadata.isFromCache=true).
  */
-export type OnlineState =
+export enum OnlineState {
   /**
    * The Firestore client is in an unknown online state. This means the client
    * is either not actively trying to establish a connection or it is currently
    * trying to establish a connection, but it has not succeeded or failed yet.
    * Higher-level components should not operate in offline mode.
    */
-  | 'Unknown'
+  Unknown,
 
   /**
    * The client is connected and the connections are healthy. This state is
    * reached after a successful connection and there has been at least one
    * successful message received from the backends.
    */
-  | 'Online'
+  Online,
 
   /**
    * The client is either trying to establish a connection but failing, or it
    * has been explicitly marked offline via a call to disableNetwork().
    * Higher-level components should operate in offline mode.
    */
-  | 'Offline';
+  Offline
+}
 
 /** The source of an online state event. */
 export const enum OnlineStateSource {

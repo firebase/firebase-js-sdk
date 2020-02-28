@@ -51,7 +51,7 @@ export class EventManager implements SyncEngineListener {
     q.canonicalId()
   );
 
-  private onlineState: OnlineState = 'Unknown';
+  private onlineState: OnlineState = OnlineState.Unknown;
 
   private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
@@ -209,7 +209,7 @@ export class QueryListener {
 
   private snap: ViewSnapshot | null = null;
 
-  private onlineState: OnlineState = 'Unknown';
+  private onlineState: OnlineState = OnlineState.Unknown;
 
   constructor(
     readonly query: Query,
@@ -300,7 +300,7 @@ export class QueryListener {
 
     // NOTE: We consider OnlineState.Unknown as online (it should become Offline
     // or Online if we wait long enough).
-    const maybeOnline = onlineState !== 'Offline';
+    const maybeOnline = onlineState !== OnlineState.Offline;
     // Don't raise the event if we're online, aren't synced yet (checked
     // above) and are waiting for a sync.
     if (this.options.waitForSyncWhenOnline && maybeOnline) {
@@ -312,7 +312,7 @@ export class QueryListener {
     }
 
     // Raise data from cache if we have any documents or we are offline
-    return !snap.docs.isEmpty() || onlineState === 'Offline';
+    return !snap.docs.isEmpty() || onlineState === OnlineState.Offline;
   }
 
   private shouldRaiseEvent(snap: ViewSnapshot): boolean {
