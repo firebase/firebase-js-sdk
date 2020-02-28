@@ -58,7 +58,7 @@ describe('Firebase Storage > Request', () => {
     requestInfo.headers[requestHeader] = requestValue;
     requestInfo.successCodes = [200, 234];
 
-    return makeRequest(requestInfo, null, null, makePool(spiedSend))
+    return makeRequest(requestInfo, null, makePool(spiedSend))
       .getPromise()
       .then(
         result => {
@@ -100,7 +100,7 @@ describe('Firebase Storage > Request', () => {
     requestInfo.urlParams[p1] = v1;
     requestInfo.urlParams[p2] = v2;
     requestInfo.body = 'thisistherequestbody';
-    return makeRequest(requestInfo, null, null, makePool(spiedSend))
+    return makeRequest(requestInfo, null, makePool(spiedSend))
       .getPromise()
       .then(
         () => {
@@ -143,7 +143,7 @@ describe('Firebase Storage > Request', () => {
       timeout
     );
 
-    return makeRequest(requestInfo, null, null, makePool(newSend))
+    return makeRequest(requestInfo, null, makePool(newSend))
       .getPromise()
       .then(
         () => {
@@ -165,7 +165,7 @@ describe('Firebase Storage > Request', () => {
       handler,
       timeout
     );
-    const request = makeRequest(requestInfo, null, null, makePool(null));
+    const request = makeRequest(requestInfo, null, makePool(null));
     const promise = request.getPromise().then(
       () => {
         assert.fail('Succeeded when handler gave error');
@@ -192,52 +192,13 @@ describe('Firebase Storage > Request', () => {
       handler,
       timeout
     );
-    const request = makeRequest(
-      requestInfo,
-      /* appId= */ null,
-      authToken,
-      makePool(spiedSend)
-    );
+    const request = makeRequest(requestInfo, authToken, makePool(spiedSend));
     return request.getPromise().then(
       () => {
         assert.isTrue(spiedSend.calledOnce);
         const args: unknown[] = spiedSend.getCall(0).args;
         const expectedHeaders: { [key: string]: string } = {
           Authorization: 'Firebase ' + authToken
-        };
-        expectedHeaders[versionHeaderName] = versionHeaderValue;
-        assert.deepEqual(args[4], expectedHeaders);
-      },
-      () => {
-        assert.fail('Request failed unexpectedly');
-      }
-    );
-  });
-
-  it('Sends APP ID along properly', () => {
-    const appId = 'myFirebaseApp';
-
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
-    }
-    const spiedSend = sinon.spy(newSend);
-
-    function handler(): boolean {
-      return true;
-    }
-    const requestInfo = new RequestInfo(
-      'http://my-url.com/',
-      'GET',
-      handler,
-      timeout
-    );
-    const request = makeRequest(requestInfo, appId, null, makePool(spiedSend));
-    return request.getPromise().then(
-      () => {
-        assert.isTrue(spiedSend.calledOnce);
-        const args: unknown[] = spiedSend.getCall(0).args;
-        const expectedHeaders: { [key: string]: string } = {
-          'X-Firebase-GMPID': appId
         };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);

@@ -191,7 +191,7 @@ export class RemoteStore implements TargetMetadataProvider {
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
       } else {
-        this.onlineStateTracker.set(OnlineState.Unknown);
+        this.onlineStateTracker.set('Unknown');
       }
 
       // This will start the write stream if necessary.
@@ -208,7 +208,7 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.disableNetworkInternal();
 
     // Set the OnlineState to Offline so get()s return from cache, etc.
-    this.onlineStateTracker.set(OnlineState.Offline);
+    this.onlineStateTracker.set('Offline');
   }
 
   private async disableNetworkInternal(): Promise<void> {
@@ -234,7 +234,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
-    this.onlineStateTracker.set(OnlineState.Unknown);
+    this.onlineStateTracker.set('Unknown');
   }
 
   /**
@@ -279,7 +279,7 @@ export class RemoteStore implements TargetMetadataProvider {
         // Revert to OnlineState.Unknown if the watch stream is not open and we
         // have no listeners, since without any listens to send we cannot
         // confirm if the stream is healthy and upgrade to OnlineState.Online.
-        this.onlineStateTracker.set(OnlineState.Unknown);
+        this.onlineStateTracker.set('Unknown');
       }
     }
   }
@@ -371,7 +371,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // No need to restart watch stream because there are no active targets.
       // The online state is set to unknown because there is no active attempt
       // at establishing a connection
-      this.onlineStateTracker.set(OnlineState.Unknown);
+      this.onlineStateTracker.set('Unknown');
     }
   }
 
@@ -380,7 +380,7 @@ export class RemoteStore implements TargetMetadataProvider {
     snapshotVersion: SnapshotVersion
   ): Promise<void> {
     // Mark the client as online since we got a message from the server
-    this.onlineStateTracker.set(OnlineState.Online);
+    this.onlineStateTracker.set('Online');
 
     if (
       watchChange instanceof WatchTargetChange &&
@@ -708,7 +708,7 @@ export class RemoteStore implements TargetMetadataProvider {
   private async restartNetwork(): Promise<void> {
     this.networkEnabled = false;
     await this.disableNetworkInternal();
-    this.onlineStateTracker.set(OnlineState.Unknown);
+    this.onlineStateTracker.set('Unknown');
     await this.enableNetwork();
   }
 
@@ -732,7 +732,7 @@ export class RemoteStore implements TargetMetadataProvider {
       await this.enableNetwork();
     } else if (!isPrimary) {
       await this.disableNetworkInternal();
-      this.onlineStateTracker.set(OnlineState.Unknown);
+      this.onlineStateTracker.set('Unknown');
     }
   }
 }

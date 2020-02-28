@@ -167,7 +167,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
   private isPrimary: undefined | boolean = undefined;
-  private onlineState: OnlineState = OnlineState.Unknown;
+  private onlineState: OnlineState = 'Unknown';
 
   constructor(
     private localStore: LocalStore,
@@ -253,7 +253,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
       targetId,
-      current && this.onlineState !== OnlineState.Offline
+      current && this.onlineState !== 'Offline'
     );
     const viewChange = view.applyChanges(
       viewDocChanges,

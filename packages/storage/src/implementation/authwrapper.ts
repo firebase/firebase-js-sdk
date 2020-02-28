@@ -44,7 +44,6 @@ export class AuthWrapper {
   private app_: FirebaseApp | null;
   private authProvider_: Provider<FirebaseAuthInternalName>;
   private bucket_: string | null = null;
-  private appId_: string | null = null;
 
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
   private requestMaker_: requestMaker;
@@ -68,7 +67,6 @@ export class AuthWrapper {
       const options = this.app_.options;
       if (type.isDef(options)) {
         this.bucket_ = AuthWrapper.extractBucket_(options);
-        this.appId_ = options.appId ?? null;
       }
     }
     this.authProvider_ = authProvider;
@@ -140,12 +138,7 @@ export class AuthWrapper {
     authToken: string | null
   ): Request<T> {
     if (!this.deleted_) {
-      const request = this.requestMaker_(
-        requestInfo,
-        this.appId_,
-        authToken,
-        this.pool_
-      );
+      const request = this.requestMaker_(requestInfo, authToken, this.pool_);
       this.requestMap_.addRequest(request);
       return request;
     } else {
