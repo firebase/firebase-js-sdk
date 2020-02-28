@@ -409,13 +409,14 @@ export class SharedOnlineState {
 
     const validData =
       typeof onlineState === 'object' &&
-      onlineState.onlineState in OnlineState &&
+      ['Unknown', 'Online', 'Offline'].indexOf(onlineState.onlineState) !==
+        -1 &&
       typeof onlineState.clientId === 'string';
 
     if (validData) {
       return new SharedOnlineState(
         onlineState.clientId,
-        OnlineState[onlineState.onlineState as keyof typeof OnlineState]
+        onlineState.onlineState as OnlineState
       );
     } else {
       error(LOG_TAG, `Failed to parse online state: ${value}`);
@@ -860,7 +861,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private persistOnlineState(onlineState: OnlineState): void {
     const entry: SharedOnlineStateSchema = {
       clientId: this.localClientId,
-      onlineState: OnlineState[onlineState]
+      onlineState: onlineState
     };
     this.storage.setItem(this.onlineStateKey, JSON.stringify(entry));
   }

@@ -27,9 +27,9 @@ import * as log from '../util/log';
  *
  * Important! The names of these identifiers matter because the string forms
  * are used for reverse lookups from the webchannel stream. Do NOT change the
- * names of these identifiers.
+ * names of these identifiers or change this into a const enum. 
  */
-const enum RpcCode {
+enum RpcCode {
   OK = 0,
   CANCELLED = 1,
   UNKNOWN = 2,
