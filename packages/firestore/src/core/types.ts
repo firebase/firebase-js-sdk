@@ -63,7 +63,7 @@ export type OnlineState =
   | 'Offline';
 
 /** The source of an online state event. */
-export enum OnlineStateSource {
+export const enum OnlineStateSource {
   RemoteStore,
   SharedClientState
 }

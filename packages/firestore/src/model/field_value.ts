@@ -48,7 +48,7 @@ export interface JsonObject<T> {
   [name: string]: T;
 }
 
-export enum TypeOrder {
+export const enum TypeOrder {
   // This order is defined by the backend.
   NullValue = 0,
   BooleanValue = 1,
@@ -63,7 +63,7 @@ export enum TypeOrder {
 }
 
 /** Defines the return value for pending server timestamps. */
-export enum ServerTimestampBehavior {
+export const enum ServerTimestampBehavior {
   Default,
   Estimate,
   Previous

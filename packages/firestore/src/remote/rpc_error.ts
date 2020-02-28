@@ -29,7 +29,7 @@ import * as log from '../util/log';
  * are used for reverse lookups from the webchannel stream. Do NOT change the
  * names of these identifiers.
  */
-enum RpcCode {
+const enum RpcCode {
   OK = 0,
   CANCELLED = 1,
   UNKNOWN = 2,
