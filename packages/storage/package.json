@@ -16,7 +16,8 @@
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
     "test:browser": "karma start --single-run",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'"
   },
   "license": "Apache-2.0",
   "dependencies": {

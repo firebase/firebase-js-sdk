@@ -20,6 +20,7 @@ import { XhrIoPool } from './xhriopool';
 
 type requestMaker = <T>(
   requestInfo: RequestInfo<T>,
+  appId: string | null,
   authToken: string | null,
   pool: XhrIoPool
 ) => Request<T>;
