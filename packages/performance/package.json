@@ -41,8 +41,9 @@
     "typescript": "3.8.2"
   },
   "repository": {
+    "directory": "packages/performance",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/performance"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

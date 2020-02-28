@@ -20,6 +20,14 @@
     "serve:host": "http-server -c-1 test-app",
     "prepare": "yarn build"
   },
+  "repository": {
+    "directory": "packages/installations",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
   "devDependencies": {
     "rollup": "1.28.0",
     "rollup-plugin-commonjs": "10.1.0",
