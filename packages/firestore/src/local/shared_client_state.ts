@@ -861,7 +861,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private persistOnlineState(onlineState: OnlineState): void {
     const entry: SharedOnlineStateSchema = {
       clientId: this.localClientId,
-      onlineState: onlineState
+      onlineState
     };
     this.storage.setItem(this.onlineStateKey, JSON.stringify(entry));
   }
