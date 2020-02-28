@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
