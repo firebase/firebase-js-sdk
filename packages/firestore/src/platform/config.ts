@@ -72,18 +72,3 @@ export function configureForFirebase(firebase: FirebaseNamespace): void {
     ).setServiceProps(shallowCopy(firestoreNamespace))
   );
 }
-
-/**
- * Exports the Firestore namespace into the provided `exportObject` object under
- * the key 'firestore'. This is used for wrapped binary that exposes Firestore
- * as a goog module.
- */
-export function configureForStandalone(exportObject: {
-  [key: string]: {};
-}): void {
-  const copiedNamespace = shallowCopy(firestoreNamespace);
-  // Unlike the use with Firebase, the standalone allows the use of the
-  // constructor, so export it's internal class
-  copiedNamespace['Firestore'] = Firestore;
-  exportObject['firestore'] = copiedNamespace;
-}
