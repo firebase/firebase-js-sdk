@@ -309,10 +309,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-    return targetStore.iterate((key, value) => {
-      const originalTargetData = this.serializer.fromDbTarget(value);
-      const updatedTargetData = this.serializer.toDbTarget(originalTargetData);
-      return targetStore.put(updatedTargetData);
+    return targetStore.iterate((key, originalDbTarget) => {
+      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
+      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      return targetStore.put(updatedDbTarget);
     });
   }
 }
