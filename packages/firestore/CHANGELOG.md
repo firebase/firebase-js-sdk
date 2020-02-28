@@ -1,13 +1,13 @@
 # Unreleased
+- [feature] Implemented `Timestamp.valueOf()` so that `Timestamp` objects can be
+  compared for relative ordering using the JavaScript arithmetic comparison
+  operators (#2632).
 - [fixed] Fixed an issue where auth credentials were not respected in Cordova
   environments (#2626).
 - [fixed] Fixed a performance regression introduced by the addition of
   `Query.limitToLast(n: number)` in Firestore 1.7.0 (Firebase 7.3.0) (#2620).
 - [fixed] Fixed an issue where `CollectionReference.add()` would reject
   custom types when using `withConverter()` (#2606).
-- [feature] Implemented Timestamp.valueOf() so that Timestamp objects can be
-  compared for relative ordering using the JavaScript arithmetic comparison
-  operators (#2632).
 
 # 1.9.3
 - [fixed] Fixed an issue where auth credentials were not respected in some

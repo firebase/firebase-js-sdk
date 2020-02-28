@@ -18,6 +18,7 @@
 import { Code, FirestoreError } from '../util/error';
 import { primitiveComparator } from '../util/misc';
 
+// The earlist date supported by Firestore timestamps (0001-01-01T00:00:00Z).
 const MIN_SECONDS = -62135596800;
 
 export class Timestamp {
@@ -48,7 +49,6 @@ export class Timestamp {
         'Timestamp nanoseconds out of range: ' + nanoseconds
       );
     }
-    // Midnight at the beginning of 1/1/1 is the earliest Firestore supports.
     if (seconds < MIN_SECONDS) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -95,17 +95,21 @@ export class Timestamp {
     );
   }
 
-  // Overriding valueOf() allows Timestamp objects to be compared in JavaScript using the
-  // arithmetic comparison operators, such as < and >.
-  // https://github.com/firebase/firebase-js-sdk/issues/2632
-  //
-  // This method returns a string of the form <seconds>.<nanoseconds> where <seconds> is translated
-  // to have a non-negative value and both <seconds> and <nanoseconds> are left-padded with zeroes
-  // to be a consistent length. Strings with this format then have a lexiographical ordering that
-  // matches the relative ordering of the Timestamp objects whose valueOf() method returned them.
-  // The <seconds> translation is done to avoid having a leading negative sign (i.e. a leading '-'
-  // character) in its string representation, which would affect its lexiographical ordering.
+  /**
+   * Converts this object to a primitive string and returns it.
+   *
+   * Overriding this method allows Timestamp objects to be compared in JavaScript using the
+   * arithmetic comparison operators, such as `<` and `>`.
+
+   * See https://github.com/firebase/firebase-js-sdk/issues/2632.
+   */
   valueOf(): string {
+    // This method returns a string of the form <seconds>.<nanoseconds> where <seconds> is
+    // translated to have a non-negative value and both <seconds> and <nanoseconds> are left-padded
+    // with zeroes to be a consistent length. Strings with this format then have a lexiographical
+    // ordering that matches the expected ordering. The <seconds> translation is done to avoid
+    // having a leading negative sign (i.e. a leading '-' character) in its string representation,
+    // which would affect its lexiographical ordering.
     const adjustedSeconds = this.seconds - MIN_SECONDS;
     const formattedSeconds = String(adjustedSeconds).padStart(12, '0');
     const formattedNanoseconds = String(this.nanoseconds).padStart(9, '0');
