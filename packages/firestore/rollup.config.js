@@ -156,7 +156,7 @@ const es5Builds = [
   },
   {
     input: 'index.memory.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
+    output: { file: pkg.moduleMemoryPersistence, format: 'es', sourcemap: true },
     plugins: [
       typescriptPlugin({
         typescript,
