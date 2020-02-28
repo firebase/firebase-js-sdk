@@ -100,7 +100,7 @@ export class Timestamp {
    *
    * Overriding this method allows Timestamp objects to be compared in JavaScript using the
    * arithmetic comparison operators, such as `<` and `>`.
-
+   *
    * See https://github.com/firebase/firebase-js-sdk/issues/2632.
    */
   valueOf(): string {
