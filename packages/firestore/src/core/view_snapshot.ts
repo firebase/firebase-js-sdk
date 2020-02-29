@@ -25,8 +25,8 @@ import { DocumentKeySet } from '../model/collections';
 import { Query } from './query';
 
 export const enum ChangeType {
-  Added ,
-  Removed ,
+  Added,
+  Removed,
   Modified,
   Metadata
 }
