@@ -46,21 +46,21 @@ export const enum OnlineState {
    * trying to establish a connection, but it has not succeeded or failed yet.
    * Higher-level components should not operate in offline mode.
    */
-  Unknown = "Unknown",
+  Unknown = 'Unknown',
 
   /**
    * The client is connected and the connections are healthy. This state is
    * reached after a successful connection and there has been at least one
    * successful message received from the backends.
    */
-  Online = "Online",
+  Online = 'Online',
 
   /**
    * The client is either trying to establish a connection but failing, or it
    * has been explicitly marked offline via a call to disableNetwork().
    * Higher-level components should operate in offline mode.
    */
-  Offline = "Offline"
+  Offline = 'Offline'
 }
 
 /** The source of an online state event. */
