@@ -25,10 +25,10 @@ import { DocumentKeySet } from '../model/collections';
 import { Query } from './query';
 
 export const enum ChangeType {
-  Added = 0,
-  Removed = 1,
-  Modified = 2,
-  Metadata = 3
+  Added ,
+  Removed ,
+  Modified,
+  Metadata
 }
 
 export interface DocumentViewChange {
