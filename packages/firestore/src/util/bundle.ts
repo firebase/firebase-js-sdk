@@ -24,9 +24,9 @@ export class Bundle {
   private documents: Array<[BundledDocumentMetadata, string]>|null = null;
   private elementCursor: BundleElementCursor|null =null;
 
-  constructor(private bundleUrlOrBlob: URL|Blob) {
-    if(bundleUrlOrBlob instanceof  Blob){
-      this.elementCursor = new BundleElementCursor((bundleUrlOrBlob as Blob));
+  constructor(private bundleUrlOrBuffer: URL|ArrayBuffer) {
+    if(bundleUrlOrBuffer instanceof ArrayBuffer){
+      this.elementCursor = new BundleElementCursor(bundleUrlOrBuffer);
     }
   }
 
@@ -51,7 +51,7 @@ export class Bundle {
 
     this.namedQueries = [];
     let namedQuery = this.elementCursor!.readAsNamedQuery();
-    while(namedQuery !== null) {
+    while(!!namedQuery) {
       this.namedQueries.push(namedQuery);
       this.elementCursor!.next();
       namedQuery = this.elementCursor!.readAsNamedQuery();
@@ -73,10 +73,12 @@ export class Bundle {
     while(docMetadata !== null && this.elementCursor!.hasMore()) {
       this.elementCursor!.next();
       const docString = this.elementCursor!.readAsDocumentJsonString();
-      this.elementCursor!.next();
       this.documents.push([docMetadata, docString!]);
+      this.elementCursor!.next();
       if(this.elementCursor!.hasMore()) {
         docMetadata = this.elementCursor!.readAsDocumentMetadata();
+      }else {
+        docMetadata = null;
       }
     }
 
@@ -123,35 +125,36 @@ interface BundledDocumentMetadata {
 
 class BundleElementCursor {
   private readFrom = 0;
-  private reader = new FileReader();
+  private textDecoder = new TextDecoder("utf-8");
 
-  constructor(private data: Blob) {}
+  constructor(private data: ArrayBuffer) {}
 
   // Returns a Blob representing the next bundle element.
-  public readElement(): Blob {
+  public readElement(): ArrayBuffer {
     const length = this.readLength();
     const result = this.data.slice(this.readFrom + 4, this.readFrom + 4 + length);
     return result;
   }
 
   public readAsBundleMetadata(): BundleMetadata | null {
-    this.reader.readAsText(this.readElement());
-    return JSON.parse(this.reader.result as string);
+    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    return JSON.parse(stringValue).metadata || null;
   }
 
   public readAsNamedQuery(): NamedQuery | null {
-    this.reader.readAsText(this.readElement());
-    return JSON.parse(this.reader.result as string);
+    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    const result = JSON.parse(stringValue);
+    return result.namedQuery || null;
   }
 
   public readAsDocumentMetadata(): BundledDocumentMetadata | null {
-    this.reader.readAsText(this.readElement());
-    return JSON.parse(this.reader.result as string);
+    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    return JSON.parse(stringValue).documentMetadata || null;
   }
 
   public readAsDocumentJsonString(): string | null {
-    this.reader.readAsText(this.readElement());
-    return this.reader.result as string;
+    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    return stringValue || null;
   }
 
   public next(): void {
@@ -164,14 +167,12 @@ class BundleElementCursor {
     return this.toUInt32LE(lengthBlob);
   }
 
-  private toUInt32LE(blob: Blob): number{
-    this.reader.readAsArrayBuffer(blob);
-    const length = new DataView(this.reader.result as ArrayBuffer).getUint32(0, true);
-    return length;
+  private toUInt32LE(buffer: ArrayBuffer): number{
+    return new DataView(buffer).getUint32(0, true);
   }
 
   public hasMore():boolean {
-    return this.data.size > this.readFrom;
+    return this.data.byteLength > this.readFrom;
   }
 
   public get position() {

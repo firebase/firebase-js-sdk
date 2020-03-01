@@ -32,6 +32,8 @@ import {
   withTestDocAndInitialData,
   DEFAULT_SETTINGS
 } from '../util/helpers';
+import * as fs from "fs";
+import {Bundle} from "../../../src/util/bundle";
 
 // tslint:disable:no-floating-promises
 
@@ -1275,5 +1277,50 @@ apiDescribe('Database', (persistence: boolean) => {
         expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
       });
     });
+
+    it.only('Load bundle test', () => {
+      return withTestDb(persistence, async db => {
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+
+        const done = new Deferred<void>();
+        fs.readFile('/Users/wuandy/Downloads/download', (err, data) => {
+          console.log(`Read with ${JSON.stringify(err)}`);
+          console.log(`Content ${JSON.stringify(data)}`);
+          const bundle = new Bundle(data.buffer);
+          console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
+          console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
+          console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
+          done.resolve();
+        });
+
+        await done.promise;
+      });
+    })
+
+    it('Load bundle from web test', async () => {
+      return withTestDb(persistence, async db => {
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+        const request = new XMLHttpRequest();
+
+        const done = new Deferred<void>();
+        request.onload = function(e) {
+          const ab = request.response;
+          const bundle = new Bundle(ab);
+          console.log((`${bundle.getDocuments().slice(0,10)}`));
+          console.log((`${bundle.getNamedQueries()}`));
+          console.log((`${bundle.getBundleMetadata()}`));
+          done.resolve();
+        }
+        request.open("GET", 'http://localhost:43215/');
+        request.responseType = "arraybuffer";
+        request.send();
+
+        await done.promise;
+      });
+    })
   });
 });

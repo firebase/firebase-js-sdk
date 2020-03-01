@@ -644,7 +644,7 @@ export class FirestoreClient {
     return deferred.promise;
   }
 
-  loadBundle(bundleData: Blob): Promise<void> {
+  loadBundle(bundleData: ArrayBuffer): Promise<void> {
     return this.syncEngine.loadBundle(bundleData);
   }
 }

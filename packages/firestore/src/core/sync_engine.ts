@@ -436,7 +436,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  async loadBundle(bundleData: Blob): Promise<void> {
+  async loadBundle(bundleData: ArrayBuffer): Promise<void> {
     const bundle = new Bundle(bundleData);
     bundle.getBundleMetadata();
   }
