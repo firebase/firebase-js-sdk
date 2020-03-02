@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ export class DatabaseEmulator extends Emulator {
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v3.5.0.jar',
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.4.1.jar',
       port
     );
     this.namespace = namespace;

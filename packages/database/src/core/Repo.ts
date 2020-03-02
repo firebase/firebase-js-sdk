@@ -367,7 +367,7 @@ export class Repo {
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
         newNodeUnresolved,
-        this.serverSyncTree_.calcCompleteEventCache(path),
+        this.serverSyncTree_.calcCompleteEventCache(path.child(changedKey)),
         serverValues
       );
     });

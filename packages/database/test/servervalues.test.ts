@@ -42,55 +42,109 @@ describe('ServerValue tests', () => {
     });
   });
 
-  it('handles increments without listeners', () => {
+  it('handles increments without listeners', async () => {
     // Ensure that increments don't explode when the SyncTree must return a null
     // node (i.e. ChildrenNode.EMPTY_NODE) because there is not yet any synced
     // data.
-    // TODO(b/146657568): Remove getFreshRepoFromReference() call and goOffline()
-    // once we have emulator support. We can also await the set() call.
-    const node = getFreshRepoFromReference(getRandomNode()) as Reference;
-    node.database.goOffline();
-
-    const addOne = Database.ServerValue._increment(1);
-
-    node.set(addOne);
+    const node = getRandomNode() as Reference;
+    await node.set(Database.ServerValue._increment(1));
   });
 
-  it('handles increments locally', async () => {
-    // TODO(b/146657568): Remove getFreshRepoFromReference() call and goOffline()
-    // once we have emulator support. We can also await the set() calls.
-    const node = getFreshRepoFromReference(getRandomNode()) as Reference;
-    node.database.goOffline();
+  describe('handles increments', () => {
+    for (const mode of ['offline', 'online']) {
+      const maybeAwait = async (p: Promise<any>) => {
+        if (mode === 'online') {
+          await p;
+        }
+      };
 
-    const addOne = Database.ServerValue._increment(1);
+      it(mode, async () => {
+        const node = getRandomNode() as Reference;
+        if (mode === 'offline') {
+          node.database.goOffline();
+        }
 
-    const values: any = [];
-    const expected: any = [];
-    node.on('value', snap => values.push(snap.val()));
+        const addOne = Database.ServerValue._increment(1);
 
-    // null -> increment(x) = x
-    node.set(addOne);
-    expected.push(1);
+        const values: any = [];
+        const expected: any = [];
+        node.on('value', snap => values.push(snap.val()));
 
-    // x -> increment(y) = x + y
-    node.set(5);
-    node.set(addOne);
-    expected.push(5);
-    expected.push(6);
+        // null -> increment(x) = x
+        maybeAwait(node.set(addOne));
+        expected.push(1);
 
-    // str -> increment(x) = x
-    node.set('hello');
-    node.set(addOne);
-    expected.push('hello');
-    expected.push(1);
+        // x -> increment(y) = x + y
+        maybeAwait(node.set(5));
+        maybeAwait(node.set(addOne));
+        expected.push(5);
+        expected.push(6);
 
-    // obj -> increment(x) = x
-    node.set({ 'hello': 'world' });
-    node.set(addOne);
-    expected.push({ 'hello': 'world' });
-    expected.push(1);
+        // str -> increment(x) = x
+        maybeAwait(node.set('hello'));
+        maybeAwait(node.set(addOne));
+        expected.push('hello');
+        expected.push(1);
+
+        // obj -> increment(x) = x
+        maybeAwait(node.set({ 'hello': 'world' }));
+        maybeAwait(node.set(addOne));
+        expected.push({ 'hello': 'world' });
+        expected.push(1);
+
+        node.off('value');
+        expect(values).to.deep.equal(expected);
+      });
+    }
+  });
+
+  it('handles sparse updates', async () => {
+    const node = getRandomNode() as Reference;
+
+    let value: any = null;
+    let events = 0;
+    node.on('value', snap => {
+      value = snap.val();
+      events++;
+    });
+
+    await node.update({
+      'child/increment': Database.ServerValue._increment(1),
+      'literal': 5
+    });
+    expect(value).to.deep.equal({
+      'literal': 5,
+      'child': {
+        'increment': 1
+      }
+    });
+
+    await node.update({
+      'child/increment': Database.ServerValue._increment(41)
+    });
+    expect(value).to.deep.equal({
+      'literal': 5,
+      'child': {
+        'increment': 42
+      }
+    });
 
     node.off('value');
-    expect(values).to.deep.equal(expected);
+
+    expect(events).to.equal(2);
+  });
+
+  it('handles races', async () => {
+    const node = getRandomNode() as Reference;
+    const all: Array<Promise<any>> = [];
+    const racers = 100;
+
+    for (let i = 0; i < racers; i++) {
+      all.push(node.set(Database.ServerValue._increment(1)));
+    }
+    await Promise.all(all);
+
+    const snap = await node.once('value');
+    expect(snap.val()).to.equal(racers);
   });
 });
