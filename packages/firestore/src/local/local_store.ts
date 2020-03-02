@@ -606,6 +606,10 @@ export class LocalStore {
                 } else if (
                   existingDoc == null ||
                   doc.version.compareTo(existingDoc.version) > 0 ||
+                  // `existingDoc` might have `hasCommittedMutations` == true,
+                  // while `doc` might have some changes resulted from other users
+                  // change, which are not picked up by committed mutations from current user.
+                  // We need to update remoteDocumentCache when this happens.
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
