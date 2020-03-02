@@ -20,7 +20,7 @@ import * as api from '../protos/firestore_proto_api';
 // Provides a high level API to read bundles.
 export class Bundle {
   private bundleMetadata: BundleMetadata|null = null;
-  private namedQueries: Array<NamedQuery>|null = null;
+  private namedQueries: Array<NamedBundleQuery>|null = null;
   private documents: Array<[BundledDocumentMetadata, string]>|null = null;
   private elementCursor: BundleElementCursor|null =null;
 
@@ -42,7 +42,7 @@ export class Bundle {
     return this.bundleMetadata!;
   }
 
- getNamedQueries():Array<NamedQuery> {
+ getNamedQueries():Array<NamedBundleQuery> {
     this.getBundleMetadata();
 
     if(this.namedQueries !== null) {
@@ -94,7 +94,7 @@ interface Timestamp {
   nanos?: (number|null);
 }
 
-interface BundleMetadata{
+export interface BundleMetadata{
   /** BundleMetadata name */
   name?: (string|null);
 
@@ -102,14 +102,14 @@ interface BundleMetadata{
   createTime?: (Timestamp|null);
 }
 
-interface NamedQuery {
-  /** NamedQuery name */
+export interface NamedBundleQuery {
+  /** NamedBundleQuery name */
   name?: (string|null);
 
-  /** NamedQuery queryTarget */
+  /** NamedBundleQuery queryTarget */
   queryTarget?: (api.QueryTarget|null);
 
-  /** NamedQuery readTime */
+  /** NamedBundleQuery readTime */
   readTime?: (Timestamp|null);
 }
 
@@ -141,7 +141,7 @@ class BundleElementCursor {
     return JSON.parse(stringValue).metadata || null;
   }
 
-  public readAsNamedQuery(): NamedQuery | null {
+  public readAsNamedQuery(): NamedBundleQuery | null {
     const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
     const result = JSON.parse(stringValue);
     return result.namedQuery || null;
@@ -149,7 +149,7 @@ class BundleElementCursor {
 
   public readAsDocumentMetadata(): BundledDocumentMetadata | null {
     const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
-    return JSON.parse(stringValue).documentMetadata || null;
+    return JSON.parse(stringValue).documentMetadata|| null;
   }
 
   public readAsDocumentJsonString(): string | null {

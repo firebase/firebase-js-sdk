@@ -1286,13 +1286,11 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const done = new Deferred<void>();
         fs.readFile('/Users/wuandy/Downloads/download', (err, data) => {
-          console.log(`Read with ${JSON.stringify(err)}`);
-          console.log(`Content ${JSON.stringify(data)}`);
-          const bundle = new Bundle(data.buffer);
-          console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
-          console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
-          console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
-          done.resolve();
+          // const bundle = new Bundle(data.buffer);
+          // console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
+          // console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
+          // console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
+          db.loadBundle(data.buffer).then(() => done.resolve());
         });
 
         await done.promise;

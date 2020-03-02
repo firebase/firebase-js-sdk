@@ -64,7 +64,9 @@ import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/proto_byte_string';
 import {NamedQueryCache} from './named_query_cache';
-import {NamedQuery} from '../core/named_query';
+import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
+import {firestoreV1ApiClientInterfaces} from "../protos/firestore_proto_api";
+import QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
 
 const LOG_TAG = 'LocalStore';
 
@@ -735,20 +737,36 @@ export class LocalStore {
     return changes > 0;
   }
 
-  newerBundleExists(bundleId: string, createTime: SnapshotVersion): Promise<boolean> {
-    return Promise.resolve(false);
+  newerBundleExists(metadata: BundleMetadata): Promise<boolean> {
+    return this.persistence.runTransaction('newerBundleExists', 'readonly-idempotent', transaction => {
+      return this.namedQueryCache.getBundleCreateTime(transaction, metadata.name!)
+        .next(savedCreateTime => {
+          return savedCreateTime?.compareTo(SnapshotVersion.fromTimestamp(metadata.createTime as Timestamp))! > 0
+        })
+    });
   }
 
-  saveNamedQueries(bundleId: string, namedQueries: Array<NamedQuery>): Promise<void> {
+  saveNamedQueries(metadata: BundleMetadata, namedQueries: Array<NamedBundleQuery>): Promise<void> {
+    return this.persistence.runTransaction('saveNamedQueries', 'readwrite-idempotent',
+        transaction => {
+      let result : PersistencePromise<void>|null = null;
+      // TODO: Is this a good way to write an array to indexed db?
+      for(const namedQuery of namedQueries) {
+        result = this.namedQueryCache.setNamedQuery(
+          transaction, metadata,
+          namedQuery.name as string,
+          namedQuery.queryTarget as QueryTarget);
+      }
+      return result!;
+    });
+  }
+
+  clearNamedQueryOlderThan(metadata: BundleMetadata): Promise<void> {
     return Promise.resolve();
   }
 
-  clearNamedQueryOlderThan(bundleId: string, createTime: SnapshotVersion): Promise<void> {
-    return Promise.resolve();
-  }
-
-  getNamedQuery(name: string): Promise<NamedQuery> {
-    return Promise.resolve({} as NamedQuery);
+  getNamedQuery(name: string): Promise<NamedBundleQuery> {
+    return Promise.resolve({} as NamedBundleQuery);
   }
 
   /**

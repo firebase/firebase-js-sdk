@@ -438,7 +438,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   async loadBundle(bundleData: ArrayBuffer): Promise<void> {
     const bundle = new Bundle(bundleData);
-    bundle.getBundleMetadata();
+    const shouldLoadRest = await this.localStore.newerBundleExists(bundle.getBundleMetadata());
+
+    if(!shouldLoadRest) {
+      return Promise.resolve();
+    }
+
+    // TODO: Loading documents should be here.
+
+    await this.localStore.clearNamedQueryOlderThan(bundle.getBundleMetadata());
+    await this.localStore.saveNamedQueries(bundle.getBundleMetadata(), bundle.getNamedQueries());
   }
 
   /**

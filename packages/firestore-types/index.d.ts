@@ -75,6 +75,8 @@ export class FirebaseFirestore {
 
   waitForPendingWrites(): Promise<void>;
 
+  loadBundle(data: ArrayBuffer): Promise<void>;
+
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
     error?: (error: Error) => void;

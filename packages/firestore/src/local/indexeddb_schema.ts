@@ -145,6 +145,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         createRemoteDocumentReadTimeIndex(txn);
       });
     }
+
+    if (fromVersion < 10 && toVersion >= 10) {
+      p = p.next(() => {
+        createNamedQueryStore(db);
+      });
+    }
     return p;
   }
 
@@ -1048,6 +1054,9 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
+
+export type DbNamedQueryKey = [string, string];
+
 /**
  * A record of named query.
  */
@@ -1055,15 +1064,14 @@ export class DbNamedQuery {
   /** Name of the IndexedDb object store. */
   static store = 'namedQuery';
 
-  /** Keys are automatically assigned via the clientId properties. */
   static keyPath = ['bundleId', 'name'];
 
   constructor(
     public bundleId: string,
-    public bundleCreateTime: DbTimestampKey,
+    public bundleCreateTime: DbTimestamp,
 
     public name: string,
-    public queryReadTime: DbTimestampKey,
+    public queryReadTime: DbTimestamp,
 
     // TODO(149936981): This should not be `DbQuery`, features like limitToLast
     // should be saved too.
