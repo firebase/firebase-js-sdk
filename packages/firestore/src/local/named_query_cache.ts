@@ -20,7 +20,7 @@ import { Target } from '../core/target';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {BundleMetadata} from "../util/bundle";
+import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
 
 /**
  * Represents named queries loaded via bundles.
@@ -44,13 +44,13 @@ export interface NamedQueryCache {
     bundleId: string,
     queryName: string
     // TODO(149936981): This should really return a `Query` not a `Target`.
-  ): PersistencePromise<Target | null>;
+  ): PersistencePromise<NamedBundleQuery | null>;
 
   setNamedQuery(
     transaction: PersistenceTransaction,
     bundleMetadata: BundleMetadata,
     queryName: string,
     // TODO(149936981): This should really be a `DbQuery`.
-    target: Object
+    query: NamedBundleQuery
   ):PersistencePromise<void>;
 }

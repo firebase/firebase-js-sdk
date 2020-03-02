@@ -73,6 +73,7 @@ import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import {NamedQueryCache} from './named_query_cache';
+import {IndexedDbNamedQueryCache} from "./indexeddb_named_query_cache";
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -252,6 +253,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly namedQueryCache: IndexedDbNamedQueryCache;
   private readonly webStorage: Storage;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
@@ -278,6 +280,7 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
+    this.namedQueryCache = new IndexedDbNamedQueryCache();
     if (platform.window && platform.window.localStorage) {
       this.window = platform.window;
       this.webStorage = this.window.localStorage;
@@ -729,7 +732,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getNamedQueryCache(): NamedQueryCache{
-    return {} as NamedQueryCache;
+    return this.namedQueryCache;
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {

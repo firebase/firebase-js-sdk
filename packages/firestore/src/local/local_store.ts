@@ -741,7 +741,10 @@ export class LocalStore {
     return this.persistence.runTransaction('newerBundleExists', 'readonly-idempotent', transaction => {
       return this.namedQueryCache.getBundleCreateTime(transaction, metadata.name!)
         .next(savedCreateTime => {
-          return savedCreateTime?.compareTo(SnapshotVersion.fromTimestamp(metadata.createTime as Timestamp))! > 0
+          if(!savedCreateTime) {
+            return true;
+          }
+          return savedCreateTime!.compareTo(SnapshotVersion.fromTimestamp(metadata.createTime as Timestamp))! > 0
         })
     });
   }
@@ -755,18 +758,25 @@ export class LocalStore {
         result = this.namedQueryCache.setNamedQuery(
           transaction, metadata,
           namedQuery.name as string,
-          namedQuery.queryTarget as QueryTarget);
+          namedQuery);
       }
       return result!;
     });
   }
 
   clearNamedQueryOlderThan(metadata: BundleMetadata): Promise<void> {
-    return Promise.resolve();
+    return this.persistence.runTransaction('clearNamedQueryOlderThan', 'readwrite-idempotent',
+      transaction => {
+          return this.namedQueryCache.clear(
+            transaction, metadata.name!);
+      });
   }
 
-  getNamedQuery(name: string): Promise<NamedBundleQuery> {
-    return Promise.resolve({} as NamedBundleQuery);
+  getNamedQuery(bundleId: string, name: string): Promise<NamedBundleQuery | null> {
+    return this.persistence.runTransaction('getNamedQuery', 'readonly-idempotent',
+      transaction => {
+        return this.namedQueryCache.getNamedQuery(transaction, bundleId, name);
+      });
   }
 
   /**

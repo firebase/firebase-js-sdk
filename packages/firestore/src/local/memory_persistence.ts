@@ -49,6 +49,9 @@ import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import {NamedQueryCache} from './named_query_cache';
+import {
+  MemoryNamedQueryCache
+} from "./memory_named_query_cache";
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -68,6 +71,7 @@ export class MemoryPersistence implements Persistence {
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
+  private readonly namedQueryCache: MemoryNamedQueryCache;
   private readonly listenSequence = new ListenSequence(0);
 
   private _started = false;
@@ -111,6 +115,7 @@ export class MemoryPersistence implements Persistence {
       this.indexManager,
       sizer
     );
+    this.namedQueryCache = new MemoryNamedQueryCache();
   }
 
   shutdown(): Promise<void> {
@@ -163,7 +168,7 @@ export class MemoryPersistence implements Persistence {
   }
 
   getNamedQueryCache(): NamedQueryCache{
-    return {} as NamedQueryCache;
+    return this.namedQueryCache;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {

@@ -448,6 +448,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     await this.localStore.clearNamedQueryOlderThan(bundle.getBundleMetadata());
     await this.localStore.saveNamedQueries(bundle.getBundleMetadata(), bundle.getNamedQueries());
+
+    // TODO: Debug code, remove
+    const namedQuery = await this.localStore.getNamedQuery(bundle.getBundleMetadata().name!, bundle.getNamedQueries()[0].name!);
+    console.log(`Getting named query back: ${JSON.stringify(namedQuery)}`);
   }
 
   /**

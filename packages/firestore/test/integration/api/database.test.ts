@@ -1279,7 +1279,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
 
     it.only('Load bundle test', () => {
-      return withTestDb(persistence, async db => {
+      return withTestDb(true, async db => {
         const postsCollection = db
           .collection('users/user1/posts')
           .withConverter(postConverter);

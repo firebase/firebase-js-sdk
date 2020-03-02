@@ -62,20 +62,36 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
       }).next(() => result);
   }
 
-  getNamedQuery(transaction: PersistenceTransaction, bundleId: string, queryName: string): PersistencePromise<Target | null> {
-    return PersistencePromise.reject(new Error('Not implemented'));
+  getNamedQuery(transaction: PersistenceTransaction, bundleId: string, queryName: string): PersistencePromise<NamedBundleQuery | null> {
+    console.log(`Reading named query ${bundleId}, ${queryName}`);
+    let result:NamedBundleQuery | null = null;
+    return namedQueryStore(transaction).get([bundleId, queryName]).next(q => {
+      console.log(`from cache read query: ${JSON.stringify(q)}`);
+      result = {
+        queryTarget: q?.query! as QueryTarget,
+        name: queryName,
+        readTime: q?.queryReadTime!
+      }
+    }).next(() => result);
   }
 
-  setNamedQuery(transaction: PersistenceTransaction, bundleMetadata: BundleMetadata, queryName: string, query: NamedBundleQuery): PersistencePromise<void> {
+  setNamedQuery(transaction: PersistenceTransaction,
+                bundleMetadata: BundleMetadata,
+                queryName: string,
+                query: NamedBundleQuery): PersistencePromise<void> {
+    const toAdd = {
+      bundleId: bundleMetadata.name as string,
+      bundleCreateTime: new DbTimestamp(bundleMetadata.createTime?.seconds!, bundleMetadata.createTime?.nanos!),
+      name: queryName,
+      query: query.queryTarget as QueryTarget,
+      queryReadTime: new DbTimestamp(query.readTime?.seconds!, query.readTime?.nanos!),
+    };
+    console.log(`setting named query ${JSON.stringify(query)}`);
     return namedQueryStore(transaction).add(
-      {
-        bundleId: bundleMetadata.name as string,
-        bundleCreateTime: new DbTimestamp(bundleMetadata.createTime?.seconds!, bundleMetadata.createTime?.nanos!),
-        name: queryName,
-        query: query.queryTarget as QueryTarget,
-        queryReadTime: new DbTimestamp(query.readTime?.seconds!, query.readTime?.nanos!),
-      }
-    ).next();
+      toAdd
+    ).next(k => {
+      console.log(`Wrote to key ${JSON.stringify(k)}`);
+    });
   }
 }
 

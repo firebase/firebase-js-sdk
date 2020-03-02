@@ -48,7 +48,7 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 9. Change RemoteDocumentChanges store to be keyed by readTime rather than
  *    an auto-incrementing ID. This is required for Index-Free queries.
  */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
