@@ -166,7 +166,7 @@ const es5Builds = [
       json(),
       terser(terserOptions)
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: resolveMemoryExterns
   },
   /**
    * Browser CJS Build
