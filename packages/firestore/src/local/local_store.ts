@@ -606,10 +606,9 @@ export class LocalStore {
                 } else if (
                   existingDoc == null ||
                   doc.version.compareTo(existingDoc.version) > 0 ||
-                  // `existingDoc` might have `hasCommittedMutations` == true,
-                  // while `doc` might have some changes resulted from other users
-                  // change, which are not picked up by committed mutations from current user.
-                  // We need to update remoteDocumentCache when this happens.
+                  // If our local document version is based on a write acknowledged from the
+                  // WriteStream, we overwrite it with the remote version from the WatchStream
+                  // since the remote document may contain edits from other clients.
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
