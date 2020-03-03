@@ -366,7 +366,7 @@ function canonifyValue(value: api.Value): string {
   } else if ('arrayValue' in value) {
     return canonifyArray(value.arrayValue!);
   } else if ('mapValue' in value) {
-    return canoifyMap(value.mapValue!);
+    return canonifyMap(value.mapValue!);
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
   }
@@ -385,7 +385,7 @@ function canonifyGeoPoint(geoPoint: api.LatLng): string {
   return `geo(${geoPoint.latitude},${geoPoint.longitude})`;
 }
 
-function canoifyMap(mapValue: api.MapValue): string {
+function canonifyMap(mapValue: api.MapValue): string {
   // Iteration order in JavaScript is not guaranteed. To ensure that we generate
   // matching canonical IDs for identical maps, we need to sort the keys.
   const sortedKeys = keys(mapValue.fields || {}).sort();
@@ -467,11 +467,10 @@ function estimateMapByteSize(mapValue: api.MapValue): number {
 }
 
 function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
-  let size = 0;
-  for (const value of arrayValue.values || []) {
-    size += estimateByteSize(value);
-  }
-  return size;
+  return (arrayValue.values || []).reduce(
+    (previousSize, value) => previousSize + estimateByteSize(value),
+    0
+  );
 }
 
 /**
