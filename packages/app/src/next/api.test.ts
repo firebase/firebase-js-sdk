@@ -26,7 +26,7 @@ import {
   registerVersion
 } from './api';
 import { DEFAULT_ENTRY_NAME } from '../constants';
-import { FirebaseAppInternalNext } from './types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { clearComponents, components, registerComponent } from './internal';
 import { createTestComponent } from '../../test/util';
 

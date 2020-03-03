@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseAppInternalNext, FirebaseAppNext } from './types';
+import { FirebaseAppInternalNext, FirebaseAppNext } from '@firebase/app-types/next';
 import { Component } from '@firebase/component';
 import { logger } from '../logger';
 

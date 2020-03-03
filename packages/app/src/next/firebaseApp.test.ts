@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import '../../test/setup';
 import { FirebaseAppImplNext } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
-import { FirebaseAppInternalNext } from './types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 
 describe('FirebaseAppNext', () => {
   it('has various accessors', () => {

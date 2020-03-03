@@ -27,7 +27,7 @@ import {
   components,
   clearComponents
 } from './internal';
-import { FirebaseAppInternalNext } from './types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

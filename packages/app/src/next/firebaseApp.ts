@@ -19,7 +19,7 @@ import {
   FirebaseAppNext,
   FirebaseOptionsNext,
   FirebaseAppConfigNext
-} from './types';
+} from '@firebase/app-types/next';
 import { ComponentContainer } from '@firebase/component';
 import { ERROR_FACTORY, AppError } from '../errors';
 

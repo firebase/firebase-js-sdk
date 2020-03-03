@@ -23,7 +23,7 @@ import {
 } from '@firebase/app-types/private';
 import { DEFAULT_ENTRY_NAME } from '../../constants';
 import { Component, ComponentType, Name } from '@firebase/component';
-import { FirebaseAppInternalNext } from '../../next/types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { addComponent } from '../../next/internal';
 import { deleteApp } from '../../next';
 

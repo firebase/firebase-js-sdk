@@ -23,7 +23,7 @@ import {
 } from '@firebase/app-types/private';
 import { Component, ComponentType, Name } from '@firebase/component';
 import { DEFAULT_ENTRY_NAME } from '../constants';
-import { FirebaseAppInternalNext } from '../next/types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { deleteApp } from '../next';
 import { addComponent, addOrOverwriteComponent } from '../next/internal';
 
@@ -102,8 +102,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.app.container
-      .getProvider(name as any)
+    this.app.container.getProvider(name as any)
       .clearInstance(instanceIdentifier);
   }
 

@@ -33,7 +33,7 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { Component, ComponentType } from '@firebase/component';
 import { SDK_VERSION, initializeApp, registerVersion } from '../next';
-import { FirebaseAppInternalNext } from '../next/types';
+import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { registerComponent } from '../next/internal';
 
 /**

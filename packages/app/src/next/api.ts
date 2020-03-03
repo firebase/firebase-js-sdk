@@ -20,7 +20,7 @@ import {
   FirebaseOptionsNext,
   FirebaseAppConfigNext,
   FirebaseAppInternalNext
-} from './types';
+} from '@firebase/app-types/next';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from '../constants';
 import { ERROR_FACTORY, AppError } from '../errors';
 import {
