@@ -336,7 +336,7 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
 }
 
 /**
- * Generate the canonical ID for the provided field value (as used in Target
+ * Generates the canonical ID for the provided field value (as used in Target
  * serialization).
  */
 export function canonicalId(value: api.Value): string {
