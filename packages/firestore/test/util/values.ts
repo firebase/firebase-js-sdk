@@ -68,7 +68,7 @@ export function valueOf(
   } else if (input instanceof Timestamp) {
     return {
       timestampValue: {
-        seconds: String(input.seconds),
+        seconds: input.seconds,
         nanos: input.nanoseconds
       }
     };
