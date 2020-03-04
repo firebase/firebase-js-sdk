@@ -111,7 +111,7 @@ export class FieldValueOptions {
  * Potential types returned by FieldValue.value(). This could be stricter
  * (instead of using {}), but there's little benefit.
  *
- * Note that currently we use AnyJs (which is identical except includes
+ * Note that currently we use `unknown` (which is identical except includes
  * undefined) for incoming user data as a convenience to the calling code (but
  * we'll throw if the data contains undefined). This should probably be changed
  * to use FieldType, but all consuming code will have to be updated to
@@ -367,6 +367,9 @@ export class TimestampValue extends FieldValue {
  *   localWriteTime.
  */
 export class ServerTimestampValue extends FieldValue {
+  // TODO(mrschmidt): Represent ServerTimestamps as a PrimitiveType with a
+  //  Map containing a private `__type__` field (or similar).
+
   typeOrder = TypeOrder.TimestampValue;
 
   constructor(
@@ -402,7 +405,7 @@ export class ServerTimestampValue extends FieldValue {
   compareTo(other: FieldValue): number {
     if (other instanceof ServerTimestampValue) {
       return this.localWriteTime._compareTo(other.localWriteTime);
-    } else if (other instanceof TimestampValue) {
+    } else if (other.typeOrder === TypeOrder.TimestampValue) {
       // Server timestamps come after all concrete timestamps.
       return 1;
     } else {
