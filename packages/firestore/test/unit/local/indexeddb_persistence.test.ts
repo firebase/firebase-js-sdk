@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -53,12 +54,13 @@ import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { doc, path, version } from '../../util/helpers';
+import { doc, filter, path, version } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -723,6 +725,44 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           }
 
           expect(actualParents).to.deep.equal(expectedParents);
+        });
+      });
+    });
+  });
+
+  it('rewrites canonical IDs during upgrade from version 9 to 10', async () => {
+    await withDb(9, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+        const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+
+        const filteredQuery = Query.atPath(path('collection')).addFilter(
+          filter('foo', '==', 'bar')
+        );
+        const initialTargetData = new TargetData(
+          filteredQuery.toTarget(),
+          /* targetId= */ 2,
+          TargetPurpose.Listen,
+          /* sequenceNumber= */ 1
+        );
+
+        const serializedData = TEST_SERIALIZER.toDbTarget(initialTargetData);
+        serializedData.canonicalId = 'invalid_canonical_id';
+
+        return targetsStore.put(TEST_SERIALIZER.toDbTarget(initialTargetData));
+      });
+    });
+
+    await withDb(10, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+        const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+        return targetsStore.iterate((key, value) => {
+          const targetData = TEST_SERIALIZER.fromDbTarget(value).target;
+          const expectedCanonicalId = targetData.canonicalId();
+
+          const actualCanonicalId = value.canonicalId;
+          expect(actualCanonicalId).to.equal(expectedCanonicalId);
         });
       });
     });
