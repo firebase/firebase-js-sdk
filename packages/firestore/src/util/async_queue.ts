@@ -206,9 +206,6 @@ export class AsyncQueue {
   // visible for testing
   failure: Error | null = null;
 
-  // Number of unexecuted operations remaining on the AsyncQueue.
-  private operationsCount = 0;
-
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
@@ -220,11 +217,6 @@ export class AsyncQueue {
   // any new operations, Promises from enqueue requests will not resolve.
   get isShuttingDown(): boolean {
     return this._isShuttingDown;
-  }
-
-  // Visible for testing
-  isEmpty(): boolean {
-    return this.operationsCount === 0;
   }
 
   /**
@@ -288,7 +280,6 @@ export class AsyncQueue {
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
-    this.operationsCount += 1;
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
       return op()
@@ -314,7 +305,6 @@ export class AsyncQueue {
         })
         .then(result => {
           this.operationInProgress = false;
-          this.operationsCount -= 1;
           return result;
         });
     });
@@ -385,10 +375,11 @@ export class AsyncQueue {
   async drain(): Promise<void> {
     // Operations in the queue prior to draining may have enqueued additional
     // operations. Keep draining the queue until there are no more.
-    while (this.operationsCount > 0) {
-      // It should still be possible to drain the queue after it is shutting down.
-      await this.enqueueEvenAfterShutdown(() => Promise.resolve());
-    }
+    let currentTail: Promise<unknown>;
+    do {
+      currentTail = this.tail;
+      await currentTail;
+    } while (currentTail !== this.tail);
   }
 
   /**
