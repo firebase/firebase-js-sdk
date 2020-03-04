@@ -152,7 +152,7 @@ export class PrimitiveValue extends FieldValue {
 
 /**
  * An ObjectValue represents a MapValue in the Firestore Proto and offers the
- * ability to add an remove fields (via the ObjectValueBuilder).
+ * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue extends PrimitiveValue {
   static EMPTY = new ObjectValue({ mapValue: {} });
@@ -182,7 +182,10 @@ export class ObjectValue extends PrimitiveValue {
     } else {
       let value = this.proto;
       for (let i = 0; i < path.length - 1; ++i) {
-        value = (value.mapValue!.fields || {})[path.get(i)];
+        if (!value.mapValue!.fields) {
+          return null;
+        }
+        value = value.mapValue!.fields[path.get(i)];
         if (!isType(value, TypeOrder.ObjectValue)) {
           return null;
         }
@@ -240,7 +243,7 @@ export class ObjectValue extends PrimitiveValue {
 
 /**
  * An Overlay, which contains an update to apply. Can either be Value proto, a
- * ma of Overlay values (to represent additional nesting at the given key) or
+ * map of Overlay values (to represent additional nesting at the given key) or
  * `null` (to represent field deletes).
  */
 type Overlay = Map<string, Overlay> | api.Value | null;
@@ -273,9 +276,9 @@ export class ObjectValueBuilder {
 
   /**
    * Removes the field at the specified path. If there is no field at the
-   * specified path nothing is changed.
+   * specified path, nothing is changed.
    *
-   * @param path The field path to remove
+   * @param path The field path to remove.
    * @return The current Builder instance.
    */
   delete(path: FieldPath): ObjectValueBuilder {
