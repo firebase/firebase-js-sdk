@@ -366,26 +366,26 @@ function canonifyValue(value: api.Value): string {
   } else if ('arrayValue' in value) {
     return canonifyArray(value.arrayValue!);
   } else if ('mapValue' in value) {
-    return canoifyMap(value.mapValue!);
+    return canonifyMap(value.mapValue!);
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
   }
 }
 
-function canonifyByteString(byteString: string | Uint8Array) : string {
+function canonifyByteString(byteString: string | Uint8Array): string {
   return normalizeByteString(byteString).toBase64();
 }
 
-function canonifyTimestamp(timestamp: ProtoTimestampValue) : string {
+function canonifyTimestamp(timestamp: ProtoTimestampValue): string {
   const normalizedTimestamp = normalizeTimestamp(timestamp);
   return `time(${normalizedTimestamp.seconds},${normalizedTimestamp.nanos})`;
 }
 
-function canonifyGeoPoint(geoPoint: api.LatLng) : string {
+function canonifyGeoPoint(geoPoint: api.LatLng): string {
   return `geo(${geoPoint.latitude},${geoPoint.longitude})`;
 }
 
-function canoifyMap(mapValue: api.MapValue) : string {
+function canonifyMap(mapValue: api.MapValue): string {
   // Iteration order in JavaScript is not guaranteed. To ensure that we generate
   // matching canonical IDs for identical maps, we need to sort the keys.
   const sortedKeys = keys(mapValue.fields || {}).sort();
@@ -403,7 +403,7 @@ function canoifyMap(mapValue: api.MapValue) : string {
   return result + '}';
 }
 
-function canonifyArray(arrayValue: api.ArrayValue) : string {
+function canonifyArray(arrayValue: api.ArrayValue): string {
   let result = '[';
   let first = true;
   for (const value of arrayValue.values || []) {
