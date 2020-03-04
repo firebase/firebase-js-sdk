@@ -29,7 +29,7 @@ import {
   ObjectValue,
   PrimitiveValue
 } from '../../../src/model/proto_field_value';
-import { canonicalId } from '../../../src/model/proto_values';
+import { canonicalId, estimateByteSize } from '../../../src/model/proto_values';
 import { ByteString } from '../../../src/util/byte_string';
 import { primitiveComparator } from '../../../src/util/misc';
 import * as typeUtils from '../../../src/util/types';
@@ -630,9 +630,7 @@ describe('FieldValue', () => {
     );
   });
 
-  // TODO(mrschmidt): Fix size accounting
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('estimates size correctly for fixed sized values', () => {
+  it('estimates size correctly for fixed sized values', () => {
     // This test verifies that each member of a group takes up the same amount
     // of space in memory (based on its estimated in-memory size).
     const equalityGroups = [
@@ -653,22 +651,23 @@ describe('FieldValue', () => {
         expectedByteSize: 16,
         elements: [wrap(Timestamp.fromMillis(100)), wrap(Timestamp.now())]
       },
+      // TODO(mrschmidt): Support server timestamps
+      // {
+      //   expectedByteSize: 16,
+      //   elements: [
+      //     new ServerTimestampValue(Timestamp.fromMillis(100), null),
+      //     new ServerTimestampValue(Timestamp.now(), null)
+      //   ]
+      // },
+      // {
+      //   expectedByteSize: 20,
+      //   elements: [
+      //     new ServerTimestampValue(Timestamp.fromMillis(100), wrap(true)),
+      //     new ServerTimestampValue(Timestamp.now(), wrap(false))
+      //   ]
+      // },
       {
-        expectedByteSize: 16,
-        elements: [
-          new ServerTimestampValue(Timestamp.fromMillis(100), null),
-          new ServerTimestampValue(Timestamp.now(), null)
-        ]
-      },
-      {
-        expectedByteSize: 20,
-        elements: [
-          new ServerTimestampValue(Timestamp.fromMillis(100), wrap(true)),
-          new ServerTimestampValue(Timestamp.now(), wrap(false))
-        ]
-      },
-      {
-        expectedByteSize: 11,
+        expectedByteSize: 42,
         elements: [
           wrapRef(dbId('p1', 'd1'), key('c1/doc1')),
           wrapRef(dbId('p2', 'd2'), key('c2/doc2'))
@@ -684,7 +683,9 @@ describe('FieldValue', () => {
 
     for (const group of equalityGroups) {
       for (const element of group.elements) {
-        expect(element.approximateByteSize()).to.equal(group.expectedByteSize);
+        expect(estimateByteSize(element.proto)).to.equal(
+          group.expectedByteSize
+        );
       }
     }
   });

@@ -19,7 +19,7 @@ import * as api from '../protos/firestore_proto_api';
 
 import { TypeOrder } from './field_value';
 import { assert, fail } from '../util/assert';
-import { keys, size } from '../util/obj';
+import { forEach, keys, size } from '../util/obj';
 import { ByteString } from '../util/byte_string';
 import {
   numericComparator,
@@ -415,6 +415,62 @@ function canonifyArray(arrayValue: api.ArrayValue): string {
     result += canonifyValue(value);
   }
   return result + ']';
+}
+
+/**
+ * Returns an approximate (and wildly inaccurate) in-memory size for the field
+ * value.
+ *
+ * The memory size takes into account only the actual user data as it resides
+ * in memory and ignores object overhead.
+ */
+export function estimateByteSize(value: api.Value): number {
+  if ('nullValue' in value) {
+    return 4;
+  } else if ('booleanValue' in value) {
+    return 4;
+  } else if ('integerValue' in value) {
+    return 8;
+  } else if ('doubleValue' in value) {
+    return 8;
+  } else if ('timestampValue' in value) {
+    // TODO(mrschmidt: Add ServerTimestamp support
+    // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
+    return 16;
+  } else if ('stringValue' in value) {
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures:
+    // "JavaScript's String type is [...] a set of elements of 16-bit unsigned
+    // integer values"
+    return value.stringValue!.length * 2;
+  } else if ('bytesValue' in value) {
+    return normalizeByteString(value.bytesValue!).approximateByteSize();
+  } else if ('referenceValue' in value) {
+    return value.referenceValue!.length;
+  } else if ('geoPointValue' in value) {
+    // GeoPoints are made up of two distinct numbers (latitude + longitude)
+    return 16;
+  } else if ('arrayValue' in value) {
+    return estimateArrayByteSize(value.arrayValue!);
+  } else if ('mapValue' in value) {
+    return estimateMapByteSize(value.mapValue!);
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+function estimateMapByteSize(mapValue: api.MapValue): number {
+  let size = 0;
+  forEach(mapValue.fields || {}, (key, val) => {
+    size += key.length + estimateByteSize(val);
+  });
+  return size;
+}
+
+function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
+  return (arrayValue.values || []).reduce(
+    (previousSize, value) => previousSize + estimateByteSize(value),
+    0
+  );
 }
 
 /**
