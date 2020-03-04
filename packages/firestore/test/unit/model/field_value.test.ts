@@ -426,6 +426,44 @@ describe('FieldValue', () => {
     expectEqualitySets(values, (v1, v2) => v1.isEqual(v2));
   });
 
+  it('normalizes values for equality', () => {
+    // Each subarray compares equal to each other and false to every other value
+    const values: FieldValue[][] = [
+      [
+        new PrimitiveValue({ integerValue: '1' }),
+        new PrimitiveValue({ integerValue: 1 })
+      ],
+      [
+        new PrimitiveValue({ doubleValue: '1.0' }),
+        new PrimitiveValue({ doubleValue: 1.0 })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01Z' }),
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01.000Z' }),
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01.000000Z' }),
+        new PrimitiveValue({
+          timestampValue: '2007-04-05T14:30:01.000000000Z'
+        }),
+        new PrimitiveValue({ timestampValue: { seconds: 1175783401 } }),
+        new PrimitiveValue({ timestampValue: { seconds: '1175783401' } }),
+        new PrimitiveValue({
+          timestampValue: { seconds: 1175783401, nanos: 0 }
+        })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01.100Z' }),
+        new PrimitiveValue({
+          timestampValue: { seconds: 1175783401, nanos: 100000000 }
+        })
+      ],
+      [
+        new PrimitiveValue({ bytesValue: new Uint8Array([0, 1, 2]) }),
+        new PrimitiveValue({ bytesValue: 'AAEC' })
+      ]
+    ];
+    expectEqualitySets(values, (v1, v2) => v1.isEqual(v2));
+  });
+
   it('orders types correctly', () => {
     const groups = [
       // null first
@@ -527,6 +565,60 @@ describe('FieldValue', () => {
       [wrap({ foo: 1 })],
       [wrap({ foo: 2 })],
       [wrap({ foo: '0' })]
+    ];
+
+    expectCorrectComparisonGroups(
+      groups,
+      (left: FieldValue, right: FieldValue) => {
+        return left.compareTo(right);
+      }
+    );
+  });
+
+  it('normalizes values for comparison', () => {
+    const groups = [
+      [
+        new PrimitiveValue({ integerValue: '1' }),
+        new PrimitiveValue({ integerValue: 1 })
+      ],
+      [
+        new PrimitiveValue({ doubleValue: '2' }),
+        new PrimitiveValue({ doubleValue: 2 })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01Z' }),
+        new PrimitiveValue({ timestampValue: { seconds: 1175783401 } })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:01.999Z' }),
+        new PrimitiveValue({
+          timestampValue: { seconds: 1175783401, nanos: 999000000 }
+        })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:02Z' }),
+        new PrimitiveValue({ timestampValue: { seconds: 1175783402 } })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:02.100Z' }),
+        new PrimitiveValue({
+          timestampValue: { seconds: 1175783402, nanos: 100000000 }
+        })
+      ],
+      [
+        new PrimitiveValue({ timestampValue: '2007-04-05T14:30:02.100001Z' }),
+        new PrimitiveValue({
+          timestampValue: { seconds: 1175783402, nanos: 100001000 }
+        })
+      ],
+      [
+        new PrimitiveValue({ bytesValue: new Uint8Array([0, 1, 2]) }),
+        new PrimitiveValue({ bytesValue: 'AAEC' })
+      ],
+      [
+        new PrimitiveValue({ bytesValue: new Uint8Array([0, 1, 3]) }),
+        new PrimitiveValue({ bytesValue: 'AAED' })
+      ]
     ];
 
     expectCorrectComparisonGroups(
