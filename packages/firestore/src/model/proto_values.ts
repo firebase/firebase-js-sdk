@@ -242,7 +242,7 @@ function compareTimestamps(
   if (typeof left === 'string' && typeof right === 'string') {
     // Use string ordering for ISO 8601 timestamps, but strip the timezone
     // suffix to ensure proper ordering for timestamps of different precision.
-    // The only supported timezone is UTC (i.e. 'Z') based on 
+    // The only supported timezone is UTC (i.e. 'Z') based on
     // ISO_TIMESTAMP_REG_EXP.
     return primitiveComparator(left.slice(0, -1), right.slice(0, -1));
   }

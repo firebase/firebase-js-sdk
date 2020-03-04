@@ -354,14 +354,9 @@ export class SetMutation extends Mutation {
     // have held.
 
     const version = mutationResult.version;
-    return new Document(
-      this.key,
-      version,
-      {
-        hasCommittedMutations: true
-      },
-      this.value
-    );
+    return new Document(this.key, version, this.value, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -376,14 +371,9 @@ export class SetMutation extends Mutation {
     }
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasLocalMutations: true
-      },
-      this.value
-    );
+    return new Document(this.key, version, this.value, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
@@ -445,14 +435,9 @@ export class PatchMutation extends Mutation {
     }
 
     const newData = this.patchDocument(maybeDoc);
-    return new Document(
-      this.key,
-      mutationResult.version,
-      {
-        hasCommittedMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, mutationResult.version, newData, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -468,14 +453,9 @@ export class PatchMutation extends Mutation {
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
     const newData = this.patchDocument(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasLocalMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
@@ -573,14 +553,9 @@ export class TransformMutation extends Mutation {
 
     const version = mutationResult.version;
     const newData = this.transformObject(doc.data(), transformResults);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasCommittedMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, version, newData, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -601,14 +576,9 @@ export class TransformMutation extends Mutation {
       baseDoc
     );
     const newData = this.transformObject(doc.data(), transformResults);
-    return new Document(
-      this.key,
-      doc.version,
-      {
-        hasLocalMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, doc.version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
