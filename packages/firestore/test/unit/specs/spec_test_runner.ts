@@ -549,10 +549,11 @@ abstract class TestRunner {
   async run(step: SpecStep): Promise<void> {
     await this.doStep(step);
     await this.queue.drain();
-    // Wait for any additional operations that the initial operations
-    // scheduled. We skip this iterative drain for steps that involve changing
-    // the primary tab since tabs that become the primary can schedule
-    // multiple operations onto the queue that subsequent steps require.
+    // Operations in the queue prior to draining may have enqueued additional
+    // operations. Keep draining the queue until there are no more. However,
+    // when the current step changes the primary tab, the additional operations
+    // can be expected by later steps, so avoid draining until empty in this
+    // case.
     while (
       step.applyClientState?.primary === undefined &&
       !this.queue.isEmpty()
