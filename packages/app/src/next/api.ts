@@ -95,15 +95,13 @@ export function getApps(): FirebaseAppNext[] {
   return Array.from(apps.values());
 }
 
-export function deleteApp(app: FirebaseAppNext): Promise<void> {
+export async function deleteApp(app: FirebaseAppNext): Promise<void> {
   const name = app.name;
   if (apps.has(name)) {
     apps.delete(name);
+    await (app as FirebaseAppInternalNext).container.getProviders().map(provider => provider.delete());
     (app as FirebaseAppInternalNext).isDeleted = true;
-    // TODO: what to do with other SDKs?
   }
-
-  return Promise.resolve();
 }
 
 export function registerVersion(

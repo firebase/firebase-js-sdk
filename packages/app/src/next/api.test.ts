@@ -141,11 +141,11 @@ describe('API tests', () => {
   });
 
   describe('deleteApp', () => {
-    it('marks an App as deleted', () => {
+    it('marks an App as deleted', async () => {
       const app = initializeApp({});
       expect((app as FirebaseAppInternalNext).isDeleted).to.be.false;
 
-      deleteApp(app).catch(() => {});
+      await deleteApp(app).catch(() => {});
       expect((app as FirebaseAppInternalNext).isDeleted).to.be.true;
     });
 

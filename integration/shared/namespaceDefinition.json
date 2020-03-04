@@ -55,9 +55,6 @@
     "removeApp": {
       "__type": "function"
     },
-    "components": {
-      "__type": "Map"
-    },
     "ErrorFactory": {
       "__type": "function"
     },

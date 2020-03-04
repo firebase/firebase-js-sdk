@@ -21,7 +21,7 @@ import {
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import { Component, ComponentType, Name } from '@firebase/component';
+import { Component, ComponentType, Name, ComponentContainer } from '@firebase/component';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 import { FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { deleteApp } from '../next';
@@ -32,12 +32,15 @@ import { addComponent, addOrOverwriteComponent } from '../next/internal';
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
+  private readonly container: ComponentContainer;
+
   constructor(
     private readonly app: FirebaseAppInternalNext,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
     addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
+    this.container = app.container;
   }
 
   get automaticDataCollectionEnabled(): boolean {
