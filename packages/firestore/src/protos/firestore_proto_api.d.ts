@@ -363,7 +363,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     booleanValue?: boolean;
     integerValue?: string | number;
     doubleValue?: number;
-    timestampValue?: string | { seconds: string; nanos: number };
+    timestampValue?: string | { seconds: string | number; nanos: number };
     stringValue?: string;
     bytesValue?: string | Uint8Array;
     referenceValue?: string;

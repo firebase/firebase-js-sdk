@@ -33,7 +33,9 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 );
 
 // Denotes the possible representations for timestamps in the Value type.
-type ProtoTimestampValue = string | { seconds?: string; nanos?: number };
+type ProtoTimestampValue =
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: api.Value): TypeOrder {

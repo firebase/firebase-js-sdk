@@ -105,7 +105,7 @@ function assertPresent(value: unknown, description: string): asserts value {
 // This is a supplement to the generated proto interfaces, which fail to account
 // for the fact that a timestamp may be encoded as either a string OR this.
 interface TimestampProto {
-  seconds?: string;
+  seconds?: string | number;
   nanos?: number;
 }
 
