@@ -374,7 +374,9 @@ export class AsyncQueue {
    */
   async drain(): Promise<void> {
     // Operations in the queue prior to draining may have enqueued additional
-    // operations. Keep draining the queue until there are no more.
+    // operations. Keep draining the queue until the tail is no longer advanced,
+    // which indicates that no more new operations were enqueued and that all
+    // operations were executed.
     let currentTail: Promise<unknown>;
     do {
       currentTail = this.tail;
