@@ -382,9 +382,13 @@ export class AsyncQueue {
    * Waits until all currently queued tasks are finished executing. Delayed
    * operations are not run.
    */
-  drain(): Promise<void> {
-    // It should still be possible to drain the queue after it is shutting down.
-    return this.enqueueEvenAfterShutdown(() => Promise.resolve());
+  async drain(): Promise<void> {
+    // Operations in the queue prior to draining may have enqueued additional
+    // operations. Keep draining the queue until there are no more.
+    while (this.operationsCount > 0) {
+      // It should still be possible to drain the queue after it is shutting down.
+      await this.enqueueEvenAfterShutdown(() => Promise.resolve());
+    }
   }
 
   /**

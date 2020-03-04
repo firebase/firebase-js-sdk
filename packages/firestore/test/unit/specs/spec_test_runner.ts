@@ -549,17 +549,6 @@ abstract class TestRunner {
   async run(step: SpecStep): Promise<void> {
     await this.doStep(step);
     await this.queue.drain();
-    // Operations in the queue prior to draining may have enqueued additional
-    // operations. Keep draining the queue until there are no more. However,
-    // when the current step changes the primary tab, the additional operations
-    // can be expected by later steps, so avoid draining until empty in this
-    // case.
-    while (
-      step.applyClientState?.primary === undefined &&
-      !this.queue.isEmpty()
-    ) {
-      await this.queue.drain();
-    }
     this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
     await this.validateExpectedState(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
