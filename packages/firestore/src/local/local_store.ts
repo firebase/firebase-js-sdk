@@ -63,10 +63,16 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/proto_byte_string';
-import {NamedQueryCache} from './named_query_cache';
-import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
-import {firestoreV1ApiClientInterfaces} from "../protos/firestore_proto_api";
-import QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
+import { NamedQueryCache } from './named_query_cache';
+import {
+  BundledDocumentMetadata,
+  BundleMetadata,
+  NamedBundleQuery
+} from '../util/bundle';
+import * as api from '../protos/firestore_proto_api';
+import { LocalSerializer } from './local_serializer';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 
 const LOG_TAG = 'LocalStore';
 
@@ -687,6 +693,80 @@ export class LocalStore {
       });
   }
 
+  async applyBundleDocuments(
+    documents: Array<[BundledDocumentMetadata, api.Document]>
+  ): Promise<MaybeDocumentMap> {
+    return this.persistence.runTransaction(
+      'Apply Bundle Documents',
+      'readwrite-primary-idempotent',
+      txn => {
+        const documentBuffer = this.remoteDocuments.newChangeBuffer({
+          trackRemovals: false
+        });
+
+        let changedDocs = maybeDocumentMap();
+        let updatedKeys = documentKeySet();
+        documents.forEach(([meta, doc]) => {
+          const k = (this
+            .persistence as IndexedDbPersistence).serializer.remoteSerializer.fromName(
+            meta.documentKey!
+          );
+          updatedKeys = updatedKeys.add(k);
+        });
+
+        const promises = [] as Array<PersistencePromise<void>>;
+        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+        // documents in advance in a single call.
+        promises.push(
+          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+            documents.forEach(([meta, doc]) => {
+              const key = (this
+                .persistence as IndexedDbPersistence).serializer.remoteSerializer.fromName(
+                meta.documentKey!
+              );
+              const existingDoc = existingDocs.get(key);
+              const readSnapshotTime = SnapshotVersion.fromTimestamp(
+                new Timestamp(meta.readTime!.seconds!, meta.readTime!.nanos!)
+              );
+              if (
+                existingDoc == null ||
+                readSnapshotTime.compareTo(existingDoc.version) > 0 ||
+                (readSnapshotTime.compareTo(existingDoc.version) === 0 &&
+                  existingDoc.hasPendingWrites)
+              ) {
+                const d = (this
+                  .persistence as IndexedDbPersistence).serializer.remoteSerializer.fromDocument(
+                  (doc as any).document
+                );
+                documentBuffer.addEntry(d, readSnapshotTime);
+                changedDocs = changedDocs.insert(key, d);
+              } else {
+                log.debug(
+                  LOG_TAG,
+                  'Ignoring outdated watch update for ',
+                  key,
+                  '. Current version:',
+                  existingDoc.version,
+                  ' Bundle read version:',
+                  readSnapshotTime
+                );
+              }
+            });
+          })
+        );
+
+        return PersistencePromise.waitFor(promises)
+          .next(() => documentBuffer.apply(txn))
+          .next(() => {
+            return this.localDocuments.getLocalViewOfDocuments(
+              txn,
+              changedDocs
+            );
+          });
+      }
+    );
+  }
+
   /**
    * Returns true if the newTargetData should be persisted during an update of
    * an active target. TargetData should always be persisted when a target is
@@ -738,45 +818,70 @@ export class LocalStore {
   }
 
   newerBundleExists(metadata: BundleMetadata): Promise<boolean> {
-    return this.persistence.runTransaction('newerBundleExists', 'readonly-idempotent', transaction => {
-      return this.namedQueryCache.getBundleCreateTime(transaction, metadata.name!)
-        .next(savedCreateTime => {
-          if(!savedCreateTime) {
-            return true;
-          }
-          return savedCreateTime!.compareTo(SnapshotVersion.fromTimestamp(metadata.createTime as Timestamp))! > 0
-        })
-    });
+    return this.persistence.runTransaction(
+      'newerBundleExists',
+      'readonly-idempotent',
+      transaction => {
+        return this.namedQueryCache
+          .getBundleCreateTime(transaction, metadata.name!)
+          .next(savedCreateTime => {
+            if (!savedCreateTime) {
+              return true;
+            }
+            return (
+              savedCreateTime!.compareTo(
+                SnapshotVersion.fromTimestamp(metadata.createTime as Timestamp)
+              )! > 0
+            );
+          });
+      }
+    );
   }
 
-  saveNamedQueries(metadata: BundleMetadata, namedQueries: Array<NamedBundleQuery>): Promise<void> {
-    return this.persistence.runTransaction('saveNamedQueries', 'readwrite-idempotent',
-        transaction => {
-      let result : PersistencePromise<void>|null = null;
-      // TODO: Is this a good way to write an array to indexed db?
-      for(const namedQuery of namedQueries) {
-        result = this.namedQueryCache.setNamedQuery(
-          transaction, metadata,
-          namedQuery.name as string,
-          namedQuery);
+  saveNamedQueries(
+    metadata: BundleMetadata,
+    namedQueries: Array<NamedBundleQuery>
+  ): Promise<void> {
+    return this.persistence.runTransaction(
+      'saveNamedQueries',
+      'readwrite-idempotent',
+      transaction => {
+        let result: PersistencePromise<void> | null = null;
+        // TODO: Is this a good way to write an array to indexed db?
+        for (const namedQuery of namedQueries) {
+          result = this.namedQueryCache.setNamedQuery(
+            transaction,
+            metadata,
+            namedQuery.name as string,
+            namedQuery
+          );
+        }
+        return result!;
       }
-      return result!;
-    });
+    );
   }
 
   clearNamedQueryOlderThan(metadata: BundleMetadata): Promise<void> {
-    return this.persistence.runTransaction('clearNamedQueryOlderThan', 'readwrite-idempotent',
+    return this.persistence.runTransaction(
+      'clearNamedQueryOlderThan',
+      'readwrite-idempotent',
       transaction => {
-          return this.namedQueryCache.clear(
-            transaction, metadata.name!);
-      });
+        return this.namedQueryCache.clear(transaction, metadata.name!);
+      }
+    );
   }
 
-  getNamedQuery(bundleId: string, name: string): Promise<NamedBundleQuery | null> {
-    return this.persistence.runTransaction('getNamedQuery', 'readonly-idempotent',
+  getNamedQuery(
+    bundleId: string,
+    name: string
+  ): Promise<NamedBundleQuery | null> {
+    return this.persistence.runTransaction(
+      'getNamedQuery',
+      'readonly-idempotent',
       transaction => {
         return this.namedQueryCache.getNamedQuery(transaction, bundleId, name);
-      });
+      }
+    );
   }
 
   /**

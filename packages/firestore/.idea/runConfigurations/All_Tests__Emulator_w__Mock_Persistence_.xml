@@ -9,7 +9,7 @@
       <env name="USE_MOCK_PERSISTENCE" value="YES" />
       <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
       <env name="FIRESTORE_EMULATOR_PORT" value="8080" />
-      <env name="FIRESTORE_EMULATOR_PROJECT_ID" value="abc-xyz-123" />
+      <env name="FIRESTORE_EMULATOR_PROJECT_ID" value="fireeats-97d5e" />
     </envs>
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts --require test/util/node_persistence.ts --timeout 5000</extra-mocha-options>

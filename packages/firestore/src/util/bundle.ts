@@ -19,39 +19,41 @@ import * as api from '../protos/firestore_proto_api';
 
 // Provides a high level API to read bundles.
 export class Bundle {
-  private bundleMetadata: BundleMetadata|null = null;
-  private namedQueries: Array<NamedBundleQuery>|null = null;
-  private documents: Array<[BundledDocumentMetadata, string]>|null = null;
-  private elementCursor: BundleElementCursor|null =null;
+  private bundleMetadata: BundleMetadata | null = null;
+  private namedQueries: Array<NamedBundleQuery> | null = null;
+  private documents: Array<
+    [BundledDocumentMetadata, api.Document]
+  > | null = null;
+  private elementCursor: BundleElementCursor | null = null;
 
-  constructor(private bundleUrlOrBuffer: URL|ArrayBuffer) {
-    if(bundleUrlOrBuffer instanceof ArrayBuffer){
+  constructor(private bundleUrlOrBuffer: URL | ArrayBuffer) {
+    if (bundleUrlOrBuffer instanceof ArrayBuffer) {
       this.elementCursor = new BundleElementCursor(bundleUrlOrBuffer);
     }
   }
 
-  getBundleMetadata():BundleMetadata {
-    if(this.elementCursor!.position > 0 && this.bundleMetadata === null) {
+  getBundleMetadata(): BundleMetadata {
+    if (this.elementCursor!.position > 0 && this.bundleMetadata === null) {
       // Throws
     }
 
-    if(this.elementCursor!.position === 0) {
+    if (this.elementCursor!.position === 0) {
       this.bundleMetadata = this.elementCursor!.readAsBundleMetadata();
       this.elementCursor!.next();
     }
     return this.bundleMetadata!;
   }
 
- getNamedQueries():Array<NamedBundleQuery> {
+  getNamedQueries(): Array<NamedBundleQuery> {
     this.getBundleMetadata();
 
-    if(this.namedQueries !== null) {
+    if (this.namedQueries !== null) {
       return this.namedQueries!;
     }
 
     this.namedQueries = [];
     let namedQuery = this.elementCursor!.readAsNamedQuery();
-    while(!!namedQuery) {
+    while (!!namedQuery) {
       this.namedQueries.push(namedQuery);
       this.elementCursor!.next();
       namedQuery = this.elementCursor!.readAsNamedQuery();
@@ -60,24 +62,24 @@ export class Bundle {
     return this.namedQueries!;
   }
 
-  getDocuments():Array<[BundledDocumentMetadata, string]> {
+  getDocuments(): Array<[BundledDocumentMetadata, api.Document]> {
     // TODO(): This should be cursor based as well.
     this.getNamedQueries();
 
-    if(this.documents !== null) {
+    if (this.documents !== null) {
       return this.documents!;
     }
 
     this.documents = [];
     let docMetadata = this.elementCursor!.readAsDocumentMetadata();
-    while(docMetadata !== null && this.elementCursor!.hasMore()) {
+    while (docMetadata !== null && this.elementCursor!.hasMore()) {
       this.elementCursor!.next();
-      const docString = this.elementCursor!.readAsDocumentJsonString();
-      this.documents.push([docMetadata, docString!]);
+      const doc = this.elementCursor!.readAsDocument();
+      this.documents.push([docMetadata, doc!]);
       this.elementCursor!.next();
-      if(this.elementCursor!.hasMore()) {
+      if (this.elementCursor!.hasMore()) {
         docMetadata = this.elementCursor!.readAsDocumentMetadata();
-      }else {
+      } else {
         docMetadata = null;
       }
     }
@@ -88,73 +90,83 @@ export class Bundle {
 
 interface Timestamp {
   /** Timestamp seconds */
-  seconds?: (number|null);
+  seconds?: number | null;
 
   /** Timestamp nanos */
-  nanos?: (number|null);
+  nanos?: number | null;
 }
 
-export interface BundleMetadata{
+export interface BundleMetadata {
   /** BundleMetadata name */
-  name?: (string|null);
+  name?: string | null;
 
   /** BundleMetadata createTime */
-  createTime?: (Timestamp|null);
+  createTime?: Timestamp | null;
 }
 
 export interface NamedBundleQuery {
   /** NamedBundleQuery name */
-  name?: (string|null);
+  name?: string | null;
 
   /** NamedBundleQuery queryTarget */
-  queryTarget?: (api.QueryTarget|null);
+  queryTarget?: api.QueryTarget | null;
 
   /** NamedBundleQuery readTime */
-  readTime?: (Timestamp|null);
+  readTime?: Timestamp | null;
 }
 
 /** Properties of a BundledDocumentMetadata. */
-interface BundledDocumentMetadata {
-
+export interface BundledDocumentMetadata {
   /** BundledDocumentMetadata documentKey */
-  documentKey?: (string|null);
+  documentKey?: string | null;
 
   /** BundledDocumentMetadata readTime */
-  readTime?: (Timestamp|null);
+  readTime?: Timestamp | null;
 }
 
 class BundleElementCursor {
   private readFrom = 0;
-  private textDecoder = new TextDecoder("utf-8");
+  private textDecoder = new TextDecoder('utf-8');
 
   constructor(private data: ArrayBuffer) {}
 
   // Returns a Blob representing the next bundle element.
   public readElement(): ArrayBuffer {
     const length = this.readLength();
-    const result = this.data.slice(this.readFrom + 4, this.readFrom + 4 + length);
+    const result = this.data.slice(
+      this.readFrom + 4,
+      this.readFrom + 4 + length
+    );
     return result;
   }
 
   public readAsBundleMetadata(): BundleMetadata | null {
-    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    const stringValue = this.textDecoder.decode(
+      new DataView(this.readElement())
+    );
     return JSON.parse(stringValue).metadata || null;
   }
 
   public readAsNamedQuery(): NamedBundleQuery | null {
-    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
+    const stringValue = this.textDecoder.decode(
+      new DataView(this.readElement())
+    );
     const result = JSON.parse(stringValue);
     return result.namedQuery || null;
   }
 
   public readAsDocumentMetadata(): BundledDocumentMetadata | null {
-    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
-    return JSON.parse(stringValue).documentMetadata|| null;
+    const stringValue = this.textDecoder.decode(
+      new DataView(this.readElement())
+    );
+    return JSON.parse(stringValue).documentMetadata || null;
   }
 
-  public readAsDocumentJsonString(): string | null {
-    const stringValue = this.textDecoder.decode(new DataView(this.readElement()));
-    return stringValue || null;
+  public readAsDocument(): api.Document | null {
+    const stringValue = this.textDecoder.decode(
+      new DataView(this.readElement())
+    );
+    return JSON.parse(stringValue) || null;
   }
 
   public next(): void {
@@ -167,11 +179,11 @@ class BundleElementCursor {
     return this.toUInt32LE(lengthBlob);
   }
 
-  private toUInt32LE(buffer: ArrayBuffer): number{
+  private toUInt32LE(buffer: ArrayBuffer): number {
     return new DataView(buffer).getUint32(0, true);
   }
 
-  public hasMore():boolean {
+  public hasMore(): boolean {
     return this.data.byteLength > this.readFrom;
   }
 

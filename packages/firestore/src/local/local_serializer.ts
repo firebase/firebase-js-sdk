@@ -47,7 +47,7 @@ import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
-  constructor(private remoteSerializer: JsonProtoSerializer) {}
+  constructor(public remoteSerializer: JsonProtoSerializer) {}
 
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {

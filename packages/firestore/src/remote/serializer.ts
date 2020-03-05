@@ -231,8 +231,10 @@ export class JsonProtoSerializer {
       // TODO(b/37282237): Use strings for Proto3 timestamps
       // assert(!this.options.useProto3Json,
       //   'The timestamp instance format requires Proto JS.');
-      const seconds = parseInt64(date.seconds || '0');
-      const nanos = date.nanos || 0;
+      const seconds = parseInt64(
+        date.seconds || ((date as any)._seconds as number) || '0'
+      );
+      const nanos = date.nanos || ((date as any)._nanoseconds as number) || 0;
       return new Timestamp(seconds, nanos);
     }
   }

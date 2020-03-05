@@ -85,6 +85,7 @@ export class FirebaseFirestore {
   onSnapshotsInSync(onSync: () => void): () => void;
 
   terminate(): Promise<void>;
+  loadBundle(data: ArrayBuffer): Promise<void>;
 
   INTERNAL: { delete: () => Promise<void> };
 }

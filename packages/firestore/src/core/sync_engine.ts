@@ -71,7 +71,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
-import {Bundle} from '../util/bundle';
+import { Bundle } from '../util/bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -436,22 +436,46 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  async loadBundle(bundleData: ArrayBuffer): Promise<void> {
+  async loadBundle(
+    bundleData: ArrayBuffer,
+    deferred: Deferred<void>
+  ): Promise<void> {
     const bundle = new Bundle(bundleData);
-    const shouldLoadRest = await this.localStore.newerBundleExists(bundle.getBundleMetadata());
+    const shouldLoadRest = await this.localStore.newerBundleExists(
+      bundle.getBundleMetadata()
+    );
 
-    if(!shouldLoadRest) {
+    if (!shouldLoadRest) {
       return Promise.resolve();
     }
 
-    // TODO: Loading documents should be here.
+    const changes = await this.localStore.applyBundleDocuments(
+      bundle.getDocuments()
+    );
 
     await this.localStore.clearNamedQueryOlderThan(bundle.getBundleMetadata());
-    await this.localStore.saveNamedQueries(bundle.getBundleMetadata(), bundle.getNamedQueries());
+    await this.localStore.saveNamedQueries(
+      bundle.getBundleMetadata(),
+      bundle.getNamedQueries()
+    );
+
+    await this.emitNewSnapsAndNotifyLocalStore(changes);
 
     // TODO: Debug code, remove
-    const namedQuery = await this.localStore.getNamedQuery(bundle.getBundleMetadata().name!, bundle.getNamedQueries()[0].name!);
+    const namedQuery = await this.localStore.getNamedQuery(
+      bundle.getBundleMetadata().name!,
+      bundle.getNamedQueries()[0].name!
+    );
     console.log(`Getting named query back: ${JSON.stringify(namedQuery)}`);
+    console.log(`Resulted in document changes: ${changes.size}`);
+    let l = 0;
+    changes.forEach((k, v) => {
+      if (l < 10) {
+        console.log(`Change: ${k} ${v}`);
+      }
+      l += 1;
+    });
+    deferred.resolve();
   }
 
   /**

@@ -645,6 +645,12 @@ export class FirestoreClient {
   }
 
   loadBundle(bundleData: ArrayBuffer): Promise<void> {
-    return this.syncEngine.loadBundle(bundleData);
+    this.verifyNotTerminated();
+    const deferred = new Deferred<void>();
+    this.asyncQueue.enqueueAndForget(() => {
+      return this.syncEngine.loadBundle(bundleData, deferred);
+    });
+
+    return deferred.promise;
   }
 }

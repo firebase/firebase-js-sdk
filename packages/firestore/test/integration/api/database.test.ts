@@ -32,8 +32,8 @@ import {
   withTestDocAndInitialData,
   DEFAULT_SETTINGS
 } from '../util/helpers';
-import * as fs from "fs";
-import {Bundle} from "../../../src/util/bundle";
+import * as fs from 'fs';
+import { Bundle } from '../../../src/util/bundle';
 
 // tslint:disable:no-floating-promises
 
@@ -1280,22 +1280,33 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it.only('Load bundle test', () => {
       return withTestDb(true, async db => {
-        const postsCollection = db
-          .collection('users/user1/posts')
-          .withConverter(postConverter);
+        // await db.disableNetwork();
+        const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+        const washington = db
+          .collection('restaurants')
+          .where('city', '==', 'Washington');
+        const unsubscribe = washington.onSnapshot(accumulator.storeEvent);
 
         const done = new Deferred<void>();
-        fs.readFile('/Users/wuandy/Downloads/download', (err, data) => {
-          // const bundle = new Bundle(data.buffer);
-          // console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
-          // console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
-          // console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
-          db.loadBundle(data.buffer).then(() => done.resolve());
-        });
+        fs.readFile(
+          '/usr/local/google/home/wuandy/Downloads/bundle',
+          (err, data) => {
+            const bundle = new Bundle(data.buffer);
+            // console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
+            // console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
+            // console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
+            (db as any).loadBundle(data.buffer).then(() => done.resolve());
+          }
+        );
 
         await done.promise;
+        await accumulator.awaitEvent().then(snap => {
+          snap.docs.forEach(value => {
+            console.log(`snap: ${value.data()['city']}`);
+          });
+        });
       });
-    })
+    });
 
     it('Load bundle from web test', async () => {
       return withTestDb(persistence, async db => {
@@ -1308,17 +1319,17 @@ apiDescribe('Database', (persistence: boolean) => {
         request.onload = function(e) {
           const ab = request.response;
           const bundle = new Bundle(ab);
-          console.log((`${bundle.getDocuments().slice(0,10)}`));
-          console.log((`${bundle.getNamedQueries()}`));
-          console.log((`${bundle.getBundleMetadata()}`));
+          console.log(`${bundle.getDocuments().slice(0, 10)}`);
+          console.log(`${bundle.getNamedQueries()}`);
+          console.log(`${bundle.getBundleMetadata()}`);
           done.resolve();
-        }
-        request.open("GET", 'http://localhost:43215/');
-        request.responseType = "arraybuffer";
+        };
+        request.open('GET', 'http://localhost:43215/');
+        request.responseType = 'arraybuffer';
         request.send();
 
         await done.promise;
       });
-    })
+    });
   });
 });
