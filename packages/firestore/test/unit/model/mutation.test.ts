@@ -209,7 +209,7 @@ describe('Mutation', () => {
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
 
-  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // NOTE: This is more a test of UserDataReader code than Mutation code but
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayUnion() transform.', () => {
@@ -235,7 +235,7 @@ describe('Mutation', () => {
     );
   });
 
-  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // NOTE: This is more a test of UserDataReader code than Mutation code but
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayRemove() transform.', () => {

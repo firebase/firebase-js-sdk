@@ -20,7 +20,7 @@ import * as typeUtils from '../../src/util/types';
 import { Blob } from '../../src/api/blob';
 import { Timestamp } from '../../src/api/timestamp';
 import { GeoPoint } from '../../src/api/geo_point';
-import { DocumentKeyReference } from '../../src/api/user_data_converter';
+import { DocumentKeyReference } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import { DocumentKey } from '../../src/model/document_key';
 import { fail } from '../../src/util/assert';
@@ -28,7 +28,7 @@ import { Dict, forEach } from '../../src/util/obj';
 
 /** Test helper to create Firestore Value protos from JavaScript types. */
 
-// TODO(mrschmidt): Move into UserDataConverter
+// TODO(mrschmidt): Move into UserDataReader
 export function valueOf(
   input: unknown,
   useProto3Json: boolean = false

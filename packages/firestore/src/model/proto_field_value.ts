@@ -21,7 +21,6 @@ import { DocumentKey } from './document_key';
 import {
   FieldType,
   FieldValue,
-  FieldValueOptions,
   ServerTimestampValue,
   TypeOrder
 } from './field_value';
@@ -55,7 +54,7 @@ export class PrimitiveValue extends FieldValue {
     return typeOrder(this.proto);
   }
 
-  value(options?: FieldValueOptions): FieldType {
+  value(): FieldType {
     return this.convertValue(this.proto);
   }
 

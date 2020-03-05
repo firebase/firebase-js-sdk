@@ -19,7 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
-import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -45,10 +44,7 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   ArrayValue,
-  BlobValue,
   FieldValue,
-  FieldValueOptions,
-  ObjectValue,
   RefValue,
   ServerTimestampValue
 } from '../model/field_value';
@@ -105,8 +101,9 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
-  UserDataConverter
-} from './user_data_converter';
+  UserDataReader
+} from './user_data_reader';
+import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -310,7 +307,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  readonly _dataConverter: UserDataConverter;
+  readonly _dataReader: UserDataReader;
 
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
@@ -340,7 +337,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     this._settings = new FirestoreSettings({});
-    this._dataConverter = this.createDataConverter(this._databaseId);
+    this._dataReader = this.createDataReader(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -535,7 +532,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient.start(persistenceSettings);
   }
 
-  private createDataConverter(databaseId: DatabaseId): UserDataConverter {
+  private createDataReader(databaseId: DatabaseId): UserDataReader {
     const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
         const thisDb = databaseId;
@@ -553,7 +550,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         return value;
       }
     };
-    return new UserDataConverter(preConverter);
+    return new UserDataReader(preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -760,12 +757,12 @@ export class Transaction implements firestore.Transaction {
     );
     const parsed =
       options.merge || options.mergeFields
-        ? this._firestore._dataConverter.parseMergeData(
+        ? this._firestore._dataReader.parseMergeData(
             functionName,
             convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataConverter.parseSetData(
+        : this._firestore._dataReader.parseSetData(
             functionName,
             convertedValue
           );
@@ -802,7 +799,7 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataConverter.parseUpdateVarargs(
+      parsed = this._firestore._dataReader.parseUpdateVarargs(
         'Transaction.update',
         fieldOrUpdateData,
         value,
@@ -815,7 +812,7 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataConverter.parseUpdateData(
+      parsed = this._firestore._dataReader.parseUpdateData(
         'Transaction.update',
         fieldOrUpdateData
       );
@@ -863,12 +860,12 @@ export class WriteBatch implements firestore.WriteBatch {
     );
     const parsed =
       options.merge || options.mergeFields
-        ? this._firestore._dataConverter.parseMergeData(
+        ? this._firestore._dataReader.parseMergeData(
             functionName,
             convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataConverter.parseSetData(
+        : this._firestore._dataReader.parseSetData(
             functionName,
             convertedValue
           );
@@ -909,7 +906,7 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataConverter.parseUpdateVarargs(
+      parsed = this._firestore._dataReader.parseUpdateVarargs(
         'WriteBatch.update',
         fieldOrUpdateData,
         value,
@@ -922,7 +919,7 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataConverter.parseUpdateData(
+      parsed = this._firestore._dataReader.parseUpdateData(
         'WriteBatch.update',
         fieldOrUpdateData
       );
@@ -1059,15 +1056,12 @@ export class DocumentReference<T = firestore.DocumentData>
     );
     const parsed =
       options.merge || options.mergeFields
-        ? this.firestore._dataConverter.parseMergeData(
+        ? this.firestore._dataReader.parseMergeData(
             functionName,
             convertedValue,
             options.mergeFields
           )
-        : this.firestore._dataConverter.parseSetData(
-            functionName,
-            convertedValue
-          );
+        : this.firestore._dataReader.parseSetData(functionName, convertedValue);
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
     );
@@ -1091,7 +1085,7 @@ export class DocumentReference<T = firestore.DocumentData>
       fieldOrUpdateData instanceof ExternalFieldPath
     ) {
       validateAtLeastNumberOfArgs('DocumentReference.update', arguments, 2);
-      parsed = this.firestore._dataConverter.parseUpdateVarargs(
+      parsed = this.firestore._dataReader.parseUpdateVarargs(
         'DocumentReference.update',
         fieldOrUpdateData,
         value,
@@ -1099,7 +1093,7 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     } else {
       validateExactNumberOfArgs('DocumentReference.update', arguments, 1);
-      parsed = this.firestore._dataConverter.parseUpdateData(
+      parsed = this.firestore._dataReader.parseUpdateData(
         'DocumentReference.update',
         fieldOrUpdateData
       );
@@ -1385,13 +1379,13 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         );
         return this._converter.fromFirestore(snapshot, options);
       } else {
-        return this.toJSObject(
-          this._document.data(),
-          FieldValueOptions.fromSnapshotOptions(
-            options,
-            this._firestore._areTimestampsInSnapshotsEnabled()
-          )
-        ) as T;
+        const userDataWriter = new UserDataWriter(
+          this._firestore,
+          this._firestore._areTimestampsInSnapshotsEnabled(),
+          options.serverTimestamps,
+          /* converter= */ undefined
+        );
+        return userDataWriter.convertValue(this._document.data()) as T;
       }
     }
   }
@@ -1407,13 +1401,13 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         .data()
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
-        return this.toJSValue(
-          value,
-          FieldValueOptions.fromSnapshotOptions(
-            options,
-            this._firestore._areTimestampsInSnapshotsEnabled()
-          )
+        const userDataWriter = new UserDataWriter(
+          this._firestore,
+          this._firestore._areTimestampsInSnapshotsEnabled(),
+          options.serverTimestamps,
+          this._converter
         );
+        return userDataWriter.convertValue(value);
       }
     }
     return undefined;
@@ -1452,50 +1446,6 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         : this._document.isEqual(other._document)) &&
       this._converter === other._converter
     );
-  }
-
-  private toJSObject(
-    data: ObjectValue,
-    options: FieldValueOptions
-  ): firestore.DocumentData {
-    const result: firestore.DocumentData = {};
-    data.forEach((key, value) => {
-      result[key] = this.toJSValue(value, options);
-    });
-    return result;
-  }
-
-  private toJSValue(value: FieldValue, options: FieldValueOptions): unknown {
-    if (value instanceof ObjectValue) {
-      return this.toJSObject(value, options);
-    } else if (value instanceof ArrayValue) {
-      return this.toJSArray(value, options);
-    } else if (value instanceof RefValue) {
-      const key = value.value(options);
-      const database = this._firestore.ensureClientConfigured().databaseId();
-      if (!value.databaseId.isEqual(database)) {
-        // TODO(b/64130202): Somehow support foreign references.
-        log.error(
-          `Document ${this._key.path} contains a document ` +
-            `reference within a different database (` +
-            `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
-            `supported. It will be treated as a reference in the current ` +
-            `database (${database.projectId}/${database.database}) ` +
-            `instead.`
-        );
-      }
-      return new DocumentReference(key, this._firestore, this._converter);
-    } else if (value instanceof BlobValue) {
-      return new Blob(value.internalValue);
-    } else {
-      return value.value(options);
-    }
-  }
-
-  private toJSArray(data: ArrayValue, options: FieldValueOptions): unknown[] {
-    return data.internalValue.map(value => {
-      return this.toJSValue(value, options);
-    });
   }
 }
 
@@ -1570,7 +1520,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       ) {
         this.validateDisjunctiveFilterElements(value, operator);
       }
-      fieldValue = this.firestore._dataConverter.parseQueryValue(
+      fieldValue = this.firestore._dataReader.parseQueryValue(
         'Query.where',
         value,
         // We only allow nested arrays for IN queries.
@@ -1882,7 +1832,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         const key = new DocumentKey(path);
         components.push(new RefValue(this.firestore._databaseId, key));
       } else {
-        const wrapped = this.firestore._dataConverter.parseQueryValue(
+        const wrapped = this.firestore._dataReader.parseQueryValue(
           methodName,
           rawValue
         );

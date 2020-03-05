@@ -291,7 +291,7 @@ class ParseContext {
  *    avoiding a circular dependency between user_data_converter.ts and
  *    database.ts
  *  * Tests to convert test-only sentinels (e.g. '<DELETE>') into types
- *    compatible with UserDataConverter.
+ *    compatible with UserDataReader.
  *
  * Returns the converted value (can return back the input to act as a no-op).
  *
@@ -312,7 +312,7 @@ export class DocumentKeyReference {
  * Helper for parsing raw user input (provided via the API) into internal model
  * classes.
  */
-export class UserDataConverter {
+export class UserDataReader {
   constructor(private preConverter: DataPreConverter) {}
 
   /** Parse document data from a non-merge set() call. */

@@ -23,8 +23,8 @@ import { fromDotSeparatedString } from '../../src/api/field_path';
 import { FieldValueImpl } from '../../src/api/field_value';
 import {
   DocumentKeyReference,
-  UserDataConverter
-} from '../../src/api/user_data_converter';
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -103,7 +103,7 @@ const preConverter = (input: unknown): unknown => {
   return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
-const dataConverter = new UserDataConverter(preConverter);
+const dataReader = new UserDataReader(preConverter);
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
   return SnapshotVersion.fromMicroseconds(v);
@@ -151,7 +151,7 @@ export function wrap(value: unknown): FieldValue {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return dataConverter.parseQueryValue('wrap', value);
+  return dataReader.parseQueryValue('wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -226,7 +226,7 @@ export function patchMutation(
     precondition = Precondition.exists(true);
   }
 
-  const parsed = dataConverter.parseUpdateData('patchMutation', json);
+  const parsed = dataReader.parseUpdateData('patchMutation', json);
   return new PatchMutation(
     key(keyStr),
     parsed.data,
@@ -249,7 +249,7 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = dataConverter.parseUpdateData('transformMutation()', data);
+  const result = dataReader.parseUpdateData('transformMutation()', data);
   return new TransformMutation(key(keyStr), result.fieldTransforms);
 }
 
