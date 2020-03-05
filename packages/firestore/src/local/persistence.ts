@@ -27,7 +27,7 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
-import {NamedQueryCache} from './named_query_cache';
+import { NamedQueryCache } from './named_query_cache';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +

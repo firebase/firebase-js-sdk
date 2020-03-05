@@ -47,7 +47,7 @@ export function makeConstructorPrivate<T extends Function>(
 
   // Copy any static methods/members
   Object.assign(PublicConstructor, cls);
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return PublicConstructor as any;
 }

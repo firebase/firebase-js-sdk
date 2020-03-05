@@ -48,10 +48,8 @@ import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
-import {NamedQueryCache} from './named_query_cache';
-import {
-  MemoryNamedQueryCache
-} from "./memory_named_query_cache";
+import { NamedQueryCache } from './named_query_cache';
+import { MemoryNamedQueryCache } from './memory_named_query_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -167,7 +165,7 @@ export class MemoryPersistence implements Persistence {
     return this.targetCache;
   }
 
-  getNamedQueryCache(): NamedQueryCache{
+  getNamedQueryCache(): NamedQueryCache {
     return this.namedQueryCache;
   }
 

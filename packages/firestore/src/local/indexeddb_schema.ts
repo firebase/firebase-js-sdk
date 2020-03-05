@@ -1054,7 +1054,6 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
-
 export type DbNamedQueryKey = [string, string];
 
 /**
@@ -1076,7 +1075,7 @@ export class DbNamedQuery {
     // TODO(149936981): This should not be `DbQuery`, features like limitToLast
     // should be saved too.
     public query: DbQuery
-) {}
+  ) {}
 }
 
 function createNamedQueryStore(db: IDBDatabase): void {

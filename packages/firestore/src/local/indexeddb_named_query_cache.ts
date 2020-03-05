@@ -14,84 +14,113 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NamedQueryCache} from "./named_query_cache";
-import {PersistenceTransaction} from "./persistence";
-import {PersistencePromise} from "./persistence_promise";
-import {SnapshotVersion} from "../core/snapshot_version";
-import {Target} from "../core/target";
-import {SimpleDbStore} from "./simple_db";
+import { NamedQueryCache } from './named_query_cache';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
+import { SimpleDbStore } from './simple_db';
 import {
   DbNamedQuery,
   DbNamedQueryKey,
   DbQuery,
   DbTarget,
-  DbTargetKey, DbTimestamp
-} from "./indexeddb_schema";
-import {IndexedDbPersistence} from "./indexeddb_persistence";
-import {Timestamp} from "../api/timestamp";
-import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
-import {firestoreV1ApiClientInterfaces} from "../protos/firestore_proto_api";
+  DbTargetKey,
+  DbTimestamp
+} from './indexeddb_schema';
+import { IndexedDbPersistence } from './indexeddb_persistence';
+import { Timestamp } from '../api/timestamp';
+import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
+import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
-import {immediateSuccessor} from "../util/misc";
-
+import { immediateSuccessor } from '../util/misc';
 
 export class IndexedDbNamedQueryCache implements NamedQueryCache {
-  clear(transaction: PersistenceTransaction, bundleId: string): PersistencePromise<void> {
+  clear(
+    transaction: PersistenceTransaction,
+    bundleId: string
+  ): PersistencePromise<void> {
     const range = IDBKeyRange.bound(
-      [bundleId, ""], [immediateSuccessor(bundleId), ""], false, true
+      [bundleId, ''],
+      [immediateSuccessor(bundleId), ''],
+      false,
+      true
     );
     return namedQueryStore(transaction).delete(range);
   }
 
-  getBundleCreateTime(transaction: PersistenceTransaction, bundleId: string): PersistencePromise<SnapshotVersion | null> {
+  getBundleCreateTime(
+    transaction: PersistenceTransaction,
+    bundleId: string
+  ): PersistencePromise<SnapshotVersion | null> {
     const range = IDBKeyRange.bound(
-      [bundleId, ""], [immediateSuccessor(bundleId), ""], false, true
+      [bundleId, ''],
+      [immediateSuccessor(bundleId), ''],
+      false,
+      true
     );
-    let result:SnapshotVersion | null = null;
-    return namedQueryStore(transaction).iterate({range},
-      (key, value, control) => {
-        if(key[0] === bundleId) {
+    let result: SnapshotVersion | null = null;
+    return namedQueryStore(transaction)
+      .iterate({ range }, (key, value, control) => {
+        if (key[0] === bundleId) {
           result = SnapshotVersion.fromTimestamp(
             new Timestamp(
               value.bundleCreateTime.seconds,
               value.bundleCreateTime.nanoseconds
-            ));
+            )
+          );
         }
 
         control.done();
-      }).next(() => result);
+      })
+      .next(() => result);
   }
 
-  getNamedQuery(transaction: PersistenceTransaction, bundleId: string, queryName: string): PersistencePromise<NamedBundleQuery | null> {
+  getNamedQuery(
+    transaction: PersistenceTransaction,
+    bundleId: string,
+    queryName: string
+  ): PersistencePromise<NamedBundleQuery | null> {
     console.log(`Reading named query ${bundleId}, ${queryName}`);
-    let result:NamedBundleQuery | null = null;
-    return namedQueryStore(transaction).get([bundleId, queryName]).next(q => {
-      console.log(`from cache read query: ${JSON.stringify(q)}`);
-      result = {
-        queryTarget: q?.query! as QueryTarget,
-        name: queryName,
-        readTime: q?.queryReadTime!
-      }
-    }).next(() => result);
+    let result: NamedBundleQuery | null = null;
+    return namedQueryStore(transaction)
+      .get([bundleId, queryName])
+      .next(q => {
+        console.log(`from cache read query: ${JSON.stringify(q)}`);
+        result = {
+          queryTarget: q?.query! as QueryTarget,
+          name: queryName,
+          readTime: q?.queryReadTime!
+        };
+      })
+      .next(() => result);
   }
 
-  setNamedQuery(transaction: PersistenceTransaction,
-                bundleMetadata: BundleMetadata,
-                queryName: string,
-                query: NamedBundleQuery): PersistencePromise<void> {
+  setNamedQuery(
+    transaction: PersistenceTransaction,
+    bundleMetadata: BundleMetadata,
+    queryName: string,
+    query: NamedBundleQuery
+  ): PersistencePromise<void> {
     const toAdd = {
       bundleId: bundleMetadata.name as string,
-      bundleCreateTime: new DbTimestamp(bundleMetadata.createTime?.seconds!, bundleMetadata.createTime?.nanos!),
+      bundleCreateTime: new DbTimestamp(
+        bundleMetadata.createTime?.seconds!,
+        bundleMetadata.createTime?.nanos!
+      ),
       name: queryName,
       query: query.queryTarget as QueryTarget,
-      queryReadTime: new DbTimestamp(query.readTime?.seconds!, query.readTime?.nanos!),
+      queryReadTime: new DbTimestamp(
+        query.readTime?.seconds!,
+        query.readTime?.nanos!
+      )
     };
     console.log(`setting named query ${JSON.stringify(query)}`);
-    return namedQueryStore(transaction).add(
-      toAdd
-    ).next(k => {
-      console.log(`Wrote to key ${JSON.stringify(k)}`);
-    });
+    return namedQueryStore(transaction)
+      .add(toAdd)
+      .next(k => {
+        console.log(`Wrote to key ${JSON.stringify(k)}`);
+      });
   }
 }
 

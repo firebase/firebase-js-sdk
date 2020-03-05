@@ -14,29 +14,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NamedQueryCache} from "./named_query_cache";
-import {PersistenceTransaction} from "./persistence";
-import {PersistencePromise} from "./persistence_promise";
-import {SnapshotVersion} from "../core/snapshot_version";
-import {Target} from "../core/target";
-import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
-
+import { NamedQueryCache } from './named_query_cache';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
+import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
 
 export class MemoryNamedQueryCache implements NamedQueryCache {
-  clear(transaction: PersistenceTransaction, bundleId: string): PersistencePromise<void> {
+  clear(
+    transaction: PersistenceTransaction,
+    bundleId: string
+  ): PersistencePromise<void> {
     return PersistencePromise.reject(new Error('Not implemented'));
   }
 
-  getBundleCreateTime(transaction: PersistenceTransaction, bundleId: string): PersistencePromise<SnapshotVersion | null> {
+  getBundleCreateTime(
+    transaction: PersistenceTransaction,
+    bundleId: string
+  ): PersistencePromise<SnapshotVersion | null> {
     return PersistencePromise.reject(new Error('Not implemented'));
   }
 
-  getNamedQuery(transaction: PersistenceTransaction, bundleId: string, queryName: string): PersistencePromise<NamedBundleQuery | null> {
+  getNamedQuery(
+    transaction: PersistenceTransaction,
+    bundleId: string,
+    queryName: string
+  ): PersistencePromise<NamedBundleQuery | null> {
     return PersistencePromise.reject(new Error('Not implemented'));
   }
 
-  setNamedQuery(transaction: PersistenceTransaction, bundleMetadata: BundleMetadata, queryName: string,
-                query: NamedBundleQuery): PersistencePromise<void> {
+  setNamedQuery(
+    transaction: PersistenceTransaction,
+    bundleMetadata: BundleMetadata,
+    queryName: string,
+    query: NamedBundleQuery
+  ): PersistencePromise<void> {
     return PersistencePromise.reject(new Error('Not implemented'));
   }
 }

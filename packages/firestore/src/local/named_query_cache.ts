@@ -20,7 +20,7 @@ import { Target } from '../core/target';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {BundleMetadata, NamedBundleQuery} from "../util/bundle";
+import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
 
 /**
  * Represents named queries loaded via bundles.
@@ -32,19 +32,19 @@ export interface NamedQueryCache {
   getBundleCreateTime(
     transaction: PersistenceTransaction,
     bundleId: string
-  ): PersistencePromise<SnapshotVersion| null>;
+  ): PersistencePromise<SnapshotVersion | null>;
 
   clear(
     transaction: PersistenceTransaction,
-    bundleId: string,
-  ):PersistencePromise<void>;
+    bundleId: string
+  ): PersistencePromise<void>;
 
   getNamedQuery(
     transaction: PersistenceTransaction,
     bundleId: string,
     queryName: string
-    // TODO(149936981): This should really return a `Query` not a `Target`.
-  ): PersistencePromise<NamedBundleQuery | null>;
+  ): // TODO(149936981): This should really return a `Query` not a `Target`.
+  PersistencePromise<NamedBundleQuery | null>;
 
   setNamedQuery(
     transaction: PersistenceTransaction,
@@ -52,5 +52,5 @@ export interface NamedQueryCache {
     queryName: string,
     // TODO(149936981): This should really be a `DbQuery`.
     query: NamedBundleQuery
-  ):PersistencePromise<void>;
+  ): PersistencePromise<void>;
 }

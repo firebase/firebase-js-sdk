@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import {Query} from './query';
+import { Query } from './query';
 
-export class NamedQuery extends Query {
-
-}
+export class NamedQuery extends Query {}
