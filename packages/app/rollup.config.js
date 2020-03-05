@@ -131,4 +131,3 @@ const es2017Builds = [
 ];
 
 export default [...es5Builds, ...es2017Builds];
-// export default [...es2017Builds];

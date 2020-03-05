@@ -229,7 +229,7 @@ function firebaseAppTests(
       return Promise.all(deleteTasks);
     });
 
-    it(' has no initial apps.', () => {
+    it('has no initial apps.', () => {
       expect(firebase.apps.length).to.eq(0);
     });
 

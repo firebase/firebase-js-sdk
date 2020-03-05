@@ -4,5 +4,5 @@
     "browser": "../dist/cjs/next.js",
     "module": "../dist/esm5/next.js",
     "esm2017": "../dist/esm2017/next.js",
-    "typings": "../ådist/packages/app/src/next/index.d.ts"
+    "typings": "../dist/packages/app/src/next/index.d.ts"
 }

@@ -22,8 +22,6 @@ import { ComponentType, Component } from '@firebase/component';
 export class TestService implements FirebaseService {
   constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
-  // TODO(koss): Shouldn't this just be an added method on
-  // the service instance?
   get app(): FirebaseApp {
     return this.app_;
   }

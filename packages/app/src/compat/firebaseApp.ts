@@ -60,8 +60,13 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    this.firebase.INTERNAL.removeApp(this.name);
-    return deleteApp(this.app);
+    return new Promise(resolve => {
+      this.app.checkDestroyed();
+      resolve();
+    }).then(() => {
+      this.firebase.INTERNAL.removeApp(this.name);
+      return deleteApp(this.app);
+    });
   }
 
   /**
