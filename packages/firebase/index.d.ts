@@ -83,7 +83,7 @@ declare namespace firebase {
    * silence the logs altogether.
    *
    * The order is as follows:
-   * debug < verbose < info < warn < error
+   * silent < debug < verbose < info < warn < error
    */
   type LogLevel = 'debug' | 'verbose' | 'info' | 'warn' | 'error' | 'silent';
 
@@ -107,15 +107,15 @@ declare namespace firebase {
   /**
    * Sets log level for all Firebase packages.
    *
-   * All of the log types above the current log level will be captured (i.e. if
-   * you set the log level to `info`, errors will still be logged, but `debug` and
-   * `verbose` logs will not)
+   * All of the log types above the current log level are captured (i.e. if
+   * you set the log level to `info`, errors are logged, but `debug` and
+   * `verbose` logs are not).
    */
   function setLogLevel(logLevel: LogLevel): void;
 
   /**
    * Sets log handler for all Firebase packages.
-   * @param logCallback An optional custom log handler that will execute user code whenever
+   * @param logCallback An optional custom log handler that executes user code whenever
    * the Firebase SDK makes a logging call.
    */
   function onLog(
@@ -140,7 +140,7 @@ declare namespace firebase {
     }) => void,
     options?: {
       /**
-       * Threshhold log level. Only logs at or above this level will trigger the `logCallback`
+       * Threshhold log level. Only logs at or above this level trigger the `logCallback`
        * passed to `onLog`.
        */
       level: LogLevel;
