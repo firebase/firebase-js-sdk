@@ -105,7 +105,7 @@ const ConsoleMethod = {
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
-const defaultLogHandler: LogHandler = (instance, logType, message): void => {
+const defaultLogHandler: LogHandler = (instance, logType, ...args): void => {
   if (logType < instance.logLevel) {
     return;
   }
@@ -114,7 +114,7 @@ const defaultLogHandler: LogHandler = (instance, logType, message): void => {
   if (method) {
     console[method as 'log' | 'info' | 'warn' | 'error'](
       `[${now}]  ${instance.name}:`,
-      message
+      ...args
     );
   } else {
     throw new Error(
@@ -215,11 +215,6 @@ export function setUserLogHandler(
   logCallback: LogCallback | null,
   options?: LogOptions
 ): void {
-  if (logCallback !== null && typeof logCallback !== 'function') {
-    throw new TypeError(
-      'First argument to `onLog` must be null or a function.'
-    );
-  }
   for (const instance of instances) {
     let threshhold = instance.logLevel;
     if (options && options.level) {

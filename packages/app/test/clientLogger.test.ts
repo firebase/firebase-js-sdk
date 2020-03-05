@@ -78,6 +78,7 @@ describe('User Log Methods', () => {
     });
 
     it(`correctly triggers callback given to firebase.onLog()`, () => {
+      // Note: default log level is INFO.
       firebase.initializeApp({});
       registerCoreComponents(firebase);
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
@@ -91,6 +92,8 @@ describe('User Log Methods', () => {
             logger.info('hi');
             expect(result.level).to.equal('info');
             expect(result.message).to.equal('hi');
+            expect(result.args).to.deep.equal(['hi']);
+            expect(result.type).to.equal('@firebase/logger-test');
             expect(infoSpy.called).to.be.true;
           },
           ComponentType.PUBLIC

@@ -51,6 +51,7 @@ describe(`Custom log handler`, () => {
     });
 
     it('calls custom callback with correct data for calling instance', () => {
+      // Default log level is INFO.
       client1.info('info message!');
       expect(result.message).to.equal('info message!');
       expect(result.args[0]).to.equal('info message!');
@@ -67,6 +68,7 @@ describe(`Custom log handler`, () => {
     });
 
     it('parses multiple arguments correctly', () => {
+      // Default log level is INFO.
       client1.info('info message!', ['hello'], 1, { a: 3 });
       expect(result.message).to.equal('info message! ["hello"] 1 {"a":3}');
       expect(result.args).to.deep.equal(['info message!', ['hello'], 1, { a: 3 }]);
@@ -75,7 +77,8 @@ describe(`Custom log handler`, () => {
     });
 
     it('calls custom callback when log call is above set log level', () => {
-      // Info was already tested above.
+      // Default log level is INFO.
+      // INFO was already tested above.
       client1.warn('warning message!');
       expect(result.message).to.equal('warning message!');
       expect(result.level).to.equal('warn');
@@ -87,6 +90,7 @@ describe(`Custom log handler`, () => {
     });
   
     it('does not call custom callback when log call is not above set log level', () => {
+      // Default log level is INFO.
       client1.log('message you should not see');
       expect(result).to.be.null;
       expect(spies.logSpy.called).to.be.false;
