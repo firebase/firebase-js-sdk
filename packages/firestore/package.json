@@ -24,16 +24,13 @@
     "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
-  "mainMemoryPersistence": "dist/index.node.memory.cjs.js",
   "browser": "dist/index.cjs.js",
-  "browserMemoryPersistence": "dist/index.memory.cjs.js",
   "module": "dist/index.esm.js",
-  "moduleMemoryPersistence": "dist/index.memory.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "esm2017MemoryPersistence": "dist/index.memory.esm2017.js",
   "license": "Apache-2.0",
   "files": [
-    "dist"
+    "dist",
+    "memory/package.json"
   ],
   "dependencies": {
     "@firebase/component": "0.1.6",

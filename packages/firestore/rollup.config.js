@@ -28,6 +28,7 @@ import { terser } from 'rollup-plugin-terser';
 import { renameInternals } from './scripts/rename-internals';
 import { extractPublicIdentifiers } from './scripts/extract-api';
 import pkg from './package.json';
+import memoryPkg from './memory/package.json';
 import { externs } from './externs.json';
 
 const deps = Object.keys(
@@ -132,7 +133,7 @@ const es5Builds = [
   {
     input: 'index.node.memory.ts',
     output: [
-      { file: pkg.mainMemoryPersistence, format: 'cjs', sourcemap: true }
+      { file: path.resolve('./memory', memoryPkg.main), format: 'cjs', sourcemap: true }
     ],
     plugins: nodeBuildPlugins,
     external: resolveMemoryExterns
@@ -156,7 +157,7 @@ const es5Builds = [
   },
   {
     input: 'index.memory.ts',
-    output: { file: pkg.moduleMemoryPersistence, format: 'es', sourcemap: true },
+    output: { file: path.resolve('./memory', memoryPkg.module), format: 'es', sourcemap: true },
     plugins: [
       typescriptPlugin({
         typescript,
@@ -180,9 +181,9 @@ const es5Builds = [
     plugins: [sourcemaps()]
   },
   {
-    input: pkg.moduleMemoryPersistence,
+    input: path.resolve('./memory', memoryPkg.module),
     output: {
-      file: pkg.browserMemoryPersistence,
+      file: path.resolve('./memory', memoryPkg.browser),
       format: 'cjs',
       sourcemap: true
     },
@@ -225,7 +226,7 @@ const es2017Builds = [
   {
     input: 'index.memory.ts',
     output: {
-      file: pkg.esm2017MemoryPersistence,
+      file: path.resolve('./memory', memoryPkg.esm2017),
       format: 'es',
       sourcemap: true
     },

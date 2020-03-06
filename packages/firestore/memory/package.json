@@ -1,0 +1,8 @@
+{
+  "name": "@firebase/firestore/memory",
+  "main": "../dist/index.memory.node.cjs.js",
+  "browser": "../dist/index.memory.cjs.js",
+  "module": "../dist/index.memory.esm.js",
+  "esm2017": "../dist/index.memory.esm2017.js",
+  "typings": "../dist/index.d.ts"
+}
