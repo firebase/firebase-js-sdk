@@ -22,7 +22,7 @@
     "karma-spec-reporter": "0.0.32",
     "mocha": "7.0.1",
     "ts-loader": "6.2.1",
-    "typescript": "3.8.2",
+    "typescript": "3.8.3",
     "webpack": "4.41.5",
     "webpack-stream": "5.2.1"
   }
