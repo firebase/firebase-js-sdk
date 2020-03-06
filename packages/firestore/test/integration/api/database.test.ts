@@ -1289,13 +1289,14 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const done = new Deferred<void>();
         fs.readFile(
-          '/usr/local/google/home/wuandy/Downloads/bundle',
+          '/Users/wuandy/Downloads/download',
+          // '/usr/local/google/home/wuandy/Downloads/bundle',
           (err, data) => {
-            const bundle = new Bundle(data.buffer);
-            // console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
+            const bundle = new Bundle(data);
+            console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
             // console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
             // console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
-            (db as any).loadBundle(data.buffer).then(() => done.resolve());
+            (db as any).loadBundle(data).then(() => done.resolve());
           }
         );
 

@@ -7400,7 +7400,7 @@ declare namespace firebase.firestore {
      */
     terminate(): Promise<void>;
 
-    loadBundle(data: ArrayBuffer): Promise<void>;
+    loadBundle(data: Uint8Array): Promise<void>;
 
     /**
      * @hidden

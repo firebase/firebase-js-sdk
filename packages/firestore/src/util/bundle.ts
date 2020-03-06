@@ -26,10 +26,8 @@ export class Bundle {
   > | null = null;
   private elementCursor: BundleElementCursor | null = null;
 
-  constructor(private bundleUrlOrBuffer: URL | ArrayBuffer) {
-    if (bundleUrlOrBuffer instanceof ArrayBuffer) {
-      this.elementCursor = new BundleElementCursor(bundleUrlOrBuffer);
-    }
+  constructor(private bundleBuffer: Uint8Array) {
+    this.elementCursor = new BundleElementCursor(bundleBuffer.buffer);
   }
 
   getBundleMetadata(): BundleMetadata {

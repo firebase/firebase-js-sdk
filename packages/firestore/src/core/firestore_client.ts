@@ -644,7 +644,7 @@ export class FirestoreClient {
     return deferred.promise;
   }
 
-  loadBundle(bundleData: ArrayBuffer): Promise<void> {
+  loadBundle(bundleData: Uint8Array): Promise<void> {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() => {
