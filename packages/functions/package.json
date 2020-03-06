@@ -32,7 +32,7 @@
     "@firebase/messaging": "0.6.8",
     "rollup": "1.28.0",
     "rollup-plugin-typescript2": "0.25.3",
-    "typescript": "3.8.2"
+    "typescript": "3.8.3"
   },
   "repository": {
     "directory": "packages/functions",
