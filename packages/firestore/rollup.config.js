@@ -133,7 +133,11 @@ const es5Builds = [
   {
     input: 'index.node.memory.ts',
     output: [
-      { file: path.resolve('./memory', memoryPkg.main), format: 'cjs', sourcemap: true }
+      {
+        file: path.resolve('./memory', memoryPkg.main),
+        format: 'cjs',
+        sourcemap: true
+      }
     ],
     plugins: nodeBuildPlugins,
     external: resolveMemoryExterns
@@ -157,7 +161,11 @@ const es5Builds = [
   },
   {
     input: 'index.memory.ts',
-    output: { file: path.resolve('./memory', memoryPkg.module), format: 'es', sourcemap: true },
+    output: {
+      file: path.resolve('./memory', memoryPkg.module),
+      format: 'es',
+      sourcemap: true
+    },
     plugins: [
       typescriptPlugin({
         typescript,
