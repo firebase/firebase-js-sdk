@@ -107,6 +107,8 @@ import {
 } from './user_data_converter';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { NamedQuery } from '../core/named_query';
+import { Timestamp } from './timestamp';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -499,6 +501,20 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   loadBundle(bundleStream: Uint8Array): Promise<void> {
     this.ensureClientConfigured();
     return this._firestoreClient!.loadBundle(bundleStream);
+  }
+
+  namedQuery(bundleId: string, queryName: string): Promise<Query | null> {
+    this.ensureClientConfigured();
+    const namedQuery = this._firestoreClient!.getNamedQuery(
+      bundleId,
+      queryName
+    );
+    return namedQuery.then(v => {
+      if (!v) {
+        return null;
+      }
+      return new Query(v?.query!, this, undefined, v!.readTime.toTimestamp()!);
+    });
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -1518,7 +1534,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    protected readonly _converter?: firestore.FirestoreDataConverter<T>
+    protected readonly _converter?: firestore.FirestoreDataConverter<T>,
+    readonly readTime?: Timestamp
   ) {}
 
   where(

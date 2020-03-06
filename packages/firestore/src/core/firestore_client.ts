@@ -30,7 +30,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { AsyncQueue } from '../util/async_queue';
-import { Bundle } from '../util/bundle';
+import { Bundle, NamedBundleQuery } from '../util/bundle';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -59,6 +59,7 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import { NamedQuery } from './named_query';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -652,5 +653,29 @@ export class FirestoreClient {
     });
 
     return deferred.promise;
+  }
+
+  async getNamedQuery(
+    bundleId: string,
+    queryName: string
+  ): Promise<NamedQuery | null> {
+    this.verifyNotTerminated();
+    return this.asyncQueue
+      .enqueue(() => {
+        return this.localStore.getNamedQuery(bundleId, queryName);
+      })
+      .then((q: NamedBundleQuery | null) => {
+        if (!q) {
+          return null;
+        }
+
+        const serializer = new JsonProtoSerializer(
+          this.databaseInfo.databaseId,
+          {
+            useProto3Json: true
+          }
+        );
+        return NamedQuery.from(q!, serializer);
+      });
   }
 }

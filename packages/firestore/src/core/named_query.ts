@@ -15,6 +15,38 @@
  * limitations under the License.
  */
 
-import { Query } from './query';
+import { LimitType, Query } from './query';
+import { SnapshotVersion } from './snapshot_version';
+import { NamedBundleQuery } from '../util/bundle';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { Timestamp } from '../api/timestamp';
 
-export class NamedQuery extends Query {}
+export class NamedQuery {
+  static from(
+    bundleQuery: NamedBundleQuery,
+    serializer: JsonProtoSerializer
+  ): NamedQuery {
+    const target = serializer.fromQueryTarget(bundleQuery.queryTarget!);
+    const query = new Query(
+      target.path,
+      target.collectionGroup,
+      target.orderBy,
+      target.filters,
+      target.limit,
+      LimitType.First,
+      target.startAt,
+      target.endAt
+    );
+    return new NamedQuery(
+      query,
+      SnapshotVersion.fromTimestamp(
+        new Timestamp(
+          bundleQuery.readTime!.seconds!,
+          bundleQuery.readTime!.nanos!
+        )
+      )
+    );
+  }
+
+  constructor(readonly query: Query, readonly readTime: SnapshotVersion) {}
+}

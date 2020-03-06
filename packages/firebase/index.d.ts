@@ -7401,6 +7401,7 @@ declare namespace firebase.firestore {
     terminate(): Promise<void>;
 
     loadBundle(data: Uint8Array): Promise<void>;
+    namedQuery(bundleId: string, queryName: string): Promise<any>;
 
     /**
      * @hidden

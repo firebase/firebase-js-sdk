@@ -76,6 +76,7 @@ export class FirebaseFirestore {
   waitForPendingWrites(): Promise<void>;
 
   loadBundle(data: Uint8Array): Promise<void>;
+  namedQuery(bundleId: string, queryName: string): Promise<any>;
 
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;

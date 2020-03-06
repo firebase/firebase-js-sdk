@@ -34,6 +34,8 @@ import {
 } from '../util/helpers';
 import * as fs from 'fs';
 import { Bundle } from '../../../src/util/bundle';
+import { NamedQuery } from '../../../src/core/named_query';
+import { Query } from '../../../src/api/database';
 
 // tslint:disable:no-floating-promises
 
@@ -1293,7 +1295,9 @@ apiDescribe('Database', (persistence: boolean) => {
           // '/usr/local/google/home/wuandy/Downloads/bundle',
           (err, data) => {
             const bundle = new Bundle(data);
-            console.log((`${JSON.stringify(bundle.getDocuments().slice(0,10))}`));
+            console.log(
+              `${JSON.stringify(bundle.getDocuments().slice(0, 10))}`
+            );
             // console.log((`${JSON.stringify(bundle.getNamedQueries())}`));
             // console.log((`${JSON.stringify(bundle.getBundleMetadata())}`));
             (db as any).loadBundle(data).then(() => done.resolve());
@@ -1303,8 +1307,19 @@ apiDescribe('Database', (persistence: boolean) => {
         await done.promise;
         await accumulator.awaitEvent().then(snap => {
           snap.docs.forEach(value => {
-            console.log(`snap: ${value.data()['city']}`);
+            // console.log(`snap: ${value.data()['city']}`);
           });
+        });
+
+        const nq: Query | null = await db.namedQuery(
+          'my-bundle',
+          'restaurants'
+        );
+        // console.log(`getting query ${JSON.stringify(nq)}`);
+
+        const snap = await nq!.get({ source: 'cache' });
+        snap.docs.forEach(value => {
+          console.log(`snap: ${value.data()['city']}`);
         });
       });
     });
