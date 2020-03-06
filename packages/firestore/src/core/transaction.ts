@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
+import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
 import { documentVersionMap } from '../model/collections';
 import { Document, NoDocument, MaybeDocument } from '../model/document';
 

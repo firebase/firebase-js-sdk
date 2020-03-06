@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { SnapshotOptions } from '../api/database';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import {
   numericComparator,
   numericEquals,
@@ -66,47 +65,6 @@ export enum TypeOrder {
   ObjectValue = 9
 }
 
-/** Defines the return value for pending server timestamps. */
-export enum ServerTimestampBehavior {
-  Default,
-  Estimate,
-  Previous
-}
-
-/** Holds properties that define field value deserialization options. */
-export class FieldValueOptions {
-  constructor(
-    readonly serverTimestampBehavior: ServerTimestampBehavior,
-    readonly timestampsInSnapshots: boolean
-  ) {}
-
-  static fromSnapshotOptions(
-    options: SnapshotOptions,
-    timestampsInSnapshots: boolean
-  ): FieldValueOptions {
-    switch (options.serverTimestamps) {
-      case 'estimate':
-        return new FieldValueOptions(
-          ServerTimestampBehavior.Estimate,
-          timestampsInSnapshots
-        );
-      case 'previous':
-        return new FieldValueOptions(
-          ServerTimestampBehavior.Previous,
-          timestampsInSnapshots
-        );
-      case 'none': // Fall-through intended.
-      case undefined:
-        return new FieldValueOptions(
-          ServerTimestampBehavior.Default,
-          timestampsInSnapshots
-        );
-      default:
-        return fail('fromSnapshotOptions() called with invalid options.');
-    }
-  }
-}
-
 /**
  * Potential types returned by FieldValue.value(). This could be stricter
  * (instead of using {}), but there's little benefit.
@@ -126,7 +84,7 @@ export type FieldType = null | boolean | number | string | {};
 export abstract class FieldValue {
   abstract readonly typeOrder: TypeOrder;
 
-  abstract value(options?: FieldValueOptions): FieldType;
+  abstract value(): FieldType;
   abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
@@ -165,7 +123,7 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): null {
+  value(): null {
     return null;
   }
 
@@ -194,7 +152,7 @@ export class BooleanValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): boolean {
+  value(): boolean {
     return this.internalValue;
   }
 
@@ -232,7 +190,7 @@ export abstract class NumberValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): number {
+  value(): number {
     return this.internalValue;
   }
 
@@ -288,7 +246,7 @@ export class StringValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): string {
+  value(): string {
     return this.internalValue;
   }
 
@@ -320,12 +278,8 @@ export class TimestampValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): Date | Timestamp {
-    if (!options || options.timestampsInSnapshots) {
-      return this.internalValue;
-    } else {
-      return this.internalValue.toDate();
-    }
+  value(): Timestamp {
+    return this.internalValue;
   }
 
   isEqual(other: FieldValue): boolean {
@@ -379,20 +333,8 @@ export class ServerTimestampValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): FieldType {
-    if (
-      options &&
-      options.serverTimestampBehavior === ServerTimestampBehavior.Estimate
-    ) {
-      return new TimestampValue(this.localWriteTime).value(options);
-    } else if (
-      options &&
-      options.serverTimestampBehavior === ServerTimestampBehavior.Previous
-    ) {
-      return this.previousValue ? this.previousValue.value(options) : null;
-    } else {
-      return null;
-    }
+  value(): null {
+    return null;
   }
 
   isEqual(other: FieldValue): boolean {
@@ -432,7 +374,7 @@ export class BlobValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): ByteString {
+  value(): ByteString {
     return this.internalValue;
   }
 
@@ -462,7 +404,7 @@ export class RefValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): DocumentKey {
+  value(): DocumentKey {
     return this.key;
   }
 
@@ -500,7 +442,7 @@ export class GeoPointValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): GeoPoint {
+  value(): GeoPoint {
     return this.internalValue;
   }
 
@@ -536,10 +478,10 @@ export class ObjectValue extends FieldValue {
     return new ObjectValueBuilder(ObjectValue.EMPTY.internalValue);
   }
 
-  value(options?: FieldValueOptions): JsonObject<FieldType> {
+  value(): JsonObject<FieldType> {
     const result: JsonObject<FieldType> = {};
     this.internalValue.inorderTraversal((key, val) => {
-      result[key] = val.value(options);
+      result[key] = val.value();
     });
     return result;
   }
@@ -738,8 +680,8 @@ export class ArrayValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): FieldType[] {
-    return this.internalValue.map(v => v.value(options));
+  value(): FieldType[] {
+    return this.internalValue.map(v => v.value());
   }
 
   /**
