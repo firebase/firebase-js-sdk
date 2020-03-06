@@ -30,7 +30,7 @@ import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
 
-export enum LimitType {
+export const enum LimitType {
   First = 'F',
   Last = 'L'
 }

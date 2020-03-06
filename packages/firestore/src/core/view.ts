@@ -336,7 +336,7 @@ export class View {
    * ViewChange if the view's syncState changes as a result.
    */
   applyOnlineStateChange(onlineState: OnlineState): ViewChange {
-    if (this.current && onlineState === 'Offline') {
+    if (this.current && onlineState === OnlineState.Offline) {
       // If we're offline, set `current` to false and then call applyChanges()
       // to refresh our syncState and generate a ViewChange as appropriate. We
       // are guaranteed to get a new TargetChange that sets `current` back to

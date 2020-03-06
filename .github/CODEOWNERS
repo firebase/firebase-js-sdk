@@ -81,5 +81,5 @@ packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez
-scripts/docgen/content-sources/ @egilmorez
+packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
+scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers

@@ -50,7 +50,7 @@ const ONLINE_STATE_TIMEOUT_MS = 10 * 1000;
  */
 export class OnlineStateTracker {
   /** The current OnlineState. */
-  private state: OnlineState = 'Unknown';
+  private state = OnlineState.Unknown;
 
   /**
    * A count of consecutive failures to open the stream. If it reaches the
@@ -87,7 +87,7 @@ export class OnlineStateTracker {
    */
   handleWatchStreamStart(): void {
     if (this.watchStreamFailures === 0) {
-      this.setAndBroadcast('Unknown');
+      this.setAndBroadcast(OnlineState.Unknown);
 
       assert(
         this.onlineStateTimer === null,
@@ -99,14 +99,14 @@ export class OnlineStateTracker {
         () => {
           this.onlineStateTimer = null;
           assert(
-            this.state === 'Unknown',
+            this.state === OnlineState.Unknown,
             'Timer should be canceled if we transitioned to a different state.'
           );
           this.logClientOfflineWarningIfNecessary(
             `Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
               `seconds.`
           );
-          this.setAndBroadcast('Offline');
+          this.setAndBroadcast(OnlineState.Offline);
 
           // NOTE: handleWatchStreamFailure() will continue to increment
           // watchStreamFailures even though we are already marked Offline,
@@ -125,8 +125,8 @@ export class OnlineStateTracker {
    * actually transition to the 'Offline' state.
    */
   handleWatchStreamFailure(error: FirestoreError): void {
-    if (this.state === 'Online') {
-      this.setAndBroadcast('Unknown');
+    if (this.state === OnlineState.Online) {
+      this.setAndBroadcast(OnlineState.Unknown);
 
       // To get to OnlineState.Online, set() must have been called which would
       // have reset our heuristics.
@@ -142,7 +142,7 @@ export class OnlineStateTracker {
             `times. Most recent error: ${error.toString()}`
         );
 
-        this.setAndBroadcast('Offline');
+        this.setAndBroadcast(OnlineState.Offline);
       }
     }
   }
@@ -158,7 +158,7 @@ export class OnlineStateTracker {
     this.clearOnlineStateTimer();
     this.watchStreamFailures = 0;
 
-    if (newState === 'Online') {
+    if (newState === OnlineState.Online) {
       // We've connected to watch at least once. Don't warn the developer
       // about being offline going forward.
       this.shouldWarnClientIsOffline = false;

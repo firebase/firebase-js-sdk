@@ -31,7 +31,7 @@ type TimerHandle = any;
  *
  * The string values are used when encoding these timer IDs in JSON spec tests.
  */
-export enum TimerId {
+export const enum TimerId {
   /** All can be used with runDelayedOperationsEarly() to run all timers. */
   All = 'all',
 

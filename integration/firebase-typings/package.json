@@ -6,9 +6,9 @@
     "test": "tsc"
   },
   "dependencies": {
-    "firebase": "7.9.2"
+    "firebase": "7.9.3"
   },
   "devDependencies": {
-    "typescript": "3.8.2"
+    "typescript": "3.8.3"
   }
 }
