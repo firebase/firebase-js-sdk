@@ -72,6 +72,7 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { Bundle } from '../util/bundle';
+import { Timestamp } from '../api/timestamp';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -199,7 +200,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the targetId of the query.
    */
-  async listen(query: Query): Promise<TargetId> {
+  async listen(query: Query, readFrom?: Timestamp): Promise<TargetId> {
     this.assertSubscribed('listen()');
 
     let targetId;
@@ -217,7 +218,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const targetData = await this.localStore.allocateTarget(query.toTarget());
+      const targetData = await this.localStore.allocateTarget(
+        query.toTarget(),
+        readFrom
+      );
 
       const status = this.sharedClientState.addLocalQueryTarget(
         targetData.targetId

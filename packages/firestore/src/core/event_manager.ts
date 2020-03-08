@@ -22,6 +22,7 @@ import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
+import { Timestamp } from '../api/timestamp';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -86,10 +87,12 @@ export class EventManager implements SyncEngineListener {
     }
 
     if (firstListen) {
-      return this.syncEngine.listen(query).then(targetId => {
-        queryInfo!.targetId = targetId;
-        return targetId;
-      });
+      return this.syncEngine
+        .listen(query, listener.options.readFrom)
+        .then(targetId => {
+          queryInfo!.targetId = targetId;
+          return targetId;
+        });
     } else {
       return Promise.resolve(queryInfo.targetId);
     }
@@ -190,6 +193,8 @@ export interface ListenOptions {
    * offline.
    */
   readonly waitForSyncWhenOnline?: boolean;
+
+  readFrom?: Timestamp;
 }
 
 /**
@@ -205,7 +210,7 @@ export class QueryListener {
    */
   private raisedInitialEvent = false;
 
-  private options: ListenOptions;
+  options: ListenOptions;
 
   private snap: ViewSnapshot | null = null;
 

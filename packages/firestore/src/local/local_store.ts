@@ -977,7 +977,7 @@ export class LocalStore {
    * Allocating an already allocated `Target` will return the existing `TargetData`
    * for that `Target`.
    */
-  allocateTarget(target: Target): Promise<TargetData> {
+  allocateTarget(target: Target, readFrom?: Timestamp): Promise<TargetData> {
     return this.persistence
       .runTransaction('Allocate target', 'readwrite-idempotent', txn => {
         let targetData: TargetData;
@@ -998,6 +998,12 @@ export class LocalStore {
                   TargetPurpose.Listen,
                   txn.currentSequenceNumber
                 );
+                if (!!readFrom) {
+                  targetData = targetData.withResumeToken(
+                    ByteString.EMPTY_BYTE_STRING,
+                    SnapshotVersion.fromTimestamp(readFrom!)
+                  );
+                }
                 return this.targetCache
                   .addTargetData(txn, targetData)
                   .next(() => targetData);

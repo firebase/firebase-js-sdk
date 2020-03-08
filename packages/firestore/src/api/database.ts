@@ -2007,6 +2007,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     });
 
     const firestoreClient = this.firestore.ensureClientConfigured();
+    options.readFrom = this.readTime;
     const internalListener = firestoreClient.listen(
       this._query,
       asyncObserver,
