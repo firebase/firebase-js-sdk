@@ -84,28 +84,29 @@ describe('Firebase Performance > transport_service', () => {
 
   it('successful send a meesage to transport', () => {
     const transportDelayInterval = 30000;
-    SettingsService.getInstance().shouldSendToTransport = true;
-    fetchStub
-      .withArgs(SettingsService.getInstance().transportEndpointUrl, match.any)
-      .resolves(
-        // DELETE_REQUEST means event dispatch is successful.
-        new Response(
-          '{\
+    const setting = SettingsService.getInstance();
+    const transportFullUrl =
+      setting.transportEndpointUrl + '?key=' + setting.transportKey;
+    setting.shouldSendToTransport = true;
+    fetchStub.withArgs(transportFullUrl, match.any).resolves(
+      // DELETE_REQUEST means event dispatch is successful.
+      new Response(
+        '{\
         "nextRequestWaitMillis": "' +
-            transportDelayInterval +
-            '",\
+          transportDelayInterval +
+          '",\
         "logResponseDetails": [\
           {\
             "responseAction": "DELETE_REQUEST"\
           }\
         ]\
       }',
-          {
-            status: 200,
-            headers: { 'Content-type': 'application/json' }
-          }
-        )
-      );
+        {
+          status: 200,
+          headers: { 'Content-type': 'application/json' }
+        }
+      )
+    );
 
     testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);

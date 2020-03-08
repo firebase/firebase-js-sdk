@@ -139,6 +139,7 @@ function sendEventsToTransport(
 ): Promise<void> {
   return postToTransportEndpoint(
     SettingsService.getInstance().transportEndpointUrl,
+    SettingsService.getInstance().transportKey,
     data
   )
     .then(res => {
@@ -195,9 +196,11 @@ function sendEventsToCc(data: TransportBatchLogFormat): Promise<void> {
 }
 
 function postToTransportEndpoint(
-  transportFullUrl: string,
+  transportUrl: string,
+  transportKey: string,
   data: TransportBatchLogFormat
 ): Promise<Response> {
+  const transportFullUrl = transportUrl.concat('?key=', transportKey);
   return fetch(transportFullUrl, {
     method: 'POST',
     headers: {

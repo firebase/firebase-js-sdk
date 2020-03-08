@@ -39,12 +39,13 @@ export class SettingsService {
   logEndPointUrl =
     'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto';
   // Performance event transport endpoint URL which should be compatible with proto3.
-  // New Address for transport service.
-  // ALERT: Need to make decision whether to control by RC.
+  // New Address for transport service, not configurable via Remote Config.
   transportEndpointUrl = mergeStrings(
-    'hts/frbslgigp.ogepscmv/ieo/eaylgkyAzSC8r6ReiGqFMyfvgow',
-    'tp:/ieaeogn-agolai.o/1frlglgc/o?e=Iayx0u-XT3vksVM-pIV'
+    'hts/frbslgigp.ogepscmv/ieo/eaylg',
+    'tp:/ieaeogn-agolai.o/1frlglgc/o'
   );
+
+  transportKey = mergeStrings('AzSC8r6ReiGqFMyfvgow', 'Iayx0u-XT3vksVM-pIV');
 
   shouldSendToTransport = false;
 
