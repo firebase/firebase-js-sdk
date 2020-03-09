@@ -26,8 +26,8 @@ function generateReportForCDNScripts() {
     
     for (const file of files) {
         const { size } = fs.statSync(file);
-        const fileName = file.split('/').slice(-1)[0]
-        reports.push(makeReportObject('firebase', fileName, size))
+        const fileName = file.split('/').slice(-1)[0];
+        reports.push(makeReportObject('firebase', fileName, size));
     }
 
     return reports;
