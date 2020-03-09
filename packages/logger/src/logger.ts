@@ -216,9 +216,9 @@ export function setUserLogHandler(
   options?: LogOptions
 ): void {
   for (const instance of instances) {
-    let threshhold = instance.logLevel;
+    let customLogLevel: LogLevel | null = null;
     if (options && options.level) {
-      threshhold = levelStringToEnum[options.level];
+      customLogLevel = levelStringToEnum[options.level];
     }
     if (logCallback === null) {
       instance.userLogHandler = null;
@@ -248,7 +248,7 @@ export function setUserLogHandler(
           })
           .filter(arg => arg)
           .join(' ');
-        if (level >= threshhold) {
+        if (level >= (customLogLevel ?? instance.logLevel)) {
           logCallback({
             level: LogLevel[level].toLowerCase() as LogLevelString,
             message,
