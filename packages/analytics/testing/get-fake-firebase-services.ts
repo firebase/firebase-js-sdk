@@ -41,10 +41,11 @@ export function getFakeApp(measurementId?: string): FirebaseApp {
 }
 
 export function getFakeInstallations(
-  fid: string = 'fid-1234'
+  fid: string = 'fid-1234',
+  onFidResolve?: Function
 ): FirebaseInstallations {
   return {
-    getId: async () => fid,
+    getId: async () => { onFidResolve && onFidResolve(); return fid; },
     getToken: async () => 'authToken',
     onIdChange: () => () => undefined,
     delete: async () => undefined

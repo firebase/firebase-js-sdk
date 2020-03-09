@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.2.32",
+  "version": "0.2.34",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -26,11 +26,11 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.1.35",
-    "@firebase/installations": "0.4.2",
-    "@firebase/util": "0.2.40",
-    "@firebase/performance-types": "0.0.9",
-    "@firebase/component": "0.1.5",
+    "@firebase/logger": "0.1.36",
+    "@firebase/installations": "0.4.4",
+    "@firebase/util": "0.2.41",
+    "@firebase/performance-types": "0.0.11",
+    "@firebase/component": "0.1.6",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
@@ -38,11 +38,12 @@
     "rollup": "1.28.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.25.3",
-    "typescript": "3.7.5"
+    "typescript": "3.8.3"
   },
   "repository": {
+    "directory": "packages/performance",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/performance"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

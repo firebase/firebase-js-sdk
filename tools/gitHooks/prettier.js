@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,16 +56,16 @@ function checkVersion() {
   });
 }
 
-async function doPrettierCommit() {
+async function doPrettierCommit(changedFiles) {
   try {
     await checkVersion();
   } catch (e) {
     console.error(e);
     return process.exit(1);
   }
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+
   // Only run on .js or .ts files.
-  const targetFiles = diff.split('\n').filter(line => line.match(/(js|ts)$/));
+  const targetFiles = changedFiles.filter(line => line.match(/(js|ts)$/));
   if (targetFiles.length === 0) return;
 
   const stylingSpinner = ora(

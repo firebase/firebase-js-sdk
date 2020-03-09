@@ -3,9 +3,10 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build": "(cd ../../ ; yarn build) ; gulp compile-tests",
+    "build": "gulp compile-tests",
+    "build:deps": "cd ../../ ; yarn build",
     "pretest:manual": "yarn build",
-    "pretest:debug": "yarn build",
+    "pretest:debug": "yarn build:deps && yarn build",
     "test": "echo 'Automated tests temporarily disabled, run `yarn test:manual` to execute these tests'",
     "test:manual": "karma start --single-run",
     "test:debug": "karma start --auto-watch --browsers Chrome"
@@ -22,7 +23,7 @@
     "karma-spec-reporter": "0.0.32",
     "mocha": "7.0.1",
     "ts-loader": "6.2.1",
-    "typescript": "3.7.5",
+    "typescript": "3.8.3",
     "webpack": "4.41.5",
     "webpack-stream": "5.2.1"
   }

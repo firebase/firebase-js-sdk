@@ -119,11 +119,11 @@ export class Document extends MaybeDocument {
 
   data(): ObjectValue {
     if (!this.objectValue) {
-      let result = ObjectValue.EMPTY;
+      const result = ObjectValue.newBuilder();
       obj.forEach(this.proto!.fields || {}, (key: string, value: api.Value) => {
-        result = result.set(new FieldPath([key]), this.converter!(value));
+        result.set(new FieldPath([key]), this.converter!(value));
       });
-      this.objectValue = result;
+      this.objectValue = result.build();
 
       // Once objectValue is computed, values inside the fieldValueCache are no
       // longer accessed.

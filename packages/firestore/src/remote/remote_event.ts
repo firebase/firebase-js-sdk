@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -24,8 +24,8 @@ import {
   MaybeDocumentMap,
   targetIdSet
 } from '../model/collections';
-import { emptyByteString } from '../platform/platform';
 import { SortedSet } from '../util/sorted_set';
+import { ByteString } from '../util/byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -101,7 +101,7 @@ export class TargetChange {
      * query. The resume token essentially identifies a point in time from which
      * the server should resume sending results.
      */
-    readonly resumeToken: ProtoByteString,
+    readonly resumeToken: ByteString,
     /**
      * The "current" (synced) status of this target. Note that "current"
      * has special meaning in the RPC protocol that implies that a target is
@@ -135,7 +135,7 @@ export class TargetChange {
     current: boolean
   ): TargetChange {
     return new TargetChange(
-      emptyByteString(),
+      ByteString.EMPTY_BYTE_STRING,
       current,
       documentKeySet(),
       documentKeySet(),

@@ -21,7 +21,6 @@ import { TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { emptyByteString } from '../../../src/platform/platform';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
@@ -43,6 +42,7 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
+import { ByteString } from '../../../src/util/byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -77,7 +77,7 @@ function expectTargetChangeEquals(
   expected: TargetChange
 ): void {
   expect(actual.current).to.equal(expected.current, 'TargetChange.current');
-  expect(actual.resumeToken).to.equal(
+  expect(actual.resumeToken).to.deep.equal(
     expected.resumeToken,
     'TargetChange.resumeToken'
   );
@@ -475,7 +475,7 @@ describe('RemoteEvent', () => {
     const markCurrent = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [1],
-      emptyByteString()
+      ByteString.EMPTY_BYTE_STRING
     );
 
     const aggregator = createAggregator({

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -20,6 +20,14 @@
     "serve:host": "http-server -c-1 test-app",
     "prepare": "yarn build"
   },
+  "repository": {
+    "directory": "packages/installations",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
   "devDependencies": {
     "rollup": "1.28.0",
     "rollup-plugin-commonjs": "10.1.0",
@@ -27,16 +35,16 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.25.3",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.7.5"
+    "typescript": "3.8.3"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.3.1",
-    "@firebase/util": "0.2.40",
-    "@firebase/component": "0.1.5",
+    "@firebase/installations-types": "0.3.2",
+    "@firebase/util": "0.2.41",
+    "@firebase/component": "0.1.6",
     "idb": "3.0.2",
     "tslib": "1.10.0"
   }

@@ -16,7 +16,6 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { ProtoByteString } from '../../src/core/types';
 import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
@@ -232,10 +231,6 @@ export class TestPlatform implements Platform {
 
   get base64Available(): boolean {
     return this.basePlatform.base64Available;
-  }
-
-  get emptyByteString(): ProtoByteString {
-    return this.basePlatform.emptyByteString;
   }
 
   raiseVisibilityEvent(visibility: VisibilityState): void {

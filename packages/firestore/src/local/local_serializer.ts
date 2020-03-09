@@ -28,6 +28,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { Target } from '../core/target';
@@ -42,7 +43,6 @@ import {
   DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
-import { SimpleDb } from './simple_db';
 import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
@@ -207,8 +207,6 @@ export class LocalSerializer {
       dbTarget.lastLimboFreeSnapshotVersion !== undefined
         ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
         : SnapshotVersion.MIN;
-    // TODO(b/140573486): Convert to platform representation
-    const resumeToken = dbTarget.resumeToken;
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
@@ -223,7 +221,7 @@ export class LocalSerializer {
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
-      resumeToken
+      ByteString.fromBase64String(dbTarget.resumeToken)
     );
   }
 
@@ -247,18 +245,9 @@ export class LocalSerializer {
       queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
-    let resumeToken: string;
-
-    if (targetData.resumeToken instanceof Uint8Array) {
-      // TODO(b/78771403): Convert tokens to strings during deserialization
-      assert(
-        SimpleDb.isMockPersistence(),
-        'Persisting non-string stream tokens is only supported with mock persistence .'
-      );
-      resumeToken = targetData.resumeToken.toString();
-    } else {
-      resumeToken = targetData.resumeToken;
-    }
+    // We can't store the resumeToken as a ByteString in IndexedDb, so we
+    // convert it to a base64 string for storage.
+    const resumeToken = targetData.resumeToken.toBase64();
 
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(

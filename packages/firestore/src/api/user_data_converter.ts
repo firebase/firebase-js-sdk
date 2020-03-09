@@ -126,7 +126,7 @@ export class ParsedUpdateData {
  * for determining which error conditions apply during parsing and providing
  * better error messages.
  */
-enum UserDataSource {
+const enum UserDataSource {
   Set,
   Update,
   MergeSet,
@@ -404,7 +404,7 @@ export class UserDataConverter {
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-    let updateData = ObjectValue.EMPTY;
+    const updateData = ObjectValue.newBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
@@ -417,13 +417,17 @@ export class UserDataConverter {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
           fieldMaskPaths = fieldMaskPaths.add(path);
-          updateData = updateData.set(path, parsedValue);
+          updateData.set(path, parsedValue);
         }
       }
     });
 
     const mask = FieldMask.fromSet(fieldMaskPaths);
-    return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
+    return new ParsedUpdateData(
+      updateData.build(),
+      mask,
+      context.fieldTransforms
+    );
   }
 
   /** Parse update data from a list of field/value arguments. */
@@ -460,7 +464,7 @@ export class UserDataConverter {
     }
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-    let updateData = ObjectValue.EMPTY;
+    const updateData = ObjectValue.newBuilder();
 
     for (let i = 0; i < keys.length; ++i) {
       const path = keys[i];
@@ -473,13 +477,17 @@ export class UserDataConverter {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
           fieldMaskPaths = fieldMaskPaths.add(path);
-          updateData = updateData.set(path, parsedValue);
+          updateData.set(path, parsedValue);
         }
       }
     }
 
     const mask = FieldMask.fromSet(fieldMaskPaths);
-    return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
+    return new ParsedUpdateData(
+      updateData.build(),
+      mask,
+      context.fieldTransforms
+    );
   }
 
   /**

@@ -15,7 +15,6 @@
 #
 #   - @Feiyang1
 #   - @hiranya911
-#   - @mikelehen
 #   - @bojeil-google
 #   - @depoll
 #   - @hsubox76
@@ -27,12 +26,9 @@
 #  Used for approving firestore changes.
 #  (secret team to avoid review requests)
 #
-# - @mikelehen
 # - @schmidt-sebastian
 # - @wilhuff
-# - @gsoltis
 # - @var-const
-# - @rsgowman
 # - @zxu123
 
 
@@ -40,8 +36,8 @@
 *       @Feiyang1 @hiranya911 @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
-packages/database-types  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database-types @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -85,5 +81,5 @@ packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez
-scripts/docgen/content-sources/ @egilmorez
+packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
+scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers

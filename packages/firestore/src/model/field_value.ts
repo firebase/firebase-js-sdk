@@ -48,7 +48,7 @@ export interface JsonObject<T> {
   [name: string]: T;
 }
 
-export enum TypeOrder {
+export const enum TypeOrder {
   // This order is defined by the backend.
   NullValue = 0,
   BooleanValue = 1,
@@ -63,7 +63,7 @@ export enum TypeOrder {
 }
 
 /** Defines the return value for pending server timestamps. */
-export enum ServerTimestampBehavior {
+export const enum ServerTimestampBehavior {
   Default,
   Estimate,
   Previous
@@ -203,7 +203,7 @@ export class BooleanValue extends FieldValue {
 
   compareTo(other: FieldValue): number {
     if (other instanceof BooleanValue) {
-      return primitiveComparator(this, other);
+      return primitiveComparator(this.internalValue, other.internalValue);
     }
     return this.defaultCompareTo(other);
   }
@@ -558,6 +558,11 @@ export class ObjectValue extends FieldValue {
     super();
   }
 
+  /** Returns a new ObjectValueBuilder instance that is based on an empty object. */
+  static newBuilder(): ObjectValueBuilder {
+    return new ObjectValueBuilder(ObjectValue.EMPTY.internalValue);
+  }
+
   value(options?: FieldValueOptions): JsonObject<FieldType> {
     const result: JsonObject<FieldType> = {};
     this.internalValue.inorderTraversal((key, val) => {
@@ -607,42 +612,6 @@ export class ObjectValue extends FieldValue {
       return primitiveComparator(it1.hasNext(), it2.hasNext());
     } else {
       return this.defaultCompareTo(other);
-    }
-  }
-
-  set(path: FieldPath, to: FieldValue): ObjectValue {
-    assert(!path.isEmpty(), 'Cannot set field for empty path on ObjectValue');
-    if (path.length === 1) {
-      return this.setChild(path.firstSegment(), to);
-    } else {
-      let child = this.child(path.firstSegment());
-      if (!(child instanceof ObjectValue)) {
-        child = ObjectValue.EMPTY;
-      }
-      const newChild = (child as ObjectValue).set(path.popFirst(), to);
-      return this.setChild(path.firstSegment(), newChild);
-    }
-  }
-
-  delete(path: FieldPath): ObjectValue {
-    assert(
-      !path.isEmpty(),
-      'Cannot delete field for empty path on ObjectValue'
-    );
-    if (path.length === 1) {
-      return new ObjectValue(this.internalValue.remove(path.firstSegment()));
-    } else {
-      // nested field
-      const child = this.child(path.firstSegment());
-      if (child instanceof ObjectValue) {
-        const newChild = child.delete(path.popFirst());
-        return new ObjectValue(
-          this.internalValue.insert(path.firstSegment(), newChild)
-        );
-      } else {
-        // Don't actually change a primitive value to an object for a delete
-        return this;
-      }
     }
   }
 
@@ -703,17 +672,90 @@ export class ObjectValue extends FieldValue {
     return this.internalValue.toString();
   }
 
-  private child(childName: string): FieldValue | undefined {
-    return this.internalValue.get(childName) || undefined;
-  }
-
-  private setChild(childName: string, value: FieldValue): ObjectValue {
-    return new ObjectValue(this.internalValue.insert(childName, value));
-  }
-
   static EMPTY = new ObjectValue(
     new SortedMap<string, FieldValue>(primitiveComparator)
   );
+
+  /** Creates a ObjectValueBuilder instance that is based on the current value. */
+  toBuilder(): ObjectValueBuilder {
+    return new ObjectValueBuilder(this.internalValue);
+  }
+}
+
+/**
+ * An ObjectValueBuilder provides APIs to set and delete fields from an
+ * ObjectValue. All operations mutate the existing instance.
+ */
+export class ObjectValueBuilder {
+  constructor(private internalValue: SortedMap<string, FieldValue>) {}
+
+  /**
+   * Sets the field to the provided value.
+   *
+   * @param path The field path to set.
+   * @param value The value to set.
+   * @return The current Builder instance.
+   */
+  set(path: FieldPath, value: FieldValue): ObjectValueBuilder {
+    assert(!path.isEmpty(), 'Cannot set field for empty path on ObjectValue');
+    const childName = path.firstSegment();
+    if (path.length === 1) {
+      this.internalValue = this.internalValue.insert(childName, value);
+    } else {
+      // nested field
+      const child = this.internalValue.get(childName);
+      let obj: ObjectValue;
+      if (child instanceof ObjectValue) {
+        obj = child;
+      } else {
+        obj = ObjectValue.EMPTY;
+      }
+      const newChild = obj
+        .toBuilder()
+        .set(path.popFirst(), value)
+        .build();
+      this.internalValue = this.internalValue.insert(childName, newChild);
+    }
+    return this;
+  }
+
+  /**
+   * Removes the field at the current path. If there is no field at the
+   * specified path, nothing is changed.
+   *
+   * @param path The field path to remove
+   * @return The current Builder instance.
+   */
+  delete(path: FieldPath): ObjectValueBuilder {
+    assert(
+      !path.isEmpty(),
+      'Cannot delete field for empty path on ObjectValue'
+    );
+    const childName = path.firstSegment();
+    if (path.length === 1) {
+      this.internalValue = this.internalValue.remove(childName);
+    } else {
+      // nested field
+      const child = this.internalValue.get(childName);
+      if (child instanceof ObjectValue) {
+        const newChild = child
+          .toBuilder()
+          .delete(path.popFirst())
+          .build();
+        this.internalValue = this.internalValue.insert(
+          path.firstSegment(),
+          newChild
+        );
+      } else {
+        // Don't actually change a primitive value to an object for a delete
+      }
+    }
+    return this;
+  }
+
+  build(): ObjectValue {
+    return new ObjectValue(this.internalValue);
+  }
 }
 
 export class ArrayValue extends FieldValue {

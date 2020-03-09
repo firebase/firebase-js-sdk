@@ -17,14 +17,14 @@
 
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
@@ -48,7 +48,7 @@ export class MemoryMutationQueue implements MutationQueue {
    * responses the client has processed. Stream tokens are opaque checkpoint
    * markers whose only real value is their inclusion in the next request.
    */
-  private lastStreamToken: ProtoByteString = emptyByteString();
+  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
 
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
@@ -65,7 +65,7 @@ export class MemoryMutationQueue implements MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
@@ -90,13 +90,13 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString> {
+  ): PersistencePromise<ByteString> {
     return PersistencePromise.resolve(this.lastStreamToken);
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     this.lastStreamToken = streamToken;
     return PersistencePromise.resolve();

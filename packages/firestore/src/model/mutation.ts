@@ -28,7 +28,7 @@ import {
   UnknownDocument
 } from './document';
 import { DocumentKey } from './document_key';
-import { FieldValue, ObjectValue } from './field_value';
+import { FieldValue, ObjectValue, ObjectValueBuilder } from './field_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
 
@@ -117,7 +117,7 @@ export class MutationResult {
   ) {}
 }
 
-export enum MutationType {
+export const enum MutationType {
   Set,
   Patch,
   Transform,
@@ -507,17 +507,18 @@ export class PatchMutation extends Mutation {
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
+    const builder = data.toBuilder();
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
         if (newValue !== null) {
-          data = data.set(fieldPath, newValue);
+          builder.set(fieldPath, newValue);
         } else {
-          data = data.delete(fieldPath);
+          builder.delete(fieldPath);
         }
       }
     });
-    return data;
+    return builder.build();
   }
 }
 
@@ -611,7 +612,7 @@ export class TransformMutation extends Mutation {
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
-    let baseObject: ObjectValue | null = null;
+    let baseObject: ObjectValueBuilder | null = null;
     for (const fieldTransform of this.fieldTransforms) {
       const existingValue =
         maybeDoc instanceof Document
@@ -623,7 +624,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.EMPTY.set(
+          baseObject = ObjectValue.newBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -632,7 +633,7 @@ export class TransformMutation extends Mutation {
         }
       }
     }
-    return baseObject;
+    return baseObject ? baseObject.build() : null;
   }
 
   isEqual(other: Mutation): boolean {
@@ -749,12 +750,13 @@ export class TransformMutation extends Mutation {
       'TransformResults length mismatch.'
     );
 
+    const builder = data.toBuilder();
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;
-      data = data.set(fieldPath, transformResults[i]);
+      builder.set(fieldPath, transformResults[i]);
     }
-    return data;
+    return builder.build();
   }
 }
 

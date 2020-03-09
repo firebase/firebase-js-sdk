@@ -29,6 +29,7 @@ import {
   isBrowserExtension,
   isElectron,
   isIE,
+  isMobileCordova,
   isReactNative,
   isUWP
 } from '@firebase/util';
@@ -227,11 +228,6 @@ export class WebChannelConnection implements Connection {
     ];
     const webchannelTransport = createWebChannelTransport();
     const request: WebChannelOptions = {
-      // Background channel test avoids the initial two test calls and decreases
-      // initial cold start time.
-      // TODO(dimond): wenboz@ mentioned this might affect use with proxies and
-      // we should monitor closely for any reports.
-      backgroundChannelTest: true,
       // Required for backend stickiness, routing behavior is based on this
       // parameter.
       httpSessionIdParam: 'gsessionid',
@@ -275,6 +271,7 @@ export class WebChannelConnection implements Connection {
     // known to (sometimes) not include an Origin. See
     // https://github.com/firebase/firebase-js-sdk/issues/1491.
     if (
+      !isMobileCordova() &&
       !isReactNative() &&
       !isElectron() &&
       !isIE() &&

@@ -54,6 +54,7 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import { PlatformSupport } from '../../../src/platform/platform';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
@@ -951,18 +952,21 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resumeToken || ''
+          // Convert to base64 string so it can later be parsed into ByteString.
+          resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resumeToken || ''
+          // Convert to base64 string so it can later be parsed into ByteString.
+          resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resumeToken || ''
+        // Convert to base64 string so it can later be parsed into ByteString.
+        resumeToken: PlatformSupport.getPlatform().btoa(resumeToken || '')
       };
     }
   }

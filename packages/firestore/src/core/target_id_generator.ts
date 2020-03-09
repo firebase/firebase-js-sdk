@@ -20,7 +20,7 @@ import { TargetId } from './types';
 
 const RESERVED_BITS = 1;
 
-enum GeneratorIds {
+const enum GeneratorIds {
   QueryCache = 0, // The target IDs for user-issued queries are even (end in 0).
   SyncEngine = 1 // The target IDs for limbo detection are odd (end in 1).
 }
