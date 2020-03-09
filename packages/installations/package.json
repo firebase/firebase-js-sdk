@@ -29,11 +29,11 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "rollup": "1.28.0",
+    "rollup": "1.32.1",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.25.3",
+    "rollup-plugin-typescript2": "0.26.0",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "3.8.3"
   },
@@ -46,6 +46,6 @@
     "@firebase/util": "0.2.41",
     "@firebase/component": "0.1.6",
     "idb": "3.0.2",
-    "tslib": "1.10.0"
+    "tslib": "1.11.1"
   }
 }

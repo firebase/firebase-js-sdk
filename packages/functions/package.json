@@ -30,8 +30,8 @@
   },
   "devDependencies": {
     "@firebase/messaging": "0.6.8",
-    "rollup": "1.28.0",
-    "rollup-plugin-typescript2": "0.25.3",
+    "rollup": "1.32.1",
+    "rollup-plugin-typescript2": "0.26.0",
     "typescript": "3.8.3"
   },
   "repository": {
@@ -48,7 +48,7 @@
     "@firebase/messaging-types": "0.4.3",
     "@firebase/component": "0.1.6",
     "isomorphic-fetch": "2.2.1",
-    "tslib": "1.10.0"
+    "tslib": "1.11.1"
   },
   "nyc": {
     "extension": [
