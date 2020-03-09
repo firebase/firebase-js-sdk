@@ -147,12 +147,31 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-const firestoreMemoryBuild = {
-  input: `firestore/index.memory.ts`,
-  output: createUmdOutputConfig(`firebase-firestore.memory.js`),
-  plugins: [...plugins, uglify()],
-  external: ['@firebase/app']
-};
+const firestoreMemoryBuilds = [
+  {
+    input: `firestore/memory/index.ts`,
+    output: [
+      {
+        file: resolve('firestore/memory', pkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('firestore/memory', pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `firestore/memory/index.ts`,
+    output: createUmdOutputConfig(`firebase-firestore.memory.js`),
+    plugins: [...plugins, uglify()],
+    external: ['@firebase/app']
+  }
+];
 
 /**
  * Complete Package Builds
@@ -270,6 +289,6 @@ const completeBuilds = [
 export default [
   ...appBuilds,
   ...componentBuilds,
-  firestoreMemoryBuild,
+  ...firestoreMemoryBuilds,
   ...completeBuilds
 ];
