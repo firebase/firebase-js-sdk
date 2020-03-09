@@ -18,7 +18,12 @@ import * as errorsExports from './error';
 import * as MetadataUtils from './metadata';
 import * as ListOptionsUtils from './list';
 import * as type from './type';
+import { StorageImplNext } from '../next/storage';
+import { FirebaseError } from '@firebase/util';
 
+
+// TODO: remove runtime type/arg number validation because it is handled by Typescript at compile time.
+// Though compile time validation is not 100% safe, practically it is sufficient for us.
 /**
  * @param name Name of the function.
  * @param specs Argument specs.
@@ -126,6 +131,14 @@ export function metadataSpec(optional?: boolean): ArgSpec {
 
 export function listOptionSpec(optional?: boolean): ArgSpec {
   return new ArgSpec(ListOptionsUtils.listOptionsValidator, optional);
+}
+
+export function storageInstanceSpec(): ArgSpec {
+  return new ArgSpec((p: unknown) => {
+    if (!(p instanceof StorageImplNext)) {
+      throw 'Expected a Firebase Storage instance';
+    }
+  })
 }
 
 export function nonNegativeNumberSpec(): ArgSpec {

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// TODO: move to @firebase/util
 /**
  * @return False if the object is undefined or null, true otherwise.
  */
