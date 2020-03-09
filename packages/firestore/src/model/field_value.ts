@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
+import * as api from '../protos/firestore_proto_api';
+
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import {
   numericComparator,
   numericEquals,
@@ -26,7 +28,7 @@ import {
 } from '../util/misc';
 import { DocumentKey } from './document_key';
 import { FieldMask } from './mutation';
-import { FieldPath } from './path';
+import { FieldPath, ResourcePath } from './path';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
@@ -87,6 +89,7 @@ export abstract class FieldValue {
   abstract value(): FieldType;
   abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
+  abstract toProto(useProto3Json: boolean): api.Value;
 
   /**
    * Returns an approximate (and wildly inaccurate) in-memory size for the field
@@ -142,6 +145,12 @@ export class NullValue extends FieldValue {
     return 4;
   }
 
+  toProto(useProto3Json: boolean): api.Value {
+    return {
+      nullValue: 'NULL_VALUE'
+    };
+  }
+
   static INSTANCE = new NullValue();
 }
 
@@ -172,6 +181,12 @@ export class BooleanValue extends FieldValue {
 
   approximateByteSize(): number {
     return 4;
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    return {
+      booleanValue: this.internalValue
+    };
   }
 
   static of(value: boolean): BooleanValue {
@@ -217,6 +232,10 @@ export class IntegerValue extends NumberValue {
     }
   }
 
+  toProto(useProto3Json: boolean): api.Value {
+    return { integerValue: '' + this.internalValue };
+  }
+
   // NOTE: compareTo() is implemented in NumberValue.
 }
 
@@ -233,6 +252,22 @@ export class DoubleValue extends NumberValue {
     } else {
       return false;
     }
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    if (useProto3Json) {
+      // Proto 3 let's us encode NaN and Infinity as string values as
+      // expected by the backend. This is currently not checked by our unit
+      // tests because they rely on protobuf.js.
+      if (isNaN(this.internalValue)) {
+        return { doubleValue: 'NaN' };
+      } else if (this.internalValue === Infinity) {
+        return { doubleValue: 'Infinity' } as {};
+      } else if (this.internalValue === -Infinity) {
+        return { doubleValue: '-Infinity' } as {};
+      }
+    }
+    return { doubleValue: this.internalValue };
   }
 
   // NOTE: compareTo() is implemented in NumberValue.
@@ -269,6 +304,10 @@ export class StringValue extends FieldValue {
     // integer values"
     return this.internalValue.length * 2;
   }
+
+  toProto(useProto3Json: boolean): api.Value {
+    return { stringValue: this.internalValue };
+  }
 }
 
 export class TimestampValue extends FieldValue {
@@ -303,6 +342,30 @@ export class TimestampValue extends FieldValue {
   approximateByteSize(): number {
     // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
     return 16;
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    if (useProto3Json) {
+      // Serialize to ISO-8601 date format, but with full nano resolution.
+      // Since JS Date has only millis, let's only use it for the seconds and
+      // then manually add the fractions to the end.
+      const jsDateStr = new Date(
+        this.internalValue.seconds * 1000
+      ).toISOString();
+      // Remove .xxx frac part and Z in the end.
+      const strUntilSeconds = jsDateStr.replace(/\.\d*/, '').replace('Z', '');
+      // Pad the fraction out to 9 digits (nanos).
+      const nanoStr = ('000000000' + this.internalValue.nanoseconds).slice(-9);
+
+      return { timestampValue: `${strUntilSeconds}.${nanoStr}Z` };
+    } else {
+      return {
+        timestampValue: {
+          seconds: '' + this.internalValue.seconds,
+          nanos: this.internalValue.nanoseconds
+        }
+      };
+    }
   }
 }
 
@@ -365,6 +428,10 @@ export class ServerTimestampValue extends FieldValue {
       (this.previousValue ? this.previousValue.approximateByteSize() : 0)
     );
   }
+
+  toProto(useProto3Json: boolean): api.Value {
+    throw fail('Cannot convert ServerTimestampValue to Proto');
+  }
 }
 
 export class BlobValue extends FieldValue {
@@ -394,6 +461,14 @@ export class BlobValue extends FieldValue {
 
   approximateByteSize(): number {
     return this.internalValue.approximateByteSize();
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    if (useProto3Json) {
+      return { bytesValue: this.internalValue.toBase64() };
+    } else {
+      return { bytesValue: this.internalValue.toUint8Array() };
+    }
   }
 }
 
@@ -433,6 +508,19 @@ export class RefValue extends FieldValue {
       this.key.toString().length
     );
   }
+
+  toProto(useProto3Json: boolean): api.Value {
+    const fullyQualifiedPath = new ResourcePath([
+      'projects',
+      this.databaseId.projectId,
+      'databases',
+      this.databaseId.database,
+      'documents',
+      ...this.key.path.toArray()
+    ]);
+
+    return { referenceValue: fullyQualifiedPath.canonicalString() };
+  }
 }
 
 export class GeoPointValue extends FieldValue {
@@ -463,6 +551,15 @@ export class GeoPointValue extends FieldValue {
   approximateByteSize(): number {
     // GeoPoints are made up of two distinct numbers (latitude + longitude)
     return 16;
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    return {
+      geoPointValue: {
+        latitude: this.internalValue.latitude,
+        longitude: this.internalValue.longitude
+      }
+    };
   }
 }
 
@@ -585,6 +682,18 @@ export class ObjectValue extends FieldValue {
 
   toString(): string {
     return this.internalValue.toString();
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    let result: api.Value = {
+      mapValue: { fields: {} }
+    };
+
+    this.forEach((key, value) => {
+      result.mapValue!.fields![key] = value.toProto(useProto3Json);
+    });
+
+    return result;
   }
 
   static EMPTY = new ObjectValue(
@@ -747,6 +856,14 @@ export class ArrayValue extends FieldValue {
       (totalSize, value) => totalSize + value.approximateByteSize(),
       0
     );
+  }
+
+  toProto(useProto3Json: boolean): api.Value {
+    return {
+      arrayValue: {
+        values: this.internalValue.map(v => v.toProto(useProto3Json))
+      }
+    };
   }
 
   toString(): string {

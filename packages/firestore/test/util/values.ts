@@ -29,10 +29,7 @@ import { Dict, forEach } from '../../src/util/obj';
 /** Test helper to create Firestore Value protos from JavaScript types. */
 
 // TODO(mrschmidt): Move into UserDataReader
-export function valueOf(
-  input: unknown,
-  useProto3Json: boolean = false
-): api.Value {
+export function valueOf(input: unknown, useProto3Json: boolean): api.Value {
   if (input === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof input === 'number') {

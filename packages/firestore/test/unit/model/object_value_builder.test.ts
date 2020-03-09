@@ -17,33 +17,39 @@
 
 import { expect } from 'chai';
 
-import { valueOf } from '../../util/values';
+import * as api from '../../../src/protos/firestore_proto_api';
+import * as util from '../../util/values';
+
 import { ObjectValue } from '../../../src/model/proto_field_value';
 import { field } from '../../util/helpers';
 
+// Since these tests only test the ObjectValueBuilder, the representational
+// differences introduced by Proto3Json don't alter their behavior.
+const USE_PROTO3_JSON = false;
+
 describe('ObjectValueBuilder', () => {
   it('supports empty builders', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     const object = builder.build();
-    expect(object.isEqual(ObjectValue.EMPTY)).to.be.true;
+    expect(object.isEqual(ObjectValue.empty(USE_PROTO3_JSON))).to.be.true;
   });
 
   it('sets single field', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('foo'), valueOf('foo'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ 'foo': 'foo' }))).to.be.true;
   });
 
   it('sets empty object', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('foo'), valueOf({}));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ 'foo': {} }))).to.be.true;
   });
 
   it('sets multiple fields', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('foo'), valueOf('foo'));
     builder.set(field('bar'), valueOf('bar'));
     const object = builder.build();
@@ -52,7 +58,7 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets nested fields', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a.b'), valueOf('foo'));
     builder.set(field('c.d.e'), valueOf('bar'));
     const object = builder.build();
@@ -64,7 +70,7 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets two fields in nested object', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a.b'), valueOf('foo'));
     builder.set(field('a.c'), valueOf('bar'));
     const object = builder.build();
@@ -73,7 +79,7 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets field in nested object', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a'), valueOf({ b: 'foo' }));
     builder.set(field('a.c'), valueOf('bar'));
     const object = builder.build();
@@ -82,7 +88,7 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets deeply nested field in nested object', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a.b.c.d.e.f'), valueOf('foo'));
     const object = builder.build();
     expect(
@@ -95,7 +101,7 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets nested field multiple times', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a.c'), valueOf('foo'));
     builder.set(field('a'), valueOf({ b: 'foo' }));
     const object = builder.build();
@@ -103,15 +109,15 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets and deletes field', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('foo'), valueOf('foo'));
     builder.delete(field('foo'));
     const object = builder.build();
-    expect(object.isEqual(ObjectValue.EMPTY)).to.be.true;
+    expect(object.isEqual(ObjectValue.empty(USE_PROTO3_JSON))).to.be.true;
   });
 
   it('sets and deletes nested field', () => {
-    const builder = ObjectValue.newBuilder();
+    const builder = ObjectValue.newBuilder(USE_PROTO3_JSON);
     builder.set(field('a.b.c'), valueOf('foo'));
     builder.set(field('a.b.d'), valueOf('foo'));
     builder.set(field('f.g'), valueOf('foo'));
@@ -215,6 +221,10 @@ describe('ObjectValueBuilder', () => {
 
   // TODO(mrschmidt): Clean up the helpers and merge wrap() with TestUtil.wrap()
   function wrapObject(value: object): ObjectValue {
-    return new ObjectValue(valueOf(value));
+    return new ObjectValue(valueOf(value), USE_PROTO3_JSON);
+  }
+
+  function valueOf(value: unknown): api.Value {
+    return util.valueOf(value, USE_PROTO3_JSON);
   }
 });

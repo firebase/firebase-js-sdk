@@ -46,7 +46,10 @@ import { SortedSet } from '../util/sorted_set';
  * and implements Firestore's Value semantics for ordering and equality.
  */
 export class PrimitiveValue extends FieldValue {
-  constructor(public readonly proto: api.Value) {
+  constructor(
+    public readonly proto: api.Value,
+    readonly usesProto3Json: boolean
+  ) {
     super();
   }
 
@@ -124,6 +127,14 @@ export class PrimitiveValue extends FieldValue {
     return JSON.stringify(this.proto).length;
   }
 
+  toProto(useProto3Json: boolean): api.Value {
+    assert(
+      this.usesProto3Json === useProto3Json,
+      `Serialized Proto is not in the desired format (expected useProto3Json=${this.usesProto3Json})`
+    );
+    return this.proto;
+  }
+
   isEqual(other: FieldValue): boolean {
     if (this === other) {
       return true;
@@ -154,10 +165,8 @@ export class PrimitiveValue extends FieldValue {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue extends PrimitiveValue {
-  static EMPTY = new ObjectValue({ mapValue: {} });
-
-  constructor(proto: api.Value) {
-    super(proto);
+  constructor(proto: api.Value, readonly usesProto3Json: boolean) {
+    super(proto, usesProto3Json);
     assert(
       isType(proto, TypeOrder.ObjectValue),
       'ObjectValues must be backed by a MapValue'
@@ -165,8 +174,13 @@ export class ObjectValue extends PrimitiveValue {
   }
 
   /** Returns a new Builder instance that is based on an empty object. */
-  static newBuilder(): ObjectValueBuilder {
-    return ObjectValue.EMPTY.toBuilder();
+  static newBuilder(useProto3Json: boolean): ObjectValueBuilder {
+    return this.empty(useProto3Json).toBuilder();
+  }
+
+  /** Returns a new ObjectValue for an empty object. */
+  static empty(useProto3Json: boolean) {
+    return new ObjectValue({ mapValue: {} }, useProto3Json);
   }
 
   /**
@@ -193,9 +207,9 @@ export class ObjectValue extends PrimitiveValue {
       value = (value.mapValue!.fields || {})[path.lastSegment()];
       // TODO(mrschmidt): Simplify/remove
       return isType(value, TypeOrder.ObjectValue)
-        ? new ObjectValue(value)
+        ? new ObjectValue(value, this.usesProto3Json)
         : value !== undefined
-        ? new PrimitiveValue(value)
+        ? new PrimitiveValue(value, this.usesProto3Json)
         : null;
     }
   }
@@ -236,7 +250,7 @@ export class ObjectValue extends PrimitiveValue {
 
   /** Creates a ObjectValueBuilder instance that is based on the current value. */
   toBuilder(): ObjectValueBuilder {
-    return new ObjectValueBuilder(this);
+    return new ObjectValueBuilder(this, this.usesProto3Json);
   }
 }
 
@@ -258,7 +272,10 @@ export class ObjectValueBuilder {
   /**
    * @param baseObject The object to mutate.
    */
-  constructor(private readonly baseObject: ObjectValue) {}
+  constructor(
+    private readonly baseObject: ObjectValue,
+    private readonly usesProto3Json: boolean
+  ) {}
 
   /**
    * Sets the field to the provided value.
@@ -328,7 +345,7 @@ export class ObjectValueBuilder {
       this.overlayMap
     );
     if (mergedResult != null) {
-      return new ObjectValue(mergedResult);
+      return new ObjectValue(mergedResult, this.usesProto3Json);
     } else {
       return this.baseObject;
     }

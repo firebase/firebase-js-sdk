@@ -352,59 +352,8 @@ export class JsonProtoSerializer {
     );
   }
 
-  // TODO(mrschmidt): Even when we remove our custom FieldValues, we still
-  // need to re-encode field values to their expected type based on the
-  // `useProto3Json` setting.
   toValue(val: fieldValue.FieldValue): api.Value {
-    if (val instanceof fieldValue.NullValue) {
-      return { nullValue: 'NULL_VALUE' };
-    } else if (val instanceof fieldValue.BooleanValue) {
-      return { booleanValue: val.value() };
-    } else if (val instanceof fieldValue.IntegerValue) {
-      return { integerValue: '' + val.value() };
-    } else if (val instanceof fieldValue.DoubleValue) {
-      const doubleValue = val.value();
-      if (this.options.useProto3Json) {
-        // Proto 3 let's us encode NaN and Infinity as string values as
-        // expected by the backend. This is currently not checked by our unit
-        // tests because they rely on protobuf.js.
-        if (isNaN(doubleValue)) {
-          return { doubleValue: 'NaN' } as {};
-        } else if (doubleValue === Infinity) {
-          return { doubleValue: 'Infinity' } as {};
-        } else if (doubleValue === -Infinity) {
-          return { doubleValue: '-Infinity' } as {};
-        }
-      }
-      return { doubleValue: val.value() };
-    } else if (val instanceof fieldValue.StringValue) {
-      return { stringValue: val.value() };
-    } else if (val instanceof fieldValue.ObjectValue) {
-      return { mapValue: this.toMapValue(val) };
-    } else if (val instanceof fieldValue.ArrayValue) {
-      return { arrayValue: this.toArrayValue(val) };
-    } else if (val instanceof fieldValue.TimestampValue) {
-      return {
-        timestampValue: this.toTimestamp(val.internalValue)
-      };
-    } else if (val instanceof fieldValue.GeoPointValue) {
-      return {
-        geoPointValue: {
-          latitude: val.value().latitude,
-          longitude: val.value().longitude
-        }
-      };
-    } else if (val instanceof fieldValue.BlobValue) {
-      return {
-        bytesValue: this.toBytes(val.value())
-      };
-    } else if (val instanceof fieldValue.RefValue) {
-      return {
-        referenceValue: this.toResourceName(val.databaseId, val.key.path)
-      };
-    } else {
-      return fail('Unknown FieldValue ' + JSON.stringify(val));
-    }
+    return val.toProto(this.options.useProto3Json);
   }
 
   fromValue(obj: api.Value): fieldValue.FieldValue {
@@ -505,20 +454,6 @@ export class JsonProtoSerializer {
       result.set(new FieldPath([key]), this.fromValue(value));
     });
     return result.build();
-  }
-
-  toMapValue(map: fieldValue.ObjectValue): api.MapValue {
-    return {
-      fields: this.toFields(map)
-    };
-  }
-
-  toArrayValue(array: fieldValue.ArrayValue): api.ArrayValue {
-    const result: api.Value[] = [];
-    array.forEach(value => {
-      result.push(this.toValue(value));
-    });
-    return { values: result };
   }
 
   private fromFound(doc: api.BatchGetDocumentsResponse): Document {
