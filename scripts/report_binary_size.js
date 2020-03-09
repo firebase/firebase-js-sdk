@@ -33,8 +33,8 @@ function generateReportForCDNScripts() {
     return reports;
 }
 
-// @firebase/*
-function generateReportForNPMPacakges() {
+// NPM packages
+function generateReportForNPMPackages() {
     const reports = [];
     const fields = [
         'main',
@@ -76,15 +76,17 @@ function makeReportObject(sdk, type, value) {
 function generateSizeReport() {
     const reports = [
         ...generateReportForCDNScripts(),
-        ...generateReportForNPMPacakges()
+        ...generateReportForNPMPackages()
     ];
 
     for (const r of reports) {
         console.log(r.sdk, r.type, r.value);
     }
 
+    console.log(`Github Action URL: https://github.com/firebase/firebase-js-sdk/actions/runs/${runId}`);
+
     return {
-        log: "https://www.goog.com",
+        log: `https://github.com/firebase/firebase-js-sdk/actions/runs/${runId}`,
         metric: "BinarySize",
         results: reports
     };
