@@ -18,6 +18,8 @@
 import { Auth } from '../model/auth';
 import { IdToken, IdTokenResponse } from '../model/id_token';
 import { performApiRequest, Endpoint, HttpMethod } from '.';
+import { ServerErrorMap, ServerError } from './errors';
+import { AuthErrorCode } from '../core/errors';
 
 export interface CreateAuthUriRequest {
   identifier: string;
@@ -254,6 +256,31 @@ export async function linkWithPhoneNumber(
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
     request
+  );
+}
+
+interface VerifyPhoneNumberForExistingRequest
+  extends SignInWithPhoneNumberRequest {
+  operation: 'REAUTH',
+}
+
+const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_:
+  Partial<ServerErrorMap<ServerError>> = {
+  [ServerError.USER_NOT_FOUND]: AuthErrorCode.USER_DELETED,
+};
+
+export async function verifyPhoneNumberForExisting(
+  auth: Auth,
+  request: SignInWithPhoneNumberRequest
+): Promise<SignInWithPhoneNumberResponse> {
+  const apiRequest: VerifyPhoneNumberForExistingRequest = 
+      {...request, operation: 'REAUTH'};
+  return performApiRequest<VerifyPhoneNumberForExistingRequest, SignInWithPhoneNumberResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    apiRequest,
+    VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_,
   );
 }
 

@@ -33,7 +33,7 @@ export class PhoneAuthProvider implements AuthProvider {
   static credential(
     verificationId: string,
     verificationCode: string
-  ): AuthCredential {
+  ): PhoneAuthCredential {
     return new PhoneAuthCredential({verificationId, verificationCode});
   }
   static credentialFromProof(temporaryProof: string, phoneNumber: string
@@ -131,7 +131,7 @@ export class PhoneAuthCredential implements AuthCredential {
     });
   }
 
-  private makeVerificationRequest() {
+  makeVerificationRequest() {
     const {temporaryProof, phoneNumber, verificationId, verificationCode} =
         this.params;
     if (temporaryProof && phoneNumber) {

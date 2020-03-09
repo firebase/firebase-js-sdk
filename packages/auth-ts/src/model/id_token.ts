@@ -16,6 +16,7 @@
  */
 
 import { ProviderId } from '../core/providers';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 
 /**
  * Raw encoded JWT
@@ -73,12 +74,7 @@ export interface IdTokenResult {
  * @param idToken raw encoded JWT from the server.
  */
 export function parseIdToken(idToken: IdToken): IdTokenResult {
-  const fields = idToken.split('.');
-  if (fields.length !== 3) {
-    // TODO: throw proper AuthError
-    throw new Error('Invalid JWT');
-  }
-  const payload: IdTokenPayload = JSON.parse(atob(fields[1]));
+  const {auth_time, exp, iat, firebase} = getTokenPayload_(idToken);
   const utcTimestampToDateString = (utcTimestamp: number): string => {
     const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
@@ -90,13 +86,22 @@ export function parseIdToken(idToken: IdToken): IdTokenResult {
 
   return {
     token: idToken,
-    authTime: utcTimestampToDateString(payload.auth_time),
-    expirationTime: utcTimestampToDateString(payload.exp),
-    issuedAtTime: utcTimestampToDateString(payload.iat),
-    signInProvider: payload.firebase.sign_in_provider,
+    authTime: utcTimestampToDateString(auth_time),
+    expirationTime: utcTimestampToDateString(exp),
+    issuedAtTime: utcTimestampToDateString(iat),
+    signInProvider: firebase.sign_in_provider,
     signInSecondFactor: null,
     claims: {}
   };
+}
+
+function getTokenPayload_(idToken: IdToken): IdTokenPayload {
+  const fields = idToken.split('.');
+  if (fields.length !== 3) {
+    // TODO: throw proper AuthError
+    throw new Error('Invalid JWT');
+  }
+  return JSON.parse(atob(fields[1]));
 }
 
 /**
@@ -121,4 +126,34 @@ export interface IdTokenResponse {
   refreshToken: string;
   expiresIn: string;
   localId: string;
+}
+
+export async function verifyTokenResponseUid(
+  idTokenResolver: Promise<IdTokenResponse>,
+  uid: string,
+  appName: string,
+): Promise<IdTokenResponse> {
+  const mismatchError = AUTH_ERROR_FACTORY.create(
+    AuthErrorCode.USER_MISMATCH,
+    {appName}
+  );
+  try {
+    const response = await idTokenResolver;
+    if (!response.idToken) {
+      throw mismatchError;
+    }
+
+    const {sub: localId} = getTokenPayload_(response.idToken);
+    if (uid !== localId) {
+      throw mismatchError;
+    }
+
+    return response;
+  } catch (e) {
+    // Convert user deleted error into user mismatch
+    if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
+      throw mismatchError;
+    }
+    throw e;
+  }
 }

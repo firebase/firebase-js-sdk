@@ -16,7 +16,7 @@
  */
 
 import { Auth } from '..';
-import { JsonError, SERVER_ERROR_MAP } from './errors';
+import { JsonError, SERVER_ERROR_MAP, ServerErrorMap, ServerError } from './errors';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { FirebaseError } from '@firebase/util';
 
@@ -48,8 +48,10 @@ export async function performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
   path: Endpoint,
-  request?: T
+  request?: T,
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {},
 ): Promise<V> {
+  const errorMap = {...SERVER_ERROR_MAP, ...customErrorMap};
   try {
     const body = request ? {
       body: JSON.stringify(request)
@@ -69,7 +71,7 @@ export async function performApiRequest<T, V>(
       return response.json();
     } else {
       const json: JsonError = await response.json();
-      const authError = SERVER_ERROR_MAP[json.error.message];
+      const authError = errorMap[json.error.message];
       if (authError) {
         throw AUTH_ERROR_FACTORY.create(authError, { appName: auth.name });
       } else {

@@ -29,9 +29,8 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
-  const provider = new PhoneAuthProvider(auth);
-  const verificationId =
-      await provider.verifyPhoneNumber(phoneNumber, appVerifier);
+  const verificationId = 
+      await getVerificationId_(auth, phoneNumber, appVerifier);
   return new ConfirmationResult(
       verificationId, cred => signInWithCredential(auth, cred));
 }
@@ -43,8 +42,33 @@ export async function linkWithPhoneNumber(
   appVerifier: ApplicationVerifier,
 ): Promise<ConfirmationResult> {
   checkIfAlreadyLinked(auth, user, ProviderId.PHONE);
-  const provider = new PhoneAuthProvider(auth);
-  const verificationId = await provider.verifyPhoneNumber(phoneNumber, appVerifier);
+  const verificationId = 
+      await getVerificationId_(auth, phoneNumber, appVerifier);
   return new ConfirmationResult(
       verificationId, cred => linkWithCredential(auth, user, cred));
 }
+
+export async function reauthenticateWithPhoneNumber(
+  auth: Auth,
+  user: User,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier,
+): Promise<ConfirmationResult> {
+  const verificationId = 
+      await getVerificationId_(auth, phoneNumber, appVerifier);
+  return new ConfirmationResult(verificationId, cred => {
+    const verifyRequest = cred.makeVerificationRequest();
+    
+  });
+}
+
+function getVerificationId_(
+  auth: Auth,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier,
+): Promise<string> {
+  return new PhoneAuthProvider(auth)
+      .verifyPhoneNumber(phoneNumber, appVerifier);
+}
+
+// function 

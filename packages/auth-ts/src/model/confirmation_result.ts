@@ -16,11 +16,10 @@
  */
 
 import { UserCredential } from './user_credential';
-import { PhoneAuthProvider } from '../core/providers/phone';
-import { AuthCredential } from './auth_credential';
+import { PhoneAuthProvider, PhoneAuthCredential } from '../core/providers/phone';
 
 export interface OnConfirmationCallback {
-  (credential: AuthCredential): Promise<UserCredential>;
+  (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
 export class ConfirmationResult {
