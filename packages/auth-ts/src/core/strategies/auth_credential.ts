@@ -68,12 +68,16 @@ export function authCredentialFromTokenResponse(
 export async function reauthenticateWithCredential(
   auth: Auth,
   user: User,
-  credential: AuthCredential,
+  credential: AuthCredential
 ): Promise<UserCredential> {
   const idTokenResponse = await credential.matchIdTokenWithUid_(auth, user.uid);
   user.stsTokenManager.updateFromServerResponse(idTokenResponse);
   const newCred = authCredentialFromTokenResponse(idTokenResponse);
-  const userCred = new UserCredential(user, newCred, OperationType.REAUTHENTICATE);
+  const userCred = new UserCredential(
+    user,
+    newCred,
+    OperationType.REAUTHENTICATE
+  );
   await user.reload(auth);
   return userCred;
 }

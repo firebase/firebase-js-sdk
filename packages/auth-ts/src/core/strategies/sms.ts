@@ -19,7 +19,11 @@ import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { ConfirmationResult } from '../../model/confirmation_result';
 import { PhoneAuthProvider } from '../providers/phone';
-import { signInWithCredential, linkWithCredential, reauthenticateWithCredential } from './auth_credential';
+import {
+  signInWithCredential,
+  linkWithCredential,
+  reauthenticateWithCredential
+} from './auth_credential';
 import { User } from '../../model/user';
 import { checkIfAlreadyLinked } from '.';
 import { ProviderId } from '../providers';

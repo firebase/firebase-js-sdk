@@ -124,10 +124,15 @@ let memo: FirebaseAuth;
         reload(): Promise<void> {
           return reload(auth, user);
         },
-        reauthenticateWithCredential(credential: AuthCredential): Promise<UserCredential> {
+        reauthenticateWithCredential(
+          credential: AuthCredential
+        ): Promise<UserCredential> {
           return reauthenticateWithCredential(auth, user, credential);
         },
-        reauthenticateWithPhoneNumber(number: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+        reauthenticateWithPhoneNumber(
+          number: string,
+          appVerifier: ApplicationVerifier
+        ): Promise<ConfirmationResult> {
           return reauthenticateWithPhoneNumber(auth, user, number, appVerifier);
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
