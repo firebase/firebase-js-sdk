@@ -20,7 +20,7 @@ import { Auth } from '../../model/auth';
 import { getCurrentUrl } from '../util/location';
 import { actionCodeURLfromLink } from '../../model/action_code_url';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import {
   signInWithEmailLink,
   signInWithPassword
@@ -80,7 +80,7 @@ export class EmailAuthCredential implements AuthCredential {
   }
 
   matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
-    throw new Error('Method not implemented.');
+    return verifyTokenResponseUid(this.getIdTokenResponse_(auth), uid, auth.name);
   }
 }
 
