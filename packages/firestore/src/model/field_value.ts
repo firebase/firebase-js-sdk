@@ -256,7 +256,7 @@ export class DoubleValue extends NumberValue {
 
   toProto(useProto3Json: boolean): api.Value {
     if (useProto3Json) {
-      // Proto 3 let's us encode NaN and Infinity as string values as
+      // Proto 3 lets us encode NaN and Infinity as string values as
       // expected by the backend. This is currently not checked by our unit
       // tests because they rely on protobuf.js.
       if (isNaN(this.internalValue)) {
