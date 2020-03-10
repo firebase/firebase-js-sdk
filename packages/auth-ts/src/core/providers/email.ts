@@ -80,7 +80,11 @@ export class EmailAuthCredential implements AuthCredential {
   }
 
   matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
-    return verifyTokenResponseUid(this.getIdTokenResponse_(auth), uid, auth.name);
+    return verifyTokenResponseUid(
+      this.getIdTokenResponse_(auth),
+      uid,
+      auth.name
+    );
   }
 }
 
