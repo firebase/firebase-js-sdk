@@ -16,7 +16,10 @@
  */
 
 import { UserCredential } from './user_credential';
-import { PhoneAuthProvider, PhoneAuthCredential } from '../core/providers/phone';
+import {
+  PhoneAuthProvider,
+  PhoneAuthCredential
+} from '../core/providers/phone';
 
 export interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
@@ -24,12 +27,15 @@ export interface OnConfirmationCallback {
 
 export class ConfirmationResult {
   constructor(
-      readonly verificationId: string,
-      private readonly onConfirmation: OnConfirmationCallback) {}
-  
+    readonly verificationId: string,
+    private readonly onConfirmation: OnConfirmationCallback
+  ) {}
+
   async confirm(verificationCode: string): Promise<UserCredential> {
-    const authCredential =
-        PhoneAuthProvider.credential(this.verificationId, verificationCode);
+    const authCredential = PhoneAuthProvider.credential(
+      this.verificationId,
+      verificationCode
+    );
     return this.onConfirmation(authCredential);
   }
 }

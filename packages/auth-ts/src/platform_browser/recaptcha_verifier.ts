@@ -21,12 +21,16 @@ import { initializeAuth } from '../core/initialize_auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { isHttpOrHttps } from '../core/util/location';
 import { AuthWindow } from './auth_window';
-import { RECAPTCHA_LOADER, ReCaptchaLoader, MOCK_RECAPTCHA_LOADER } from './recaptcha_loader';
+import {
+  RECAPTCHA_LOADER,
+  ReCaptchaLoader,
+  MOCK_RECAPTCHA_LOADER
+} from './recaptcha_loader';
 import { getRecaptchaParams } from '../api/authentication';
 
 const DEFAULT_PARAMS_: ReCaptchaV2.Parameters = {
   theme: 'light',
-  type: 'image',
+  type: 'image'
 };
 
 type TokenCallback = (token: string) => void;
@@ -36,7 +40,7 @@ export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 export class RecaptchaVerifier implements ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
   private readonly auth: Auth;
-  private readonly errorParams: {appName: string};
+  private readonly errorParams: { appName: string };
   // private initPromise: Promise<ReCaptchaV2.ReCaptcha> | null = null;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -44,28 +48,37 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
-  
+
   private readonly recaptchaLoader: ReCaptchaLoader;
   private recaptcha: ReCaptchaV2.ReCaptcha | null = null;
-  
+
   constructor(
     containerOrId: HTMLElement | string,
-    private readonly parameters: ReCaptchaV2.Parameters = {...DEFAULT_PARAMS_},
-    auth?: Auth | null) {
-
+    private readonly parameters: ReCaptchaV2.Parameters = {
+      ...DEFAULT_PARAMS_
+    },
+    auth?: Auth | null
+  ) {
     this.auth = auth || initializeAuth();
-    this.errorParams = {appName: this.auth.name};
+    this.errorParams = { appName: this.auth.name };
     this.isInvisible = this.parameters.size === 'invisible';
-    const container = typeof containerOrId === 'string' ? document.getElementById(containerOrId) : containerOrId;
+    const container =
+      typeof containerOrId === 'string'
+        ? document.getElementById(containerOrId)
+        : containerOrId;
     if (!container) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.ARGUMENT_ERROR,
+        this.errorParams
+      );
     }
 
     this.container = container;
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
 
-    this.recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting ?
-        MOCK_RECAPTCHA_LOADER : RECAPTCHA_LOADER;
+    this.recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting
+      ? MOCK_RECAPTCHA_LOADER
+      : RECAPTCHA_LOADER;
 
     this.validateStartingState();
     // TODO: Figure out if sdk version is needed
@@ -81,10 +94,10 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
     return new Promise<string>(resolve => {
       const tokenChange = (token: string) => {
-        if (!token) return;  // Ignore token expirations.
+        if (!token) return; // Ignore token expirations.
         this.tokenChangeListeners.delete(tokenChange);
         resolve(token);
-      }
+      };
 
       this.tokenChangeListeners.add(tokenChange);
       if (this.isInvisible) {
@@ -95,7 +108,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
   render(): Promise<number> {
     this.checkIfDestroyed();
-    
+
     if (this.renderPromise) {
       return this.renderPromise;
     }
@@ -128,19 +141,30 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
   private validateStartingState() {
     if (this.parameters.sitekey) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.ARGUMENT_ERROR,
+        this.errorParams
+      );
     }
 
     if (!document) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.OPERATION_NOT_SUPPORTED,
+        this.errorParams
+      );
     }
 
     if (!this.isInvisible && this.container.hasChildNodes()) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.ARGUMENT_ERROR,
+        this.errorParams
+      );
     }
   }
 
-  private makeTokenCallback(existing: TokenCallback|string|undefined): TokenCallback {
+  private makeTokenCallback(
+    existing: TokenCallback | string | undefined
+  ): TokenCallback {
     return token => {
       this.tokenChangeListeners.forEach(listener => listener(token));
       if (typeof existing === 'function') {
@@ -152,11 +176,14 @@ export class RecaptchaVerifier implements ApplicationVerifier {
         }
       }
     };
-  } 
+  }
 
   private checkIfDestroyed() {
     if (this.destroyed) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.INTERNAL_ERROR,
+        this.errorParams
+      );
     }
   }
 
@@ -178,15 +205,24 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
   private async init(): Promise<void> {
     if (!isHttpOrHttps() || isWorker_()) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.OPERATION_NOT_SUPPORTED,
+        this.errorParams
+      );
     }
 
     await domReady_();
-    this.recaptcha = await this.recaptchaLoader.load(this.auth, this.auth.languageCode || undefined);
+    this.recaptcha = await this.recaptchaLoader.load(
+      this.auth,
+      this.auth.languageCode || undefined
+    );
     const siteKey = await getRecaptchaParams(this.auth);
 
     if (!siteKey) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.INTERNAL_ERROR,
+        this.errorParams
+      );
     }
 
     this.parameters.sitekey = siteKey;
@@ -194,7 +230,10 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
   private get assertedRecaptcha(): ReCaptchaV2.ReCaptcha {
     if (!this.recaptcha) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, this.errorParams);
+      throw AUTH_ERROR_FACTORY.create(
+        AuthErrorCode.INTERNAL_ERROR,
+        this.errorParams
+      );
     }
 
     return this.recaptcha;
@@ -203,8 +242,10 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 
 function isWorker_() {
   const win: AuthWindow = window;
-  return typeof win['WorkerGlobalScope'] !== 'undefined' &&
-         typeof win['importScripts'] === 'function';
+  return (
+    typeof win['WorkerGlobalScope'] !== 'undefined' &&
+    typeof win['importScripts'] === 'function'
+  );
 }
 
 function domReady_(): Promise<void> {
@@ -222,7 +263,7 @@ function domReady_(): Promise<void> {
     window.addEventListener('load', resolver);
   }).catch(e => {
     if (resolver) {
-      window.removeEventListener('load', resolver)
+      window.removeEventListener('load', resolver);
     }
 
     throw e;

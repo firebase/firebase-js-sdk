@@ -21,7 +21,10 @@ import { getAccountInfo, ProviderUserInfo } from '../../api/account_management';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Mutable } from '../util/mutable';
 
-export async function reloadWithoutSaving(auth: Auth, user: User): Promise<void> {
+export async function reloadWithoutSaving(
+  auth: Auth,
+  user: User
+): Promise<void> {
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
 

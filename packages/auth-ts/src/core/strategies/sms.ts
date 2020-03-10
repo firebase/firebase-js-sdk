@@ -29,33 +29,44 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
-  const verificationId = 
-      await getVerificationId_(auth, phoneNumber, appVerifier);
-  return new ConfirmationResult(
-      verificationId, cred => signInWithCredential(auth, cred));
+  const verificationId = await getVerificationId_(
+    auth,
+    phoneNumber,
+    appVerifier
+  );
+  return new ConfirmationResult(verificationId, cred =>
+    signInWithCredential(auth, cred)
+  );
 }
 
 export async function linkWithPhoneNumber(
   auth: Auth,
   user: User,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier,
+  appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   checkIfAlreadyLinked(auth, user, ProviderId.PHONE);
-  const verificationId = 
-      await getVerificationId_(auth, phoneNumber, appVerifier);
-  return new ConfirmationResult(
-      verificationId, cred => linkWithCredential(auth, user, cred));
+  const verificationId = await getVerificationId_(
+    auth,
+    phoneNumber,
+    appVerifier
+  );
+  return new ConfirmationResult(verificationId, cred =>
+    linkWithCredential(auth, user, cred)
+  );
 }
 
 export async function reauthenticateWithPhoneNumber(
   auth: Auth,
   user: User,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier,
+  appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
-  const verificationId = 
-      await getVerificationId_(auth, phoneNumber, appVerifier);
+  const verificationId = await getVerificationId_(
+    auth,
+    phoneNumber,
+    appVerifier
+  );
   return new ConfirmationResult(verificationId, cred => {
     const verifyRequest = cred.makeVerificationRequest();
     throw new Error('not implemented');
@@ -65,10 +76,12 @@ export async function reauthenticateWithPhoneNumber(
 function getVerificationId_(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier,
+  appVerifier: ApplicationVerifier
 ): Promise<string> {
-  return new PhoneAuthProvider(auth)
-      .verifyPhoneNumber(phoneNumber, appVerifier);
+  return new PhoneAuthProvider(auth).verifyPhoneNumber(
+    phoneNumber,
+    appVerifier
+  );
 }
 
-// function 
+// function

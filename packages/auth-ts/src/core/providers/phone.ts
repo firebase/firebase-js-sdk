@@ -22,7 +22,11 @@ import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { MultiFactorSession } from '../../model/multifactor';
 import { initializeAuth } from '../initialize_auth';
-import { sendPhoneVerificationCode, signInWithPhoneNumber, linkWithPhoneNumber } from '../../api/authentication';
+import {
+  sendPhoneVerificationCode,
+  signInWithPhoneNumber,
+  linkWithPhoneNumber
+} from '../../api/authentication';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha_verifier';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from '../../model/auth_credential';
@@ -34,11 +38,13 @@ export class PhoneAuthProvider implements AuthProvider {
     verificationId: string,
     verificationCode: string
   ): PhoneAuthCredential {
-    return new PhoneAuthCredential({verificationId, verificationCode});
+    return new PhoneAuthCredential({ verificationId, verificationCode });
   }
-  static credentialFromProof(temporaryProof: string, phoneNumber: string
+  static credentialFromProof(
+    temporaryProof: string,
+    phoneNumber: string
   ): AuthCredential {
-    return new PhoneAuthCredential({temporaryProof, phoneNumber});
+    return new PhoneAuthCredential({ temporaryProof, phoneNumber });
   }
   static credentialFromResult(
     userCredential: UserCredential
@@ -51,7 +57,7 @@ export class PhoneAuthProvider implements AuthProvider {
   static credentialFromJSON(json: object): AuthCredential {
     throw new Error('not implemented');
   }
-  
+
   readonly auth: Auth;
   readonly providerId: ProviderId = PhoneAuthProvider.PROVIDER_ID;
   constructor(auth?: Auth | null) {
@@ -67,19 +73,23 @@ export class PhoneAuthProvider implements AuthProvider {
     const recaptchaToken = await applicationVerifier.verify();
     if (typeof recaptchaToken !== 'string') {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
-        appName: this.auth.name,
+        appName: this.auth.name
       });
     }
 
     if (applicationVerifier.type !== RECAPTCHA_VERIFIER_TYPE) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
-        appName: this.auth.name,
+        appName: this.auth.name
       });
     }
 
     try {
-      const verificationId = (await sendPhoneVerificationCode(this.auth,
-        {phoneNumber, recaptchaToken})).sessionInfo;
+      const verificationId = (
+        await sendPhoneVerificationCode(this.auth, {
+          phoneNumber,
+          recaptchaToken
+        })
+      ).sessionInfo;
       return verificationId;
     } finally {
       applicationVerifier.reset();
@@ -101,8 +111,8 @@ export class PhoneAuthCredential implements AuthCredential {
   constructor(private readonly params: PhoneAuthCredentialParameters) {}
 
   toJSON(): object {
-    const obj: {[key: string]: string} = {
-      providerId: this.providerId,
+    const obj: { [key: string]: string } = {
+      providerId: this.providerId
     };
     if (this.params.phoneNumber) {
       obj.phoneNumber = this.params.phoneNumber;
@@ -127,20 +137,24 @@ export class PhoneAuthCredential implements AuthCredential {
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
-      ...this.makeVerificationRequest(),
+      ...this.makeVerificationRequest()
     });
   }
 
   makeVerificationRequest() {
-    const {temporaryProof, phoneNumber, verificationId, verificationCode} =
-        this.params;
+    const {
+      temporaryProof,
+      phoneNumber,
+      verificationId,
+      verificationCode
+    } = this.params;
     if (temporaryProof && phoneNumber) {
-      return {temporaryProof, phoneNumber};
+      return { temporaryProof, phoneNumber };
     }
 
     return {
       sessionInfo: verificationId,
-      code: verificationCode,
+      code: verificationCode
     };
   }
 }

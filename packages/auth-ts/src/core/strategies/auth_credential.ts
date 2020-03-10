@@ -16,10 +16,16 @@
  */
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { Auth } from '../..';
-import { initializeCurrentUserFromIdTokenResponse, checkIfAlreadyLinked } from '.';
+import {
+  initializeCurrentUserFromIdTokenResponse,
+  checkIfAlreadyLinked
+} from '.';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { PhoneOrOauthTokenResponse, SignInWithPhoneNumberResponse } from '../../api/authentication';
+import {
+  PhoneOrOauthTokenResponse,
+  SignInWithPhoneNumberResponse
+} from '../../api/authentication';
 import { AuthCredential } from '../../model/auth_credential';
 import { PhoneAuthProvider } from '../providers/phone';
 
@@ -49,13 +55,12 @@ export async function linkWithCredential(
 export function authCredentialFromTokenResponse(
   response: PhoneOrOauthTokenResponse
 ): AuthCredential | null {
-  const {temporaryProof, phoneNumber} =
-      response as SignInWithPhoneNumberResponse;
+  const {
+    temporaryProof,
+    phoneNumber
+  } = response as SignInWithPhoneNumberResponse;
   if (temporaryProof && phoneNumber) {
-    return PhoneAuthProvider.credentialFromProof(
-      temporaryProof,
-      phoneNumber
-    );
+    return PhoneAuthProvider.credentialFromProof(temporaryProof, phoneNumber);
   }
   return null;
 }

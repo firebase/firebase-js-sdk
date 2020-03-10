@@ -70,7 +70,7 @@ export class EmailAuthCredential implements AuthCredential {
           idToken,
           returnSecureToken: true,
           email: this.email,
-          password: this.password,
+          password: this.password
         });
       default:
         throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {

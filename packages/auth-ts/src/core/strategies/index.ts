@@ -50,14 +50,17 @@ export async function checkIfAlreadyLinked(
   auth: Auth,
   user: User,
   provider: ProviderId,
-  expected = false) {
+  expected = false
+) {
   await reloadWithoutSaving(auth, user);
-  const providerIds = user.providerData.map(({providerId}) => providerId);
+  const providerIds = user.providerData.map(({ providerId }) => providerId);
   if (providerIds.includes(provider) !== expected) {
-    const code = expected === false ? AuthErrorCode.PROVIDER_ALREADY_LINKED :
-                                      AuthErrorCode.NO_SUCH_PROVIDER;
+    const code =
+      expected === false
+        ? AuthErrorCode.PROVIDER_ALREADY_LINKED
+        : AuthErrorCode.NO_SUCH_PROVIDER;
     throw AUTH_ERROR_FACTORY.create(code, {
-        appName: auth.name,
-      });
+      appName: auth.name
+    });
   }
 }

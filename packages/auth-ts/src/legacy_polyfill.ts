@@ -45,7 +45,7 @@ import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
 import {
   signInWithCredential,
-  linkWithCredential,
+  linkWithCredential
 } from './core/strategies/auth_credential';
 import {
   EmailAuthProvider,
@@ -67,11 +67,17 @@ import { TwitterAuthProvider } from './core/providers/twitter';
 import { RecaptchaVerifier } from './platform_browser/recaptcha_verifier';
 import { ApplicationVerifier } from './model/application_verifier';
 import { ConfirmationResult } from './model/confirmation_result';
-import { signInWithPhoneNumber, linkWithPhoneNumber } from './core/strategies/sms';
+import {
+  signInWithPhoneNumber,
+  linkWithPhoneNumber
+} from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
 import { ProviderId } from './core/providers';
 import { unlink } from './core/account_management/unlink';
-import { updateEmail, updatePassword } from './core/account_management/update_email_password';
+import {
+  updateEmail,
+  updatePassword
+} from './core/account_management/update_email_password';
 import { updatePhoneNumber } from './core/account_management/update_phone_number';
 
 interface FirebaseAuth extends Auth {}
@@ -119,10 +125,15 @@ let memo: FirebaseAuth;
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
         },
-        linkWithCredential(credential: AuthCredential): Promise<UserCredential> {
+        linkWithCredential(
+          credential: AuthCredential
+        ): Promise<UserCredential> {
           return linkWithCredential(auth, user, credential);
         },
-        linkWithPhoneNumber(phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+        linkWithPhoneNumber(
+          phoneNumber: string,
+          appVerifier: ApplicationVerifier
+        ): Promise<ConfirmationResult> {
           return linkWithPhoneNumber(auth, user, phoneNumber, appVerifier);
         },
         unlink(providerId: string): Promise<User> {
@@ -136,7 +147,7 @@ let memo: FirebaseAuth;
         },
         updatePhoneNumber(phoneCredential: PhoneAuthCredential): Promise<void> {
           return updatePhoneNumber(auth, user, phoneCredential);
-        },
+        }
       });
     }
   });
@@ -220,7 +231,10 @@ let memo: FirebaseAuth;
           : browserPopupRedirectResolver
       );
     },
-    signInWithPhoneNumber(phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+    signInWithPhoneNumber(
+      phoneNumber: string,
+      appVerifier: ApplicationVerifier
+    ): Promise<ConfirmationResult> {
       return signInWithPhoneNumber(auth, phoneNumber, appVerifier);
     },
     verifyPasswordResetCode(code: string): Promise<string> {
@@ -255,5 +269,5 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   SAMLAuthProvider,
   PhoneAuthProvider,
   RecaptchaVerifier,
-  TwitterAuthProvider,
+  TwitterAuthProvider
 });

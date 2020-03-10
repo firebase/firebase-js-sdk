@@ -74,7 +74,7 @@ export interface IdTokenResult {
  * @param idToken raw encoded JWT from the server.
  */
 export function parseIdToken(idToken: IdToken): IdTokenResult {
-  const {auth_time, exp, iat, firebase} = getTokenPayload_(idToken);
+  const { auth_time, exp, iat, firebase } = getTokenPayload_(idToken);
   const utcTimestampToDateString = (utcTimestamp: number): string => {
     const date = new Date(utcTimestamp);
     if (isNaN(date.getTime())) {
@@ -131,19 +131,18 @@ export interface IdTokenResponse {
 export async function verifyTokenResponseUid(
   idTokenResolver: Promise<IdTokenResponse>,
   uid: string,
-  appName: string,
+  appName: string
 ): Promise<IdTokenResponse> {
-  const mismatchError = AUTH_ERROR_FACTORY.create(
-    AuthErrorCode.USER_MISMATCH,
-    {appName}
-  );
+  const mismatchError = AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_MISMATCH, {
+    appName
+  });
   try {
     const response = await idTokenResolver;
     if (!response.idToken) {
       throw mismatchError;
     }
 
-    const {sub: localId} = getTokenPayload_(response.idToken);
+    const { sub: localId } = getTokenPayload_(response.idToken);
     if (uid !== localId) {
       throw mismatchError;
     }

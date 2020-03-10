@@ -16,7 +16,12 @@
  */
 
 import { Auth } from '..';
-import { JsonError, SERVER_ERROR_MAP, ServerErrorMap, ServerError } from './errors';
+import {
+  JsonError,
+  SERVER_ERROR_MAP,
+  ServerErrorMap,
+  ServerError
+} from './errors';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { FirebaseError } from '@firebase/util';
 
@@ -25,7 +30,7 @@ export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
 
 export enum HttpMethod {
   POST = 'POST',
-  GET = 'GET',
+  GET = 'GET'
 }
 
 export enum Endpoint {
@@ -41,7 +46,7 @@ export enum Endpoint {
   SEND_OOB_CODE = '/v1/accounts:sendOobCode',
   SET_ACCOUNT_INFO = '/v1/accounts:update',
   GET_ACCOUNT_INFO = '/v1/accounts:lookup',
-  GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
+  GET_RECAPTCHA_PARAM = '/v1/recaptchaParams'
 }
 
 export async function performApiRequest<T, V>(
@@ -49,13 +54,15 @@ export async function performApiRequest<T, V>(
   method: HttpMethod,
   path: Endpoint,
   request?: T,
-  customErrorMap: Partial<ServerErrorMap<ServerError>> = {},
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const errorMap = {...SERVER_ERROR_MAP, ...customErrorMap};
+  const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
-    const body = request ? {
-      body: JSON.stringify(request)
-    } : {};
+    const body = request
+      ? {
+          body: JSON.stringify(request)
+        }
+      : {};
     const response = await fetch(
       `${PRODUCTION_URL}${path}?key=${auth.config.apiKey}`,
       {
@@ -64,7 +71,7 @@ export async function performApiRequest<T, V>(
           'Content-Type': 'application/json'
         },
         referrerPolicy: 'no-referrer',
-        ...body,
+        ...body
       }
     );
     if (response.ok) {

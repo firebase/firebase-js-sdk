@@ -28,7 +28,7 @@ export async function updateEmail(
   const idToken = await user.getIdToken();
   const response = await updateEmailPassword(auth, {
     idToken,
-    email,
+    email
   });
   user.stsTokenManager.updateFromServerResponse(response);
   await user.reload(auth);
@@ -41,14 +41,14 @@ export async function updatePassword(
 ): Promise<void> {
   if (!password) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.WEAK_PASSWORD, {
-      appName: auth.name,
+      appName: auth.name
     });
   }
 
   const idToken = await user.getIdToken();
   const response = await updateEmailPassword(auth, {
     idToken,
-    password,
+    password
   });
   user.stsTokenManager.updateFromServerResponse(response);
   await user.reload(auth);

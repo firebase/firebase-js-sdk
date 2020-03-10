@@ -28,7 +28,7 @@ import { MOCK_RECAPTCHA } from './recaptcha_mock';
 // to be kept around
 const JSLOAD_CALLBACK_ = generateCallbackName('rcb');
 const NETWORK_TIMEOUT_DELAY_ = new Delay(30000, 60000);
-const RECAPTCHA_BASE_ = 'https://www.google.com/recaptcha/api.js?'
+const RECAPTCHA_BASE_ = 'https://www.google.com/recaptcha/api.js?';
 
 export interface ReCaptchaLoader {
   load(auth: Auth, hl?: string): Promise<ReCaptchaV2.ReCaptcha>;
@@ -53,9 +53,11 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     }
     return new Promise<ReCaptchaV2.ReCaptcha>((resolve, reject) => {
       const networkTimeout = setTimeout(() => {
-        reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-          appName: auth.name,
-        }));
+        reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+            appName: auth.name
+          })
+        );
       }, NETWORK_TIMEOUT_DELAY_.get());
 
       (window as AuthWindow)[JSLOAD_CALLBACK_] = () => {
@@ -65,7 +67,11 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         const recaptcha = pullGrecaptcha();
 
         if (!recaptcha) {
-          reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {appName: auth.name}));
+          reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+              appName: auth.name
+            })
+          );
           return;
         }
 
@@ -76,7 +82,7 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
           const widgetId = render(container, params);
           this.counter++;
           return widgetId;
-        }
+        };
 
         this.hl = hl;
         resolve(recaptcha);
@@ -85,13 +91,17 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
       const url = `${RECAPTCHA_BASE_}?${querystring({
         onload: JSLOAD_CALLBACK_,
         render: 'explicit',
-        hl,
+        hl
       })}`;
 
       loadJS(url).catch(() => {
         clearTimeout(networkTimeout);
-        reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {appName: auth.name}))
-      })
+        reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+            appName: auth.name
+          })
+        );
+      });
     });
   }
 
@@ -107,15 +117,21 @@ class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     //     3. the library was already loaded by the app
     // In cases (2) and (3), we _can't_ reload as it would break the recaptchas
     // that are already in the page
-    return !!pullGrecaptcha() && (hl === this.hl || this.counter > 0 || this.librarySeparatelyLoaded); 
+    return (
+      !!pullGrecaptcha() &&
+      (hl === this.hl || this.counter > 0 || this.librarySeparatelyLoaded)
+    );
   }
 }
 
 class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
-  async load(auth: Auth, hl?: string | undefined): Promise<ReCaptchaV2.ReCaptcha> {
+  async load(
+    auth: Auth,
+    hl?: string | undefined
+  ): Promise<ReCaptchaV2.ReCaptcha> {
     return MOCK_RECAPTCHA;
   }
-  
+
   clearedOneInstance(): void {}
 }
 

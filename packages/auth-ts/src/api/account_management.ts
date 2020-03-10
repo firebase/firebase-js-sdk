@@ -88,18 +88,16 @@ export interface UpdateEmailPasswordRequest {
   password?: string;
 }
 
-export interface UpdateEmailPasswordResponse extends IdTokenResponse {};
+export interface UpdateEmailPasswordResponse extends IdTokenResponse {}
 
 export async function updateEmailPassword(
   auth: Auth,
   request: UpdateEmailPasswordRequest
 ): Promise<UpdateEmailPasswordResponse> {
-  return performApiRequest<UpdateEmailPasswordRequest, UpdateEmailPasswordResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SET_ACCOUNT_INFO,
-    request,
-  );
+  return performApiRequest<
+    UpdateEmailPasswordRequest,
+    UpdateEmailPasswordResponse
+  >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);
 }
 
 export interface DeleteLinkedAccountsRequest {
@@ -113,14 +111,12 @@ export interface DeleteLinkedAccountsResponse {
 
 export async function deleteLinkedAccounts(
   auth: Auth,
-  request: DeleteLinkedAccountsRequest,
+  request: DeleteLinkedAccountsRequest
 ): Promise<DeleteLinkedAccountsResponse> {
-  return performApiRequest<DeleteLinkedAccountsRequest, DeleteLinkedAccountsResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SET_ACCOUNT_INFO,
-    request,
-  );
+  return performApiRequest<
+    DeleteLinkedAccountsRequest,
+    DeleteLinkedAccountsResponse
+  >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);
 }
 
 export interface APIUserInfo {

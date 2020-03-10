@@ -174,7 +174,7 @@ export interface SendPhoneVerificationCodeResponse {
 
 export async function sendPhoneVerificationCode(
   auth: Auth,
-  request: SendPhoneVerificationCodeRequest,
+  request: SendPhoneVerificationCodeRequest
 ): Promise<SendPhoneVerificationCodeResponse> {
   return performApiRequest<
     SendPhoneVerificationCodeRequest,
@@ -209,25 +209,28 @@ interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;
 }
 
-export async function getRecaptchaParams(
-  auth: Auth,
-): Promise<string> {
-  return (await performApiRequest<void, GetRecaptchaParamResponse>(
-    auth,
-    HttpMethod.GET,
-    Endpoint.GET_RECAPTCHA_PARAM,
-  )).recaptchaSiteKey || '';
+export async function getRecaptchaParams(auth: Auth): Promise<string> {
+  return (
+    (
+      await performApiRequest<void, GetRecaptchaParamResponse>(
+        auth,
+        HttpMethod.GET,
+        Endpoint.GET_RECAPTCHA_PARAM
+      )
+    ).recaptchaSiteKey || ''
+  );
 }
 
 export interface SignInWithPhoneNumberRequest {
-  temporaryProof?: string,
-  phoneNumber?: string,
+  temporaryProof?: string;
+  phoneNumber?: string;
   sessionInfo?: string;
   code?: string;
 }
 
-export interface LinkWithPhoneNumberRequest extends SignInWithPhoneNumberRequest {
-  idToken: string,
+export interface LinkWithPhoneNumberRequest
+  extends SignInWithPhoneNumberRequest {
+  idToken: string;
 }
 
 export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
@@ -239,49 +242,54 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performApiRequest<SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-    request
-  );
+  return performApiRequest<
+    SignInWithPhoneNumberRequest,
+    SignInWithPhoneNumberResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
 }
 
 export async function linkWithPhoneNumber(
   auth: Auth,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performApiRequest<LinkWithPhoneNumberRequest, SignInWithPhoneNumberResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-    request
-  );
+  return performApiRequest<
+    LinkWithPhoneNumberRequest,
+    SignInWithPhoneNumberResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
 }
 
 interface VerifyPhoneNumberForExistingRequest
   extends SignInWithPhoneNumberRequest {
-  operation: 'REAUTH',
+  operation: 'REAUTH';
 }
 
-const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_:
-  Partial<ServerErrorMap<ServerError>> = {
-  [ServerError.USER_NOT_FOUND]: AuthErrorCode.USER_DELETED,
+const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_: Partial<ServerErrorMap<
+  ServerError
+>> = {
+  [ServerError.USER_NOT_FOUND]: AuthErrorCode.USER_DELETED
 };
 
 export async function verifyPhoneNumberForExisting(
   auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  const apiRequest: VerifyPhoneNumberForExistingRequest = 
-      {...request, operation: 'REAUTH'};
-  return performApiRequest<VerifyPhoneNumberForExistingRequest, SignInWithPhoneNumberResponse>(
+  const apiRequest: VerifyPhoneNumberForExistingRequest = {
+    ...request,
+    operation: 'REAUTH'
+  };
+  return performApiRequest<
+    VerifyPhoneNumberForExistingRequest,
+    SignInWithPhoneNumberResponse
+  >(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
     apiRequest,
-    VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_,
+    VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_
   );
 }
 
-export type PhoneOrOauthTokenResponse = SignInWithPhoneNumberResponse | SignInWithPhoneNumberResponse | IdTokenResponse;
+export type PhoneOrOauthTokenResponse =
+  | SignInWithPhoneNumberResponse
+  | SignInWithPhoneNumberResponse
+  | IdTokenResponse;

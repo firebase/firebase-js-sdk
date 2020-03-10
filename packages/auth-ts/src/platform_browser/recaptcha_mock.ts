@@ -25,13 +25,17 @@ class MockReCaptcha implements ReCaptchaV2.ReCaptcha {
   private counter = WIDGET_ID_START;
   private widgets = new Map<number, MockWidget>();
 
-  render(container: string | HTMLElement, parameters?: ReCaptchaV2.Parameters, inherit?: boolean): number {
+  render(
+    container: string | HTMLElement,
+    parameters?: ReCaptchaV2.Parameters,
+    inherit?: boolean
+  ): number {
     const id = this.counter;
     this.widgets.set(id, new MockWidget(container, parameters || {}));
     this.counter++;
     return id;
-  } 
-  
+  }
+
   reset(opt_widget_id?: number): void {
     const id = opt_widget_id || WIDGET_ID_START;
     this.widgets.get(id)?.delete();
@@ -44,7 +48,7 @@ class MockReCaptcha implements ReCaptchaV2.ReCaptcha {
   }
 
   execute(opt_widget_id?: number | string): Promise<string> {
-    const id: number = opt_widget_id as number || WIDGET_ID_START;
+    const id: number = (opt_widget_id as number) || WIDGET_ID_START;
     this.widgets.get(id)?.execute();
     return Promise.resolve('');
   }
@@ -66,12 +70,16 @@ class MockWidget {
 
   constructor(
     containerOrId: string | HTMLElement,
-    private readonly params: ReCaptchaV2.Parameters,
+    private readonly params: ReCaptchaV2.Parameters
   ) {
-    const container = typeof containerOrId === 'string' ?
-        document.getElementById(containerOrId) : containerOrId;
+    const container =
+      typeof containerOrId === 'string'
+        ? document.getElementById(containerOrId)
+        : containerOrId;
     if (!container) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {appName: ''});
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
+        appName: ''
+      });
     }
 
     this.container = container;
@@ -104,7 +112,7 @@ class MockWidget {
 
     this.timerId = window.setTimeout(() => {
       this.responseToken = generateRandomAlphaNumericString_(50);
-      const {callback, 'expired-callback': expiredCallback} = this.params;
+      const { callback, 'expired-callback': expiredCallback } = this.params;
       if (callback) {
         try {
           callback(this.responseToken);
@@ -124,7 +132,7 @@ class MockWidget {
           this.execute();
         }
       }, EXPIRATION_TIME_MS);
-    }, SOLVE_TIME_MS)
+    }, SOLVE_TIME_MS);
   }
 
   private checkIfDeleted() {
@@ -137,11 +145,11 @@ class MockWidget {
 function generateRandomAlphaNumericString_(len: number): string {
   const chars = [];
   const allowedChars =
-      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let i = 0; i < len; i++) {
     chars.push(
-        allowedChars.charAt(
-            Math.floor(Math.random() * allowedChars.length)));
+      allowedChars.charAt(Math.floor(Math.random() * allowedChars.length))
+    );
   }
   return chars.join('');
 }

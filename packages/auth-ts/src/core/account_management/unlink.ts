@@ -28,16 +28,16 @@ export async function unlink(
 ): Promise<User> {
   await checkIfAlreadyLinked(auth, user, providerId, true);
   const idToken = await user.getIdToken();
-  const {providerUserInfo} = await deleteLinkedAccounts(auth, {
+  const { providerUserInfo } = await deleteLinkedAccounts(auth, {
     idToken,
-    deleteProvider: [providerId],
+    deleteProvider: [providerId]
   });
 
-  const providersLeft = (providerUserInfo || [])
-      .map(i => i.providerId);
+  const providersLeft = (providerUserInfo || []).map(i => i.providerId);
 
-  user.providerData = user.providerData.filter(
-      pd => providersLeft.includes(pd.providerId || undefined));
+  user.providerData = user.providerData.filter(pd =>
+    providersLeft.includes(pd.providerId || undefined)
+  );
   if (!providersLeft.includes(ProviderId.PHONE)) {
     user.phoneNumber = null;
   }

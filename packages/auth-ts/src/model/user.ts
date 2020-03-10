@@ -115,7 +115,7 @@ export class StsTokenManager {
     if (!idTokenResponse.idToken) {
       return;
     }
-    
+
     this.refreshToken = idTokenResponse.refreshToken;
     this.accessToken = idTokenResponse.idToken;
     this.expirationTime = StsTokenManager.calcOffsetTimestamp_(
