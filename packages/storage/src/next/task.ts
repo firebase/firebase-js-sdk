@@ -30,6 +30,9 @@ import { Location } from '../implementation/location';
 import { ReferenceNext } from '@firebase/storage-types/next';
 import { Mappings } from '../implementation/metadata';
 import { Deferred } from '@firebase/util';
+import { StorageInternalNext } from './types';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { multipartUpload } from './requests';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -39,6 +42,7 @@ export class UploadTask {
     private resumable_: boolean;
     private state_: InternalTaskState;
     private deferred: Deferred<unknown>;
+    private auth: FirebaseAuthInternal | null;
     private authToken: string | null = null;
   /**
    * @param ref The firebaseStorage.Reference object this task came
@@ -47,13 +51,13 @@ export class UploadTask {
    */
   constructor(
     ref: ReferenceNext,
-    authWrapper: AuthWrapper,
-    location: Location,
     mappings: Mappings,
     blob: FbsBlob,
     metadata: Metadata | null = null
   ) {
-    (ref.storage.app as FirebaseApp)
+    this.auth = (ref.storage as StorageInternalNext).authProvider.getImmediate({
+        optional: true
+    });
 
     this.resumable_ = this.shouldDoResumable(blob);
     this.state_ = InternalTaskState.RUNNING;
@@ -74,27 +78,37 @@ export class UploadTask {
     this.oneShotUpload_();
   }
 
-  private oneShotUpload_(): void {
-    this.resolveToken_(authToken => {
-      const requestInfo = fbsRequests.multipartUpload(
-        this.authWrapper_,
-        this.location_,
-        this.mappings_,
-        this.blob_,
-        this.metadata_
-      );
-      const multipartRequest = this.authWrapper_.makeRequest(
-        requestInfo,
-        authToken
-      );
-      this.request_ = multipartRequest;
-      multipartRequest.getPromise().then(metadata => {
-        this.request_ = null;
-        this.metadata_ = metadata;
-        this.updateProgress_(this.blob_.size());
-        this.transition_(InternalTaskState.SUCCESS);
-      }, this.errorHandler_);
-    });
+  private async oneShotUpload_(): Promise<void> {
+    const authToken = await this.resolveToken_();
+
+    const requestInfo = multipartUpload(
+      this.location_,
+      this.mappings_,
+      this.blob_,
+      this.metadata_
+    );
+    const multipartRequest = this.authWrapper_.makeRequest(
+      requestInfo,
+      authToken
+    );
+    this.request_ = multipartRequest;
+    multipartRequest.getPromise().then(metadata => {
+      this.request_ = null;
+      this.metadata_ = metadata;
+      this.updateProgress_(this.blob_.size());
+      this.transition_(InternalTaskState.SUCCESS);
+    }, this.errorHandler_);
+  });
+
+  private async resolveToken_(): Promise<string | null> {
+    let authToken = null;
+    if (this.auth) {
+        const token = await this.auth.getToken();
+        if (token) {
+          authToken = token.accessToken;
+        }
+    }
+    return authToken;
   }
 
   get snapshot(): UploadTaskSnapshot {

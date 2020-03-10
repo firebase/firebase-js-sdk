@@ -36,3 +36,9 @@ interface ReferenceNext {
     toString: () => string;
  }
  
+ declare module '@firebase/component' {
+    interface NameServiceMapping {
+      'storage-next': StorageNext;
+    }
+  }
+  

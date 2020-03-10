@@ -1,30 +1,35 @@
 import { StorageNext, ReferenceNext } from '@firebase/storage-types/next';
-import { FirebaseAppNext } from '@firebase/app-types/next';
+import { FirebaseAppNext, FirebaseAppInternalNext } from '@firebase/app-types/next';
 import { validate, nonNegativeNumberSpec, stringSpec, storageInstanceSpec } from '../implementation/args';
 import { makeFromUrl } from './location';
-import { storageInstanceKey, throwIfRoot } from './util';
+import { throwIfRoot } from './util';
 import { StorageImplNext } from './storage';
 import { StorageInternalNext } from './types';
 import { ReferenceImplNext } from './reference';
 import { Metadata } from '../metadata';
-import { registerComponent } from '@firebase/app/next/internal';
-import { Component } from '@firebase/component';
+import { registerComponent, getProvider } from '@firebase/app/next/internal';
+import { Component, ComponentType, ComponentContainer } from '@firebase/component';
+import { UploadTask } from './task';
+import { FbsBlob } from '../implementation/blob';
+import { getMappings } from '../implementation/metadata';
 
-const storageInstances = new Map<string, StorageNext>();
 registerComponent(new Component(
-    STORAGE_TYPE, 
-    factory, 
+    'storage-next', 
+    (
+        container: ComponentContainer, 
+        url?: string
+    ): StorageNext => {
+        const app = container.getProvider('app').getImmediate();
+        const authProvider = container.getProvider('auth-internal');
+        return new StorageImplNext(app, authProvider, url)
+    }, 
     ComponentType.PUBLIC
-));
+).setMultipleInstances(true));
 
 export function getStorage(app: FirebaseAppNext, url?: string): StorageNext {
-    const key = storageInstanceKey(app, url);
-    const instance = storageInstances.get(key);
-    if (instance) {
-        return instance;
-    } else {
-        return new StorageImplNext(app, url);
-    }
+    return getProvider(app as FirebaseAppInternalNext, 'storage-next').getImmediate({
+        identifier: url
+    });
 }
 
 export function setMaxOperationRetryTime(storage: StorageNext, time: number): void {
@@ -94,46 +99,44 @@ export function put(
     metadata: Metadata | null = null): UploadTask {
         throwIfRoot(ref, 'put');
         return new UploadTask(
-            this,
-            this.authWrapper,
-            this.location,
-            this.mappings(),
+            ref,
+            getMappings(),
             new FbsBlob(data),
             metadata
           );
 }
 
 // Uploads string data to this reference's location.
-export function putString(ref: ReferenceNext, data: string, format?: StringFormat, metadata?: UploadMetadata): UploadTask {
+// export function putString(ref: ReferenceNext, data: string, format?: StringFormat, metadata?: UploadMetadata): UploadTask {
 
-}
+// }
 
-// Deletes the object at this reference's location.
-export function delete1(ref: ReferenceNext): Promise<any> {
+// // Deletes the object at this reference's location.
+// export function delete1(ref: ReferenceNext): Promise<any> {
 
-}
+// }
 
-// Fetches metadata for the object at this location, if one exists.
-export function getMetadata(ref: ReferenceNext): Promise<any> {
+// // Fetches metadata for the object at this location, if one exists.
+// export function getMetadata(ref: ReferenceNext): Promise<any> {
 
-}
+// }
 
-// Updates the metadata for the object at this location, if one exists.
-export function updateMetadata(ref: ReferenceNext, metadata: SettableMetadata): Promise<any> {
+// // Updates the metadata for the object at this location, if one exists.
+// export function updateMetadata(ref: ReferenceNext, metadata: SettableMetadata): Promise<any> {
 
-}
+// }
 
-// List items (files) and prefixes (folders) under this storage reference.
-export function list(ref: ReferenceNext, options?: ListOptions): Promise<ListResult> {
+// // List items (files) and prefixes (folders) under this storage reference.
+// export function list(ref: ReferenceNext, options?: ListOptions): Promise<ListResult> {
 
-}
+// }
 
-// List all items (files) and prefixes (folders) under this storage reference.
-export function listAll(ref: ReferenceNext): Promise<ListResult> {
+// // List all items (files) and prefixes (folders) under this storage reference.
+// export function listAll(ref: ReferenceNext): Promise<ListResult> {
 
-}
+// }
 
-// Fetches a long lived download URL for this object.
-export function getDownloadURL(ref: ReferenceNext): Promise<string> {
+// // Fetches a long lived download URL for this object.
+// export function getDownloadURL(ref: ReferenceNext): Promise<string> {
 
-}
+// }
