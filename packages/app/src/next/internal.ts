@@ -16,7 +16,7 @@
  */
 
 import { FirebaseAppInternalNext, FirebaseAppNext } from '@firebase/app-types/next';
-import { Component } from '@firebase/component';
+import { Component, Provider, Name } from '@firebase/component';
 import { logger } from '../logger';
 
 export const apps = new Map<string, FirebaseAppNext>();
@@ -73,6 +73,11 @@ export function registerComponent(component: Component): boolean {
   }
 
   return true;
+}
+
+
+export function getProvider<T extends Name>(app: FirebaseAppInternalNext, name: T): Provider<T> {
+  return app.container.getProvider(name);
 }
 
 /**
