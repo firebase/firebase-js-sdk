@@ -45,7 +45,8 @@ import { ActionCodeSettings } from './model/action_code_settings';
 import { fetchSignInMethodsForEmail } from './core/strategies/email';
 import {
   signInWithCredential,
-  linkWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential
 } from './core/strategies/auth_credential';
 import {
   EmailAuthProvider,
@@ -69,7 +70,8 @@ import { ApplicationVerifier } from './model/application_verifier';
 import { ConfirmationResult } from './model/confirmation_result';
 import {
   signInWithPhoneNumber,
-  linkWithPhoneNumber
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber
 } from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
 import { ProviderId } from './core/providers';
@@ -121,6 +123,12 @@ let memo: FirebaseAuth;
         },
         reload(): Promise<void> {
           return reload(auth, user);
+        },
+        reauthenticateWithCredential(credential: AuthCredential): Promise<UserCredential> {
+          return reauthenticateWithCredential(auth, user, credential);
+        },
+        reauthenticateWithPhoneNumber(number: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult> {
+          return reauthenticateWithPhoneNumber(auth, user, number, appVerifier);
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);

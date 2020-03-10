@@ -26,6 +26,7 @@ export interface AuthCredential {
   toJSON(): object;
   getIdTokenResponse_(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse>;
+  matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse>;
 }
 
 export interface OAuthCredential extends AuthCredential {

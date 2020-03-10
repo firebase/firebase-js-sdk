@@ -25,10 +25,11 @@ import { initializeAuth } from '../initialize_auth';
 import {
   sendPhoneVerificationCode,
   signInWithPhoneNumber,
-  linkWithPhoneNumber
+  linkWithPhoneNumber,
+  verifyPhoneNumberForExisting
 } from '../../api/authentication';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha_verifier';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import { AuthCredential } from '../../model/auth_credential';
 
 export class PhoneAuthProvider implements AuthProvider {
@@ -139,6 +140,12 @@ export class PhoneAuthCredential implements AuthCredential {
       idToken,
       ...this.makeVerificationRequest()
     });
+  }
+
+  matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
+    const verifyRequest = this.makeVerificationRequest();
+    const idTokenResolver = verifyPhoneNumberForExisting(auth, verifyRequest);
+    return verifyTokenResponseUid(idTokenResolver, uid, auth.name);
   }
 
   makeVerificationRequest() {

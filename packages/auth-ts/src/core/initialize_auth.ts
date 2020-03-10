@@ -35,7 +35,7 @@ export function initializeAuth(
   const auth = new Auth(
     app.name,
     {
-      appVerificationDisabledForTesting: true
+      appVerificationDisabledForTesting: false,
     },
     {
       apiKey: app.options.apiKey,

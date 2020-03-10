@@ -78,6 +78,10 @@ export class EmailAuthCredential implements AuthCredential {
         });
     }
   }
+
+  matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class EmailAuthProvider implements AuthProvider {

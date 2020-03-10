@@ -20,7 +20,7 @@ import {
   initializeCurrentUserFromIdTokenResponse,
   checkIfAlreadyLinked
 } from '.';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, parseIdToken } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
   PhoneOrOauthTokenResponse,
@@ -63,4 +63,17 @@ export function authCredentialFromTokenResponse(
     return PhoneAuthProvider.credentialFromProof(temporaryProof, phoneNumber);
   }
   return null;
+}
+
+export async function reauthenticateWithCredential(
+  auth: Auth,
+  user: User,
+  credential: AuthCredential,
+): Promise<UserCredential> {
+  const idTokenResponse = await credential.matchIdTokenWithUid_(auth, user.uid);
+  user.stsTokenManager.updateFromServerResponse(idTokenResponse);
+  const newCred = authCredentialFromTokenResponse(idTokenResponse);
+  const userCred = new UserCredential(user, newCred, OperationType.REAUTHENTICATE);
+  await user.reload(auth);
+  return userCred;
 }

@@ -35,6 +35,10 @@ export class AnonymousCredential implements AuthCredential {
   async linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     throw new Error("Can't link to an anonymous cred");
   }
+
+  matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class AnonymousProvider implements AuthProvider {
