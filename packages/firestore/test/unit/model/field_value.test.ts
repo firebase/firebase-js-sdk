@@ -771,7 +771,7 @@ for (const useProto3Json of [true, false]) {
   });
 }
 
-describe('FieldValue', function() {
+describe('FieldValue', () => {
   it('normalizes values for comparison', () => {
     const groups = [
       [

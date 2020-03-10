@@ -685,7 +685,7 @@ export class ObjectValue extends FieldValue {
   }
 
   toProto(useProto3Json: boolean): api.Value {
-    let result: api.Value = {
+    const result: api.Value = {
       mapValue: { fields: {} }
     };
 

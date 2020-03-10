@@ -179,7 +179,7 @@ export class ObjectValue extends PrimitiveValue {
   }
 
   /** Returns a new ObjectValue for an empty object. */
-  static empty(useProto3Json: boolean) {
+  static empty(useProto3Json: boolean) : ObjectValue {
     return new ObjectValue({ mapValue: {} }, useProto3Json);
   }
 
