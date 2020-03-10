@@ -58,7 +58,7 @@ export async function reauthenticateWithPhoneNumber(
       await getVerificationId_(auth, phoneNumber, appVerifier);
   return new ConfirmationResult(verificationId, cred => {
     const verifyRequest = cred.makeVerificationRequest();
-    
+    throw new Error('not implemented');
   });
 }
 
