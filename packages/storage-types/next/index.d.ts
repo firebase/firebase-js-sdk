@@ -24,7 +24,7 @@ interface ReferenceNext {
     parent: ReferenceNext | null;
  
     // The storage service associated with this reference.
-    storage: Storage;
+    storage: StorageNext;
  
     // A reference to the root of this reference's bucket.
     root: ReferenceNext;
