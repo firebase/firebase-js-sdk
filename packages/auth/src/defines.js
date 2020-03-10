@@ -47,17 +47,29 @@ fireauth.constants.AuthEventType = {
 
 
 /**
+ * Enums for all second factor types.
+ * @enum {string}
+ */
+fireauth.constants.SecondFactorType = {
+  PHONE: 'phone'
+};
+
+
+/**
  * The settings of an Auth endpoint. The fields are:
  * <ul>
  * <li>firebaseAuthEndpoint: defines the Firebase Auth backend endpoint for
  *     specified endpoint type.</li>
  * <li>secureTokenEndpoint: defines the secure token backend endpoint for
  *     specified endpoint type.</li>
+ * <li>identityPlatformEndpoint: defines the Identity Platform backend endpoint
+ *     for specified endpoint type.</li>
  * <li>id: defines the endpoint identifier.</li>
  * </ul>
  * @typedef {{
  *   firebaseAuthEndpoint: string,
  *   secureTokenEndpoint: string,
+ *   identityPlatformEndpoint: string,
  *   id: string
  * }}
  */
@@ -69,10 +81,23 @@ fireauth.constants.EndpointSettings;
  * @enum {!fireauth.constants.EndpointSettings}
  */
 fireauth.constants.Endpoint = {
+  // TODO: this is no longer needed now that client endpoint migration is
+  // completed.
+  BOQ: {
+    firebaseAuthEndpoint: 'https://staging-identitytoolkit.sandbox.googleapi' +
+        's.com/identitytoolkit/v3/relyingparty/',
+    secureTokenEndpoint: 'https://staging-securetoken.sandbox.googleapis.com' +
+        '/v1/token',
+    identityPlatformEndpoint:
+        'https://staging-identitytoolkit.sandbox.googleapis.com/v2/',
+    id: 'b'
+  },
   PRODUCTION: {
     firebaseAuthEndpoint: 'https://www.googleapis.com/identitytoolkit/v3/' +
         'relyingparty/',
     secureTokenEndpoint: 'https://securetoken.googleapis.com/v1/token',
+    identityPlatformEndpoint:
+        'https://identitytoolkit.googleapis.com/v2/',
     id: 'p'
   },
   STAGING: {
@@ -80,6 +105,8 @@ fireauth.constants.Endpoint = {
         'identitytoolkit/v3/relyingparty/',
     secureTokenEndpoint: 'https://staging-securetoken.sandbox.googleapis.com' +
         '/v1/token',
+    identityPlatformEndpoint:
+        'https://staging-identitytoolkit.sandbox.googleapis.com/v2/',
     id: 's'
   },
   TEST: {
@@ -87,6 +114,8 @@ fireauth.constants.Endpoint = {
         'identitytoolkit/v3/relyingparty/',
     secureTokenEndpoint: 'https://test-securetoken.sandbox.googleapis.com/v1' +
         '/token',
+    identityPlatformEndpoint:
+        'https://test-identitytoolkit.sandbox.googleapis.com/v2/',
     id: 't'
   }
 };
@@ -103,7 +132,8 @@ fireauth.constants.getEndpointConfig = function(opt_id) {
       var endpoint = fireauth.constants.Endpoint[endpointKey];
       return {
         'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
-        'secureTokenEndpoint': endpoint.secureTokenEndpoint
+        'secureTokenEndpoint': endpoint.secureTokenEndpoint,
+        'identityPlatformEndpoint': endpoint.identityPlatformEndpoint
       };
     }
   }

@@ -43,7 +43,57 @@ function testActionCodeURL_success() {
   assertEquals(continueUrl, actionCodeUrl['continueUrl']);
   assertEquals('TENANT_ID', actionCodeUrl['tenantId']);
   assertEquals('en', actionCodeUrl['languageCode']);
-  console.log(actionLink);
+}
+
+
+function testActionCodeURL_getOperation() {
+  // EMAIL_SIGNIN email action.
+  var signInLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
+      'languageCode=en';
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(signInLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+               actionCodeUrl['operation']);
+
+  // VERIFY_AND_CHANGE_EMAIL email action.
+  var verifyAndChangeEmailLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=verifyAndChangeEmail&apiKey=API_KEY&' +
+      'languageCode=en';
+  actionCodeUrl = fireauth.ActionCodeURL.parseLink(verifyAndChangeEmailLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL,
+               actionCodeUrl['operation']);
+
+  // VERIFY_EMAIL email action.
+  var verifyEmailLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
+      'languageCode=en';
+  actionCodeUrl = fireauth.ActionCodeURL.parseLink(verifyEmailLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL,
+               actionCodeUrl['operation']);
+
+  // RECOVER_EMAIL email action.
+  var recoverEmailLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
+      'languageCode=en';
+  actionCodeUrl = fireauth.ActionCodeURL.parseLink(recoverEmailLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
+               actionCodeUrl['operation']);
+
+  // PASSWORD_RESET email action.
+  var resetPasswordLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
+      'languageCode=en';
+  actionCodeUrl = fireauth.ActionCodeURL.parseLink(resetPasswordLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
+               actionCodeUrl['operation']);
+
+  // REVERT_SECOND_FACTOR_ADDITION email action.
+  var revertSeconFactorLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=revertSecondFactorAddition&apiKey=API_KEY&' +
+      'languageCode=en';
+  actionCodeUrl = fireauth.ActionCodeURL.parseLink(revertSeconFactorLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION,
+               actionCodeUrl['operation']);
 }
 
 

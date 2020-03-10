@@ -26,6 +26,7 @@ goog.provide('fireauth.args.Argument');
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthUser');
+goog.require('fireauth.MultiFactorSession');
 goog.require('fireauth.authenum.Error');
 
 
@@ -443,6 +444,43 @@ fireauth.args.authCredential =
 
 
 /**
+ * Specifies an argument that implements the fireauth.MultiFactorAssertion
+ * interface.
+ * @param {?string=} requiredFactorId The required type of second factor.
+ * @param {?string=} optionalName The name of the argument.
+ * @param {?boolean=} optionalArg Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.multiFactorAssertion =
+    function(requiredFactorId, optionalName, optionalArg) {
+  var name = optionalName ||
+      (requiredFactorId ?
+       requiredFactorId + 'MultiFactorAssertion' : 'multiFactorAssertion');
+  var typeLabel = requiredFactorId ?
+      'a valid ' + requiredFactorId + ' multiFactorAssertion' :
+      'a valid multiFactorAssertion';
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name,
+    typeLabel: typeLabel,
+    optional: !!optionalArg,
+    validator:
+        /** @type {function(!fireauth.MultiFactorAssertion) : boolean} */ (
+            function(assertion) {
+              if (!assertion) {
+                return false;
+              }
+              // If requiredFactorId is set, make sure it matches the
+              // assertion's factorId.
+              var matchesRequiredFactor = !requiredFactorId ||
+                  (assertion['factorId'] === requiredFactorId);
+              return !!(assertion.process && matchesRequiredFactor);
+            })
+  });
+};
+
+
+/**
  * Specifies an argument that implements the fireauth.AuthProvider interface.
  * @param {?string=} opt_name The name of the argument.
  * @param {?boolean=} opt_optional Whether or not this argument is optional.
@@ -461,6 +499,99 @@ fireauth.args.authProvider = function(opt_name, opt_optional) {
                     provider.hasOwnProperty &&
                     provider.hasOwnProperty('isOAuthProvider'));
         })
+  });
+};
+
+
+/**
+ * Specifies a phone info options argument.
+ * @param {?string=} name The name of the argument.
+ * @param {?boolean=} optional Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.phoneInfoOptions = function(name, optional) {
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name || 'phoneInfoOptions',
+    typeLabel: 'valid phone info options',
+    optional: !!optional,
+    validator: /** @type {function(!Object) : boolean} */ (
+        function(phoneInfoOptions) {
+          if (!phoneInfoOptions) {
+            return false;
+          }
+          // For multi-factor enrollment, phone number and MFA session should
+          // be provided.
+          if (phoneInfoOptions['session'] &&
+              phoneInfoOptions['phoneNumber']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['session'],
+                       fireauth.MultiFactorSession.Type.ENROLL) &&
+                   goog.isString(phoneInfoOptions['phoneNumber']);
+          // For multi-factor sign-in, phone multi-factor hint and MFA session
+          // are provided.
+          } else if (phoneInfoOptions['session'] &&
+                     phoneInfoOptions['multiFactorHint']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['session'],
+                       fireauth.MultiFactorSession.Type.SIGN_IN) &&
+                   fireauth.args.validateMultiFactorInfo_(
+                       phoneInfoOptions['multiFactorHint']);
+          // For multi-factor sign-in, phone multi-factor UID and MFA session
+          // are provided.
+          } else if (phoneInfoOptions['session'] &&
+                     phoneInfoOptions['multiFactorUid']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['session'],
+                       fireauth.MultiFactorSession.Type.SIGN_IN) &&
+                   goog.isString(phoneInfoOptions['multiFactorUid']);
+          // For single-factor sign-in, only phone number needs to be provided.
+          } else if (phoneInfoOptions['phoneNumber']) {
+            return goog.isString(phoneInfoOptions['phoneNumber']);
+          }
+          return false;
+        })
+  });
+};
+
+
+/**
+ * @param {*} session The multi-factor session object.
+ * @param {!fireauth.MultiFactorSession.Type} type The session type.
+ * @return {boolean} Whether the seesion is a valid multi-factor session.
+ * @private
+ */
+fireauth.args.validateMultiFactorSession_ = function(session, type) {
+  return goog.isObject(session) && goog.isString(session.type) &&
+      session.type === type &&
+      goog.isFunction(session.getRawSession);
+};
+
+
+/**
+ * @param {*} info The multi-factor info object.
+ * @return {boolean} Whether the info is a valid multi-factor info.
+ * @private
+ */
+fireauth.args.validateMultiFactorInfo_ = function(info) {
+  return goog.isObject(info) && goog.isString(info['uid']);
+};
+
+
+/**
+ * Specifies an argument that implements the fireauth.MultiFactorInfo
+ * interface.
+ * @param {?string=} name The name of the argument.
+ * @param {?boolean=} optional Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.multiFactorInfo = function(name, optional) {
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name || 'multiFactorInfo',
+    typeLabel: 'a valid multiFactorInfo',
+    optional: !!optional,
+    validator: fireauth.args.validateMultiFactorInfo_
   });
 };
 

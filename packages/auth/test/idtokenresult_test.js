@@ -63,6 +63,7 @@ function testIdTokenResult() {
       1522715325,
       1522776807,
       'password',
+      null,
       {
         'iss': 'https://securetoken.google.com/projectId',
         'name': 'John Doe',
@@ -81,6 +82,79 @@ function testIdTokenResult() {
             ]
           },
           'sign_in_provider': 'password'
+        }
+      });
+}
+
+
+function testIdTokenResult_mfa() {
+  // "iss": "https://securetoken.google.com/projectId",
+  // "name": "John Doe",
+  // "admin": true,
+  // "aud": "projectId",
+  // "auth_time": 1522715325,
+  // "sub": "nep2uwNCK4PqjvoKjb0InVJHlGi1",
+  // "iat": 1522776807,
+  // "exp": 1522780575,
+  // "email": "testuser@gmail.com",
+  // "email_verified": true,
+  // "firebase": {
+  //   "identities": {
+  //     "email": [
+  //       "testuser@gmail.com"
+  //     ]
+  //   },
+  //   "additional_factors": {
+  //     "phone": [
+  //       "+16505551234",
+  //       "+16505557890"
+  //     ]
+  //   },
+  //   "sign_in_provider": "password",
+  //   "sign_in_second_factor": "phone"
+  var tokenString = 'HEADER.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb' +
+      '20vcHJvamVjdElkIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImF1ZCI6InB' +
+      'yb2plY3RJZCIsImF1dGhfdGltZSI6MTUyMjcxNTMyNSwic3ViIjoibmVwMnV3TkNLNFBxa' +
+      'nZvS2piMEluVkpIbEdpMSIsImlhdCI6MTUyMjc3NjgwNywiZXhwIjoxNTIyNzgwNTc1LCJ' +
+      'lbWFpbCI6InRlc3R1c2VyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJma' +
+      'XJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3R1c2VyQGdtYWlsLmNvbSJ' +
+      'dfSwiYWRkaXRpb25hbF9mYWN0b3JzIjp7InBob25lIjogWyIrMTY1MDU1NTEyMzQiLCIrM' +
+      'TY1MDU1NTc4OTAiXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCIsInNpZ25faW5' +
+      'fc2Vjb25kX2ZhY3RvciI6ICJwaG9uZSJ9fQ.SIGNATURE';
+  var idTokenResult = new fireauth.IdTokenResult(tokenString);
+  fireauth.common.testHelper.assertIdTokenResult(
+      idTokenResult,
+      tokenString,
+      1522780575,
+      1522715325,
+      1522776807,
+      'password',
+      'phone',
+      {
+        'iss': 'https://securetoken.google.com/projectId',
+        'name': 'John Doe',
+        'admin': true,
+        'aud': 'projectId',
+        'auth_time': 1522715325,
+        'sub': 'nep2uwNCK4PqjvoKjb0InVJHlGi1',
+        'iat': 1522776807,
+        'exp': 1522780575,
+        'email': "testuser@gmail.com",
+        'email_verified': true,
+        'firebase': {
+          'identities': {
+            'email': [
+              'testuser@gmail.com'
+            ]
+          },
+          'additional_factors': {
+            'phone': [
+              '+16505551234',
+              '+16505557890'
+            ]
+          },
+          'sign_in_provider': 'password',
+          'sign_in_second_factor': 'phone'
         }
       });
 }
