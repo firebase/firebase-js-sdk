@@ -46,9 +46,10 @@ export function initializeAuth(
   );
 
   const persistence = deps.persistence || [];
-  const persistenceHierarchy =
-    Array.isArray(persistence) ? persistence : [persistence];
-      
+  const persistenceHierarchy = Array.isArray(persistence)
+    ? persistence
+    : [persistence];
+
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?
   auth.initializePersistence(persistenceHierarchy).then(

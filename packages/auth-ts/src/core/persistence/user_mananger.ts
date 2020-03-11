@@ -85,7 +85,7 @@ export class UserManager {
   static async create(
     apiKey: ApiKey,
     appName: AppName,
-    persistenceHierarchy: Persistence[],
+    persistenceHierarchy: Persistence[]
   ): Promise<UserManager> {
     if (!persistenceHierarchy.length) {
       return new UserManager(inMemoryPersistence, apiKey, appName);

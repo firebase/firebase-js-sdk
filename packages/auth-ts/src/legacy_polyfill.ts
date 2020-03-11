@@ -115,7 +115,11 @@ enum Persistence {
   }
   const auth: Auth = initializeAuth(firebase.app(), {
     // TODO: The legacy SDK migrates localStorage -> indexedDB
-    persistence: [browserSessionPersistence, indexedDBLocalPersistence, browserLocalPersistence],
+    persistence: [
+      browserSessionPersistence,
+      indexedDBLocalPersistence,
+      browserLocalPersistence
+    ]
   });
   // TODO: maybe try not to race condition? how about that
   auth.onAuthStateChanged((user: User | null) => {

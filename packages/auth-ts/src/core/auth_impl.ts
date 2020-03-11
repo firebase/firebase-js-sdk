@@ -92,12 +92,14 @@ export class AuthImpl implements Auth {
     assert(!this.deferred, 'expect deferred to be undefined');
   }
 
-  async initializePersistence(persistenceHierarchy: Persistence[]): Promise<void> {
+  async initializePersistence(
+    persistenceHierarchy: Persistence[]
+  ): Promise<void> {
     return withLock(this, async () => {
       this.userManager = await UserManager.create(
         this.config.apiKey,
         this.name,
-        persistenceHierarchy,
+        persistenceHierarchy
       );
 
       let storedUser = await this.userManager.getCurrentUser();

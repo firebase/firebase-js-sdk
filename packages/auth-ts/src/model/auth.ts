@@ -42,7 +42,7 @@ export interface Config {
 
 export interface Dependencies {
   // When not provided, in memory persistence is used. Sequence of persistences can also be provided.
-  persistence?: Persistence|Persistence[];
+  persistence?: Persistence | Persistence[];
   // Popup/Redirect resolver is needed to resolve pending OAuth redirect
   // operations. It can be quite complex and has been separated from Auth.
   // It is also needed for popup operations (same underlying logic).
