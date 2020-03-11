@@ -102,7 +102,7 @@ let memo: FirebaseAuth;
 enum Persistence {
   LOCAL = 'local',
   SESSION = 'session',
-  NONE = 'none',
+  NONE = 'none'
 }
 
 /**
@@ -265,15 +265,17 @@ enum Persistence {
       return verifyPasswordResetCode(auth, code);
     },
     setPersistence(persistence: Persistence): Promise<void> {
-      switch(persistence) {
+      switch (persistence) {
         case Persistence.LOCAL:
           return originalSetPersistence.apply(auth, [browserLocalPersistence]);
         case Persistence.SESSION:
-          return originalSetPersistence.apply(auth, [browserSessionPersistence]);
+          return originalSetPersistence.apply(auth, [
+            browserSessionPersistence
+          ]);
         default:
           return originalSetPersistence.apply(auth, [inMemoryPersistence]);
       }
-    },
+    }
   });
   return memo;
 };
@@ -293,7 +295,7 @@ interface FirebaseNamespace {
     TwitterAuthProvider: typeof TwitterAuthProvider;
     Auth: {
       Persistence: typeof Persistence;
-    }
+    };
   };
 }
 
@@ -308,6 +310,6 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   RecaptchaVerifier,
   TwitterAuthProvider,
   Auth: {
-    Persistence,
-  },
+    Persistence
+  }
 });
