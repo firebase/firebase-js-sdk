@@ -81,6 +81,10 @@ import {
   updatePassword
 } from './core/account_management/update_email_password';
 import { updatePhoneNumber } from './core/account_management/update_phone_number';
+import { browserLocalPersistence } from './core/persistence/browser_local';
+import { browserSessionPersistence } from './core/persistence/browser_session';
+import { inMemoryPersistence } from './core/persistence/in_memory';
+import { setPersistence } from './core/auth_impl';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -94,6 +98,12 @@ interface FirebaseApp {
 }
 
 let memo: FirebaseAuth;
+
+enum Persistence {
+  LOCAL = 'local',
+  SESSION = 'session',
+  NONE = 'none',
+}
 
 /**
  * Replicate the original Firebase Auth interface, which provides one stateful object with all methods defined for all platforms.
@@ -164,6 +174,7 @@ let memo: FirebaseAuth;
       });
     }
   });
+  const originalSetPersistence = auth.setPersistence;
   memo = Object.assign(auth, {
     ActionCodeURL: Object.assign(ActionCodeURL, {
       parseLink(link: string): ActionCodeURL | null {
@@ -252,7 +263,17 @@ let memo: FirebaseAuth;
     },
     verifyPasswordResetCode(code: string): Promise<string> {
       return verifyPasswordResetCode(auth, code);
-    }
+    },
+    setPersistence(persistence: Persistence): Promise<void> {
+      switch(persistence) {
+        case Persistence.LOCAL:
+          return originalSetPersistence.apply(auth, [browserLocalPersistence]);
+        case Persistence.SESSION:
+          return originalSetPersistence.apply(auth, [browserSessionPersistence]);
+        default:
+          return originalSetPersistence.apply(auth, [inMemoryPersistence]);
+      }
+    },
   });
   return memo;
 };
@@ -270,6 +291,9 @@ interface FirebaseNamespace {
     PhoneAuthProvider: typeof PhoneAuthProvider;
     RecaptchaVerifier: typeof RecaptchaVerifier;
     TwitterAuthProvider: typeof TwitterAuthProvider;
+    Auth: {
+      Persistence: typeof Persistence;
+    }
   };
 }
 
@@ -282,5 +306,8 @@ Object.assign((firebase as FirebaseNamespace).auth, {
   SAMLAuthProvider,
   PhoneAuthProvider,
   RecaptchaVerifier,
-  TwitterAuthProvider
+  TwitterAuthProvider,
+  Auth: {
+    Persistence,
+  },
 });
