@@ -71,6 +71,6 @@ export interface Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   useDeviceLanguage(): void;
-  updateCurrentUser(user: User | null): Promise<void>
+  updateCurrentUser(user: User | null): Promise<void>;
   signOut(): Promise<void>;
 }

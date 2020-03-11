@@ -50,7 +50,10 @@ export class UserManager {
   }
 
   async getCurrentUser(): Promise<User | null> {
-    return this.persistence.get<User>(this.fullKeyName_(AUTH_USER_KEY_NAME_), User.fromPlainObject);
+    return this.persistence.get<User>(
+      this.fullKeyName_(AUTH_USER_KEY_NAME_),
+      User.fromPlainObject
+    );
   }
 
   removeCurrentUser(): Promise<void> {
@@ -79,7 +82,11 @@ export class UserManager {
     }
   }
 
-  static async create(apiKey: ApiKey, appName: AppName, persistence?: Persistence): Promise<UserManager> {
+  static async create(
+    apiKey: ApiKey,
+    appName: AppName,
+    persistence?: Persistence
+  ): Promise<UserManager> {
     if (persistence) {
       return new UserManager(persistence, apiKey, appName);
     }
@@ -87,7 +94,7 @@ export class UserManager {
     // Check all the available storage options.
     // TODO: Migrate from local storage to indexedDB
     // TODO: Clear other forms once one is found
-    
+
     const key = persistenceKeyName_(AUTH_USER_KEY_NAME_, apiKey, appName);
     // First check session storage
 

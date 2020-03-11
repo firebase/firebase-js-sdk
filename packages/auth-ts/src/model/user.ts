@@ -99,7 +99,7 @@ export class User implements UserInfo {
     return deleteUser(auth, this);
   }
 
-  static fromPlainObject(object: {[key: string]: any}): User {
+  static fromPlainObject(object: { [key: string]: any }): User {
     const {
       stsTokenManager: managerObject,
       uid,
@@ -111,23 +111,23 @@ export class User implements UserInfo {
       metadata,
       tenantId,
       isAnonymous,
-      providerData,
+      providerData
     } = object;
     const stsTokenManager = StsTokenManager.fromPlainObject(managerObject);
-    const user = new User(
-      {stsTokenManager,
+    const user = new User({
+      stsTokenManager,
       uid,
       displayName,
       email,
       phoneNumber,
       photoURL,
-      isAnonymous,
+      isAnonymous
     });
     Object.assign(user, {
       emailVerified,
       metadata,
       tenantId,
-      providerData,
+      providerData
     });
 
     return user;
@@ -163,10 +163,10 @@ export class StsTokenManager {
     return Date.now() + +offset * 1000;
   }
 
-  static fromPlainObject(object: {[key: string]: any}): StsTokenManager {
+  static fromPlainObject(object: { [key: string]: any }): StsTokenManager {
     const manager = new StsTokenManager(null);
-    const {refreshToken, accessToken, expirationTime} = object;
-    Object.assign(manager, {refreshToken, accessToken, expirationTime});
+    const { refreshToken, accessToken, expirationTime } = object;
+    Object.assign(manager, { refreshToken, accessToken, expirationTime });
     return manager;
   }
 }

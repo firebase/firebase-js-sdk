@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue, Instantiator } from '../persistence';
+import {
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  Instantiator
+} from '../persistence';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -166,7 +171,10 @@ class IndexedDBLocalPersistence implements Persistence {
     return putObject_(db, key, value);
   }
 
-  async get<T extends PersistenceValue>(key: string, instantiator?: Instantiator<T>): Promise<T | null> {
+  async get<T extends PersistenceValue>(
+    key: string,
+    instantiator?: Instantiator<T>
+  ): Promise<T | null> {
     const db = await this.initialize();
     const obj = getObject_<T>(db, key);
     return instantiator && obj ? instantiator(obj) : obj;

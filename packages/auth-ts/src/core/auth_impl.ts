@@ -32,7 +32,7 @@ import {
 import { PopupRedirectResolver } from '../model/popup_redirect_resolver';
 import { Auth, AuthSettings, Config, LanguageCode } from '../model/auth';
 import { reloadWithoutSaving } from './account_management/reload';
- 
+
 interface Deferrable {
   deferred?: Deferred<void>;
 }
@@ -97,7 +97,7 @@ export class AuthImpl implements Auth {
       this.userManager = await UserManager.create(
         this.config.apiKey,
         this.name,
-        persistence,
+        persistence
       );
 
       let storedUser = await this.userManager.getCurrentUser();
@@ -114,7 +114,6 @@ export class AuthImpl implements Auth {
     // We may be called synchronously, such as during initialization
     // make sure previous request has finished before trying to change persistence
     return withLock(this, async () => {
-
       await this.userManager!.setPersistence_(persistence);
       const user = await this.userManager!.getCurrentUser();
       await this.setCurrentUser_(user);
