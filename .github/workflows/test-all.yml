@@ -1,6 +1,6 @@
 name: Run All Tests
 
-on: 
+on:
   pull_request:
     branches:
       - master
@@ -40,8 +40,6 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
-    - name: Generate Size Report
-      run: yarn size-report
   deploy:
     name: Canary Deploy
     runs-on: ubuntu-latest
