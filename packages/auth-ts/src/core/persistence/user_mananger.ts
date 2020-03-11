@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../persistence';
+import { Persistence, Instantiator } from '../persistence';
 import { User } from '../../model/user';
 import { ApiKey, AppName } from '../../model/auth';
+import { browserSessionPersistence } from './browser_session';
+import { inMemoryPersistence } from './in_memory';
+import { browserLocalPersistence } from './browser_local';
 
 export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
@@ -32,7 +35,7 @@ export function persistenceKeyName_(
 }
 
 export class UserManager {
-  constructor(
+  private constructor(
     public persistence: Persistence,
     private readonly apiKey: ApiKey,
     private readonly appName: AppName
@@ -47,7 +50,7 @@ export class UserManager {
   }
 
   async getCurrentUser(): Promise<User | null> {
-    return this.persistence.get<User>(this.fullKeyName_(AUTH_USER_KEY_NAME_));
+    return this.persistence.get<User>(this.fullKeyName_(AUTH_USER_KEY_NAME_), User.fromPlainObject);
   }
 
   removeCurrentUser(): Promise<void> {
@@ -59,5 +62,52 @@ export class UserManager {
       this.fullKeyName_(PERSISTENCE_KEY_NAME_),
       this.persistence.type
     );
+  }
+
+  async setPersistence_(newPersistence: Persistence): Promise<void> {
+    if (this.persistence.type === newPersistence.type) {
+      return;
+    }
+
+    const currentUser = await this.getCurrentUser();
+    this.removeCurrentUser();
+
+    this.persistence = newPersistence;
+
+    if (currentUser) {
+      this.setCurrentUser(currentUser);
+    }
+  }
+
+  static async create(apiKey: ApiKey, appName: AppName, persistence?: Persistence): Promise<UserManager> {
+    if (persistence) {
+      return new UserManager(persistence, apiKey, appName);
+    }
+
+    // Check all the available storage options.
+    // TODO: Migrate from local storage to indexedDB
+    // TODO: Clear other forms once one is found
+    
+    const key = persistenceKeyName_(AUTH_USER_KEY_NAME_, apiKey, appName);
+    // First check session storage
+
+    const session = await browserSessionPersistence.get<User>(key);
+    if (session) {
+      return new UserManager(browserSessionPersistence, apiKey, appName);
+    }
+
+    const inMemory = await inMemoryPersistence.get<User>(key);
+    if (inMemory) {
+      return new UserManager(inMemoryPersistence, apiKey, appName);
+    }
+
+    const localStorage = await browserLocalPersistence.get<User>(key);
+    if (localStorage) {
+      return new UserManager(browserLocalPersistence, apiKey, appName);
+    }
+
+    // All else failed, fall back to local persistence
+    // TODO: Modify this to support non-browser devices
+    return new UserManager(browserLocalPersistence, apiKey, appName);
   }
 }

@@ -18,8 +18,8 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { Auth, Dependencies } from '../model/auth';
 import firebase from '@firebase/app';
-import { inMemoryPersistence } from './persistence/in_memory';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
+import { AuthImpl } from './auth_impl';
 
 export function initializeAuth(
   app: FirebaseApp = firebase.app(),
@@ -32,7 +32,7 @@ export function initializeAuth(
   }
   deps = deps || {};
 
-  const auth = new Auth(
+  const auth = new AuthImpl(
     app.name,
     {
       appVerificationDisabledForTesting: false
@@ -44,11 +44,9 @@ export function initializeAuth(
     null, // currentUser
     deps.popupRedirectResolver
   );
-  // TODO: support multiple persistence
-  deps.persistence = deps.persistence || inMemoryPersistence;
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?
-  auth.setPersistence(deps.persistence).then(
+  auth.initializePersistence(deps.persistence).then(
     () => {},
     () => {}
   );

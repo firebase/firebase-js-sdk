@@ -17,14 +17,9 @@
 
 import { User } from './user';
 import { Persistence } from '../core/persistence';
-import { UserManager } from '../core/persistence/user_mananger';
-import { Deferred } from '../core/util/deferred';
 import {
-  assert,
-  createSubscribe,
   Observer,
   CompleteFn,
-  Subscribe,
   NextFn,
   ErrorFn,
   Unsubscribe
@@ -54,181 +49,28 @@ export interface Dependencies {
   popupRedirectResolver?: PopupRedirectResolver;
 }
 
-interface Deferrable {
-  deferred?: Deferred<void>;
-}
+export interface Auth {
+  readonly name: string;
+  readonly settings: AuthSettings;
+  readonly config: Config;
+  currentUser: User | null;
+  readonly popupRedirectResolver?: PopupRedirectResolver;
+  languageCode: LanguageCode | null;
+  tenantId: string | null;
 
-/**
- * Attempts to wait for any existing persistence related work to complete.
- *
- * @param deferrable Auth object
- * @param fn callback function to call once any existing deferred promise resolves
- */
-async function withLock(
-  deferrable: Deferrable,
-  fn: () => Promise<void>
-): Promise<void> {
-  if (deferrable.deferred) {
-    await deferrable.deferred.promise;
-  }
-  deferrable.deferred = new Deferred<void>();
-  try {
-    await fn();
-    deferrable.deferred.resolve();
-  } catch (e) {
-    deferrable.deferred.reject(e);
-  }
-  deferrable.deferred = undefined;
-}
-
-export class Auth {
-  constructor(
-    public readonly name: string,
-    readonly settings: AuthSettings,
-    public readonly config: Config,
-    public currentUser: User | null = null,
-    public readonly popupRedirectResolver?: PopupRedirectResolver,
-    public languageCode: LanguageCode | null = null,
-    public tenantId: string | null = null
-  ) {}
-  deferred?: Deferred<void>;
-  private onIdTokenChangedObserver: Observer<User | null> | null = null;
-  private readonly onIdTokenChangedInternal: Subscribe<User | null> = createSubscribe(
-    observer => {
-      this.onIdTokenChangedObserver = observer;
-    }
-  );
-  private onAuthStateChangedObserver: Observer<User | null> | null = null;
-  private readonly onAuthStateChangedInternal: Subscribe<User | null> = createSubscribe(
-    observer => {
-      this.onAuthStateChangedObserver = observer;
-    }
-  );
-  private userManager?: UserManager;
-
-  async isInitialized(): Promise<void> {
-    if (this.deferred) {
-      await this.deferred.promise;
-    }
-    assert(!this.deferred, 'expect deferred to be undefined');
-  }
-
-  async setPersistence(persistence: Persistence): Promise<void> {
-    // We may be called synchronously, such as during initialization
-    // make sure previous request has finished before trying to change persistence
-    return withLock(this, async () => {
-      this.userManager = new UserManager(
-        persistence,
-        this.config.apiKey,
-        this.name
-      );
-      const user = await this.userManager.getCurrentUser();
-      await this.setCurrentUser_(user);
-    });
-  }
-
+  isInitialized(): Promise<void>;
+  setPersistence(persistence: Persistence): Promise<void>;
   onIdTokenChanged(
     nextOrObserver: NextFn<User | null> | Observer<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
-  ): Unsubscribe {
-    if (typeof nextOrObserver === 'function') {
-      return this.onIdTokenChangedInternal(nextOrObserver, error, completed);
-    } else {
-      return this.onIdTokenChangedInternal(nextOrObserver);
-    }
-  }
-
-  /**
-   * Register an observer on user state changes (ie- setCurrentUser)
-   *
-   * @param nextOrObserver
-   * @param error
-   * @param completed
-   */
+  ): Unsubscribe;
   onAuthStateChanged(
     nextOrObserver: NextFn<User | null> | Observer<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
-  ): Unsubscribe {
-    if (!this.deferred) {
-      // If we are already resolved, call observer asynchronously
-      Promise.resolve()
-        .then(() => {
-          if (typeof nextOrObserver === 'function') {
-            nextOrObserver(this.currentUser);
-          } else {
-            nextOrObserver.next(this.currentUser);
-          }
-        })
-        .catch(error);
-    }
-
-    if (typeof nextOrObserver === 'function') {
-      return this.onAuthStateChangedInternal(nextOrObserver, error, completed);
-    } else {
-      return this.onAuthStateChangedInternal(nextOrObserver);
-    }
-  }
-
-  useDeviceLanguage(): void {
-    throw new Error('not implemented');
-  }
-
-  /**
-   * Sets the current user, triggering any observable callbacks.
-   *
-   * Should only be called from inside a withLock() block to prevent race conditions
-   *
-   * @param user
-   */
-  private async setCurrentUser_(user: User | null): Promise<void> {
-    this.currentUser = user;
-    if (user) {
-      await this.userManager!.setCurrentUser(user);
-    } else {
-      await this.userManager!.removeCurrentUser();
-    }
-    if (this.onAuthStateChangedObserver) {
-      this.onAuthStateChangedObserver.next(this.currentUser);
-    }
-  }
-
-  /**
-   * Sets the current user, waiting for any other user mutating methods to complete first.
-   *
-   * @param user
-   */
-  async updateCurrentUser(user: User | null): Promise<void> {
-    return withLock(this, () => this.setCurrentUser_(user));
-  }
-
-  /**
-   * Clears local persistence, effectively signing-out the user.
-   */
-  async signOut(): Promise<void> {
-    return withLock(this, () => this.setCurrentUser_(null));
-  }
-}
-
-/**
- * Alias for Auth.setPersistence
- *
- * @param auth Firebase Auth object
- * @param persistence requested Persistence strategy
- */
-export function setPersistence(
-  auth: Auth,
-  persistence: Persistence
-): Promise<void> {
-  return auth.setPersistence(persistence);
-}
-
-/**
- * Alias for Auth.signOut
- *
- * @param auth Firebase Auth object
- */
-export async function signOut(auth: Auth): Promise<void> {
-  return auth.signOut();
+  ): Unsubscribe;
+  useDeviceLanguage(): void;
+  updateCurrentUser(user: User | null): Promise<void>
+  signOut(): Promise<void>;
 }

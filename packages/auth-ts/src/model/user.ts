@@ -98,6 +98,40 @@ export class User implements UserInfo {
   async delete(auth: Auth): Promise<void> {
     return deleteUser(auth, this);
   }
+
+  static fromPlainObject(object: {[key: string]: any}): User {
+    const {
+      stsTokenManager: managerObject,
+      uid,
+      displayName,
+      email,
+      emailVerified,
+      phoneNumber,
+      photoURL,
+      metadata,
+      tenantId,
+      isAnonymous,
+      providerData,
+    } = object;
+    const stsTokenManager = StsTokenManager.fromPlainObject(managerObject);
+    const user = new User(
+      {stsTokenManager,
+      uid,
+      displayName,
+      email,
+      phoneNumber,
+      photoURL,
+      isAnonymous,
+    });
+    Object.assign(user, {
+      emailVerified,
+      metadata,
+      tenantId,
+      providerData,
+    });
+
+    return user;
+  }
 }
 
 export class StsTokenManager {
@@ -107,8 +141,10 @@ export class StsTokenManager {
   accessToken!: IdToken;
   expirationTime!: number;
 
-  constructor(idTokenResponse: IdTokenResponse) {
-    this.updateFromServerResponse(idTokenResponse);
+  constructor(idTokenResponse: IdTokenResponse | null) {
+    if (idTokenResponse) {
+      this.updateFromServerResponse(idTokenResponse);
+    }
   }
 
   updateFromServerResponse(idTokenResponse: IdTokenResponse) {
@@ -125,5 +161,12 @@ export class StsTokenManager {
 
   private static calcOffsetTimestamp_(offset: string): number {
     return Date.now() + +offset * 1000;
+  }
+
+  static fromPlainObject(object: {[key: string]: any}): StsTokenManager {
+    const manager = new StsTokenManager(null);
+    const {refreshToken, accessToken, expirationTime} = object;
+    Object.assign(manager, {refreshToken, accessToken, expirationTime});
+    return manager;
   }
 }

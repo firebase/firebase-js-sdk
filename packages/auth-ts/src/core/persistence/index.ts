@@ -23,13 +23,17 @@ export enum PersistenceType {
   NONE = 'NONE'
 }
 
+export interface Instantiator<T> {
+  (blob: {[key: string]: any}): T;
+}
+
 export type PersistenceValue = PersistenceType | User;
 
 export interface Persistence {
   type: PersistenceType;
   isAvailable(): Promise<boolean>;
   set(key: string, value: PersistenceValue): Promise<void>;
-  get<T extends PersistenceValue>(key: string): Promise<T | null>;
+  get<T extends PersistenceValue>(key: string, instantiator?: Instantiator<T>): Promise<T | null>;
   remove(key: string): Promise<void>;
 }
 
