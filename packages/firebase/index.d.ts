@@ -133,7 +133,7 @@ declare namespace firebase {
        */
       args: unknown[];
       /**
-       * A string indicating the source of the log call, usually a package name
+       * A string indicating the name of the package that made the log call,
        * such as `@firebase/firestore`.
        */
       type: string;
