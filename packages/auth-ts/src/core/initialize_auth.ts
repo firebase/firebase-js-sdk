@@ -44,9 +44,14 @@ export function initializeAuth(
     null, // currentUser
     deps.popupRedirectResolver
   );
+
+  const persistence = deps.persistence || [];
+  const persistenceHierarchy =
+    Array.isArray(persistence) ? persistence : [persistence];
+      
   // Synchronously call setPersistenec, ignoring errors
   // TODO: maybe throw error anyway?
-  auth.initializePersistence(deps.persistence).then(
+  auth.initializePersistence(persistenceHierarchy).then(
     () => {},
     () => {}
   );

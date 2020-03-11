@@ -85,6 +85,7 @@ import { browserLocalPersistence } from './core/persistence/browser_local';
 import { browserSessionPersistence } from './core/persistence/browser_session';
 import { inMemoryPersistence } from './core/persistence/in_memory';
 import { setPersistence } from './core/auth_impl';
+import { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -112,7 +113,10 @@ enum Persistence {
   if (memo) {
     return memo;
   }
-  const auth: Auth = initializeAuth();
+  const auth: Auth = initializeAuth(firebase.app(), {
+    // TODO: The legacy SDK migrates localStorage -> indexedDB
+    persistence: [browserSessionPersistence, indexedDBLocalPersistence, browserLocalPersistence],
+  });
   // TODO: maybe try not to race condition? how about that
   auth.onAuthStateChanged((user: User | null) => {
     if (user) {
