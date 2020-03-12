@@ -1,12 +1,11 @@
 import { ReferenceNext, StorageNext } from '@firebase/storage-types/next';
-import { StorageInternalNext } from './types';
 import { LocationNext } from './location';
 import { validate, stringSpec } from '../implementation/args';
 import { child as childFunc, parent as parentFunc, lastComponent } from '../implementation/path';
 
 export class ReferenceImplNext implements ReferenceNext {
 
-    constructor(private readonly _storage: StorageNext, private readonly location: LocationNext) {
+    constructor(private readonly _storage: StorageNext, private readonly _location: LocationNext) {
     }
 
     child(childPath: string): ReferenceNext {
@@ -27,19 +26,26 @@ export class ReferenceImplNext implements ReferenceNext {
     }
 
     get bucket(): string {
-        return this.location.bucket;
+        return this._location.bucket;
     }
 
     get fullPath(): string {
-        return this.location.path;
+        return this._location.path;
     }
 
     get name(): string {
-        return lastComponent(this.location.path);
+        return lastComponent(this._location.path);
     }
 
     get storage(): StorageNext {
         return this._storage;
+    }
+
+    /**
+     * @internal
+     */
+    get location(): LocationNext {
+        return this._location
     }
 
     /**

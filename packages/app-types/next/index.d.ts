@@ -39,3 +39,10 @@ export interface FirebaseAppConfigNext {
     name?: string;
     automaticDataCollectionEnabled?: boolean;
 }
+
+declare module '@firebase/component' {
+    interface NameServiceMapping {
+      'app-next': FirebaseAppNext;
+    }
+  }
+  

@@ -35,10 +35,13 @@ const es5BuildPlugins = [
 
 const es5Builds = [
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      next: 'src/next/index.ts'
+    },
     output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
+      { dir: 'dist/esm5', format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -62,9 +65,12 @@ const es2017BuildPlugins = [
 
 const es2017Builds = [
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      next: 'src/next/index.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },

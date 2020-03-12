@@ -20,7 +20,7 @@ import {
   FirebaseOptionsNext,
   FirebaseAppConfigNext
 } from '@firebase/app-types/next';
-import { ComponentContainer } from '@firebase/component';
+import { ComponentContainer, Component, ComponentType } from '@firebase/component';
 import { ERROR_FACTORY, AppError } from '../errors';
 
 export class FirebaseAppImplNext implements FirebaseAppNext {
@@ -40,6 +40,11 @@ export class FirebaseAppImplNext implements FirebaseAppNext {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled;
     this.container = container;
+    this.container.addComponent(new Component(
+      'app-next',
+      () => this,
+      ComponentType.PUBLIC
+    ));
   }
 
   get automaticDataCollectionEnabled(): boolean {

@@ -1,0 +1,8 @@
+{
+    "name": "@firebase/storage/next",
+    "main": "../dist/cjs/next.js",
+    "browser": "../dist/cjs/next.js",
+    "module": "../dist/esm5/next.js",
+    "typings": "../dist/cjs/src/next/index.d.ts",
+    "esm2017": "../dist/esm2017/next.js"
+}

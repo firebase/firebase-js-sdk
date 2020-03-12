@@ -6,6 +6,8 @@ import {
 } from '../implementation/constants';
 import { makeFromBucketSpec, LocationNext } from './location';
 import { Provider } from '@firebase/component';
+import { XhrIoPool } from '../implementation/xhriopool';
+import { RequestMap } from '../implementation/requestmap';
 
 export class StorageImplNext implements StorageNext{
 
@@ -24,7 +26,17 @@ export class StorageImplNext implements StorageNext{
     /**
      * @internal
      */
-    _authProvider: Provider<'auth-internal'>
+    _authProvider: Provider<'auth-internal'>;
+
+    /**
+     * @internal
+     */
+    _xhrpool: XhrIoPool = new XhrIoPool();
+
+    /**
+     * @internal
+     */
+    _requestMap: RequestMap = new RequestMap();
     
     constructor(
         readonly app: FirebaseAppNext,
