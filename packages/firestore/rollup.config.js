@@ -25,56 +25,137 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 
-import { renameInternals } from './scripts/rename-internals';
-import { extractPublicIdentifiers } from './scripts/extract-api';
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
-import { externs } from './externs.json';
 
-const deps = Object.keys(
+import {
+  appendPrivatePrefixTransformers,
+  manglePrivatePropertiesOptions,
+  resolveMemoryExterns
+} from './terser.config';
+
+// This Firestore Rollup configuration provides a number of different builds:
+// - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
+//   ES2017 in ESM format.
+// - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
+//   formats and ES2017 in ESM format.
+// - A NodeJS build that supports persistence (to be used with an IndexedDb
+//  shim)
+// - A in-memory only NodeJS build
+//
+// The in-memory builds are roughly 130 KB smaller, but throw an exception
+// for calls to `enablePersistence()` or `clearPersistence()`.
+//
+// All browser builds rely on Terser's property name mangling to reduce code 
+// size.
+
+// MARK: Browser builds
+
+const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-// Extract all identifiers used in external APIs (to be used as a blacklist by
-// the SDK minifier).
-const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
-const publicIdentifiers = extractPublicIdentifiers(externsPaths);
-const transformers = [
-  service => ({
-    before: [
-      renameInternals(service.getProgram(), {
-        publicIdentifiers,
-        prefix: '__PRIVATE_'
-      })
-    ],
-    after: []
-  })
-];
+function resolveBrowserExterns(id) {
+  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
 
-const terserOptions = {
-  output: {
-    comments: 'all',
-    beautify: true
-  },
-  mangle: {
-    properties: {
-      regex: /^__PRIVATE_/
-    }
-  }
-};
-
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
-    transformers,
-    cacheRoot: './.cache/es5.min/'
+    transformers: appendPrivatePrefixTransformers,
+    cacheRoot: `./.cache/es5.mangled/`
   }),
   json(),
-  terser(terserOptions)
+  terser(manglePrivatePropertiesOptions)
 ];
+
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    cacheRoot: './.cache/es2017.mangled/',
+    transformers: appendPrivatePrefixTransformers
+  }),
+  json({ preferConst: true }),
+  terser(manglePrivatePropertiesOptions)
+];
+
+const browserBuilds = [
+  // ES5 ESM Build (with persistence)
+  {
+    input: 'index.ts',
+    output: { file: pkg.module, format: 'es', sourcemap: true },
+    plugins: es5BuildPlugins,
+    external: resolveBrowserExterns
+  },
+  // ES5 ESM Build (memory-only)
+  {
+    input: 'index.memory.ts',
+    output: {
+      file: path.resolve('./memory', memoryPkg.module),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es5BuildPlugins,
+    external: (id, referencedBy) => resolveMemoryExterns(browserDeps, id, referencedBy)
+  },
+  // ES2017 ESM build (with persistence)
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es5BuildPlugins,
+    external: resolveBrowserExterns
+  },
+  // ES2017 ESM build (memory-only)
+  {
+    input: 'index.memory.ts',
+    output: {
+      file: path.resolve('./memory', memoryPkg.esm2017),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: (id, referencedBy) => resolveMemoryExterns(browserDeps, id, referencedBy)
+  },
+  // ES5 CJS Build (with persistence)
+  //
+  // This build is based on the mangling in the ESM build above, since
+  // Terser's Property name mangling doesn't work well with CJS's syntax.
+  {
+    input: pkg.module,
+    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+    plugins: [sourcemaps()]
+  },
+  // ES5 CJS Build (memory-only)
+  //
+  // This build is based on the mangling in the ESM build above, since
+  // Terser's Property name mangling doesn't work well with CJS's syntax.
+  {
+    input: path.resolve('./memory', memoryPkg.module),
+    output: {
+      file: path.resolve('./memory', memoryPkg.browser),
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [sourcemaps()]
+  }
+];
+
+// MARK: Node builds
+
+const nodeDeps = [...browserDeps, 'util', 'path'];
+
+function resolveNodeExterns(id) {
+  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
 
 const nodeBuildPlugins = [
   ...es5BuildPlugins,
@@ -87,49 +168,15 @@ const nodeBuildPlugins = [
   })
 ];
 
-/**
- * Returns the externs locations for the Memory-based Firestore implementation.
- * Verifies that no persistence sources are used by Firestore's memory-only
- * implementation.
- */
-function resolveMemoryExterns(id, referencedBy) {
-  const externalRef = path
-    .resolve(path.dirname(referencedBy), id)
-    .replace('.ts', '');
-
-  const persistenceRef = [
-    'local/indexeddb_persistence.ts',
-    'local/indexeddb_index_manager.ts',
-    'local/indexeddb_mutation_queue.ts',
-    'local/indexeddb_remote_document_cache.ts',
-    'local/indexeddb_schema.ts',
-    'local/indexeddb_target_cache.ts',
-    'local/local_serializer.ts',
-    'local/simple_db.ts',
-    'api/persistence.ts'
-  ].map(p => path.resolve(__dirname, 'src', p));
-
-  if (persistenceRef.indexOf(externalRef) !== -1) {
-    throw new Error('Unexpected reference in Memory-only client on ' + id);
-  }
-  return [...deps, 'util', 'path'].some(
-    dep => id === dep || id.startsWith(`${dep}/`)
-  );
-}
-
-const es5Builds = [
-  /**
-   * Node.js Build
-   */
+const nodeBuilds = [
+  // ES5 CJS build (with persistence)
   {
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: nodeBuildPlugins,
-    external: id =>
-      [...deps, 'util', 'path'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      )
+    external: resolveNodeExterns
   },
+  // ES5 CJS build (memory-only)
   {
     input: 'index.node.memory.ts',
     output: [
@@ -140,107 +187,9 @@ const es5Builds = [
       }
     ],
     plugins: nodeBuildPlugins,
-    external: resolveMemoryExterns
-  },
-  /**
-   * Browser ESM Build
-   */
-  {
-    input: 'index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        transformers,
-        cacheRoot: './.cache/esm/'
-      }),
-      json(),
-      terser(terserOptions)
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'index.memory.ts',
-    output: {
-      file: path.resolve('./memory', memoryPkg.module),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        transformers,
-        cacheRoot: './.cache/esm/'
-      }),
-      json(),
-      terser(terserOptions)
-    ],
-    external: resolveMemoryExterns
-  },
-  /**
-   * Browser CJS Build
-   *
-   * These builds are based on the mangling in the ESM build above, since
-   * Terser's Property name mangling doesn't work well with CJS's syntax.
-   */
-  {
-    input: pkg.module,
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [sourcemaps()]
-  },
-  {
-    input: path.resolve('./memory', memoryPkg.module),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [sourcemaps()]
+    external: (id, referencedBy) =>
+      resolveMemoryExterns(nodeDeps, id, referencedBy)
   }
 ];
 
-/**
- * ES2017 Builds
- */
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    cacheRoot: './.cache/esm2017/',
-    transformers
-  }),
-  json({ preferConst: true }),
-  terser(terserOptions)
-];
-
-const es2017Builds = [
-  /**
-   * Browser Build
-   */
-  {
-    input: 'index.ts',
-    output: {
-      file: pkg.esm2017,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'index.memory.ts',
-    output: {
-      file: path.resolve('./memory', memoryPkg.esm2017),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: resolveMemoryExterns
-  }
-];
-
-export default [...es5Builds, ...es2017Builds];
+export default [...browserBuilds, ...nodeBuilds];
