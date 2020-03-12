@@ -7361,17 +7361,17 @@ google-closure-compiler@^20190415.0.0:
     google-closure-compiler-linux "^20190415.0.0"
     google-closure-compiler-osx "^20190415.0.0"
 
-google-closure-library@20190709.0.0:
-  version "20190709.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20190709.0.0.tgz#e2d10d1b05bc09b8b9fe9f924ba0c5ed49a143b5"
-  integrity sha512-AjctPpV+o+NbQ/o6ovRExj7ZCTpffpjFfOimwY1fAexmCiyZ6JFpFKOchibTZWTJY7GCRuJRg9KU8O2fTD8MlA==
-
 google-closure-library@20200101.0.0:
   version "20200101.0.0"
   resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200101.0.0.tgz#daa1fad3967d07ede670733c774fc51a22e556c5"
   integrity sha512-BwCDk/aGyCWQr3UFfOL9QJMhNKV1F1i5hH45N6J1UsJtI0LDR3eD4U/plfc6ERef7wH03OyX00MubiyzKmkVMQ==
   dependencies:
     promises-aplus-tests "^2.1.2"
+
+google-closure-library@20200224.0.0:
+  version "20200224.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200224.0.0.tgz#70c36576b21c81c514cfbfcc001780c2fdacd173"
+  integrity sha512-cF9LP7F5Klj4go5TB4cPpcCvC/qgSVNYgzVS+bzxPgLvIiVL8aWOwApj6rsCkPY9Yr675FouylqNE24F31LWeQ==
 
 google-gax@^1.7.5, google-gax@~1.12.0:
   version "1.12.0"
@@ -14986,7 +14986,24 @@ util@0.10.3:
   dependencies:
     inherits "2.0.1"
 
-"util@>=0.10.3 <1", util@^0.12.0:
+"util@>=0.10.3 <1":
+  version "0.12.2"
+  resolved "https://registry.npmjs.org/util/-/util-0.12.2.tgz#54adb634c9e7c748707af2bf5a8c7ab640cbba2b"
+  integrity sha512-XE+MkWQvglYa+IOfBt5UFG93EmncEMP23UqpgDvVZVFBPxwmkK10QRp6pgU4xICPnWRf/t0zPv4noYSUq9gqUQ==
+  dependencies:
+    inherits "^2.0.3"
+    is-arguments "^1.0.4"
+    is-generator-function "^1.0.7"
+    safe-buffer "^5.1.2"
+
+util@^0.11.0:
+  version "0.11.1"
+  resolved "https://registry.npmjs.org/util/-/util-0.11.1.tgz#3236733720ec64bb27f6e26f421aaa2e1b588d61"
+  integrity sha512-HShAsny+zS2TZfaXxD9tYj4HQGlBezXZMZuM/S5PKLLoZkShZiGk9o5CzukI1LVHZvjdvZ2Sj1aW/Ndn2NB/HQ==
+  dependencies:
+    inherits "2.0.3"
+
+util@^0.12.0:
   version "0.12.1"
   resolved "https://registry.npmjs.org/util/-/util-0.12.1.tgz#f908e7b633e7396c764e694dd14e716256ce8ade"
   integrity sha512-MREAtYOp+GTt9/+kwf00IYoHZyjM8VU4aVrkzUlejyqaIjd2GztVl5V9hGXKlvBKE3gENn/FMfHE5v6hElXGcQ==

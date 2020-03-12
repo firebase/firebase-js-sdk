@@ -283,7 +283,8 @@ fireauth.common.testHelper.createMockJwt =
   // Extend base payload.
   goog.object.extend(basePayload, opt_payload || {});
   var encodedPayload =
-      goog.crypt.base64.encodeString(JSON.stringify(basePayload), true);
+      goog.crypt.base64.encodeString(JSON.stringify(basePayload),
+          goog.crypt.base64.Alphabet.WEBSAFE);
   // Remove any trailing or leading dots from the payload component.
   return 'HEAD.' + encodedPayload.replace(/^\.+|\.+$/g, '') + '.SIGNATURE';
 };
