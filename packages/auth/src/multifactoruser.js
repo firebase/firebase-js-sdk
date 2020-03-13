@@ -201,7 +201,7 @@ fireauth.MultiFactorUser.prototype.enroll = function(assertion, displayName) {
  */
 fireauth.MultiFactorUser.prototype.unenroll = function(target) {
   var self = this;
-  var uid = goog.isString(target) ? target : target['uid'];
+  var uid = typeof target === 'string' ? target : target['uid'];
   var rpcHandler = this.user_.getRpcHandler();
   return this.user_.getIdToken().then(function(idToken) {
     return rpcHandler.withdrawMfa(idToken, uid);
