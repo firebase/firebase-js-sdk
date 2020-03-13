@@ -1,37 +1,24 @@
 import { FbsBlob } from '../implementation/blob';
 import {
   InternalTaskState,
-  TaskEvent,
   TaskState,
   taskStateFromInternalTaskState
 } from '../implementation/taskenums';
 import { Metadata } from '../metadata';
 import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  StorageObserver,
-  Subscribe,
-  Unsubscribe
+  Observer
 } from '../implementation/observer';
 import { Request } from '../implementation/request';
-import {
-  ArgSpec,
-  nullFunctionSpec,
-  looseObjectSpec,
-  stringSpec,
-  validate
-} from '../implementation/args';
 import { Mappings } from '../implementation/metadata';
-import { Deferred, async } from '@firebase/util';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
-import { multipartUpload } from './requests';
+import { async } from '@firebase/util';
+import { multipartUpload, createResumableUpload, getResumableUploadStatus, getMetadata, continueResumableUpload } from './requests';
 import { ReferenceImplNext } from './reference';
 import { StorageImplNext } from './storage';
 import { makeRequest } from './client';
 import { ReferenceNext } from '@firebase/storage-types/next';
 import { FirebaseStorageError, canceled } from '../implementation/error';
+import { getAuthToken } from './auth';
+import { resumableUploadChunkSize, ResumableUploadStatus } from '../implementation/requests';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -40,14 +27,15 @@ import { FirebaseStorageError, canceled } from '../implementation/error';
 export class UploadTask {
   private resumable_: boolean;
   private state_: InternalTaskState;
-  private deferred: Deferred<unknown>;
-  private auth: FirebaseAuthInternal | null;
-  private authToken: string | null = null;
   private storage: StorageImplNext;
   private request_: Request<unknown> | null = null;
   private transferred_: number = 0;
   private observers_: Array<Observer<UploadTaskSnapshot>> = [];
   private error_: Error | null = null;
+  private uploadUrl_: string | null = null; // ??
+  private needToFetchStatus_: boolean = false; // ??
+  private needToFetchMetadata_: boolean = false;
+  private chunkMultiplier_: number = 1;
 
   private errorHandler_: (p1: FirebaseStorageError) => void = error => {
     // TODO
@@ -67,13 +55,9 @@ export class UploadTask {
     private metadata: Metadata | null = null
   ) {
     this.storage = ref.storage as StorageImplNext;
-    this.auth = this.storage._authProvider.getImmediate({
-      optional: true
-    });
 
     this.resumable_ = this.shouldDoResumable(blob);
     this.state_ = InternalTaskState.RUNNING;
-    this.deferred = new Deferred();
     this.start_();
   }
 
@@ -87,11 +71,174 @@ export class UploadTask {
       return;
     }
 
-    this.oneShotUpload_();
+    if (this.resumable_) {
+      if (this.uploadUrl_ === null) {
+        this.createResumable_();
+      } else {
+        if (this.needToFetchStatus_) {
+          this.fetchStatus_();
+        } else {
+          if (this.needToFetchMetadata_) {
+            // Happens if we miss the metadata on upload completion.
+            this.fetchMetadata_();
+          } else {
+            this.continueUpload_();
+          }
+        }
+      }
+    } else {
+      this.oneShotUpload_();
+    }
+  }
+
+
+  private async continueUpload_(): Promise<void> {
+    const chunkSize =
+      resumableUploadChunkSize * this.chunkMultiplier_;
+    const status = new ResumableUploadStatus(
+      this.transferred_,
+      this.blob.size()
+    );
+
+    // TODO(andysoto): assert(this.uploadUrl_ !== null);
+    const url = this.uploadUrl_ as string;
+    const authToken = await getAuthToken(this.storage);
+    let requestInfo;
+    try {
+      requestInfo = continueResumableUpload(
+        this.ref,
+        url,
+        this.blob,
+        chunkSize,
+        this.mappings,
+        status,
+        loaded => this.updateProgress_(this.transferred_ + loaded)
+      );
+    } catch (e) {
+      this.error_ = e;
+      this.transition_(InternalTaskState.ERROR);
+      return;
+    }
+
+    const uploadRequest = makeRequest(
+      this.storage,
+      requestInfo,
+      authToken
+    );
+
+    this.request_ = uploadRequest;
+    try {
+      const newStatus = await uploadRequest.getPromise();
+
+      this.increaseMultiplier_();
+      this.request_ = null;
+      this.updateProgress_(newStatus.current);
+      if (newStatus.finalized) {
+        this.metadata = newStatus.metadata;
+        this.transition_(InternalTaskState.SUCCESS);
+      } else {
+        this.completeTransitions_();
+      }
+    } catch (e) {
+      this.errorHandler_(e);
+    }
+  }
+
+  private increaseMultiplier_(): void {
+    const currentSize =
+      resumableUploadChunkSize * this.chunkMultiplier_;
+
+    // Max chunk size is 32M.
+    if (currentSize < 32 * 1024 * 1024) {
+      this.chunkMultiplier_ *= 2;
+    }
+  }
+
+  private async createResumable_(): Promise<void> {
+    const authToken = await getAuthToken(this.storage);
+    const requestInfo = createResumableUpload(
+      this.ref,
+      this.mappings,
+      this.blob,
+      this.metadata
+    );
+
+    const createRequest = makeRequest(
+      this.storage,
+      requestInfo,
+      authToken
+    );
+
+    this.request_ = createRequest;
+
+    try {
+      const url = await createRequest.getPromise();
+      this.request_ = null;
+      this.uploadUrl_ = url;
+      this.needToFetchStatus_ = false;
+      this.completeTransitions_();
+    } catch (e) {
+      this.errorHandler_(e)
+    }
+  }
+
+  private async fetchStatus_(): Promise<void> {
+    // TODO(andysoto): assert(this.uploadUrl_ !== null);
+    const url = this.uploadUrl_ as string;
+    const authToken = await getAuthToken(this.storage);
+
+    const requestInfo = getResumableUploadStatus(
+      this.ref,
+      url,
+      this.blob
+    );
+    const statusRequest = makeRequest(
+      this.storage,
+      requestInfo,
+      authToken
+    );
+    this.request_ = statusRequest;
+
+    try {
+      const status = await statusRequest.getPromise();
+      this.request_ = null;
+      this.updateProgress_(status.current);
+      this.needToFetchStatus_ = false;
+      if (status.finalized) {
+        this.needToFetchMetadata_ = true;
+      }
+      this.completeTransitions_();
+    } catch (e) {
+      this.errorHandler_(e);
+    }
+
+  }
+
+  private async fetchMetadata_(): Promise<void> {
+    const authToken = await getAuthToken(this.storage);
+    const requestInfo = getMetadata(
+      this.ref,
+      this.mappings
+    );
+    const metadataRequest = makeRequest(
+      this.storage,
+      requestInfo,
+      authToken
+    );
+    this.request_ = metadataRequest;
+
+    try {
+      const metadata = await metadataRequest.getPromise()
+      this.request_ = null;
+      this.metadata = metadata;
+      this.transition_(InternalTaskState.SUCCESS);
+    } catch (e) {
+      this.metadataErrorHandler_(e);
+    }
   }
 
   private async oneShotUpload_(): Promise<void> {
-    const authToken = await this.resolveToken_();
+    const authToken = await getAuthToken(this.storage);
 
     const requestInfo = multipartUpload(
       this.ref,
@@ -107,12 +254,16 @@ export class UploadTask {
     );
 
     this.request_ = multipartRequest;
-    multipartRequest.getPromise().then(metadata => {
+
+    try {
+      const metadata = await multipartRequest.getPromise();
       this.request_ = null;
       this.metadata = metadata;
       this.updateProgress_(this.blob.size());
       this.transition_(InternalTaskState.SUCCESS);
-    }, this.errorHandler_);
+    } catch (e) {
+      this.errorHandler_(e)
+    }
   };
 
   private updateProgress_(transferred: number): void {
@@ -230,27 +381,33 @@ export class UploadTask {
     }
   }
 
-  private async resolveToken_(): Promise<string | null> {
-    let authToken = null;
-    if (this.auth) {
-      const token = await this.auth.getToken();
-      if (token) {
-        authToken = token.accessToken;
-      }
-    }
-    return authToken;
-  }
-
   get snapshot(): UploadTaskSnapshot {
     const externalState = taskStateFromInternalTaskState(this.state_);
     return {
-       bytesTransferred: this.transferred_,
-       totalBytes: this.blob.size(),
-       state: externalState,
-       metadata: this.metadata,
-       task: this,
-       ref: this.ref
+      bytesTransferred: this.transferred_,
+      totalBytes: this.blob.size(),
+      state: externalState,
+      metadata: this.metadata,
+      task: this,
+      ref: this.ref
     };
+  }
+
+  private completeTransitions_(): void {
+    switch (this.state_) {
+      case InternalTaskState.PAUSING:
+        this.transition_(InternalTaskState.PAUSED);
+        break;
+      case InternalTaskState.CANCELING:
+        this.transition_(InternalTaskState.CANCELED);
+        break;
+      case InternalTaskState.RUNNING:
+        this.start_();
+        break;
+      default:
+        // TODO(andysoto): assert(false);
+        break;
+    }
   }
 
   /**
@@ -398,10 +555,10 @@ export class UploadTask {
 }
 
 export interface UploadTaskSnapshot {
-    readonly bytesTransferred: number,
-    readonly totalBytes: number,
-    readonly state: TaskState,
-    readonly metadata: Metadata | null,
-    readonly task: UploadTask,
-    readonly ref: ReferenceNext
+  readonly bytesTransferred: number,
+  readonly totalBytes: number,
+  readonly state: TaskState,
+  readonly metadata: Metadata | null,
+  readonly task: UploadTask,
+  readonly ref: ReferenceNext
 }

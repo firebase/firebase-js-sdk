@@ -2,16 +2,16 @@ import { RequestInfo, UrlParams } from '../implementation/requestinfo';
 import { Metadata } from '../metadata';
 import { Mappings, toResourceString, downloadUrlFromResourceString } from '../implementation/metadata';
 import { FbsBlob } from '../implementation/blob';
-import { metadataForUpload_, sharedErrorHandler, objectErrorHandler, handlerCheck } from '../implementation/requests';
+import { metadataForUpload_, sharedErrorHandler, objectErrorHandler, handlerCheck, checkResumeHeader_, ResumableUploadStatus } from '../implementation/requests';
 import { Location } from '../implementation/location';
-import { cannotSliceBlob } from '../implementation/error';
+import { cannotSliceBlob, serverFileWrongSize } from '../implementation/error';
 import { makeUrl } from '../implementation/url';
 import { ReferenceImplNext } from './reference';
 import { XhrIo } from '../implementation/xhrio';
 import { fromResponseString } from './list';
 import { ListResult } from '../list';
 import { fromResourceString } from './metadata';
-
+import { isString } from '../implementation/type';
 
 export function multipartUpload(
     ref: ReferenceImplNext,
@@ -212,6 +212,166 @@ export function downloadUrlHandler(
             metadata as Metadata,
             text
         );
+    }
+    return handler;
+}
+
+export function createResumableUpload(
+    ref: ReferenceImplNext,
+    mappings: Mappings,
+    blob: FbsBlob,
+    metadata?: Metadata | null
+): RequestInfo<string> {
+    const urlPart = ref.location.bucketOnlyServerUrl();
+    const metadataForUpload = metadataForUpload_(ref.location as unknown as Location, blob, metadata);
+    const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
+    const url = makeUrl(urlPart);
+    const method = 'POST';
+    const headers = {
+        'X-Goog-Upload-Protocol': 'resumable',
+        'X-Goog-Upload-Command': 'start',
+        'X-Goog-Upload-Header-Content-Length': blob.size(),
+        'X-Goog-Upload-Header-Content-Type': metadataForUpload['contentType']!,
+        'Content-Type': 'application/json; charset=utf-8'
+    };
+    const body = toResourceString(metadataForUpload, mappings);
+    const timeout = ref.storage.maxUploadRetryTime;
+
+    function handler(xhr: XhrIo): string {
+        checkResumeHeader_(xhr);
+        let url;
+        try {
+            url = xhr.getResponseHeader('X-Goog-Upload-URL');
+        } catch (e) {
+            handlerCheck(false);
+        }
+        handlerCheck(isString(url));
+        return url as string;
+    }
+    const requestInfo = new RequestInfo(url, method, handler, timeout);
+    requestInfo.urlParams = urlParams;
+    requestInfo.headers = headers;
+    requestInfo.body = body;
+    requestInfo.errorHandler = sharedErrorHandler(ref.location as unknown as Location);
+    return requestInfo;
+}
+
+export function getResumableUploadStatus(
+    ref: ReferenceImplNext,
+    url: string,
+    blob: FbsBlob
+): RequestInfo<ResumableUploadStatus> {
+    const headers = { 'X-Goog-Upload-Command': 'query' };
+
+    function handler(xhr: XhrIo): ResumableUploadStatus {
+        const status = checkResumeHeader_(xhr, ['active', 'final']);
+        let sizeString: string | null = null;
+        try {
+            sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
+        } catch (e) {
+            handlerCheck(false);
+        }
+
+        if (!sizeString) {
+            // null or empty string
+            handlerCheck(false);
+        }
+
+        const size = Number(sizeString);
+        handlerCheck(!isNaN(size));
+        return new ResumableUploadStatus(size, blob.size(), status === 'final');
+    }
+    const method = 'POST';
+    const timeout = ref.storage.maxUploadRetryTime;
+    const requestInfo = new RequestInfo(url, method, handler, timeout);
+    requestInfo.headers = headers;
+    requestInfo.errorHandler = sharedErrorHandler(ref.location as unknown as Location);
+    return requestInfo;
+}
+
+export function continueResumableUpload(
+    ref: ReferenceImplNext,
+    url: string,
+    blob: FbsBlob,
+    chunkSize: number,
+    mappings: Mappings,
+    status?: ResumableUploadStatus | null,
+    progressCallback?: ((p1: number, p2: number) => void) | null
+): RequestInfo<ResumableUploadStatus> {
+    // TODO(andysoto): standardize on internal asserts
+    // assert(!(opt_status && opt_status.finalized));
+    const status_ = new ResumableUploadStatus(0, 0);
+    if (status) {
+        status_.current = status.current;
+        status_.total = status.total;
+    } else {
+        status_.current = 0;
+        status_.total = blob.size();
+    }
+    if (blob.size() !== status_.total) {
+        throw serverFileWrongSize();
+    }
+    const bytesLeft = status_.total - status_.current;
+    let bytesToUpload = bytesLeft;
+    if (chunkSize > 0) {
+        bytesToUpload = Math.min(bytesToUpload, chunkSize);
+    }
+    const startByte = status_.current;
+    const endByte = startByte + bytesToUpload;
+    const uploadCommand =
+        bytesToUpload === bytesLeft ? 'upload, finalize' : 'upload';
+    const headers = {
+        'X-Goog-Upload-Command': uploadCommand,
+        'X-Goog-Upload-Offset': status_.current
+    };
+    const body = blob.slice(startByte, endByte);
+    if (body === null) {
+        throw cannotSliceBlob();
+    }
+
+    function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
+        // TODO(andysoto): Verify the MD5 of each uploaded range:
+        // the 'x-range-md5' header comes back with status code 308 responses.
+        // We'll only be able to bail out though, because you can't re-upload a
+        // range that you previously uploaded.
+        const uploadStatus = checkResumeHeader_(xhr, ['active', 'final']);
+        const newCurrent = status_.current + bytesToUpload;
+        const size = blob.size();
+        let metadata;
+        if (uploadStatus === 'final') {
+            metadata = metadataHandler(ref, mappings)(xhr, text);
+        } else {
+            metadata = null;
+        }
+        return new ResumableUploadStatus(
+            newCurrent,
+            size,
+            uploadStatus === 'final',
+            metadata
+        );
+    }
+    const method = 'POST';
+    const timeout = ref.storage.maxUploadRetryTime;
+    const requestInfo = new RequestInfo(url, method, handler, timeout);
+    requestInfo.headers = headers;
+    requestInfo.body = body.uploadData();
+    requestInfo.progressCallback = progressCallback || null;
+    requestInfo.errorHandler = sharedErrorHandler(ref.location as unknown as Location);
+    return requestInfo;
+}
+
+export function metadataHandler(
+    ref: ReferenceImplNext,
+    mappings: Mappings
+): (p1: XhrIo, p2: string) => Metadata {
+    function handler(xhr: XhrIo, text: string): Metadata {
+        const metadata = fromResourceString(
+            ref,
+            text,
+            mappings
+        );
+        handlerCheck(metadata !== null);
+        return metadata as Metadata;
     }
     return handler;
 }
