@@ -17,10 +17,13 @@
 
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
-import { AuthEventType } from '../../model/auth_event';
+import { AuthEventType, EventProcessors } from '../../model/auth_event';
 import { PopupRedirectResolver } from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
-import { UserCredential } from '../../model/user_credential';
+import { UserCredential, OperationType } from '../../model/user_credential';
+import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication';
+import { initializeCurrentUserFromIdTokenResponse } from '.';
+import { authCredentialFromTokenResponse } from './auth_credential';
 
 export async function signInWithRedirect(
   auth: Auth,
@@ -148,15 +151,56 @@ export async function signInWithRedirect(
 //   return eventManagerProviderPromise_;
 // }
 
-export async function getRedirectResult(
-  auth: Auth,
-  resolver?: PopupRedirectResolver
-): Promise<UserCredential | null> {
-  resolver = resolver || auth.popupRedirectResolver;
-  if (!resolver) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
-      appName: auth.name
-    });
-  }
-  return resolver.getRedirectResult(auth);
+// export async function getRedirectResult(
+//   auth: Auth,
+//   resolver?: PopupRedirectResolver
+// ): Promise<UserCredential | null> {
+//   throw new Error('no');
+//   resolver = resolver || auth.popupRedirectResolver;
+//   if (!resolver) {
+//     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
+//       appName: auth.name
+//     });
+//   }
+//   // return resolver.getRedirectResult(auth);
+// }
+
+export async function link(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+  throw new Error('processor not implemented');
 }
+
+export async function reauth(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+  throw new Error('processor not implemented');
+}
+
+export async function signIn(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+  const request: SignInWithIdpRequest = {
+    requestUri,
+    sessionId,
+    postBody: postBody || null,
+    tenantId,
+    returnSecureToken: true,
+  };
+
+  const response = await signInWithIdp(auth, request);
+  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
+  const credential = authCredentialFromTokenResponse(response);
+  auth.updateCurrentUser(user);
+  return new UserCredential(user, credential, OperationType.SIGN_IN);
+}
+
+export async function unknown(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+  throw new Error('processor not implemented');
+}
+
+export async function verifyApp(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+  throw new Error('processor not implemented');
+}
+
+export const redirectEventProcessors: EventProcessors = {
+  link,
+  reauth,
+  signIn,
+  unknown,
+  verifyApp,
+};

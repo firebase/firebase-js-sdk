@@ -28,7 +28,6 @@ import {
   verifyPasswordResetCode
 } from './core/strategies/email_and_password';
 import {
-  getRedirectResult,
   signInWithRedirect
 } from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
@@ -86,6 +85,7 @@ import { browserSessionPersistence } from './core/persistence/browser_session';
 import { inMemoryPersistence } from './core/persistence/in_memory';
 import { setPersistence } from './core/auth_impl';
 import { indexedDBLocalPersistence } from './core/persistence/indexed_db';
+import { getRedirectResult } from './core/event_broker';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {

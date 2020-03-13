@@ -20,6 +20,7 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 import { OAuthCredential } from '../../model/auth_credential';
+import { GenericOAuthCredential } from './oauth_credential';
 
 export class GoogleAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.GOOGLE;
@@ -37,8 +38,14 @@ export class GoogleAuthProvider extends OAuthProvider {
     idToken?: string | null,
     accessToken?: string | null
   ): OAuthCredential {
-    throw new Error('not implemented');
+    return new GenericOAuthCredential({
+      providerId: ProviderId.GOOGLE,
+      signInMethod: SignInMethod.GOOGLE,
+      idToken,
+      accessToken,
+    });
   }
+
   static credentialFromJSON(json: object): OAuthCredential {
     throw new Error('not implemented');
   }

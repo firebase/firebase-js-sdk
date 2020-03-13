@@ -20,8 +20,13 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { AuthCredential } from '../../model/auth_credential';
 
+export const SAML_PROVIDER_PREFIX = 'saml.';
+
 export class SAMLAuthProvider implements AuthProvider {
   constructor(readonly providerId: ProviderId) {}
+  static credential(providerId: string, pendingToken: string): AuthCredential {
+    throw new Error('nope');
+  }
   static credentialFromResult(
     userCredential: UserCredential
   ): AuthCredential | null {

@@ -25,6 +25,12 @@ export interface CustomParameters {
   [key: string]: string;
 }
 
+interface CredentialParameters {
+  idToken?: string;
+  accessToken?: string;
+  rawNonce?: string;
+}
+
 export class OAuthProvider implements AuthProvider {
   private defaultLanguageCode: LanguageCode | null = null;
   private scopes: string[] = [];
@@ -41,6 +47,11 @@ export class OAuthProvider implements AuthProvider {
   static credentialFromJSON(json: object): OAuthCredential {
     throw new Error('not implemented');
   }
+
+  credential(params: CredentialParameters): OAuthCredential {
+    throw new Error('no');
+  }
+
   setDefaultLanguage(languageCode: LanguageCode | null): void {
     this.defaultLanguageCode = languageCode;
   }

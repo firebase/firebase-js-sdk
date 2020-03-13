@@ -1,4 +1,7 @@
 import { AuthErrorCode } from '../core/errors';
+import { IdTokenResponse } from './id_token';
+import { UserCredential } from './user_credential';
+import { Auth } from './auth';
 
 /**
  * @license
@@ -36,14 +39,24 @@ export interface AuthEventError {
   message: string;
 }
 
-export interface AuthEvent extends gapi.iframes.Message {
-  authEvent: {
-    type: AuthEventType;
-    eventId: string | null;
-    urlResponse: string | null;
-    sessionId: string | null;
-    postBody: string | null;
-    tenantId: string | null;
-    error: AuthEventError;
-  };
+export interface AuthEvent {
+  type: AuthEventType;
+  eventId: string | null;
+  urlResponse: string | null;
+  sessionId: string | null;
+  postBody: string | null;
+  tenantId: string | null;
+  error: AuthEventError;
 }
+
+export type EventProcessor = (auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string) => Promise<UserCredential>;
+
+export interface EventProcessors {
+   link: EventProcessor;
+   reauth: EventProcessor;
+   signIn: EventProcessor;
+   unknown: EventProcessor;
+   verifyApp: EventProcessor;
+ }
+
+ 

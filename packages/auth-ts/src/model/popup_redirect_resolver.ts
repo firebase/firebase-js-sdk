@@ -16,9 +16,13 @@
  */
 
 import { Auth } from '../../src';
-import { AuthEventType } from './auth_event';
+import { AuthEventType, AuthEvent } from './auth_event';
 import { UserCredential } from './user_credential';
 import { AuthProvider } from '../core/providers';
+
+export interface EventSubscriber {
+  onEvent(event: AuthEvent): Promise<boolean>;
+}
 
 export interface PopupRedirectResolver {
   processPopup(
@@ -31,5 +35,8 @@ export interface PopupRedirectResolver {
     provider: AuthProvider,
     authType: AuthEventType
   ): Promise<never>;
-  getRedirectResult(auth: Auth): Promise<UserCredential | null>;
+  // getRedirectResult(auth: Auth): Promise<UserCredential | null>;
+  initializeAndWait(auth: Auth): Promise<void>;
+
+  isInitialized(): boolean;
 }

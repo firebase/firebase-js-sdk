@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PopupRedirectResolver } from '../model/popup_redirect_resolver';
+import { PopupRedirectResolver, EventSubscriber } from '../model/popup_redirect_resolver';
 import { Auth } from '../../src';
 import { ProviderId, AuthProvider } from '../core/providers';
 import {
@@ -31,9 +31,7 @@ import { OAuthProvider } from '../core/providers/oauth';
 import { openIframe } from './iframe';
 import { getCurrentUrl } from '../core/util/location';
 import firebase from '@firebase/app';
-import { SignInWithIdp } from '../api/authentication';
-import { GoogleAuthProvider } from '../core/providers/google';
-import { signInWithCredential } from '../core/strategies/auth_credential';
+import { eventBroker } from '../core/event_broker';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -55,6 +53,11 @@ type WidgetParams = {
   providerId?: ProviderId;
   scopes?: string;
   customParameters?: string;
+};
+
+enum GapiOutcome {
+  ACK = 'ACK',
+  ERROR = 'ERROR',
 };
 
 function queryString(params: Params): string {
@@ -121,7 +124,17 @@ function getRedirectUrl(
   return url.toString();
 }
 
+interface GapiAuthEvent  extends gapi.iframes.Message {
+  authEvent: AuthEvent;
+}
+
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+  private initialized = false;
+
+  constructor(private readonly subscriber: EventSubscriber) {
+
+  }
+
   processPopup(
     auth: Auth,
     provider: AuthProvider,
@@ -144,30 +157,26 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return new Promise(() => {});
   }
 
-  async getRedirectResult(auth: Auth): Promise<UserCredential | null> {
+  async initializeAndWait(auth: Auth): Promise<void> {
+    this.initialized = true;
+
     const iframe = await openIframe(auth);
 
-    iframe.register<AuthEvent>(
+    iframe.register<GapiAuthEvent>(
       AUTH_EVENT_MESSAGE_TYPE,
-      async (message: AuthEvent) => {
-        let response = await SignInWithIdp(auth, {
-          requestUri: message.authEvent.urlResponse!,
-          postBody: message.authEvent.postBody,
-          sessionId: message.authEvent.sessionId!,
-          returnSecureToken: true
-        });
-        let credential = GoogleAuthProvider.credential(response.idToken);
-        let user_credential = signInWithCredential(auth, credential);
-        console.log(message);
+      async (message: GapiAuthEvent) => {
+        const success = await this.subscriber.onEvent(message.authEvent);
+        const status = success ? GapiOutcome.ACK : GapiOutcome.ERROR;
+
+        return {status};
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
+  }
 
-    return null;
-
-    // const authEventManager_ = await getAuthEventManager_(auth);
-    // return authEventManager_.getRedirectResult();
+  isInitialized() {
+    return this.initialized;
   }
 }
 
-export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver();
+export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver(eventBroker);

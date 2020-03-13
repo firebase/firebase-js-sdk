@@ -176,8 +176,8 @@ class IndexedDBLocalPersistence implements Persistence {
     instantiator?: Instantiator<T>
   ): Promise<T | null> {
     const db = await this.initialize();
-    const obj = getObject_<T>(db, key);
-    return instantiator && obj ? instantiator(obj) : obj;
+    const obj = await getObject_<T>(db, key);
+    return instantiator && obj ? instantiator(obj as any) : obj;
   }
 
   async remove(key: string): Promise<void> {

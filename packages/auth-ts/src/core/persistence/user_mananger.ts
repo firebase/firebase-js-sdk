@@ -102,8 +102,8 @@ export class UserManager {
     // TODO: Migrate from local storage to indexedDB
     // TODO: Clear other forms once one is found
 
-    // All else failed, fall back to noop persistence
+    // All else failed, fall back to zeroth persistence
     // TODO: Modify this to support non-browser devices
-    return new UserManager(inMemoryPersistence, apiKey, appName);
+    return new UserManager(persistenceHierarchy[0], apiKey, appName);
   }
 }
