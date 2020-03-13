@@ -22,8 +22,8 @@ import { Auth } from '../../model/auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export interface OAuthCredentialParams {
-  idToken?: string|null;
-  accessToken?: string|null;
+  idToken?: string | null;
+  accessToken?: string | null;
   oauthToken?: string;
   secret?: string;
   oauthTokenSecret?: string;
@@ -70,27 +70,26 @@ export class GenericOAuthCredential implements OAuthCredential {
       this.secret = params.oauthTokenSecret;
     } else {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-        appName: 'TODO',
+        appName: 'TODO'
       });
     }
   }
 
   toJSON(): object {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
-  
 }
 
 /**

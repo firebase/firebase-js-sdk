@@ -165,21 +165,39 @@ export async function signInWithRedirect(
 //   // return resolver.getRedirectResult(auth);
 // }
 
-export async function link(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+export async function link(
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+): Promise<UserCredential> {
   throw new Error('processor not implemented');
 }
 
-export async function reauth(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+export async function reauth(
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+): Promise<UserCredential> {
   throw new Error('processor not implemented');
 }
 
-export async function signIn(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+export async function signIn(
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+): Promise<UserCredential> {
   const request: SignInWithIdpRequest = {
     requestUri,
     sessionId,
     postBody: postBody || null,
     tenantId,
-    returnSecureToken: true,
+    returnSecureToken: true
   };
 
   const response = await signInWithIdp(auth, request);
@@ -189,11 +207,23 @@ export async function signIn(auth: Auth, requestUri: string, sessionId: string, 
   return new UserCredential(user, credential, OperationType.SIGN_IN);
 }
 
-export async function unknown(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+export async function unknown(
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+): Promise<UserCredential> {
   throw new Error('processor not implemented');
 }
 
-export async function verifyApp(auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string): Promise<UserCredential> {
+export async function verifyApp(
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+): Promise<UserCredential> {
   throw new Error('processor not implemented');
 }
 
@@ -202,5 +232,5 @@ export const redirectEventProcessors: EventProcessors = {
   reauth,
   signIn,
   unknown,
-  verifyApp,
+  verifyApp
 };

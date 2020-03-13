@@ -327,7 +327,7 @@ export interface VerifyAssertionRequest {
 //     Endpoint.VERIFY_ASSERTION,
 //     request,
 //   );
-  
+
 // }
 
 export type PhoneOrOauthTokenResponse =
@@ -339,7 +339,7 @@ export type PhoneOrOauthTokenResponse =
 //     // This makes it possible for OIDC providers to:
 //     // 1. Initialize an OIDC Auth credential on successful response.
 //     // 2. Initialize an OIDC Auth credential within the recovery error.
-  
+
 //     // When request has sessionId and response has OIDC ID token and no pending
 //     // token, a credential with raw nonce and OIDC ID token needs to be returned.
 //     if (response[fireauth.RpcHandler.AuthServerField.OAUTH_ID_TOKEN] &&

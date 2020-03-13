@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-import { EventSubscriber, PopupRedirectResolver } from '../model/popup_redirect_resolver';
+import {
+  EventSubscriber,
+  PopupRedirectResolver
+} from '../model/popup_redirect_resolver';
 import { AuthEvent, EventProcessor, AuthEventType } from '../model/auth_event';
 import { redirectEventProcessors } from './strategies/redirect';
 import { Auth } from '../model/auth';
 import { UserCredential } from '../model/user_credential';
 
 interface PendingPromise {
-  resolve: (cred: UserCredential|null) => void;
+  resolve: (cred: UserCredential | null) => void;
   reject: (error: Error) => void;
 }
 
 class EventBroker implements EventSubscriber {
   private auth!: Auth;
-  private redirectOutcome: (() => Promise<UserCredential|null>)|null = null;
+  private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
   private readonly redirectListeners: PendingPromise[] = [];
 
   async onEvent(event: AuthEvent): Promise<boolean> {
@@ -41,15 +44,16 @@ class EventBroker implements EventSubscriber {
         break;
     }
 
-    const {
-      urlResponse,
-      sessionId,
-      postBody,
-      tenantId,
-    } = event;
+    const { urlResponse, sessionId, postBody, tenantId } = event;
 
     try {
-      const userCred = await processor!(this.auth, urlResponse!, sessionId!, tenantId!, postBody!);
+      const userCred = await processor!(
+        this.auth,
+        urlResponse!,
+        sessionId!,
+        tenantId!,
+        postBody!
+      );
       if (isRedirect) {
         this.broadcastRedirectResult(userCred);
       }
@@ -62,23 +66,26 @@ class EventBroker implements EventSubscriber {
     }
   }
 
-  getRedirectResult(auth: Auth, resolver: PopupRedirectResolver): Promise<UserCredential|null> {
+  getRedirectResult(
+    auth: Auth,
+    resolver: PopupRedirectResolver
+  ): Promise<UserCredential | null> {
     // TODO: This is trash;
     this.auth = auth;
     if (this.redirectOutcome) {
       return this.redirectOutcome();
     }
 
-    return new Promise<UserCredential|null>((resolve, reject) => {
+    return new Promise<UserCredential | null>((resolve, reject) => {
       if (!resolver.isInitialized()) {
         resolver.initializeAndWait(auth);
       }
 
-      this.redirectListeners.push({resolve, reject});
+      this.redirectListeners.push({ resolve, reject });
     });
   }
 
-  private broadcastRedirectResult(cred: UserCredential|null, error?: Error) {
+  private broadcastRedirectResult(cred: UserCredential | null, error?: Error) {
     for (const listener of this.redirectListeners) {
       if (error) {
         listener.reject(error);
@@ -89,12 +96,18 @@ class EventBroker implements EventSubscriber {
 
     this.redirectOutcome = () => {
       return error ? Promise.reject(error) : Promise.resolve(cred);
-    }
+    };
   }
 }
 
 export const eventBroker = new EventBroker();
 
-export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential|null> {
-  return eventBroker.getRedirectResult(auth, resolver || auth.popupRedirectResolver!);
+export function getRedirectResult(
+  auth: Auth,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential | null> {
+  return eventBroker.getRedirectResult(
+    auth,
+    resolver || auth.popupRedirectResolver!
+  );
 }

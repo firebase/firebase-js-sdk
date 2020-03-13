@@ -27,9 +27,7 @@ import {
   confirmPasswordReset,
   verifyPasswordResetCode
 } from './core/strategies/email_and_password';
-import {
-  signInWithRedirect
-} from './core/strategies/redirect';
+import { signInWithRedirect } from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
 import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';

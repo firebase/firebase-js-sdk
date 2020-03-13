@@ -42,7 +42,7 @@ export class GoogleAuthProvider extends OAuthProvider {
       providerId: ProviderId.GOOGLE,
       signInMethod: SignInMethod.GOOGLE,
       idToken,
-      accessToken,
+      accessToken
     });
   }
 

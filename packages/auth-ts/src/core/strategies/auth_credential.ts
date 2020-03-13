@@ -80,7 +80,7 @@ export function authCredentialFromTokenResponse(
     nonce: rawNonce,
     idToken,
     oauthIdToken,
-    pendingToken,
+    pendingToken
   } = response as SignInWithIdpResponse;
 
   if (!providerId || providerId === ProviderId.PASSWORD) {
@@ -88,7 +88,7 @@ export function authCredentialFromTokenResponse(
   }
 
   try {
-    switch(providerId) {
+    switch (providerId) {
       case ProviderId.GOOGLE:
         return GoogleAuthProvider.credential(idToken, accessToken);
       case ProviderId.FACEBOOK:
@@ -113,16 +113,16 @@ export function authCredentialFromTokenResponse(
         pendingToken,
         idToken: oauthIdToken,
         accessToken,
-        signInMethod: providerId as SignInMethod,
+        signInMethod: providerId as SignInMethod
       });
     }
 
     return new OAuthProvider(providerId as ProviderId).credential({
       idToken,
       accessToken,
-      rawNonce,
+      rawNonce
     });
-  } catch(e) {
+  } catch (e) {
     // Swallow errors
   }
   return null;

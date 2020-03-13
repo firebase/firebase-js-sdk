@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { PopupRedirectResolver, EventSubscriber } from '../model/popup_redirect_resolver';
+import {
+  PopupRedirectResolver,
+  EventSubscriber
+} from '../model/popup_redirect_resolver';
 import { Auth } from '../../src';
 import { ProviderId, AuthProvider } from '../core/providers';
 import {
@@ -57,8 +60,8 @@ type WidgetParams = {
 
 enum GapiOutcome {
   ACK = 'ACK',
-  ERROR = 'ERROR',
-};
+  ERROR = 'ERROR'
+}
 
 function queryString(params: Params): string {
   return Object.keys(params)
@@ -124,16 +127,14 @@ function getRedirectUrl(
   return url.toString();
 }
 
-interface GapiAuthEvent  extends gapi.iframes.Message {
+interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private initialized = false;
 
-  constructor(private readonly subscriber: EventSubscriber) {
-
-  }
+  constructor(private readonly subscriber: EventSubscriber) {}
 
   processPopup(
     auth: Auth,
@@ -168,7 +169,7 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
         const success = await this.subscriber.onEvent(message.authEvent);
         const status = success ? GapiOutcome.ACK : GapiOutcome.ERROR;
 
-        return {status};
+        return { status };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
@@ -179,4 +180,6 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 }
 
-export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver(eventBroker);
+export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver(
+  eventBroker
+);

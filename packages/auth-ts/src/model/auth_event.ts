@@ -49,14 +49,18 @@ export interface AuthEvent {
   error: AuthEventError;
 }
 
-export type EventProcessor = (auth: Auth, requestUri: string, sessionId: string, tenantId: string, postBody?: string) => Promise<UserCredential>;
+export type EventProcessor = (
+  auth: Auth,
+  requestUri: string,
+  sessionId: string,
+  tenantId: string,
+  postBody?: string
+) => Promise<UserCredential>;
 
 export interface EventProcessors {
-   link: EventProcessor;
-   reauth: EventProcessor;
-   signIn: EventProcessor;
-   unknown: EventProcessor;
-   verifyApp: EventProcessor;
- }
-
- 
+  link: EventProcessor;
+  reauth: EventProcessor;
+  signIn: EventProcessor;
+  unknown: EventProcessor;
+  verifyApp: EventProcessor;
+}
