@@ -20,7 +20,6 @@
  * abstract representations.
  */
 
-import firebase from '@firebase/app';
 import * as backoff from './backoff';
 import {
   FirebaseStorageError,
@@ -274,9 +273,8 @@ export function addAuthHeader_(
   }
 }
 
-export function addVersionHeader_(headers: Headers): void {
-  const version =
-    typeof firebase !== 'undefined' ? firebase.SDK_VERSION : 'AppManager';
+export function addVersionHeader_(headers: Headers, ver?: string): void {
+  const version = ver ?? 'AppManager';
   headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
 }
 
