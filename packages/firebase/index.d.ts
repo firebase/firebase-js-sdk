@@ -79,6 +79,15 @@ declare namespace firebase {
   }
 
   /**
+   * The JS SDK supports 5 log levels and also allows a user the ability to
+   * silence the logs altogether.
+   *
+   * The order is as follows:
+   * silent < debug < verbose < info < warn < error
+   */
+  type LogLevel = 'debug' | 'verbose' | 'info' | 'warn' | 'error' | 'silent';
+
+  /**
    * The current SDK version.
    */
   var SDK_VERSION: string;
@@ -93,6 +102,49 @@ declare namespace firebase {
     library: string,
     version: string,
     variant?: string
+  ): void;
+
+  /**
+   * Sets log level for all Firebase packages.
+   *
+   * All of the log types above the current log level are captured (i.e. if
+   * you set the log level to `info`, errors are logged, but `debug` and
+   * `verbose` logs are not).
+   */
+  function setLogLevel(logLevel: LogLevel): void;
+
+  /**
+   * Sets log handler for all Firebase packages.
+   * @param logCallback An optional custom log handler that executes user code whenever
+   * the Firebase SDK makes a logging call.
+   */
+  function onLog(
+    logCallback: (callbackParams: {
+      /**
+       * Level of event logged.
+       */
+      level: LogLevel;
+      /**
+       * Any text from logged arguments joined into one string.
+       */
+      message: string;
+      /**
+       * The raw arguments passed to the log call.
+       */
+      args: unknown[];
+      /**
+       * A string indicating the name of the package that made the log call,
+       * such as `@firebase/firestore`.
+       */
+      type: string;
+    }) => void,
+    options?: {
+      /**
+       * Threshhold log level. Only logs at or above this level trigger the `logCallback`
+       * passed to `onLog`.
+       */
+      level: LogLevel;
+    }
   ): void;
 
   /**
