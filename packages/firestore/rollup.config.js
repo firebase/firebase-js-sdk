@@ -31,7 +31,6 @@ import memoryPkg from './memory/package.json';
 import {
   appendPrivatePrefixTransformers,
   manglePrivatePropertiesOptions,
-  resolveMemoryExterns
 } from './terser.config';
 
 // This Firestore Rollup configuration provides a number of different builds:
@@ -55,9 +54,48 @@ const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
+const nodeDeps = [...browserDeps, 'util', 'path'];
+
+/** Resolves the external dependencies for the browser build. */
 function resolveBrowserExterns(id) {
   return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 }
+
+/** Resolves the external dependencies for the NOde build. */
+function resolveNodeExterns(id) {
+  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
+
+/**
+ * Resolves the external dependencies for the Memory-based Firestore 
+ * implementation. Verifies that no persistence sources are used by Firestore's 
+ * memory-only implementation.
+ */
+export function resolveMemoryExterns(deps, externsId, referencedBy) {
+  const externalRef = path
+    .resolve(path.dirname(referencedBy), externsId)
+    .replace('.ts', '');
+
+  const persistenceRef = [
+    'local/indexeddb_persistence.ts',
+    'local/indexeddb_index_manager.ts',
+    'local/indexeddb_mutation_queue.ts',
+    'local/indexeddb_remote_document_cache.ts',
+    'local/indexeddb_schema.ts',
+    'local/indexeddb_target_cache.ts',
+    'local/local_serializer.ts',
+    'local/lru_garbage_collector.ts',
+    'local/simple_db.ts',
+    'api/persistence.ts'
+  ].map(p => path.resolve(__dirname, 'src', p));
+
+  if (persistenceRef.indexOf(externalRef) !== -1) {
+    throw new Error('Unexpected reference in Memory-only client on ' + id);
+  }
+
+  return deps.some(dep => externsId === dep || externsId.startsWith(`${dep}/`));
+}
+
 
 const es5BuildPlugins = [
   typescriptPlugin({
@@ -150,12 +188,6 @@ const browserBuilds = [
 ];
 
 // MARK: Node builds
-
-const nodeDeps = [...browserDeps, 'util', 'path'];
-
-function resolveNodeExterns(id) {
-  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
 
 const nodeBuildPlugins = [
   ...es5BuildPlugins,

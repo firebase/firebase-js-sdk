@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-import '@firbease/firestore/memory';
+import '../../../firestore/dist/index.memory.esm';

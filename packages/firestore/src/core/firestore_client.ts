@@ -19,7 +19,12 @@ import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { LocalStore } from '../local/local_store';
-import { Persistence, PersistenceFactory } from '../local/persistence';
+import { MemoryPersistenceProvider } from '../local/memory_persistence';
+import {
+  GarbageCollectionScheduler,
+  Persistence,
+  PersistenceProvider
+} from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -39,10 +44,6 @@ import {
 import { SyncEngine } from './sync_engine';
 import { View } from './view';
 
-import {
-  LruGarbageCollector,
-  LruScheduler
-} from '../local/lru_garbage_collector';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
@@ -52,6 +53,24 @@ import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
+
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
+const DOM_EXCEPTION_ABORTED = 20;
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
+export class IndexedDbPersistenceSettings {
+  constructor(
+    readonly cacheSizeBytes: number,
+    readonly synchronizeTabs: boolean
+  ) {}
+}
+
+export class MemoryPersistenceSettings {}
+
+export type InternalPersistenceSettings =
+  | IndexedDbPersistenceSettings
+  | MemoryPersistenceSettings;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -70,10 +89,10 @@ export class FirestoreClient {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private syncEngine!: SyncEngine;
+  private gcScheduler!: GarbageCollectionScheduler;
+
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState!: SharedClientState;
-
-  private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
 
@@ -127,9 +146,9 @@ export class FirestoreClient {
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  start<T>(
-    persistenceFactory: PersistenceFactory<T>,
-    settings: T
+  start(
+    persistenceProvider: PersistenceProvider,
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
     // We defer our initialization until we get the current user from
@@ -154,19 +173,13 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        persistenceFactory(
+        this.initializePersistence(
+          persistenceProvider,
+          persistenceSettings,
           user,
-          this.asyncQueue,
-          this.databaseInfo,
-          this.platform,
-          this.clientId,
-          settings
+          persistenceResult
         )
-          .then(({ persistence, sharedClientState, garbageCollector }) => {
-            this.persistence = persistence;
-            this.sharedClientState = sharedClientState;
-            return this.initializeRest(user, garbageCollector);
-          })
+          .then(() => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
@@ -195,6 +208,105 @@ export class FirestoreClient {
   }
 
   /**
+   * Initializes persistent storage, attempting to use IndexedDB if
+   * usePersistence is true or memory-only if false.
+   *
+   * If IndexedDB fails because it's already open in another tab or because the
+   * platform can't possibly support our implementation then this method rejects
+   * the persistenceResult and falls back on memory-only persistence.
+   *
+   * @param persistenceProvider The provider that provides either IndexedDb or
+   *     memory-backed persistence.
+   * @param persistenceSettings Settings object to configure offline persistence
+   * @param user The initial user
+   * @param persistenceResult A deferred result indicating the user-visible
+   *     result of enabling offline persistence. This method will reject this if
+   *     IndexedDB fails to start for any reason. If usePersistence is false
+   *     this is unconditionally resolved.
+   * @returns a Promise indicating whether or not initialization should
+   *     continue, i.e. that one of the persistence implementations actually
+   *     succeeded.
+   */
+  private async initializePersistence(
+    persistenceProvider: PersistenceProvider,
+    persistenceSettings: InternalPersistenceSettings,
+    user: User,
+    persistenceResult: Deferred<void>
+  ): Promise<void> {
+    try {
+      await persistenceProvider.configure(
+        this.asyncQueue,
+        this.databaseInfo,
+        this.platform,
+        this.clientId,
+        user,
+        persistenceSettings
+      );
+
+      this.persistence = persistenceProvider.getPersistence();
+      this.gcScheduler = persistenceProvider.getGarbageCollectionScheduler();
+      this.sharedClientState = persistenceProvider.getSharedClientState();
+      persistenceResult.resolve();
+    } catch (error) {
+      // Regardless of whether or not the retry succeeds, from an user
+      // perspective, offline persistence has failed.
+      persistenceResult.reject(error);
+
+      // An unknown failure on the first stage shuts everything down.
+      if (!this.canFallback(error)) {
+        throw error;
+      }
+      console.warn(
+        'Error enabling offline persistence. Falling back to' +
+          ' persistence disabled: ' +
+          error
+      );
+      return this.initializePersistence(
+        new MemoryPersistenceProvider(),
+        persistenceSettings,
+        user,
+        persistenceResult
+      );
+    }
+  }
+
+  /**
+   * Decides whether the provided error allows us to gracefully disable
+   * persistence (as opposed to crashing the client).
+   */
+  private canFallback(error: FirestoreError | DOMException): boolean {
+    if (error instanceof FirestoreError) {
+      return (
+        error.code === Code.FAILED_PRECONDITION ||
+        error.code === Code.UNIMPLEMENTED
+      );
+    } else if (
+      typeof DOMException !== 'undefined' &&
+      error instanceof DOMException
+    ) {
+      // There are a few known circumstances where we can open IndexedDb but
+      // trying to read/write will fail (e.g. quota exceeded). For
+      // well-understood cases, we attempt to detect these and then gracefully
+      // fall back to memory persistence.
+      // NOTE: Rather than continue to add to this list, we could decide to
+      // always fall back, with the risk that we might accidentally hide errors
+      // representing actual SDK bugs.
+      return (
+        // When the browser is out of quota we could get either quota exceeded
+        // or an aborted error depending on whether the error happened during
+        // schema migration.
+        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+        error.code === DOM_EXCEPTION_ABORTED ||
+        // Firefox Private Browsing mode disables IndexedDb and returns
+        // INVALID_STATE for any usage.
+        error.code === DOM_EXCEPTION_INVALID_STATE
+      );
+    }
+
+    return true;
+  }
+
+  /**
    * Checks that the client has not been terminated. Ensures that other methods on
    * this class cannot be called after the client is terminated.
    */
@@ -212,10 +324,7 @@ export class FirestoreClient {
    * has been obtained from the credential provider and some persistence
    * implementation is available in this.persistence.
    */
-  private initializeRest(
-    user: User,
-    maybeLruGc: LruGarbageCollector | null
-  ): Promise<void> {
+  private initializeRest(user: User): Promise<void> {
     debug(LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
       .loadConnection(this.databaseInfo)
@@ -223,16 +332,6 @@ export class FirestoreClient {
         const queryEngine = new IndexFreeQueryEngine();
         this.localStore = new LocalStore(this.persistence, queryEngine, user);
         await this.localStore.start();
-
-        if (maybeLruGc) {
-          // We're running LRU Garbage collection. Set up the scheduler.
-          this.lruScheduler = new LruScheduler(
-            maybeLruGc,
-            this.asyncQueue,
-            this.localStore
-          );
-        }
-
         const connectivityMonitor = this.platform.newConnectivityMonitor();
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
@@ -290,12 +389,10 @@ export class FirestoreClient {
         // set it after localStore / remoteStore are started.
         await this.persistence.setPrimaryStateListener(async isPrimary => {
           await this.syncEngine.applyPrimaryState(isPrimary);
-          if (this.lruScheduler) {
-            if (isPrimary && !this.lruScheduler.started) {
-              this.lruScheduler.start();
-            } else if (!isPrimary) {
-              this.lruScheduler.stop();
-            }
+          if (isPrimary && !this.gcScheduler.started) {
+            this.gcScheduler.start(this.localStore);
+          } else if (!isPrimary) {
+            this.gcScheduler.stop();
           }
         });
 
@@ -325,9 +422,7 @@ export class FirestoreClient {
   terminate(): Promise<void> {
     return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      if (this.lruScheduler) {
-        this.lruScheduler.stop();
-      }
+      this.gcScheduler.stop();
       await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
       await this.persistence.shutdown();

@@ -21,7 +21,12 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import { FirestoreClient } from '../core/firestore_client';
+import {
+  FirestoreClient,
+  IndexedDbPersistenceSettings,
+  InternalPersistenceSettings,
+  MemoryPersistenceSettings
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -34,6 +39,8 @@ import {
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { LruParams } from '../local/lru_garbage_collector';
+import { MemoryPersistenceProvider } from '../local/memory_persistence';
+import { PersistenceProvider } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -100,8 +107,6 @@ import {
 } from './user_data_converter';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { newMemoryPersistence } from '../local/memory_persistence';
-import { PersistenceFactory } from '../local/persistence';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -117,8 +122,12 @@ const DEFAULT_FORCE_LONG_POLLING = false;
 export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 const PERSISTENCE_MISSING_ERROR_MSG =
-  'You are using the in-memory build of Firestore. Persistence support is ' +
-  'only available via the main Firestore bundle.';
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
+
+// enablePersistence() defaults:
+const DEFAULT_SYNCHRONIZE_TABS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -288,9 +297,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   private readonly _persistenceKey: string;
+  private readonly _persistenceProvider: PersistenceProvider;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
-  protected _settings: FirestoreSettings;
+  private _settings: FirestoreSettings;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -298,7 +308,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  protected _firestoreClient: FirestoreClient | undefined;
+  private _firestoreClient: FirestoreClient | undefined;
 
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
@@ -306,9 +316,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   readonly _dataConverter: UserDataConverter;
 
+  // Note: We are using `MemoryPersistenceProvider` as a default
+  // PersistenceProvider to not change the constructor in the existing console
+  // build.
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    persistenceProvider: PersistenceProvider = new MemoryPersistenceProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -333,6 +347,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
+    this._persistenceProvider = persistenceProvider;
     this._settings = new FirestoreSettings({});
     this._dataConverter = this.createDataConverter(this._databaseId);
   }
@@ -378,11 +393,69 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
-    throw new Error(PERSISTENCE_MISSING_ERROR_MSG);
+    if (!this._persistenceProvider.isDurable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        PERSISTENCE_MISSING_ERROR_MSG
+      );
+    }
+
+    if (this._firestoreClient) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Firestore has already been started and persistence can no longer ' +
+          'be enabled. You can only call enablePersistence() before calling ' +
+          'any other methods on a Firestore object.'
+      );
+    }
+
+    let synchronizeTabs = false;
+
+    if (settings) {
+      if (settings.experimentalTabSynchronization !== undefined) {
+        log.error(
+          "The 'experimentalTabSynchronization' setting has been renamed to " +
+            "'synchronizeTabs'. In a future release, the setting will be removed " +
+            'and it is recommended that you update your ' +
+            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+        );
+      }
+      synchronizeTabs = objUtils.defaulted(
+        settings.synchronizeTabs !== undefined
+          ? settings.synchronizeTabs
+          : settings.experimentalTabSynchronization,
+        DEFAULT_SYNCHRONIZE_TABS
+      );
+    }
+
+    return this.configureClient(
+      this._persistenceProvider,
+      new IndexedDbPersistenceSettings(
+        this._settings.cacheSizeBytes,
+        synchronizeTabs
+      )
+    );
   }
 
-  clearPersistence(): Promise<void> {
-    throw new Error(PERSISTENCE_MISSING_ERROR_MSG);
+  async clearPersistence(): Promise<void> {
+    if (!this._persistenceProvider.isDurable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        PERSISTENCE_MISSING_ERROR_MSG
+      );
+    }
+
+    if (
+      this._firestoreClient !== undefined &&
+      !this._firestoreClient.clientTerminated
+    ) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Persistence cannot be cleared after this Firestore instance is initialized.'
+      );
+    }
+
+    return this._persistenceProvider.clearPersistence();
   }
 
   terminate(): Promise<void> {
@@ -441,15 +514,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._configureClient(
-        newMemoryPersistence,
-        /* persistenceSettings= */ {}
+      this.configureClient(
+        new MemoryPersistenceProvider(),
+        new MemoryPersistenceSettings()
       );
     }
     return this._firestoreClient as FirestoreClient;
   }
 
-  protected makeDatabaseInfo(): DatabaseInfo {
+  private makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       this._persistenceKey,
@@ -459,9 +532,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
-  protected _configureClient<T>(
-    persistenceFactory: PersistenceFactory<T>,
-    persistenceSettings: T
+  private configureClient(
+    persistenceProvider: PersistenceProvider,
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
@@ -476,7 +549,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    return this._firestoreClient.start(persistenceFactory, persistenceSettings);
+    return this._firestoreClient.start(
+      persistenceProvider,
+      persistenceSettings
+    );
   }
 
   private createDataConverter(databaseId: DatabaseId): UserDataConverter {
@@ -2624,7 +2700,7 @@ function applyFirestoreDataConverter<T>(
 
 // We're treating the variables as class names, so disable checking for lower
 // case variable names.
-export const PublicMemoryFirestore = makeConstructorPrivate(
+export const PublicFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
 );

@@ -1046,6 +1046,7 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     }
   );
+
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'cannot clear persistence if the client has been initialized',

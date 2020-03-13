@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
-import { configureForFirebase } from './src/platform/config';
-import './register-module';
-import './src/platform_node/node_init';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { name, version } from './package.json';
-import {
-  PersistenceFirestore,
-  PublicPersistenceFirestore
-} from './src/api/persistence';
+import {IndexedDbPersistenceProvider} from "./src/local/indexeddb_persistence";
+import { configureForFirebase } from './src/platform/config';
 
+import './register-module';
+import './src/platform_node/node_init';
+
+import { name, version } from './package.json';
+
+/**
+ * Registers the main Firestore Node build with the components framework.
+ * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
+ */
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    PublicPersistenceFirestore,
-    PersistenceFirestore
+    () => new IndexedDbPersistenceProvider()
   );
   instance.registerVersion(name, version, 'node');
 }

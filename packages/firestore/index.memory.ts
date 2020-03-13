@@ -18,15 +18,19 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
+import {MemoryPersistenceProvider} from "./src/local/memory_persistence";
 import { configureForFirebase } from './src/platform/config';
+
 import './register-module';
 import './src/platform_browser/browser_init';
 
 import { name, version } from './package.json';
-import { Firestore, PublicMemoryFirestore } from './src/api/database';
 
+/**
+ * Registers the memory-only Firestore build with the components framework.
+ */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance, PublicMemoryFirestore, Firestore);
+  configureForFirebase(instance, () => new MemoryPersistenceProvider());
   instance.registerVersion(name, version);
 }
 

@@ -18,8 +18,7 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { fail } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
+import { assert, fail } from '../util/assert';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -30,26 +29,34 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
+
 import { DatabaseInfo } from '../core/database_info';
+import { InternalPersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
-import { Platform } from '../platform/platform';
+import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
+  GarbageCollectionScheduler,
   Persistence,
-  PersistenceFactory,
+  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { Platform } from '../platform/platform';
 import { ReferenceSet } from './reference_set';
-import { ClientId, MemorySharedClientState } from './shared_client_state';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState
+} from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
@@ -500,27 +507,42 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 }
 
-export class MemoryPersistenceSettings {}
+export class MemoryPersistenceProvider implements PersistenceProvider {
+  readonly isDurable = false;
 
-/**
- * Creates and starts a new Memory-backed persistence. In practice this cannot
- * fail.
- *
- * @returns A promise that will successfully resolve.
- */
-export const newMemoryPersistence: PersistenceFactory<MemoryPersistenceSettings> = (
-  user: User,
-  asyncQueue: AsyncQueue,
-  databaseInfo: DatabaseInfo,
-  platform: Platform,
-  clientId: ClientId,
-  settings: MemoryPersistenceSettings
-) => {
-  const persistence = MemoryPersistence.createEagerPersistence(clientId);
-  const sharedClientState = new MemorySharedClientState();
-  return Promise.resolve({
-    persistence,
-    sharedClientState,
-    garbageCollector: null
-  });
-};
+  private clientId: ClientId | undefined;
+
+  configure(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    clientId: ClientId,
+    initialUser: User,
+    settings: InternalPersistenceSettings
+  ): Promise<void> {
+    this.clientId = clientId;
+    return Promise.resolve();
+  }
+
+  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
+    let started = false;
+    return {
+      started,
+      start: () => (started = true),
+      stop: () => (started = false)
+    };
+  }
+
+  getPersistence(): Persistence {
+    assert(this.clientId !== undefined, 'clientId not initialized');
+    return MemoryPersistence.createEagerPersistence(this.clientId);
+  }
+
+  getSharedClientState(): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  clearPersistence(): Promise<void> {
+    return Promise.resolve();
+  }
+}

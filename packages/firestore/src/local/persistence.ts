@@ -19,11 +19,8 @@ import { User } from '../auth/user';
 
 import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
 import { IndexManager } from './index_manager';
-import { LruGarbageCollector } from './lru_garbage_collector';
+import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
@@ -31,6 +28,10 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId, SharedClientState } from './shared_client_state';
 import { TargetData } from './target_data';
+import { DatabaseInfo } from '../core/database_info';
+import { InternalPersistenceSettings } from '../core/firestore_client';
+import { Platform } from '../platform/platform';
+import { AsyncQueue } from '../util/async_queue';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
@@ -291,19 +292,40 @@ export interface Persistence {
 }
 
 /**
- * Function signature for a factory function that returns a fully configured
- * persistence implementation, providing Persistence, the GarbageCollector, and
- * the SharedClientState.
+ * Interface implemented by the LRU scheduler to start(), stop() and restart
+ * garbage collection.
  */
-export type PersistenceFactory<T> = (
-  user: User,
-  asyncQueue: AsyncQueue,
-  databaseInfo: DatabaseInfo,
-  platform: Platform,
-  clientId: ClientId,
-  settings: T
-) => Promise<{
-  persistence: Persistence;
-  garbageCollector: LruGarbageCollector | null;
-  sharedClientState: SharedClientState;
-}>;
+export interface GarbageCollectionScheduler {
+  readonly started: boolean;
+  start(localStore: LocalStore): void;
+  stop(): void;
+}
+
+/**
+ * Provides all persistence components for Firestore. Consumers have to invoke
+ * configure() once before accessing any of the individual components.
+ */
+export interface PersistenceProvider {
+  /**
+   * True if the underlying implementation supports durable storage via
+   * `enablePersistence()`.
+   */
+  readonly isDurable: boolean;
+
+  configure(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    clientId: ClientId,
+    initialUser: User,
+    settings: InternalPersistenceSettings
+  ): Promise<void>;
+
+  getPersistence(): Persistence;
+
+  getGarbageCollectionScheduler(): GarbageCollectionScheduler;
+
+  getSharedClientState(): SharedClientState;
+
+  clearPersistence(): Promise<void>;
+}

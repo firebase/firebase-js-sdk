@@ -80,7 +80,7 @@ export function isPersistenceAvailable(): boolean {
     typeof window.indexedDB === 'object' &&
     !isIeOrEdge() &&
     (typeof process === 'undefined' ||
-      process.env?.DISABLE_FIRESTORE_PERSISTENCE !== 'true')
+      process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== 'false')
   );
 }
 
