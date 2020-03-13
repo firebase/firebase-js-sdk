@@ -39,7 +39,7 @@ import {
 // - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
 //   formats and ES2017 in ESM format.
 // - A NodeJS build that supports persistence (to be used with an IndexedDb
-//  shim)
+//   shim)
 // - A in-memory only NodeJS build
 //
 // The in-memory builds are roughly 130 KB smaller, but throw an exception
@@ -61,7 +61,7 @@ function resolveBrowserExterns(id) {
   return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 }
 
-/** Resolves the external dependencies for the NOde build. */
+/** Resolves the external dependencies for the Node build. */
 function resolveNodeExterns(id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 }
@@ -95,7 +95,6 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
 
   return deps.some(dep => externsId === dep || externsId.startsWith(`${dep}/`));
 }
-
 
 const es5BuildPlugins = [
   typescriptPlugin({

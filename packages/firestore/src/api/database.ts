@@ -317,8 +317,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   readonly _dataConverter: UserDataConverter;
 
   // Note: We are using `MemoryPersistenceProvider` as a default
-  // PersistenceProvider to not change the constructor in the existing console
-  // build.
+  // PersistenceProvider to ensure backwards compatibility with the format
+  // expected by the console build.
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,

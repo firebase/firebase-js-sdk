@@ -216,7 +216,7 @@ export class FirestoreClient {
    * the persistenceResult and falls back on memory-only persistence.
    *
    * @param persistenceProvider The provider that provides either IndexedDb or
-   *     memory-backed persistence.
+   *     memory-backed persistence
    * @param persistenceSettings Settings object to configure offline persistence
    * @param user The initial user
    * @param persistenceResult A deferred result indicating the user-visible
