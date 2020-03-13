@@ -1363,7 +1363,7 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
   // time after sending the token to the server.
   return goog.Promise.resolve(applicationVerifier['verify']())
       .then(function(assertion) {
-        if (!goog.isString(assertion)) {
+        if (typeof assertion !== 'string') {
           throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
               'An implementation of firebase.auth.ApplicationVerifier' +
               '.prototype.verify() must return a firebase.Promise ' +
@@ -1565,7 +1565,7 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
  * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
  */
 fireauth.AuthProvider.getCredentialFromJSON = function(json) {
-  var obj = goog.isString(json) ? JSON.parse(json) : json;
+  var obj = typeof json === 'string' ? JSON.parse(json) : json;
   var credential;
   var fromJSON = [
     fireauth.OAuthCredential.fromJSON,

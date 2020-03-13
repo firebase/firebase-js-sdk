@@ -136,7 +136,7 @@ fireauth.storage.LocalStorage.prototype.set = function(key, value) {
   return goog.Promise.resolve()
       .then(function() {
         var obj = fireauth.util.stringifyJSON(value);
-        if (goog.isNull(obj)) {
+        if (obj === null) {
           self.remove(key);
         } else {
           self.storage_.setItem(key, obj);
