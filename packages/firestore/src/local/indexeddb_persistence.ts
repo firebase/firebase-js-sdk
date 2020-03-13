@@ -1368,8 +1368,8 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
     this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
       allowTabSynchronization: settings.synchronizeTabs,
       persistenceKey,
-      clientId: clientId,
-      platform: platform,
+      clientId,
+      platform,
       queue: asyncQueue,
       serializer,
       lruParams: LruParams.withCacheSize(settings.cacheSizeBytes),
