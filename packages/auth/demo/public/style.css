@@ -118,6 +118,7 @@ body.user-info-displayed {
 }
 
 button + .group,
+div + .group,
 .btn-block + .group,
 .form + .group {
   margin-top: 30px;
@@ -197,3 +198,10 @@ input + .form,
   width: 50%;
 }
 
+/** Overrides default drop down menu styles for enrolled factors display. */
+.enrolled-second-factors {
+  left: initial;
+  min-width: 400px;
+  right: 0px;
+  width: 100%;
+}

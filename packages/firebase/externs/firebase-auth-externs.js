@@ -155,6 +155,14 @@ firebase.auth.OAuthCredential.prototype.accessToken;
 firebase.auth.OAuthCredential.prototype.secret;
 
 /**
+ * Interface that represents the phone credentials returned by a phone provider.
+ *
+ * @interface
+ * @extends {firebase.auth.AuthCredential}
+ */
+firebase.auth.PhoneAuthCredential = function() {};
+
+/**
  * Gets the {@link firebase.auth.Auth `Auth`} service for the current app.
  *
  * @example
@@ -282,6 +290,14 @@ firebase.User.prototype.providerData;
  * @type {string}
  */
 firebase.User.prototype.refreshToken;
+
+/**
+ * The {@link firebase.User.MultiFactor} object corresponding to the current
+ * user. This is used to access all multi-factor properties and operations
+ * related to the current user.
+ * @type {!firebase.User.MultiFactorUser}
+ */
+firebase.User.prototype.multiFactor;
 
 /**
  * The current user's tenant ID. This is a read-only property, which indicates
@@ -800,6 +816,74 @@ firebase.User.prototype.updatePhoneNumber = function(phoneCredential) {};
 firebase.User.prototype.updateProfile = function(profile) {};
 
 /**
+ * Sends a verification email to a new email address. The user's email will be
+ * updated to the new one after being verified.
+ *
+ * If you have a custom email action handler, you can complete the verification
+ * process by calling {@link firebase.auth.Auth.applyActionCode}.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/missing-android-pkg-name</dt>
+ * <dd>An Android package name must be provided if the Android app is required
+ *     to be installed.</dd>
+ * <dt>auth/missing-continue-uri</dt>
+ * <dd>A continue URL must be provided in the request.</dd>
+ * <dt>auth/missing-ios-bundle-id</dt>
+ * <dd>An iOS bundle ID must be provided if an App Store ID is provided.</dd>
+ * <dt>auth/invalid-continue-uri</dt>
+ * <dd>The continue URL provided in the request is invalid.</dd>
+ * <dt>auth/unauthorized-continue-uri</dt>
+ * <dd>The domain of the continue URL is not whitelisted. Whitelist
+ *     the domain in the Firebase console.</dd>
+ * </dl>
+ *
+ * @example
+ * ```javascript
+ * var actionCodeSettings = {
+ *   url: 'https://www.example.com/cart?email=user@example.com&cartId=123',
+ *   iOS: {
+ *     bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * firebase.auth().currentUser.verifyBeforeUpdateEmail(
+ *   'user@example.com', actionCodeSettings)
+ *   .then(function() {
+ *     // Verification email sent.
+ *   })
+ *   .catch(function(error) {
+ *     // Error occurred. Inspect error.code.
+ *   });
+ * ```
+ *
+ * @param {string} newEmail The email address to be verified and updated to.
+ * @param {?firebase.auth.ActionCodeSettings=} actionCodeSettings The action
+ *     code settings. If specified, the state/continue URL will be set as the
+ *     "continueUrl" parameter in the email verification link. The default email
+ *     verification landing page will use this to display a link to go back to
+ *     the app if it is installed.
+ *     If the actionCodeSettings is not specified, no URL is appended to the
+ *     action URL.
+ *     The state URL provided must belong to a domain that is whitelisted by the
+ *     developer in the console. Otherwise an error will be thrown.
+ *     Mobile app redirects will only be applicable if the developer configures
+ *     and accepts the Firebase Dynamic Links terms of condition.
+ *     The Android package name and iOS bundle ID will be respected only if they
+ *     are configured in the same Firebase Auth project used.
+ * @return {!firebase.Promise<void>}
+ */
+firebase.User.prototype.verifyBeforeUpdateEmail = function(
+  newEmail,
+  actionCodeSettings
+) {};
+
+/**
  * Deletes and signs out the user.
  *
  * <b>Important:</b> this is a security sensitive operation that requires the
@@ -877,17 +961,32 @@ firebase.auth.ActionCodeInfo = function() {};
 /**
  * The data associated with the action code.
  *
- * For the PASSWORD_RESET, VERIFY_EMAIL, and RECOVER_EMAIL actions, this object
- * contains an `email` field with the address the email was sent to.
+ * For the `PASSWORD_RESET`, `VERIFY_EMAIL`, and `RECOVER_EMAIL` actions, this
+ * object contains an `email` field with the address the email was sent to.
  *
  * For the RECOVER_EMAIL action, which allows a user to undo an email address
- * change, this object also contains a `fromEmail` field with the user account's
- * new email address. After the action completes, the user's email address will
- * revert to the value in the `email` field from the value in `fromEmail` field.
+ * change, this object also contains a `previousEmail` field with the user
+ * account's current email address. After the action completes, the user's
+ * email address will revert to the value in the `email` field from the value
+ * in `previousEmail` field.
+ *
+ * For the VERIFY_AND_CHANGE_EMAIL action, which allows a user to verify the
+ * email before updating it, this object contains a `previousEmail` field with
+ * the user account's email address before updating. After the action completes,
+ * the user's email address will be updated to the value in the `email` field
+ * from the value in `previousEmail` field.
+ *
+ * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
+ * a newly added second factor, this object contains a `multiFactorInfo` field
+ * with the information about the second factor. For phone second factor, the
+ * `multiFactorInfo` is a {@link firebase.auth.Auth.PhoneMultiFactorInfo}
+ * object, which contains the phone number.
  *
  * @typedef {{
  *   email: (?string|undefined),
- *   fromEmail: (?string|undefined)
+ *   fromEmail: (?string|undefined),
+ *   multiFactorInfo: (?firebase.auth.MultiFactorInfo|undefined),
+     previousEmail: (?string|undefined)
  * }}
  */
 firebase.auth.ActionCodeInfo.prototype.data;
@@ -895,14 +994,19 @@ firebase.auth.ActionCodeInfo.prototype.data;
 /**
  * The type of operation that generated the action code. This could be:
  * <ul>
- * <li>`PASSWORD_RESET`: password reset code generated via
- *     {@link firebase.auth.Auth#sendPasswordResetEmail}.</li>
- * <li>`VERIFY_EMAIL`: email verification code generated via
- *     {@link firebase.User#sendEmailVerification}.</li>
- * <li>`RECOVER_EMAIL`: email change revocation code generated via
- *     {@link firebase.User#updateEmail}.</li>
  * <li>`EMAIL_SIGNIN`: email sign in code generated via
- *     {@link firebase.auth.Auth#sendSignInLinkToEmail}.</li>
+ *     {@link firebase.auth.Auth.sendSignInLinkToEmail}.</li>
+ * <li>`PASSWORD_RESET`: password reset code generated via
+ *     {@link firebase.auth.Auth.sendPasswordResetEmail}.</li>
+ * <li>`RECOVER_EMAIL`: email change revocation code generated via
+ *     {@link firebase.User.updateEmail}.</li>
+ * <li>`REVERT_SECOND_FACTOR_ADDITION`: revert second factor addition
+ *     code generated via
+ *     {@link firebase.User.MultiFactorUser.enroll}.</li>
+ * <li>`VERIFY_AND_CHANGE_EMAIL`: verify and change email code generated
+ *     via {@link firebase.User.verifyBeforeUpdateEmail}.</li>
+ * <li>`VERIFY_EMAIL`: email verification code generated via
+ *     {@link firebase.User.sendEmailVerification}.</li>
  * </ul>
  *
  * @type {string}
@@ -926,6 +1030,14 @@ firebase.auth.ActionCodeInfo.Operation = {
    * The email revocation action.
    */
   RECOVER_EMAIL: 'RECOVER_EMAIL',
+  /**
+   * The revert second factor addition email action.
+   */
+  REVERT_SECOND_FACTOR_ADDITION: 'REVERT_SECOND_FACTOR_ADDITION',
+  /**
+   * The verify and update email action.
+   */
+  VERIFY_AND_CHANGE_EMAIL: 'VERIFY_AND_CHANGE_EMAIL',
   /**
    * The email verification action.
    */
@@ -1997,6 +2109,14 @@ firebase.auth.IdTokenResult.prototype.issuedAtTime;
 firebase.auth.IdTokenResult.prototype.signInProvider;
 
 /**
+ * The type of second factor associated with this session, provided the user
+ * was multi-factor authenticated (eg. phone, etc).
+ *
+ * @type {?string}
+ */
+firebase.auth.IdTokenResult.prototype.signInSecondFactor;
+
+/**
  * The entire payload claims of the ID token including the standard reserved
  * claims as well as the custom claims.
  *
@@ -2194,6 +2314,46 @@ firebase.auth.AuthError.prototype.phoneNumber;
  * @type {string|undefined}
  */
 firebase.auth.AuthError.prototype.tenantId;
+
+/**
+ * The error thrown when the user needs to provide a second factor to sign in
+ * successfully.
+ * The error code for this error is <code>auth/multi-factor-auth-required</code>.
+ * This error provides a {@link firebase.auth.MultiFactorResolver} object,
+ * which you can use to get the second sign-in factor from the user.
+ *
+ * @example
+ * ```javascript
+ * firebase.auth().signInWithEmailAndPassword()
+ *     .then(function(result) {
+ *       // User signed in. No 2nd factor challenge is needed.
+ *     })
+ *     .catch(function(error) {
+ *       if (error.code == 'auth/multi-factor-auth-required') {
+ *         var resolver = error.resolver;
+ *         var multiFactorHints = resolver.hints;
+ *       } else {
+ *         // Handle other errors.
+ *       }
+ *     });
+ *
+ * resolver.resolveSignIn(multiFactorAssertion)
+ *     .then(function(userCredential) {
+ *       // User signed in.
+ *     });
+ * ```
+ *
+ * @interface
+ * @extends {firebase.auth.Error}
+ */
+firebase.auth.MultiFactorError = function() {};
+
+/**
+ * The multi-factor resolver to complete second factor sign-in.
+ *
+ * @type {!firebase.auth.MultiFactorResolver}
+ */
+firebase.auth.MultiFactorError.prototype.resolver;
 
 //
 // List of Auth Providers.
@@ -2778,7 +2938,7 @@ firebase.auth.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
  *     {@link firebase.auth.PhoneAuthProvider#verifyPhoneNumber}.
  * @param {string} verificationCode The verification code sent to the user's
  *     mobile device.
- * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ * @return {!firebase.auth.PhoneAuthCredential} The auth provider credential.
  */
 firebase.auth.PhoneAuthProvider.credential = function(
   verificationId,
@@ -2811,15 +2971,25 @@ firebase.auth.PhoneAuthProvider.prototype.providerId;
  * <dt>auth/user-disabled</dt>
  * <dd>Thrown if the user corresponding to the given phone number has been
  *     disabled.</dd>
+ * <dt>auth/maximum-second-factor-count-exceeded</dt>
+ * <dd>Thrown if The maximum allowed number of second factors on a user
+ *     has been exceeded.</dd>
+ * <dt>auth/second-factor-already-in-use</dt>
+ * <dd>Thrown if the second factor is already enrolled on this account.</dd>
+ * <dt>auth/unsupported-first-factor</dt>
+ * <dd>Thrown if the first factor being used to sign in is not supported.</dd>
+ * <dt>auth/unverified-email</dt>
+ * <dd>Thrown if the email of the account is not verified.</dd>
  * </dl>
  *
- * @param {string} phoneNumber The user's phone number in E.164 format (e.g.
- *     +16505550101).
+ * @param {!firebase.auth.PhoneInfoOptions|string} phoneInfoOptions The user's
+ *     {@link firebase.auth.PhoneInfoOptions}. The phone number should be in
+ *     E.164 format (e.g. +16505550101).
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
  * @return {!firebase.Promise<string>} A Promise for the verification ID.
  */
 firebase.auth.PhoneAuthProvider.prototype.verifyPhoneNumber = function(
-  phoneNumber,
+  phoneInfoOptions,
   applicationVerifier
 ) {};
 
@@ -2842,3 +3012,414 @@ firebase.auth.ApplicationVerifier.prototype.type;
  *     assert the validity of a request.
  */
 firebase.auth.ApplicationVerifier.prototype.verify = function() {};
+
+/**
+ * The interface for asserting ownership of a second factor. This is used to
+ * facilitate enrollment of a second factor on an existing user
+ * or sign-in of a user who already verified the first factor.
+ *
+ * @interface
+ */
+firebase.auth.MultiFactorAssertion = function() {};
+
+/**
+ * The identifier of the second factor.
+ * @type {string}
+ */
+firebase.auth.MultiFactorAssertion.prototype.factorId;
+
+/**
+ * The interface for asserting ownership of a phone second factor.
+ *
+ * @interface
+ * @extends {firebase.auth.MultiFactorAssertion}
+ */
+firebase.auth.PhoneMultiFactorAssertion = function() {};
+
+/**
+ * The interface used to initialize a
+ * {@link firebase.auth.PhoneMultiFactorAssertion}.
+ *
+ * @interface
+ */
+firebase.auth.PhoneMultiFactorGenerator = function() {};
+
+/**
+ * The identifier of the phone second factor: `phone`.
+ * @type {string}
+ */
+firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID;
+
+/**
+ * Initializes the {@link firebase.auth.PhoneMultiFactorAssertion} to confirm
+ * ownership of the phone second factor.
+ *
+ * @param {!firebase.auth.PhoneAuthCredential} phoneAuthCredential The phone
+ *     Auth credential.
+ * @return {!firebase.auth.PhoneMultiFactorAssertion}
+ */
+firebase.auth.PhoneMultiFactorGenerator.assertion = function(
+  phoneAuthCredential
+) {};
+
+/**
+ * A structure containing the information of a second factor entity.
+ *
+ * @interface
+ */
+firebase.auth.MultiFactorInfo = function() {};
+
+/**
+ * The multi-factor enrollment ID.
+ * @type {string}
+ */
+firebase.auth.MultiFactorInfo.prototype.uid;
+
+/**
+ * The user friendly name of the current second factor.
+ * @type {?string|undefined}
+ */
+firebase.auth.MultiFactorInfo.prototype.displayName;
+
+/**
+ * The enrollment date of the second factor formatted as a UTC string.
+ * @type {string}
+ */
+firebase.auth.MultiFactorInfo.prototype.enrollmentTime;
+
+/**
+ * The identifier of the second factor.
+ * @type {string}
+ */
+firebase.auth.MultiFactorInfo.prototype.factorId;
+
+/**
+ * The subclass of the `MultiFactorInfo` interface for phone number second
+ * factors. The factorId of this second factor is
+ * {@link firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID}.
+ *
+ * @interface
+ * @extends {firebase.auth.MultiFactorInfo}
+ */
+firebase.auth.PhoneMultiFactorInfo = function() {};
+
+/**
+ * The phone number associated with the current second factor.
+ * @type {string}
+ */
+firebase.auth.PhoneMultiFactorInfo.prototype.phoneNumber;
+
+/**
+ * The phone info options for single-factor sign-in. Only phone number is
+ * required.
+ *
+ * @typedef {{
+ *   phoneNumber: string
+ * }}
+ */
+firebase.auth.PhoneSingleFactorInfoOptions;
+
+/**
+ * The phone info options for multi-factor enrollment. Phone number and
+ * multi-factor session are required.
+ *
+ * @typedef {{
+ *   phoneNumber: string,
+ *   session: !firebase.auth.MultiFactorSession
+ * }}
+ */
+firebase.auth.PhoneMultiFactorEnrollInfoOptions;
+
+/**
+ * The phone info options for multi-factor sign-in. Either multi-factor hint or
+ * multi-factor UID and multi-factor session are required.
+ *
+ * @typedef {{
+ *   multiFactorHint: !firebase.auth.MultiFactorInfo,
+ *   session: !firebase.auth.MultiFactorSession
+ * }|{
+ *   multiFactorUid: string,
+ *   session: !firebase.auth.MultiFactorSession
+ * }}
+ */
+firebase.auth.PhoneMultiFactorSignInInfoOptions;
+
+/**
+ * The information required to verify the ownership of a phone number. The
+ * information that's required depends on whether you are doing single-factor
+ * sign-in, multi-factor enrollment or multi-factor sign-in.
+ *
+ * @typedef {
+ *   !firebase.auth.PhoneSingleFactorInfoOptions|
+ *   !firebase.auth.PhoneMultiFactorEnrollInfoOptions|
+ *   !firebase.auth.PhoneMultiFactorSignInInfoOptions
+ * }
+ */
+firebase.auth.PhoneInfoOptions;
+
+/**
+ * The interface used to facilitate recovery from
+ * {@link firebase.auth.MultiFactorError} when a user needs to provide a second
+ * factor to sign in.
+ *
+ * @example
+ * ```javascript
+ * firebase.auth().signInWithEmailAndPassword()
+ *     .then(function(result) {
+ *       // User signed in. No 2nd factor challenge is needed.
+ *     })
+ *     .catch(function(error) {
+ *       if (error.code == 'auth/multi-factor-auth-required') {
+ *         var resolver = error.resolver;
+ *         // Show UI to let user select second factor.
+ *         var multiFactorHints = resolver.hints;
+ *       } else {
+ *         // Handle other errors.
+ *       }
+ *     });
+ *
+ * // The enrolled second factors that can be used to complete
+ * // sign-in are returned in the `MultiFactorResolver.hints` list.
+ * // UI needs to be presented to allow the user to select a second factor
+ * // from that list.
+ *
+ * var selectedHint = // ; selected from multiFactorHints
+ * var phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+ * var phoneInfoOptions = {
+ *   multiFactorHint: selectedHint,
+ *   session: resolver.session
+ * };
+ * phoneAuthProvider.verifyPhoneNumber(
+ *   phoneInfoOptions,
+ *   appVerifier
+ * ).then(function(verificationId) {
+ *   // store verificationID and show UI to let user enter verification code.
+ * });
+ *
+ * // UI to enter verification code and continue.
+ * // Continue button click handler
+ * var phoneAuthCredential =
+ *     firebase.auth.PhoneAuthProvider.credential(
+ *         verificationId, verificationCode);
+ * var multiFactorAssertion =
+ *     firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+ * resolver.resolveSignIn(multiFactorAssertion)
+ *     .then(function(userCredential) {
+ *       // User signed in.
+ *     });
+ * ```
+ * @interface
+ */
+firebase.auth.MultiFactorResolver = function() {};
+
+/**
+ * The Auth instance used to sign in with the first factor.
+ * @type {!firebase.auth.Auth}
+ */
+firebase.auth.MultiFactorResolver.prototype.auth;
+
+/**
+ * The session identifier for the current sign-in flow, which can be used
+ * to complete the second factor sign-in.
+ * @type {!firebase.auth.MultiFactorSession}
+ */
+firebase.auth.MultiFactorResolver.prototype.session;
+
+/**
+ * The list of hints for the second factors needed to complete the sign-in
+ * for the current session.
+ * @type {!Array<!firebase.auth.MultiFactorInfo>}
+ */
+firebase.auth.MultiFactorResolver.prototype.hints;
+
+/**
+ * A helper function to help users complete sign in with a second factor
+ * using an {@link firebase.auth.MultiFactorAssertion} confirming the user
+ * successfully completed the second factor challenge.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/invalid-verification-code</dt>
+ * <dd>Thrown if the verification code is not valid.</dd>
+ * <dt>auth/missing-verification-code</dt>
+ * <dd>Thrown if the verification code is missing.</dd>
+ * <dt>auth/invalid-verification-id</dt>
+ * <dd>Thrown if the credential is a
+ *     {@link firebase.auth.PhoneAuthProvider.credential} and the verification
+ *     ID of the credential is not valid.</dd>
+ * <dt>auth/missing-verification-id</dt>
+ * <dd>Thrown if the verification ID is missing.</dd>
+ * <dt>auth/code-expired</dt>
+ * <dd>Thrown if the verification code has expired.</dd>
+ * <dt>auth/invalid-multi-factor-session</dt>
+ * <dd>Thrown if the request does not contain a valid proof of first factor
+ *     successful sign-in.</dd>
+ * <dt>auth/missing-multi-factor-session</dt>
+ * <dd>Thrown if The request is missing proof of first factor successful
+ *     sign-in.</dd>
+ * </dl>
+ *
+ * @param {!firebase.auth.MultiFactorAssertion} assertion The multi-factor
+ *     assertion to resolve sign-in with.
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>} The promise that
+ *     resolves with the user credential object.
+ */
+firebase.auth.MultiFactorResolver.prototype.resolveSignIn = function(
+  assertion
+) {};
+
+/**
+ * The multi-factor session object used for enrolling a second factor on a
+ * user or helping sign in an enrolled user with a second factor.
+ *
+ * @interface
+ */
+firebase.auth.MultiFactorSession = function() {};
+
+/**
+ * This is the interface that defines the multi-factor related properties and
+ * operations pertaining to a {@link firebase.User}.
+ *
+ * @interface
+ */
+firebase.User.MultiFactorUser = function() {};
+
+/**
+ * Returns a list of the user's enrolled second factors.
+ * @type {!Array<!firebase.auth.MultiFactorInfo>}
+ */
+firebase.User.MultiFactorUser.prototype.enrolledFactors;
+
+/**
+ * Enrolls a second factor as identified by the
+ * {@link firebase.auth.MultiFactorAssertion} for the current user.
+ * On resolution, the user tokens are updated to reflect the change in the
+ * JWT payload.
+ * Accepts an additional display name parameter used to identify the second
+ * factor to the end user.
+ * Recent re-authentication is required for this operation to succeed.
+ * On successful enrollment, existing Firebase sessions (refresh tokens) are
+ * revoked. When a new factor is enrolled, an email notification is sent
+ * to the user’s email.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/invalid-verification-code</dt>
+ * <dd>Thrown if the verification code is not valid.</dd>
+ * <dt>auth/missing-verification-code</dt>
+ * <dd>Thrown if the verification code is missing.</dd>
+ * <dt>auth/invalid-verification-id</dt>
+ * <dd>Thrown if the credential is a
+ *     {@link firebase.auth.PhoneAuthProvider.credential} and the verification
+ *     ID of the credential is not valid.</dd>
+ * <dt>auth/missing-verification-id</dt>
+ * <dd>Thrown if the verification ID is missing.</dd>
+ * <dt>auth/code-expired</dt>
+ * <dd>Thrown if the verification code has expired.</dd>
+ * <dt>auth/maximum-second-factor-count-exceeded</dt>
+ * <dd>Thrown if The maximum allowed number of second factors on a user
+ *     has been exceeded.</dd>
+ * <dt>auth/second-factor-already-in-use</dt>
+ * <dd>Thrown if the second factor is already enrolled on this account.</dd>
+ * <dt>auth/unsupported-first-factor</dt>
+ * <dd>Thrown if the first factor being used to sign in is not supported.</dd>
+ * <dt>auth/unverified-email</dt>
+ * <dd>Thrown if the email of the account is not verified.</dd>
+ * <dt>auth/requires-recent-login</dt>
+ * <dd>Thrown if the user's last sign-in time does not meet the security
+ *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
+ *     resolve.</dd>
+ * </dl>
+ *
+ * @example
+ * ```javascript
+ * firebase.auth().currentUser.multiFactor.getSession()
+ *     .then(function(multiFactorSession) {
+ *       // Send verification code
+ *     var phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+ *     var phoneInfoOptions = {
+ *       phoneNumber: phoneNumber,
+ *       session: multiFactorSession
+ *     };
+ *     return phoneAuthProvider.verifyPhoneNumber(
+ *         phoneInfoOptions, appVerifier);
+ *     }).then(function(verificationId) {
+ *       // Store verificationID and show UI to let user enter verification
+ *       // code.
+ *     });
+ *
+ * var phoneAuthCredential =
+ *     firebase.auth.PhoneAuthProvider.credential(
+ *         verificationId, verificationCode);
+ * var multiFactorAssertion =
+ *     firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+ * firebase.auth().currentUser.multiFactor.enroll(multiFactorAssertion)
+ *     .then(function() {
+ *       // Second factor enrolled.
+ *     });
+ * ```
+ *
+ * @param {!firebase.auth.MultiFactorAssertion} assertion The multi-factor
+ *     assertion to enroll with.
+ * @param {?string=} displayName The display name of the second factor.
+ * @return {!firebase.Promise<void>}
+ */
+firebase.User.MultiFactorUser.prototype.enroll = function(
+  assertion,
+  displayName
+) {};
+
+/**
+ * Returns the session identifier for a second factor enrollment operation.
+ * This is used to identify the current user trying to enroll a second factor.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/user-token-expired</dt>
+ * <dd>Thrown if the token of the user is expired.</dd>
+ * </dl>
+ *
+ * @return {!firebase.Promise<!firebase.auth.MultiFactorSession>} The promise
+ *     that resolves with the {@link firebase.auth.MultiFactorSession}.
+ */
+firebase.User.MultiFactorUser.prototype.getSession = function() {};
+
+/**
+ * Unenrolls the specified second factor. To specify the factor to remove, pass
+ * a {@link firebase.auth.MultiFactorInfo} object
+ * (retrieved from <code>enrolledFactors()</code>)
+ * or the factor's UID string.
+ * Sessions are not revoked when the account is downgraded. An email
+ * notification is likely to be sent to the user notifying them of the change.
+ * Recent re-authentication is required for this operation to succeed.
+ * When an existing factor is unenrolled, an email notification is sent to the
+ * user’s email.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/multi-factor-info-not-found</dt>
+ * <dd>Thrown if the user does not have a second factor matching the
+ *     identifier provided.</dd>
+ * <dt>auth/requires-recent-login</dt>
+ * <dd>Thrown if the user's last sign-in time does not meet the security
+ *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
+ *     resolve.</dd>
+ * </dl>
+ *
+ * @example
+ * ```javascript
+ * var options = firebase.auth().currentUser.multiFactor.enrolledFactors;
+ * // Present user the option to unenroll.
+ * return firebase.auth().currentUser.multiFactor.unenroll(options[i])
+ *   .then(function() {
+ *     // User successfully unenrolled selected factor.
+ *   }).catch(function(error) {
+ *     // Handler error.
+ *   });
+ * ```
+ *
+ * @param {!firebase.auth.MultiFactorInfo|string} option The multi-factor
+ *     option to unenroll.
+ * @return {!firebase.Promise<void>}
+ */
+firebase.User.MultiFactorUser.prototype.unenroll = function(option) {};

@@ -24,8 +24,6 @@ goog.provide('fireauth.AuthUser');
 goog.provide('fireauth.AuthUser.AccountInfo');
 goog.provide('fireauth.AuthUserInfo');
 goog.provide('fireauth.TokenRefreshTime');
-goog.provide('fireauth.UserEvent');
-goog.provide('fireauth.UserEventType');
 goog.provide('fireauth.UserMetadata');
 
 goog.require('fireauth.ActionCodeSettings');
@@ -38,10 +36,14 @@ goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.IdTokenResult');
+goog.require('fireauth.MultiFactorError');
+goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.ProactiveRefresh');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.StsTokenManager');
+goog.require('fireauth.UserEvent');
+goog.require('fireauth.UserEventType');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.constants.AuthEventType');
@@ -123,45 +125,6 @@ fireauth.AuthUserInfo = function(
     'phoneNumber': opt_phoneNumber || null,
     'providerId': providerId
   });
-};
-
-
-
-/**
- * User custom event.
- * @param {string} type The event type.
- * @param {?Object=} opt_properties The optional properties to set to the custom
- *     event using same keys as object provided.
- * @constructor
- * @extends {goog.events.Event}
- */
-fireauth.UserEvent = function(type, opt_properties) {
-  goog.events.Event.call(this, type);
-  // If optional properties provided.
-  // Add each property to custom event.
-  for (var key in opt_properties) {
-    this[key] = opt_properties[key];
-  }
-};
-goog.inherits(fireauth.UserEvent, goog.events.Event);
-
-
-/**
- * Events dispatched by pages on containers.
- * @enum {string}
- */
-fireauth.UserEventType = {
-  /** Dispatched when token is changed due to Auth event. */
-  TOKEN_CHANGED: 'tokenChanged',
-
-  /** Dispatched when user is deleted. */
-  USER_DELETED: 'userDeleted',
-
-  /**
-   * Dispatched when user session is invalidated. This could happen when the
-   * following errors occur: user-disabled or user-token-expired.
-   */
-  USER_INVALIDATED: 'userInvalidated'
 };
 
 
@@ -300,6 +263,14 @@ fireauth.AuthUser =
    * @private {?goog.events.EventTarget} The framework change event dispatcher.
    */
   this.frameworkChangeEventDispatcher_ = null;
+  /**
+   * @const @private {!fireauth.MultiFactorUser} The multifactor user instance.
+   */
+  this.multiFactorUser_ = new fireauth.MultiFactorUser(
+      this, /** @type {?fireauth.AuthUser.AccountInfo|undefined} */ (
+          opt_accountInfo));
+  fireauth.object.setReadonlyProperty(
+      this, 'multiFactor', this.multiFactorUser_);
 };
 goog.inherits(fireauth.AuthUser, goog.events.EventTarget);
 
@@ -449,6 +420,15 @@ fireauth.AuthUser.prototype.getApiKey = function() {
 
 
 /**
+ * Returns the RPC handler of the user.
+ * @return {!fireauth.RpcHandler} The RPC handler.
+ */
+fireauth.AuthUser.prototype.getRpcHandler = function() {
+  return this.rpcHandler_;
+};
+
+
+/**
  * Used to initialize the current user's proactive token refresher utility.
  * @return {!fireauth.ProactiveRefresh} The user's proactive token refresh
  *     utility.
@@ -533,7 +513,7 @@ fireauth.AuthUser.prototype.setLastAccessToken_ = function(lastAccessToken) {
 
 
 /**
- * @param {!function(!fireauth.AuthUser):!goog.Promise} listener The listener
+ * @param {function(!fireauth.AuthUser):!goog.Promise} listener The listener
  *     to state changes to add.
  */
 fireauth.AuthUser.prototype.addStateChangeListener = function(listener) {
@@ -542,7 +522,7 @@ fireauth.AuthUser.prototype.addStateChangeListener = function(listener) {
 
 
 /**
- * @param {!function(!fireauth.AuthUser):!goog.Promise} listener The listener
+ * @param {function(!fireauth.AuthUser):!goog.Promise} listener The listener
  *     to state changes to remove.
  */
 fireauth.AuthUser.prototype.removeStateChangeListener = function(listener) {
@@ -737,7 +717,10 @@ fireauth.AuthUser.prototype.setAccountInfo = function(accountInfo) {
  *   isAnonymous: ?boolean,
  *   createdAt: (?string|undefined),
  *   lastLoginAt: (?string|undefined),
- *   tenantId: (?string|undefined)
+ *   tenantId: (?string|undefined),
+ *   multiFactor: ({
+ *     enrolledFactors: (?Array<!fireauth.MultiFactorInfo>|undefined)
+ *   }|undefined)
  * }}
  */
 fireauth.AuthUser.AccountInfo;
@@ -881,6 +864,12 @@ fireauth.AuthUser.prototype.copy = function(userToCopy) {
   this.stsTokenManager_.copy(userToCopy.getStsTokenManager());
   fireauth.object.setReadonlyProperty(
       this, 'refreshToken', this.stsTokenManager_.getRefreshToken());
+  // Copy multi-factor info to current user.
+  // This should be backward compatible.
+  // If the userToCopy is loaded from an older version, multiFactorUser
+  // enrolled factors will be initialized empty and copied empty to current
+  // multiFactorUser.
+  this.multiFactorUser_.copy(userToCopy.multiFactorUser_);
 };
 
 
@@ -1001,9 +990,8 @@ fireauth.AuthUser.isUserInvalidated_ = function(error) {
  * present and are different from the current ones, and notify the Auth
  * listeners.
  * @param {!Object} response The response from the server.
- * @private
  */
-fireauth.AuthUser.prototype.updateTokensIfPresent_ = function(response) {
+fireauth.AuthUser.prototype.updateTokensIfPresent = function(response) {
   if (response[fireauth.RpcHandler.AuthServerField.ID_TOKEN] &&
       this.lastAccessToken_ != response[
           fireauth.RpcHandler.AuthServerField.ID_TOKEN]) {
@@ -1051,7 +1039,7 @@ fireauth.AuthUser.prototype.notifyUserInvalidatedListeners_ = function() {
 /**
  * Queries the backend using the provided ID token for all linked accounts to
  * build the Firebase user object.
- * @param {!string} idToken The ID token string.
+ * @param {string} idToken The ID token string.
  * @return {!goog.Promise<undefined>}
  * @private
  */
@@ -1102,6 +1090,10 @@ fireauth.AuthUser.prototype.parseAccountInfo_ = function(resp) {
       user[fireauth.AuthUser.GetAccountInfoField.PASSWORD_HASH]) &&
       !(this['providerData'] && this['providerData'].length);
   this.updateProperty('isAnonymous', isAnonymous);
+  // Notify external listeners of the reload.
+  this.dispatchEvent(new fireauth.UserEvent(
+      fireauth.UserEventType.USER_RELOADED,
+      {userServerResponse: user}));
 };
 
 
@@ -1109,7 +1101,7 @@ fireauth.AuthUser.prototype.parseAccountInfo_ = function(resp) {
  * Extracts the linked accounts from getAccountInfo response and returns an
  * array of corresponding provider data.
  * @param {!Object} resp The response object.
- * @return {!Array.<!fireauth.AuthUserInfo>} The linked accounts.
+ * @return {!Array<!fireauth.AuthUserInfo>} The linked accounts.
  * @private
  */
 fireauth.AuthUser.prototype.extractLinkedAccounts_ = function(resp) {
@@ -1166,7 +1158,7 @@ fireauth.AuthUser.prototype.reauthenticateWithCredential =
       .then(function(response) {
         // If the credential is valid and matches the current user ID, then
         // update the tokens accordingly.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Get user credential.
         userCredential = self.getUserCredential_(
             response, fireauth.constants.OperationType.REAUTHENTICATE);
@@ -1364,7 +1356,7 @@ fireauth.AuthUser.prototype.getUserCredential_ =
 fireauth.AuthUser.prototype.finalizeLinking_ = function(response) {
   // The response may contain a new access token,
   // so we should update them just like a new sign in.
-  this.updateTokensIfPresent_(response);
+  this.updateTokensIfPresent(response);
   // This will take care of saving the updated state.
   var self = this;
   return this.reload().then(function() {
@@ -1387,7 +1379,7 @@ fireauth.AuthUser.prototype.updateEmail = function(newEmail) {
       })
       .then(function(response) {
         // Calls to SetAccountInfo may invalidate old tokens.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Reloads the user to update emailVerified.
         return self.reload();
       }));
@@ -1408,7 +1400,7 @@ fireauth.AuthUser.prototype.updatePhoneNumber = function(phoneCredential) {
         return phoneCredential.linkToIdToken(self.rpcHandler_, idToken);
       })
       .then(function(response) {
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         return self.reload();
       }));
 };
@@ -1428,7 +1420,7 @@ fireauth.AuthUser.prototype.updatePassword = function(newPassword) {
         return self.rpcHandler_.updatePassword(idToken, newPassword);
       })
       .then(function(response) {
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Reloads the user in case email has also been updated and the user
         // was anonymous.
         return self.reload();
@@ -1460,7 +1452,7 @@ fireauth.AuthUser.prototype.updateProfile = function(profile) {
       })
       .then(function(response) {
         // Calls to SetAccountInfo may invalidate old tokens.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Update properties.
         self.updateProperty('displayName',
             response[fireauth.AuthUser.SetAccountInfoField.DISPLAY_NAME] ||
@@ -1731,7 +1723,7 @@ fireauth.AuthUser.prototype.reauthenticateWithPopup = function(provider) {
  * @param {!fireauth.AuthEvent.Type} mode The mode of operation (link or
  *     reauth).
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function():!goog.Promise} additionalCheck The additional check to
+ * @param {function():!goog.Promise} additionalCheck The additional check to
  *     run before proceeding with the popup processing.
  * @param {boolean} isReauthOperation whether this is a reauth operation or not.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
@@ -1887,7 +1879,7 @@ fireauth.AuthUser.prototype.reauthenticateWithRedirect = function(provider) {
  * @param {!fireauth.AuthEvent.Type} mode The mode of operation (link or
  *     reauth).
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function():!goog.Promise} additionalCheck The additional check to
+ * @param {function():!goog.Promise} additionalCheck The additional check to
  *     run before proceeding with the redirect processing.
  * @param {boolean} isReauthOperation whether this is a reauth operation or not.
  * @return {!goog.Promise<void>}
@@ -2068,7 +2060,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
             response, fireauth.constants.OperationType.REAUTHENTICATE);
         // If the credential is valid and matches the current user ID, then
         // update the tokens accordingly.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // This could potentially validate an invalidated user. This happens in
         // the case a password reset was applied. The refresh token is expired.
         // Reauthentication should revalidate the user.
@@ -2091,7 +2083,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
 
 
 /**
- * Sends the email verification email to the email in the user's account.
+ * Sends the verification email to the email in the user's account.
  * @param {?Object=} opt_actionCodeSettings The optional action code settings
  *     object.
  * @return {!goog.Promise<void>}
@@ -2122,6 +2114,48 @@ fireauth.AuthUser.prototype.sendEmailVerification =
         if (self['email'] != email) {
           // Our local copy does not have an email. If the email changed,
           // reload the user.
+          return self.reload();
+        }
+      })
+      .then(function() {
+        // Return nothing.
+      }));
+};
+
+
+/**
+ * Sends the verification email before updating the email on the user.
+ * @param {string} newEmail The new email.
+ * @param {?Object=} opt_actionCodeSettings The optional action code settings
+ *     object.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.AuthUser.prototype.verifyBeforeUpdateEmail =
+    function(newEmail, opt_actionCodeSettings) {
+  var self = this;
+  var idToken = null;
+  // Register this pending promise. This will also check for user invalidation.
+  return this.registerPendingPromise_(
+      // Wrap in promise as ActionCodeSettings constructor could throw a
+      // synchronous error if invalid arguments are specified.
+      this.getIdToken().then(function(latestIdToken) {
+        idToken = latestIdToken;
+        if (typeof opt_actionCodeSettings !== 'undefined' &&
+            // Ignore empty objects.
+            !goog.object.isEmpty(opt_actionCodeSettings)) {
+          return new fireauth.ActionCodeSettings(
+              /** @type {!Object} */ (opt_actionCodeSettings)).buildRequest();
+        }
+        return {};
+      })
+      .then(function(additionalRequestData) {
+        return self.rpcHandler_.verifyBeforeUpdateEmail(
+            /** @type {string} */ (idToken), newEmail, additionalRequestData);
+      })
+      .then(function(email) {
+        if (self['email'] != email) {
+          // If the local copy of the email on user is outdated, reload the
+          // user.
           return self.reload();
         }
       })
@@ -2181,7 +2215,59 @@ fireauth.AuthUser.prototype.registerPendingPromise_ =
     goog.array.remove(self.pendingPromises_, processedP);
   });
   // Return the promise.
-  return processedP;
+  return processedP
+      .thenCatch(function(error) {
+        var multiFactorError = null;
+        if (error && error['code'] === 'auth/multi-factor-auth-required') {
+          multiFactorError = fireauth.MultiFactorError.fromPlainObject(
+              error.toPlainObject(),
+              self.getAuth_(),
+              goog.bind(self.handleMultiFactorIdTokenResolver_, self));
+        }
+        throw multiFactorError || error;
+      });
+};
+
+
+/**
+ * Completes multi-factor sign-in. This is only relevant for re-authentication
+ * flows.
+ * @param {{idToken: string, refreshToken: string}} response The successful
+ *     sign-in response containing the new ID tokens.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>} A Promise that
+ *     resolves with the updated `UserCredential`.
+ * @private
+ */
+fireauth.AuthUser.prototype.handleMultiFactorIdTokenResolver_ =
+    function(response) {
+  var userCredential = null;
+  var self = this;
+  // Validate token response matches current user ID.
+  var p = fireauth.AuthCredential.verifyTokenResponseUid(
+      goog.Promise.resolve(response),
+      self['uid'])
+      .then(function(response) {
+        // Get credential from response if available.
+        userCredential = self.getUserCredential_(
+            response, fireauth.constants.OperationType.REAUTHENTICATE);
+        // If the credential is valid and matches the current user ID, then
+        // update the tokens accordingly.
+        self.updateTokensIfPresent(response);
+        // This could potentially validate an invalidated user.
+        self.userInvalidatedError_ = null;
+        // Reload the user with the latest profile.
+        return self.reload();
+      })
+      .then(function() {
+        // Return the user credential response.
+        return userCredential;
+      });
+  return /** @type {!goog.Promise<!fireauth.AuthEventManager.Result>} */ (
+      this.registerPendingPromise_(
+          p,
+          // Skip invalidation check as reauthentication could revalidate a
+          // user.
+          true));
 };
 
 
@@ -2261,6 +2347,8 @@ fireauth.AuthUser.prototype.toPlainObject = function() {
   goog.array.forEach(this['providerData'], function(userInfo) {
     obj['providerData'].push(fireauth.object.makeWritableCopy(userInfo));
   });
+  // Extend plain object with multi-factor user data.
+  goog.object.extend(obj, this.multiFactorUser_.toPlainObject());
   return obj;
 };
 
@@ -2282,21 +2370,15 @@ fireauth.AuthUser.fromPlainObject = function(user) {
   };
   // Convert to server response format. Constructor does not take
   // stsTokenManager toPlainObject as that format is different than the return
-  // server response which is always used to initialize a user instance. It is
-  // also difficult to have toPlainObject equal server response due to expiresIn
-  // field in server response. toPlainObject will return an expiration time
-  // instead.
+  // server response which is always used to initialize a user instance.
   var stsTokenManagerResponse = {};
   if (user['stsTokenManager'] &&
-      user['stsTokenManager']['accessToken'] &&
-      user['stsTokenManager']['expirationTime']) {
+      user['stsTokenManager']['accessToken']) {
     stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.ID_TOKEN] =
         user['stsTokenManager']['accessToken'];
     // Refresh token could be expired.
     stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN] =
         user['stsTokenManager']['refreshToken'] || null;
-    stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.EXPIRES_IN] =
-        (user['stsTokenManager']['expirationTime'] - goog.now()) / 1000;
   } else {
     // Token response is a required field.
     return null;

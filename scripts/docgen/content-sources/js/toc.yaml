@@ -66,6 +66,32 @@ toc:
     path: /docs/reference/js/firebase.auth.GoogleAuthProvider
   - title: "IdTokenResult"
     path: /docs/reference/js/firebase.auth.IDTokenResult
+  - title: "MultiFactorAssertion"
+    path: /docs/reference/js/firebase.auth.multifactorassertion
+  - title: "MultiFactorError"
+    path: /docs/reference/js/firebase.auth.multifactorerror
+  - title: "MultiFactorInfo"
+    path: /docs/reference/js/firebase.auth.multifactorinfo
+  - title: "MultiFactorResolver"
+    path: /docs/reference/js/firebase.auth.multifactorresolver
+  - title: "MultiFactorSession"
+    path: /docs/reference/js/firebase.auth.multifactorsession
+  - title: "PhoneAuthCredential"
+    path: /docs/reference/js/firebase.auth.phoneauthcredential
+  - title: "PhoneMultiFactorAssertion"
+    path: /docs/reference/js/firebase.auth.phonemultifactorassertion
+  - title: "PhoneMultiFactorEnrollInfoOptions"
+    path: /docs/reference/js/firebase.auth.phonemultifactorenrollinfooptions
+  - title: "PhoneMultiFactorGenerator"
+    path: /docs/reference/js/firebase.auth.phonemultifactorgenerator
+  - title: "PhoneMultiFactorInfo"
+    path: /docs/reference/js/firebase.auth.phonemultifactorinfo
+  - title: "PhoneMultiFactorSignInInfoOptions"
+    path: /docs/reference/js/firebase.auth.phonemultifactorsignininfooptions
+  - title: "PhoneSingleFactorInfoOptions"
+    path: /docs/reference/js/firebase.auth.phonesinglefactorinfooptions
+  - title: "MultiFactorUser"
+    path: /docs/reference/js/firebase.user.multifactoruser
   - title: "OAuthCredential"
     path: /docs/reference/js/firebase.auth.OAuthCredential
   - title: "OAuthCredentialOptions"
