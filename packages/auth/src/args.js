@@ -239,7 +239,7 @@ fireauth.args.string = function(opt_name, opt_optional) {
     name: opt_name || '',
     typeLabel: 'a valid string',
     optional: !!opt_optional,
-    validator: goog.isString
+    validator: x => typeof x === 'string'
   };
 };
 
@@ -256,7 +256,7 @@ fireauth.args.bool = function(opt_name, opt_optional) {
     name: opt_name || '',
     typeLabel: 'a boolean',
     optional: !!opt_optional,
-    validator: goog.isBoolean
+    validator: x => typeof x === 'boolean'
   };
 };
 
@@ -273,7 +273,7 @@ fireauth.args.number = function(opt_name, opt_optional) {
     name: opt_name || '',
     typeLabel: 'a valid number',
     optional: !!opt_optional,
-    validator: goog.isNumber
+    validator: x => typeof x === 'number'
   };
 };
 
@@ -324,7 +324,7 @@ fireauth.args.null = function(opt_name, opt_optional) {
     name: opt_name || '',
     typeLabel: 'null',
     optional: !!opt_optional,
-    validator: goog.isNull
+    validator: x => x === null
   };
 };
 
@@ -527,7 +527,7 @@ fireauth.args.phoneInfoOptions = function(name, optional) {
             return fireauth.args.validateMultiFactorSession_(
                        phoneInfoOptions['session'],
                        fireauth.MultiFactorSession.Type.ENROLL) &&
-                   goog.isString(phoneInfoOptions['phoneNumber']);
+                   typeof phoneInfoOptions['phoneNumber'] === 'string';
           // For multi-factor sign-in, phone multi-factor hint and MFA session
           // are provided.
           } else if (phoneInfoOptions['session'] &&
@@ -544,10 +544,10 @@ fireauth.args.phoneInfoOptions = function(name, optional) {
             return fireauth.args.validateMultiFactorSession_(
                        phoneInfoOptions['session'],
                        fireauth.MultiFactorSession.Type.SIGN_IN) &&
-                   goog.isString(phoneInfoOptions['multiFactorUid']);
+                   typeof phoneInfoOptions['multiFactorUid'] === 'string';
           // For single-factor sign-in, only phone number needs to be provided.
           } else if (phoneInfoOptions['phoneNumber']) {
-            return goog.isString(phoneInfoOptions['phoneNumber']);
+            return typeof phoneInfoOptions['phoneNumber'] === 'string';
           }
           return false;
         })
@@ -562,7 +562,7 @@ fireauth.args.phoneInfoOptions = function(name, optional) {
  * @private
  */
 fireauth.args.validateMultiFactorSession_ = function(session, type) {
-  return goog.isObject(session) && goog.isString(session.type) &&
+  return goog.isObject(session) && typeof session.type === 'string' &&
       session.type === type &&
       goog.isFunction(session.getRawSession);
 };
@@ -574,7 +574,7 @@ fireauth.args.validateMultiFactorSession_ = function(session, type) {
  * @private
  */
 fireauth.args.validateMultiFactorInfo_ = function(info) {
-  return goog.isObject(info) && goog.isString(info['uid']);
+  return goog.isObject(info) && typeof info['uid'] === 'string';
 };
 
 
@@ -612,7 +612,7 @@ fireauth.args.applicationVerifier = function(opt_optional) {
         /** @type {function(!firebase.auth.ApplicationVerifier) : boolean} */ (
         function(applicationVerifier) {
           return !!(applicationVerifier &&
-                    goog.isString(applicationVerifier.type) &&
+                    typeof applicationVerifier.type === 'string' &&
                     goog.isFunction(applicationVerifier.verify));
         })
   });
