@@ -73,6 +73,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
+const DEFAULT_MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /**
  * QueryView contains all of the data that SyncEngine needs to keep track of for
@@ -154,6 +155,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private limboResolutionsByTarget: {
     [targetId: number]: LimboResolution;
   } = {};
+  private readonly maxConcurrentLimboResolutions: number = DEFAULT_MAX_CONCURRENT_LIMBO_RESOLUTIONS;
+  /** The keys of documents whose limbo resolutions are enqueued. */
+  private limboListenQueue: DocumentKey[] = [];
   private limboDocumentRefs = new ReferenceSet();
   /** Stores user completion handlers, indexed by User and BatchId. */
   private mutationUserCallbacks = {} as {
@@ -174,8 +178,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     private remoteStore: RemoteStore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
-    private currentUser: User
-  ) {}
+    private currentUser: User,
+    maxConcurrentLimboResolutions?: number
+  ) {
+    if (maxConcurrentLimboResolutions) {
+      this.maxConcurrentLimboResolutions = maxConcurrentLimboResolutions;
+    }
+  }
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
@@ -486,6 +495,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // So go ahead and remove it from bookkeeping.
       this.limboTargetsByKey = this.limboTargetsByKey.remove(limboKey);
       delete this.limboResolutionsByTarget[targetId];
+      this.startEnqueuedLimboResolutions();
 
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
@@ -740,6 +750,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.remoteStore.unlisten(limboTargetId);
     this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
     delete this.limboResolutionsByTarget[limboTargetId];
+    this.startEnqueuedLimboResolutions();
   }
 
   private updateTrackedLimbos(
@@ -770,27 +781,42 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const key = limboChange.key;
     if (!this.limboTargetsByKey.get(key)) {
       log.debug(LOG_TAG, 'New document in limbo: ' + key);
+      this.limboListenQueue.push(key);
+      this.startEnqueuedLimboResolutions();
+    }
+  }
+
+  private startEnqueuedLimboResolutions(): void {
+    while (
+      this.limboListenQueue.length > 0 &&
+      this.limboTargetsByKey.size < this.maxConcurrentLimboResolutions
+    ) {
+      const key = this.limboListenQueue.shift()!;
       const limboTargetId = this.limboTargetIdGenerator.next();
-      const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
+      this.limboTargetsByKey = this.limboTargetsByKey.insert(
+        key,
+        limboTargetId
+      );
       this.remoteStore.listen(
         new TargetData(
-          query.toTarget(),
+          Query.atPath(key.path).toTarget(),
           limboTargetId,
           TargetPurpose.LimboResolution,
           ListenSequence.INVALID
         )
       );
-      this.limboTargetsByKey = this.limboTargetsByKey.insert(
-        key,
-        limboTargetId
-      );
     }
   }
 
   // Visible for testing
-  currentLimboDocs(): SortedMap<DocumentKey, TargetId> {
+  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId> {
     return this.limboTargetsByKey;
+  }
+
+  // Visible for testing
+  documentsEnqueuedForLimboResolution(): DocumentKey[] {
+    return this.limboListenQueue;
   }
 
   private async emitNewSnapsAndNotifyLocalStore(

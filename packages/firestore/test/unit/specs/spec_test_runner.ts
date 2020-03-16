@@ -113,6 +113,7 @@ import {
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
+import { SortedSet } from '../../../src/util/sorted_set';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -405,6 +406,7 @@ abstract class TestRunner {
   );
 
   private expectedLimboDocs: DocumentKey[];
+  private expectedInactiveLimboDocs: DocumentKey[];
   private expectedActiveTargets: {
     [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
   };
@@ -420,6 +422,7 @@ abstract class TestRunner {
 
   private useGarbageCollection: boolean;
   private numClients: number;
+  private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
 
   protected user = User.UNAUTHENTICATED;
@@ -453,8 +456,10 @@ abstract class TestRunner {
 
     this.useGarbageCollection = config.useGarbageCollection;
     this.numClients = config.numClients;
+    this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
 
     this.expectedLimboDocs = [];
+    this.expectedInactiveLimboDocs = [];
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
@@ -507,7 +512,8 @@ abstract class TestRunner {
       this.localStore,
       this.remoteStore,
       this.sharedClientState,
-      this.user
+      this.user,
+      this.maxConcurrentLimboResolutions
     );
 
     // Set up wiring between sync engine and other components
@@ -1038,6 +1044,11 @@ abstract class TestRunner {
       if ('limboDocs' in expectedState) {
         this.expectedLimboDocs = expectedState.limboDocs!.map(key);
       }
+      if ('inactiveLimboDocs' in expectedState) {
+        this.expectedInactiveLimboDocs = expectedState.inactiveLimboDocs!.map(
+          key
+        );
+      }
       if ('activeTargets' in expectedState) {
         this.expectedActiveTargets = expectedState.activeTargets!;
       }
@@ -1073,7 +1084,8 @@ abstract class TestRunner {
     if (this.started) {
       // Always validate that the expected limbo docs match the actual limbo
       // docs
-      this.validateLimboDocs();
+      this.validateActiveLimboDocs();
+      this.validateInactiveLimboDocs();
       // Always validate that the expected active targets match the actual
       // active targets
       await this.validateActiveTargets();
@@ -1087,16 +1099,17 @@ abstract class TestRunner {
     this.snapshotsInSyncEvents = 0;
   }
 
-  private validateLimboDocs(): void {
-    let actualLimboDocs = this.syncEngine.currentLimboDocs();
-    // Validate that each limbo doc has an expected active target
+  private validateActiveLimboDocs(): void {
+    let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
+    // Validate that each active limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
       const targetIds: number[] = [];
       obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
       expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
         true,
-        `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
-          `expected active target IDs (${targetIds.join(', ')})`
+        `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
+          `was not in the set of expected active target IDs ` +
+          `(${targetIds.join(', ')})`
       );
     });
     for (const expectedLimboDoc of this.expectedLimboDocs) {
@@ -1109,8 +1122,34 @@ abstract class TestRunner {
     }
     expect(actualLimboDocs.size).to.equal(
       0,
-      'Unexpected docs in limbo: ' + actualLimboDocs.toString()
+      'Unexpected active docs in limbo: ' + actualLimboDocs.toString()
     );
+  }
+
+  private validateInactiveLimboDocs(): void {
+    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
+    this.syncEngine.documentsEnqueuedForLimboResolution().forEach(key => {
+      actualLimboDocs = actualLimboDocs.add(key);
+    });
+    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
+    this.expectedInactiveLimboDocs.forEach(key => {
+      expectedLimboDocs = expectedLimboDocs.add(key);
+    });
+    actualLimboDocs.forEach(key => {
+      expect(expectedLimboDocs.has(key)).to.equal(
+        true,
+        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
+          `the set of expected inactive limbo documents ` +
+          `(${expectedLimboDocs.toString()})`
+      );
+    });
+    expectedLimboDocs.forEach(key => {
+      expect(actualLimboDocs.has(key)).to.equal(
+        true,
+        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
+          `but it was not in the queue (${actualLimboDocs.toString()})`
+      );
+    });
   }
 
   private async validateActiveTargets(): Promise<void> {
@@ -1371,6 +1410,13 @@ export interface SpecConfig {
 
   /** The number of active clients for this test run. */
   numClients: number;
+
+  /**
+   * The maximum number of concurrently-active listens for limbo resolutions.
+   * This value must be strictly greater than zero, or undefined to use the
+   * default value.
+   */
+  maxConcurrentLimboResolutions?: number;
 }
 
 /**
@@ -1631,8 +1677,16 @@ export interface StateExpectation {
   writeStreamRequestCount?: number;
   /** Number of requests sent to the watch stream. */
   watchStreamRequestCount?: number;
-  /** Current documents in limbo. Verified in each step until overwritten. */
+  /**
+   * Current documents in limbo that have an active target.
+   * Verified in each step until overwritten.
+   */
   limboDocs?: string[];
+  /**
+   * Current documents in limbo that do NOT have an active target.
+   * Verified in each step until overwritten.
+   */
+  inactiveLimboDocs?: string[];
   /**
    * Whether the instance holds the primary lease. Used in multi-client tests.
    */
