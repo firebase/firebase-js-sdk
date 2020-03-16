@@ -81,9 +81,7 @@ import { updatePhoneNumber } from './core/account_management/update_phone_number
 import { browserLocalPersistence } from './core/persistence/browser_local';
 import { browserSessionPersistence } from './core/persistence/browser_session';
 import { inMemoryPersistence } from './core/persistence/in_memory';
-import { setPersistence } from './core/auth_impl';
 import { indexedDBLocalPersistence } from './core/persistence/indexed_db';
-import { getRedirectResult } from './core/event_broker';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -202,12 +200,11 @@ enum Persistence {
       return fetchSignInMethodsForEmail(auth, email);
     },
     async getRedirectResult(): Promise<UserCredential> {
-      const result = await getRedirectResult(
-        auth,
-        isMobileCordova()
-          ? cordovaPopupRedirectResolver
-          : browserPopupRedirectResolver
-      );
+      const resolver = isMobileCordova()
+        ? cordovaPopupRedirectResolver
+        : browserPopupRedirectResolver;
+
+      const result = await resolver.getRedirectResult(auth);
       if (!result) {
         return { user: null, credential: null, operationType: null };
       }

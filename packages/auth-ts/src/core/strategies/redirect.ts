@@ -234,3 +234,38 @@ export const redirectEventProcessors: EventProcessors = {
   unknown,
   verifyApp
 };
+
+interface PendingPromise {
+  resolve: (cred: UserCredential | null) => void;
+  reject: (error: Error) => void;
+}
+
+export class RedirectManager {
+  private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
+  private readonly redirectListeners: PendingPromise[] = [];
+
+  getRedirectPromiseOrInit(initCb: () => void): Promise<UserCredential|null> {
+    if (this.redirectOutcome) {
+      return this.redirectOutcome();
+    }
+
+    return new Promise<UserCredential|null>((resolve, reject) => {
+      initCb();
+      this.redirectListeners.push({resolve, reject});
+    });
+  }
+
+  broadcastRedirectResult(cred: UserCredential | null, error?: Error) {
+    for (const listener of this.redirectListeners) {
+      if (error) {
+        listener.reject(error);
+      } else {
+        listener.resolve(cred);
+      }
+    }
+
+    this.redirectOutcome = () => {
+      return error ? Promise.reject(error) : Promise.resolve(cred);
+    };
+  }
+}

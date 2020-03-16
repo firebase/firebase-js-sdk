@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  PopupRedirectResolver,
-  EventSubscriber
-} from '../model/popup_redirect_resolver';
 import { Auth } from '../../src';
 import { ProviderId, AuthProvider } from '../core/providers';
 import {
@@ -34,7 +30,7 @@ import { OAuthProvider } from '../core/providers/oauth';
 import { openIframe } from './iframe';
 import { getCurrentUrl } from '../core/util/location';
 import firebase from '@firebase/app';
-import { eventBroker } from '../core/event_broker';
+import { AbstractPopupRedirectResolver } from '../core/abstract_popup_redirect_resolver';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -131,10 +127,8 @@ interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 
-export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver {
   private initialized = false;
-
-  constructor(private readonly subscriber: EventSubscriber) {}
 
   processPopup(
     auth: Auth,
@@ -166,7 +160,7 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     iframe.register<GapiAuthEvent>(
       AUTH_EVENT_MESSAGE_TYPE,
       async (message: GapiAuthEvent) => {
-        const success = await this.subscriber.onEvent(message.authEvent);
+        const success = await this.onEvent(message.authEvent);
         const status = success ? GapiOutcome.ACK : GapiOutcome.ERROR;
 
         return { status };
@@ -181,5 +175,4 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 }
 
 export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver(
-  eventBroker
 );
