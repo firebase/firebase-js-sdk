@@ -23,7 +23,8 @@ import { UserCredential } from '../model/user_credential';
 import { RedirectManager } from './strategies/redirect';
 import * as idp from './strategies/idp';
 
-export abstract class AbstractPopupRedirectResolver implements PopupRedirectResolver {
+export abstract class AbstractPopupRedirectResolver
+  implements PopupRedirectResolver {
   private readonly redirectManager = new RedirectManager();
   private auth!: Auth;
 
@@ -32,7 +33,7 @@ export abstract class AbstractPopupRedirectResolver implements PopupRedirectReso
     provider: AuthProvider,
     authType: AuthEventType
   ): Promise<UserCredential>;
-  
+
   abstract processRedirect(
     auth: Auth,
     provider: AuthProvider,
@@ -43,13 +44,13 @@ export abstract class AbstractPopupRedirectResolver implements PopupRedirectReso
   abstract isInitialized(): boolean;
 
   async onEvent(event: AuthEvent): Promise<boolean> {
-    let cred: UserCredential|null = null;
+    let cred: UserCredential | null = null;
     let isRedirect = false;
     try {
       switch (event.type) {
         case AuthEventType.SIGN_IN_VIA_REDIRECT:
           isRedirect = true;
-          // Fallthrough
+        // Fallthrough
         case AuthEventType.SIGN_IN_VIA_POPUP:
           cred = await this.execIdpTask(event, idp.signIn);
           break;
@@ -58,7 +59,7 @@ export abstract class AbstractPopupRedirectResolver implements PopupRedirectReso
         this.redirectManager.broadcastRedirectResult(cred);
       }
       return true;
-    } catch(e) {
+    } catch (e) {
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(null, e);
       }
@@ -67,7 +68,7 @@ export abstract class AbstractPopupRedirectResolver implements PopupRedirectReso
   }
 
   getRedirectResult(auth: Auth): Promise<UserCredential | null> {
-    // TODO: Fix this dirty hack    
+    // TODO: Fix this dirty hack
     this.auth = auth;
     return this.redirectManager.getRedirectPromiseOrInit(() => {
       if (!this.isInitialized()) {
@@ -76,16 +77,12 @@ export abstract class AbstractPopupRedirectResolver implements PopupRedirectReso
     });
   }
 
-  private execIdpTask(event: AuthEvent, task: idp.IdpTask): Promise<UserCredential|null> {
+  private execIdpTask(
+    event: AuthEvent,
+    task: idp.IdpTask
+  ): Promise<UserCredential | null> {
     const { urlResponse, sessionId, postBody, tenantId } = event;
 
-    return task(
-      this.auth,
-      urlResponse!,
-      sessionId!,
-      tenantId!,
-      postBody!
-    );
+    return task(this.auth, urlResponse!, sessionId!, tenantId!, postBody!);
   }
 }
-

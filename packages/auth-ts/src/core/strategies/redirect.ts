@@ -244,14 +244,14 @@ export class RedirectManager {
   private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
   private readonly redirectListeners: PendingPromise[] = [];
 
-  getRedirectPromiseOrInit(initCb: () => void): Promise<UserCredential|null> {
+  getRedirectPromiseOrInit(initCb: () => void): Promise<UserCredential | null> {
     if (this.redirectOutcome) {
       return this.redirectOutcome();
     }
 
-    return new Promise<UserCredential|null>((resolve, reject) => {
+    return new Promise<UserCredential | null>((resolve, reject) => {
       initCb();
-      this.redirectListeners.push({resolve, reject});
+      this.redirectListeners.push({ resolve, reject });
     });
   }
 

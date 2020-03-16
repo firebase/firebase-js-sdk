@@ -174,5 +174,4 @@ export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver 
   }
 }
 
-export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver(
-);
+export const browserPopupRedirectResolver: BrowserPopupRedirectResolver = new BrowserPopupRedirectResolver();
