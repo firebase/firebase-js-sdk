@@ -54,7 +54,7 @@
     "@firebase/util": "0.2.42"
   },
   "devDependencies": {
-    "rollup": "1.32.1",
+    "rollup": "2.0.6",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "0.13.0",
     "rollup-plugin-node-resolve": "5.2.0",
