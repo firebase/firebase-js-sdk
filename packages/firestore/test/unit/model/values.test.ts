@@ -31,7 +31,6 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import { PrimitiveValue } from '../../../src/model/proto_field_value';
 import { primitiveComparator } from '../../../src/util/misc';
-import * as typeUtils from '../../../src/util/types';
 import {
   blob,
   dbId,
