@@ -46,6 +46,12 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   /**
    * END: Custom compare logic
    */
+  if (left === 0.0 && right === 0.0) {
+    // Firestore treats -0.0 and +0.0 as not equals, even though JavaScript
+    // treats them as equal by default. Implemented based on MDN's Object.is()
+    // polyfill.
+    return 1 / left === 1 / right;
+  }
   if (left === right) {
     return true;
   }

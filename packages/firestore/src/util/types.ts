@@ -63,20 +63,16 @@ export function isNullOrUndefined(value: unknown): boolean {
  * @param value The value to test for being an integer and in the safe range
  */
 export function isSafeInteger(value: unknown): boolean {
-  return (
-    isInteger(value) &&
-    (value as number) <= MAX_SAFE_INTEGER &&
-    (value as number) >= MIN_SAFE_INTEGER
-  );
-}
-
-/**
- * Safely checks if the number is NaN.
- */
-export function safeIsNaN(value: unknown): boolean {
-  if (NumberAsAny.IsNaN) {
-    return NumberAsAny.IsNaN(value);
+  // Implemented based on Object.is() polyfill from
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+  if (value === -0) {
+    // +0 != -0
+    return 1 / value === 1 / 0;
   } else {
-    return typeof value === 'number' && isNaN(value);
+    return (
+      isInteger(value) &&
+      (value as number) <= MAX_SAFE_INTEGER &&
+      (value as number) >= MIN_SAFE_INTEGER
+    );
   }
 }
