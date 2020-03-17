@@ -17,9 +17,16 @@
 
 import { ProviderId, SignInMethod } from '../providers';
 import { OAuthCredential } from '../../model/auth_credential';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import { Auth } from '../../model/auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { User } from '../../model/user';
+// import * as from '../strategies/idp';
+import { request } from 'http';
+import { querystring } from '@firebase/util';
+import { SignInWithIdpRequest, signInWithIdp } from '../../api/authentication';
+
+const IDP_REQUEST_URI = 'http://localhost';
 
 export interface OAuthCredentialParams {
   idToken?: string | null;
@@ -80,7 +87,8 @@ export class GenericOAuthCredential implements OAuthCredential {
   }
 
   getIdTokenResponse_(auth: Auth): Promise<IdTokenResponse> {
-    throw new Error('Method not implemented.');
+    const request = this.makeRequest();
+    return signInWithIdp(auth, request);
   }
 
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
@@ -88,7 +96,37 @@ export class GenericOAuthCredential implements OAuthCredential {
   }
 
   matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {
-    throw new Error('Method not implemented.');
+    const request = this.makeRequest();
+    request.autoCreate = false;
+
+    const idTokenResolver = signInWithIdp(auth, request);
+    return verifyTokenResponseUid(idTokenResolver, uid, auth.name);
+  }
+
+  private makeRequest(): SignInWithIdpRequest {
+    const request: SignInWithIdpRequest = {
+      requestUri: IDP_REQUEST_URI,
+      returnSecureToken: true,
+      postBody: null,
+    };
+
+    const postBody: {[key: string]: string} = {};
+    if (this.idToken) postBody['id_token'] = this.idToken;
+    if (this.accessToken) postBody['access_token'] = this.accessToken;
+    if (this.secret) postBody['oauth_token_secret'] = this.secret;
+
+    postBody['providerId'] = this.providerId;
+    if (this.nonce && !this.pendingToken) {
+      postBody['nonce'] = this.nonce;
+    }
+
+    if (this.pendingToken) {
+      request.pendingToken = this.pendingToken;
+    } else {
+      request.postBody = querystring(postBody);
+    }
+
+    return request;
   }
 }
 

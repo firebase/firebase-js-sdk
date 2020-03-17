@@ -185,11 +185,12 @@ export async function sendPhoneVerificationCode(
 export interface SignInWithIdpRequest {
   requestUri: string;
   postBody: string | null;
-  sessionId: string;
+  sessionId?: string;
   tenantId?: string;
   returnSecureToken: true;
   idToken?: IdToken;
   autoCreate?: boolean;
+  pendingToken?: string;
 }
 
 export interface SignInWithIdpResponse extends IdTokenResponse {

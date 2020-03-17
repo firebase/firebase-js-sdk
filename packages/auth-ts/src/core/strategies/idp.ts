@@ -27,28 +27,36 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 export interface IdpTaskParams {
   auth: Auth;
   requestUri: string;
-  sessionId: string;
+  sessionId?: string;
   tenantId?: string;
   postBody?: string;
+  pendingToken?: string;
   user?: User;
 }
 
 export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
-export async function signIn({
+function paramsToRequest({
   auth,
   requestUri,
   sessionId,
   tenantId,
+  pendingToken,
   postBody
-}: IdpTaskParams): Promise<UserCredential> {
-  const request: SignInWithIdpRequest = {
+}: IdpTaskParams): SignInWithIdpRequest {
+  return {
     requestUri,
     sessionId,
     postBody: postBody || null,
     tenantId,
+    pendingToken,
     returnSecureToken: true
   };
+}
+
+export async function signIn(params: IdpTaskParams): Promise<UserCredential> {
+  const request = paramsToRequest(params);
+  const auth = params.auth;
 
   const response = await signInWithIdp(auth, request);
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
@@ -57,27 +65,15 @@ export async function signIn({
   return new UserCredential(user, credential, OperationType.SIGN_IN);
 }
 
-export async function reauth({
-  auth,
-  requestUri,
-  sessionId,
-  tenantId,
-  postBody,
-  user
-}: IdpTaskParams): Promise<UserCredential> {
+export async function reauth(params: IdpTaskParams): Promise<UserCredential> {
+  const {auth, user} = params;
+  
   if (!user) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
       appName: auth.name
     });
   }
-  const request: SignInWithIdpRequest = {
-    requestUri,
-    sessionId,
-    postBody: postBody || null,
-    tenantId,
-    returnSecureToken: true,
-    autoCreate: false
-  };
+  const request = paramsToRequest(params);
 
   const requestPromise = signInWithIdp(auth, request);
   const idTokenResponse = await verifyTokenResponseUid(

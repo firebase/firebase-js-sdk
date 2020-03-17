@@ -115,6 +115,8 @@ export class AuthImpl implements Auth {
       let storedUser = await this.userManager.getCurrentUser();
       this.redirectUser = await this.redirectUserManager.getCurrentUser();
 
+      await this.redirectUserManager.removeCurrentUser();
+
       if (storedUser) {
         // TODO: This will break redirect flows. Redirect flows *SHOULD NOT*
         //       update the user first
