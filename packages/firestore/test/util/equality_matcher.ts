@@ -34,26 +34,21 @@ export interface Equatable<T> {
  */
 
 function customDeepEqual(left: unknown, right: unknown): boolean {
-  /**
-   * START: Custom compare logic
-   */
   if (typeof left === 'object' && left && 'isEqual' in left) {
     return (left as Equatable<unknown>).isEqual(right);
   }
   if (typeof right === 'object' && right && 'isEqual' in right) {
     return (right as Equatable<unknown>).isEqual(left);
   }
-  /**
-   * END: Custom compare logic
-   */
-  if (left === 0.0 && right === 0.0) {
-    // Firestore treats -0.0 and +0.0 as not equals, even though JavaScript
-    // treats them as equal by default. Implemented based on MDN's Object.is()
-    // polyfill.
-    return 1 / left === 1 / right;
-  }
   if (left === right) {
-    return true;
+    if (left === 0.0 && right === 0.0) {
+      // Firestore treats -0.0 and +0.0 as not equals, even though JavaScript
+      // treats them as equal by default. Implemented based on MDN's Object.is()
+      // polyfill.
+      return 1 / left === 1 / right;
+    } else {
+      return true;
+    }
   }
   if (
     typeof left === 'number' &&

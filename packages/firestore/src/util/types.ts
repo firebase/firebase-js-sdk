@@ -27,7 +27,7 @@ export function isNullOrUndefined(value: unknown): boolean {
   return value === null || value === undefined;
 }
 
-/** Returns whether the value represents -0.. */
+/** Returns whether the value represents -0. */
 export function isNegativeZero(value: number) : boolean {
   // Detect if the value is -0.0. Based on polyfill from
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
