@@ -107,10 +107,10 @@ export class GenericOAuthCredential implements OAuthCredential {
     const request: SignInWithIdpRequest = {
       requestUri: IDP_REQUEST_URI,
       returnSecureToken: true,
-      postBody: null,
+      postBody: null
     };
 
-    const postBody: {[key: string]: string} = {};
+    const postBody: { [key: string]: string } = {};
     if (this.idToken) postBody['id_token'] = this.idToken;
     if (this.accessToken) postBody['access_token'] = this.accessToken;
     if (this.secret) postBody['oauth_token_secret'] = this.secret;

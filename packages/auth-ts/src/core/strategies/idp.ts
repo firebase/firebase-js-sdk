@@ -66,8 +66,8 @@ export async function signIn(params: IdpTaskParams): Promise<UserCredential> {
 }
 
 export async function reauth(params: IdpTaskParams): Promise<UserCredential> {
-  const {auth, user} = params;
-  
+  const { auth, user } = params;
+
   if (!user) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
       appName: auth.name
