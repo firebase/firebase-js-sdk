@@ -76,7 +76,7 @@ export async function reauthenticateWithRedirect(
     auth,
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
-    eventId,
+    eventId
   );
 }
 

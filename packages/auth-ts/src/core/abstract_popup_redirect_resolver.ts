@@ -83,15 +83,16 @@ export abstract class AbstractPopupRedirectResolver
     });
   }
 
-  private userForEvent(id: string): User|undefined {
-    return this.auth.getPotentialRedirectUsers_()
+  private userForEvent(id: string): User | undefined {
+    return this.auth
+      .getPotentialRedirectUsers_()
       .find(u => u.redirectEventId_ === id);
   }
 
   private execIdpTask(
     event: AuthEvent,
     task: idp.IdpTask,
-    user?: User,
+    user?: User
   ): Promise<UserCredential | null> {
     const { urlResponse, sessionId, postBody, tenantId } = event;
     const params: idp.IdpTaskParams = {
@@ -100,8 +101,8 @@ export abstract class AbstractPopupRedirectResolver
       auth: this.auth,
       tenantId: tenantId || undefined,
       postBody: postBody || undefined,
-      user,
-    }
+      user
+    };
     return task(params);
   }
 }

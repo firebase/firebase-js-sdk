@@ -86,7 +86,7 @@ export class AuthImpl implements Auth {
   );
   private userManager?: UserManager;
   private redirectUserManager?: UserManager;
-  private redirectUser: User|null = null;
+  private redirectUser: User | null = null;
 
   async isInitialized(): Promise<void> {
     if (this.deferred) {
@@ -109,7 +109,7 @@ export class AuthImpl implements Auth {
         this.config.apiKey,
         this.name,
         [browserSessionPersistence],
-        'redirectUser',
+        'redirectUser'
       );
 
       let storedUser = await this.userManager.getCurrentUser();
@@ -118,7 +118,9 @@ export class AuthImpl implements Auth {
       if (storedUser) {
         // TODO: This will break redirect flows. Redirect flows *SHOULD NOT*
         //       update the user first
-        if (this.redirectUser?.redirectEventId_ !== storedUser.redirectEventId_) {
+        if (
+          this.redirectUser?.redirectEventId_ !== storedUser.redirectEventId_
+        ) {
           await reloadWithoutSaving(this, storedUser);
         }
       }

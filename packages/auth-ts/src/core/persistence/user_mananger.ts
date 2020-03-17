@@ -37,7 +37,7 @@ export class UserManager {
     public persistence: Persistence,
     private readonly apiKey: ApiKey,
     private readonly appName: AppName,
-    private readonly userKey: string,
+    private readonly userKey: string
   ) {}
 
   fullKeyName_(key: string): string {
@@ -85,7 +85,7 @@ export class UserManager {
     apiKey: ApiKey,
     appName: AppName,
     persistenceHierarchy: Persistence[],
-    userKey = AUTH_USER_KEY_NAME_,
+    userKey = AUTH_USER_KEY_NAME_
   ): Promise<UserManager> {
     if (!persistenceHierarchy.length) {
       return new UserManager(inMemoryPersistence, apiKey, appName, userKey);

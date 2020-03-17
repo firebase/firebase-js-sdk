@@ -33,9 +33,7 @@ export interface IdpTaskParams {
   user?: User;
 }
 
-export type IdpTask = (
-  params: IdpTaskParams,
-) => Promise<UserCredential>;
+export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
 export async function signIn({
   auth,
@@ -69,7 +67,7 @@ export async function reauth({
 }: IdpTaskParams): Promise<UserCredential> {
   if (!user) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name,
+      appName: auth.name
     });
   }
   const request: SignInWithIdpRequest = {
@@ -78,18 +76,18 @@ export async function reauth({
     postBody: postBody || null,
     tenantId,
     returnSecureToken: true,
-    autoCreate: false,
+    autoCreate: false
   };
 
   const requestPromise = signInWithIdp(auth, request);
-  const idTokenResponse = await verifyTokenResponseUid(requestPromise, user.uid, auth.name);
+  const idTokenResponse = await verifyTokenResponseUid(
+    requestPromise,
+    user.uid,
+    auth.name
+  );
   user.stsTokenManager.updateFromServerResponse(idTokenResponse);
   const cred = authCredentialFromTokenResponse(idTokenResponse);
-  const userCred = new UserCredential(
-    user,
-    cred,
-    OperationType.REAUTHENTICATE
-  );
+  const userCred = new UserCredential(user, cred, OperationType.REAUTHENTICATE);
 
   await user.reload(auth);
   return userCred;

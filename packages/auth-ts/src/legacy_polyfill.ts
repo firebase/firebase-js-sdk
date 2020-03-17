@@ -27,10 +27,16 @@ import {
   confirmPasswordReset,
   verifyPasswordResetCode
 } from './core/strategies/email_and_password';
-import { signInWithRedirect, reauthenticateWithRedirect } from './core/strategies/redirect';
+import {
+  signInWithRedirect,
+  reauthenticateWithRedirect
+} from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
-import { browserPopupRedirectResolver, BrowserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
+import {
+  browserPopupRedirectResolver,
+  BrowserPopupRedirectResolver
+} from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User, ProfileInfo } from './model/user';
 import {
@@ -176,8 +182,9 @@ enum Persistence {
           return updatePhoneNumber(auth, user, phoneCredential);
         },
         reauthenticateWithRedirect(provider: OAuthProvider): Promise<never> {
-          const resolver = isMobileCordova() ?
-            cordovaPopupRedirectResolver : browserPopupRedirectResolver;
+          const resolver = isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver;
           return reauthenticateWithRedirect(auth, user, provider, resolver);
         }
       });

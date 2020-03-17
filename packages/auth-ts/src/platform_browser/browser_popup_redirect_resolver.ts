@@ -73,7 +73,7 @@ function getRedirectUrl(
   auth: Auth,
   provider: AuthProvider,
   authType: AuthEventType,
-  eventId?: string,
+  eventId?: string
 ): string {
   if (!auth.config.authDomain) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MISSING_AUTH_DOMAIN, {
@@ -92,7 +92,7 @@ function getRedirectUrl(
     authType,
     redirectUrl: getCurrentUrl(),
     v: firebase.SDK_VERSION,
-    eventId,
+    eventId
   };
 
   if (provider instanceof OAuthProvider) {
@@ -144,7 +144,7 @@ export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver 
     auth: Auth,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string,
+    eventId?: string
   ): Promise<never> {
     // Create iframe
     //        fireauth.iframeclient.IfcHandler.prototype.processRedirect =
