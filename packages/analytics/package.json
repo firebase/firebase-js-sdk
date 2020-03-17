@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.2.13",
+  "version": "0.2.17",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -24,21 +24,22 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/analytics-types": "0.2.6",
-    "@firebase/installations": "0.4.2",
-    "@firebase/util": "0.2.40",
-    "@firebase/component": "0.1.5",
-    "tslib": "1.10.0"
+    "@firebase/analytics-types": "0.2.8",
+    "@firebase/installations": "0.4.5",
+    "@firebase/logger": "0.1.37",
+    "@firebase/util": "0.2.42",
+    "@firebase/component": "0.1.7",
+    "tslib": "1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "1.28.0",
+    "rollup": "2.0.6",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.25.3",
+    "rollup-plugin-typescript2": "0.26.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.7.5"
+    "typescript": "3.8.3"
   },
   "repository": {
     "directory": "packages/analytics",

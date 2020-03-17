@@ -374,6 +374,8 @@ export class JsonProtoSerializer {
           return { doubleValue: 'Infinity' } as {};
         } else if (doubleValue === -Infinity) {
           return { doubleValue: '-Infinity' } as {};
+        } else if (typeUtils.isNegativeZero(doubleValue)) {
+          return { doubleValue: '-0' } as {};
         }
       }
       return { doubleValue: val.value() };

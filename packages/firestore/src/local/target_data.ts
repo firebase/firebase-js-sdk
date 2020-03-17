@@ -21,7 +21,7 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { ByteString } from '../util/byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
-export enum TargetPurpose {
+export const enum TargetPurpose {
   /** A regular, normal query target. */
   Listen,
 

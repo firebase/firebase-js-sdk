@@ -47,6 +47,12 @@ apiDescribe('Firestore', (persistence: boolean) => {
     });
   });
 
+  it('can read and write number fields', () => {
+    return withTestDb(persistence, db => {
+      return expectRoundtrip(db, { a: 1, b: NaN, c: Infinity, d: -0.0 });
+    });
+  });
+
   it('can read and write array fields', () => {
     return withTestDb(persistence, db => {
       return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });

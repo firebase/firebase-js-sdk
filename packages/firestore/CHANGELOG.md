@@ -1,4 +1,11 @@
 # Unreleased
+- [fixed] Fixed an issue where the number value `-0.0` would lose its sign when
+  stored in Firestore.
+
+# 1.10.0
+- [feature] Implemented `Timestamp.valueOf()` so that `Timestamp` objects can be
+  compared for relative ordering using the JavaScript arithmetic comparison
+  operators (#2632).
 - [fixed] Fixed an issue where auth credentials were not respected in Cordova
   environments (#2626).
 - [fixed] Fixed a performance regression introduced by the addition of

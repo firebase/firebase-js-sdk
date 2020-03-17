@@ -74,7 +74,7 @@ export class ExistenceFilterChange {
   ) {}
 }
 
-export enum WatchTargetChangeState {
+export const enum WatchTargetChangeState {
   NoChange,
   Added,
   Removed,

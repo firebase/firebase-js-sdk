@@ -36,11 +36,16 @@ goog.provide('fireauth.SAMLAuthCredential');
 goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
+goog.forwardDeclare('fireauth.RpcHandler');
 goog.require('fireauth.ActionCodeInfo');
 goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
+goog.require('fireauth.MultiFactorAuthCredential');
+goog.require('fireauth.MultiFactorEnrollmentRequestIdentifier');
+goog.require('fireauth.MultiFactorSession');
+goog.require('fireauth.MultiFactorSignInRequestIdentifier');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.idp');
@@ -50,8 +55,6 @@ goog.require('goog.Promise');
 goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.object');
-
-goog.forwardDeclare('fireauth.RpcHandler');
 
 
 
@@ -72,7 +75,7 @@ fireauth.AuthCredential = function() {};
  *     idTokenPromise The RPC handler method that returns a promise which
  *     resolves with an ID token.
  */
-fireauth.AuthCredential.prototype.getIdTokenProvider;
+fireauth.AuthCredential.prototype.getIdTokenProvider = function(rpcHandler) {};
 
 
 /**
@@ -82,7 +85,8 @@ fireauth.AuthCredential.prototype.getIdTokenProvider;
  * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
  *     are linked.
  */
-fireauth.AuthCredential.prototype.linkToIdToken;
+fireauth.AuthCredential.prototype.linkToIdToken =
+    function(rpcHandler, idToken) {};
 
 
 /**
@@ -92,14 +96,15 @@ fireauth.AuthCredential.prototype.linkToIdToken;
  * @return {!goog.Promise<!Object>} A Promise that resolves when
  *     idToken UID match succeeds and returns the server response.
  */
-fireauth.AuthCredential.prototype.matchIdTokenWithUid;
+fireauth.AuthCredential.prototype.matchIdTokenWithUid =
+    function(rpcHandler, uid) {};
 
 
 /**
  * @return {!Object} The plain object representation of an Auth credential. This
  *     will be exposed as toJSON() externally.
  */
-fireauth.AuthCredential.prototype.toPlainObject;
+fireauth.AuthCredential.prototype.toPlainObject = function() {};
 
 
 /**
@@ -692,7 +697,6 @@ fireauth.object.setReadonlyProperty(fireauth.FacebookAuthProvider,
  * @param {string} accessTokenOrObject The Facebook access token, or object
  *     containing the token for FirebaseUI backwards compatibility.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.FacebookAuthProvider.credential = function(accessTokenOrObject) {
   if (!accessTokenOrObject) {
@@ -733,7 +737,6 @@ fireauth.object.setReadonlyProperty(fireauth.GithubAuthProvider,
  * @param {string} accessTokenOrObject The GitHub access token, or object
  *     containing the token for FirebaseUI backwards compatibility.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.GithubAuthProvider.credential = function(accessTokenOrObject) {
   if (!accessTokenOrObject) {
@@ -781,7 +784,6 @@ fireauth.object.setReadonlyProperty(fireauth.GoogleAuthProvider,
  * @param {?string=} accessToken The Google access token. If null or
  *     undefined, we expect the ID token to have been passed.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.GoogleAuthProvider.credential =
     function(idTokenOrObject, accessToken) {
@@ -823,7 +825,6 @@ fireauth.object.setReadonlyProperty(fireauth.TwitterAuthProvider,
  *     containing the token for FirebaseUI backwards compatibility.
  * @param {string} secret The Twitter secret.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.TwitterAuthProvider.credential = function(tokenOrObject, secret) {
   var tokenObject = tokenOrObject;
@@ -975,7 +976,6 @@ fireauth.EmailAuthProvider = function() {
  * @param {string} email The credential email.
  * @param {string} password The credential password.
  * @return {!fireauth.EmailAuthCredential} The Auth credential object.
- * @override
  */
 fireauth.EmailAuthProvider.credential = function(email, password) {
   return new fireauth.EmailAuthCredential(email, password);
@@ -1008,8 +1008,8 @@ fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink =
     function(emailLink) {
   emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
   var actionCodeUrl = fireauth.ActionCodeURL.parseLink(emailLink);
-  if (actionCodeUrl && actionCodeUrl['operation'] ===
-      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN) {
+  if (actionCodeUrl && (actionCodeUrl['operation'] ===
+      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN)) {
     return actionCodeUrl;
   }
   return null;
@@ -1033,11 +1033,14 @@ fireauth.object.setReadonlyProperties(fireauth.EmailAuthProvider, {
 
 
 /**
- * A credential for phone number sign-in.
+ * A credential for phone number sign-in. Phone credentials can also be used as
+ * second factor assertions.
+ * A `PhoneAuthCredential` is also a `MultiFactorAuthCredential`. A
+ * `PhoneMultiFactorAssertion` requires a `PhoneAuthCredential`.
  * @param {!fireauth.PhoneAuthCredential.Parameters_} params The credential
  *     parameters that prove the user owns the claimed phone number.
  * @constructor
- * @implements {fireauth.AuthCredential}
+ * @implements {fireauth.MultiFactorAuthCredential}
  */
 fireauth.PhoneAuthCredential = function(params) {
   // Either verification ID and code, or phone number temporary proof must be
@@ -1057,6 +1060,11 @@ fireauth.PhoneAuthCredential = function(params) {
 
   fireauth.object.setReadonlyProperty(this, 'providerId',
       fireauth.idp.ProviderId.PHONE);
+  /**
+   * @public {string} The provider ID required by the
+   *     `fireauth.MultiFactorAuthCredential` interface.
+   */
+  this.providerId = fireauth.idp.ProviderId.PHONE;
 
   fireauth.object.setReadonlyProperty(
       this, 'signInMethod', fireauth.idp.SignInMethod.PHONE);
@@ -1218,6 +1226,50 @@ fireauth.PhoneAuthCredential.prototype.makeVerifyPhoneNumberRequest_ =
 
 
 /**
+ * Finalizes the 2nd factor enrollment flow with the current AuthCredential
+ * using the enrollment request identifier.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler instance.
+ * @param {!fireauth.MultiFactorEnrollmentRequestIdentifier} enrollmentRequest
+ *     The enrollment request identifying the user.
+ * @return {!goog.Promise<{idToken: string, refreshToken: string}>} A promise
+ *     that resolves with the updated ID and refresh tokens.
+ * @override
+ */
+fireauth.PhoneAuthCredential.prototype.finalizeMfaEnrollment =
+    function(rpcHandler, enrollmentRequest) {
+  goog.object.extend(
+      enrollmentRequest,
+      {
+        'phoneVerificationInfo': this.makeVerifyPhoneNumberRequest_()
+      });
+  return /** @type {!goog.Promise<{idToken: string, refreshToken: string}>} */ (
+      rpcHandler.finalizePhoneMfaEnrollment(enrollmentRequest));
+};
+
+
+/**
+ * Finalizes the 2nd factor sign-in flow with the current AuthCredential
+ * using the sign-in request identifier.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler instance.
+ * @param {!fireauth.MultiFactorSignInRequestIdentifier} signInRequest
+ *     The sign-in request identifying the user.
+ * @return {!goog.Promise<{idToken: string, refreshToken: string}>} A promise
+ *     that resolves with the signed in user's ID and refresh tokens.
+ * @override
+ */
+fireauth.PhoneAuthCredential.prototype.finalizeMfaSignIn =
+    function(rpcHandler, signInRequest) {
+  goog.object.extend(
+      signInRequest,
+      {
+        'phoneVerificationInfo': this.makeVerifyPhoneNumberRequest_()
+      });
+  return /** @type {!goog.Promise<{idToken: string, refreshToken: string}>} */ (
+      rpcHandler.finalizePhoneMfaSignIn(signInRequest));
+};
+
+
+/**
  * Phone Auth provider implementation.
  * @param {?fireauth.Auth=} opt_auth The Firebase Auth instance.
  * @constructor
@@ -1242,15 +1294,68 @@ fireauth.PhoneAuthProvider = function(opt_auth) {
 
 
 /**
- * Initiates a phone number confirmation flow.
- * @param {string} phoneNumber The user's phone number.
+ * The phone info options for single-factor sign-in. Only phone number is
+ * required.
+ * @private
+ * @typedef {{
+ *   phoneNumber: string
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneSingleFactorInfoOptions_;
+
+/**
+ * The phone info options for multi-factor enrollment. Phone number and
+ * multi-factor session are required.
+ * @private
+ * @typedef {{
+ *   phoneNumber: string,
+ *   session: !fireauth.MultiFactorSession
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneMultiFactorEnrollInfoOptions_;
+
+
+/**
+ * The phone info options for multi-factor sign-in. Either multi-factor hint or
+ * multi-factor UID and multi-factor session are required.
+ * @private
+ * @typedef {{
+ *   multiFactorHint: !fireauth.MultiFactorInfo,
+ *   session: !fireauth.MultiFactorSession
+ * }|{
+ *   multiFactorUid: string,
+ *   session: !fireauth.MultiFactorSession
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneMultiFactorSignInInfoOptions_;
+
+
+/**
+ * The options for verifying the ownership of the phone number. It could be
+ * used for single-factor sign-in, multi-factor enrollment or multi-factor
+ * sign-in.
+ * @typedef {
+ *   !fireauth.PhoneAuthProvider.PhoneSingleFactorInfoOptions_|
+ *   !fireauth.PhoneAuthProvider.PhoneMultiFactorEnrollInfoOptions_|
+ *   !fireauth.PhoneAuthProvider.PhoneMultiFactorSignInInfoOptions_
+ * }
+ */
+fireauth.PhoneAuthProvider.PhoneInfoOptions;
+
+
+/**
+ * Initiates a phone number confirmation flow. If session is provided, it is
+ * used to verify ownership of the second factor phone number.
+ *
+ * @param {string|!fireauth.PhoneAuthProvider.PhoneInfoOptions} phoneInfoOptions
+ *     The user's phone options for verifying the ownship of the phone number.
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier The
  *     application verifier for anti-abuse purposes.
  * @return {!goog.Promise<string>} A Promise that resolves with the
  *     verificationId of the phone number confirmation flow.
  */
 fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
-    function(phoneNumber, applicationVerifier) {
+    function(phoneInfoOptions, applicationVerifier) {
   var rpcHandler = this.auth_.getRpcHandler();
 
   // Convert the promise into a goog.Promise. If the applicationVerifier throws
@@ -1258,7 +1363,7 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
   // time after sending the token to the server.
   return goog.Promise.resolve(applicationVerifier['verify']())
       .then(function(assertion) {
-        if (!goog.isString(assertion)) {
+        if (typeof assertion !== 'string') {
           throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
               'An implementation of firebase.auth.ApplicationVerifier' +
               '.prototype.verify() must return a firebase.Promise ' +
@@ -1267,22 +1372,60 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
 
         switch (applicationVerifier['type']) {
           case 'recaptcha':
-            return rpcHandler
-                .sendVerificationCode(
-                    {'phoneNumber': phoneNumber, 'recaptchaToken': assertion})
-                .then(
-                    function(verificationId) {
-                      if (typeof applicationVerifier.reset === 'function') {
-                        applicationVerifier.reset();
+            var session = goog.isObject(phoneInfoOptions) ?
+                phoneInfoOptions['session'] : null;
+            // PhoneInfoOptions can be a phone number string for backward
+            // compatibility.
+            var phoneNumber = goog.isObject(phoneInfoOptions) ?
+                phoneInfoOptions['phoneNumber'] : phoneInfoOptions;
+            var verifyPromise;
+            if (session &&
+                session.type == fireauth.MultiFactorSession.Type.ENROLL) {
+              verifyPromise = session.getRawSession()
+                  .then(function(rawSession) {
+                    return rpcHandler.startPhoneMfaEnrollment({
+                      'idToken': rawSession,
+                      'phoneEnrollmentInfo': {
+                        'phoneNumber': phoneNumber,
+                        'recaptchaToken': assertion
                       }
-                      return verificationId;
-                    },
-                    function(error) {
-                      if (typeof applicationVerifier.reset === 'function') {
-                        applicationVerifier.reset();
-                      }
-                      throw error;
                     });
+                  });
+            } else if (session &&
+                       session.type ==
+                           fireauth.MultiFactorSession.Type.SIGN_IN) {
+              verifyPromise = session.getRawSession()
+                  .then(function(rawSession) {
+                    var mfaEnrollmentId =
+                        (phoneInfoOptions['multiFactorHint'] &&
+                         phoneInfoOptions['multiFactorHint']['uid']) ||
+                        phoneInfoOptions['multiFactorUid'];
+                    return rpcHandler.startPhoneMfaSignIn({
+                      'mfaPendingCredential': rawSession,
+                      'mfaEnrollmentId': mfaEnrollmentId,
+                      'phoneSignInInfo': {
+                        'recaptchaToken': assertion
+                      }
+                    });
+                  });
+            } else {
+              verifyPromise = rpcHandler.sendVerificationCode({
+                'phoneNumber': phoneNumber,
+                'recaptchaToken': assertion
+              });
+            }
+            // Reset the applicationVerifier after code is sent.
+            return verifyPromise.then(function(verificationId) {
+              if (typeof applicationVerifier.reset === 'function') {
+                applicationVerifier.reset();
+              }
+              return verificationId;
+            }, function(error) {
+              if (typeof applicationVerifier.reset === 'function') {
+                applicationVerifier.reset();
+              }
+              throw error;
+            });
           default:
             throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
                 'Only firebase.auth.ApplicationVerifiers with ' +
@@ -1300,7 +1443,6 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
  * @param {string} verificationCode The verification code that was sent to the
  *     user's phone.
  * @return {!fireauth.PhoneAuthCredential}
- * @override
  */
 fireauth.PhoneAuthProvider.credential =
     function(verificationId, verificationCode) {
@@ -1423,7 +1565,7 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
  * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
  */
 fireauth.AuthProvider.getCredentialFromJSON = function(json) {
-  var obj = goog.isString(json) ? JSON.parse(json) : json;
+  var obj = typeof json === 'string' ? JSON.parse(json) : json;
   var credential;
   var fromJSON = [
     fireauth.OAuthCredential.fromJSON,

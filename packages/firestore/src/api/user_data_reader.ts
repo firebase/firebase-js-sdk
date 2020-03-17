@@ -126,7 +126,7 @@ export class ParsedUpdateData {
  * for determining which error conditions apply during parsing and providing
  * better error messages.
  */
-enum UserDataSource {
+const enum UserDataSource {
   Set,
   Update,
   MergeSet,

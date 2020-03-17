@@ -167,7 +167,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
   private isPrimary: undefined | boolean = undefined;
-  private onlineState: OnlineState = OnlineState.Unknown;
+  private onlineState = OnlineState.Unknown;
 
   constructor(
     private localStore: LocalStore,
