@@ -36,7 +36,7 @@ export async function signInWithRedirect(
   resolver = resolver || auth.popupRedirectResolver;
   if (!resolver) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
-      appName: auth.name,
+      appName: auth.name
     });
   }
 
@@ -52,7 +52,7 @@ export async function signInWithRedirect(
   return resolver.processRedirect(
     auth,
     provider,
-    AuthEventType.SIGN_IN_VIA_REDIRECT,
+    AuthEventType.SIGN_IN_VIA_REDIRECT
   );
 }
 
@@ -77,15 +77,20 @@ export async function reauthenticateWithRedirect(
     auth,
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
-    eventId,
+    eventId
   );
 }
 
-export async function linkWithRedirect(auth: Auth, user: User, provider: OAuthProvider, resolver?: PopupRedirectResolver): Promise<never> {
+export async function linkWithRedirect(
+  auth: Auth,
+  user: User,
+  provider: OAuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<never> {
   resolver = resolver || auth.popupRedirectResolver;
   if (!resolver) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
-      appName: auth.name,
+      appName: auth.name
     });
   }
 
@@ -94,7 +99,7 @@ export async function linkWithRedirect(auth: Auth, user: User, provider: OAuthPr
   if (user.providerData.find(p => p.providerId === provider.providerId)) {
     auth.updateCurrentUser(user);
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.PROVIDER_ALREADY_LINKED, {
-      appName: auth.name,
+      appName: auth.name
     });
   }
 
@@ -106,7 +111,7 @@ export async function linkWithRedirect(auth: Auth, user: User, provider: OAuthPr
     auth,
     provider,
     AuthEventType.LINK_VIA_REDIRECT,
-    eventId,
+    eventId
   );
 }
 
@@ -256,4 +261,3 @@ export class RedirectManager {
 //   }
 //   // return resolver.getRedirectResult(auth);
 // }
-

@@ -193,7 +193,7 @@ enum Persistence {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return linkWithRedirect(auth, user, provider, resolver);
-        },
+        }
       });
     }
   });
