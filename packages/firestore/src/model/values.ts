@@ -21,6 +21,7 @@ import { TypeOrder } from './field_value';
 import { assert, fail } from '../util/assert';
 import { forEach, keys, size } from '../util/obj';
 import { ByteString } from '../util/byte_string';
+import { DocumentKey } from './document_key';
 import {
   numericComparator,
   numericEquals,
@@ -359,8 +360,7 @@ function canonifyValue(value: api.Value): string {
   } else if ('bytesValue' in value) {
     return canonifyByteString(value.bytesValue!);
   } else if ('referenceValue' in value) {
-    // TODO(mrschmidt): Use document key only
-    return value.referenceValue!;
+    return canonifyReference(value.referenceValue!);
   } else if ('geoPointValue' in value) {
     return canonifyGeoPoint(value.geoPointValue!);
   } else if ('arrayValue' in value) {
@@ -383,6 +383,10 @@ function canonifyTimestamp(timestamp: ProtoTimestampValue): string {
 
 function canonifyGeoPoint(geoPoint: api.LatLng): string {
   return `geo(${geoPoint.latitude},${geoPoint.longitude})`;
+}
+
+function canonifyReference(referenceValue: string): string {
+  return DocumentKey.fromName(referenceValue).toString();
 }
 
 function canonifyMap(mapValue: api.MapValue): string {

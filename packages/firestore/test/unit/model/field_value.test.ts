@@ -396,5 +396,4 @@ describe('FieldValue', () => {
       .delete(field(fieldPath))
       .build();
   }
-
 });

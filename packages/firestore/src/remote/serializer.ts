@@ -76,7 +76,7 @@ import {
   normalizeByteString,
   normalizeNumber,
   normalizeTimestamp
-} from '../model/proto_values';
+} from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};

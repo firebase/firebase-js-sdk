@@ -33,7 +33,7 @@ import {
   normalizeByteString,
   normalizeTimestamp,
   typeOrder
-} from './proto_values';
+} from './values';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
