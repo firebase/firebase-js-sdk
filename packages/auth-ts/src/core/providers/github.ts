@@ -20,13 +20,31 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 import { OAuthCredential } from '../../model/auth_credential';
+import { GenericOAuthCredential } from './oauth_credential';
+
+// if (!accessTokenOrObject) {
+//   throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
+//       'credential failed: expected 1 argument (the OAuth access token).');
+// }
+// var accessToken = accessTokenOrObject;
+// if (goog.isObject(accessTokenOrObject)) {
+//   accessToken = accessTokenOrObject['accessToken'];
+// }
+// return new fireauth.GithubAuthProvider().credential({
+//   'accessToken': /** @type {string} */ (accessToken)
+// });
+// };
 
 export class GithubAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.GITHUB;
   static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
   readonly providerId: ProviderId = GithubAuthProvider.PROVIDER_ID;
   static credential(accessToken: string): OAuthCredential {
-    throw new Error('not implemented');
+    return new GenericOAuthCredential({
+      providerId: this.PROVIDER_ID,
+      signInMethod: this.GITHUB_SIGN_IN_METHOD,
+      accessToken,
+    });
   }
   static credentialFromResult(
     userCredential: UserCredential

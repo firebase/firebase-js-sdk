@@ -17,16 +17,60 @@
 
 import { AuthProvider, ProviderId, SignInMethod } from '../providers';
 import { UserCredential } from '../../model/user_credential';
-import { AuthErrorCode } from '../errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { CustomParameters, OAuthProvider } from './oauth';
 import { AuthCredential, OAuthCredential } from '../../model/auth_credential';
+import { GenericOAuthCredential } from './oauth_credential';
+
+// var tokenObject = tokenOrObject;
+//   if (!goog.isObject(tokenObject)) {
+//     tokenObject = {
+//       'oauthToken': tokenOrObject,
+//       'oauthTokenSecret': secret
+//     };
+//   }
+
+//   if (!tokenObject['oauthToken'] || !tokenObject['oauthTokenSecret']) {
+//     throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
+//         'credential failed: expected 2 arguments (the OAuth access token ' +
+//         'and secret).');
+//   }
+
+//   return new fireauth.OAuthCredential(fireauth.idp.ProviderId.TWITTER,
+//       /** @type {!fireauth.OAuthResponse} */ (tokenObject),
+//       fireauth.idp.SignInMethod.TWITTER);
+
+export interface TwitterToken {
+  oauthToken: string;
+  oauthTokenSecret: string;
+}
 
 export class TwitterAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.TWITTER;
   static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
   readonly providerId = TwitterAuthProvider.PROVIDER_ID;
-  static credential(token: string, secret: string): AuthCredential {
-    throw new Error('not implemented');
+  static credential(token: string|TwitterToken, secret: string): AuthCredential {
+    let tokenObject: TwitterToken;
+    if (typeof token === 'string') {
+      tokenObject = {
+        oauthToken: token,
+        oauthTokenSecret: secret,
+      };
+    } else {
+      tokenObject = token;
+    }
+
+    if (!tokenObject.oauthToken || !tokenObject.oauthTokenSecret) {
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
+        appName: 'todo',
+      });
+    }
+
+    return new GenericOAuthCredential({
+      ...tokenObject,
+      providerId: TwitterAuthProvider.PROVIDER_ID,
+      signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
+    });
   }
   static credentialFromResult(
     userCredential: UserCredential

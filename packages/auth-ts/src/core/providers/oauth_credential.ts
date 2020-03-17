@@ -129,36 +129,3 @@ export class GenericOAuthCredential implements OAuthCredential {
   }
 }
 
-/**
- * @return {!Object} A request to the VerifyAssertion endpoint, populated with
- *     the OAuth data from this credential.
- * @private
- */
-// fireauth.OAuthCredential.prototype.makeVerifyAssertionRequest_ = function() {
-//   var postBody = {};
-//   if (this['idToken']) {
-//     postBody['id_token'] = this['idToken'];
-//   }
-//   if (this['accessToken']) {
-//     postBody['access_token'] = this['accessToken'];
-//   }
-//   if (this['secret']) {
-//     postBody['oauth_token_secret'] = this['secret'];
-//   }
-//   postBody['providerId'] = this['providerId'];
-//   // Pass nonce in postBody if available.
-//   if (this['nonce'] && !this.pendingToken_) {
-//     postBody['nonce'] = this['nonce'];
-//   }
-//   var request = {
-//     'postBody': goog.Uri.QueryData.createFromMap(postBody).toString(),
-//     // Always use http://localhost.
-//     'requestUri': 'http://localhost'
-//   };
-//   if (this.pendingToken_) {
-//     // For pendingToken, just pass it through and drop postBody.
-//     delete request['postBody'];
-//     request['pendingToken'] = this.pendingToken_;
-//   }
-//   return request;
-// };
