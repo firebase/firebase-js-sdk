@@ -33,7 +33,8 @@ export interface PopupRedirectResolver {
   processRedirect(
     auth: Auth,
     provider: AuthProvider,
-    authType: AuthEventType
+    authType: AuthEventType,
+    eventId?: string,
   ): Promise<never>;
   getRedirectResult(auth: Auth): Promise<UserCredential | null>;
   initializeAndWait(auth: Auth): Promise<void>;

@@ -189,6 +189,7 @@ export interface SignInWithIdpRequest {
   tenantId?: string;
   returnSecureToken: true;
   idToken?: IdToken;
+  autoCreate?: boolean;
 }
 
 export interface SignInWithIdpResponse extends IdTokenResponse {

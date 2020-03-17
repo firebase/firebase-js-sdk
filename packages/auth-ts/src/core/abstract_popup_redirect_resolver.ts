@@ -22,6 +22,7 @@ import { AuthEventType, AuthEvent } from '../model/auth_event';
 import { UserCredential } from '../model/user_credential';
 import { RedirectManager } from './strategies/redirect';
 import * as idp from './strategies/idp';
+import { User } from '../model/user';
 
 export abstract class AbstractPopupRedirectResolver
   implements PopupRedirectResolver {
@@ -54,6 +55,11 @@ export abstract class AbstractPopupRedirectResolver
         case AuthEventType.SIGN_IN_VIA_POPUP:
           cred = await this.execIdpTask(event, idp.signIn);
           break;
+        case AuthEventType.REAUTH_VIA_REDIRECT:
+          isRedirect = true;
+          const user = this.userForEvent(event.eventId!);
+          cred = await this.execIdpTask(event, idp.reauth, user);
+          break;
       }
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(cred);
@@ -77,12 +83,25 @@ export abstract class AbstractPopupRedirectResolver
     });
   }
 
+  private userForEvent(id: string): User|undefined {
+    return this.auth.getPotentialRedirectUsers_()
+      .find(u => u.redirectEventId_ === id);
+  }
+
   private execIdpTask(
     event: AuthEvent,
-    task: idp.IdpTask
+    task: idp.IdpTask,
+    user?: User,
   ): Promise<UserCredential | null> {
     const { urlResponse, sessionId, postBody, tenantId } = event;
-
-    return task(this.auth, urlResponse!, sessionId!, tenantId!, postBody!);
+    const params: idp.IdpTaskParams = {
+      requestUri: urlResponse!,
+      sessionId: sessionId!,
+      auth: this.auth,
+      tenantId: tenantId || undefined,
+      postBody: postBody || undefined,
+      user,
+    }
+    return task(params);
   }
 }

@@ -32,6 +32,7 @@ import {
 import { PopupRedirectResolver } from '../model/popup_redirect_resolver';
 import { Auth, AuthSettings, Config, LanguageCode } from '../model/auth';
 import { reloadWithoutSaving } from './account_management/reload';
+import { browserSessionPersistence } from './persistence/browser_session';
 
 interface Deferrable {
   deferred?: Deferred<void>;
@@ -84,6 +85,8 @@ export class AuthImpl implements Auth {
     }
   );
   private userManager?: UserManager;
+  private redirectUserManager?: UserManager;
+  private redirectUser: User|null = null;
 
   async isInitialized(): Promise<void> {
     if (this.deferred) {
@@ -102,13 +105,25 @@ export class AuthImpl implements Auth {
         persistenceHierarchy
       );
 
+      this.redirectUserManager = await UserManager.create(
+        this.config.apiKey,
+        this.name,
+        [browserSessionPersistence],
+        'redirectUser',
+      );
+
       let storedUser = await this.userManager.getCurrentUser();
+      this.redirectUser = await this.redirectUserManager.getCurrentUser();
+
       if (storedUser) {
         // TODO: This will break redirect flows. Redirect flows *SHOULD NOT*
         //       update the user first
-        await reloadWithoutSaving(this, storedUser);
-        await this.setCurrentUser_(storedUser);
+        if (this.redirectUser?.redirectEventId_ !== storedUser.redirectEventId_) {
+          await reloadWithoutSaving(this, storedUser);
+        }
       }
+
+      await this.setCurrentUser_(storedUser);
     });
   }
 
@@ -168,6 +183,21 @@ export class AuthImpl implements Auth {
 
   useDeviceLanguage(): void {
     throw new Error('not implemented');
+  }
+
+  getPotentialRedirectUsers_(): User[] {
+    const users: User[] = [];
+    if (this.currentUser) {
+      users.push(this.currentUser);
+    }
+    if (this.redirectUser) {
+      users.push(this.redirectUser);
+    }
+    return users;
+  }
+
+  async setRedirectUser_(user: User): Promise<void> {
+    await this.redirectUserManager?.setCurrentUser(user);
   }
 
   /**

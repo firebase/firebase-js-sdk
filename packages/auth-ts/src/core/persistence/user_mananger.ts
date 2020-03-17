@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-import { Persistence, Instantiator } from '../persistence';
+import { Persistence } from '../persistence';
 import { User } from '../../model/user';
 import { ApiKey, AppName } from '../../model/auth';
-import { browserSessionPersistence } from './browser_session';
 import { inMemoryPersistence } from './in_memory';
-import { browserLocalPersistence } from './browser_local';
 
 export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
@@ -38,7 +36,8 @@ export class UserManager {
   private constructor(
     public persistence: Persistence,
     private readonly apiKey: ApiKey,
-    private readonly appName: AppName
+    private readonly appName: AppName,
+    private readonly userKey: string,
   ) {}
 
   fullKeyName_(key: string): string {
@@ -46,18 +45,18 @@ export class UserManager {
   }
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullKeyName_(AUTH_USER_KEY_NAME_), user);
+    return this.persistence.set(this.fullKeyName_(this.userKey), user);
   }
 
   async getCurrentUser(): Promise<User | null> {
     return this.persistence.get<User>(
-      this.fullKeyName_(AUTH_USER_KEY_NAME_),
+      this.fullKeyName_(this.userKey),
       User.fromPlainObject
     );
   }
 
   removeCurrentUser(): Promise<void> {
-    return this.persistence.remove(this.fullKeyName_(AUTH_USER_KEY_NAME_));
+    return this.persistence.remove(this.fullKeyName_(this.userKey));
   }
 
   savePersistenceForRedirect(): Promise<void> {
@@ -85,16 +84,17 @@ export class UserManager {
   static async create(
     apiKey: ApiKey,
     appName: AppName,
-    persistenceHierarchy: Persistence[]
+    persistenceHierarchy: Persistence[],
+    userKey = AUTH_USER_KEY_NAME_,
   ): Promise<UserManager> {
     if (!persistenceHierarchy.length) {
-      return new UserManager(inMemoryPersistence, apiKey, appName);
+      return new UserManager(inMemoryPersistence, apiKey, appName, userKey);
     }
 
-    const key = persistenceKeyName_(AUTH_USER_KEY_NAME_, apiKey, appName);
+    const key = persistenceKeyName_(userKey, apiKey, appName);
     for (const persistence of persistenceHierarchy) {
       if (await persistence.get<User>(key)) {
-        return new UserManager(persistence, apiKey, appName);
+        return new UserManager(persistence, apiKey, appName, userKey);
       }
     }
 
@@ -104,6 +104,6 @@ export class UserManager {
 
     // All else failed, fall back to zeroth persistence
     // TODO: Modify this to support non-browser devices
-    return new UserManager(persistenceHierarchy[0], apiKey, appName);
+    return new UserManager(persistenceHierarchy[0], apiKey, appName, userKey);
   }
 }

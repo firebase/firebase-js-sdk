@@ -27,10 +27,10 @@ import {
   confirmPasswordReset,
   verifyPasswordResetCode
 } from './core/strategies/email_and_password';
-import { signInWithRedirect } from './core/strategies/redirect';
+import { signInWithRedirect, reauthenticateWithRedirect } from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
-import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
+import { browserPopupRedirectResolver, BrowserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User, ProfileInfo } from './model/user';
 import {
@@ -71,7 +71,7 @@ import {
   reauthenticateWithPhoneNumber
 } from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
-import { ProviderId } from './core/providers';
+import { ProviderId, AuthProvider } from './core/providers';
 import { unlink } from './core/account_management/unlink';
 import {
   updateEmail,
@@ -174,6 +174,11 @@ enum Persistence {
         },
         updatePhoneNumber(phoneCredential: PhoneAuthCredential): Promise<void> {
           return updatePhoneNumber(auth, user, phoneCredential);
+        },
+        reauthenticateWithRedirect(provider: OAuthProvider): Promise<never> {
+          const resolver = isMobileCordova() ?
+            cordovaPopupRedirectResolver : browserPopupRedirectResolver;
+          return reauthenticateWithRedirect(auth, user, provider, resolver);
         }
       });
     }

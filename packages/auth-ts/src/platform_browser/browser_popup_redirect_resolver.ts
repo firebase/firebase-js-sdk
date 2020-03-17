@@ -52,6 +52,7 @@ type WidgetParams = {
   providerId?: ProviderId;
   scopes?: string;
   customParameters?: string;
+  eventId?: string;
 };
 
 enum GapiOutcome {
@@ -71,7 +72,8 @@ function queryString(params: Params): string {
 function getRedirectUrl(
   auth: Auth,
   provider: AuthProvider,
-  authType: AuthEventType
+  authType: AuthEventType,
+  eventId?: string,
 ): string {
   if (!auth.config.authDomain) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MISSING_AUTH_DOMAIN, {
@@ -89,7 +91,8 @@ function getRedirectUrl(
     appName: auth.name,
     authType,
     redirectUrl: getCurrentUrl(),
-    v: firebase.SDK_VERSION
+    v: firebase.SDK_VERSION,
+    eventId,
   };
 
   if (provider instanceof OAuthProvider) {
@@ -111,7 +114,6 @@ function getRedirectUrl(
     // }
   }
 
-  // TODO: maybe need to set eventId?
   // TODO: maybe set tid as tenantId
   // TODO: maybe set eid as endipointId
   // TODO: maybe set fw as Frameworks.join(",")
@@ -141,14 +143,15 @@ export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver 
   processRedirect(
     auth: Auth,
     provider: AuthProvider,
-    authType: AuthEventType
+    authType: AuthEventType,
+    eventId?: string,
   ): Promise<never> {
     // Create iframe
     //        fireauth.iframeclient.IfcHandler.prototype.processRedirect =
     //        check origin validator(?)
     // Wait until iframe all done event
 
-    location.href = getRedirectUrl(auth, provider, authType);
+    location.href = getRedirectUrl(auth, provider, authType, eventId);
     return new Promise(() => {});
   }
 

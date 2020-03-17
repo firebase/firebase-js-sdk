@@ -24,6 +24,8 @@ import { UserCredential, OperationType } from '../../model/user_credential';
 import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication';
 import { initializeCurrentUserFromIdTokenResponse } from '.';
 import { authCredentialFromTokenResponse } from './auth_credential';
+import { User } from '../../model/user';
+import { generateEventId } from '../util/event_id';
 
 export async function signInWithRedirect(
   auth: Auth,
@@ -50,6 +52,31 @@ export async function signInWithRedirect(
     auth,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
+  );
+}
+
+export async function reauthenticateWithRedirect(
+  auth: Auth,
+  user: User,
+  provider: OAuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<never> {
+  resolver = resolver || auth.popupRedirectResolver;
+  if (!resolver) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
+      appName: auth.name
+    });
+  }
+
+  const eventId = generateEventId(`${user.uid}:::`);
+  user.redirectEventId_ = eventId;
+  await auth.setRedirectUser_(user);
+
+  return resolver.processRedirect(
+    auth,
+    provider,
+    AuthEventType.REAUTH_VIA_REDIRECT,
+    eventId,
   );
 }
 

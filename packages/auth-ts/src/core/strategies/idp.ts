@@ -20,22 +20,30 @@ import { UserCredential, OperationType } from '../../model/user_credential';
 import { SignInWithIdpRequest, signInWithIdp } from '../../api/authentication';
 import { initializeCurrentUserFromIdTokenResponse } from '.';
 import { authCredentialFromTokenResponse } from './auth_credential';
+import { User } from '../../model/user';
+import { verifyTokenResponseUid } from '../../model/id_token';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+
+export interface IdpTaskParams {
+  auth: Auth;
+  requestUri: string;
+  sessionId: string;
+  tenantId?: string;
+  postBody?: string;
+  user?: User;
+}
 
 export type IdpTask = (
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
+  params: IdpTaskParams,
 ) => Promise<UserCredential>;
 
-export async function signIn(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
+export async function signIn({
+  auth,
+  requestUri,
+  sessionId,
+  tenantId,
+  postBody
+}: IdpTaskParams): Promise<UserCredential> {
   const request: SignInWithIdpRequest = {
     requestUri,
     sessionId,
@@ -49,4 +57,40 @@ export async function signIn(
   const credential = authCredentialFromTokenResponse(response);
   auth.updateCurrentUser(user);
   return new UserCredential(user, credential, OperationType.SIGN_IN);
+}
+
+export async function reauth({
+  auth,
+  requestUri,
+  sessionId,
+  tenantId,
+  postBody,
+  user
+}: IdpTaskParams): Promise<UserCredential> {
+  if (!user) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name,
+    });
+  }
+  const request: SignInWithIdpRequest = {
+    requestUri,
+    sessionId,
+    postBody: postBody || null,
+    tenantId,
+    returnSecureToken: true,
+    autoCreate: false,
+  };
+
+  const requestPromise = signInWithIdp(auth, request);
+  const idTokenResponse = await verifyTokenResponseUid(requestPromise, user.uid, auth.name);
+  user.stsTokenManager.updateFromServerResponse(idTokenResponse);
+  const cred = authCredentialFromTokenResponse(idTokenResponse);
+  const userCred = new UserCredential(
+    user,
+    cred,
+    OperationType.REAUTHENTICATE
+  );
+
+  await user.reload(auth);
+  return userCred;
 }

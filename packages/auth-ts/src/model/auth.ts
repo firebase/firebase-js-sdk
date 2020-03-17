@@ -73,4 +73,8 @@ export interface Auth {
   useDeviceLanguage(): void;
   updateCurrentUser(user: User | null): Promise<void>;
   signOut(): Promise<void>;
+
+  // Non-public public methods
+  getPotentialRedirectUsers_(): User[];
+  setRedirectUser_(user: User): Promise<void>;
 }
