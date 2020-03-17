@@ -63,10 +63,11 @@ export function isNullOrUndefined(value: unknown): boolean {
  * @param value The value to test for being an integer and in the safe range
  */
 export function isSafeInteger(value: unknown): boolean {
-  // Implemented based on Object.is() polyfill from
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
   if (value === -0) {
-    // +0 != -0
+    // Detect if the value is actually 0 and not -0 (JS returns true for
+    // `0 === -0`). `0` is a safe integer, -0 has to be stored as a double.
+    // Based on polyfill from
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
     return 1 / value === 1 / 0;
   } else {
     return (
