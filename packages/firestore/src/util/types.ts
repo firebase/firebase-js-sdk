@@ -33,7 +33,7 @@ export function isNullOrUndefined(value: unknown): boolean {
  */
 export function isSafeInteger(value: unknown): boolean {
   return (
-    typeof value == 'number' &&
+    typeof value === 'number' &&
     Number.isInteger(value) &&
     (value as number) <= Number.MAX_SAFE_INTEGER &&
     (value as number) >= Number.MIN_SAFE_INTEGER
