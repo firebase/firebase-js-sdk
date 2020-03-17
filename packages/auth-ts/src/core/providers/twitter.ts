@@ -49,12 +49,15 @@ export class TwitterAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.TWITTER;
   static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
   readonly providerId = TwitterAuthProvider.PROVIDER_ID;
-  static credential(token: string|TwitterToken, secret: string): AuthCredential {
+  static credential(
+    token: string | TwitterToken,
+    secret: string
+  ): AuthCredential {
     let tokenObject: TwitterToken;
     if (typeof token === 'string') {
       tokenObject = {
         oauthToken: token,
-        oauthTokenSecret: secret,
+        oauthTokenSecret: secret
       };
     } else {
       tokenObject = token;
@@ -62,14 +65,14 @@ export class TwitterAuthProvider extends OAuthProvider {
 
     if (!tokenObject.oauthToken || !tokenObject.oauthTokenSecret) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
-        appName: 'todo',
+        appName: 'todo'
       });
     }
 
     return new GenericOAuthCredential({
       ...tokenObject,
       providerId: TwitterAuthProvider.PROVIDER_ID,
-      signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
+      signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD
     });
   }
   static credentialFromResult(

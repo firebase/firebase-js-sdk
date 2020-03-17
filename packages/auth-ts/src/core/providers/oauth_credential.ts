@@ -128,4 +128,3 @@ export class GenericOAuthCredential implements OAuthCredential {
     return request;
   }
 }
-

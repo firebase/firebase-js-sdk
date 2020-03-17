@@ -43,7 +43,7 @@ export class GithubAuthProvider extends OAuthProvider {
     return new GenericOAuthCredential({
       providerId: this.PROVIDER_ID,
       signInMethod: this.GITHUB_SIGN_IN_METHOD,
-      accessToken,
+      accessToken
     });
   }
   static credentialFromResult(
