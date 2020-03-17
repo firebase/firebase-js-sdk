@@ -27,6 +27,13 @@ export function isNullOrUndefined(value: unknown): boolean {
   return value === null || value === undefined;
 }
 
+/** Returns whether the value represents -0. */
+export function isNegativeZero(value: number) : boolean {
+  // Detect if the value is -0.0. Based on polyfill from
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+  return value === -0 && 1 / value === 1 / -0;
+}
+
 /**
  * Returns whether a value is an integer and in the safe integer range
  * @param value The value to test for being an integer and in the safe range
@@ -35,7 +42,8 @@ export function isSafeInteger(value: unknown): boolean {
   return (
     typeof value === 'number' &&
     Number.isInteger(value) &&
-    (value as number) <= Number.MAX_SAFE_INTEGER &&
-    (value as number) >= Number.MIN_SAFE_INTEGER
+    !isNegativeZero(value) &&
+    value <= Number.MAX_SAFE_INTEGER &&
+    value >= Number.MIN_SAFE_INTEGER
   );
 }
