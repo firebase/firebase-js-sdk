@@ -35,6 +35,9 @@ goog.require('goog.testing.jsunit');
 goog.setTestOnly('fireauth.errorTest');
 
 
+var now = new Date();
+
+
 function testAuthError() {
   var error = new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   assertEquals('auth/internal-error', error['code']);
@@ -46,6 +49,94 @@ function testAuthError() {
   }, error.toJSON());
   // Make sure JSON.stringify works and uses underlying toJSON.
   assertEquals(JSON.stringify(error), JSON.stringify(error.toJSON()));
+}
+
+
+function testAuthError_serverResponse_defaultMessage() {
+  var serverResponse = {
+    'mfaInfo': {
+      'mfaEnrollmentId': 'ENROLLMENT_UID1',
+      'enrolledAt': now.toISOString(),
+      'phoneInfo': '+16505551234'
+    },
+    'mfaPendingCredential': 'PENDING_CREDENTIAL',
+    // Credential returned.
+    'providerId': 'google.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthIdToken': 'googleIdToken',
+    'oauthExpireIn': 3600,
+    // Additional user info data.
+    'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe",' +
+        '"name":{"givenName":"John","familyName":"Doe"}}'
+  };
+  var error = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED, null, serverResponse);
+
+  assertEquals('auth/multi-factor-auth-required', error['code']);
+  assertEquals(
+      fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MFA_REQUIRED],
+      error['message']);
+  assertObjectEquals(serverResponse, error.serverResponse);
+  // Test toJSON().
+  assertObjectEquals({
+    code: error['code'],
+    message: error['message'],
+    serverResponse: error.serverResponse
+  }, error.toJSON());
+  // Make sure JSON.stringify works and uses underlying toJSON.
+  assertEquals(JSON.stringify(error), JSON.stringify(error.toJSON()));
+
+  // Confirm toPlainObject behavior.
+  assertObjectEquals(error.toJSON(), error.toPlainObject());
+
+  // Confirm fromPlainObject behavior.
+  assertObjectEquals(
+      error,
+      fireauth.AuthError.fromPlainObject(error.toPlainObject()));
+}
+
+
+function testAuthError_serverResponse_customMessage() {
+  var serverResponse = {
+    'mfaInfo': {
+      'mfaEnrollmentId': 'ENROLLMENT_UID1',
+      'enrolledAt': now.toISOString(),
+      'phoneInfo': '+16505551234'
+    },
+    'mfaPendingCredential': 'PENDING_CREDENTIAL',
+    // Credential returned.
+    'providerId': 'google.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthIdToken': 'googleIdToken',
+    'oauthExpireIn': 3600,
+    // Additional user info data.
+    'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe",' +
+        '"name":{"givenName":"John","familyName":"Doe"}}'
+  };
+  var error = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      'custom message',
+      serverResponse);
+
+  assertEquals('auth/multi-factor-auth-required', error['code']);
+  assertEquals('custom message', error['message']);
+  assertObjectEquals(serverResponse, error.serverResponse);
+  // Test toJSON().
+  assertObjectEquals({
+    code: error['code'],
+    message: error['message'],
+    serverResponse: error.serverResponse
+  }, error.toJSON());
+  // Make sure JSON.stringify works and uses underlying toJSON.
+  assertEquals(JSON.stringify(error), JSON.stringify(error.toJSON()));
+
+  // Confirm toPlainObject behavior.
+  assertObjectEquals(error.toJSON(), error.toPlainObject());
+
+  // Confirm fromPlainObject behavior.
+  assertObjectEquals(
+      error,
+      fireauth.AuthError.fromPlainObject(error.toPlainObject()));
 }
 
 

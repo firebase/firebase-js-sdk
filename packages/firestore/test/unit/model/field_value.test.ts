@@ -24,7 +24,6 @@ import {
   PrimitiveValue
 } from '../../../src/model/proto_field_value';
 import { ByteString } from '../../../src/util/byte_string';
-import * as typeUtils from '../../../src/util/types';
 import { blob, field, mask } from '../../util/helpers';
 import { valueOf } from '../../util/values';
 
@@ -34,12 +33,12 @@ describe('FieldValue', () => {
 
   it('can parse integers', () => {
     const primitiveValues = [
-      typeUtils.MIN_SAFE_INTEGER,
+      Number.MIN_SAFE_INTEGER,
       -1,
       0,
       1,
       2,
-      typeUtils.MAX_SAFE_INTEGER
+      Number.MAX_SAFE_INTEGER
     ];
     const values = primitiveValues.map(v => wrap(v));
 
@@ -56,10 +55,10 @@ describe('FieldValue', () => {
 
   it('can parse doubles', () => {
     const primitiveValues = [
-      typeUtils.MIN_SAFE_INTEGER - 1,
+      Number.MIN_SAFE_INTEGER - 1,
       -1.1,
       0.1,
-      typeUtils.MAX_SAFE_INTEGER + 1,
+      Number.MAX_SAFE_INTEGER + 1,
       NaN,
       Infinity,
       -Infinity

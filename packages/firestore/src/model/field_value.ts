@@ -51,7 +51,7 @@ export interface JsonObject<T> {
   [name: string]: T;
 }
 
-export enum TypeOrder {
+export const enum TypeOrder {
   // This order is defined by the backend.
   NullValue = 0,
   BooleanValue = 1,

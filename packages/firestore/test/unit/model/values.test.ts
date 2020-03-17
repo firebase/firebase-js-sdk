@@ -134,8 +134,8 @@ describe('Values', () => {
       [wrap(NaN)],
       [wrap(-Infinity)],
       [wrap(-Number.MAX_VALUE)],
-      [wrap(typeUtils.MIN_SAFE_INTEGER - 1)],
-      [wrap(typeUtils.MIN_SAFE_INTEGER)],
+      [wrap(Number.MIN_SAFE_INTEGER - 1)],
+      [wrap(Number.MIN_SAFE_INTEGER)],
       [wrap(-1.1)],
       // Integers and Doubles order the same.
       [{ integerValue: -1 }, { doubleValue: -1 }],
@@ -145,8 +145,8 @@ describe('Values', () => {
       [wrap(Number.MIN_VALUE)],
       [{ integerValue: 1 }, { doubleValue: 1 }],
       [wrap(1.1)],
-      [wrap(typeUtils.MAX_SAFE_INTEGER)],
-      [wrap(typeUtils.MAX_SAFE_INTEGER + 1)],
+      [wrap(Number.MAX_SAFE_INTEGER)],
+      [wrap(Number.MAX_SAFE_INTEGER + 1)],
       [wrap(Infinity)],
 
       // timestamps

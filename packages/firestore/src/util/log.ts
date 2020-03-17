@@ -21,7 +21,7 @@ import { PlatformSupport } from '../platform/platform';
 
 const logClient = new Logger('@firebase/firestore');
 
-export enum LogLevel {
+export const enum LogLevel {
   DEBUG,
   ERROR,
   SILENT

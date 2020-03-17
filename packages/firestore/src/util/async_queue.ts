@@ -31,7 +31,7 @@ type TimerHandle = any;
  *
  * The string values are used when encoding these timer IDs in JSON spec tests.
  */
-export enum TimerId {
+export const enum TimerId {
   /** All can be used with runDelayedOperationsEarly() to run all timers. */
   All = 'all',
 
@@ -372,9 +372,16 @@ export class AsyncQueue {
    * Waits until all currently queued tasks are finished executing. Delayed
    * operations are not run.
    */
-  drain(): Promise<void> {
-    // It should still be possible to drain the queue after it is shutting down.
-    return this.enqueueEvenAfterShutdown(() => Promise.resolve());
+  async drain(): Promise<void> {
+    // Operations in the queue prior to draining may have enqueued additional
+    // operations. Keep draining the queue until the tail is no longer advanced,
+    // which indicates that no more new operations were enqueued and that all
+    // operations were executed.
+    let currentTail: Promise<unknown>;
+    do {
+      currentTail = this.tail;
+      await currentTail;
+    } while (currentTail !== this.tail);
   }
 
   /**

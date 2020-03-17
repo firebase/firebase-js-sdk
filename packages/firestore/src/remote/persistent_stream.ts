@@ -63,7 +63,7 @@ export interface WriteRequest extends api.WriteRequest {
  *               stop() called or
  *               idle timer expired
  */
-enum PersistentStreamState {
+const enum PersistentStreamState {
   /**
    * The streaming RPC is not yet running and there's no error condition.
    * Calling start() will start the stream immediately without backoff.

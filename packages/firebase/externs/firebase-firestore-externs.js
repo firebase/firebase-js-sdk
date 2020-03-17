@@ -61,7 +61,7 @@ firebase.firestore.Settings = function() {};
  * default and this option will be removed. You should change your code to
  * use `Timestamp` and opt-in to this new behavior as soon as you can.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.Settings.prototype.timestampsInSnapshots;
 
@@ -463,7 +463,7 @@ firebase.firestore.SetOptions = function() {};
  * Changes the behavior of a set() call to only replace the values specified
  * in its data argument. Fields omitted from the set() call remain untouched.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.SetOptions.prototype.merge;
 
@@ -472,7 +472,7 @@ firebase.firestore.SetOptions.prototype.merge;
  * paths. Any field path that is not specified is ignored and remains
  * untouched.
  *
- * @typedef {Array<string>|Array<firebase.firestore.FieldPath>}
+ * @type {Array<string>|Array<firebase.firestore.FieldPath>}
  */
 firebase.firestore.SetOptions.prototype.mergeFields;
 
@@ -630,7 +630,7 @@ firebase.firestore.SnapshotOptions = function() {};
  * If omitted or set to 'none', `null` will be returned by default until the
  * server value becomes available.
  *
- * @typedef {string|undefined}
+ * @type {string|undefined}
  */
 firebase.firestore.SnapshotOptions.prototype.serverTimestamps;
 
@@ -660,7 +660,7 @@ firebase.firestore.GetOptions = function() {};
  * data, `DocumentReference.get()` will return an error and
  * `QuerySnapshot.get()` will return an empty `QuerySnapshot`.
  *
- * @typedef {string|undefined}
+ * @type {string|undefined}
  */
 firebase.firestore.GetOptions.prototype.source;
 
@@ -677,7 +677,7 @@ firebase.firestore.SnapshotMetadata = function() {};
  * you will receive another snapshot with `fromCache` set to false once
  * the client has received up-to-date data from the backend.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.SnapshotMetadata.prototype.fromCache;
 
@@ -690,7 +690,7 @@ firebase.firestore.SnapshotMetadata.prototype.fromCache;
  * snapshot with `hasPendingWrites` set to false once the writes have been
  * committed to the backend.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.SnapshotMetadata.prototype.hasPendingWrites;
 
@@ -722,21 +722,21 @@ firebase.firestore.DocumentSnapshot = function() {};
  * Property of the `DocumentSnapshot` that signals whether or not the data
  * exists. True if the document exists.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.DocumentSnapshot.prototype.exists;
 
 /**
  * The `DocumentReference` for the document included in the `DocumentSnapshot`.
  *
- * @typedef {!firebase.firestore.DocumentReference}
+ * @type {!firebase.firestore.DocumentReference}
  */
 firebase.firestore.DocumentSnapshot.prototype.ref;
 
 /**
  * Property of the `DocumentSnapshot` that provides the document's ID.
  *
- * @typedef {string}
+ * @type {string}
  */
 firebase.firestore.DocumentSnapshot.prototype.id;
 
@@ -744,13 +744,13 @@ firebase.firestore.DocumentSnapshot.prototype.id;
  *  Metadata about the `DocumentSnapshot`, including information about its
  *  source and local modifications.
  *
- * @typedef {!firebase.firestore.SnapshotMetadata}
+ * @type {!firebase.firestore.SnapshotMetadata}
  */
 firebase.firestore.DocumentSnapshot.prototype.metadata;
 
 /**
  * An object containing all the data in a document.
- * @typedef {Object}
+ * @type {Object}
  */
 firebase.firestore.DocumentData;
 
@@ -856,7 +856,7 @@ firebase.firestore.SnapshotListenOptions = function() {};
  * Raise an event even if only metadata of the query or document
  * changes. Default is false.
  *
- * @typedef {boolean}
+ * @type {boolean}
  */
 firebase.firestore.SnapshotListenOptions.prototype.includeMetadataChanges;
 
