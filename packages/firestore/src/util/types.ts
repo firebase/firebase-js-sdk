@@ -44,7 +44,7 @@ export const MAX_SAFE_INTEGER: number =
  * Added to not rely on ES6 features.
  * @param value The value to test for being an integer
  */
-export const isInteger: (value: unknown) => boolean =
+export const isInteger: (value: unknown) => value is number =
   NumberAsAny.isInteger ||
   (value =>
     typeof value === 'number' &&
@@ -58,22 +58,22 @@ export function isNullOrUndefined(value: unknown): boolean {
   return value === null || value === undefined;
 }
 
+/** Returns whether the value represents -0.. */
+export function isNegativeZero(value: number) {
+  // Detect if the value is -0.0. Based on polyfill from
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+  return value === -0 && 1 / value === 1 / -0;
+}
+
 /**
  * Returns whether a value is an integer and in the safe integer range
  * @param value The value to test for being an integer and in the safe range
  */
 export function isSafeInteger(value: unknown): boolean {
-  if (value === -0) {
-    // Detect if the value is actually 0 and not -0 (JS returns true for
-    // `0 === -0`). `0` is a safe integer, -0 has to be stored as a double.
-    // Based on polyfill from
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-    return 1 / value === 1 / 0;
-  } else {
-    return (
-      isInteger(value) &&
-      (value as number) <= MAX_SAFE_INTEGER &&
-      (value as number) >= MIN_SAFE_INTEGER
-    );
-  }
+  return (
+    isInteger(value) &&
+    !isNegativeZero(value) &&
+    value <= MAX_SAFE_INTEGER &&
+    value >= MIN_SAFE_INTEGER
+  );
 }
