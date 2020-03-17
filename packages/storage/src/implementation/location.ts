@@ -20,7 +20,6 @@
  * object location.
  */
 import * as errorsExports from './error';
-import { DEFAULT_HOST } from './constants';
 
 /**
  * @struct
@@ -84,7 +83,7 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     const version = 'v[A-Za-z0-9_]+';
-    const hostRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
+    const hostRegex = "(?:firebase)?storage.googleapis.com";
     const httpRegex = new RegExp(
       `^https?://${hostRegex}/${version}/b/${bucketDomain}/o${path}`,
       'i'
