@@ -26,16 +26,12 @@ import {
   numericEquals,
   primitiveComparator
 } from '../util/misc';
+import { TimestampValue } from '../remote/serializer';
 
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_TIMESTAMP_REG_EXP = new RegExp(
   /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/
 );
-
-// Denotes the possible representations for timestamps in the Value type.
-type ProtoTimestampValue =
-  | string
-  | { seconds?: string | number; nanos?: number };
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: api.Value): TypeOrder {
@@ -236,8 +232,8 @@ function compareNumbers(left: api.Value, right: api.Value): number {
 }
 
 function compareTimestamps(
-  left: ProtoTimestampValue,
-  right: ProtoTimestampValue
+  left: TimestampValue,
+  right: TimestampValue
 ): number {
   if (typeof left === 'string' && typeof right === 'string') {
     // Use string ordering for ISO 8601 timestamps, but strip the timezone
@@ -376,7 +372,7 @@ function canonifyByteString(byteString: string | Uint8Array): string {
   return normalizeByteString(byteString).toBase64();
 }
 
-function canonifyTimestamp(timestamp: ProtoTimestampValue): string {
+function canonifyTimestamp(timestamp: TimestampValue): string {
   const normalizedTimestamp = normalizeTimestamp(timestamp);
   return `time(${normalizedTimestamp.seconds},${normalizedTimestamp.nanos})`;
 }
@@ -478,7 +474,7 @@ function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
  * nanos" representation.
  */
 export function normalizeTimestamp(
-  date: ProtoTimestampValue
+  date: TimestampValue
 ): { seconds: number; nanos: number } {
   assert(!!date, 'Cannot normalize null or undefined timestamp.');
 

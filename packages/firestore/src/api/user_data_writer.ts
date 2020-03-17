@@ -78,7 +78,9 @@ export class UserDataWriter<T> {
   private convertServerTimestamp(value: ServerTimestampValue): unknown {
     switch (this.serverTimestampBehavior) {
       case 'previous':
-        return value.previousValue ? this.convertValue(value.previousValue) : null;
+        return value.previousValue
+          ? this.convertValue(value.previousValue)
+          : null;
       case 'estimate':
         return this.convertTimestamp(value.localWriteTime);
       default:

@@ -54,7 +54,7 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import { ByteString } from '../util/byte_string';
-import * as typeUtils from '../util/types';
+import { isNullOrUndefined } from '../util/types';
 
 import {
   ArrayRemoveTransformOperation,
@@ -99,15 +99,13 @@ const OPERATORS = (() => {
 })();
 
 function assertPresent(value: unknown, description: string): asserts value {
-  assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
+  assert(!isNullOrUndefined(value), description + ' is missing');
 }
 
-// This is a supplement to the generated proto interfaces, which fail to account
-// for the fact that a timestamp may be encoded as either a string OR this.
-interface TimestampProto {
-  seconds?: string | number;
-  nanos?: number;
-}
+// Denotes the possible representations for timestamps in the Value type.
+export type TimestampValue =
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 export interface SerializerOptions {
   /**
@@ -148,46 +146,33 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | null {
-    if (this.options.useProto3Json || typeUtils.isNullOrUndefined(val)) {
+  private toInt32Value(val: number | null): number | { value: number } | null {
+    if (this.options.useProto3Json || isNullOrUndefined(val)) {
       return val;
     } else {
-      // ProtobufJS requires that we wrap Int32Values.
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { value: val } as any;
+      return { value: val };
     }
   }
 
   /**
    * Returns a number (or null) from a google.protobuf.Int32Value proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as accepting "number" because that's what
-   * our generated proto interfaces say Int32Value must be, but it actually
-   * accepts { value: number } to match our serialization in toInt32Value().
    */
-  private fromInt32Value(val: number | undefined): number | null {
+  private fromInt32Value(
+    val: number | { value: number } | undefined
+  ): number | null {
     let result;
     if (typeof val === 'object') {
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = (val as any).value;
+      result = val.value;
     } else {
-      // We accept raw numbers (without the {value: ... } wrapper) for
-      // compatibility with legacy persisted data.
       result = val;
     }
-    return typeUtils.isNullOrUndefined(result) ? null : result;
+    return isNullOrUndefined(result) ? null : result;
   }
 
   /**
    * Returns a value for a Date that's appropriate to put into a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say dates must be. But it's easier and safer
-   * to actually return a Timestamp proto.
    */
-  private toTimestamp(timestamp: Timestamp): string {
+  private toTimestamp(timestamp: Timestamp): TimestampValue {
     if (this.options.useProto3Json) {
       // Serialize to ISO-8601 date format, but with full nano resolution.
       // Since JS Date has only millis, let's only use it for the seconds and
@@ -208,25 +193,21 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromTimestamp(date: string | TimestampProto): Timestamp {
+  private fromTimestamp(date: TimestampValue): Timestamp {
     const timestamp = normalizeTimestamp(date);
     return new Timestamp(timestamp.seconds, timestamp.nanos);
   }
 
   /**
    * Returns a value for bytes that's appropriate to put in a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say bytes must be. But it should return
-   * an Uint8Array in Node.
    *
    * Visible for testing.
    */
-  toBytes(bytes: Blob | ByteString): string {
+  toBytes(bytes: Blob | ByteString): string | Uint8Array {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      return (bytes.toUint8Array() as unknown) as string;
+      return bytes.toUint8Array();
     }
   }
 
@@ -249,11 +230,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  toVersion(version: SnapshotVersion): string {
+  toVersion(version: SnapshotVersion): TimestampValue {
     return this.toTimestamp(version.toTimestamp());
   }
 
-  fromVersion(version: string): SnapshotVersion {
+  fromVersion(version: TimestampValue): SnapshotVersion {
     assert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
@@ -844,7 +825,7 @@ export class JsonProtoSerializer {
 
   private fromWriteResult(
     proto: api.WriteResult,
-    commitTime: string
+    commitTime: TimestampValue
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     let version = proto.updateTime
@@ -871,7 +852,7 @@ export class JsonProtoSerializer {
 
   fromWriteResults(
     protos: api.WriteResult[] | undefined,
-    commitTime?: string
+    commitTime?: TimestampValue
   ): MutationResult[] {
     if (protos && protos.length > 0) {
       assert(

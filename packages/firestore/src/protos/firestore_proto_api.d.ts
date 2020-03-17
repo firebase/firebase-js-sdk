@@ -180,7 +180,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     name?: string;
     fields?: ApiClientObjectMap<Value>;
     createTime?: string;
-    updateTime?: string;
+    updateTime?: string | { seconds?: string | number; nanos?: number };
   }
   interface DocumentChange {
     document?: Document;
@@ -190,7 +190,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface DocumentDelete {
     document?: string;
     removedTargetIds?: number[];
-    readTime?: string;
+    readTime?: string | { seconds?: string | number; nanos?: number };
   }
   interface DocumentMask {
     fieldPaths?: string[];
@@ -290,7 +290,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface Precondition {
     exists?: boolean;
-    updateTime?: string;
+    updateTime?: string | { seconds?: string | number; nanos?: number };
   }
   interface Projection {
     fields?: FieldReference[];
@@ -333,12 +333,12 @@ export declare namespace firestoreV1ApiClientInterfaces {
     startAt?: Cursor;
     endAt?: Cursor;
     offset?: number;
-    limit?: number;
+    limit?: number | { value: number };
   }
   interface Target {
     query?: QueryTarget;
     documents?: DocumentsTarget;
-    resumeToken?: string;
+    resumeToken?: string | Uint8Array;
     readTime?: string;
     targetId?: number;
     once?: boolean;
@@ -347,8 +347,8 @@ export declare namespace firestoreV1ApiClientInterfaces {
     targetChangeType?: TargetChangeTargetChangeType;
     targetIds?: number[];
     cause?: Status;
-    resumeToken?: string;
-    readTime?: string;
+    resumeToken?: string | Uint8Array;
+    readTime?: string | { seconds?: string | number; nanos?: number };
   }
   interface TransactionOptions {
     readOnly?: ReadOnly;
@@ -382,17 +382,17 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface WriteRequest {
     streamId?: string;
     writes?: Write[];
-    streamToken?: string;
+    streamToken?: string | Uint8Array;
     labels?: ApiClientObjectMap<string>;
   }
   interface WriteResponse {
     streamId?: string;
     streamToken?: string;
     writeResults?: WriteResult[];
-    commitTime?: string;
+    commitTime?: string | { seconds?: string | number; nanos?: number };
   }
   interface WriteResult {
-    updateTime?: string;
+    updateTime?: string | { seconds?: string | number; nanos?: number };
     transformResults?: Value[];
   }
 }

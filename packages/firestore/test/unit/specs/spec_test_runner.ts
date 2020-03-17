@@ -61,6 +61,7 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
+import { normalizeByteString } from '../../../src/model/proto_values';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
@@ -69,7 +70,10 @@ import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  TimestampValue
+} from '../../../src/remote/serializer';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import {
   DocumentWatchChange,
@@ -196,7 +200,10 @@ class MockConnection implements Connection {
     return this.watchOpen.promise;
   }
 
-  ackWrite(commitTime?: string, mutationResults?: api.WriteResult[]): void {
+  ackWrite(
+    commitTime?: TimestampValue,
+    mutationResults?: api.WriteResult[]
+  ): void {
     this.writeStream!.callOnMessage({
       // Convert to base64 string so it can later be parsed into ByteString.
       streamToken: PlatformSupport.getPlatform().btoa(
@@ -1151,11 +1158,17 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      // actualTarget's resumeToken is a string, but the serialized
-      // resumeToken will be a base64 string, so we need to convert it back.
-      expect(actualTarget.resumeToken || '').to.equal(
-        this.platform.atob(expectedTarget.resumeToken || '')
-      );
+      if (expectedTarget.resumeToken !== undefined) {
+        // actualTarget's resumeToken is a string, but the serialized
+        // resumeToken will be a base64 string, so we need to convert it back.
+        expect(actualTarget.resumeToken).to.equal(
+          this.platform.atob(
+            normalizeByteString(expectedTarget.resumeToken).toBase64()
+          )
+        );
+      } else {
+        expect(actualTarget.resumeToken).to.be.undefined;
+      }
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
