@@ -29,7 +29,8 @@ import {
 } from './core/strategies/email_and_password';
 import {
   signInWithRedirect,
-  reauthenticateWithRedirect
+  reauthenticateWithRedirect,
+  linkWithRedirect
 } from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
@@ -186,7 +187,13 @@ enum Persistence {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return reauthenticateWithRedirect(auth, user, provider, resolver);
-        }
+        },
+        linkWithRedirect(provider: OAuthProvider): Promise<never> {
+          const resolver = isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver;
+          return linkWithRedirect(auth, user, provider, resolver);
+        },
       });
     }
   });

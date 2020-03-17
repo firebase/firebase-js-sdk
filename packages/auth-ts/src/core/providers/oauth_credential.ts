@@ -20,9 +20,6 @@ import { OAuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import { Auth } from '../../model/auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { User } from '../../model/user';
-// import * as from '../strategies/idp';
-import { request } from 'http';
 import { querystring } from '@firebase/util';
 import { SignInWithIdpRequest, signInWithIdp } from '../../api/authentication';
 
@@ -92,7 +89,9 @@ export class GenericOAuthCredential implements OAuthCredential {
   }
 
   linkToIdToken_(auth: Auth, idToken: string): Promise<IdTokenResponse> {
-    throw new Error('Method not implemented.');
+    const request = this.makeRequest();
+    request.idToken = idToken;
+    return signInWithIdp(auth, request);
   }
 
   matchIdTokenWithUid_(auth: Auth, uid: string): Promise<IdTokenResponse> {

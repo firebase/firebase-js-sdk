@@ -57,9 +57,20 @@ export abstract class AbstractPopupRedirectResolver
           break;
         case AuthEventType.REAUTH_VIA_REDIRECT:
           isRedirect = true;
+          // Fallthrough
+        case AuthEventType.REAUTH_VIA_POPUP: {
           const user = this.userForEvent(event.eventId!);
           cred = await this.execIdpTask(event, idp.reauth, user);
           break;
+        }
+        case AuthEventType.LINK_VIA_REDIRECT:
+          isRedirect = true;
+          // Fallthrough
+        case AuthEventType.LINK_VIA_POPUP: {
+          const user = this.userForEvent(event.eventId!);
+          cred = await this.execIdpTask(event, idp.link, user);
+          break;
+        }
       }
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(cred);

@@ -88,3 +88,22 @@ export async function reauth(params: IdpTaskParams): Promise<UserCredential> {
   await user.reload(auth);
   return userCred;
 }
+
+export async function link(params: IdpTaskParams): Promise<UserCredential> {
+  const {auth, user} = params;
+  if (!user) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
+  }
+  const request = paramsToRequest(params);
+  request.idToken = await user.getIdToken();
+
+  const idTokenResponse = await signInWithIdp(auth, request);
+  user.stsTokenManager.updateFromServerResponse(idTokenResponse);
+  const cred = authCredentialFromTokenResponse(idTokenResponse);
+  const userCred = new UserCredential(user, cred, OperationType.LINK);
+
+  await user.reload(auth);
+  return userCred;
+}

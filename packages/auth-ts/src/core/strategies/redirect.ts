@@ -26,6 +26,7 @@ import { initializeCurrentUserFromIdTokenResponse } from '.';
 import { authCredentialFromTokenResponse } from './auth_credential';
 import { User } from '../../model/user';
 import { generateEventId } from '../util/event_id';
+import { reloadWithoutSaving } from '../account_management/reload';
 
 export async function signInWithRedirect(
   auth: Auth,
@@ -35,7 +36,7 @@ export async function signInWithRedirect(
   resolver = resolver || auth.popupRedirectResolver;
   if (!resolver) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
-      appName: auth.name
+      appName: auth.name,
     });
   }
 
@@ -51,7 +52,7 @@ export async function signInWithRedirect(
   return resolver.processRedirect(
     auth,
     provider,
-    AuthEventType.SIGN_IN_VIA_REDIRECT
+    AuthEventType.SIGN_IN_VIA_REDIRECT,
   );
 }
 
@@ -76,8 +77,72 @@ export async function reauthenticateWithRedirect(
     auth,
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
-    eventId
+    eventId,
   );
+}
+
+export async function linkWithRedirect(auth: Auth, user: User, provider: OAuthProvider, resolver?: PopupRedirectResolver): Promise<never> {
+  resolver = resolver || auth.popupRedirectResolver;
+  if (!resolver) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.OPERATION_NOT_SUPPORTED, {
+      appName: auth.name,
+    });
+  }
+
+  // First, make sure the user isn't already linked
+  await reloadWithoutSaving(auth, user);
+  if (user.providerData.find(p => p.providerId === provider.providerId)) {
+    auth.updateCurrentUser(user);
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.PROVIDER_ALREADY_LINKED, {
+      appName: auth.name,
+    });
+  }
+
+  const eventId = generateEventId(`${user.uid}:::`);
+  user.redirectEventId_ = eventId;
+  await auth.setRedirectUser_(user);
+
+  return resolver.processRedirect(
+    auth,
+    provider,
+    AuthEventType.LINK_VIA_REDIRECT,
+    eventId,
+  );
+}
+
+interface PendingPromise {
+  resolve: (cred: UserCredential | null) => void;
+  reject: (error: Error) => void;
+}
+
+export class RedirectManager {
+  private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
+  private readonly redirectListeners: PendingPromise[] = [];
+
+  getRedirectPromiseOrInit(initCb: () => void): Promise<UserCredential | null> {
+    if (this.redirectOutcome) {
+      return this.redirectOutcome();
+    }
+
+    return new Promise<UserCredential | null>((resolve, reject) => {
+      initCb();
+      this.redirectListeners.push({ resolve, reject });
+    });
+  }
+
+  broadcastRedirectResult(cred: UserCredential | null, error?: Error) {
+    for (const listener of this.redirectListeners) {
+      if (error) {
+        listener.reject(error);
+      } else {
+        listener.resolve(cred);
+      }
+    }
+
+    this.redirectOutcome = () => {
+      return error ? Promise.reject(error) : Promise.resolve(cred);
+    };
+  }
 }
 
 // async function onDomReady(): Promise<void> {
@@ -192,107 +257,3 @@ export async function reauthenticateWithRedirect(
 //   // return resolver.getRedirectResult(auth);
 // }
 
-export async function link(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
-  throw new Error('processor not implemented');
-}
-
-export async function reauth(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
-  throw new Error('processor not implemented');
-}
-
-export async function signIn(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
-  const request: SignInWithIdpRequest = {
-    requestUri,
-    sessionId,
-    postBody: postBody || null,
-    tenantId,
-    returnSecureToken: true
-  };
-
-  const response = await signInWithIdp(auth, request);
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  const credential = authCredentialFromTokenResponse(response);
-  auth.updateCurrentUser(user);
-  return new UserCredential(user, credential, OperationType.SIGN_IN);
-}
-
-export async function unknown(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
-  throw new Error('processor not implemented');
-}
-
-export async function verifyApp(
-  auth: Auth,
-  requestUri: string,
-  sessionId: string,
-  tenantId: string,
-  postBody?: string
-): Promise<UserCredential> {
-  throw new Error('processor not implemented');
-}
-
-export const redirectEventProcessors: EventProcessors = {
-  link,
-  reauth,
-  signIn,
-  unknown,
-  verifyApp
-};
-
-interface PendingPromise {
-  resolve: (cred: UserCredential | null) => void;
-  reject: (error: Error) => void;
-}
-
-export class RedirectManager {
-  private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
-  private readonly redirectListeners: PendingPromise[] = [];
-
-  getRedirectPromiseOrInit(initCb: () => void): Promise<UserCredential | null> {
-    if (this.redirectOutcome) {
-      return this.redirectOutcome();
-    }
-
-    return new Promise<UserCredential | null>((resolve, reject) => {
-      initCb();
-      this.redirectListeners.push({ resolve, reject });
-    });
-  }
-
-  broadcastRedirectResult(cred: UserCredential | null, error?: Error) {
-    for (const listener of this.redirectListeners) {
-      if (error) {
-        listener.reject(error);
-      } else {
-        listener.resolve(cred);
-      }
-    }
-
-    this.redirectOutcome = () => {
-      return error ? Promise.reject(error) : Promise.resolve(cred);
-    };
-  }
-}
