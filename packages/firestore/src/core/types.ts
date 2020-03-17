@@ -38,7 +38,7 @@ export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
  * primarily used by the View / EventManager code to change their behavior while
  * offline (e.g. get() calls shouldn't wait for data from the server and
  * snapshot events should set metadata.isFromCache=true).
- * 
+ *
  * The string values should not be changed since they are persisted in
  * WebStorage.
  */
