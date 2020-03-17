@@ -15,41 +15,10 @@
  * limitations under the License.
  */
 
-// Untyped Number alias we can use to check for ES6 methods / properties.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const NumberAsAny = Number as any;
-
 // An Object whose keys and values are strings.
 export interface StringMap {
   [key: string]: string;
 }
-
-/**
- * Minimum safe integer in Javascript because of floating point precision.
- * Added to not rely on ES6 features.
- */
-export const MIN_SAFE_INTEGER: number =
-  NumberAsAny.MIN_SAFE_INTEGER || -(Math.pow(2, 53) - 1);
-
-/**
- * Maximum safe integer in Javascript because of floating point precision.
- * Added to not rely on ES6 features.
- */
-export const MAX_SAFE_INTEGER: number =
-  NumberAsAny.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
-
-/**
- * Returns whether an number is an integer, uses native implementation if
- * available.
- * Added to not rely on ES6 features.
- * @param value The value to test for being an integer
- */
-export const isInteger: (value: unknown) => boolean =
-  NumberAsAny.isInteger ||
-  (value =>
-    typeof value === 'number' &&
-    isFinite(value) &&
-    Math.floor(value) === value);
 
 /**
  * Returns whether a variable is either undefined or null.
@@ -64,19 +33,9 @@ export function isNullOrUndefined(value: unknown): boolean {
  */
 export function isSafeInteger(value: unknown): boolean {
   return (
-    isInteger(value) &&
-    (value as number) <= MAX_SAFE_INTEGER &&
-    (value as number) >= MIN_SAFE_INTEGER
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    (value as number) <= Number.MAX_SAFE_INTEGER &&
+    (value as number) >= Number.MIN_SAFE_INTEGER
   );
-}
-
-/**
- * Safely checks if the number is NaN.
- */
-export function safeIsNaN(value: unknown): boolean {
-  if (NumberAsAny.IsNaN) {
-    return NumberAsAny.IsNaN(value);
-  } else {
-    return typeof value === 'number' && isNaN(value);
-  }
 }
