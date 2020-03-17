@@ -29,7 +29,7 @@ import {
   ObjectValue,
   PrimitiveValue
 } from '../../../src/model/proto_field_value';
-import { canonicalId, estimateByteSize } from '../../../src/model/proto_values';
+import { canonicalId, estimateByteSize } from '../../../src/model/values';
 import { ByteString } from '../../../src/util/byte_string';
 import { primitiveComparator } from '../../../src/util/misc';
 import * as typeUtils from '../../../src/util/types';
@@ -395,5 +395,14 @@ describe('FieldValue', () => {
       .toBuilder()
       .delete(field(fieldPath))
       .build();
+  }
+
+  // TODO(mrschmidt): Clean up the helpers and merge wrap() with TestUtil.wrap()
+  function wrapObject(value: object): ObjectValue {
+    return new ObjectValue(valueOf(value));
+  }
+
+  function wrap(value: unknown): PrimitiveValue {
+    return new PrimitiveValue(valueOf(value));
   }
 });
