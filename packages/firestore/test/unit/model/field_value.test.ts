@@ -18,32 +18,15 @@
 import { expect } from 'chai';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
-import { DatabaseId } from '../../../src/core/database_info';
-import { DocumentKey } from '../../../src/model/document_key';
-import {
-  FieldValue,
-  ServerTimestampValue,
-  TypeOrder
-} from '../../../src/model/field_value';
+import { TypeOrder } from '../../../src/model/field_value';
 import {
   ObjectValue,
   PrimitiveValue
 } from '../../../src/model/proto_field_value';
-import { canonicalId, estimateByteSize } from '../../../src/model/values';
 import { ByteString } from '../../../src/util/byte_string';
-import { primitiveComparator } from '../../../src/util/misc';
 import * as typeUtils from '../../../src/util/types';
-import {
-  blob,
-  dbId,
-  expectCorrectComparisonGroups,
-  expectEqualitySets,
-  field,
-  key,
-  mask,
-  ref
-} from '../../util/helpers';
-import { refValue, valueOf } from '../../util/values';
+import { blob, field, mask } from '../../util/helpers';
+import { valueOf } from '../../util/values';
 
 describe('FieldValue', () => {
   const date1 = new Date(2016, 4, 2, 1, 5);
