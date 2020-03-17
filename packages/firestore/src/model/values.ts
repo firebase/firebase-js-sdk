@@ -539,3 +539,43 @@ export function normalizeByteString(blob: string | Uint8Array): ByteString {
     return ByteString.fromUint8Array(blob);
   }
 }
+
+/** Returns true if `value` is an IntegerValue. */
+export function isInteger(value?: api.Value | null): boolean {
+  return !!value && 'integerValue' in value;
+}
+
+/** Returns true if `value` is a DoubleValue. */
+export function isDouble(value?: api.Value | null): boolean {
+  return !!value && 'doubleValue' in value;
+}
+
+/** Returns true if `value` is either an IntegerValue or a DoubleValue. */
+export function isNumber(value?: api.Value | null): boolean {
+  return isInteger(value) || isDouble(value);
+}
+
+/** Returns true if `value` is an ArrayValue. */
+export function isArray(value?: api.Value | null): boolean {
+  return !!value && 'arrayValue' in value;
+}
+
+/** Returns true if `value` is a ReferenceValue. */
+export function isReferenceValue(value?: api.Value | null): boolean {
+  return !!value && 'referenceValue' in value;
+}
+
+/** Returns true if `value` is a NullValue. */
+export function isNullValue(value?: api.Value | null): boolean {
+  return !!value && 'nullValue' in value;
+}
+
+/** Returns true if `value` is NaN. */
+export function isNanValue(value?: api.Value | null): boolean {
+  return !!value && isNaN(Number(value.doubleValue));
+}
+
+/** Returns true if `value` is a MapValue. */
+export function isMapValue(value?: api.Value | null): boolean {
+  return !!value && 'mapValue' in value;
+}
