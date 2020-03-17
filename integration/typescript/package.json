@@ -11,7 +11,7 @@
   "devDependencies": {
     "@babel/core": "7.8.7",
     "@babel/preset-env": "7.8.7",
-    "@types/chai": "4.2.10",
+    "@types/chai": "4.2.11",
     "@types/mocha": "7.0.2",
     "chai": "4.2.0",
     "karma": "4.4.1",
