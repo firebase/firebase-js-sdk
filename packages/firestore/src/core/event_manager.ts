@@ -51,7 +51,7 @@ export class EventManager implements SyncEngineListener {
     q.canonicalId()
   );
 
-  private onlineState: OnlineState = OnlineState.Unknown;
+  private onlineState = OnlineState.Unknown;
 
   private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
@@ -209,7 +209,7 @@ export class QueryListener {
 
   private snap: ViewSnapshot | null = null;
 
-  private onlineState: OnlineState = OnlineState.Unknown;
+  private onlineState = OnlineState.Unknown;
 
   constructor(
     readonly query: Query,

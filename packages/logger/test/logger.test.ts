@@ -77,7 +77,18 @@ describe('@firebase/logger', () => {
     testLog(message, 'error', true);
   });
 
-  describe('Defaults to LogLevel.NOTICE', () => {
+  describe('Can set log level with string', () => {
+    beforeEach(() => {
+      setLogLevel('warn');
+    });
+    testLog(message, 'debug', false);
+    testLog(message, 'log', false);
+    testLog(message, 'info', false);
+    testLog(message, 'warn', true);
+    testLog(message, 'error', true);
+  });
+
+  describe('Defaults to LogLevel.INFO', () => {
     testLog(message, 'debug', false);
     testLog(message, 'log', false);
     testLog(message, 'info', true);

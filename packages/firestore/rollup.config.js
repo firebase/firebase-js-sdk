@@ -21,6 +21,7 @@ import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 
@@ -88,23 +89,6 @@ const es5Builds = [
       )
   },
   /**
-   * Browser CJS Build
-   *
-   * The Browser CJS build is not mangled as Terser's property name mangling
-   * does not work well with CommonJS-style files.
-   */
-  {
-    input: 'index.ts',
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        cacheRoot: './.cache/cjs/'
-      }),
-      json()
-    ]
-  },
-  /**
    * Browser ESM Build
    */
   {
@@ -120,7 +104,18 @@ const es5Builds = [
       terser(terserOptions)
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
+  },
+  /**
+   * Browser CJS Build 
+   * 
+   * This build is based on the mangling in the ESM build above, since
+   * Terser's Property name mangling doesn't work well with CJS's syntax.
+   */
+  {
+    input: pkg.module,
+    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+    plugins: [ sourcemaps() ]
+  },
 ];
 
 /**

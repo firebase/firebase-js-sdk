@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { instances, LogLevel } from './src/logger';
-
-export function setLogLevel(level: LogLevel): void {
-  instances.forEach(inst => {
-    inst.logLevel = level;
-  });
-}
-
-export { Logger, LogLevel, LogHandler } from './src/logger';
+export {
+  setLogLevel,
+  Logger,
+  LogLevel,
+  LogHandler,
+  setUserLogHandler,
+  LogCallback,
+  LogLevelString,
+  LogOptions
+} from './src/logger';
