@@ -263,3 +263,12 @@ export class TestPlatform implements Platform {
     return this.basePlatform.btoa(raw);
   }
 }
+
+/** Returns true if we are running under Node. */
+export function isNode(): boolean {
+  return (
+    typeof process !== 'undefined' &&
+    process.title !== undefined &&
+    process.title.indexOf('node') !== -1
+  );
+}

@@ -26,6 +26,9 @@ export declare type PromiseRequestService = any;
 export interface ApiClientObjectMap<T> {
   [k: string]: T;
 }
+export declare type Timestamp =
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
 export interface ICompositeFilterOpEnum {
@@ -180,7 +183,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     name?: string;
     fields?: ApiClientObjectMap<Value>;
     createTime?: string;
-    updateTime?: string;
+    updateTime?: Timestamp;
   }
   interface DocumentChange {
     document?: Document;
@@ -190,7 +193,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface DocumentDelete {
     document?: string;
     removedTargetIds?: number[];
-    readTime?: string;
+    readTime?: Timestamp;
   }
   interface DocumentMask {
     fieldPaths?: string[];
@@ -290,7 +293,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface Precondition {
     exists?: boolean;
-    updateTime?: string;
+    updateTime?: Timestamp;
   }
   interface Projection {
     fields?: FieldReference[];
@@ -333,12 +336,12 @@ export declare namespace firestoreV1ApiClientInterfaces {
     startAt?: Cursor;
     endAt?: Cursor;
     offset?: number;
-    limit?: number;
+    limit?: number | { value: number };
   }
   interface Target {
     query?: QueryTarget;
     documents?: DocumentsTarget;
-    resumeToken?: string;
+    resumeToken?: string | Uint8Array;
     readTime?: string;
     targetId?: number;
     once?: boolean;
@@ -347,8 +350,8 @@ export declare namespace firestoreV1ApiClientInterfaces {
     targetChangeType?: TargetChangeTargetChangeType;
     targetIds?: number[];
     cause?: Status;
-    resumeToken?: string;
-    readTime?: string;
+    resumeToken?: string | Uint8Array;
+    readTime?: Timestamp;
   }
   interface TransactionOptions {
     readOnly?: ReadOnly;
@@ -363,7 +366,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     booleanValue?: boolean;
     integerValue?: string | number;
     doubleValue?: string | number;
-    timestampValue?: string | { seconds?: string | number; nanos?: number };
+    timestampValue?: Timestamp;
     stringValue?: string;
     bytesValue?: string | Uint8Array;
     referenceValue?: string;
@@ -382,17 +385,17 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface WriteRequest {
     streamId?: string;
     writes?: Write[];
-    streamToken?: string;
+    streamToken?: string | Uint8Array;
     labels?: ApiClientObjectMap<string>;
   }
   interface WriteResponse {
     streamId?: string;
     streamToken?: string;
     writeResults?: WriteResult[];
-    commitTime?: string;
+    commitTime?: Timestamp;
   }
   interface WriteResult {
-    updateTime?: string;
+    updateTime?: Timestamp;
     transformResults?: Value[];
   }
 }
