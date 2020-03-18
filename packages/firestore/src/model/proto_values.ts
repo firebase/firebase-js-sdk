@@ -26,7 +26,6 @@ import {
   numericEquals,
   primitiveComparator
 } from '../util/misc';
-import { TimestampValue } from '../remote/serializer';
 
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_TIMESTAMP_REG_EXP = new RegExp(
@@ -231,10 +230,7 @@ function compareNumbers(left: api.Value, right: api.Value): number {
   return numericComparator(leftNumber, rightNumber);
 }
 
-function compareTimestamps(
-  left: TimestampValue,
-  right: TimestampValue
-): number {
+function compareTimestamps(left: api.Timestamp, right: api.Timestamp): number {
   if (typeof left === 'string' && typeof right === 'string') {
     // Use string ordering for ISO 8601 timestamps, but strip the timezone
     // suffix to ensure proper ordering for timestamps of different precision.
@@ -372,7 +368,7 @@ function canonifyByteString(byteString: string | Uint8Array): string {
   return normalizeByteString(byteString).toBase64();
 }
 
-function canonifyTimestamp(timestamp: TimestampValue): string {
+function canonifyTimestamp(timestamp: api.Timestamp): string {
   const normalizedTimestamp = normalizeTimestamp(timestamp);
   return `time(${normalizedTimestamp.seconds},${normalizedTimestamp.nanos})`;
 }
@@ -474,7 +470,7 @@ function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
  * nanos" representation.
  */
 export function normalizeTimestamp(
-  date: TimestampValue
+  date: api.Timestamp
 ): { seconds: number; nanos: number } {
   assert(!!date, 'Cannot normalize null or undefined timestamp.');
 

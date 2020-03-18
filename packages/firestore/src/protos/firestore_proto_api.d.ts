@@ -26,7 +26,9 @@ export declare type PromiseRequestService = any;
 export interface ApiClientObjectMap<T> {
   [k: string]: T;
 }
-export type Timestamp = string | { seconds?: string | number; nanos?: number };
+export declare type Timestamp =
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
 export interface ICompositeFilterOpEnum {

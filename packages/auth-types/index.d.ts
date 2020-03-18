@@ -35,6 +35,7 @@ export interface User extends UserInfo {
   linkWithPopup(provider: AuthProvider): Promise<UserCredential>;
   linkWithRedirect(provider: AuthProvider): Promise<void>;
   metadata: UserMetadata;
+  multiFactor: MultiFactorUser;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
   reauthenticateAndRetrieveDataWithCredential(
@@ -64,6 +65,10 @@ export interface User extends UserInfo {
     displayName?: string | null;
     photoURL?: string | null;
   }): Promise<void>;
+  verifyBeforeUpdateEmail(
+    newEmail: string,
+    actionCodeSettings?: ActionCodeSettings | null
+  ): Promise<void>;
 }
 
 export interface UserInfo {
@@ -75,17 +80,31 @@ export interface UserInfo {
   uid: string;
 }
 
+export interface MultiFactorUser {
+  enrolledFactors: MultiFactorInfo[];
+  enroll(
+    assertion: MultiFactorAssertion,
+    displayName?: string | null
+  ): Promise<void>;
+  getSession(): Promise<MultiFactorSession>;
+  unenroll(option: MultiFactorInfo | string): Promise<void>;
+}
+
 export class ActionCodeInfo {
   private constructor();
   data: {
     email?: string | null;
     fromEmail?: string | null;
+    multiFactorInfo?: MultiFactorInfo | null;
+    previousEmail?: string | null;
   };
   operation: string;
   static Operation: {
     PASSWORD_RESET: Operation;
     RECOVER_EMAIL: Operation;
     EMAIL_SIGNIN: Operation;
+    REVERT_SECOND_FACTOR_ADDITION: Operation;
+    VERIFY_AND_CHANGE_EMAIL: Operation;
     VERIFY_EMAIL: Operation;
   };
 }
@@ -164,6 +183,10 @@ export interface AuthError extends Error {
   tenantId?: string;
 }
 
+export interface MultiFactorError extends AuthError {
+  resolver: MultiFactorResolver;
+}
+
 export class FacebookAuthProvider extends FacebookAuthProvider_Instance {
   static PROVIDER_ID: string;
   static FACEBOOK_SIGN_IN_METHOD: string;
@@ -206,6 +229,7 @@ export interface IdTokenResult {
   authTime: string;
   issuedAtTime: string;
   signInProvider: string | null;
+  signInSecondFactor: string | null;
   claims: {
     [key: string]: any;
   };
@@ -239,9 +263,29 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   constructor(auth?: FirebaseAuth | null);
   providerId: string;
   verifyPhoneNumber(
-    phoneNumber: string,
+    phoneInfoOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
   ): Promise<string>;
+}
+
+export type PhoneInfoOptions =
+  | PhoneSingleFactorInfoOptions
+  | PhoneMultiFactorEnrollInfoOptions
+  | PhoneMultiFactorSignInInfoOptions;
+
+export interface PhoneSingleFactorInfoOptions {
+  phoneNumber: string;
+}
+
+export interface PhoneMultiFactorEnrollInfoOptions {
+  phoneNumber: string;
+  session: MultiFactorSession;
+}
+
+export interface PhoneMultiFactorSignInInfoOptions {
+  multiFactorHint?: MultiFactorInfo;
+  multiFactorUid?: string;
+  session: MultiFactorSession;
 }
 
 export class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
@@ -296,8 +340,51 @@ export interface OAuthCredentialOptions {
   rawNonce?: string;
 }
 
+export class PhoneAuthCredential extends AuthCredential {
+  private constructor();
+}
+
 export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
+}
+
+export class MultiFactorSession {
+  private constructor();
+}
+
+export abstract class MultiFactorAssertion {
+  factorId: string;
+}
+
+export class MultiFactorResolver {
+  private constructor();
+  auth: FirebaseAuth;
+  session: MultiFactorSession;
+  hints: MultiFactorInfo[];
+  resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
+}
+
+export interface MultiFactorInfo {
+  uid: string;
+  displayName?: string | null;
+  enrollmentTime: string;
+  factorId: string;
+}
+
+export interface PhoneMultiFactorInfo extends MultiFactorInfo {
+  phoneNumber: string;
+}
+
+export class PhoneMultiFactorAssertion extends MultiFactorAssertion {
+  private constructor();
+}
+
+export class PhoneMultiFactorGenerator {
+  private constructor();
+  static FACTOR_ID: string;
+  static assertion(
+    phoneAuthCredential: PhoneAuthCredential
+  ): PhoneMultiFactorAssertion;
 }
 
 export class FirebaseAuth {
@@ -386,6 +473,7 @@ declare module '@firebase/app-types' {
       SAMLAuthProvider: typeof SAMLAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
+      PhoneMultiFactorGenerator: typeof PhoneMultiFactorGenerator;
       RecaptchaVerifier: typeof RecaptchaVerifier;
       RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
       TwitterAuthProvider: typeof TwitterAuthProvider;

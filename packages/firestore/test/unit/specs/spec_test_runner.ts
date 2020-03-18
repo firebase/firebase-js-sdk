@@ -61,7 +61,6 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { normalizeByteString } from '../../../src/model/proto_values';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
@@ -70,10 +69,7 @@ import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
-import {
-  JsonProtoSerializer,
-  TimestampValue
-} from '../../../src/remote/serializer';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import {
   DocumentWatchChange,
@@ -201,7 +197,7 @@ class MockConnection implements Connection {
   }
 
   ackWrite(
-    commitTime?: TimestampValue,
+    commitTime?: api.Timestamp,
     mutationResults?: api.WriteResult[]
   ): void {
     this.writeStream!.callOnMessage({
@@ -1158,17 +1154,8 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      if (expectedTarget.resumeToken !== undefined) {
-        // actualTarget's resumeToken is a string, but the serialized
-        // resumeToken will be a base64 string, so we need to convert it back.
-        expect(actualTarget.resumeToken).to.equal(
-          this.platform.atob(
-            normalizeByteString(expectedTarget.resumeToken).toBase64()
-          )
-        );
-      } else {
-        expect(actualTarget.resumeToken).to.be.undefined;
-      }
+      expect(actualTarget.resumeToken).to.be.a('string');
+      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(

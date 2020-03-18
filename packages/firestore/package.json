@@ -1,7 +1,7 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.11.1",
-  "description": "",
+  "version": "1.11.2",
+  "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "prebuild": "tsc -d --downlevelIteration --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
@@ -10,7 +10,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier --write '*.ts' '*.js' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-s lint test:all",
     "test:all": "run-p test:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
@@ -20,7 +20,7 @@
     "test:node:persistence": "FIRESTORE_EMULATOR_PORT=8080 FIRESTORE_EMULATOR_PROJECT_ID=test-emulator USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
-    "test:minified": "(cd ../../integration/firestore ; yarn test:manual)",
+    "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
@@ -29,33 +29,35 @@
   "esm2017": "dist/index.esm2017.js",
   "license": "Apache-2.0",
   "files": [
-    "dist"
+    "dist",
+    "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.5",
-    "@firebase/firestore-types": "1.9.1",
-    "@firebase/logger": "0.1.35",
-    "@firebase/util": "0.2.40",
-    "@firebase/webchannel-wrapper": "0.2.35",
+    "@firebase/component": "0.1.7",
+    "@firebase/firestore-types": "1.10.1",
+    "@firebase/logger": "0.1.37",
+    "@firebase/util": "0.2.42",
+    "@firebase/webchannel-wrapper": "0.2.37",
     "@grpc/proto-loader": "^0.5.0",
     "grpc": "1.24.2",
-    "tslib": "1.10.0"
+    "tslib": "1.11.1"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "protobufjs": "6.8.8",
-    "rollup": "1.28.0",
+    "protobufjs": "6.8.9",
+    "rollup": "2.0.6",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-terser": "5.1.3",
-    "rollup-plugin-typescript2": "0.25.3",
-    "ts-node": "8.5.4",
-    "typescript": "3.7.5"
+    "rollup-plugin-sourcemaps": "0.5.0",
+    "rollup-plugin-terser": "5.3.0",
+    "rollup-plugin-typescript2": "0.26.0",
+    "ts-node": "8.6.2",
+    "typescript": "3.8.3"
   },
   "repository": {
     "directory": "packages/firestore",

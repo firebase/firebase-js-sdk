@@ -66,7 +66,6 @@ fireauth.ActionCodeURL = function(actionLink) {
   });
 };
 
-
 /**
  * Enums for fields in URL query string.
  * @enum {string}
@@ -88,7 +87,11 @@ fireauth.ActionCodeURL.QueryField = {
 fireauth.ActionCodeURL.ModeToOperationMap_ = {
   'recoverEmail': fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
   'resetPassword': fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
+  'revertSecondFactorAddition':
+      fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION,
   'signIn': fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+  'verifyAndChangeEmail':
+      fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL,
   'verifyEmail': fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL
 };
 

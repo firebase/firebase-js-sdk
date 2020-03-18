@@ -10,6 +10,7 @@
     "node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
     "node_modules/typescript/lib/lib.es2015.core.d.ts",
     "node_modules/typescript/lib/lib.es2017.object.d.ts",
+    "node_modules/typescript/lib/lib.es2017.string.d.ts",
     "packages/app-types/index.d.ts",
     "packages/app-types/private.d.ts",
     "packages/auth-interop-types/index.d.ts",

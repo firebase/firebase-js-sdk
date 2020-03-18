@@ -54,7 +54,7 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import { ByteString } from '../util/byte_string';
-import { isNullOrUndefined } from '../util/types';
+import { isNegativeZero, isNullOrUndefined } from '../util/types';
 
 import {
   ArrayRemoveTransformOperation,
@@ -350,6 +350,8 @@ export class JsonProtoSerializer {
           return { doubleValue: 'Infinity' } as {};
         } else if (doubleValue === -Infinity) {
           return { doubleValue: '-Infinity' } as {};
+        } else if (isNegativeZero(doubleValue)) {
+          return { doubleValue: '-0' } as {};
         }
       }
       return { doubleValue: val.value() };
