@@ -102,11 +102,6 @@ function assertPresent(value: unknown, description: string): asserts value {
   assert(!isNullOrUndefined(value), description + ' is missing');
 }
 
-// Denotes the possible representations for timestamps in the Value type.
-export type TimestampValue =
-  | string
-  | { seconds?: string | number; nanos?: number };
-
 export interface SerializerOptions {
   /**
    * The serializer supports both Protobuf.js and Proto3 JSON formats. By
@@ -146,7 +141,7 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | { value: number } | null {
+  private toInt32Proto(val: number | null): number | { value: number } | null {
     if (this.options.useProto3Json || isNullOrUndefined(val)) {
       return val;
     } else {
@@ -157,7 +152,7 @@ export class JsonProtoSerializer {
   /**
    * Returns a number (or null) from a google.protobuf.Int32Value proto.
    */
-  private fromInt32Value(
+  private fromInt32Proto(
     val: number | { value: number } | undefined
   ): number | null {
     let result;
@@ -172,7 +167,7 @@ export class JsonProtoSerializer {
   /**
    * Returns a value for a Date that's appropriate to put into a proto.
    */
-  private toTimestamp(timestamp: Timestamp): TimestampValue {
+  private toTimestamp(timestamp: Timestamp): api.Timestamp {
     if (this.options.useProto3Json) {
       // Serialize to ISO-8601 date format, but with full nano resolution.
       // Since JS Date has only millis, let's only use it for the seconds and
@@ -193,7 +188,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromTimestamp(date: TimestampValue): Timestamp {
+  private fromTimestamp(date: api.Timestamp): Timestamp {
     const timestamp = normalizeTimestamp(date);
     return new Timestamp(timestamp.seconds, timestamp.nanos);
   }
@@ -230,11 +225,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  toVersion(version: SnapshotVersion): TimestampValue {
+  toVersion(version: SnapshotVersion): api.Timestamp {
     return this.toTimestamp(version.toTimestamp());
   }
 
-  fromVersion(version: TimestampValue): SnapshotVersion {
+  fromVersion(version: api.Timestamp): SnapshotVersion {
     assert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
@@ -825,7 +820,7 @@ export class JsonProtoSerializer {
 
   private fromWriteResult(
     proto: api.WriteResult,
-    commitTime: TimestampValue
+    commitTime: api.Timestamp
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     let version = proto.updateTime
@@ -852,7 +847,7 @@ export class JsonProtoSerializer {
 
   fromWriteResults(
     protos: api.WriteResult[] | undefined,
-    commitTime?: TimestampValue
+    commitTime?: api.Timestamp
   ): MutationResult[] {
     if (protos && protos.length > 0) {
       assert(
@@ -979,7 +974,7 @@ export class JsonProtoSerializer {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toInt32Value(target.limit);
+    const limit = this.toInt32Proto(target.limit);
     if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
@@ -1025,7 +1020,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit = this.fromInt32Value(query.limit);
+      limit = this.fromInt32Proto(query.limit);
     }
 
     let startAt: Bound | null = null;
