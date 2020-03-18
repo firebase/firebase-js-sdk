@@ -54,7 +54,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { PlatformSupport } from '../../../src/platform/platform';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
