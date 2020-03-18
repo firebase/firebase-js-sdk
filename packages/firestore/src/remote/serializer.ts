@@ -54,7 +54,7 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import { ByteString } from '../util/byte_string';
-import * as typeUtils from '../util/types';
+import { isNegativeZero, isNullOrUndefined } from '../util/types';
 
 import {
   ArrayRemoveTransformOperation,
@@ -99,14 +99,7 @@ const OPERATORS = (() => {
 })();
 
 function assertPresent(value: unknown, description: string): asserts value {
-  assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
-}
-
-// This is a supplement to the generated proto interfaces, which fail to account
-// for the fact that a timestamp may be encoded as either a string OR this.
-interface TimestampProto {
-  seconds?: string | number;
-  nanos?: number;
+  assert(!isNullOrUndefined(value), description + ' is missing');
 }
 
 export interface SerializerOptions {
@@ -148,46 +141,33 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | null {
-    if (this.options.useProto3Json || typeUtils.isNullOrUndefined(val)) {
+  private toInt32Proto(val: number | null): number | { value: number } | null {
+    if (this.options.useProto3Json || isNullOrUndefined(val)) {
       return val;
     } else {
-      // ProtobufJS requires that we wrap Int32Values.
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { value: val } as any;
+      return { value: val };
     }
   }
 
   /**
    * Returns a number (or null) from a google.protobuf.Int32Value proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as accepting "number" because that's what
-   * our generated proto interfaces say Int32Value must be, but it actually
-   * accepts { value: number } to match our serialization in toInt32Value().
    */
-  private fromInt32Value(val: number | undefined): number | null {
+  private fromInt32Proto(
+    val: number | { value: number } | undefined
+  ): number | null {
     let result;
     if (typeof val === 'object') {
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = (val as any).value;
+      result = val.value;
     } else {
-      // We accept raw numbers (without the {value: ... } wrapper) for
-      // compatibility with legacy persisted data.
       result = val;
     }
-    return typeUtils.isNullOrUndefined(result) ? null : result;
+    return isNullOrUndefined(result) ? null : result;
   }
 
   /**
    * Returns a value for a Date that's appropriate to put into a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say dates must be. But it's easier and safer
-   * to actually return a Timestamp proto.
    */
-  private toTimestamp(timestamp: Timestamp): string {
+  private toTimestamp(timestamp: Timestamp): api.Timestamp {
     if (this.options.useProto3Json) {
       // Serialize to ISO-8601 date format, but with full nano resolution.
       // Since JS Date has only millis, let's only use it for the seconds and
@@ -208,25 +188,21 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromTimestamp(date: string | TimestampProto): Timestamp {
+  private fromTimestamp(date: api.Timestamp): Timestamp {
     const timestamp = normalizeTimestamp(date);
     return new Timestamp(timestamp.seconds, timestamp.nanos);
   }
 
   /**
    * Returns a value for bytes that's appropriate to put in a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say bytes must be. But it should return
-   * an Uint8Array in Node.
    *
    * Visible for testing.
    */
-  toBytes(bytes: Blob | ByteString): string {
+  toBytes(bytes: Blob | ByteString): string | Uint8Array {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      return (bytes.toUint8Array() as unknown) as string;
+      return bytes.toUint8Array();
     }
   }
 
@@ -249,11 +225,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  toVersion(version: SnapshotVersion): string {
+  toVersion(version: SnapshotVersion): api.Timestamp {
     return this.toTimestamp(version.toTimestamp());
   }
 
-  fromVersion(version: string): SnapshotVersion {
+  fromVersion(version: api.Timestamp): SnapshotVersion {
     assert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
@@ -374,7 +350,7 @@ export class JsonProtoSerializer {
           return { doubleValue: 'Infinity' } as {};
         } else if (doubleValue === -Infinity) {
           return { doubleValue: '-Infinity' } as {};
-        } else if (typeUtils.isNegativeZero(doubleValue)) {
+        } else if (isNegativeZero(doubleValue)) {
           return { doubleValue: '-0' } as {};
         }
       }
@@ -846,7 +822,7 @@ export class JsonProtoSerializer {
 
   private fromWriteResult(
     proto: api.WriteResult,
-    commitTime: string
+    commitTime: api.Timestamp
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     let version = proto.updateTime
@@ -873,7 +849,7 @@ export class JsonProtoSerializer {
 
   fromWriteResults(
     protos: api.WriteResult[] | undefined,
-    commitTime?: string
+    commitTime?: api.Timestamp
   ): MutationResult[] {
     if (protos && protos.length > 0) {
       assert(
@@ -1000,7 +976,7 @@ export class JsonProtoSerializer {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toInt32Value(target.limit);
+    const limit = this.toInt32Proto(target.limit);
     if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
@@ -1046,7 +1022,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit = this.fromInt32Value(query.limit);
+      limit = this.fromInt32Proto(query.limit);
     }
 
     let startAt: Bound | null = null;

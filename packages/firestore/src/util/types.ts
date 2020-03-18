@@ -23,12 +23,12 @@ export interface StringMap {
 /**
  * Returns whether a variable is either undefined or null.
  */
-export function isNullOrUndefined(value: unknown): boolean {
+export function isNullOrUndefined(value: unknown): value is null | undefined {
   return value === null || value === undefined;
 }
 
 /** Returns whether the value represents -0. */
-export function isNegativeZero(value: number) : boolean {
+export function isNegativeZero(value: number): boolean {
   // Detect if the value is -0.0. Based on polyfill from
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
   return value === -0 && 1 / value === 1 / -0;
