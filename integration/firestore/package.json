@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build:deps": "cd ../../ ; yarn build",
+    "build:deps": "cd ../../packages/firestore ; yarn build",
     "build:persistence": "INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
     "test": "yarn build:memory; karma start --single-run; yarn build:persistence; karma start --single-run;",

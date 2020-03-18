@@ -21,12 +21,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import {
-  FirestoreClient,
-  IndexedDbPersistenceSettings,
-  InternalPersistenceSettings,
-  MemoryPersistenceSettings
-} from '../core/firestore_client';
+import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -82,7 +77,7 @@ import * as log from '../util/log';
 import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
-import { Rejecter, Resolver } from '../util/promise';
+import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -120,11 +115,6 @@ const DEFAULT_FORCE_LONG_POLLING = false;
  * `Firestore` instance.
  */
 export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
-
-const PERSISTENCE_MISSING_ERROR_MSG =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -393,13 +383,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
-    if (!this._persistenceProvider.isDurable) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        PERSISTENCE_MISSING_ERROR_MSG
-      );
-    }
-
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -428,23 +411,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    return this.configureClient(
-      this._persistenceProvider,
-      new IndexedDbPersistenceSettings(
-        this._settings.cacheSizeBytes,
-        synchronizeTabs
-      )
-    );
+    return this.configureClient(this._persistenceProvider, {
+      durable: true,
+      cacheSizeBytes: this._settings.cacheSizeBytes,
+      synchronizeTabs
+    });
   }
 
   async clearPersistence(): Promise<void> {
-    if (!this._persistenceProvider.isDurable) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        PERSISTENCE_MISSING_ERROR_MSG
-      );
-    }
-
     if (
       this._firestoreClient !== undefined &&
       !this._firestoreClient.clientTerminated
@@ -455,7 +429,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    return this._persistenceProvider.clearPersistence();
+    const deferred = new Deferred<void>();
+    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
+      try {
+        const databaseInfo = this.makeDatabaseInfo();
+        await this._persistenceProvider.clearPersistence(databaseInfo);
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
+    });
+    return deferred.promise;
   }
 
   terminate(): Promise<void> {
@@ -514,10 +498,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(
-        new MemoryPersistenceProvider(),
-        new MemoryPersistenceSettings()
-      );
+      this.configureClient(new MemoryPersistenceProvider(), {
+        durable: false
+      });
     }
     return this._firestoreClient as FirestoreClient;
   }
@@ -534,7 +517,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   private configureClient(
     persistenceProvider: PersistenceProvider,
-    persistenceSettings: InternalPersistenceSettings
+    persistenceSettings: PersistenceSettings
   ): Promise<void> {
     assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 

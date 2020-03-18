@@ -15,4 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * This file serves as the public entrypoint for users that import 
+ * `firebase/firestore/memory`.
+ */
+
 import '../../../firestore/dist/index.memory.esm';

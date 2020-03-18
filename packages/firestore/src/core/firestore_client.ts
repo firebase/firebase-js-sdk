@@ -59,18 +59,15 @@ const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
-export class IndexedDbPersistenceSettings {
-  constructor(
-    readonly cacheSizeBytes: number,
-    readonly synchronizeTabs: boolean
-  ) {}
-}
-
-export class MemoryPersistenceSettings {}
-
-export type InternalPersistenceSettings =
-  | IndexedDbPersistenceSettings
-  | MemoryPersistenceSettings;
+export type PersistenceSettings =
+  | {
+      readonly durable: false;
+    }
+  | {
+      readonly durable: true;
+      readonly cacheSizeBytes: number;
+      readonly synchronizeTabs: boolean;
+    };
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -139,6 +136,8 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
+   * @param persistenceProvider Provider that returns the persistence
+   *    implementation.
    * @param persistenceSettings Settings object to configure offline
    *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
@@ -148,7 +147,7 @@ export class FirestoreClient {
    */
   start(
     persistenceProvider: PersistenceProvider,
-    persistenceSettings: InternalPersistenceSettings
+    persistenceSettings: PersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
     // We defer our initialization until we get the current user from
@@ -229,12 +228,12 @@ export class FirestoreClient {
    */
   private async initializePersistence(
     persistenceProvider: PersistenceProvider,
-    persistenceSettings: InternalPersistenceSettings,
+    persistenceSettings: PersistenceSettings,
     user: User,
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      await persistenceProvider.configure(
+      await persistenceProvider.initialize(
         this.asyncQueue,
         this.databaseInfo,
         this.platform,
@@ -263,7 +262,7 @@ export class FirestoreClient {
       );
       return this.initializePersistence(
         new MemoryPersistenceProvider(),
-        persistenceSettings,
+        { durable: false },
         user,
         persistenceResult
       );
@@ -275,7 +274,7 @@ export class FirestoreClient {
    * persistence (as opposed to crashing the client).
    */
   private canFallback(error: FirestoreError | DOMException): boolean {
-    if (error instanceof FirestoreError) {
+    if (error.name === 'FirebaseError') {
       return (
         error.code === Code.FAILED_PRECONDITION ||
         error.code === Code.UNIMPLEMENTED

@@ -17,7 +17,8 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import {IndexedDbPersistenceProvider} from "./src/local/indexeddb_persistence";
+import { Firestore } from './src/api/database';
+import { IndexedDbPersistenceProvider } from './src/local/indexeddb_persistence';
 import { configureForFirebase } from './src/platform/config';
 
 import './register-module';
@@ -32,7 +33,7 @@ import { name, version } from './package.json';
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    () => new IndexedDbPersistenceProvider()
+    (app, auth) => new Firestore(app, auth, new IndexedDbPersistenceProvider())
   );
   instance.registerVersion(name, version, 'node');
 }

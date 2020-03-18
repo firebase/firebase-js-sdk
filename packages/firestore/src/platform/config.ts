@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, Provider } from '@firebase/component';
 import { PublicBlob } from '../api/blob';
 import {
   CACHE_SIZE_UNLIMITED,
@@ -36,7 +37,6 @@ import { FieldPath } from '../api/field_path';
 import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
-import { PersistenceProvider } from '../local/persistence';
 import { shallowCopy } from '../util/obj';
 
 const firestoreNamespace = {
@@ -62,25 +62,22 @@ const firestoreNamespace = {
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  *
  * @param firebase The FirebaseNamespace to register Firestore with
- * @param persistenceProviderFactory A factory function that returns a
- *    PersistenceProvider. The factory should return a new instance of the
- *    PersistenceProvider for each call, ensuring distinct persistent layers
- *    for all Firestore instances.
+ * @param firestoreFactory A factory function that returns a new Firestore
+ *    instance.
  */
 export function configureForFirebase(
   firebase: FirebaseNamespace,
-  persistenceProviderFactory: () => PersistenceProvider
+  firestoreFactory: (
+    app: FirebaseApp,
+    auth: Provider<FirebaseAuthInternalName>
+  ) => Firestore
 ): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'firestore',
       container => {
         const app = container.getProvider('app').getImmediate()!;
-        return new Firestore(
-          app,
-          container.getProvider('auth-internal'),
-          persistenceProviderFactory()
-        );
+        return firestoreFactory(app, container.getProvider('auth-internal'));
       },
       ComponentType.PUBLIC
     ).setServiceProps(shallowCopy(firestoreNamespace))

@@ -18,7 +18,8 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import {MemoryPersistenceProvider} from "./src/local/memory_persistence";
+import { Firestore } from './src/api/database';
+import { MemoryPersistenceProvider } from './src/local/memory_persistence';
 import { configureForFirebase } from './src/platform/config';
 import './register-module';
 import './src/platform_node/node_init';
@@ -26,11 +27,14 @@ import './src/platform_node/node_init';
 import { name, version } from './package.json';
 
 /**
- * Registers the memory-only Firestore build for Node with the components 
+ * Registers the memory-only Firestore build for Node with the components
  * framework.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance, () => new MemoryPersistenceProvider());
+  configureForFirebase(
+    instance,
+    (app, auth) => new Firestore(app, auth, new MemoryPersistenceProvider())
+  );
   instance.registerVersion(name, version);
 }
 

@@ -17,10 +17,7 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
-import {
-  IndexedDbPersistenceSettings,
-  InternalPersistenceSettings
-} from '../core/firestore_client';
+import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
@@ -30,7 +27,7 @@ import { assert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { CancelablePromise, Deferred } from '../util/promise';
+import { CancelablePromise } from '../util/promise';
 
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
@@ -1317,25 +1314,21 @@ function writeSentinelKey(
  * Provides all components needed for IndexedDb persistence.
  */
 export class IndexedDbPersistenceProvider implements PersistenceProvider {
-  readonly isDurable = true;
-
   private persistence?: IndexedDbPersistence;
   private gcScheduler?: GarbageCollectionScheduler;
   private sharedClientState?: SharedClientState;
-  private asyncQueue?: AsyncQueue;
-  private databaseInfo?: DatabaseInfo;
 
-  async configure(
+  async initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
     clientId: ClientId,
     initialUser: User,
-    settings: InternalPersistenceSettings
+    settings: PersistenceSettings
   ): Promise<void> {
     assert(
-      settings instanceof IndexedDbPersistenceSettings,
-      'IndexedDbPersistenceProvider requires IndexedDbPersistenceSettings'
+      settings.durable,
+      'IndexedDbPersistenceProvider can only provide durable persistence'
     );
     assert(!this.persistence, 'configure() already called');
 
@@ -1379,41 +1372,27 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
     const garbageCollector = this.persistence.referenceDelegate
       .garbageCollector;
     this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-
-    this.asyncQueue = asyncQueue;
-    this.databaseInfo = databaseInfo;
   }
 
   getPersistence(): Persistence {
-    assert(!!this.persistence, 'configure() not called');
+    assert(!!this.persistence, 'initialize() not called');
     return this.persistence;
   }
 
   getSharedClientState(): SharedClientState {
-    assert(!!this.sharedClientState, 'configure() not called');
+    assert(!!this.sharedClientState, 'initialize() not called');
     return this.sharedClientState;
   }
 
   getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    assert(!!this.gcScheduler, 'configure() not called');
+    assert(!!this.gcScheduler, 'initialize() not called');
     return this.gcScheduler;
   }
 
-  clearPersistence(): Promise<void> {
-    assert(!!this.asyncQueue && !!this.databaseInfo, 'configure() not called');
-
+  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
+      databaseInfo
     );
-    const deferred = new Deferred<void>();
-    this.asyncQueue.enqueueAndForgetEvenAfterShutdown(async () => {
-      try {
-        await IndexedDbPersistence.clearPersistence(persistenceKey);
-        deferred.resolve();
-      } catch (e) {
-        deferred.reject(e);
-      }
-    });
-    return deferred.promise;
+    return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
 }

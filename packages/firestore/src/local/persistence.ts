@@ -29,7 +29,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId, SharedClientState } from './shared_client_state';
 import { TargetData } from './target_data';
 import { DatabaseInfo } from '../core/database_info';
-import { InternalPersistenceSettings } from '../core/firestore_client';
+import { PersistenceSettings } from '../core/firestore_client';
 import { Platform } from '../platform/platform';
 import { AsyncQueue } from '../util/async_queue';
 
@@ -306,19 +306,13 @@ export interface GarbageCollectionScheduler {
  * configure() once before accessing any of the individual components.
  */
 export interface PersistenceProvider {
-  /**
-   * True if the underlying implementation supports durable storage via
-   * `enablePersistence()`.
-   */
-  readonly isDurable: boolean;
-
-  configure(
+  initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
     clientId: ClientId,
     initialUser: User,
-    settings: InternalPersistenceSettings
+    settings: PersistenceSettings
   ): Promise<void>;
 
   getPersistence(): Persistence;
@@ -327,5 +321,5 @@ export interface PersistenceProvider {
 
   getSharedClientState(): SharedClientState;
 
-  clearPersistence(): Promise<void>;
+  clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }

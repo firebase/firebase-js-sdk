@@ -30,7 +30,7 @@ import memoryPkg from './memory/package.json';
 
 import {
   appendPrivatePrefixTransformers,
-  manglePrivatePropertiesOptions,
+  manglePrivatePropertiesOptions
 } from './terser.config';
 
 // This Firestore Rollup configuration provides a number of different builds:
@@ -45,8 +45,11 @@ import {
 // The in-memory builds are roughly 130 KB smaller, but throw an exception
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
-// All browser builds rely on Terser's property name mangling to reduce code 
+// All browser builds rely on Terser's property name mangling to reduce code
 // size.
+//
+// See https://g3doc.corp.google.com/firebase/jscore/g3doc/contributing/builds.md
+// for a description of the various JavaScript formats used in our SDKs.
 
 // MARK: Browser builds
 
@@ -67,8 +70,8 @@ function resolveNodeExterns(id) {
 }
 
 /**
- * Resolves the external dependencies for the Memory-based Firestore 
- * implementation. Verifies that no persistence sources are used by Firestore's 
+ * Resolves the external dependencies for the Memory-based Firestore
+ * implementation. Verifies that no persistence sources are used by Firestore's
  * memory-only implementation.
  */
 export function resolveMemoryExterns(deps, externsId, referencedBy) {
@@ -138,7 +141,8 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: es5BuildPlugins,
-    external: (id, referencedBy) => resolveMemoryExterns(browserDeps, id, referencedBy)
+    external: (id, referencedBy) =>
+      resolveMemoryExterns(browserDeps, id, referencedBy)
   },
   // ES2017 ESM build (with persistence)
   {
@@ -160,7 +164,8 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: (id, referencedBy) => resolveMemoryExterns(browserDeps, id, referencedBy)
+    external: (id, referencedBy) =>
+      resolveMemoryExterns(browserDeps, id, referencedBy)
   },
   // ES5 CJS Build (with persistence)
   //

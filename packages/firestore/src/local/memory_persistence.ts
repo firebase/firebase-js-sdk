@@ -19,6 +19,7 @@ import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -31,7 +32,7 @@ import {
 } from './lru_garbage_collector';
 
 import { DatabaseInfo } from '../core/database_info';
-import { InternalPersistenceSettings } from '../core/firestore_client';
+import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { AsyncQueue } from '../util/async_queue';
@@ -60,6 +61,11 @@ import {
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
 
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
@@ -508,18 +514,22 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 }
 
 export class MemoryPersistenceProvider implements PersistenceProvider {
-  readonly isDurable = false;
-
   private clientId: ClientId | undefined;
 
-  configure(
+  initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
     clientId: ClientId,
     initialUser: User,
-    settings: InternalPersistenceSettings
+    settings: PersistenceSettings
   ): Promise<void> {
+    if (settings.durable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+      );
+    }
     this.clientId = clientId;
     return Promise.resolve();
   }
@@ -534,7 +544,7 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
   }
 
   getPersistence(): Persistence {
-    assert(this.clientId !== undefined, 'clientId not initialized');
+    assert(!!this.clientId, 'initialize() not called');
     return MemoryPersistence.createEagerPersistence(this.clientId);
   }
 
@@ -542,7 +552,10 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
     return new MemorySharedClientState();
   }
 
-  clearPersistence(): Promise<void> {
-    return Promise.resolve();
+  clearPersistence(): never {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
   }
 }
