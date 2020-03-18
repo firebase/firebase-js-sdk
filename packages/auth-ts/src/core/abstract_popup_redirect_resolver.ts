@@ -23,17 +23,21 @@ import { UserCredential } from '../model/user_credential';
 import { RedirectManager } from './strategies/redirect';
 import * as idp from './strategies/idp';
 import { User } from '../model/user';
+import { AuthPopup } from './util/popup';
+import { PopupResultManager } from './strategies/popup';
 
 export abstract class AbstractPopupRedirectResolver
   implements PopupRedirectResolver {
   private readonly redirectManager = new RedirectManager();
+  private readonly popupManager = new PopupResultManager();
   private auth!: Auth;
 
-  abstract processPopup(
+  abstract openPopup(
     auth: Auth,
     provider: AuthProvider,
-    authType: AuthEventType
-  ): Promise<UserCredential>;
+    authType: AuthEventType,
+    eventId?: string,
+  ): Promise<AuthPopup>;
 
   abstract processRedirect(
     auth: Auth,
@@ -49,6 +53,10 @@ export abstract class AbstractPopupRedirectResolver
     let isRedirect = false;
     try {
       switch (event.type) {
+        case AuthEventType.UNKNOWN:
+        case AuthEventType.VERIFY_APP:
+          // TODO: These.
+          return true;
         case AuthEventType.SIGN_IN_VIA_REDIRECT:
           isRedirect = true;
         // Fallthrough
@@ -74,14 +82,35 @@ export abstract class AbstractPopupRedirectResolver
       }
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(cred);
+      } else {
+        this.popupManager.broadcastPopupResult(cred);
       }
       return true;
     } catch (e) {
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(null, e);
+      } else {
+        this.popupManager.broadcastPopupResult(null, e);
       }
       return false;
     }
+  }
+
+  processPopup(
+    auth: Auth,
+    provider: AuthProvider,
+    authType: AuthEventType,
+    eventId?: string,
+  ): Promise<UserCredential | null> {
+    // TODO: Fix the dirty hack
+    this.auth = auth;
+    return this.popupManager.getNewPendingPromise(async () => {
+      if (!this.isInitialized()) {
+        await this.initializeAndWait(auth);
+      }
+
+      return this.openPopup(auth, provider, authType, eventId);
+    })
   }
 
   getRedirectResult(auth: Auth): Promise<UserCredential | null> {

@@ -89,6 +89,7 @@ import { browserLocalPersistence } from './core/persistence/browser_local';
 import { browserSessionPersistence } from './core/persistence/browser_session';
 import { inMemoryPersistence } from './core/persistence/in_memory';
 import { indexedDBLocalPersistence } from './core/persistence/indexed_db';
+import { signInWithPopup, reauthenticateWithPopup, linkWithPopup } from './core/strategies/popup';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -156,6 +157,18 @@ enum Persistence {
         ): Promise<ConfirmationResult> {
           return reauthenticateWithPhoneNumber(auth, user, number, appVerifier);
         },
+        reauthenticateWithRedirect(provider: OAuthProvider): Promise<never> {
+          const resolver = isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver;
+          return reauthenticateWithRedirect(auth, user, provider, resolver);
+        },
+        reauthenticateWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+          const resolver = isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver;
+          return reauthenticateWithPopup(auth, user, provider, resolver);
+        },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
         },
@@ -182,18 +195,18 @@ enum Persistence {
         updatePhoneNumber(phoneCredential: PhoneAuthCredential): Promise<void> {
           return updatePhoneNumber(auth, user, phoneCredential);
         },
-        reauthenticateWithRedirect(provider: OAuthProvider): Promise<never> {
-          const resolver = isMobileCordova()
-            ? cordovaPopupRedirectResolver
-            : browserPopupRedirectResolver;
-          return reauthenticateWithRedirect(auth, user, provider, resolver);
-        },
         linkWithRedirect(provider: OAuthProvider): Promise<never> {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return linkWithRedirect(auth, user, provider, resolver);
-        }
+        },
+        linkWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+          const resolver = isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver;
+          return linkWithPopup(auth, user, provider, resolver);
+        },
       });
     }
   });
@@ -270,6 +283,15 @@ enum Persistence {
     },
     signInWithRedirect(provider: OAuthProvider): Promise<never> {
       return signInWithRedirect(
+        auth,
+        provider,
+        isMobileCordova()
+          ? cordovaPopupRedirectResolver
+          : browserPopupRedirectResolver
+      );
+    },
+    signInWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+      return signInWithPopup(
         auth,
         provider,
         isMobileCordova()

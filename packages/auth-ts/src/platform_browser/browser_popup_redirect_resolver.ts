@@ -31,6 +31,8 @@ import { openIframe } from './iframe';
 import { getCurrentUrl } from '../core/util/location';
 import firebase from '@firebase/app';
 import { AbstractPopupRedirectResolver } from '../core/abstract_popup_redirect_resolver';
+import { AuthPopup } from '../core/util/popup';
+import { generateEventId } from '../core/util/event_id';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -132,12 +134,14 @@ interface GapiAuthEvent extends gapi.iframes.Message {
 export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver {
   private initialized = false;
 
-  processPopup(
+  async openPopup(
     auth: Auth,
     provider: AuthProvider,
-    authType: AuthEventType
-  ): Promise<UserCredential> {
-    throw new Error('not implemented');
+    authType: AuthEventType,
+    eventId?: string,
+  ): Promise<AuthPopup> {
+    const url = getRedirectUrl(auth, provider, authType, eventId);
+    return AuthPopup.open(url, generateEventId());
   }
 
   processRedirect(
