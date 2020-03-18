@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
+import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
@@ -56,11 +57,14 @@ import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
-  LruParams
+  LruParams,
+  LruScheduler
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
+  GarbageCollectionScheduler,
   Persistence,
+  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG,
@@ -69,9 +73,15 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -1298,4 +1308,91 @@ function writeSentinelKey(
   return documentTargetStore(txn).put(
     sentinelRow(key, txn.currentSequenceNumber)
   );
+}
+
+/**
+ * Provides all components needed for IndexedDb persistence.
+ */
+export class IndexedDbPersistenceProvider implements PersistenceProvider {
+  private persistence?: IndexedDbPersistence;
+  private gcScheduler?: GarbageCollectionScheduler;
+  private sharedClientState?: SharedClientState;
+
+  async initialize(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    clientId: ClientId,
+    initialUser: User,
+    settings: PersistenceSettings
+  ): Promise<void> {
+    assert(
+      settings.durable,
+      'IndexedDbPersistenceProvider can only provide durable persistence'
+    );
+    assert(!this.persistence, 'configure() already called');
+
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      databaseInfo
+    );
+
+    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
+    const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
+      useProto3Json: true
+    });
+
+    if (!WebStorageSharedClientState.isAvailable(platform)) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'IndexedDB persistence is only available on platforms that support LocalStorage.'
+      );
+    }
+
+    this.sharedClientState = settings.synchronizeTabs
+      ? new WebStorageSharedClientState(
+          asyncQueue,
+          platform,
+          persistenceKey,
+          clientId,
+          initialUser
+        )
+      : new MemorySharedClientState();
+
+    this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
+      allowTabSynchronization: settings.synchronizeTabs,
+      persistenceKey,
+      clientId,
+      platform,
+      queue: asyncQueue,
+      serializer,
+      lruParams: LruParams.withCacheSize(settings.cacheSizeBytes),
+      sequenceNumberSyncer: this.sharedClientState
+    });
+
+    const garbageCollector = this.persistence.referenceDelegate
+      .garbageCollector;
+    this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
+  }
+
+  getPersistence(): Persistence {
+    assert(!!this.persistence, 'initialize() not called');
+    return this.persistence;
+  }
+
+  getSharedClientState(): SharedClientState {
+    assert(!!this.sharedClientState, 'initialize() not called');
+    return this.sharedClientState;
+  }
+
+  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
+    assert(!!this.gcScheduler, 'initialize() not called');
+    return this.gcScheduler;
+  }
+
+  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      databaseInfo
+    );
+    return IndexedDbPersistence.clearPersistence(persistenceKey);
+  }
 }

@@ -196,7 +196,10 @@ class MockConnection implements Connection {
     return this.watchOpen.promise;
   }
 
-  ackWrite(commitTime?: string, mutationResults?: api.WriteResult[]): void {
+  ackWrite(
+    commitTime?: api.Timestamp,
+    mutationResults?: api.WriteResult[]
+  ): void {
     this.writeStream!.callOnMessage({
       // Convert to base64 string so it can later be parsed into ByteString.
       streamToken: PlatformSupport.getPlatform().btoa(
@@ -1151,11 +1154,7 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      // actualTarget's resumeToken is a string, but the serialized
-      // resumeToken will be a base64 string, so we need to convert it back.
-      expect(actualTarget.resumeToken || '').to.equal(
-        this.platform.atob(expectedTarget.resumeToken || '')
-      );
+      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(

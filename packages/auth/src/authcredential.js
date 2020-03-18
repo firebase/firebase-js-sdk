@@ -36,7 +36,7 @@ goog.provide('fireauth.SAMLAuthCredential');
 goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
-goog.forwardDeclare('fireauth.RpcHandler');
+goog.requireType('fireauth.RpcHandler');
 goog.require('fireauth.ActionCodeInfo');
 goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.AuthError');
