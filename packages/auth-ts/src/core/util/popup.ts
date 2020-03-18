@@ -22,8 +22,8 @@ const BASE_POPUP_OPTIONS_ = {
   location: 'yes',
   resizable: 'yes',
   statusbar: 'yes',
-  toolbar: 'no',
-}
+  toolbar: 'no'
+};
 
 const DEFAULT_WIDTH_ = 500;
 const DEFAULT_HEIGHT_ = 600;
@@ -33,27 +33,33 @@ const FIREFOX_UA_ = 'firefox/';
 const FIREFOX_EMPTY_URL_ = 'http://localhost';
 
 export class AuthPopup {
-
-  private constructor(public readonly window: Window) {
-  }
+  private constructor(public readonly window: Window) {}
 
   close() {
     try {
       this.window.close();
-    } catch (e) { }
+    } catch (e) {}
   }
 
-  static open(url?: string, name?: string, width = DEFAULT_WIDTH_, height = DEFAULT_HEIGHT_): AuthPopup {
-    const top = Math.min((window.screen.availHeight - height) / 2, 0).toString();
+  static open(
+    url?: string,
+    name?: string,
+    width = DEFAULT_WIDTH_,
+    height = DEFAULT_HEIGHT_
+  ): AuthPopup {
+    const top = Math.min(
+      (window.screen.availHeight - height) / 2,
+      0
+    ).toString();
     const left = Math.min((window.screen.availWidth - width) / 2, 0).toString();
     let target = '';
 
-    const options: {[key: string]: string} = {
+    const options: { [key: string]: string } = {
       ...BASE_POPUP_OPTIONS_,
       width: width.toString(),
       height: height.toString(),
       top,
-      left,
+      left
     };
 
     // Chrome iOS 7 and 8 is returning an undefined popup win when target is
@@ -90,7 +96,7 @@ export class AuthPopup {
       } catch (e) {}
     } else {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_BLOCKED, {
-        appName: '',
+        appName: ''
       });
     }
 

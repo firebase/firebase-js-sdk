@@ -89,7 +89,11 @@ import { browserLocalPersistence } from './core/persistence/browser_local';
 import { browserSessionPersistence } from './core/persistence/browser_session';
 import { inMemoryPersistence } from './core/persistence/in_memory';
 import { indexedDBLocalPersistence } from './core/persistence/indexed_db';
-import { signInWithPopup, reauthenticateWithPopup, linkWithPopup } from './core/strategies/popup';
+import {
+  signInWithPopup,
+  reauthenticateWithPopup,
+  linkWithPopup
+} from './core/strategies/popup';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -163,7 +167,9 @@ enum Persistence {
             : browserPopupRedirectResolver;
           return reauthenticateWithRedirect(auth, user, provider, resolver);
         },
-        reauthenticateWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+        reauthenticateWithPopup(
+          provider: OAuthProvider
+        ): Promise<UserCredential | null> {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
@@ -206,7 +212,7 @@ enum Persistence {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return linkWithPopup(auth, user, provider, resolver);
-        },
+        }
       });
     }
   });

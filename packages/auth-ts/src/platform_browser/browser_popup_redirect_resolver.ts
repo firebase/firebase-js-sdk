@@ -138,7 +138,7 @@ export class BrowserPopupRedirectResolver extends AbstractPopupRedirectResolver 
     auth: Auth,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string,
+    eventId?: string
   ): Promise<AuthPopup> {
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return AuthPopup.open(url, generateEventId());

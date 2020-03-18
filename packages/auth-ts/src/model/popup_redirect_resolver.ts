@@ -29,8 +29,8 @@ export interface PopupRedirectResolver {
     auth: Auth,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string,
-  ): Promise<UserCredential|null>;
+    eventId?: string
+  ): Promise<UserCredential | null>;
   processRedirect(
     auth: Auth,
     provider: AuthProvider,

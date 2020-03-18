@@ -36,7 +36,7 @@ export abstract class AbstractPopupRedirectResolver
     auth: Auth,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string,
+    eventId?: string
   ): Promise<AuthPopup>;
 
   abstract processRedirect(
@@ -100,7 +100,7 @@ export abstract class AbstractPopupRedirectResolver
     auth: Auth,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string,
+    eventId?: string
   ): Promise<UserCredential | null> {
     // TODO: Fix the dirty hack
     this.auth = auth;
@@ -110,7 +110,7 @@ export abstract class AbstractPopupRedirectResolver
       }
 
       return this.openPopup(auth, provider, authType, eventId);
-    })
+    });
   }
 
   getRedirectResult(auth: Auth): Promise<UserCredential | null> {

@@ -38,11 +38,7 @@ export async function signInWithPopup(
     });
   }
 
-  return resolver.processPopup(
-    auth,
-    provider,
-    AuthEventType.SIGN_IN_VIA_POPUP,
-  );
+  return resolver.processPopup(auth, provider, AuthEventType.SIGN_IN_VIA_POPUP);
 }
 
 export async function reauthenticateWithPopup(
@@ -65,7 +61,7 @@ export async function reauthenticateWithPopup(
     auth,
     provider,
     AuthEventType.REAUTH_VIA_POPUP,
-    eventId,
+    eventId
   );
 }
 
@@ -111,16 +107,21 @@ export class PopupResultManager {
   private pendingPromise: PendingPromise | null = null;
   private authWindow: AuthPopup | null = null;
 
-  getNewPendingPromise(cb: () => Promise<AuthPopup>): Promise<UserCredential | null> {
+  getNewPendingPromise(
+    cb: () => Promise<AuthPopup>
+  ): Promise<UserCredential | null> {
     if (this.pendingPromise) {
       // There was already a pending promise. Expire it.
-      this.broadcastPopupResult(null, AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
-        appName: 'TODO',
-      }));
+      this.broadcastPopupResult(
+        null,
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
+          appName: 'TODO'
+        })
+      );
     }
 
     return new Promise<UserCredential | null>(async (resolve, reject) => {
-      this.pendingPromise = {resolve, reject};
+      this.pendingPromise = { resolve, reject };
       this.authWindow = await cb();
     });
   }
