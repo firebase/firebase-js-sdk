@@ -48,7 +48,7 @@ import {
 // All browser builds rely on Terser's property name mangling to reduce code
 // size.
 //
-// See https://g3doc.corp.google.com/firebase/jscore/g3doc/contributing/builds.md
+// See https://g3doc/firebase/jscore/g3doc/contributing/builds.md
 // for a description of the various JavaScript formats used in our SDKs.
 
 // MARK: Browser builds
