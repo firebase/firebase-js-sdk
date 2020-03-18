@@ -576,7 +576,7 @@ export function isNullValue(
 export function isNanValue(
   value?: api.Value | null
 ): value is { doubleValue: 'NaN' | number } {
-  return !!value && isDouble(value) && isNaN(Number(value.doubleValue));
+  return isDouble(value) && isNaN(Number(value.doubleValue));
 }
 
 /** Returns true if `value` is a MapValue. */
