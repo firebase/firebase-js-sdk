@@ -1,6 +1,6 @@
 import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
-import { normalizeTimestamp } from './proto_values';
+import { normalizeTimestamp } from './values';
 
 /**
  * Represents a locally-applied ServerTimestamp.
