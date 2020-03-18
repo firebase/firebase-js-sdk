@@ -62,10 +62,10 @@ import {
 import { Code, FirestoreError } from '../../../../src/util/error';
 import { Indexable } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
-import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
 import {
   bound,
+  byteStringFromString,
   dbId,
   deletedDoc,
   deleteMutation,
@@ -81,8 +81,7 @@ import {
   transformMutation,
   version,
   wrap,
-  wrapObject,
-  byteStringFromString
+  wrapObject
 } from '../../../util/helpers';
 import { ByteString } from '../../../../src/util/byte_string';
 
@@ -196,13 +195,13 @@ describe('Serializer', () => {
 
     it('converts IntegerValue', () => {
       const examples = [
-        types.MIN_SAFE_INTEGER,
+        Number.MIN_SAFE_INTEGER,
         -100,
         -1,
         0,
         1,
         100,
-        types.MAX_SAFE_INTEGER
+        Number.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
@@ -501,11 +500,11 @@ describe('Serializer', () => {
 
     it('converts a long key', () => {
       const actual = s.toName(
-        key('users/' + types.MAX_SAFE_INTEGER + '/profiles/primary')
+        key('users/' + Number.MAX_SAFE_INTEGER + '/profiles/primary')
       );
       expect(actual).to.deep.equal(
         'projects/p/databases/d/documents/users/' +
-          types.MAX_SAFE_INTEGER.toString() +
+          Number.MAX_SAFE_INTEGER.toString() +
           '/profiles/primary'
       );
     });

@@ -20,7 +20,6 @@ import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import * as fieldValue from '../../../src/model/field_value';
 import { primitiveComparator } from '../../../src/util/misc';
-import * as typeUtils from '../../../src/util/types';
 import {
   blob,
   dbId,
@@ -40,12 +39,12 @@ describe('FieldValue', () => {
 
   it('can parse integers', () => {
     const primitiveValues = [
-      typeUtils.MIN_SAFE_INTEGER,
+      Number.MIN_SAFE_INTEGER,
       -1,
       0,
       1,
       2,
-      typeUtils.MAX_SAFE_INTEGER
+      Number.MAX_SAFE_INTEGER
     ];
     const values = primitiveValues.map(v => wrap(v));
 
@@ -62,10 +61,10 @@ describe('FieldValue', () => {
 
   it('can parse doubles', () => {
     const primitiveValues = [
-      typeUtils.MIN_SAFE_INTEGER - 1,
+      Number.MIN_SAFE_INTEGER - 1,
       -1.1,
       0.1,
-      typeUtils.MAX_SAFE_INTEGER + 1,
+      Number.MAX_SAFE_INTEGER + 1,
       NaN,
       Infinity,
       -Infinity
@@ -438,8 +437,8 @@ describe('FieldValue', () => {
       [wrap(NaN)],
       [wrap(-Infinity)],
       [wrap(-Number.MAX_VALUE)],
-      [wrap(typeUtils.MIN_SAFE_INTEGER - 1)],
-      [wrap(typeUtils.MIN_SAFE_INTEGER)],
+      [wrap(Number.MIN_SAFE_INTEGER - 1)],
+      [wrap(Number.MIN_SAFE_INTEGER)],
       [wrap(-1.1)],
       // Integers and Doubles order the same.
       [new fieldValue.IntegerValue(-1), new fieldValue.DoubleValue(-1)],
@@ -453,8 +452,8 @@ describe('FieldValue', () => {
       [wrap(Number.MIN_VALUE)],
       [new fieldValue.IntegerValue(1), new fieldValue.DoubleValue(1)],
       [wrap(1.1)],
-      [wrap(typeUtils.MAX_SAFE_INTEGER)],
-      [wrap(typeUtils.MAX_SAFE_INTEGER + 1)],
+      [wrap(Number.MAX_SAFE_INTEGER)],
+      [wrap(Number.MAX_SAFE_INTEGER + 1)],
       [wrap(Infinity)],
 
       // timestamps

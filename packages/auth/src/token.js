@@ -23,6 +23,7 @@ goog.provide('fireauth.StsTokenManager.Response');
 goog.provide('fireauth.StsTokenManager.ResponseData');
 
 goog.require('fireauth.AuthError');
+goog.require('fireauth.IdToken');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.authenum.Error');
 goog.require('goog.Promise');
@@ -44,10 +45,8 @@ fireauth.StsTokenManager = function(rpcHandler) {
   this.rpcHandler_ = rpcHandler;
   /** @private {?string} The STS refresh token. */
   this.refreshToken_ = null;
-  /** @private {?string} The STS ID token. */
+  /** @private {?fireauth.IdToken} The STS ID token. */
   this.accessToken_ = null;
-  /** @private {number} The STS expiration timestamp. */
-  this.expirationTime_ = 0;
 };
 
 
@@ -58,8 +57,9 @@ fireauth.StsTokenManager.prototype.toPlainObject = function() {
   return {
     'apiKey': this.rpcHandler_.getApiKey(),
     'refreshToken': this.refreshToken_,
-    'accessToken': this.accessToken_,
-    'expirationTime': this.expirationTime_
+    'accessToken': this.accessToken_ && this.accessToken_.toString(),
+    // To support downgrade flows, return expiration time.
+    'expirationTime': this.getExpirationTime()
   };
 };
 
@@ -79,8 +79,7 @@ fireauth.StsTokenManager.fromPlainObject = function(rpcHandler, obj) {
     goog.asserts.assert(obj['apiKey'] == rpcHandler.getApiKey());
     stsTokenManager = new fireauth.StsTokenManager(rpcHandler);
     stsTokenManager.setRefreshToken(obj['refreshToken']);
-    stsTokenManager.setAccessToken(
-        obj['accessToken'], obj['expirationTime'] || 0);
+    stsTokenManager.setAccessToken(obj['accessToken']);
   }
   return stsTokenManager;
 };
@@ -89,7 +88,6 @@ fireauth.StsTokenManager.fromPlainObject = function(rpcHandler, obj) {
 /**
  * @typedef {{
  *   accessToken: (?string),
- *   expirationTime: (number),
  *   refreshToken: (?string)
  * }}
  */
@@ -99,7 +97,6 @@ fireauth.StsTokenManager.Response;
 /**
  * @typedef {{
  *   access_token: (?string|undefined),
- *   expires_in: (number|undefined),
  *   refresh_token: (?string|undefined)
  * }}
  */
@@ -116,12 +113,9 @@ fireauth.StsTokenManager.prototype.setRefreshToken = function(refreshToken) {
 
 /**
  * @param {?string} accessToken The STS access token.
- * @param {number} expirationTime  The STS token expiration time.
  */
-fireauth.StsTokenManager.prototype.setAccessToken = function(
-    accessToken, expirationTime) {
-  this.accessToken_ = accessToken;
-  this.expirationTime_ = expirationTime;
+fireauth.StsTokenManager.prototype.setAccessToken = function(accessToken) {
+  this.accessToken_ = fireauth.IdToken.parse(accessToken || '');
 };
 
 
@@ -134,10 +128,10 @@ fireauth.StsTokenManager.prototype.getRefreshToken = function() {
 
 
 /**
- * @return {number} The STS access token expiration time.
+ * @return {number} The STS access token expiration time in milliseconds.
  */
 fireauth.StsTokenManager.prototype.getExpirationTime = function() {
-  return this.expirationTime_;
+  return (this.accessToken_ && this.accessToken_.getExp() * 1000) || 0;
 };
 
 
@@ -145,9 +139,8 @@ fireauth.StsTokenManager.prototype.getExpirationTime = function() {
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
  * @const {number}
- * @private
  */
-fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER_ = 30 * 1000;
+fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER = 30 * 1000;
 
 
 /**
@@ -156,7 +149,7 @@ fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER_ = 30 * 1000;
  */
 fireauth.StsTokenManager.prototype.isExpired_ = function() {
   return goog.now() >
-      this.expirationTime_ - fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER_;
+      this.getExpirationTime() - fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER;
 };
 
 
@@ -165,15 +158,13 @@ fireauth.StsTokenManager.prototype.isExpired_ = function() {
  * VerifyAssertion or VerifyPassword) and save the access token, refresh token,
  * and expiration time.
  * @param {!Object} response The backend response.
- * @return {!string} The STS access token.
+ * @return {string} The STS access token.
  */
 fireauth.StsTokenManager.prototype.parseServerResponse = function(response) {
   var idToken = response[fireauth.RpcHandler.AuthServerField.ID_TOKEN];
   var refreshToken =
       response[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN];
-  var expirationTime = fireauth.StsTokenManager.calcOffsetTimestamp_(
-      response[fireauth.RpcHandler.AuthServerField.EXPIRES_IN]);
-  this.setAccessToken(idToken, expirationTime);
+  this.setAccessToken(idToken);
   this.setRefreshToken(refreshToken);
   return idToken;
 };
@@ -186,12 +177,10 @@ fireauth.StsTokenManager.prototype.parseServerResponse = function(response) {
 fireauth.StsTokenManager.prototype.toServerResponse = function() {
   var stsTokenManagerResponse = {};
   stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.ID_TOKEN] =
-      this.accessToken_;
+      this.accessToken_ && this.accessToken_.toString();
   // Refresh token could be expired.
   stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN] =
       this.getRefreshToken();
-  stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.EXPIRES_IN] =
-      (this.getExpirationTime() - goog.now()) / 1000;
   return stsTokenManagerResponse;
 };
 
@@ -203,18 +192,6 @@ fireauth.StsTokenManager.prototype.toServerResponse = function() {
 fireauth.StsTokenManager.prototype.copy = function(tokenManagerToCopy) {
   this.accessToken_ = tokenManagerToCopy.accessToken_;
   this.refreshToken_ = tokenManagerToCopy.refreshToken_;
-  this.expirationTime_ = tokenManagerToCopy.expirationTime_;
-};
-
-
-/**
- * @param {number|string} offset The offset to add to the current time, in
- *     seconds.
- * @return {number} The timestamp corresponding to the current time plus offset.
- * @private
- */
-fireauth.StsTokenManager.calcOffsetTimestamp_ = function(offset) {
-  return goog.now() + parseInt(offset, 10) * 1000;
 };
 
 
@@ -243,16 +220,12 @@ fireauth.StsTokenManager.prototype.requestToken_ = function(data) {
   // Send RPC request to STS token endpoint.
   return this.rpcHandler_.requestStsToken(data).then(function(resp) {
     var response = /** @type {!fireauth.StsTokenManager.ResponseData} */ (resp);
-    self.accessToken_ =
-        response[fireauth.RpcHandler.StsServerField.ACCESS_TOKEN];
-    // Update expiration time.
-    self.expirationTime_ = fireauth.StsTokenManager.calcOffsetTimestamp_(
-        response[fireauth.RpcHandler.StsServerField.EXPIRES_IN]);
+    self.accessToken_ = fireauth.IdToken.parse(
+        response[fireauth.RpcHandler.StsServerField.ACCESS_TOKEN]);
     self.refreshToken_ =
         response[fireauth.RpcHandler.StsServerField.REFRESH_TOKEN];
-    return /** @type {fireauth.StsTokenManager.Response} */ ({
-      'accessToken': self.accessToken_,
-      'expirationTime': self.expirationTime_,
+    return /** @type {!fireauth.StsTokenManager.Response} */ ({
+      'accessToken': self.accessToken_.toString(),
       'refreshToken': self.refreshToken_
     });
   }).thenCatch(function(error) {
@@ -292,8 +265,7 @@ fireauth.StsTokenManager.prototype.getToken = function(opt_forceRefresh) {
   if (!forceRefresh && this.accessToken_ && !this.isExpired_()) {
     // Cached STS access token not expired, return it.
     return /** @type {!goog.Promise} */ (goog.Promise.resolve({
-      'accessToken': self.accessToken_,
-      'expirationTime': self.expirationTime_,
+      'accessToken': self.accessToken_.toString(),
       'refreshToken': self.refreshToken_
     }));
   } else if (this.refreshToken_) {

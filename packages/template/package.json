@@ -28,12 +28,12 @@
   },
   "dependencies": {
     "@firebase/template-types": "0.1.0",
-    "tslib": "1.10.0"
+    "tslib": "1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "1.28.0",
-    "rollup-plugin-typescript2": "0.25.3",
+    "rollup": "2.0.6",
+    "rollup-plugin-typescript2": "0.26.0",
     "typescript": "3.8.3"
   },
   "repository": {

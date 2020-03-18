@@ -112,6 +112,16 @@
               title="Email Not Verified" data-placement="bottom">
           <i class="fa fa-times"></i>
         </span>
+        <div class="btn-group" id="enrolled-factors-drop-down">
+          <button type="button" class="btn btn-default btn-sm dropdown-toggle"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-key" title="User multi-factor enrolled"
+               data-toggle="tooltip" data-placement="bottom"></i>
+            <span class="caret"></span>
+          </button>
+          <!-- List of enrolled second factors. -->
+          <div class="dropdown-menu enrolled-second-factors"></div>
+        </div>
       </div>
       <div class="clearfix"></div>
     </div>
@@ -469,6 +479,37 @@
                 </button>
               </form>
 
+              <!-- Enroll MFA-->
+              <div class="group">Enroll Second Factor</div>
+              <ul id="mfa-tab-menu" class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                  <a href="#mfa-phone-section" aria-controls="mfa-phone-section"
+                     data-toggle="tab" role="tab">
+                    Phone
+                  </a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane active" id="mfa-phone-section">
+                  <form class="form form-bordered no-submit">
+                    <input type="tel" id="enroll-mfa-phone-number"
+                           class="form-control" placeholder="Phone Number" />
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-verify-phone-number">
+                      Verify Phone Number
+                    </button>
+                    <input type="text" id="enroll-mfa-phone-verification-id"
+                           class="form-control" placeholder="Phone Verification ID" />
+                    <input type="text" id="enroll-mfa-phone-verification-code"
+                           class="form-control" placeholder="Phone Verification Code" />
+                    <input type="text" id="enroll-mfa-phone-display-name"
+                           class="form-control" placeholder="Display Name" />
+                    <button class="btn btn-block btn-primary"
+                            id="enroll-mfa-confirm-phone-verification">
+                      Complete Enrollment
+                    </button>
+                  </form>
+                </div>
+              </div>
 
               <!-- Other Actions -->
               <div class="group">Other Actions</div>
@@ -658,6 +699,45 @@
           <button class="btn btn-xs btn-default pull-right clear-logs">
             Clear
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The multi-factor sign-in dialog. -->
+    <div class="modal" id="multiFactorModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Select a second factor to sign in with</h4>
+          </div>
+          <div class="modal-body">
+            <!-- List of 2nd factor options. -->
+            <div class="list-group enrolled-second-factors"></div>
+            <!-- For handling sign-in with phone 2nd factor. -->
+            <form class="form form-bordered no-submit hidden" id="multi-factor-phone">
+              <div class="form">
+              <button class="btn btn-block btn-primary" id="send-2fa-phone-code">
+                Send code
+              </button>
+              </div>
+              <div class="form">
+              <input type="text" id="multi-factor-sign-in-verification-id"
+                     class="form-control" placeholder="Phone Verification ID" />
+              <input type="text" id="multi-factor-sign-in-verification-code"
+                     class="form-control" placeholder="Phone Verification code" />
+              <button class="btn btn-block btn-primary"
+                      id="sign-in-with-phone-multi-factor">
+                Complete sign In
+              </button>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
         </div>
       </div>
     </div>

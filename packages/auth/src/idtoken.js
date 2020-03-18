@@ -26,10 +26,17 @@ goog.require('goog.crypt.base64');
 
 /**
  * Parses the token string into a {@code Token} object.
- * @param {!fireauth.IdToken.JsonToken} token The parsed JSON token.
+ * @param {?string} tokenString The JWT token string.
  * @constructor
  */
-fireauth.IdToken = function(token) {
+fireauth.IdToken = function(tokenString) {
+  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
+  if (!(token && token['sub'] && token['iss'] &&
+        token['aud'] && token['exp'])) {
+    throw new Error('Invalid JWT');
+  }
+  /** @const @private {string} The plain JWT string. */
+  this.jwt_ = /** @type {string} */ (tokenString);
   /** @const @private {string} The issuer of the token. */
   this.iss_ = token['iss'];
   /** @const @private {string} The audience of the token. */
@@ -179,18 +186,26 @@ fireauth.IdToken.prototype.getPhoneNumber = function() {
 
 
 /**
+ * @return {string} The JWT string.
+ * @override
+ */
+fireauth.IdToken.prototype.toString = function() {
+  return this.jwt_;
+};
+
+
+/**
  * Parses the JWT token and extracts the information part without verifying the
  * token signature.
  * @param {string} tokenString The JWT token.
  * @return {?fireauth.IdToken} The decoded token.
  */
 fireauth.IdToken.parse = function(tokenString) {
-  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
-  if (token && token['sub'] && token['iss'] && token['aud'] && token['exp']) {
-    return new fireauth.IdToken(
-        /** @type {!fireauth.IdToken.JsonToken} */ (token));
+  try {
+    return new fireauth.IdToken(tokenString);
+  } catch (e) {
+    return null;
   }
-  return null;
 };
 
 /**
