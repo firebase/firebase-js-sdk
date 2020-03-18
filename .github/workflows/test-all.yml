@@ -1,11 +1,7 @@
 name: Run All Tests
 
 on: 
-  pull_request:
-    branches:
-      - master
-    types:
-      - closed
+  push:
   schedule:
     - cron: '0 6,18 * * *'
 

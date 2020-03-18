@@ -1,6 +1,10 @@
-name: Push/PR
+name: Test Modified Packages
 
-on: [push, pull_request]
+on: 
+  pull_request:
+    branches:
+      - '*'
+      - '!master'
 
 jobs:
   test:
