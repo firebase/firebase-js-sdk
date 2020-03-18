@@ -158,17 +158,18 @@ export class PopupResultManager {
       if (this.authWindow?.window.closed) {
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
-          this.broadcastPopupResult(null, AUTH_ERROR_FACTORY.create(
-            AuthErrorCode.POPUP_CLOSED_BY_USER, {
-              appName: 'TODO',
-            }
-          ));
-        }, AUTH_EVENT_TIMEOUT_.get())
+          this.broadcastPopupResult(
+            null,
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
+              appName: 'TODO'
+            })
+          );
+        }, AUTH_EVENT_TIMEOUT_.get());
       }
 
       this.pollId = window.setTimeout(poll, WINDOW_CLOSE_TIMEOUT_.get());
     };
-    
+
     poll();
   }
 }
