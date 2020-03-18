@@ -28,6 +28,10 @@ export class DocumentKey {
     );
   }
 
+  static fromName(name: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
+  }
+
   /** Returns true if the document is in the specified collectionId. */
   hasCollectionId(collectionId: string): boolean {
     return (
