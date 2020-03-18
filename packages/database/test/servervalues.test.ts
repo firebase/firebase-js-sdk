@@ -94,6 +94,7 @@ describe('ServerValue tests', () => {
 
         node.off('value');
         expect(values).to.deep.equal(expected);
+        node.database.goOnline();
       });
     }
   });
