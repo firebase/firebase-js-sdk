@@ -18,7 +18,8 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { fail } from '../util/assert';
+import { assert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -30,26 +31,41 @@ import {
   LruParams
 } from './lru_garbage_collector';
 
+import { DatabaseInfo } from '../core/database_info';
+import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
+  GarbageCollectionScheduler,
   Persistence,
+  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { Platform } from '../platform/platform';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState
+} from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
 
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
@@ -494,5 +510,52 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
     return this.persistence.getRemoteDocumentCache().getSize(txn);
+  }
+}
+
+export class MemoryPersistenceProvider implements PersistenceProvider {
+  private clientId: ClientId | undefined;
+
+  initialize(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    clientId: ClientId,
+    initialUser: User,
+    settings: PersistenceSettings
+  ): Promise<void> {
+    if (settings.durable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+      );
+    }
+    this.clientId = clientId;
+    return Promise.resolve();
+  }
+
+  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
+    let started = false;
+    return {
+      started,
+      start: () => (started = true),
+      stop: () => (started = false)
+    };
+  }
+
+  getPersistence(): Persistence {
+    assert(!!this.clientId, 'initialize() not called');
+    return MemoryPersistence.createEagerPersistence(this.clientId);
+  }
+
+  getSharedClientState(): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  clearPersistence(): never {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
   }
 }
