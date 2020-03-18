@@ -25,6 +25,10 @@ import { User } from '../../model/user';
 import { generateEventId } from '../util/event_id';
 import { reloadWithoutSaving } from '../account_management/reload';
 import { AuthPopup } from '../util/popup';
+import { Delay } from '../util/delay';
+
+const AUTH_EVENT_TIMEOUT_ = new Delay(2000, 2000);
+const WINDOW_CLOSE_TIMEOUT_ = new Delay(2000, 10000);
 
 export async function signInWithPopup(
   auth: Auth,
@@ -106,6 +110,8 @@ interface PendingPromise {
 export class PopupResultManager {
   private pendingPromise: PendingPromise | null = null;
   private authWindow: AuthPopup | null = null;
+  private userCancelledPromise: Promise<void> | null = null;
+  private pollId: number | null = null;
 
   getNewPendingPromise(
     cb: () => Promise<AuthPopup>
@@ -123,12 +129,19 @@ export class PopupResultManager {
     return new Promise<UserCredential | null>(async (resolve, reject) => {
       this.pendingPromise = { resolve, reject };
       this.authWindow = await cb();
+
+      // Handle user closure. Notice this does *not* use await
+      this.pollUserCancellation();
     });
   }
 
   broadcastPopupResult(cred: UserCredential | null, error?: Error) {
     if (this.authWindow) {
       this.authWindow.close();
+    }
+
+    if (this.pollId) {
+      window.clearTimeout(this.pollId);
     }
 
     if (this.pendingPromise) {
@@ -138,5 +151,24 @@ export class PopupResultManager {
         this.pendingPromise.resolve(cred);
       }
     }
+  }
+
+  private pollUserCancellation() {
+    const poll = () => {
+      if (this.authWindow?.window.closed) {
+        this.pollId = window.setTimeout(() => {
+          this.pollId = null;
+          this.broadcastPopupResult(null, AUTH_ERROR_FACTORY.create(
+            AuthErrorCode.POPUP_CLOSED_BY_USER, {
+              appName: 'TODO',
+            }
+          ));
+        }, AUTH_EVENT_TIMEOUT_.get())
+      }
+
+      this.pollId = window.setTimeout(poll, WINDOW_CLOSE_TIMEOUT_.get());
+    };
+    
+    poll();
   }
 }

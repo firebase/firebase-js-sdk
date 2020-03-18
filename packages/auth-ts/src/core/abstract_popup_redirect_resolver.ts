@@ -85,15 +85,17 @@ export abstract class AbstractPopupRedirectResolver
       } else {
         this.popupManager.broadcastPopupResult(cred);
       }
-      return true;
     } catch (e) {
       if (isRedirect) {
         this.redirectManager.broadcastRedirectResult(null, e);
       } else {
         this.popupManager.broadcastPopupResult(null, e);
       }
-      return false;
     }
+
+    // TODO: There actually are cases where we want to return false.
+    // The legacy SDK just errors.
+    return true;
   }
 
   processPopup(
