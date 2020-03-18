@@ -25,9 +25,6 @@ import { field, mask } from '../../util/helpers';
 import { valueOf } from '../../util/values';
 
 describe('FieldValue', () => {
-  const date1 = new Date(2016, 4, 2, 1, 5);
-  const date2 = new Date(2016, 5, 20, 10, 20, 30);
-
   it('can extract fields', () => {
     const objValue = wrapObject({ foo: { a: 1, b: true, c: 'string' } });
 
