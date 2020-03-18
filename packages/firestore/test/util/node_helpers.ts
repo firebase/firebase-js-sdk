@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ const ValueMessage = protos.lookupType('google.firestore.v1.Value');
  * Verifies full round-trip of JSON protos through ProtobufJs.
  */
 export function verifyProtobufJsRoundTrip(jsonValue: api.Value): void {
-  const protobufJsEncocdedProto = ValueMessage.fromObject(jsonValue);
-  const protobufJsDecocdedProto = ValueMessage.toObject(
-    protobufJsEncocdedProto,
+  const protobufJsEncodedProto = ValueMessage.fromObject(jsonValue);
+  const protobufJsDecodedProto = ValueMessage.toObject(
+    protobufJsEncodedProto,
     protoLoaderOptions
   );
-  expect(protobufJsDecocdedProto).to.deep.equal(jsonValue);
+  expect(protobufJsDecodedProto).to.deep.equal(jsonValue);
 }
