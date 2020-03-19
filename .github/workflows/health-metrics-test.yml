@@ -1,10 +1,10 @@
-name: Health Metrics Test
+name: Health Metrics
 
 on: [push, pull_request]
 
 jobs:
-  health-metrics-test:
-    name: Health Metrics Test
+  binary-size-test:
+    name: Binary Size
     runs-on: ubuntu-latest
     env:
       METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
@@ -25,4 +25,4 @@ jobs:
       - name: Run health-metrics/binary-size test
         run: yarn size-report
 
-      # TODO(yifany): Enable startup times testing on CI.
+  # TODO(yifany): Enable startup times testing on CI.
