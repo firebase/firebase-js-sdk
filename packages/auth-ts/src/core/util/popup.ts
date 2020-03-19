@@ -33,8 +33,8 @@ const FIREFOX_UA_ = 'firefox/';
 const FIREFOX_EMPTY_URL_ = 'http://localhost';
 
 export class AuthPopup {
-  public associatedEvent: string|null = null;
-  
+  public associatedEvent: string | null = null;
+
   private constructor(public readonly window: Window) {}
 
   close() {

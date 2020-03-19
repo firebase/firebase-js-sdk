@@ -18,7 +18,10 @@
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { AuthEventType } from '../../model/auth_event';
-import { PopupRedirectResolver, PopupRedirectOutcomeHandler } from '../../model/popup_redirect_resolver';
+import {
+  PopupRedirectResolver,
+  PopupRedirectOutcomeHandler
+} from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
 import { UserCredential } from '../../model/user_credential';
 import { User } from '../../model/user';
@@ -43,7 +46,12 @@ export async function signInWithPopup(
   }
 
   const uniqueEventId = generateEventId();
-  return resolver.processPopup(auth, provider, AuthEventType.SIGN_IN_VIA_POPUP, uniqueEventId);
+  return resolver.processPopup(
+    auth,
+    provider,
+    AuthEventType.SIGN_IN_VIA_POPUP,
+    uniqueEventId
+  );
 }
 
 export async function reauthenticateWithPopup(

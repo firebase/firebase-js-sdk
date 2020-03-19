@@ -18,7 +18,10 @@
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { AuthEventType, EventProcessors } from '../../model/auth_event';
-import { PopupRedirectResolver, PopupRedirectOutcomeHandler } from '../../model/popup_redirect_resolver';
+import {
+  PopupRedirectResolver,
+  PopupRedirectOutcomeHandler
+} from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication';

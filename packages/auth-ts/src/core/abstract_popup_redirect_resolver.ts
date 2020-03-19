@@ -17,7 +17,10 @@
 
 import { Auth } from '../../src';
 import { AuthProvider } from '../core/providers';
-import { PopupRedirectResolver, PopupRedirectOutcomeHandler } from '../model/popup_redirect_resolver';
+import {
+  PopupRedirectResolver,
+  PopupRedirectOutcomeHandler
+} from '../model/popup_redirect_resolver';
 import { AuthEventType, AuthEvent } from '../model/auth_event';
 import { UserCredential } from '../model/user_credential';
 import { RedirectManager } from './strategies/redirect';
@@ -62,7 +65,7 @@ export abstract class AbstractPopupRedirectResolver
         if (!this.popupOutcomeHandler.isMatchingEvent(event.eventId)) {
           break;
         }
-        // Fallthrough
+      // Fallthrough
       case AuthEventType.SIGN_IN_VIA_REDIRECT:
         this.execIdpTask(event, idp.signIn);
         break;
@@ -114,13 +117,15 @@ export abstract class AbstractPopupRedirectResolver
     });
   }
 
-  private userForEvent(id: string|null): User | undefined {
+  private userForEvent(id: string | null): User | undefined {
     return this.auth
       .getPotentialRedirectUsers_()
       .find(u => u.redirectEventId_ === id);
   }
 
-  private getOutcomeHandler(eventType: AuthEventType): PopupRedirectOutcomeHandler {
+  private getOutcomeHandler(
+    eventType: AuthEventType
+  ): PopupRedirectOutcomeHandler {
     switch (eventType) {
       case AuthEventType.SIGN_IN_VIA_POPUP:
       case AuthEventType.LINK_VIA_POPUP:
@@ -132,16 +137,12 @@ export abstract class AbstractPopupRedirectResolver
         return this.redirectOutcomeHandler;
       default:
         throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-          appName: 'TODO',
+          appName: 'TODO'
         });
     }
   }
 
-  private async execIdpTask(
-    event: AuthEvent,
-    task: idp.IdpTask,
-    user?: User
-  ) {
+  private async execIdpTask(event: AuthEvent, task: idp.IdpTask, user?: User) {
     const { urlResponse, sessionId, postBody, tenantId } = event;
     const params: idp.IdpTaskParams = {
       requestUri: urlResponse!,
