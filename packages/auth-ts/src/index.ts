@@ -30,3 +30,4 @@ export {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from './core/strategies/email_and_password';
+export { signInWithCustomToken } from './core/strategies/custom_token';
