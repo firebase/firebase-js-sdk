@@ -34,7 +34,7 @@ export enum AuthEventType {
 }
 
 // TODO: convert from these to FirebaseError
-export interface AuthEventError {
+export interface AuthEventError extends Error {
   code: string; // in the form of auth/${AuthErrorCode}
   message: string;
 }

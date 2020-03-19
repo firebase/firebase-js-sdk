@@ -20,8 +20,8 @@ import { AuthEventType, AuthEvent } from './auth_event';
 import { UserCredential } from './user_credential';
 import { AuthProvider } from '../core/providers';
 
-export interface EventSubscriber {
-  onEvent(event: AuthEvent): Promise<boolean>;
+export interface PopupRedirectOutcomeHandler {
+  broadcastResult(cred: UserCredential | null, error?: Error): void;
 }
 
 export interface PopupRedirectResolver {

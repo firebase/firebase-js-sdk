@@ -18,7 +18,7 @@
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { AuthEventType } from '../../model/auth_event';
-import { PopupRedirectResolver } from '../../model/popup_redirect_resolver';
+import { PopupRedirectResolver, PopupRedirectOutcomeHandler } from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
 import { UserCredential } from '../../model/user_credential';
 import { User } from '../../model/user';
@@ -42,7 +42,8 @@ export async function signInWithPopup(
     });
   }
 
-  return resolver.processPopup(auth, provider, AuthEventType.SIGN_IN_VIA_POPUP);
+  const uniqueEventId = generateEventId();
+  return resolver.processPopup(auth, provider, AuthEventType.SIGN_IN_VIA_POPUP, uniqueEventId);
 }
 
 export async function reauthenticateWithPopup(
@@ -107,10 +108,9 @@ interface PendingPromise {
   reject: (error: Error) => void;
 }
 
-export class PopupResultManager {
+export class PopupResultManager implements PopupRedirectOutcomeHandler {
   private pendingPromise: PendingPromise | null = null;
   private authWindow: AuthPopup | null = null;
-  private userCancelledPromise: Promise<void> | null = null;
   private pollId: number | null = null;
 
   getNewPendingPromise(
@@ -118,7 +118,7 @@ export class PopupResultManager {
   ): Promise<UserCredential | null> {
     if (this.pendingPromise) {
       // There was already a pending promise. Expire it.
-      this.broadcastPopupResult(
+      this.broadcastResult(
         null,
         AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
           appName: 'TODO'
@@ -135,7 +135,11 @@ export class PopupResultManager {
     });
   }
 
-  broadcastPopupResult(cred: UserCredential | null, error?: Error) {
+  isMatchingEvent(eventId: string | null) {
+    return eventId && this.authWindow?.associatedEvent === eventId;
+  }
+
+  broadcastResult(cred: UserCredential | null, error?: Error) {
     if (this.authWindow) {
       this.authWindow.close();
     }
@@ -151,6 +155,14 @@ export class PopupResultManager {
         this.pendingPromise.resolve(cred);
       }
     }
+
+    this.cleanUp();
+  }
+
+  private cleanUp() {
+    this.authWindow = null;
+    this.pendingPromise = null;
+    this.pollId = null;
   }
 
   private pollUserCancellation() {
@@ -158,7 +170,7 @@ export class PopupResultManager {
       if (this.authWindow?.window.closed) {
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
-          this.broadcastPopupResult(
+          this.broadcastResult(
             null,
             AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
               appName: 'TODO'

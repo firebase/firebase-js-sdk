@@ -18,7 +18,7 @@
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { AuthEventType, EventProcessors } from '../../model/auth_event';
-import { PopupRedirectResolver } from '../../model/popup_redirect_resolver';
+import { PopupRedirectResolver, PopupRedirectOutcomeHandler } from '../../model/popup_redirect_resolver';
 import { OAuthProvider } from '../providers/oauth';
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication';
@@ -120,7 +120,7 @@ interface PendingPromise {
   reject: (error: Error) => void;
 }
 
-export class RedirectManager {
+export class RedirectManager implements PopupRedirectOutcomeHandler {
   private redirectOutcome: (() => Promise<UserCredential | null>) | null = null;
   private readonly redirectListeners: PendingPromise[] = [];
 
@@ -135,7 +135,7 @@ export class RedirectManager {
     });
   }
 
-  broadcastRedirectResult(cred: UserCredential | null, error?: Error) {
+  broadcastResult(cred: UserCredential | null, error?: Error) {
     for (const listener of this.redirectListeners) {
       if (error) {
         listener.reject(error);
