@@ -206,7 +206,7 @@ describe('WebStorageSharedClientState', () => {
     };
     window.removeEventListener = () => {};
 
-    primaryClientId = AutoId.newId();
+    primaryClientId = AutoId.newId(PlatformSupport.getPlatform());
     queue = new AsyncQueue();
     sharedClientState = new WebStorageSharedClientState(
       queue,
@@ -381,11 +381,11 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('combines client state', () => {
-    const secondaryClientId = AutoId.newId();
+    const secondaryClientId = AutoId.newId(PlatformSupport.getPlatform());
     const secondaryClientStateKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${secondaryClientId}`;
 
     beforeEach(() => {
-      const existingClientId = AutoId.newId();
+      const existingClientId = AutoId.newId(PlatformSupport.getPlatform());
 
       return populateWebStorage(
         AUTHENTICATED_USER,
@@ -515,7 +515,9 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('ignores invalid data', async () => {
-      const secondaryClientStateKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
+      const secondaryClientStateKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId(
+        PlatformSupport.getPlatform()
+      )}`;
 
       const invalidState = {
         activeTargetIds: [5, 'invalid']
@@ -656,8 +658,12 @@ describe('WebStorageSharedClientState', () => {
     const firstClientTargetId: TargetId = 1;
     const secondClientTargetId: TargetId = 2;
 
-    const firstClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
-    const secondClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
+    const firstClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId(
+      PlatformSupport.getPlatform()
+    )}`;
+    const secondClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId(
+      PlatformSupport.getPlatform()
+    )}`;
 
     let firstClient: LocalClientState;
     let secondClientState: LocalClientState;

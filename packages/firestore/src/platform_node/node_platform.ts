@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { randomBytes } from 'crypto';
 import * as util from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -73,5 +74,19 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
+  }
+
+  randomByte(max: number): number {
+    if (max < 0) {
+      max = 255;
+    }
+
+    while (true) {
+      const b = randomBytes(1);
+      const v = b.readUInt8(0);
+      if (v <= max) {
+        return v;
+      }
+    }
   }
 }

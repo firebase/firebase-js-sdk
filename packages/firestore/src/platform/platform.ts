@@ -43,6 +43,12 @@ export interface Platform {
   /** Converts a binary string to a Base64 encoded string. */
   btoa(raw: string): string;
 
+  /**
+   * Generates a random byte `b` with `0 <= b <= max`. If `max` is negative,
+   * it is the same as setting it to byte max (255).
+   */
+  randomByte(max: number): number;
+
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
 
