@@ -65,6 +65,22 @@ export async function signUp(
   );
 }
 
+export interface SignInWithCustomTokenRequest {
+  token: string;
+}
+
+export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
+
+export async function signInWithCustomToken(
+  auth: Auth,
+  request: SignInWithCustomTokenRequest
+): Promise<SignInWithCustomTokenResponse> {
+  return performApiRequest<
+    SignInWithCustomTokenRequest,
+    SignInWithCustomTokenResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, request);
+}
+
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
   email: string;
