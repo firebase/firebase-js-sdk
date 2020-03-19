@@ -47,7 +47,11 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import {
+  MemoryEagerDelegate,
+  MemoryLruDelegate,
+  MemoryPersistence
+} from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import {
   ClientId,
@@ -81,7 +85,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { primitiveComparator } from '../../../src/util/misc';
+import { AutoId, primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -1151,7 +1155,9 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken || '').to.equal(expectedTarget.resumeToken || '');
+      expect(actualTarget.resumeToken || '').to.equal(
+        expectedTarget.resumeToken || ''
+      );
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
@@ -1236,12 +1242,11 @@ class MemoryTestRunner extends TestRunner {
     gcEnabled: boolean
   ): Promise<Persistence> {
     return Promise.resolve(
-      gcEnabled
-        ? MemoryPersistence.createEagerPersistence(this.clientId)
-        : MemoryPersistence.createLruPersistence(
-            this.clientId,
-            LruParams.DEFAULT
-          )
+      new MemoryPersistence(this.clientId, p =>
+        gcEnabled
+          ? new MemoryEagerDelegate(p)
+          : new MemoryLruDelegate(p, LruParams.DEFAULT)
+      )
     );
   }
 }
