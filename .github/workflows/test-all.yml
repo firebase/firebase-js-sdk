@@ -1,9 +1,6 @@
-name: Run All Tests
+name: Test All Packages
 
-on: 
-  push:
-  schedule:
-    - cron: '0 6,18 * * *'
+on: push
 
 jobs:
   test:
@@ -39,7 +36,7 @@ jobs:
   deploy:
     name: Canary Deploy
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged
+    if: github.ref == 'refs/heads/master'
     needs: test
 
     steps:
