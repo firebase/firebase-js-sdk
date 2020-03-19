@@ -362,7 +362,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     field?: FieldReference;
   }
   interface Value {
-    nullValue?: ValueNullValue;
+    nullValue?: ValueNullValue | 0;
     booleanValue?: boolean;
     integerValue?: string | number;
     doubleValue?: string | number;

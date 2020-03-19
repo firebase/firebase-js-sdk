@@ -26,6 +26,7 @@ import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
 export class BrowserPlatform implements Platform {
+  readonly useProto3Json = true;
   readonly base64Available: boolean;
 
   constructor() {

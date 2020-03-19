@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
+import * as api from '../protos/firestore_proto_api';
+
 import { SnapshotVersion } from '../core/snapshot_version';
 import { fail } from '../util/assert';
 
 import { DocumentKey } from './document_key';
-import { FieldValue, JsonObject, ObjectValue } from './field_value';
+import { ObjectValue } from './field_value';
 import { FieldPath } from './path';
+import { compare } from './values';
 
 export interface DocumentOptions {
   hasLocalMutations?: boolean;
@@ -68,7 +71,7 @@ export class Document extends MaybeDocument {
     this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
 
-  field(path: FieldPath): FieldValue | null {
+  field(path: FieldPath): api.Value | null {
     return this.objectValue.field(path);
   }
 
@@ -76,8 +79,8 @@ export class Document extends MaybeDocument {
     return this.objectValue;
   }
 
-  value(): JsonObject<unknown> {
-    return this.data().value();
+  toProto(): { mapValue: api.MapValue } {
+    return this.objectValue.proto;
   }
 
   isEqual(other: MaybeDocument | null | undefined): boolean {
@@ -109,7 +112,7 @@ export class Document extends MaybeDocument {
     const v1 = d1.field(field);
     const v2 = d2.field(field);
     if (v1 !== null && v2 !== null) {
-      return v1.compareTo(v2);
+      return compare(v1, v2);
     } else {
       return fail("Trying to compare documents on fields that don't exist");
     }

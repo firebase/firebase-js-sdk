@@ -46,40 +46,6 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
-/** Utility function to compare doubles (using Firestore semantics for NaN). */
-export function numericComparator(left: number, right: number): number {
-  if (left < right) {
-    return -1;
-  } else if (left > right) {
-    return 1;
-  } else if (left === right) {
-    return 0;
-  } else {
-    // one or both are NaN.
-    if (isNaN(left)) {
-      return isNaN(right) ? 0 : -1;
-    } else {
-      return 1;
-    }
-  }
-}
-
-/**
- * Utility function to check numbers for equality using Firestore semantics
- * (NaN === NaN, -0.0 !== 0.0).
- */
-export function numericEquals(left: number, right: number): boolean {
-  // Implemented based on Object.is() polyfill from
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-  if (left === right) {
-    // +0 != -0
-    return left !== 0 || 1 / left === 1 / right;
-  } else {
-    // NaN == NaN
-    return left !== left && right !== right;
-  }
-}
-
 /** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
@@ -100,18 +66,15 @@ export function equals<T>(
 }
 
 /** Helper to compare arrays using isEqual(). */
-export function arrayEquals<T>(left: Array<Equatable<T>>, right: T[]): boolean {
+export function arrayEquals<T>(
+  left: T[],
+  right: T[],
+  comparator: (l: T, r: T) => boolean
+): boolean {
   if (left.length !== right.length) {
     return false;
   }
-
-  for (let i = 0; i < left.length; i++) {
-    if (!left[i].isEqual(right[i])) {
-      return false;
-    }
-  }
-
-  return true;
+  return left.every((value, index) => comparator(value, right[index]));
 }
 /**
  * Returns the immediate lexicographically-following string. This is useful to

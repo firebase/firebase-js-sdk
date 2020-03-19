@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,150 +17,43 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { DocumentKey } from './document_key';
-import {
-  FieldType,
-  FieldValue,
-  ServerTimestampValue,
-  TypeOrder
-} from './field_value';
-import { FieldPath, ResourcePath } from './path';
+import { assert } from '../util/assert';
 import { FieldMask } from './mutation';
-import {
-  compare,
-  equals,
-  isType,
-  normalizeByteString,
-  normalizeTimestamp,
-  typeOrder
-} from './values';
-import { Blob } from '../api/blob';
-import { GeoPoint } from '../api/geo_point';
-import { Timestamp } from '../api/timestamp';
-import { assert, fail } from '../util/assert';
+import { FieldPath } from './path';
+import { isServerTimestamp } from './server_timestamps';
+import { equals, isMapValue, typeOrder } from './values';
 import { forEach } from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 
-/**
- * Represents a FieldValue that is backed by a single Firestore V1 Value proto
- * and implements Firestore's Value semantics for ordering and equality.
- */
-export class PrimitiveValue extends FieldValue {
-  constructor(public readonly proto: api.Value) {
-    super();
-  }
+export interface JsonObject<T> {
+  [name: string]: T;
+}
 
-  get typeOrder(): number {
-    return typeOrder(this.proto);
-  }
-
-  value(): FieldType {
-    return this.convertValue(this.proto);
-  }
-
-  private convertValue(value: api.Value): FieldType {
-    if ('nullValue' in value) {
-      return null;
-    } else if ('booleanValue' in value) {
-      return value.booleanValue!;
-    } else if ('integerValue' in value) {
-      return value.integerValue!;
-    } else if ('doubleValue' in value) {
-      return value.doubleValue!;
-    } else if ('timestampValue' in value) {
-      const normalizedTimestamp = normalizeTimestamp(value.timestampValue!);
-      return new Timestamp(
-        normalizedTimestamp.seconds,
-        normalizedTimestamp.nanos
-      );
-    } else if ('stringValue' in value) {
-      return value.stringValue!;
-    } else if ('bytesValue' in value) {
-      return new Blob(normalizeByteString(value.bytesValue!));
-    } else if ('referenceValue' in value) {
-      return this.convertReference(value.referenceValue!);
-    } else if ('geoPointValue' in value) {
-      return new GeoPoint(
-        value.geoPointValue!.latitude || 0,
-        value.geoPointValue!.longitude || 0
-      );
-    } else if ('arrayValue' in value) {
-      return this.convertArray(value.arrayValue!.values || []);
-    } else if ('mapValue' in value) {
-      return this.convertMap(value.mapValue!.fields || {});
-    } else {
-      return fail('Unknown value type: ' + JSON.stringify(value));
-    }
-  }
-
-  private convertReference(value: string): DocumentKey {
-    // TODO(mrschmidt): Move `value()` and `convertValue()` to DocumentSnapshot,
-    // which would allow us to validate that the resource name points to the
-    // current project.
-    const resourceName = ResourcePath.fromString(value);
-    assert(
-      resourceName.length > 4 && resourceName.get(4) === 'documents',
-      'Tried to deserialize invalid key ' + resourceName.toString()
-    );
-    return new DocumentKey(resourceName.popFirst(5));
-  }
-
-  private convertArray(values: api.Value[]): unknown[] {
-    return values.map(v => this.convertValue(v));
-  }
-
-  private convertMap(
-    value: api.ApiClientObjectMap<api.Value>
-  ): { [k: string]: unknown } {
-    const result: { [k: string]: unknown } = {};
-    forEach(value, (k, v) => {
-      result[k] = this.convertValue(v);
-    });
-    return result;
-  }
-
-  approximateByteSize(): number {
-    // TODO(mrschmidt): Replace JSON stringify with an implementation in ProtoValues
-    return JSON.stringify(this.proto).length;
-  }
-
-  isEqual(other: FieldValue): boolean {
-    if (this === other) {
-      return true;
-    }
-    if (other instanceof PrimitiveValue) {
-      return equals(this.proto, other.proto);
-    }
-    return false;
-  }
-
-  compareTo(other: FieldValue): number {
-    if (other instanceof PrimitiveValue) {
-      return compare(this.proto, other.proto);
-    } else if (
-      isType(this.proto, TypeOrder.TimestampValue) &&
-      other instanceof ServerTimestampValue
-    ) {
-      // TODO(mrschmidt): Handle timestamps directly in PrimitiveValue
-      return -1;
-    } else {
-      return this.defaultCompareTo(other);
-    }
-  }
+export const enum TypeOrder {
+  // This order is defined by the backend.
+  NullValue = 0,
+  BooleanValue = 1,
+  NumberValue = 2,
+  TimestampValue = 3,
+  StringValue = 4,
+  BlobValue = 5,
+  RefValue = 6,
+  GeoPointValue = 7,
+  ArrayValue = 8,
+  ObjectValue = 9
 }
 
 /**
  * An ObjectValue represents a MapValue in the Firestore Proto and offers the
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
-export class ObjectValue extends PrimitiveValue {
+export class ObjectValue {
   static EMPTY = new ObjectValue({ mapValue: {} });
 
-  constructor(proto: api.Value) {
-    super(proto);
+  constructor(public readonly proto: { mapValue: api.MapValue }) {
     assert(
-      isType(proto, TypeOrder.ObjectValue),
-      'ObjectValues must be backed by a MapValue'
+      !isServerTimestamp(proto),
+      'ServerTimestamps should be converted to ServerTimestampValue'
     );
   }
 
@@ -175,28 +68,23 @@ export class ObjectValue extends PrimitiveValue {
    * @param path the path to search
    * @return The value at the path or if there it doesn't exist.
    */
-  field(path: FieldPath): FieldValue | null {
+  field(path: FieldPath): api.Value | null {
     if (path.isEmpty()) {
-      return this;
+      return this.proto;
     } else {
-      let value = this.proto;
+      let value: api.Value = this.proto;
       for (let i = 0; i < path.length - 1; ++i) {
         if (!value.mapValue!.fields) {
           return null;
         }
         value = value.mapValue!.fields[path.get(i)];
-        if (!isType(value, TypeOrder.ObjectValue)) {
+        if (!isMapValue(value)) {
           return null;
         }
       }
 
       value = (value.mapValue!.fields || {})[path.lastSegment()];
-      // TODO(mrschmidt): Simplify/remove
-      return isType(value, TypeOrder.ObjectValue)
-        ? new ObjectValue(value)
-        : value !== undefined
-          ? new PrimitiveValue(value)
-          : null;
+      return value || null;
     }
   }
 
@@ -212,7 +100,7 @@ export class ObjectValue extends PrimitiveValue {
     let fields = new SortedSet<FieldPath>(FieldPath.comparator);
     forEach(value.fields || {}, (key, value) => {
       const currentPath = new FieldPath([key]);
-      if (isType(value, TypeOrder.ObjectValue)) {
+      if (typeOrder(value) === TypeOrder.ObjectValue) {
         const nestedMask = this.extractFieldMask(value.mapValue!);
         const nestedFields = nestedMask.fields;
         if (nestedFields.isEmpty()) {
@@ -232,6 +120,10 @@ export class ObjectValue extends PrimitiveValue {
       }
     });
     return FieldMask.fromSet(fields);
+  }
+
+  isEqual(other: ObjectValue): boolean {
+    return equals(this.proto, other.proto);
   }
 
   /** Creates a ObjectValueBuilder instance that is based on the current value. */
@@ -303,7 +195,10 @@ export class ObjectValueBuilder {
       if (currentValue instanceof Map) {
         // Re-use a previously created map
         currentLevel = currentValue;
-      } else if (isType(currentValue, TypeOrder.ObjectValue)) {
+      } else if (
+        currentValue &&
+        typeOrder(currentValue) === TypeOrder.ObjectValue
+      ) {
         // Convert the existing Protobuf MapValue into a map
         currentValue = new Map<string, Overlay>(
           Object.entries(currentValue.mapValue!.fields || {})
@@ -349,16 +244,15 @@ export class ObjectValueBuilder {
   private applyOverlay(
     currentPath: FieldPath,
     currentOverlays: Map<string, Overlay>
-  ): api.Value | null {
+  ): { mapValue: api.MapValue } | null {
     let modified = false;
 
     const existingValue = this.baseObject.field(currentPath);
-    const resultAtPath =
-      existingValue instanceof ObjectValue
-        ? // If there is already data at the current path, base our
-          // modifications on top of the existing data.
-        { ...existingValue.proto.mapValue!.fields }
-        : {};
+    const resultAtPath = isMapValue(existingValue)
+      ? // If there is already data at the current path, base our
+        // modifications on top of the existing data.
+        { ...existingValue.mapValue.fields }
+      : {};
 
     currentOverlays.forEach((value, pathSegment) => {
       if (value instanceof Map) {

@@ -55,16 +55,10 @@ export class Target {
         canonicalId += '|cg:' + this.collectionGroup;
       }
       canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
+      canonicalId += this.filters.map(f => f.canonicalId()).join(',');
       canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
+      canonicalId += this.orderBy.map(o => o.canonicalId()).join(',');
+
       if (!isNullOrUndefined(this.limit)) {
         canonicalId += '|l:';
         canonicalId += this.limit!;

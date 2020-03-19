@@ -21,12 +21,15 @@ import { TypeOrder } from './field_value';
 import { assert, fail } from '../util/assert';
 import { forEach, keys, size } from '../util/obj';
 import { ByteString } from '../util/byte_string';
+import { isNegativeZero } from '../util/types';
 import { DocumentKey } from './document_key';
+import { arrayEquals, primitiveComparator } from '../util/misc';
+import { DatabaseId } from '../core/database_info';
 import {
-  numericComparator,
-  numericEquals,
-  primitiveComparator
-} from '../util/misc';
+  getLocalWriteTime,
+  getPreviousValue,
+  isServerTimestamp
+} from './server_timestamps';
 
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_TIMESTAMP_REG_EXP = new RegExp(
@@ -54,6 +57,9 @@ export function typeOrder(value: api.Value): TypeOrder {
   } else if ('arrayValue' in value) {
     return TypeOrder.ArrayValue;
   } else if ('mapValue' in value) {
+    if (isServerTimestamp(value)) {
+      return TypeOrder.TimestampValue;
+    }
     return TypeOrder.ObjectValue;
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
@@ -94,7 +100,11 @@ export function equals(left: api.Value, right: api.Value): boolean {
     case TypeOrder.NumberValue:
       return numberEquals(left, right);
     case TypeOrder.ArrayValue:
-      return arrayEquals(left, right);
+      return arrayEquals(
+        left.arrayValue!.values || [],
+        right.arrayValue!.values || [],
+        equals
+      );
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
     default:
@@ -103,6 +113,12 @@ export function equals(left: api.Value, right: api.Value): boolean {
 }
 
 function timestampEquals(left: api.Value, right: api.Value): boolean {
+  if (isServerTimestamp(left) && isServerTimestamp(right)) {
+    return getLocalWriteTime(left).isEqual(getLocalWriteTime(right));
+  } else if (isServerTimestamp(left) || isServerTimestamp(right)) {
+    return false;
+  }
+
   if (
     typeof left.timestampValue === 'string' &&
     typeof right.timestampValue === 'string' &&
@@ -137,34 +153,22 @@ function blobEquals(left: api.Value, right: api.Value): boolean {
 
 export function numberEquals(left: api.Value, right: api.Value): boolean {
   if ('integerValue' in left && 'integerValue' in right) {
-    return numericEquals(
-      normalizeNumber(left.integerValue),
-      normalizeNumber(right.integerValue)
+    return (
+      normalizeNumber(left.integerValue) === normalizeNumber(right.integerValue)
     );
   } else if ('doubleValue' in left && 'doubleValue' in right) {
-    return numericEquals(
-      normalizeNumber(left.doubleValue),
-      normalizeNumber(right.doubleValue)
-    );
+    const n1 = normalizeNumber(left.doubleValue!);
+    const n2 = normalizeNumber(right.doubleValue!);
+
+    if (n1 === n2) {
+      return isNegativeZero(n1) === isNegativeZero(n2);
+    } else {
+      // NaN == NaN
+      return n1 !== n1 && n2 !== n2;
+    }
   }
 
   return false;
-}
-
-function arrayEquals(left: api.Value, right: api.Value): boolean {
-  const leftArray = left.arrayValue!.values || [];
-  const rightArray = right.arrayValue!.values || [];
-
-  if (leftArray.length !== rightArray.length) {
-    return false;
-  }
-
-  for (let i = 0; i < leftArray.length; ++i) {
-    if (!equals(leftArray[i], rightArray[i])) {
-      return false;
-    }
-  }
-  return true;
 }
 
 function objectEquals(left: api.Value, right: api.Value): boolean {
@@ -185,6 +189,11 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
   return true;
 }
 
+/** Returns true if the Value list contains the specified element. */
+export function contains(haystack: api.ArrayValue, needle: api.Value): boolean {
+  return (haystack.values || []).find(v => equals(v, needle)) !== undefined;
+}
+
 export function compare(left: api.Value, right: api.Value): number {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
@@ -201,7 +210,24 @@ export function compare(left: api.Value, right: api.Value): number {
     case TypeOrder.NumberValue:
       return compareNumbers(left, right);
     case TypeOrder.TimestampValue:
-      return compareTimestamps(left.timestampValue!, right.timestampValue!);
+      if (isServerTimestamp(left)) {
+        if (isServerTimestamp(right)) {
+          return compareTimestamps(
+            getLocalWriteTime(left),
+            getLocalWriteTime(right)
+          );
+        } else {
+          // Server timestamps come after all concrete timestamps.
+          return 1;
+        }
+      } else {
+        if (isServerTimestamp(right)) {
+          // Server timestamps come after all concrete timestamps.
+          return -1;
+        } else {
+          return compareTimestamps(left.timestampValue!, right.timestampValue!);
+        }
+      }
     case TypeOrder.StringValue:
       return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
@@ -220,24 +246,32 @@ export function compare(left: api.Value, right: api.Value): number {
 }
 
 function compareNumbers(left: api.Value, right: api.Value): number {
-  const leftNumber =
-    'doubleValue' in left
-      ? normalizeNumber(left.doubleValue)
-      : normalizeNumber(left.integerValue);
-  const rightNumber =
-    'doubleValue' in right
-      ? normalizeNumber(right.doubleValue)
-      : normalizeNumber(right.integerValue);
-  return numericComparator(leftNumber, rightNumber);
+  const leftNumber = normalizeNumber(left.integerValue || left.doubleValue);
+  const rightNumber = normalizeNumber(right.integerValue || right.doubleValue);
+
+  if (leftNumber < rightNumber) {
+    return -1;
+  } else if (leftNumber > rightNumber) {
+    return 1;
+  } else if (leftNumber === rightNumber) {
+    return 0;
+  } else {
+    // one or both are NaN.
+    if (isNaN(leftNumber)) {
+      return isNaN(rightNumber) ? 0 : -1;
+    } else {
+      return 1;
+    }
+  }
 }
 
 function compareTimestamps(left: api.Timestamp, right: api.Timestamp): number {
-  if (typeof left === 'string' && typeof right === 'string') {
-    // Use string ordering for ISO 8601 timestamps, but strip the timezone
-    // suffix to ensure proper ordering for timestamps of different precision.
-    // The only supported timezone is UTC (i.e. 'Z') based on
-    // ISO_TIMESTAMP_REG_EXP.
-    return primitiveComparator(left.slice(0, -1), right.slice(0, -1));
+  if (
+    typeof left === 'string' &&
+    typeof right === 'string' &&
+    left.length === right.length
+  ) {
+    return primitiveComparator(left, right);
   }
 
   const leftTimestamp = normalizeTimestamp(left);
@@ -430,7 +464,6 @@ export function estimateByteSize(value: api.Value): number {
   } else if ('doubleValue' in value) {
     return 8;
   } else if ('timestampValue' in value) {
-    // TODO(mrschmidt: Add ServerTimestamp support
     // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
     return 16;
   } else if ('stringValue' in value) {
@@ -448,6 +481,10 @@ export function estimateByteSize(value: api.Value): number {
   } else if ('arrayValue' in value) {
     return estimateArrayByteSize(value.arrayValue!);
   } else if ('mapValue' in value) {
+    if (isServerTimestamp(value)) {
+      const previousValue = getPreviousValue(value);
+      return previousValue ? 16 + estimateByteSize(previousValue) : 16;
+    }
     return estimateMapByteSize(value.mapValue!);
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
@@ -532,23 +569,18 @@ export function normalizeByteString(blob: string | Uint8Array): ByteString {
   }
 }
 
-/** Returns true if `value` is an IntegerValue. */
-export function isInteger(
-  value?: api.Value | null
-): value is { integerValue: string | number } {
-  return !!value && 'integerValue' in value;
-}
-
-/** Returns true if `value` is a DoubleValue. */
-export function isDouble(
-  value?: api.Value | null
-): value is { doubleValue: string | number } {
-  return !!value && 'doubleValue' in value;
+/** Returns a reference value for the provided database and key. */
+export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
+  return {
+    referenceValue: `projects/${databaseId.projectId}/databases/${
+      databaseId.database
+    }/documents/${key.path.canonicalString()}`
+  };
 }
 
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
 export function isNumber(value?: api.Value | null): boolean {
-  return isInteger(value) || isDouble(value);
+  return !!value && ('integerValue' in value || 'doubleValue' in value);
 }
 
 /** Returns true if `value` is an ArrayValue. */
@@ -576,7 +608,7 @@ export function isNullValue(
 export function isNanValue(
   value?: api.Value | null
 ): value is { doubleValue: 'NaN' | number } {
-  return isDouble(value) && isNaN(Number(value.doubleValue));
+  return !!value && 'doubleValue' in value && isNaN(Number(value.doubleValue));
 }
 
 /** Returns true if `value` is a MapValue. */
@@ -584,4 +616,4 @@ export function isMapValue(
   value?: api.Value | null
 ): value is { mapValue: api.MapValue } {
   return !!value && 'mapValue' in value;
-}        
+}

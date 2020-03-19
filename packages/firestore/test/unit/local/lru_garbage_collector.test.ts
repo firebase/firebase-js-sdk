@@ -49,7 +49,7 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { path, wrapObject } from '../../util/helpers';
+import { key, path, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -140,7 +140,7 @@ function genericLruGarbageCollectorTests(
   }
 
   function nextTestDocumentKey(): DocumentKey {
-    return DocumentKey.fromPathString('docs/doc_' + ++previousDocNum);
+    return key('docs/doc_' + ++previousDocNum);
   }
 
   function emptyTargetDataMap(): SortedMap<TargetId, TargetData> {
