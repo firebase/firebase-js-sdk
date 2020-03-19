@@ -1,11 +1,9 @@
 name: Cross-Browser Test Flow
 
 on:
-  pull_request:
+  push:
     branches:
       - master
-    types:
-      - closed
 
 jobs:
   cross-browser-test:
