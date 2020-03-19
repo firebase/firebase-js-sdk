@@ -38,6 +38,7 @@ export enum Endpoint {
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
   SIGN_UP = '/v1/accounts:signUp',
+  SIGN_IN_WITH_CUSTOM_TOKEN = '/v1/accounts:signInWithCustomToken',
   SIGN_IN_WITH_EMAIL_LINK = '/v1/accounts:signInWithEmailLink',
   SIGN_IN_WITH_IDP = '/v1/accounts:signInWithIdp',
   SIGN_IN_WITH_PASSWORD = '/v1/accounts:signInWithPassword',

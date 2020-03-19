@@ -34,10 +34,7 @@ import {
 } from './core/strategies/redirect';
 import { initializeAuth } from './core/initialize_auth';
 import { OAuthProvider } from './core/providers/oauth';
-import {
-  browserPopupRedirectResolver,
-  BrowserPopupRedirectResolver
-} from './platform_browser/browser_popup_redirect_resolver';
+import { browserPopupRedirectResolver } from './platform_browser/browser_popup_redirect_resolver';
 import { cordovaPopupRedirectResolver } from './platform_cordova/cordova_popup_redirect_resolver';
 import { User, ProfileInfo } from './model/user';
 import {
@@ -94,6 +91,7 @@ import {
   reauthenticateWithPopup,
   linkWithPopup
 } from './core/strategies/popup';
+import { signInWithCustomToken } from './core/strategies/custom_token';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -280,6 +278,9 @@ enum Persistence {
       password: string
     ): Promise<UserCredential> {
       return signInWithEmailAndPassword(auth, email, password);
+    },
+    signInWithCustomToken(token: string): Promise<UserCredential> {
+      return signInWithCustomToken(auth, token);
     },
     signInWithEmailLink(
       email: string,
