@@ -31,6 +31,7 @@ import {
   GTAG_URL
 } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import { logger } from './logger';
 
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
@@ -146,7 +147,7 @@ function wrapGtag(
             gtagParams || {}
           )
         )
-        .catch(e => console.error(e));
+        .catch(e => logger.error(e));
     } else if (command === GtagCommand.CONFIG) {
       const initializationPromiseToWait =
         initializedIdPromisesMap[idOrNameOrParams as string] ||
@@ -155,7 +156,7 @@ function wrapGtag(
         .then(() => {
           gtagCore(GtagCommand.CONFIG, idOrNameOrParams as string, gtagParams);
         })
-        .catch(e => console.error(e));
+        .catch(e => logger.error(e));
     } else {
       // SET command.
       // Splitting calls for CONFIG and SET to make it clear which signature

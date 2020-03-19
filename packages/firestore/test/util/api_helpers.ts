@@ -26,6 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
+import { IndexedDbPersistenceProvider } from '../../src/local/indexeddb_persistence';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -47,7 +48,8 @@ export const FIRESTORE = new Firestore(
     projectId: 'projectid',
     database: 'database'
   },
-  new Provider('auth-internal', new ComponentContainer('default'))
+  new Provider('auth-internal', new ComponentContainer('default')),
+  new IndexedDbPersistenceProvider()
 );
 
 export function firestore(): Firestore {

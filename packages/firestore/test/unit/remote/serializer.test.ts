@@ -16,14 +16,12 @@
  */
 
 import { expect } from 'chai';
-import * as Long from 'long';
-import * as ProtobufJS from 'protobufjs';
 
-import { Blob } from '../../../../src/api/blob';
-import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
-import { GeoPoint } from '../../../../src/api/geo_point';
-import { Timestamp } from '../../../../src/api/timestamp';
-import { DatabaseId } from '../../../../src/core/database_info';
+import { Blob } from '../../../src/api/blob';
+import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
+import { DatabaseId } from '../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
@@ -34,11 +32,11 @@ import {
   Operator,
   OrderBy,
   Query
-} from '../../../../src/core/query';
-import { SnapshotVersion } from '../../../../src/core/snapshot_version';
-import { Target } from '../../../../src/core/target';
-import { TargetData, TargetPurpose } from '../../../../src/local/target_data';
-import * as fieldValue from '../../../../src/model/field_value';
+} from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import * as fieldValue from '../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -46,26 +44,21 @@ import {
   Precondition,
   SetMutation,
   VerifyMutation
-} from '../../../../src/model/mutation';
-import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import {
-  loadRawProtos,
-  protoLoaderOptions
-} from '../../../../src/platform_node/load_protos';
-import * as api from '../../../../src/protos/firestore_proto_api';
-import { JsonProtoSerializer } from '../../../../src/remote/serializer';
+} from '../../../src/model/mutation';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../../src/remote/watch_change';
-import { Code, FirestoreError } from '../../../../src/util/error';
-import { Indexable } from '../../../../src/util/misc';
-import * as obj from '../../../../src/util/obj';
-import * as types from '../../../../src/util/types';
-import { addEqualityMatcher } from '../../../util/equality_matcher';
+} from '../../../src/remote/watch_change';
+import { Code, FirestoreError } from '../../../src/util/error';
+import * as obj from '../../../src/util/obj';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
+  byteStringFromString,
   dbId,
   deletedDoc,
   deleteMutation,
@@ -81,10 +74,20 @@ import {
   transformMutation,
   version,
   wrap,
-  wrapObject,
-  byteStringFromString
-} from '../../../util/helpers';
-import { ByteString } from '../../../../src/util/byte_string';
+  wrapObject
+} from '../../util/helpers';
+import { ByteString } from '../../../src/util/byte_string';
+import { isNode } from '../../util/test_platform';
+
+let verifyProtobufJsRoundTrip: (jsonValue: api.Value) => void = () => {};
+
+if (isNode()) {
+  // Note: We cannot use dynamic imports since our Node build uses CJS as its
+  // module syntax.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  verifyProtobufJsRoundTrip = require('../../util/node_helpers')
+    .verifyProtobufJsRoundTrip;
+}
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
@@ -92,15 +95,6 @@ describe('Serializer', () => {
   const proto3JsonSerializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
-  const protos = loadRawProtos();
-
-  // tslint:disable:variable-name
-  const ValueMessage = protos.lookupType('google.firestore.v1.Value');
-  const LatLngMessage = protos.lookupType('google.type.LatLng');
-  const TimestampMessage = protos.lookupType('google.protobuf.Timestamp');
-  const ArrayValueMessage = protos.lookupType('google.firestore.v1.ArrayValue');
-  const MapValueMessage = protos.lookupType('google.firestore.v1.MapValue');
-  // tslint:enable:variable-name
 
   /**
    * Wraps the given target in TargetData. This is useful because the APIs we're
@@ -128,23 +122,12 @@ describe('Serializer', () => {
       /** The expected JSON value for the field (e.g. 'NULL_VALUE') */
       jsonValue: unknown;
       /**
-       * The expected protobufJs value for the field (e.g. `0`). This is
-       * largely inconsequential (we only rely on the JSON representation), but
-       * it can be useful for debugging issues. If omitted, it's assumed to be
-       * the same as jsonValue.
-       */
-      protobufJsValue?: unknown;
-      /**
        * If true, uses the proto3Json serializer (and skips the round-trip
        * through protobufJs).
        */
       useProto3Json?: boolean;
     }): void {
       const { value, valueType, jsonValue } = opts;
-      const protobufJsValue =
-        opts.protobufJsValue !== undefined
-          ? opts.protobufJsValue
-          : opts.jsonValue;
       const serializer = opts.useProto3Json ? proto3JsonSerializer : s;
 
       // Convert FieldValue to JSON and verify.
@@ -153,20 +136,7 @@ describe('Serializer', () => {
 
       // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
       if (!opts.useProto3Json) {
-        // Convert JSON to protobufjs and verify value.
-        const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
-          actualJsonProto
-        );
-        expect(
-          ((actualProtobufjsProto as unknown) as Indexable)[valueType]
-        ).to.deep.equal(protobufJsValue);
-
-        // Convert protobufjs back to JSON.
-        const returnJsonProto = ValueMessage.toObject(
-          actualProtobufjsProto,
-          protoLoaderOptions
-        );
-        expect(returnJsonProto).to.deep.equal(actualJsonProto);
+        verifyProtobufJsRoundTrip(actualJsonProto);
       }
 
       // Convert JSON back to FieldValue.
@@ -178,8 +148,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value: fieldValue.NullValue.INSTANCE,
         valueType: 'nullValue',
-        jsonValue: 'NULL_VALUE',
-        protobufJsValue: 0
+        jsonValue: 'NULL_VALUE'
       });
     });
 
@@ -196,23 +165,19 @@ describe('Serializer', () => {
 
     it('converts IntegerValue', () => {
       const examples = [
-        types.MIN_SAFE_INTEGER,
+        Number.MIN_SAFE_INTEGER,
         -100,
         -1,
         0,
         1,
         100,
-        types.MAX_SAFE_INTEGER
+        Number.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
           value: new fieldValue.IntegerValue(example),
           valueType: 'integerValue',
-          jsonValue: '' + example,
-          protobufJsValue: Long.fromString(
-            example.toString(),
-            /*unsigned=*/ false
-          )
+          jsonValue: '' + example
         });
       }
     });
@@ -272,8 +237,7 @@ describe('Serializer', () => {
         verifyFieldValueRoundTrip({
           value: new fieldValue.TimestampValue(Timestamp.fromDate(examples[i])),
           valueType: 'timestampValue',
-          jsonValue: expectedJson[i],
-          protobufJsValue: TimestampMessage.fromObject(expectedJson[i])
+          jsonValue: expectedJson[i]
         });
       }
     });
@@ -346,8 +310,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value: new fieldValue.GeoPointValue(example),
         valueType: 'geoPointValue',
-        jsonValue: expected,
-        protobufJsValue: LatLngMessage.fromObject(expected)
+        jsonValue: expected
       });
     });
 
@@ -381,8 +344,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value,
         valueType: 'arrayValue',
-        jsonValue,
-        protobufJsValue: ArrayValueMessage.fromObject(jsonValue)
+        jsonValue
       });
     });
 
@@ -390,8 +352,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value: wrap([]),
         valueType: 'arrayValue',
-        jsonValue: { values: [] },
-        protobufJsValue: ArrayValueMessage.fromObject({})
+        jsonValue: { values: [] }
       });
     });
 
@@ -399,8 +360,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value: wrap({}),
         valueType: 'mapValue',
-        jsonValue: { fields: {} },
-        protobufJsValue: MapValueMessage.fromObject({})
+        jsonValue: { fields: {} }
       });
     });
 
@@ -468,8 +428,7 @@ describe('Serializer', () => {
       verifyFieldValueRoundTrip({
         value: objValue,
         valueType: 'mapValue',
-        jsonValue: expectedJson.mapValue,
-        protobufJsValue: MapValueMessage.fromObject(expectedJson.mapValue!)
+        jsonValue: expectedJson.mapValue
       });
     });
 
@@ -501,11 +460,11 @@ describe('Serializer', () => {
 
     it('converts a long key', () => {
       const actual = s.toName(
-        key('users/' + types.MAX_SAFE_INTEGER + '/profiles/primary')
+        key('users/' + Number.MAX_SAFE_INTEGER + '/profiles/primary')
       );
       expect(actual).to.deep.equal(
         'projects/p/databases/d/documents/users/' +
-          types.MAX_SAFE_INTEGER.toString() +
+          Number.MAX_SAFE_INTEGER.toString() +
           '/profiles/primary'
       );
     });

@@ -29,13 +29,15 @@ goog.provide('fireauth.authenum.Error');
 /**
  * Error that can be returned to the developer.
  * @param {!fireauth.authenum.Error} code The short error code.
- * @param {?string=} opt_message The human-readable message.
+ * @param {?string=} message The human-readable message.
+ * @param {?Object=} serverResponse The raw server response.
  * @constructor
  * @extends {Error}
  */
-fireauth.AuthError = function(code, opt_message) {
+fireauth.AuthError = function(code, message, serverResponse) {
   this['code'] = fireauth.AuthError.ERROR_CODE_PREFIX + code;
-  this.message = opt_message || fireauth.AuthError.MESSAGES_[code] || '';
+  this.message = message || fireauth.AuthError.MESSAGES_[code] || '';
+  this.serverResponse = serverResponse || null;
 };
 goog.inherits(fireauth.AuthError, Error);
 
@@ -44,10 +46,14 @@ goog.inherits(fireauth.AuthError, Error);
  * @return {!Object} The plain object form of the error.
  */
 fireauth.AuthError.prototype.toPlainObject = function() {
-  return {
+  var obj = {
     'code': this['code'],
     'message': this.message
   };
+  if (this.serverResponse) {
+    obj['serverResponse'] = this.serverResponse;
+  }
+  return obj;
 };
 
 
@@ -75,7 +81,9 @@ fireauth.AuthError.fromPlainObject = function(response) {
     var code = fullCode.substring(
         fireauth.AuthError.ERROR_CODE_PREFIX.length);
     return new fireauth.AuthError(
-        /** @type {fireauth.authenum.Error} */ (code), response['message']);
+        /** @type {!fireauth.authenum.Error} */ (code),
+        response['message'],
+        response['serverResponse']);
   }
   return null;
 };
@@ -125,6 +133,7 @@ fireauth.authenum.Error = {
   CREDENTIAL_MISMATCH: 'custom-token-mismatch',
   CREDENTIAL_TOO_OLD_LOGIN_AGAIN: 'requires-recent-login',
   DYNAMIC_LINK_NOT_ACTIVATED: 'dynamic-link-not-activated',
+  EMAIL_CHANGE_NEEDS_VERIFICATION: 'email-change-needs-verification',
   EMAIL_EXISTS: 'email-already-in-use',
   EXPIRED_OOB_CODE: 'expired-action-code',
   EXPIRED_POPUP_REQUEST: 'cancelled-popup-request',
@@ -143,6 +152,7 @@ fireauth.authenum.Error = {
   INVALID_EMAIL: 'invalid-email',
   INVALID_IDP_RESPONSE: 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'invalid-message-payload',
+  INVALID_MFA_PENDING_CREDENTIAL: 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID: 'invalid-oauth-client-id',
   INVALID_OAUTH_PROVIDER: 'invalid-oauth-provider',
   INVALID_OOB_CODE: 'invalid-action-code',
@@ -155,6 +165,8 @@ fireauth.authenum.Error = {
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
   INVALID_TENANT_ID: 'invalid-tenant-id',
+  MFA_ENROLLMENT_NOT_FOUND: 'multi-factor-info-not-found',
+  MFA_REQUIRED: 'multi-factor-auth-required',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL: 'missing-app-credential',
   MISSING_AUTH_DOMAIN: 'auth-domain-config-required',
@@ -162,6 +174,8 @@ fireauth.authenum.Error = {
   MISSING_CONTINUE_URI: 'missing-continue-uri',
   MISSING_IFRAME_START: 'missing-iframe-start',
   MISSING_IOS_BUNDLE_ID: 'missing-ios-bundle-id',
+  MISSING_MFA_ENROLLMENT_ID: 'missing-multi-factor-info',
+  MISSING_MFA_PENDING_CREDENTIAL: 'missing-multi-factor-session',
   MISSING_OR_INVALID_NONCE: 'missing-or-invalid-nonce',
   MISSING_PHONE_NUMBER: 'missing-phone-number',
   MISSING_SESSION_INFO: 'missing-verification-id',
@@ -180,13 +194,17 @@ fireauth.authenum.Error = {
   REDIRECT_CANCELLED_BY_USER: 'redirect-cancelled-by-user',
   REDIRECT_OPERATION_PENDING: 'redirect-operation-pending',
   REJECTED_CREDENTIAL: 'rejected-credential',
+  SECOND_FACTOR_EXISTS: 'second-factor-already-in-use',
+  SECOND_FACTOR_LIMIT_EXCEEDED: 'maximum-second-factor-count-exceeded',
   TENANT_ID_MISMATCH: 'tenant-id-mismatch',
   TIMEOUT: 'timeout',
   TOKEN_EXPIRED: 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
   UNAUTHORIZED_DOMAIN: 'unauthorized-continue-uri',
+  UNSUPPORTED_FIRST_FACTOR: 'unsupported-first-factor',
   UNSUPPORTED_PERSISTENCE: 'unsupported-persistence-type',
   UNSUPPORTED_TENANT_OPERATION: 'unsupported-tenant-operation',
+  UNVERIFIED_EMAIL: 'unverified-email',
   USER_CANCELLED: 'user-cancelled',
   USER_DELETED: 'user-not-found',
   USER_DISABLED: 'user-disabled',
@@ -237,6 +255,9 @@ fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.DYNAMIC_LINK_NOT_ACTIVATED] = 'Please activate ' +
     'Dynamic Links in the Firebase Console and agree to the terms and ' +
     'conditions.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.EMAIL_CHANGE_NEEDS_VERIFICATION] =
+    'Multi-factor users must always have a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.EMAIL_EXISTS] =
     'The email address is already in use by another account.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.EXPIRED_OOB_CODE] =
@@ -287,6 +308,10 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_MESSAGE_PAYLOAD] =
     'The email template corresponding to this action contains invalid charac' +
     'ters in its message. Please fix by going to the Auth email templates se' +
     'ction in the Firebase Console.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.INVALID_MFA_PENDING_CREDENTIAL] =
+    'The request does not contain a valid proof of first factor successful ' +
+    'sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_OAUTH_PROVIDER] =
     'EmailAuthProvider is not supported for this operation. This operation ' +
     'only supports OAuth providers.';
@@ -323,6 +348,11 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SESSION_INFO] =
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_TENANT_ID] =
     'The Auth instance\'s tenant ID is invalid.';
 fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND] = 'The user does not ' +
+    'have a second factor matching the identifier provided.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MFA_REQUIRED] =
+    'Proof of ownership of a second factor is required to complete sign-in.';
+fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME] = 'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
     'installed.';
@@ -341,6 +371,12 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IFRAME_START] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID] =
     'An iOS Bundle ID must be provided if an App Store ID is provided.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MISSING_MFA_ENROLLMENT_ID] =
+    'No second factor identifier is provided.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL] =
+    'The request is missing proof of first factor successful sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
     'The request does not contain a valid nonce. This can occur if the ' +
     'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
@@ -390,6 +426,11 @@ fireauth.AuthError.MESSAGES_[
     'A redirect sign-in operation is already pending.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.REJECTED_CREDENTIAL] =
     'The request contains malformed or mismatching credentials.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.SECOND_FACTOR_EXISTS] =
+    'The second factor is already enrolled on this account.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.SECOND_FACTOR_LIMIT_EXCEEDED] =
+    'The maximum allowed number of second factors on a user has been exceeded.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TENANT_ID_MISMATCH] =
     'The provided tenant ID does not match the Auth instance\'s tenant ID';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
@@ -404,11 +445,17 @@ fireauth.AuthError.MESSAGES_[
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNAUTHORIZED_DOMAIN] =
     'The domain of the continue URL is not whitelisted.  Please whitelist ' +
     'the domain in the Firebase console.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.UNSUPPORTED_FIRST_FACTOR] = 'Enrolling a second ' +
+    'factor or signing in with a multi-factor account requires sign-in with ' +
+    'a supported first factor.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE] =
     'The current environment does not support the specified persistence type.';
 fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION] =
     'This operation is not supported in a multi-tenant context.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNVERIFIED_EMAIL] =
+    'The operation requires a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
     'The user did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =

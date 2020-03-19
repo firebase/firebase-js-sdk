@@ -438,6 +438,8 @@ export class JsonProtoSerializer {
           return { doubleValue: 'Infinity' } as {};
         } else if (doubleValue === -Infinity) {
           return { doubleValue: '-Infinity' } as {};
+        } else if (typeUtils.isNegativeZero(doubleValue)) {
+          return { doubleValue: '-0' } as {};
         }
       }
       return { doubleValue: val.value() };
@@ -487,6 +489,8 @@ export class JsonProtoSerializer {
           return fieldValue.DoubleValue.POSITIVE_INFINITY;
         } else if ((obj.doubleValue as {}) === '-Infinity') {
           return fieldValue.DoubleValue.NEGATIVE_INFINITY;
+        } else if ((obj.doubleValue as {}) === '-0') {
+          return new fieldValue.DoubleValue(-0);
         }
       }
 

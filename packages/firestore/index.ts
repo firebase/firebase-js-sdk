@@ -16,16 +16,25 @@
  */
 
 import firebase from '@firebase/app';
+import { FirebaseNamespace } from '@firebase/app-types';
+
+import { Firestore } from './src/api/database';
+import { IndexedDbPersistenceProvider } from './src/local/indexeddb_persistence';
 import { configureForFirebase } from './src/platform/config';
+import { name, version } from './package.json';
+
 import './register-module';
 import './src/platform_browser/browser_init';
 
-import { FirebaseNamespace } from '@firebase/app-types';
-
-import { name, version } from './package.json';
-
+/**
+ * Registers the main Firestore build with the components framework.
+ * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
+ */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance);
+  configureForFirebase(
+    instance,
+    (app, auth) => new Firestore(app, auth, new IndexedDbPersistenceProvider())
+  );
   instance.registerVersion(name, version);
 }
 

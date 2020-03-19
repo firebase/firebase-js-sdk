@@ -25,6 +25,7 @@ goog.require('fireauth.AuthError');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.StsTokenManager');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.common.testHelper');
 goog.require('goog.Promise');
 goog.require('goog.testing.AsyncTestCase');
 goog.require('goog.testing.PropertyReplacer');
@@ -37,10 +38,11 @@ var token = null;
 var rpcHandler = null;
 var stubs = new goog.testing.PropertyReplacer();
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
-var now = 1449534145526;
+var now;
 
 
 function setUp() {
+  now = goog.now();
   // Override goog.now().
   stubs.replace(
       goog,
@@ -116,35 +118,37 @@ function assertErrorEquals(expected, actual) {
 
 function testStsTokenManager_gettersSetters() {
   var expirationTime = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   assertEquals('refreshToken', token.getRefreshToken());
   assertEquals(expirationTime, token.getExpirationTime());
 }
 
 
 function testStsTokenManager_parseServerResponse() {
+  var expirationTime = now + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   var serverResponse = {
-    'idToken': 'myStsAccessToken',
+    'idToken': jwt,
     'refreshToken': 'myStsRefreshToken',
-    'expiresIn': '3600'
   };
   var accessToken = token.parseServerResponse(serverResponse);
-  assertEquals('myStsAccessToken', accessToken);
+  assertEquals(jwt, accessToken);
   assertEquals('myStsRefreshToken', token.getRefreshToken());
-  assertEquals(now + 3600 * 1000, token.getExpirationTime());
+  assertEquals(expirationTime, token.getExpirationTime());
 }
 
 
 function testStsTokenManager_toServerResponse() {
   var expirationTime = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   assertObjectEquals(
       {
         'refreshToken': 'refreshToken',
-        'idToken': 'accessToken',
-        'expiresIn': 3600
+        'idToken': jwt
       },
       token.toServerResponse());
 }
@@ -152,9 +156,10 @@ function testStsTokenManager_toServerResponse() {
 
 function testStsTokenManager_copy() {
   var expirationTime = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
-  // Injects a new RPC handler with differnt API key.
+  token.setAccessToken(jwt);
+  // Injects a new RPC handler with different API key.
   var rpcHandlerWithDiffApiKey = new fireauth.RpcHandler(
       'apiKey2',
       {
@@ -165,12 +170,14 @@ function testStsTokenManager_copy() {
         }
       });
   var tokenToCopy = new fireauth.StsTokenManager(rpcHandlerWithDiffApiKey);
-  var serverResponse = {
-    'idToken': 'newAccessToken',
-    'refreshToken': 'newRefreshToken',
-    'expiresIn': '4800'
-  };
   var newExpirationTime = goog.now() + 4800 * 1000;
+  var newJwt = fireauth.common.testHelper.createMockJwt(
+      null, newExpirationTime);
+  var serverResponse = {
+    'idToken': newJwt,
+    'refreshToken': 'newRefreshToken'
+  };
+
   tokenToCopy.parseServerResponse(serverResponse);
   token.copy(tokenToCopy);
   assertObjectEquals(
@@ -178,10 +185,11 @@ function testStsTokenManager_copy() {
         // ApiKey should remain the same.
         'apiKey': 'apiKey',
         'refreshToken': 'newRefreshToken',
-        'accessToken': 'newAccessToken',
+        'accessToken': newJwt,
         'expirationTime': newExpirationTime
       },
       token.toPlainObject());
+  assertEquals(token.getExpirationTime(), newExpirationTime);
 }
 
 
@@ -200,6 +208,7 @@ function testStsTokenManager_getToken_invalidResponse() {
   // that the network error is not cached.
   var expectedError =
       new fireauth.AuthError(fireauth.authenum.Error.NETWORK_REQUEST_FAILED);
+  var jwt = fireauth.common.testHelper.createMockJwt();
   token.setRefreshToken('myRefreshToken');
   // Simulate invalid response from server.
   assertRpcHandler(
@@ -221,16 +230,13 @@ function testStsTokenManager_getToken_invalidResponse() {
         'refresh_token': 'myRefreshToken'
       },
       {
-        'access_token': 'accessToken2',
-        'refresh_token': 'refreshToken2',
-        'expires_in': '3600'
+        'access_token': jwt,
+        'refresh_token': 'refreshToken2'
       });
       token.getToken().then(function(response) {
         // Confirm all properties updated.
-        assertEquals('accessToken2', response['accessToken']);
+        assertEquals(jwt, response['accessToken']);
         assertEquals('refreshToken2', response['refreshToken']);
-        assertEquals(
-            goog.now() + 3600 * 1000, response['expirationTime']);
         asyncTestCase.signal();
       });
   });
@@ -240,11 +246,14 @@ function testStsTokenManager_getToken_invalidResponse() {
 function testStsTokenManager_getToken_tokenExpiredError() {
   // Test when expired refresh token error is returned.
   // Simulate Id token is expired to force refresh.
-  var expirationTime = goog.now() - 3600 * 1000;
+  var expirationTime = goog.now() - 1;
   // Expected token expired error.
   var expectedError =
       new fireauth.AuthError(fireauth.authenum.Error.TOKEN_EXPIRED);
-  token.setAccessToken('accessToken', expirationTime);
+  var expiredJwt = fireauth.common.testHelper.createMockJwt(
+      null, expirationTime);
+  var newJwt = fireauth.common.testHelper.createMockJwt();
+  token.setAccessToken(expiredJwt);
   token.setRefreshToken('myRefreshToken');
   assertFalse(token.isRefreshTokenExpired());
   // Simulate token expired error from server.
@@ -267,7 +276,7 @@ function testStsTokenManager_getToken_tokenExpiredError() {
         'refresh_token': 'refreshToken2'
       },
       {
-        'access_token': 'accessToken2',
+        'access_token': newJwt,
         'refresh_token': 'refreshToken2',
         'expires_in': '3600'
       });
@@ -289,7 +298,7 @@ function testStsTokenManager_getToken_tokenExpiredError() {
         {
           'apiKey': 'apiKey',
           'refreshToken': null,
-          'accessToken': 'accessToken',
+          'accessToken': expiredJwt,
           'expirationTime': expirationTime
         },
         token.toPlainObject());
@@ -300,16 +309,14 @@ function testStsTokenManager_getToken_tokenExpiredError() {
     token.getToken().then(function(response) {
       assertFalse(token.isRefreshTokenExpired());
       // Confirm all properties updated.
-      assertEquals('accessToken2', response['accessToken']);
+      assertEquals(newJwt, response['accessToken']);
       assertEquals('refreshToken2', response['refreshToken']);
-      assertEquals(
-          goog.now() + 3600 * 1000, response['expirationTime']);
       // Plain object should have the new refresh token set.
       assertObjectEquals(
           {
             'apiKey': 'apiKey',
             'refreshToken': 'refreshToken2',
-            'accessToken': 'accessToken2',
+            'accessToken': newJwt,
             'expirationTime': goog.now() + 3600 * 1000
           },
           token.toPlainObject());
@@ -320,12 +327,55 @@ function testStsTokenManager_getToken_tokenExpiredError() {
 }
 
 
+function testStsTokenManager_getToken_tokenAlmostExpired() {
+  // Test when cached token is within range of being almost expired.
+  var expirationTime = goog.now() +
+      fireauth.StsTokenManager.TOKEN_REFRESH_BUFFER - 1;
+  var almostExpiredJwt = fireauth.common.testHelper.createMockJwt(
+      null, expirationTime);
+  var newJwt = fireauth.common.testHelper.createMockJwt();
+  token.setAccessToken(almostExpiredJwt);
+  token.setRefreshToken('myRefreshToken');
+  assertFalse(token.isRefreshTokenExpired());
+  // Token will be refreshed since cached token is almost expired.
+  assertRpcHandler(
+      {
+        'grant_type': 'refresh_token',
+        'refresh_token': 'myRefreshToken'
+      },
+      {
+        'access_token': newJwt,
+        'refresh_token': 'refreshToken2'
+      });
+  asyncTestCase.waitForSignals(1);
+  token.getToken().then(function(response) {
+    assertFalse(token.isRefreshTokenExpired());
+    // Confirm all properties updated.
+    assertEquals(newJwt, response['accessToken']);
+    assertEquals('refreshToken2', response['refreshToken']);
+    assertObjectEquals(
+        {
+          'apiKey': 'apiKey',
+          'refreshToken': 'refreshToken2',
+          'accessToken': newJwt,
+          'expirationTime': goog.now() + 3600 * 1000
+        },
+        token.toPlainObject());
+    asyncTestCase.signal();
+  });
+}
+
+
 function testStsTokenManager_getToken_exchangeRefreshToken() {
   // Set a previously cached access token that is expired.
-  var expirationTime = goog.now() - 3600;
+  var expirationTime = goog.now() - 1;
+  var unexpiredTime = goog.now() + 3600 * 1000;
+  var expiredJwt =
+      fireauth.common.testHelper.createMockJwt(null, expirationTime);
+  var newJwt = fireauth.common.testHelper.createMockJwt(null, unexpiredTime);
   token.setRefreshToken('refreshToken');
   // Expired access token.
-  token.setAccessToken('expiredAccessToken', expirationTime);
+  token.setAccessToken(expiredJwt);
   // It will attempt to exchange refresh token for STS token.
   assertRpcHandler(
       {
@@ -333,22 +383,18 @@ function testStsTokenManager_getToken_exchangeRefreshToken() {
         'refresh_token': 'refreshToken'
       },
       {
-        'access_token': 'accessToken2',
-        'refresh_token': 'refreshToken2',
-        'expires_in': '3600'
+        'access_token': newJwt,
+        'refresh_token': 'refreshToken2'
       });
   asyncTestCase.waitForSignals(1);
   token.getToken().then(function(response) {
     // Confirm all properties updated.
-    assertEquals('accessToken2', token.accessToken_);
     assertEquals('refreshToken2', token.getRefreshToken());
-    assertEquals(
-        goog.now() + 3600 * 1000, token.getExpirationTime());
+    assertEquals(unexpiredTime, token.getExpirationTime());
     // Confirm correct STS response.
     assertObjectEquals(
         {
-          'accessToken': 'accessToken2',
-          'expirationTime': goog.now() + 3600 * 1000,
+          'accessToken': newJwt,
           'refreshToken': 'refreshToken2'
         },
         response);
@@ -360,22 +406,20 @@ function testStsTokenManager_getToken_exchangeRefreshToken() {
 function testStsTokenManager_getToken_cached() {
   // Set a previously cached access token that hasn't expired yet.
   var expirationTime = goog.now() + 60 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   // Set refresh token and unexpired access token.
   // No XHR request needed.
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   asyncTestCase.waitForSignals(1);
   token.getToken().then(function(response) {
-    // Confirm all properties updated.
-    assertEquals('accessToken', token.accessToken_);
     assertEquals('refreshToken', token.getRefreshToken());
     assertEquals(
         expirationTime, token.getExpirationTime());
     // Confirm correct STS response.
     assertObjectEquals(
         {
-          'accessToken': 'accessToken',
-          'expirationTime': expirationTime,
+          'accessToken': jwt,
           'refreshToken': 'refreshToken'
         },
         response);
@@ -386,10 +430,13 @@ function testStsTokenManager_getToken_cached() {
 
 function testStsTokenManager_getToken_forceRefresh() {
   // Set a previously cached access token that hasn't expired yet.
-  var expirationTime = goog.now() + 1000;
+  var expirationTime = goog.now() + 3000 * 1000;
+  var expirationTime2 = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
+  var newJwt = fireauth.common.testHelper.createMockJwt(null, expirationTime2);
   // Set ID token, refresh token and unexpired access token.
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   // Even though unexpired access token, it will attempt to exchange for refresh
   // token since force refresh is set to true.
   assertRpcHandler(
@@ -398,22 +445,18 @@ function testStsTokenManager_getToken_forceRefresh() {
         'refresh_token': 'refreshToken'
       },
       {
-        'access_token': 'accessToken2',
-        'refresh_token': 'refreshToken2',
-        'expires_in': '3600'
+        'access_token': newJwt,
+        'refresh_token': 'refreshToken2'
       });
   asyncTestCase.waitForSignals(1);
   token.getToken(true).then(function(response) {
     // Confirm all properties updated.
-    assertEquals('accessToken2', token.accessToken_);
     assertEquals('refreshToken2', token.getRefreshToken());
-    assertEquals(
-        goog.now() + 3600 * 1000, token.getExpirationTime());
+    assertEquals(expirationTime2, token.getExpirationTime());
     // Confirm correct STS response.
     assertObjectEquals(
         {
-          'accessToken': 'accessToken2',
-          'expirationTime': goog.now() + 3600 * 1000,
+          'accessToken': newJwt,
           'refreshToken': 'refreshToken2'
         },
         response);
@@ -424,13 +467,14 @@ function testStsTokenManager_getToken_forceRefresh() {
 
 function testToPlainObject() {
   var expirationTime = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   assertObjectEquals(
       {
         'apiKey': 'apiKey',
         'refreshToken': 'refreshToken',
-        'accessToken': 'accessToken',
+        'accessToken': jwt,
         'expirationTime': expirationTime
       },
       token.toPlainObject());
@@ -439,13 +483,14 @@ function testToPlainObject() {
 
 function testFromPlainObject() {
   var expirationTime = goog.now() + 3600 * 1000;
+  var jwt = fireauth.common.testHelper.createMockJwt(null, expirationTime);
   assertNull(
       fireauth.StsTokenManager.fromPlainObject(
           new fireauth.RpcHandler('apiKey'),
           {}));
 
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', expirationTime);
+  token.setAccessToken(jwt);
   assertObjectEquals(
       token,
       fireauth.StsTokenManager.fromPlainObject(
@@ -453,7 +498,6 @@ function testFromPlainObject() {
           {
             'apiKey': 'apiKey',
             'refreshToken': 'refreshToken',
-            'accessToken': 'accessToken',
-            'expirationTime': expirationTime
+            'accessToken': jwt
           }));
 }

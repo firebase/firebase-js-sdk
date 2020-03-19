@@ -1,6 +1,6 @@
-name: Push/PR
+name: Test Modified Packages
 
-on: [push, pull_request]
+on: pull_request
 
 jobs:
   test:
@@ -28,27 +28,3 @@ jobs:
       run: yarn build
     - name: Run tests on changed packages
       run: xvfb-run yarn test:changed
-
-  health-metrics-test:
-    name: Health Metrics Test
-    runs-on: ubuntu-latest
-    env:
-      METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
-      GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-      GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 10.x
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - run: cp config/ci.config.json config/project.json
-      - run: yarn install
-      - run: yarn build
-
-      - name: Run health-metrics/binary-size test
-        run: yarn size-report
-
-      # TODO(yifany): Enable startup times testing on CI.

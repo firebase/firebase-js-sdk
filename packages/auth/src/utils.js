@@ -482,7 +482,7 @@ fireauth.util.EMAIL_ADDRESS_REGEXP_ = /^[^@]+@[^@]+$/;
  * @return {boolean} Whether the email address is valid.
  */
 fireauth.util.isValidEmailAddress = function(email) {
-  return goog.isString(email) &&
+  return typeof email === 'string' &&
       fireauth.util.EMAIL_ADDRESS_REGEXP_.test(email);
 };
 
@@ -1140,7 +1140,7 @@ fireauth.util.removeEntriesWithKeys = function(obj, keys) {
  * @return {*} The raw object.
  */
 fireauth.util.parseJSON = function(json) {
-  if (goog.isNull(json)) {
+  if (json === null) {
     return undefined;
   }
 
