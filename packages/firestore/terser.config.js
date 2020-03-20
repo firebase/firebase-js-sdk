@@ -44,7 +44,7 @@ export const appendPrivatePrefixTransformers = [
  */
 export const manglePrivatePropertiesOptions = {
   output: {
-    comments: 'all',
+    comments: false,
     beautify: true
   },
   mangle: {

@@ -19,7 +19,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'typescript';
 
 /**
@@ -42,7 +42,7 @@ export default [
       json(),
       resolve(),
       commonjs(),
-      uglify()
+      terser()
     ]
   }
 ];

@@ -18,6 +18,7 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
+import { terser } from 'rollup-plugin-terser';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -30,6 +31,13 @@ const deps = Object.keys(
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
+  }),
+  terser({ // remove comments only, so size presubmit can do code size diff correctly.
+    output: {
+      comments: false
+    },
+    compress: false,
+    mangle: false
   })
 ];
 
@@ -68,6 +76,13 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     }
+  }),
+  terser({ // remove comments only, so size presubmit can do code size diff correctly.
+    output: {
+      comments: false
+    },
+    compress: false,
+    mangle: false
   })
 ];
 

@@ -20,10 +20,18 @@ import pkg from './package.json';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import typescript from 'typescript';
+import { terser } from 'rollup-plugin-terser';
 
 const plugins = [
   typescriptPlugin({
     typescript
+  }),
+  terser({ // remove comments only, so size presubmit can do code size diff correctly.
+    output: {
+      comments: false
+    },
+    compress: false,
+    mangle: false
   })
 ];
 
