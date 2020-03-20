@@ -265,7 +265,7 @@ export class TestPlatform implements Platform {
 }
 
 /** Returns true if we are running under Node. */
-export function isNode() : boolean {
+export function isNode(): boolean {
   return (
     typeof process !== 'undefined' &&
     process.title !== undefined &&

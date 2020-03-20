@@ -87,34 +87,17 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  readonly referenceDelegate: MemoryLruDelegate | MemoryEagerDelegate;
-
-  static createLruPersistence(
-    clientId: ClientId,
-    params: LruParams
-  ): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, params);
-    return new MemoryPersistence(clientId, factory);
-  }
-
-  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
-      new MemoryEagerDelegate(p);
-    return new MemoryPersistence(clientId, factory);
-  }
-
+  readonly referenceDelegate: MemoryReferenceDelegate;
+  
   /**
    * The constructor accepts a factory for creating a reference delegate. This
    * allows both the delegate and this instance to have strong references to
    * each other without having nullable fields that would then need to be
    * checked or asserted on every access.
    */
-  private constructor(
+  constructor(
     private readonly clientId: ClientId,
-    referenceDelegateFactory: (
-      p: MemoryPersistence
-    ) => MemoryLruDelegate | MemoryEagerDelegate
+    referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
@@ -226,7 +209,13 @@ export class MemoryTransaction extends PersistenceTransaction {
   }
 }
 
-export class MemoryEagerDelegate implements ReferenceDelegate {
+export interface MemoryReferenceDelegate extends ReferenceDelegate {
+  documentSize(doc: MaybeDocument): number;
+  onTransactionStarted(): void;
+  onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void>;
+}
+
+export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   private inMemoryPins: ReferenceSet | null = null;
   private _orphanedDocuments: Set<DocumentKey> | null = null;
 
@@ -545,7 +534,10 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
 
   getPersistence(): Persistence {
     assert(!!this.clientId, 'initialize() not called');
-    return MemoryPersistence.createEagerPersistence(this.clientId);
+    return new MemoryPersistence(
+      this.clientId,
+      p => new MemoryEagerDelegate(p)
+    );
   }
 
   getSharedClientState(): SharedClientState {
