@@ -65,7 +65,7 @@ function main(args) {
     var testName = specName.replace(/^specs\//, '');
     var filename = testName.replace(/[^A-Za-z\d]/g, '_') + '.json';
     var outputFile = outputPath + '/' + filename;
-    console.log("Generating " + outputFile);
+    console.log('Generating ' + outputFile);
     writeToJSON(testFiles[i], outputFile);
   }
 

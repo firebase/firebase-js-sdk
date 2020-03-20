@@ -41,12 +41,11 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import * as objUtils from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
 import {
   clearWebStorage,
-  TEST_PERSISTENCE_PREFIX,
-  populateWebStorage
+  populateWebStorage,
+  TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 
 const AUTHENTICATED_USER = new User('test');
@@ -103,7 +102,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
   get sharedClientState(): TestSharedClientState {
     return {
-      mutationCount: objUtils.size(this.mutationState),
+      mutationCount: Object.keys(this.mutationState).length,
       mutationState: this.mutationState,
       targetIds: this.activeTargets,
       targetState: this.queryState,

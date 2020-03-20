@@ -21,7 +21,6 @@ import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
 import {
@@ -209,9 +208,9 @@ export class MemoryPersistence implements Persistence {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or(
-      obj
-        .values(this.mutationQueues)
-        .map(queue => () => queue.containsKey(transaction, key))
+      Object.values(this.mutationQueues).map(queue => () =>
+        queue.containsKey(transaction, key)
+      )
     );
   }
 }

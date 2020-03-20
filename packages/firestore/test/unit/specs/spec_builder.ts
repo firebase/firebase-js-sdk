@@ -230,7 +230,7 @@ export class SpecBuilder {
     this.addQueryToActiveTargets(targetId, query, resumeToken);
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -250,9 +250,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -272,7 +270,7 @@ export class SpecBuilder {
 
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -424,9 +422,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
     });
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -447,7 +443,7 @@ export class SpecBuilder {
     keys.forEach(key => {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
-      if (!objUtils.contains(this.limboMapping, path)) {
+      if (!(path in this.limboMapping)) {
         this.limboMapping[path] = this.limboIdGenerator.next();
       }
       // Limbo doc queries are always without resume token
@@ -462,9 +458,7 @@ export class SpecBuilder {
     currentStep.expectedState.limboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -591,7 +585,7 @@ export class SpecBuilder {
     if (cause) {
       delete this.activeTargets[this.getTargetId(query)];
       this.currentStep.expectedState = {
-        activeTargets: objUtils.shallowCopy(this.activeTargets)
+        activeTargets: { ...this.activeTargets }
       };
     }
     return this;
@@ -781,9 +775,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -803,9 +795,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 

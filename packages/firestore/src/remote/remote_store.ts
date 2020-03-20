@@ -242,7 +242,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * is a no-op if the target of given `TargetData` is already being listened to.
    */
   listen(targetData: TargetData): void {
-    if (objUtils.contains(this.listenTargets, targetData.targetId)) {
+    if (targetData.targetId in this.listenTargets) {
       return;
     }
 
@@ -263,7 +263,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   unlisten(targetId: TargetId): void {
     assert(
-      objUtils.contains(this.listenTargets, targetId),
+      targetId in this.listenTargets,
       `unlisten called on target no currently watched: ${targetId}`
     );
 
@@ -488,7 +488,7 @@ export class RemoteStore implements TargetMetadataProvider {
     watchChange.targetIds.forEach(targetId => {
       promiseChain = promiseChain.then(async () => {
         // A watched target might have been removed already.
-        if (objUtils.contains(this.listenTargets, targetId)) {
+        if (targetId in this.listenTargets) {
           delete this.listenTargets[targetId];
           this.watchChangeAggregator!.removeTarget(targetId);
           return this.syncEngine.rejectListen(targetId, error);

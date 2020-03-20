@@ -86,6 +86,7 @@ import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
@@ -97,8 +98,7 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version,
-  byteStringFromString
+  version
 } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
@@ -1089,7 +1089,7 @@ abstract class TestRunner {
     actualLimboDocs.forEach((key, targetId) => {
       const targetIds: number[] = [];
       obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
-      expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
+      expect(targetId in this.expectedActiveTargets).to.equal(
         true,
         `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
           `expected active target IDs (${targetIds.join(', ')})`
@@ -1126,9 +1126,9 @@ abstract class TestRunner {
       await this.queue.drain();
     }
 
-    const actualTargets = obj.shallowCopy(this.connection.activeTargets);
+    const actualTargets = { ...this.connection.activeTargets };
     obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
-      expect(obj.contains(actualTargets, targetId)).to.equal(
+      expect(targetId in actualTargets).to.equal(
         true,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
@@ -1151,10 +1151,12 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken || '').to.equal(expectedTarget.resumeToken || '');
+      expect(actualTarget.resumeToken || '').to.equal(
+        expectedTarget.resumeToken || ''
+      );
       delete actualTargets[targetId];
     });
-    expect(obj.size(actualTargets)).to.equal(
+    expect(Object.keys(actualTargets).length).to.equal(
       0,
       'Unexpected active targets: ' + JSON.stringify(actualTargets)
     );
