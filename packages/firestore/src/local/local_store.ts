@@ -607,6 +607,9 @@ export class LocalStore {
                 } else if (
                   existingDoc == null ||
                   doc.version.compareTo(existingDoc.version) > 0 ||
+                  // If our local document version is based on a write acknowledged from the
+                  // WriteStream, we overwrite it with the remote version from the WatchStream
+                  // since the remote document may contain edits from other clients.
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
