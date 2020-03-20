@@ -2,6 +2,7 @@ const { resolve } = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const https = require('https');
+const terser = require('terser');
 
 const repoRoot = resolve(__dirname, '..');
 
@@ -58,7 +59,19 @@ function generateReportForNPMPackages() {
         for (const field of fields) {
             if (packageJson[field]) {
                 const filePath = `${package.location}/${packageJson[field]}`;
-                const { size } = fs.statSync(filePath);
+
+                const rawCode = fs.readFileSync(filePath, "utf-8");
+
+                // remove comments and whitespaces, then get size
+                const { code } = terser.minify(rawCode, {
+                    output: {
+                        comments: false
+                    },
+                    mangle: false,
+                    compress: false
+                });
+
+                const size = Buffer.byteLength(code, 'utf-8')
                 reports.push(makeReportObject(packageJson.name, field, size));
             }
         }
