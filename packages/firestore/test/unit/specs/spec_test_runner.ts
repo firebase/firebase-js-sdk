@@ -1151,7 +1151,9 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken || '').to.equal(expectedTarget.resumeToken || '');
+      expect(actualTarget.resumeToken || '').to.equal(
+        expectedTarget.resumeToken || ''
+      );
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
@@ -1655,15 +1657,11 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction(
-    'readwrite-idempotent',
-    [DbPrimaryClient.store],
-    txn => {
-      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-        DbPrimaryClient.store
-      );
-      return primaryClientStore.delete(DbPrimaryClient.key);
-    }
-  );
+  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+      DbPrimaryClient.store
+    );
+    return primaryClientStore.delete(DbPrimaryClient.key);
+  });
   db.close();
 }
