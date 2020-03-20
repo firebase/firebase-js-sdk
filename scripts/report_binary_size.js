@@ -60,7 +60,7 @@ function generateReportForNPMPackages() {
             if (packageJson[field]) {
                 const filePath = `${package.location}/${packageJson[field]}`;
 
-                const rawCode = fs.readFileSync(filePath, "utf-8");
+                const rawCode = fs.readFileSync(filePath, 'utf-8');
 
                 // remove comments and whitespaces, then get size
                 const { code } = terser.minify(rawCode, {
