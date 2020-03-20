@@ -36,7 +36,7 @@ export class AutoId {
         // (both inclusive). The value is then evenly mapped to indices of `char`
         // via a modulo operation.
         if (autoId.length < 20 && b <= 62 * 4 - 1) {
-          autoId += chars.charAt(b % 4);
+          autoId += chars.charAt(b % 62);
         }
       });
     }
