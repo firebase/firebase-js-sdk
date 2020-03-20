@@ -16,7 +16,7 @@
  */
 
 import { assert } from './assert';
-import { Platform } from '../platform/platform';
+import { PlatformSupport } from '../platform/platform';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {
@@ -24,18 +24,21 @@ export interface Indexable {
 }
 
 export class AutoId {
-  static newId(platform: Platform): string {
+  static newId(): string {
     // Alphanumeric characters
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let autoId = '';
-    for (let i = 0; i < 20; i++) {
-      // Length of `chars` is 62. We generate random values between 0 and 247.
-      // Each value maps to an 4-element interval of `chars`, for example:
-      // 0..3 -> 0, 4..7 -> 1, etc. This ensures a uniform distribution of
-      // probability for all candidates.
-      const v = platform.randomByte(247);
-      autoId += chars.charAt(Math.floor(v / 4));
+    while (autoId.length < 20) {
+      const bytes = PlatformSupport.getPlatform().randomBytes(40);
+      bytes.forEach(b => {
+        // Length of `chars` is 62. We only take bytes between 0 and 62*4-1
+        // (both inclusive). The value is then evenly mapped to indices of `char`
+        // via a modulo operation.
+        if (autoId.length < 20 && b <= 62 * 4 - 1) {
+          autoId += chars.charAt(b % 4);
+        }
+      });
     }
     assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;

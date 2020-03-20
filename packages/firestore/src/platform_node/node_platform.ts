@@ -76,17 +76,11 @@ export class NodePlatform implements Platform {
     return new Buffer(raw, 'binary').toString('base64');
   }
 
-  randomByte(max: number): number {
-    if (max < 0) {
-      max = 255;
+  randomBytes(nBytes: number): Uint8Array {
+    if (nBytes <= 0) {
+      return new Uint8Array();
     }
 
-    while (true) {
-      const b = randomBytes(1);
-      const v = b.readUInt8(0);
-      if (v <= max) {
-        return v;
-      }
-    }
+    return randomBytes(nBytes);
   }
 }

@@ -102,7 +102,7 @@ export async function testIndexedDbPersistence(
   lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
   const queue = options.queue || new AsyncQueue();
-  const clientId = AutoId.newId(PlatformSupport.getPlatform());
+  const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
@@ -122,18 +122,13 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createEagerPersistence(
-    AutoId.newId(PlatformSupport.getPlatform())
-  );
+  return MemoryPersistence.createEagerPersistence(AutoId.newId());
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return MemoryPersistence.createLruPersistence(
-    AutoId.newId(PlatformSupport.getPlatform()),
-    params
-  );
+  return MemoryPersistence.createLruPersistence(AutoId.newId(), params);
 }
 
 /** Clears the persistence in tests */

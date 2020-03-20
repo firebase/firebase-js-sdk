@@ -2442,7 +2442,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     // We allow omission of 'pathString' but explicitly prohibit passing in both
     // 'undefined' and 'null'.
     if (arguments.length === 0) {
-      pathString = AutoId.newId(PlatformSupport.getPlatform());
+      pathString = AutoId.newId();
     }
     validateArgType(
       'CollectionReference.doc',

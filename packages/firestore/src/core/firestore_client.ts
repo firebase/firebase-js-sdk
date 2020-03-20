@@ -28,7 +28,7 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { Platform, PlatformSupport } from '../platform/platform';
+import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
@@ -91,7 +91,7 @@ export class FirestoreClient {
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState!: SharedClientState;
 
-  private readonly clientId = AutoId.newId(PlatformSupport.getPlatform());
+  private readonly clientId = AutoId.newId();
 
   constructor(
     private platform: Platform,

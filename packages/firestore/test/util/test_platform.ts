@@ -263,8 +263,8 @@ export class TestPlatform implements Platform {
     return this.basePlatform.btoa(raw);
   }
 
-  randomByte(max: number): number {
-    return this.basePlatform.randomByte(max);
+  randomBytes(nBytes: number): Uint8Array {
+    return this.basePlatform.randomBytes(nBytes);
   }
 }
 

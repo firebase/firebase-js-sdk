@@ -68,16 +68,13 @@ export class BrowserPlatform implements Platform {
     return btoa(raw);
   }
 
-  randomByte(max: number): number {
-    if (max < 0) {
-      max = 255;
+  randomBytes(nBytes: number): Uint8Array {
+    if (nBytes <= 0) {
+      return new Uint8Array();
     }
 
-    const v = new Uint8Array(1);
-    do {
-      crypto.getRandomValues(v);
-    } while (v[0] > max);
-
-    return v[0];
+    const v = new Uint8Array(nBytes);
+    crypto.getRandomValues(v);
+    return v;
   }
 }

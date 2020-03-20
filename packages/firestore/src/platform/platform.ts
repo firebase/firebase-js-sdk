@@ -44,10 +44,10 @@ export interface Platform {
   btoa(raw: string): string;
 
   /**
-   * Generates a random byte `b` with `0 <= b <= max`. If `max` is negative,
-   * it is the same as setting it to byte max (255).
+   * Generates `nBytes` of random bytes. If `nBytes` is negative, an empty array
+   * will be returned.
    */
-  randomByte(max: number): number;
+  randomBytes(nBytes: number): Uint8Array;
 
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
