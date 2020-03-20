@@ -1117,6 +1117,8 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
+   *   applicationId: "1:27992087142:android:ce...."   // General Use
+   *   projectId: "my-firebase-project"                // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
