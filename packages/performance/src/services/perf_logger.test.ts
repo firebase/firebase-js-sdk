@@ -303,7 +303,7 @@ describe('Performance Monitoring > perf_logger', () => {
       );
     });
 
-    it('Skip performance collection if domain is cc', () => {
+    it('skips performance collection if domain is cc', () => {
       const CC_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
         connectEnd: 0,
         connectStart: 0,
@@ -338,7 +338,7 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub).not.called;
     });
 
-    it('Skip performance collection if domain is transport', () => {
+    it('skips performance collection if domain is transport', () => {
       const TRANSPORT_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
         connectEnd: 0,
         connectStart: 0,

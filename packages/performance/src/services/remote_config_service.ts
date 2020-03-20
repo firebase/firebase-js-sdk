@@ -224,7 +224,7 @@ function processConfig(
     // - Performance Monitoring doesn't set etag in request, therefore state cannot be NO_CHANGE.
     // - Sampling rate flags and master flag are required, therefore state cannot be EMPTY_CONFIG.
     // If config object state is UPDATE and rollout flag is present, determine endpoint by iid.
-    settingsServiceInstance.shouldSendToTransport = SettingsService.isDestTransport(
+    settingsServiceInstance.shouldSendToTransport = isDestTransport(
       iid,
       Number(entries.fpr_log_transport_web_percent)
     );
@@ -267,4 +267,22 @@ function configValid(expiry: string): boolean {
 
 function shouldLogAfterSampling(samplingRate: number): boolean {
   return Math.random() <= samplingRate;
+}
+
+// True if event should be sent to transport endpoint rather than log endpoint.
+// rolloutPercent is in range [0.0, 100.0].
+export function isDestTransport(iid: string, rolloutPercent: number): boolean {
+  return getHashPercent(iid) < rolloutPercent;
+}
+// Generate integer value range in [0, 99]. Return 100 if seed string is empty.
+export function getHashPercent(seed: string): number {
+  let hash = 0;
+  if (seed.length === 0) {
+    return 100; // Empty seed is invalid so return value beyond valid range.
+  }
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 3) + hash - seed.charCodeAt(i);
+  }
+  hash = Math.abs(hash % 100);
+  return hash;
 }

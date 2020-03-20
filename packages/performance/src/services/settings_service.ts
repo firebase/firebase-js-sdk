@@ -49,7 +49,7 @@ export class SettingsService {
 
   shouldSendToTransport = false;
 
-  // Logging ID for performance events.
+  // Source type for performance event logs.
   logSource = 462;
 
   // Flags which control per session logging of traces and network requests.
@@ -96,28 +96,14 @@ export class SettingsService {
     return apiKey;
   }
 
+  getTransportFullUrl(): string {
+    return this.transportEndpointUrl.concat('?key=', this.transportKey);
+  }
+
   static getInstance(): SettingsService {
     if (settingsServiceInstance === undefined) {
       settingsServiceInstance = new SettingsService();
     }
     return settingsServiceInstance;
-  }
-
-  // True if event should be sent to transport endpoint rather than log endpoint.
-  // rolloutPercent is in range [0.0, 100.0].
-  static isDestTransport(iid: string, rolloutPercent: number): boolean {
-    return this.getHashPercent(iid) < rolloutPercent;
-  }
-  // Generate integer value range in [0, 99]. Return 100 if seed string is empty.
-  static getHashPercent(seed: string): number {
-    let hash = 0;
-    if (seed.length === 0) {
-      return 100; // Empty seed is invalid so return value beyond valid range.
-    }
-    for (let i = 0; i < seed.length; i++) {
-      hash = (hash << 3) + hash - seed.charCodeAt(i);
-    }
-    hash = Math.abs(hash % 100);
-    return hash;
   }
 }

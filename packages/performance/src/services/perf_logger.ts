@@ -155,17 +155,15 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   // Need to blacklist both old and new endpoints to avoid migration gap.
   const networkRequestHostName = new URL(networkRequest.url).hostname;
 
-  // Blacklist old log endpoint.
+  // Blacklist old log endpoint and new transport endpoint.
   const logEndpointHostName = new URL(settingsService.logEndPointUrl).hostname;
-  if (networkRequestHostName === logEndpointHostName) {
-    return;
-  }
-
-  // Blacklist new transport endpoint.
   const transportEndpointHostName = new URL(
     settingsService.transportEndpointUrl
   ).hostname;
-  if (networkRequestHostName === transportEndpointHostName) {
+  if (
+    networkRequestHostName === logEndpointHostName ||
+    networkRequestHostName === transportEndpointHostName
+  ) {
     return;
   }
 

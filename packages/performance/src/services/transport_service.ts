@@ -110,10 +110,8 @@ function dispatchQueueEvents(): void {
   /* eslint-enable camelcase */
 
   postToEndpoint(data, staged).catch(() => {
-    /**
-     * If the request fails for some reason, add the events that were attempted
-     * back to the primary queue to retry later.
-     */
+    // If the request fails for some reason, add the events that were attempted
+    // back to the primary queue to retry later.
     queue = [...staged, ...queue];
     remainingTries--;
     consoleLogger.info(`Tries left: ${remainingTries}.`);
@@ -137,11 +135,7 @@ function sendEventsToTransport(
   data: TransportBatchLogFormat,
   staged: BatchEvent[]
 ): Promise<void> {
-  return postToTransportEndpoint(
-    SettingsService.getInstance().transportEndpointUrl,
-    SettingsService.getInstance().transportKey,
-    data
-  )
+  return postToTransportEndpoint(data)
     .then(res => {
       if (!res.ok) {
         consoleLogger.info('Call to Firebase backend failed.');
@@ -196,18 +190,11 @@ function sendEventsToCc(data: TransportBatchLogFormat): Promise<void> {
 }
 
 function postToTransportEndpoint(
-  transportUrl: string,
-  transportKey: string,
   data: TransportBatchLogFormat
 ): Promise<Response> {
-  const transportFullUrl = transportUrl.concat('?key=', transportKey);
+  const transportFullUrl = SettingsService.getInstance().getTransportFullUrl();
   return fetch(transportFullUrl, {
     method: 'POST',
-    headers: {
-      // 'x-goog-api-key': key,
-      'content-type': 'application/json',
-      'content-encoding': 'gzip'
-    },
     body: JSON.stringify(data)
   });
 }
