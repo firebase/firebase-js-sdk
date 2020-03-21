@@ -21,7 +21,7 @@ import { assert } from '../util/assert';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { equals, isMapValue, typeOrder } from './values';
+import { valueEquals, isMapValue, typeOrder } from './values';
 import { forEach } from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 
@@ -123,7 +123,7 @@ export class ObjectValue {
   }
 
   isEqual(other: ObjectValue): boolean {
-    return equals(this.proto, other.proto);
+    return valueEquals(this.proto, other.proto);
   }
 
   /** Creates a ObjectValueBuilder instance that is based on the current value. */

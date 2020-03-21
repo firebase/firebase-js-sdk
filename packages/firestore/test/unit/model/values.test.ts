@@ -23,8 +23,8 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
 import {
   canonicalId,
-  compare,
-  equals,
+  valueCompare,
+  valueEquals,
   estimateByteSize,
   refValue
 } from '../../../src/model/values';
@@ -86,7 +86,7 @@ describe('Values', () => {
       [wrap({ bar: 1, foo: 1 })],
       [wrap({ foo: 1 })]
     ];
-    expectEqualitySets(values, (v1, v2) => equals(v1, v2));
+    expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
 
   it('normalizes values for equality', () => {
@@ -115,7 +115,7 @@ describe('Values', () => {
       ],
       [{ bytesValue: new Uint8Array([0, 1, 2]) }, { bytesValue: 'AAEC' }]
     ];
-    expectEqualitySets(values, (v1, v2) => equals(v1, v2));
+    expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
 
   it('orders types correctly', () => {
@@ -220,7 +220,7 @@ describe('Values', () => {
     expectCorrectComparisonGroups(
       groups,
       (left: api.Value, right: api.Value) => {
-        return compare(left, right);
+        return valueCompare(left, right);
       }
     );
   });
@@ -262,7 +262,7 @@ describe('Values', () => {
     expectCorrectComparisonGroups(
       groups,
       (left: api.Value, right: api.Value) => {
-        return compare(left, right);
+        return valueCompare(left, right);
       }
     );
   });

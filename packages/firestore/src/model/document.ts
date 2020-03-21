@@ -23,7 +23,7 @@ import { fail } from '../util/assert';
 import { DocumentKey } from './document_key';
 import { ObjectValue } from './field_value';
 import { FieldPath } from './path';
-import { compare } from './values';
+import { valueCompare } from './values';
 
 export interface DocumentOptions {
   hasLocalMutations?: boolean;
@@ -112,7 +112,7 @@ export class Document extends MaybeDocument {
     const v1 = d1.field(field);
     const v2 = d2.field(field);
     if (v1 !== null && v2 !== null) {
-      return compare(v1, v2);
+      return valueCompare(v1, v2);
     } else {
       return fail("Trying to compare documents on fields that don't exist");
     }

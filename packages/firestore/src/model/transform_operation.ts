@@ -21,7 +21,7 @@ import { Timestamp } from '../api/timestamp';
 import { assert } from '../util/assert';
 import { JsonProtoSerializer } from '../remote/serializer';
 import {
-  equals,
+  valueEquals,
   isArray,
   isInteger,
   isNumber,
@@ -122,7 +122,7 @@ export class ArrayUnionTransformOperation implements TransformOperation {
   private apply(previousValue: api.Value | null): api.Value {
     const values = coercedFieldValuesArray(previousValue);
     for (const toUnion of this.elements) {
-      if (!values.some(element => equals(element, toUnion))) {
+      if (!values.some(element => valueEquals(element, toUnion))) {
         values.push(toUnion);
       }
     }
@@ -136,7 +136,7 @@ export class ArrayUnionTransformOperation implements TransformOperation {
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayUnionTransformOperation &&
-      arrayEquals(this.elements, other.elements, equals)
+      arrayEquals(this.elements, other.elements, valueEquals)
     );
   }
 }
@@ -165,7 +165,7 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
   private apply(previousValue: api.Value | null): api.Value {
     let values = coercedFieldValuesArray(previousValue);
     for (const toRemove of this.elements) {
-      values = values.filter(element => !equals(element, toRemove));
+      values = values.filter(element => !valueEquals(element, toRemove));
     }
     return { arrayValue: { values } };
   }
@@ -177,7 +177,7 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayRemoveTransformOperation &&
-      arrayEquals(this.elements, other.elements, equals)
+      arrayEquals(this.elements, other.elements, valueEquals)
     );
   }
 }
@@ -237,7 +237,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof NumericIncrementTransformOperation &&
-      equals(this.operand, other.operand)
+      valueEquals(this.operand, other.operand)
     );
   }
 

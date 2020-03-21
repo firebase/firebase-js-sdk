@@ -75,7 +75,7 @@ export function isType(
 }
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
-export function equals(left: api.Value, right: api.Value): boolean {
+export function valueEquals(left: api.Value, right: api.Value): boolean {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
   if (leftType !== rightType) {
@@ -103,7 +103,7 @@ export function equals(left: api.Value, right: api.Value): boolean {
       return arrayEquals(
         left.arrayValue!.values || [],
         right.arrayValue!.values || [],
-        equals
+        valueEquals
       );
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
@@ -180,7 +180,10 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
 
   for (const key in leftMap) {
     if (leftMap.hasOwnProperty(key)) {
-      if (rightMap[key] === undefined || !equals(leftMap[key], rightMap[key])) {
+      if (
+        rightMap[key] === undefined ||
+        !valueEquals(leftMap[key], rightMap[key])
+      ) {
         return false;
       }
     }
@@ -190,10 +193,12 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
 
 /** Returns true if the Value list contains the specified element. */
 export function contains(haystack: api.ArrayValue, needle: api.Value): boolean {
-  return (haystack.values || []).find(v => equals(v, needle)) !== undefined;
+  return (
+    (haystack.values || []).find(v => valueEquals(v, needle)) !== undefined
+  );
 }
 
-export function compare(left: api.Value, right: api.Value): number {
+export function valueCompare(left: api.Value, right: api.Value): number {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
 
@@ -326,9 +331,9 @@ function compareArrays(left: api.ArrayValue, right: api.ArrayValue): number {
   const rightArray = right.values || [];
 
   for (let i = 0; i < leftArray.length && i < rightArray.length; ++i) {
-    const valueCompare = compare(leftArray[i], rightArray[i]);
-    if (valueCompare) {
-      return valueCompare;
+    const compare = valueCompare(leftArray[i], rightArray[i]);
+    if (compare) {
+      return compare;
     }
   }
   return primitiveComparator(leftArray.length, rightArray.length);
@@ -352,9 +357,9 @@ function compareMaps(left: api.MapValue, right: api.MapValue): number {
     if (keyCompare !== 0) {
       return keyCompare;
     }
-    const valueCompare = compare(leftMap[leftKeys[i]], rightMap[rightKeys[i]]);
-    if (valueCompare !== 0) {
-      return valueCompare;
+    const compare = valueCompare(leftMap[leftKeys[i]], rightMap[rightKeys[i]]);
+    if (compare !== 0) {
+      return compare;
     }
   }
 

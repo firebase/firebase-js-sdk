@@ -21,9 +21,9 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   canonicalId,
-  compare,
+  valueCompare,
   contains,
-  equals,
+  valueEquals,
   isArray,
   isNanValue,
   isNullValue,
@@ -583,7 +583,7 @@ export class FieldFilter extends Filter {
     return (
       other !== null &&
       typeOrder(this.value) === typeOrder(other) &&
-      this.matchesComparison(compare(other, this.value))
+      this.matchesComparison(valueCompare(other, this.value))
     );
   }
 
@@ -631,7 +631,7 @@ export class FieldFilter extends Filter {
       return (
         this.op.isEqual(other.op) &&
         this.field.isEqual(other.field) &&
-        equals(this.value, other.value)
+        valueEquals(this.value, other.value)
       );
     } else {
       return false;
@@ -791,7 +791,7 @@ export class Bound {
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = compare(component, docValue);
+        comparison = valueCompare(component, docValue);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;
@@ -816,7 +816,7 @@ export class Bound {
     for (let i = 0; i < this.position.length; i++) {
       const thisPosition = this.position[i];
       const otherPosition = other.position[i];
-      if (!equals(thisPosition, otherPosition)) {
+      if (!valueEquals(thisPosition, otherPosition)) {
         return false;
       }
     }
