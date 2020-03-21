@@ -194,7 +194,11 @@ const browserBuilds = [
 // MARK: Node builds
 
 const nodeBuildPlugins = [
-  ...es5BuildPlugins,
+  typescriptPlugin({
+    typescript,
+    cacheRoot: `./.cache/node/`
+  }),
+  json(),
   // Needed as we also use the *.proto files
   copy({
     assets: ['./src/protos']
