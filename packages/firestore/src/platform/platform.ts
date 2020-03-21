@@ -43,6 +43,12 @@ export interface Platform {
   /** Converts a binary string to a Base64 encoded string. */
   btoa(raw: string): string;
 
+  /**
+   * Generates `nBytes` of random bytes. If `nBytes` is negative, an empty array
+   * will be returned.
+   */
+  randomBytes(nBytes: number): Uint8Array;
+
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
 
