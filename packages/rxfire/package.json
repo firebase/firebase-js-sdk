@@ -24,6 +24,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path './.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path './.gitignore'",
     "build": "rollup -c",
+    "build:deps": "lerna run --scope rxfire --include-dependencies build",
     "dev": "rollup -c -w",
     "prepare": "yarn build",
     "test": "run-p lint test:browser",

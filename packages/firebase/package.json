@@ -30,6 +30,7 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "build:deps": "lerna run --scope firebase --include-dependencies build",
     "dev": "rollup -c -w",
     "prepare": "yarn build"
   },

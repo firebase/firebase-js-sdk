@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"
