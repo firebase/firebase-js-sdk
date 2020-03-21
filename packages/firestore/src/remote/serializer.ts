@@ -274,7 +274,7 @@ export class JsonProtoSerializer {
   fromResourceName(name: string): ResourcePath {
     const resource = ResourcePath.fromString(name);
     assert(
-      this.isValidResourceName(resource),
+      isValidResourceName(resource),
       'Tried to deserialize invalid key ' + resource.toString()
     );
     return resource;
@@ -347,15 +347,6 @@ export class JsonProtoSerializer {
       'tried to deserialize invalid key ' + resourceName.toString()
     );
     return resourceName.popFirst(5);
-  }
-
-  private isValidResourceName(path: ResourcePath): boolean {
-    // Resource names have at least 4 components (project ID, database ID)
-    return (
-      path.length >= 4 &&
-      path.get(0) === 'projects' &&
-      path.get(2) === 'databases'
-    );
   }
 
   /** Creates an api.Document from key and fields (but no create/update time) */
@@ -1178,4 +1169,13 @@ export class JsonProtoSerializer {
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
     return FieldMask.fromArray(fields);
   }
+}
+
+export function isValidResourceName(path: ResourcePath): boolean {
+  // Resource names have at least 4 components (project ID, database ID)
+  return (
+    path.length >= 4 &&
+    path.get(0) === 'projects' &&
+    path.get(2) === 'databases'
+  );
 }

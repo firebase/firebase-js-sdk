@@ -18,11 +18,13 @@
 import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
+import * as log from '../util/log';
 
 import { DocumentReference, Firestore } from './database';
 import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
+import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,
@@ -32,12 +34,13 @@ import {
 } from '../model/values';
 import {
   getLocalWriteTime,
-  getPreviousValue,
-  isServerTimestamp
+  getPreviousValue
 } from '../model/server_timestamps';
-import { fail } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { forEach } from '../util/obj';
 import { TypeOrder } from '../model/field_value';
+import { ResourcePath } from '../model/path';
+import { isValidResourceName } from '../remote/serializer';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -126,7 +129,26 @@ export class UserDataWriter<T = firestore.DocumentData> {
   }
 
   private convertReference(name: string): DocumentReference<T> {
-    const key = DocumentKey.fromName(name);
+    const resourcePath = ResourcePath.fromString(name);
+    assert(
+      isValidResourceName(resourcePath),
+      'ReferenceValue is not valid ' + name
+    );
+    const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
+    const key = new DocumentKey(resourcePath.popFirst(5));
+
+    if (!databaseId.isEqual(this.firestore._databaseId)) {
+      // TODO(b/64130202): Somehow support foreign references.
+      log.error(
+        `Document ${key} contains a document ` +
+          `reference within a different database (` +
+          `${databaseId.projectId}/${databaseId.database}) which is not ` +
+          `supported. It will be treated as a reference in the current ` +
+          `database (${this.firestore._databaseId.projectId}/${this.firestore._databaseId.database}) ` +
+          `instead.`
+      );
+    }
+
     return new DocumentReference(key, this.firestore, this.converter);
   }
 }
