@@ -66,14 +66,6 @@ export function typeOrder(value: api.Value): TypeOrder {
   }
 }
 
-/** Returns whether `value` is defined and corresponds to the given type order. */
-export function isType(
-  value: api.Value | null | undefined,
-  expectedTypeOrder: TypeOrder
-): value is api.Value {
-  return !!value && typeOrder(value) === expectedTypeOrder;
-}
-
 /** Tests `left` and `right` for equality based on the backend semantics. */
 export function valueEquals(left: api.Value, right: api.Value): boolean {
   const leftType = typeOrder(left);
