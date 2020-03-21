@@ -106,11 +106,13 @@ const preConverter = (input: unknown): unknown => {
 
 export function testUserDataWriter(): UserDataWriter {
   // We should pass in a proper Firestore instance, but for now, only
-  // `ensureClientConfigured()` is called in our test usage of UserDataWriter.
+  // `ensureClientConfigured()` and `_databaseId` is used in our test usage of
+  // UserDataWriter.
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const firestore: any = {
-    ensureClientConfigured: () => {}
+    ensureClientConfigured: () => {},
+    _databaseId: new DatabaseId('test-project')
   };
   return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
 }
