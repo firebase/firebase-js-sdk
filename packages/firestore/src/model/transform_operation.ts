@@ -20,7 +20,13 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { assert } from '../util/assert';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { equals, isNumber, normalizeNumber } from './values';
+import {
+  equals,
+  isArray,
+  isInteger,
+  isNumber,
+  normalizeNumber
+} from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
 
@@ -202,7 +208,11 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     // manually cap overflows at 2^63.
     const baseValue = this.computeBaseValue(previousValue);
     const sum = this.asNumber(baseValue) + this.asNumber(this.operand);
-    return this.serializer.toNumber(sum);
+    if (isInteger(baseValue) && isInteger(this.operand)) {
+      return this.serializer.toInteger(sum);
+    } else {
+      return this.serializer.toDouble(sum);
+    }
   }
 
   applyToRemoteDocument(
@@ -237,5 +247,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
 }
 
 function coercedFieldValuesArray(value: api.Value | null): api.Value[] {
-  return value?.arrayValue?.values?.slice() || [];
+  return isArray(value) && value.arrayValue.values
+    ? value.arrayValue.values.slice()
+    : [];
 }

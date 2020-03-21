@@ -163,8 +163,7 @@ export function numberEquals(left: api.Value, right: api.Value): boolean {
     if (n1 === n2) {
       return isNegativeZero(n1) === isNegativeZero(n2);
     } else {
-      // NaN == NaN
-      return n1 !== n1 && n2 !== n2;
+      return isNaN(n1) && isNaN(n2);
     }
   }
 
@@ -548,7 +547,10 @@ export function normalizeTimestamp(
   }
 }
 
-/** Converts the possible Proto types for numbers into a JavaScript number. */
+/**
+ * Converts the possible Proto types for numbers into a JavaScript number.
+ * Returns 0 if the value is not numeric.
+ */
 export function normalizeNumber(value: number | string | undefined): number {
   // TODO(bjornick): Handle int64 greater than 53 bits.
   if (typeof value === 'number') {
@@ -578,9 +580,23 @@ export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
   };
 }
 
+/** Returns true if `value` is either an IntegerValue . */
+export function isInteger(
+  value?: api.Value | null
+): value is { integerValue: string | number } {
+  return !!value && 'integerValue' in value;
+}
+
+/** Returns true if `value` is either an IntegerValue . */
+export function isDobule(
+  value?: api.Value | null
+): value is { doubleValue: string | number } {
+  return !!value && 'doubleValue' in value;
+}
+
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
 export function isNumber(value?: api.Value | null): boolean {
-  return !!value && ('integerValue' in value || 'doubleValue' in value);
+  return isInteger(value) || isDobule(value);
 }
 
 /** Returns true if `value` is an ArrayValue. */

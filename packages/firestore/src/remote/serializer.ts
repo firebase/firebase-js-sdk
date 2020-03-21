@@ -162,23 +162,36 @@ export class JsonProtoSerializer {
   }
 
   /**
+   * Returns an IntegerValue for `value`.
+   */
+  toInteger(value: number): api.Value {
+    return { integerValue: '' + value };
+  }
+
+  /**
+   * Returns an DoubleValue for `value` that is encoded based the serializer's
+   * `useProto3Json` setting.
+   */
+  toDouble(value: number): api.Value {
+    if (this.options.useProto3Json) {
+      if (isNaN(value)) {
+        return { doubleValue: 'NaN' };
+      } else if (value === Infinity) {
+        return { doubleValue: 'Infinity' };
+      } else if (value === -Infinity) {
+        return { doubleValue: '-Infinity' };
+      }
+    }
+    return { doubleValue: isNegativeZero(value) ? '-0' : value };
+  }
+
+  /**
    * Returns a value for a number that's appropriate to put into a proto.
+   * The return value is an IntegerValue if it can safely represent the value,
+   * otherwise a DoubleValue is returned.
    */
   toNumber(value: number): api.Value {
-    if (isSafeInteger(value)) {
-      return { integerValue: '' + value };
-    } else {
-      if (this.options.useProto3Json) {
-        if (isNaN(value)) {
-          return { doubleValue: 'NaN' };
-        } else if (value === Infinity) {
-          return { doubleValue: 'Infinity' };
-        } else if (value === -Infinity) {
-          return { doubleValue: '-Infinity' };
-        }
-      }
-      return { doubleValue: isNegativeZero(value) ? '-0' : value };
-    }
+    return isSafeInteger(value) ? this.toInteger(value) : this.toDouble(value);
   }
 
   /**

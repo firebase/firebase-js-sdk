@@ -24,7 +24,11 @@ import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DocumentKey } from '../model/document_key';
-import { normalizeByteString, normalizeTimestamp } from '../model/values';
+import {
+  normalizeByteString,
+  normalizeNumber,
+  normalizeTimestamp
+} from '../model/values';
 import {
   getLocalWriteTime,
   getPreviousValue,
@@ -53,9 +57,9 @@ export class UserDataWriter<T = firestore.DocumentData> {
     } else if ('booleanValue' in value) {
       return value.booleanValue!;
     } else if ('integerValue' in value) {
-      return Number(value.integerValue!);
+      return normalizeNumber(value.integerValue!);
     } else if ('doubleValue' in value) {
-      return Number(value.doubleValue!);
+      return normalizeNumber(value.doubleValue!);
     } else if ('timestampValue' in value) {
       return this.convertTimestamp(value.timestampValue!);
     } else if ('stringValue' in value) {

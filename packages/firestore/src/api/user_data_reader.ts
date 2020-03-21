@@ -701,7 +701,7 @@ export class UserDataReader {
     } else if (typeof value === 'boolean') {
       return { booleanValue: value };
     } else if (typeof value === 'string') {
-      return { stringValue: '' + value };
+      return { stringValue: value };
     } else if (value instanceof Date) {
       const timestamp = Timestamp.fromDate(value);
       return { timestampValue: this.serializer.toTimestamp(timestamp) };
