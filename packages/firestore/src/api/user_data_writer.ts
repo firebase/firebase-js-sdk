@@ -27,7 +27,8 @@ import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,
   normalizeNumber,
-  normalizeTimestamp
+  normalizeTimestamp,
+  typeOrder
 } from '../model/values';
 import {
   getLocalWriteTime,
@@ -36,6 +37,7 @@ import {
 } from '../model/server_timestamps';
 import { fail } from '../util/assert';
 import { forEach } from '../util/obj';
+import { TypeOrder } from '../model/field_value';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -52,36 +54,34 @@ export class UserDataWriter<T = firestore.DocumentData> {
   ) {}
 
   convertValue(value: api.Value): unknown {
-    if ('nullValue' in value) {
-      return null;
-    } else if ('booleanValue' in value) {
-      return value.booleanValue!;
-    } else if ('integerValue' in value) {
-      return normalizeNumber(value.integerValue!);
-    } else if ('doubleValue' in value) {
-      return normalizeNumber(value.doubleValue!);
-    } else if ('timestampValue' in value) {
-      return this.convertTimestamp(value.timestampValue!);
-    } else if ('stringValue' in value) {
-      return value.stringValue!;
-    } else if ('bytesValue' in value) {
-      return new Blob(normalizeByteString(value.bytesValue!));
-    } else if ('referenceValue' in value) {
-      return this.convertReference(value.referenceValue!);
-    } else if ('geoPointValue' in value) {
-      return new GeoPoint(
-        value.geoPointValue!.latitude!,
-        value.geoPointValue!.longitude!
-      );
-    } else if ('arrayValue' in value) {
-      return this.convertArray(value.arrayValue!);
-    } else if ('mapValue' in value) {
-      if (isServerTimestamp(value)) {
+    switch (typeOrder(value)) {
+      case TypeOrder.NullValue:
+        return null;
+      case TypeOrder.BooleanValue:
+        return value.booleanValue!;
+      case TypeOrder.NumberValue:
+        return normalizeNumber(value.integerValue || value.doubleValue);
+      case TypeOrder.TimestampValue:
+        return this.convertTimestamp(value.timestampValue!);
+      case TypeOrder.ServerTimestampValue:
         return this.convertServerTimestamp(value);
-      }
-      return this.convertObject(value.mapValue!);
-    } else {
-      return fail('Invalid value type: ' + JSON.stringify(value));
+      case TypeOrder.StringValue:
+        return value.stringValue!;
+      case TypeOrder.BlobValue:
+        return new Blob(normalizeByteString(value.bytesValue!));
+      case TypeOrder.RefValue:
+        return this.convertReference(value.referenceValue!);
+      case TypeOrder.GeoPointValue:
+        return new GeoPoint(
+          value.geoPointValue!.latitude!,
+          value.geoPointValue!.longitude!
+        );
+      case TypeOrder.ArrayValue:
+        return this.convertArray(value.arrayValue!);
+      case TypeOrder.ObjectValue:
+        return this.convertObject(value.mapValue!);
+      default:
+        throw fail('Invalid value type: ' + JSON.stringify(value));
     }
   }
 

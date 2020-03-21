@@ -58,7 +58,7 @@ export function typeOrder(value: api.Value): TypeOrder {
     return TypeOrder.ArrayValue;
   } else if ('mapValue' in value) {
     if (isServerTimestamp(value)) {
-      return TypeOrder.TimestampValue;
+      return TypeOrder.ServerTimestampValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -79,6 +79,8 @@ export function valueEquals(left: api.Value, right: api.Value): boolean {
       return true;
     case TypeOrder.BooleanValue:
       return left.booleanValue === right.booleanValue;
+    case TypeOrder.ServerTimestampValue:
+      return getLocalWriteTime(left).isEqual(getLocalWriteTime(right));
     case TypeOrder.TimestampValue:
       return timestampEquals(left, right);
     case TypeOrder.StringValue:
@@ -105,12 +107,6 @@ export function valueEquals(left: api.Value, right: api.Value): boolean {
 }
 
 function timestampEquals(left: api.Value, right: api.Value): boolean {
-  if (isServerTimestamp(left) && isServerTimestamp(right)) {
-    return getLocalWriteTime(left).isEqual(getLocalWriteTime(right));
-  } else if (isServerTimestamp(left) || isServerTimestamp(right)) {
-    return false;
-  }
-
   if (
     typeof left.timestampValue === 'string' &&
     typeof right.timestampValue === 'string' &&
@@ -206,24 +202,12 @@ export function valueCompare(left: api.Value, right: api.Value): number {
     case TypeOrder.NumberValue:
       return compareNumbers(left, right);
     case TypeOrder.TimestampValue:
-      if (isServerTimestamp(left)) {
-        if (isServerTimestamp(right)) {
-          return compareTimestamps(
-            getLocalWriteTime(left),
-            getLocalWriteTime(right)
-          );
-        } else {
-          // Server timestamps come after all concrete timestamps.
-          return 1;
-        }
-      } else {
-        if (isServerTimestamp(right)) {
-          // Server timestamps come after all concrete timestamps.
-          return -1;
-        } else {
-          return compareTimestamps(left.timestampValue!, right.timestampValue!);
-        }
-      }
+      return compareTimestamps(left.timestampValue!, right.timestampValue!);
+    case TypeOrder.ServerTimestampValue:
+      return compareTimestamps(
+        getLocalWriteTime(left),
+        getLocalWriteTime(right)
+      );
     case TypeOrder.StringValue:
       return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
@@ -451,39 +435,37 @@ function canonifyArray(arrayValue: api.ArrayValue): string {
  * in memory and ignores object overhead.
  */
 export function estimateByteSize(value: api.Value): number {
-  if ('nullValue' in value) {
-    return 4;
-  } else if ('booleanValue' in value) {
-    return 4;
-  } else if ('integerValue' in value) {
-    return 8;
-  } else if ('doubleValue' in value) {
-    return 8;
-  } else if ('timestampValue' in value) {
-    // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
-    return 16;
-  } else if ('stringValue' in value) {
-    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures:
-    // "JavaScript's String type is [...] a set of elements of 16-bit unsigned
-    // integer values"
-    return value.stringValue!.length * 2;
-  } else if ('bytesValue' in value) {
-    return normalizeByteString(value.bytesValue!).approximateByteSize();
-  } else if ('referenceValue' in value) {
-    return value.referenceValue!.length;
-  } else if ('geoPointValue' in value) {
-    // GeoPoints are made up of two distinct numbers (latitude + longitude)
-    return 16;
-  } else if ('arrayValue' in value) {
-    return estimateArrayByteSize(value.arrayValue!);
-  } else if ('mapValue' in value) {
-    if (isServerTimestamp(value)) {
+  switch (typeOrder(value)) {
+    case TypeOrder.NullValue:
+      return 4;
+    case TypeOrder.BooleanValue:
+      return 4;
+    case TypeOrder.NumberValue:
+      return 8;
+    case TypeOrder.TimestampValue:
+      // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
+      return 16;
+    case TypeOrder.ServerTimestampValue:
       const previousValue = getPreviousValue(value);
       return previousValue ? 16 + estimateByteSize(previousValue) : 16;
-    }
-    return estimateMapByteSize(value.mapValue!);
-  } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    case TypeOrder.StringValue:
+      // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures:
+      // "JavaScript's String type is [...] a set of elements of 16-bit unsigned
+      // integer values"
+      return value.stringValue!.length * 2;
+    case TypeOrder.BlobValue:
+      return normalizeByteString(value.bytesValue!).approximateByteSize();
+    case TypeOrder.RefValue:
+      return value.referenceValue!.length;
+    case TypeOrder.GeoPointValue:
+      // GeoPoints are made up of two distinct numbers (latitude + longitude)
+      return 16;
+    case TypeOrder.ArrayValue:
+      return estimateArrayByteSize(value.arrayValue!);
+    case TypeOrder.ObjectValue:
+      return estimateMapByteSize(value.mapValue!);
+    default:
+      throw fail('Invalid value type: ' + JSON.stringify(value));
   }
 }
 

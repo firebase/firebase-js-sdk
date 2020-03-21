@@ -30,17 +30,19 @@ export interface JsonObject<T> {
 }
 
 export const enum TypeOrder {
-  // This order is defined by the backend.
+  // This order is based on the backend's ordering, but modified to support
+  // server timestamps.
   NullValue = 0,
   BooleanValue = 1,
   NumberValue = 2,
   TimestampValue = 3,
-  StringValue = 4,
-  BlobValue = 5,
-  RefValue = 6,
-  GeoPointValue = 7,
-  ArrayValue = 8,
-  ObjectValue = 9
+  ServerTimestampValue = 4,
+  StringValue = 5,
+  BlobValue = 6,
+  RefValue = 7,
+  GeoPointValue = 8,
+  ArrayValue = 9,
+  ObjectValue = 10
 }
 
 /**
