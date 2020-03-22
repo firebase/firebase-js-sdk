@@ -184,10 +184,16 @@ describe('Firebase Storage > Service', () => {
     });
     it('Works with storage.googleapis.com URLs', () => {
       const ref = service.refFromURL(
-        `http://storage.googleapis.com/v0/b/` +
-        'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
+        `https://storage.googleapis.com/mybucket/path%20with%20space/image.png`
       );
-      assert.equal(ref.toString(), 'gs://mybucket/child/path/image.png');
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
+    });
+    it('Works with storage.googleapis.com URLs with query params', () => {
+      const ref = service.refFromURL(
+        `https://storage.googleapis.com/mybucket/path%20with%20space/image.png?X-Goog-Algorithm=
+GOOG4-RSA-SHA256`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
     });
   });
   describe('Argument verification', () => {
