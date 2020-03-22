@@ -91,7 +91,8 @@ export class Location {
     );
     const firebaseStorageIndices = { bucket: 1, path: 3 };
 
-    const cloudStorageHost = 'storage.googleapis.com';
+    const cloudStorageHost =
+      '(?:storage.googleapis.com|storage.cloud.google.com)';
     const cloudStoragePath = '([^?]*)';
     const cloudStorageRegExp = new RegExp(
       `^https?://${cloudStorageHost}/${bucketDomain}/${cloudStoragePath}`,
