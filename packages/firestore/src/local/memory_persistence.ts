@@ -18,7 +18,8 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { fail } from '../util/assert';
+import { assert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -30,26 +31,41 @@ import {
   LruParams
 } from './lru_garbage_collector';
 
+import { DatabaseInfo } from '../core/database_info';
+import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
+  GarbageCollectionScheduler,
   Persistence,
+  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { Platform } from '../platform/platform';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState
+} from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
 
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
@@ -71,34 +87,17 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  readonly referenceDelegate: MemoryLruDelegate | MemoryEagerDelegate;
-
-  static createLruPersistence(
-    clientId: ClientId,
-    params: LruParams
-  ): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, params);
-    return new MemoryPersistence(clientId, factory);
-  }
-
-  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
-      new MemoryEagerDelegate(p);
-    return new MemoryPersistence(clientId, factory);
-  }
-
+  readonly referenceDelegate: MemoryReferenceDelegate;
+  
   /**
    * The constructor accepts a factory for creating a reference delegate. This
    * allows both the delegate and this instance to have strong references to
    * each other without having nullable fields that would then need to be
    * checked or asserted on every access.
    */
-  private constructor(
+  constructor(
     private readonly clientId: ClientId,
-    referenceDelegateFactory: (
-      p: MemoryPersistence
-    ) => MemoryLruDelegate | MemoryEagerDelegate
+    referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
@@ -210,7 +209,13 @@ export class MemoryTransaction extends PersistenceTransaction {
   }
 }
 
-export class MemoryEagerDelegate implements ReferenceDelegate {
+export interface MemoryReferenceDelegate extends ReferenceDelegate {
+  documentSize(doc: MaybeDocument): number;
+  onTransactionStarted(): void;
+  onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void>;
+}
+
+export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   private inMemoryPins: ReferenceSet | null = null;
   private _orphanedDocuments: Set<DocumentKey> | null = null;
 
@@ -494,5 +499,55 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
     return this.persistence.getRemoteDocumentCache().getSize(txn);
+  }
+}
+
+export class MemoryPersistenceProvider implements PersistenceProvider {
+  private clientId: ClientId | undefined;
+
+  initialize(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    clientId: ClientId,
+    initialUser: User,
+    settings: PersistenceSettings
+  ): Promise<void> {
+    if (settings.durable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+      );
+    }
+    this.clientId = clientId;
+    return Promise.resolve();
+  }
+
+  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
+    let started = false;
+    return {
+      started,
+      start: () => (started = true),
+      stop: () => (started = false)
+    };
+  }
+
+  getPersistence(): Persistence {
+    assert(!!this.clientId, 'initialize() not called');
+    return new MemoryPersistence(
+      this.clientId,
+      p => new MemoryEagerDelegate(p)
+    );
+  }
+
+  getSharedClientState(): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  clearPersistence(): never {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
   }
 }

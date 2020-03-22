@@ -20,7 +20,8 @@
     "long",
     "rollup-plugin-copy-assets",
     "idb",
-    "whatwg-fetch"
+    "whatwg-fetch",
+    "typedoc"
   ],
   "assignees": [
     "@Feiyang1",

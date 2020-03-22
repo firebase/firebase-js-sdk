@@ -64,7 +64,9 @@ function main(args) {
     var specName = testFiles[i].replace(/\.ts$/, '');
     var testName = specName.replace(/^specs\//, '');
     var filename = testName.replace(/[^A-Za-z\d]/g, '_') + '.json';
-    writeToJSON(testFiles[i], outputPath + '/' + filename);
+    var outputFile = outputPath + '/' + filename;
+    console.log('Generating ' + outputFile);
+    writeToJSON(testFiles[i], outputFile);
   }
 
   console.log('JSON spec files successfully generated to:', outputPath);

@@ -91,14 +91,10 @@ describe('IndexedDbRemoteDocumentCache', () => {
   });
 
   function getLastReadTime(): Promise<SnapshotVersion> {
-    return persistence.runTransaction(
-      'getLastReadTime',
-      'readonly-idempotent',
-      txn => {
-        const remoteDocuments = persistence.getRemoteDocumentCache();
-        return remoteDocuments.getLastReadTime(txn);
-      }
-    );
+    return persistence.runTransaction('getLastReadTime', 'readonly', txn => {
+      const remoteDocuments = persistence.getRemoteDocumentCache();
+      return remoteDocuments.getLastReadTime(txn);
+    });
   }
 
   it('skips previous changes', async () => {

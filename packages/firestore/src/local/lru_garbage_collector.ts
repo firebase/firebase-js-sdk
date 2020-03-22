@@ -220,13 +220,12 @@ export class LruScheduler {
 
   constructor(
     private readonly garbageCollector: LruGarbageCollector,
-    private readonly asyncQueue: AsyncQueue,
-    private readonly localStore: LocalStore
+    private readonly asyncQueue: AsyncQueue
   ) {
     this.gcTask = null;
   }
 
-  start(): void {
+  start(localStore: LocalStore): void {
     assert(
       this.gcTask === null,
       'Cannot start an already started LruScheduler'
@@ -235,7 +234,7 @@ export class LruScheduler {
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
       LruParams.COLLECTION_DISABLED
     ) {
-      this.scheduleGC();
+      this.scheduleGC(localStore);
     }
   }
 
@@ -250,7 +249,7 @@ export class LruScheduler {
     return this.gcTask !== null;
   }
 
-  private scheduleGC(): void {
+  private scheduleGC(localStore: LocalStore): void {
     assert(this.gcTask === null, 'Cannot schedule GC while a task is pending');
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
     log.debug(
@@ -263,9 +262,9 @@ export class LruScheduler {
       () => {
         this.gcTask = null;
         this.hasRun = true;
-        return this.localStore
+        return localStore
           .collectGarbage(this.garbageCollector)
-          .then(() => this.scheduleGC())
+          .then(() => this.scheduleGC(localStore))
           .catch(ignoreIfPrimaryLeaseLoss);
       }
     );
