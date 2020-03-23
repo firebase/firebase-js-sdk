@@ -89,7 +89,7 @@ export class MemoryPersistence implements Persistence {
   private _started = false;
 
   readonly referenceDelegate: MemoryReferenceDelegate;
-  
+
   /**
    * The constructor accepts a factory for creating a reference delegate. This
    * allows both the delegate and this instance to have strong references to
