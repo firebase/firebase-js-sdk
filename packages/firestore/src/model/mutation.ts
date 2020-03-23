@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
+import * as api from '../protos/firestore_proto_api';
+
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
-import * as misc from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import {
@@ -28,9 +29,10 @@ import {
   UnknownDocument
 } from './document';
 import { DocumentKey } from './document_key';
-import { FieldValue, ObjectValue, ObjectValueBuilder } from './field_value';
+import { ObjectValue, ObjectValueBuilder } from './field_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
+import { arrayEquals, equals } from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -113,7 +115,7 @@ export class MutationResult {
      *
      * Will be null if the mutation was not a TransformMutation.
      */
-    readonly transformResults: Array<FieldValue | null> | null
+    readonly transformResults: Array<api.Value | null> | null
   ) {}
 }
 
@@ -178,8 +180,7 @@ export class Precondition {
 
   isEqual(other: Precondition): boolean {
     return (
-      misc.equals(this.updateTime, other.updateTime) &&
-      this.exists === other.exists
+      equals(this.updateTime, other.updateTime) && this.exists === other.exists
     );
   }
 }
@@ -610,7 +611,9 @@ export class TransformMutation extends Mutation {
     return (
       other instanceof TransformMutation &&
       this.key.isEqual(other.key) &&
-      misc.arrayEquals(this.fieldTransforms, other.fieldTransforms) &&
+      arrayEquals(this.fieldTransforms, other.fieldTransforms, (l, r) =>
+        l.isEqual(r)
+      ) &&
       this.precondition.isEqual(other.precondition)
     );
   }
@@ -644,9 +647,9 @@ export class TransformMutation extends Mutation {
    */
   private serverTransformResults(
     baseDoc: MaybeDocument | null,
-    serverTransformResults: Array<FieldValue | null>
-  ): FieldValue[] {
-    const transformResults = [] as FieldValue[];
+    serverTransformResults: Array<api.Value | null>
+  ): api.Value[] {
+    const transformResults: api.Value[] = [];
     assert(
       this.fieldTransforms.length === serverTransformResults.length,
       `server transform result count (${serverTransformResults.length}) ` +
@@ -656,7 +659,7 @@ export class TransformMutation extends Mutation {
     for (let i = 0; i < serverTransformResults.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const transform = fieldTransform.transform;
-      let previousValue: FieldValue | null = null;
+      let previousValue: api.Value | null = null;
       if (baseDoc instanceof Document) {
         previousValue = baseDoc.field(fieldTransform.field);
       }
@@ -686,12 +689,12 @@ export class TransformMutation extends Mutation {
     localWriteTime: Timestamp,
     maybeDoc: MaybeDocument | null,
     baseDoc: MaybeDocument | null
-  ): FieldValue[] {
-    const transformResults = [] as FieldValue[];
+  ): api.Value[] {
+    const transformResults: api.Value[] = [];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
 
-      let previousValue: FieldValue | null = null;
+      let previousValue: api.Value | null = null;
       if (maybeDoc instanceof Document) {
         previousValue = maybeDoc.field(fieldTransform.field);
       }
@@ -713,7 +716,7 @@ export class TransformMutation extends Mutation {
 
   private transformObject(
     data: ObjectValue,
-    transformResults: FieldValue[]
+    transformResults: api.Value[]
   ): ObjectValue {
     assert(
       transformResults.length === this.fieldTransforms.length,
