@@ -725,7 +725,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('rewrites canonical IDs during upgrade from version 9 to 10', async () => {
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
 
         const filteredQuery = Query.atPath(path('collection')).addFilter(
@@ -747,7 +747,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(10, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
         return targetsStore.iterate((key, value) => {
           const targetData = TEST_SERIALIZER.fromDbTarget(value).target;
