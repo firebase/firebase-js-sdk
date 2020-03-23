@@ -179,8 +179,11 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
   return true;
 }
 
-/** Returns true if the Value list contains the specified element. */
-export function contains(haystack: api.ArrayValue, needle: api.Value): boolean {
+/** Returns true if the ArrayValue contains the specified element. */
+export function arrayValueContains(
+  haystack: api.ArrayValue,
+  needle: api.Value
+): boolean {
   return (
     (haystack.values || []).find(v => valueEquals(v, needle)) !== undefined
   );
@@ -559,15 +562,15 @@ export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
   };
 }
 
-/** Returns true if `value` is either an IntegerValue . */
+/** Returns true if `value` is an IntegerValue . */
 export function isInteger(
   value?: api.Value | null
 ): value is { integerValue: string | number } {
   return !!value && 'integerValue' in value;
 }
 
-/** Returns true if `value` is either an IntegerValue . */
-export function isDobule(
+/** Returns true if `value` is a DoubleValue. */
+export function isDouble(
   value?: api.Value | null
 ): value is { doubleValue: string | number } {
   return !!value && 'doubleValue' in value;
@@ -575,7 +578,7 @@ export function isDobule(
 
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
 export function isNumber(value?: api.Value | null): boolean {
-  return isInteger(value) || isDobule(value);
+  return isInteger(value) || isDouble(value);
 }
 
 /** Returns true if `value` is an ArrayValue. */

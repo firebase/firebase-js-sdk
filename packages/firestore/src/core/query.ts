@@ -22,7 +22,7 @@ import { DocumentKey } from '../model/document_key';
 import {
   canonicalId,
   valueCompare,
-  contains,
+  arrayValueContains,
   valueEquals,
   isArray,
   isNanValue,
@@ -690,7 +690,7 @@ export class ArrayContainsFilter extends FieldFilter {
 
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
-    return isArray(other) && contains(other.arrayValue, this.value);
+    return isArray(other) && arrayValueContains(other.arrayValue, this.value);
   }
 }
 
@@ -703,7 +703,7 @@ export class InFilter extends FieldFilter {
 
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
-    return other !== null && contains(this.value.arrayValue!, other);
+    return other !== null && arrayValueContains(this.value.arrayValue!, other);
   }
 }
 
@@ -720,7 +720,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
       return false;
     }
     return other.arrayValue.values.some(val =>
-      contains(this.value.arrayValue!, val)
+      arrayValueContains(this.value.arrayValue!, val)
     );
   }
 }
