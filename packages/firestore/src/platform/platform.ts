@@ -57,6 +57,12 @@ export interface Platform {
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;
+
+  /**
+   * True if timestamps, bytes and numbers are represented in Proto3 JSON
+   * format (in-memory and on the wire)
+   */
+  readonly useProto3Json: boolean;
 }
 
 /**

@@ -21,15 +21,14 @@ import { expect } from 'chai';
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
-import { DatabaseId } from '../../../src/core/database_info';
 import {
   canonicalId,
-  compare,
-  equals,
-  estimateByteSize
+  valueCompare,
+  valueEquals,
+  estimateByteSize,
+  refValue
 } from '../../../src/model/values';
-import { DocumentKey } from '../../../src/model/document_key';
-import { PrimitiveValue } from '../../../src/model/proto_field_value';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
 import { primitiveComparator } from '../../../src/util/misc';
 import {
   blob,
@@ -37,9 +36,9 @@ import {
   expectCorrectComparisonGroups,
   expectEqualitySets,
   key,
-  ref
+  ref,
+  wrap
 } from '../../util/helpers';
-import { valueOf } from '../../util/values';
 
 describe('Values', () => {
   const date1 = new Date(2016, 4, 2, 1, 5);
@@ -69,13 +68,12 @@ describe('Values', () => {
       [wrap('\u00e9a')],
       [wrap(date1), wrap(Timestamp.fromDate(date1))],
       [wrap(date2)],
-      // TODO(mrschmidt): Support ServerTimestamps
-      // [
-      //   // NOTE: ServerTimestampValues can't be parsed via wrap().
-      //   serverTimestamp(Timestamp.fromDate(date1), null),
-      //   serverTimestamp(Timestamp.fromDate(date1), null)
-      // ],
-      // [serverTimestamp(Timestamp.fromDate(date2), null)],
+      [
+        // NOTE: ServerTimestampValues can't be parsed via wrap().
+        serverTimestamp(Timestamp.fromDate(date1), null),
+        serverTimestamp(Timestamp.fromDate(date1), null)
+      ],
+      [serverTimestamp(Timestamp.fromDate(date2), null)],
       [wrap(new GeoPoint(0, 1)), wrap(new GeoPoint(0, 1))],
       [wrap(new GeoPoint(1, 0))],
       [wrap(ref('project', 'coll/doc1')), wrap(ref('project', 'coll/doc1'))],
@@ -88,7 +86,7 @@ describe('Values', () => {
       [wrap({ bar: 1, foo: 1 })],
       [wrap({ foo: 1 })]
     ];
-    expectEqualitySets(values, (v1, v2) => equals(v1, v2));
+    expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
 
   it('normalizes values for equality', () => {
@@ -117,7 +115,7 @@ describe('Values', () => {
       ],
       [{ bytesValue: new Uint8Array([0, 1, 2]) }, { bytesValue: 'AAEC' }]
     ];
-    expectEqualitySets(values, (v1, v2) => equals(v1, v2));
+    expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
 
   it('orders types correctly', () => {
@@ -151,11 +149,16 @@ describe('Values', () => {
       // timestamps
       [wrap(date1)],
       [wrap(date2)],
+      [
+        { timestampValue: '2020-04-05T14:30:01Z' },
+        { timestampValue: '2020-04-05T14:30:01.000Z' },
+        { timestampValue: '2020-04-05T14:30:01.000000Z' },
+        { timestampValue: '2020-04-05T14:30:01.000000000Z' }
+      ],
 
-      // TODO(mrschmidt): Support ServerTimestamps
-      // // server timestamps come after all concrete timestamps.
-      // [serverTimestamp(Timestamp.fromDate(date1), null)],
-      // [serverTimestamp(Timestamp.fromDate(date2), null)],
+      // server timestamps come after all concrete timestamps.
+      [serverTimestamp(Timestamp.fromDate(date1), null)],
+      [serverTimestamp(Timestamp.fromDate(date2), null)],
 
       // strings
       [wrap('')],
@@ -217,7 +220,7 @@ describe('Values', () => {
     expectCorrectComparisonGroups(
       groups,
       (left: api.Value, right: api.Value) => {
-        return compare(left, right);
+        return valueCompare(left, right);
       }
     );
   });
@@ -259,7 +262,7 @@ describe('Values', () => {
     expectCorrectComparisonGroups(
       groups,
       (left: api.Value, right: api.Value) => {
-        return compare(left, right);
+        return valueCompare(left, right);
       }
     );
   });
@@ -285,21 +288,20 @@ describe('Values', () => {
         expectedByteSize: 16,
         elements: [wrap(Timestamp.fromMillis(100)), wrap(Timestamp.now())]
       },
-      // TODO(mrschmidt): Support ServerTimestamps
-      // {
-      //   expectedByteSize: 16,
-      //   elements: [
-      //     serverTimestamp(Timestamp.fromMillis(100), null),
-      //     serverTimestamp(Timestamp.now(), null)
-      //   ]
-      // },
-      // {
-      //   expectedByteSize: 20,
-      //   elements: [
-      //     serverTimestamp(Timestamp.fromMillis(100), wrap(true)),
-      //     serverTimestamp(Timestamp.now(), wrap(false))
-      //   ]
-      // },
+      {
+        expectedByteSize: 16,
+        elements: [
+          serverTimestamp(Timestamp.fromMillis(100), null),
+          serverTimestamp(Timestamp.now(), null)
+        ]
+      },
+      {
+        expectedByteSize: 20,
+        elements: [
+          serverTimestamp(Timestamp.fromMillis(100), wrap(true)),
+          serverTimestamp(Timestamp.now(), wrap(false))
+        ]
+      },
       {
         expectedByteSize: 42,
         elements: [
@@ -327,11 +329,10 @@ describe('Values', () => {
     // as the size of the underlying data grows.
     const relativeGroups: api.Value[][] = [
       [wrap(blob(0)), wrap(blob(0, 1))],
-      // TODO(mrschmidt): Support ServerTimestamps
-      // [
-      //   serverTimestamp(Timestamp.fromMillis(100), null),
-      //   serverTimestamp(Timestamp.now(), wrap(null))
-      // ],
+      [
+        serverTimestamp(Timestamp.fromMillis(100), null),
+        serverTimestamp(Timestamp.now(), wrap(null))
+      ],
       [
         refValue(dbId('p1', 'd1'), key('c1/doc1')),
         refValue(dbId('p1', 'd1'), key('c1/doc1/c2/doc2'))
@@ -406,15 +407,3 @@ describe('Values', () => {
     ).to.equal('{a:1,b:2,c:3}');
   });
 });
-
-// TODO(mrschmidt): Clean up the helpers and merge wrap() with TestUtil.wrap()
-function wrap(value: unknown): api.Value {
-  return new PrimitiveValue(valueOf(value)).proto;
-}
-
-/** Creates a referenceValue Proto for `databaseId` and `key`. */
-export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
-  return {
-    referenceValue: `projects/${databaseId.projectId}/databases/${databaseId.database}/documents/${key}`
-  };
-}

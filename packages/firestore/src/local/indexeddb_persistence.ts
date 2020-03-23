@@ -21,7 +21,7 @@ import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { Platform } from '../platform/platform';
+import { Platform, PlatformSupport } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
@@ -1326,7 +1326,7 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
 
     // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
     const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
-      useProto3Json: true
+      useProto3Json: PlatformSupport.getPlatform().useProto3Json
     });
 
     if (!WebStorageSharedClientState.isAvailable(platform)) {
