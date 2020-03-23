@@ -584,4 +584,4 @@ export function isMapValue(
   value?: api.Value | null
 ): value is { mapValue: api.MapValue } {
   return !!value && 'mapValue' in value;
-}        
+}
