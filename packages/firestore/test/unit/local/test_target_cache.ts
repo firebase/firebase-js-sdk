@@ -44,7 +44,7 @@ export class TestTargetCache {
   updateTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
       'updateTargetData',
-      'readwrite-primary-idempotent',
+      'readwrite-primary',
       txn => {
         return this.cache.updateTargetData(txn, targetData);
       }
@@ -54,7 +54,7 @@ export class TestTargetCache {
   getTargetCount(): Promise<number> {
     return this.persistence.runTransaction(
       'getTargetCount',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.cache.getTargetCount(txn);
       }
@@ -72,19 +72,15 @@ export class TestTargetCache {
   }
 
   getTargetData(target: Target): Promise<TargetData | null> {
-    return this.persistence.runTransaction(
-      'getTargetData',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.getTargetData(txn, target);
-      }
-    );
+    return this.persistence.runTransaction('getTargetData', 'readonly', txn => {
+      return this.cache.getTargetData(txn, target);
+    });
   }
 
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
     return this.persistence.runTransaction(
       'getLastRemoteSnapshotVersion',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.cache.getLastRemoteSnapshotVersion(txn);
       }
@@ -94,7 +90,7 @@ export class TestTargetCache {
   getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
     return this.persistence.runTransaction(
       'getHighestSequenceNumber',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.cache.getHighestSequenceNumber(txn);
       }
@@ -141,13 +137,9 @@ export class TestTargetCache {
 
   getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
     return this.persistence
-      .runTransaction(
-        'getMatchingKeysForTargetId',
-        'readonly-idempotent',
-        txn => {
-          return this.cache.getMatchingKeysForTargetId(txn, targetId);
-        }
-      )
+      .runTransaction('getMatchingKeysForTargetId', 'readonly', txn => {
+        return this.cache.getMatchingKeysForTargetId(txn, targetId);
+      })
       .then(keySet => {
         const result: DocumentKey[] = [];
         keySet.forEach(key => result.push(key));
@@ -166,13 +158,9 @@ export class TestTargetCache {
   }
 
   containsKey(key: DocumentKey): Promise<boolean> {
-    return this.persistence.runTransaction(
-      'containsKey',
-      'readonly-idempotent',
-      txn => {
-        return this.cache.containsKey(txn, key);
-      }
-    );
+    return this.persistence.runTransaction('containsKey', 'readonly', txn => {
+      return this.cache.containsKey(txn, key);
+    });
   }
 
   setTargetsMetadata(
@@ -181,7 +169,7 @@ export class TestTargetCache {
   ): Promise<void> {
     return this.persistence.runTransaction(
       'setTargetsMetadata',
-      'readwrite-primary-idempotent',
+      'readwrite-primary',
       txn =>
         this.cache.setTargetsMetadata(
           txn,

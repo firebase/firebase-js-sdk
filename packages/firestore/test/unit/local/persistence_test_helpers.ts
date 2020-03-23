@@ -29,7 +29,11 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import {
+  MemoryEagerDelegate,
+  MemoryLruDelegate,
+  MemoryPersistence
+} from '../../../src/local/memory_persistence';
 import {
   ClientId,
   WebStorageSharedClientState
@@ -122,13 +126,16 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createEagerPersistence(AutoId.newId());
+  return new MemoryPersistence(AutoId.newId(), p => new MemoryEagerDelegate(p));
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return MemoryPersistence.createLruPersistence(AutoId.newId(), params);
+  return new MemoryPersistence(
+    AutoId.newId(),
+    p => new MemoryLruDelegate(p, params)
+  );
 }
 
 /** Clears the persistence in tests */

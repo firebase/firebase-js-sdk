@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.11.2",
+  "version": "1.12.2",
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -33,11 +33,11 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.7",
+    "@firebase/component": "0.1.8",
     "@firebase/firestore-types": "1.10.1",
-    "@firebase/logger": "0.1.37",
-    "@firebase/util": "0.2.42",
-    "@firebase/webchannel-wrapper": "0.2.37",
+    "@firebase/logger": "0.2.0",
+    "@firebase/util": "0.2.43",
+    "@firebase/webchannel-wrapper": "0.2.38",
     "@grpc/proto-loader": "^0.5.0",
     "grpc": "1.24.2",
     "tslib": "1.11.1"

@@ -144,31 +144,27 @@ describe('IndexFreeQueryEngine', () => {
       'Encountered runQuery() call not wrapped in expectIndexFreeQuery()/expectFullCollectionQuery()'
     );
 
-    return persistence.runTransaction(
-      'runQuery',
-      'readonly-idempotent',
-      txn => {
-        return targetCache
-          .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
-          .next(remoteKeys => {
-            return queryEngine
-              .getDocumentsMatchingQuery(
-                txn,
-                query,
-                lastLimboFreeSnapshot,
-                remoteKeys
-              )
-              .next(docs => {
-                const view = new View(query, remoteKeys);
-                const viewDocChanges = view.computeDocChanges(docs);
-                return view.applyChanges(
-                  viewDocChanges,
-                  /*updateLimboDocuments=*/ true
-                ).snapshot!.docs;
-              });
-          });
-      }
-    );
+    return persistence.runTransaction('runQuery', 'readonly', txn => {
+      return targetCache
+        .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
+        .next(remoteKeys => {
+          return queryEngine
+            .getDocumentsMatchingQuery(
+              txn,
+              query,
+              lastLimboFreeSnapshot,
+              remoteKeys
+            )
+            .next(docs => {
+              const view = new View(query, remoteKeys);
+              const viewDocChanges = view.computeDocChanges(docs);
+              return view.applyChanges(
+                viewDocChanges,
+                /*updateLimboDocuments=*/ true
+              ).snapshot!.docs;
+            });
+        });
+    });
   }
 
   beforeEach(async () => {

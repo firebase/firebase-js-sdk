@@ -47,7 +47,11 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import {
+  MemoryEagerDelegate,
+  MemoryLruDelegate,
+  MemoryPersistence
+} from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import {
   ClientId,
@@ -1239,12 +1243,11 @@ class MemoryTestRunner extends TestRunner {
     gcEnabled: boolean
   ): Promise<Persistence> {
     return Promise.resolve(
-      gcEnabled
-        ? MemoryPersistence.createEagerPersistence(this.clientId)
-        : MemoryPersistence.createLruPersistence(
-            this.clientId,
-            LruParams.DEFAULT
-          )
+      new MemoryPersistence(this.clientId, p =>
+        gcEnabled
+          ? new MemoryEagerDelegate(p)
+          : new MemoryLruDelegate(p, LruParams.DEFAULT)
+      )
     );
   }
 }
@@ -1658,15 +1661,11 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction(
-    'readwrite-idempotent',
-    [DbPrimaryClient.store],
-    txn => {
-      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-        DbPrimaryClient.store
-      );
-      return primaryClientStore.delete(DbPrimaryClient.key);
-    }
-  );
+  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+      DbPrimaryClient.store
+    );
+    return primaryClientStore.delete(DbPrimaryClient.key);
+  });
   db.close();
 }
