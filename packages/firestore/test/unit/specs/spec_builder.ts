@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -402,6 +402,22 @@ export class SpecBuilder {
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
     this.clientState.reset();
+    return this;
+  }
+
+  failDatabaseTransaction(options?: { rejectedDocs?: string[] }): this {
+    this.assertStep('failDatabaseTransaction() requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.failDatabaseTransactions = true;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.userCallbacks = currentStep.expectedState
+      .userCallbacks || {
+      acknowledgedDocs: [],
+      rejectedDocs: []
+    };
+    currentStep.expectedState.userCallbacks.rejectedDocs.push(
+      ...(options?.rejectedDocs || [])
+    );
     return this;
   }
 

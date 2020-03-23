@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
  */
 
 import { User } from '../auth/user';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import {
+  ignoreIfPrimaryLeaseLoss,
+  LocalStore,
+  LocalWriteResult
+} from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -357,7 +361,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
-    const result = await this.localStore.localWrite(batch);
+
+    let result: LocalWriteResult;
+    try {
+      result = await this.localStore.localWrite(batch);
+    } catch (e) {
+      userCallback.reject(e);
+      return;
+    }
+
     this.sharedClientState.addPendingMutation(result.batchId);
     this.addMutationCallback(result.batchId, userCallback);
     await this.emitNewSnapsAndNotifyLocalStore(result.changes);
