@@ -18,18 +18,20 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
-export function getFakeApp(measurementId?: string): FirebaseApp {
+export function getFakeApp(fakeAppParams?: {
+  appId?: string;
+  apiKey?: string;
+}): FirebaseApp {
   return {
     name: 'appName',
     options: {
-      apiKey: 'apiKey',
+      apiKey: fakeAppParams?.apiKey,
       projectId: 'projectId',
       authDomain: 'authDomain',
       messagingSenderId: 'messagingSenderId',
       databaseURL: 'databaseUrl',
       storageBucket: 'storageBucket',
-      appId: '1:777777777777:web:d93b5ca1475efe57',
-      measurementId
+      appId: fakeAppParams?.appId
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
