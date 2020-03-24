@@ -206,7 +206,7 @@ export interface Item {
   item_variant?: string;
   price?: Currency;
   quantity?: number;
-  index?: string;
+  index?: number;
   coupon?: string;
   item_list_name?: string;
   item_list_id?: string;
