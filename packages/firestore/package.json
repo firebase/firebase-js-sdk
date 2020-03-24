@@ -7,6 +7,7 @@
     "prebuild": "tsc -d --downlevelIteration --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
     "build": "rollup -c",
     "build:console": "node tools/console.build.js",
+    "predev": "yarn prebuild",
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
