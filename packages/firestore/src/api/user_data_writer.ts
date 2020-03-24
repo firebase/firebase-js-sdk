@@ -20,27 +20,24 @@ import * as firestore from '@firebase/firestore-types';
 import * as api from '../protos/firestore_proto_api';
 import * as log from '../util/log';
 
-import { DocumentReference, Firestore } from './database';
-import { Blob } from './blob';
-import { GeoPoint } from './geo_point';
-import { Timestamp } from './timestamp';
-import { DatabaseId } from '../core/database_info';
-import { DocumentKey } from '../model/document_key';
+import {DocumentReference, Firestore} from './database';
+import {Blob} from './blob';
+import {GeoPoint} from './geo_point';
+import {Timestamp} from './timestamp';
+import {DatabaseId} from '../core/database_info';
+import {DocumentKey} from '../model/document_key';
 import {
   normalizeByteString,
   normalizeNumber,
   normalizeTimestamp,
   typeOrder
 } from '../model/values';
-import {
-  getLocalWriteTime,
-  getPreviousValue
-} from '../model/server_timestamps';
-import { assert, fail } from '../util/assert';
-import { forEach } from '../util/obj';
-import { TypeOrder } from '../model/field_value';
-import { ResourcePath } from '../model/path';
-import { isValidResourceName } from '../remote/serializer';
+import {getLocalWriteTime, getPreviousValue} from '../model/server_timestamps';
+import {assert, fail} from '../util/assert';
+import {forEach} from '../util/obj';
+import {TypeOrder} from '../model/field_value';
+import {ResourcePath} from '../model/path';
+import {isValidResourceName} from '../remote/serializer';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -51,7 +48,6 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 export class UserDataWriter<T = firestore.DocumentData> {
   constructor(
     private readonly firestore: Firestore,
-    private readonly timestampsInSnapshots: boolean,
     private readonly serverTimestampBehavior?: ServerTimestampBehavior,
     private readonly converter?: firestore.FirestoreDataConverter<T>
   ) {}
@@ -117,15 +113,10 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
   private convertTimestamp(value: api.Timestamp): Timestamp | Date {
     const normalizedValue = normalizeTimestamp(value);
-    const timestamp = new Timestamp(
-      normalizedValue.seconds,
-      normalizedValue.nanos
-    );
-    if (this.timestampsInSnapshots) {
-      return timestamp;
-    } else {
-      return timestamp.toDate();
-    }
+    return new Timestamp(
+        normalizedValue.seconds,
+        normalizedValue.nanos
+      );
   }
 
   private convertReference(name: string): DocumentReference<T> {

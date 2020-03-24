@@ -114,7 +114,7 @@ export function testUserDataWriter(): UserDataWriter {
     ensureClientConfigured: () => {},
     _databaseId: new DatabaseId('test-project')
   };
-  return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(firestore);
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {

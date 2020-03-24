@@ -144,8 +144,6 @@ class FirestoreSettings {
   /** Whether to use SSL when connecting. */
   readonly ssl: boolean;
 
-  readonly timestampsInSnapshots: boolean;
-
   readonly cacheSizeBytes: number;
 
   readonly forceLongPolling: boolean;
@@ -190,48 +188,6 @@ class FirestoreSettings {
 
     validateNamedOptionalType(
       'settings',
-      'boolean',
-      'timestampsInSnapshots',
-      settings.timestampsInSnapshots
-    );
-
-    // Nobody should set timestampsInSnapshots anymore, but the error depends on
-    // whether they set it to true or false...
-    if (settings.timestampsInSnapshots === true) {
-      log.error(`
-  The timestampsInSnapshots setting now defaults to true and you no
-  longer need to explicitly set it. In a future release, the setting
-  will be removed entirely and so it is recommended that you remove it
-  from your firestore.settings() call now.`);
-    } else if (settings.timestampsInSnapshots === false) {
-      log.error(`
-  The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
-  YOUR CODE.
-
-  To hide this warning, stop using the timestampsInSnapshots setting in your
-  firestore.settings({ ... }) call.
-
-  Once you remove the setting, Timestamps stored in Cloud Firestore will be
-  read back as Firebase Timestamp objects instead of as system Date objects.
-  So you will also need to update code expecting a Date to instead expect a
-  Timestamp. For example:
-
-  // Old:
-  const date = snapshot.get('created_at');
-  // New:
-  const timestamp = snapshot.get('created_at'); const date =
-  timestamp.toDate();
-
-  Please audit all existing usages of Date when you enable the new
-  behavior.`);
-    }
-    this.timestampsInSnapshots = objUtils.defaulted(
-      settings.timestampsInSnapshots,
-      DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
-    );
-
-    validateNamedOptionalType(
-      'settings',
       'number',
       'cacheSizeBytes',
       settings.cacheSizeBytes
@@ -268,7 +224,6 @@ class FirestoreSettings {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
-      this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.forceLongPolling === other.forceLongPolling
@@ -344,16 +299,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
-    if (
-      objUtils.contains(settingsLiteral as objUtils.Dict<{}>, 'persistence')
-    ) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"persistence" is now specified with a separate call to ' +
-          'firestore.enablePersistence().'
-      );
-    }
-
     const newSettings = new FirestoreSettings(settingsLiteral);
     if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
       throw new FirestoreError(
@@ -393,18 +338,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     let synchronizeTabs = false;
 
     if (settings) {
-      if (settings.experimentalTabSynchronization !== undefined) {
-        log.error(
-          "The 'experimentalTabSynchronization' setting has been renamed to " +
-            "'synchronizeTabs'. In a future release, the setting will be removed " +
-            'and it is recommended that you update your ' +
-            "firestore.enablePersistence() call to use 'synchronizeTabs'."
-        );
-      }
-      synchronizeTabs = objUtils.defaulted(
-        settings.synchronizeTabs !== undefined
-          ? settings.synchronizeTabs
-          : settings.experimentalTabSynchronization,
+      synchronizeTabs = objUtils.defaulted(settings.synchronizeTabs, 
         DEFAULT_SYNCHRONIZE_TABS
       );
     }
@@ -685,12 +619,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'Invalid log level: ' + level
         );
     }
-  }
-
-  // Note: this is not a property because the minifier can't work correctly with
-  // the way TypeScript compiler outputs properties.
-  _areTimestampsInSnapshotsEnabled(): boolean {
-    return this._settings.timestampsInSnapshots;
   }
 }
 
@@ -1388,7 +1316,6 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       } else {
         const userDataWriter = new UserDataWriter(
           this._firestore,
-          this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps,
           /* converter= */ undefined
         );
@@ -1410,7 +1337,6 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
           this._firestore,
-          this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps,
           this._converter
         );
@@ -2314,42 +2240,6 @@ export class QuerySnapshot<T = firestore.DocumentData>
     );
   }
 }
-
-// TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
-// into a method. Because this is a runtime breaking change and somewhat subtle
-// (both Array and Function have a .length, etc.), we'll replace commonly-used
-// properties (including Symbol.iterator) to throw a custom error message. In
-// ~6 months we can delete the custom error as most folks will have hopefully
-// migrated.
-function throwDocChangesMethodError(): never {
-  throw new FirestoreError(
-    Code.INVALID_ARGUMENT,
-    'QuerySnapshot.docChanges has been changed from a property into a ' +
-      'method, so usages like "querySnapshot.docChanges" should become ' +
-      '"querySnapshot.docChanges()"'
-  );
-}
-
-const docChangesPropertiesToOverride = [
-  'length',
-  'forEach',
-  'map',
-  ...(typeof Symbol !== 'undefined' ? [Symbol.iterator] : [])
-];
-docChangesPropertiesToOverride.forEach(property => {
-  /**
-   * We are (re-)defining properties on QuerySnapshot.prototype.docChanges which
-   * is a Function. This could fail, in particular in the case of 'length' which
-   * already exists on Function.prototype and on IE11 is improperly defined with
-   * `{ configurable: false }`. So we wrap this in a try/catch to ensure that we
-   * still have a functional SDK.
-   */
-  try {
-    Object.defineProperty(QuerySnapshot.prototype.docChanges, property, {
-      get: () => throwDocChangesMethodError()
-    });
-  } catch (err) {} // Ignore this failure intentionally
-});
 
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
