@@ -26,7 +26,7 @@ import { ChildrenNode } from '../snap/ChildrenNode';
 import { SyncTree } from '../SyncTree';
 import { Indexable } from './misc';
 
-/* It's critical for performance that we not calculate actual values from a SyncTree
+/* It's critical for performance that we do not calculate actual values from a SyncTree
  * unless and until the value is needed. Because we expose both a SyncTree and Node
  * version of deferred value resolution, we ned a wrapper class that will let us share
  * code.
