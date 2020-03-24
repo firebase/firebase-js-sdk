@@ -174,9 +174,11 @@ describe('FirebaseAnalytics instance tests', () => {
       fetchStub.restore();
     });
     it('Contains reference to parent app', () => {
+      stubFetch(200, {});
       expect(analyticsInstance.app).to.equal(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
@@ -245,6 +247,7 @@ describe('FirebaseAnalytics instance tests', () => {
       fetchStub.restore();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });

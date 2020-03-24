@@ -162,8 +162,9 @@ export function factory(
   if (!areCookiesEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
   }
-  if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  const appId = app.options.appId;
+  if (!appId) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
   }
   // Async but non-blocking.
   validateIndexedDBOpenable().catch(error => {
