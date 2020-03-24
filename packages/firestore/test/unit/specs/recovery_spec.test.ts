@@ -17,10 +17,12 @@
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
+import { Query } from '../../../src/core/query';
+import { doc, path } from '../../util/helpers';
 
 describeSpec(
   'Persistence Recovery',
-  ['durable-persistence', 'no-ios', 'no-android'],
+  ['durable-persistence', 'no-ios', 'no-android', 'exclusive'],
   () => {
     specTest('Recovers from failed write', [], () => {
       return spec()
@@ -34,6 +36,45 @@ describeSpec(
         .writeAcks('collection/key1', 1)
         .writeAcks('collection/key3', 2)
         .expectNumOutstandingWrites(0);
+    });
+
+    specTest('Does not surface failed writes', [], () => {
+      const query = Query.atPath(path('collection'));
+      const doc1Local = doc(
+        'collection/key1',
+        0,
+        { foo: 'a' },
+        { hasLocalMutations: true }
+      );
+      const doc1 = doc('collection/key1', 1, { foo: 'a' });
+      const doc2Local = doc('collection/key2', 0, { foo: 'b' });
+      const doc3Local = doc(
+        'collection/key3',
+        0,
+        { foo: 'c' },
+        { hasLocalMutations: true }
+      );
+      const doc3 = doc('collection/key3', 2, { foo: 'c' });
+      return spec()
+        .userListens(query)
+        .userSets('collection/key1', doc1Local.value())
+        .expectEvents(query, {
+          added: [doc1Local],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .userSets('collection/key2', doc2Local.value())
+        .failDatabaseTransaction({ rejectedDocs: ['collection/key2'] })
+        .userSets('collection/key3', doc3Local.value())
+        .expectEvents(query, {
+          added: [doc3Local],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .writeAcks('collection/key1', 1)
+        .writeAcks('collection/key3', 2)
+        .watchAcksFull(query, 2, doc1, doc3)
+        .expectEvents(query, { metadata: [doc1, doc3] });
     });
   }
 );
