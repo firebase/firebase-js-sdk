@@ -30,22 +30,26 @@ import { GtagCommand } from './constants';
  * @param eventName Google Analytics event name, choose from standard list or use a custom string.
  * @param eventParams Analytics event parameters.
  */
-export function logEvent(
+export async function logEvent(
   gtagFunction: Gtag,
-  analyticsId: string,
+  initializationPromise: Promise<string>,
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
-): void {
-  let params: EventParams | ControlParams = eventParams || {};
-  if (!options || !options.global) {
-    params = { ...eventParams, 'send_to': analyticsId };
+): Promise<void> {
+  if (options && options.global) {
+    gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
+    return;
+  } else {
+    const measurementId = await initializationPromise;
+    const params: EventParams | ControlParams = {
+      ...eventParams,
+      'send_to': measurementId
+    };
+    // Workaround for http://b/141370449 - third argument cannot be undefined.
+    gtagFunction(GtagCommand.EVENT, eventName, params || {});
   }
-  // Workaround for http://b/141370449 - third argument cannot be undefined.
-  gtagFunction(GtagCommand.EVENT, eventName, params || {});
 }
-
-// TODO: Brad is going to add `screen_name` to GA Gold config parameter schema
 
 /**
  * Set screen_name parameter for this Google Analytics ID.
@@ -55,16 +59,19 @@ export function logEvent(
  */
 export function setCurrentScreen(
   gtagFunction: Gtag,
-  analyticsId: string,
+  initializationPromise: Promise<string>,
   screenName: string | null,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
+    return Promise.resolve();
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'screen_name': screenName
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'screen_name': screenName
+      });
     });
   }
 }
@@ -77,16 +84,19 @@ export function setCurrentScreen(
  */
 export function setUserId(
   gtagFunction: Gtag,
-  analyticsId: string,
+  initializationPromise: Promise<string>,
   id: string | null,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'user_id': id });
+    return Promise.resolve();
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'user_id': id
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_id': id
+      });
     });
   }
 }
@@ -99,10 +109,10 @@ export function setUserId(
  */
 export function setUserProperties(
   gtagFunction: Gtag,
-  analyticsId: string,
+  initializationPromise: Promise<string>,
   properties: CustomParams,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     const flatProperties: { [key: string]: unknown } = {};
     for (const key of Object.keys(properties)) {
@@ -110,10 +120,13 @@ export function setUserProperties(
       flatProperties[`user_properties.${key}`] = properties[key];
     }
     gtagFunction(GtagCommand.SET, flatProperties);
+    return Promise.resolve();
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'user_properties': properties
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_properties': properties
+      });
     });
   }
 }
@@ -124,8 +137,10 @@ export function setUserProperties(
  * @param enabled If true, collection is enabled for this ID.
  */
 export function setAnalyticsCollectionEnabled(
-  analyticsId: string,
+  initializationPromise: Promise<string>,
   enabled: boolean
-): void {
-  window[`ga-disable-${analyticsId}`] = !enabled;
+): Promise<void> {
+  return initializationPromise.then(measurementId => {
+    window[`ga-disable-${measurementId}`] = !enabled;
+  });
 }
