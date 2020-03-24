@@ -164,24 +164,23 @@ const resolveComplexDeferredValue = function(
 /**
  * Recursively replace all deferred values and priorities in the tree with the
  * specified generated replacement values.
- * @param {!SparseSnapshotTree} tree
+ * @param {!Path} path path to which write is relative
+ * @param {!Node} node new data written at path
+ * @param {!SyncTree} syncTree current data
  * @param {!Object} serverValues
  * @return {!SparseSnapshotTree}
  */
 export const resolveDeferredValueTree = function(
-  tree: SparseSnapshotTree,
+  path: Path,
+  node: Node,
   syncTree: SyncTree,
   serverValues: Indexable
-): SparseSnapshotTree {
-  const resolvedTree = new SparseSnapshotTree();
-  tree.forEachTree(new Path(''), (path, node) => {
-    const deferredExisting = new DeferredSyncTreeValue(syncTree, path);
-    resolvedTree.remember(
-      path,
-      resolveDeferredValue(node, deferredExisting, serverValues)
-    );
-  });
-  return resolvedTree;
+): Node {
+  return resolveDeferredValue(
+    node,
+    new DeferredSyncTreeValue(syncTree, path),
+    serverValues
+  );
 };
 
 /**
