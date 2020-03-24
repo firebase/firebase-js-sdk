@@ -144,7 +144,6 @@ export interface EventParams {
   event_label?: string;
   event_category?: string;
   shipping_tier?: string;
-  item_list?: string;
   item_list_id?: string;
   item_list_name?: string;
   promotion_id?: string;
