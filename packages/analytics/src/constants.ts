@@ -34,10 +34,12 @@ export enum GtagCommand {
  * Any other string is also allowed.
  */
 export enum EventName {
+  ADD_SHIPPING_INFO = 'add_shipping_info',
   ADD_PAYMENT_INFO = 'add_payment_info',
   ADD_TO_CART = 'add_to_cart',
   ADD_TO_WISHLIST = 'add_to_wishlist',
   BEGIN_CHECKOUT = 'begin_checkout',
+  /** @deprecated */
   CHECKOUT_PROGRESS = 'checkout_progress',
   EXCEPTION = 'exception',
   GENERATE_LEAD = 'generate_lead',
@@ -49,10 +51,14 @@ export enum EventName {
   SCREEN_VIEW = 'screen_view',
   SEARCH = 'search',
   SELECT_CONTENT = 'select_content',
+  SELECT_ITEM = 'select_item',
+  SELECT_PROMOTION = 'select_promotion',
+  /** @deprecated */
   SET_CHECKOUT_OPTION = 'set_checkout_option',
   SHARE = 'share',
   SIGN_UP = 'sign_up',
   TIMING_COMPLETE = 'timing_complete',
+  VIEW_CART = 'view_cart',
   VIEW_ITEM = 'view_item',
   VIEW_ITEM_LIST = 'view_item_list',
   VIEW_PROMOTION = 'view_promotion',

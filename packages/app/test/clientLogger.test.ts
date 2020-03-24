@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,7 @@ import { spy as Spy } from 'sinon';
 import './setup';
 import { Logger } from '@firebase/logger';
 import { registerCoreComponents } from '../src/registerCoreComponents';
-import {
-  Component,
-  ComponentType
-} from '@firebase/component';
+import { Component, ComponentType } from '@firebase/component';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -86,7 +83,7 @@ describe('User Log Methods', () => {
           'test-shell',
           async () => {
             const logger = new Logger('@firebase/logger-test');
-            (firebase as _FirebaseNamespace).onLog((logData) => {
+            (firebase as _FirebaseNamespace).onLog(logData => {
               result = logData;
             });
             logger.info('hi');

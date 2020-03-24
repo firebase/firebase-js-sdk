@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.INVALID_APP_ARGUMENT]:
     'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.',
-  [AppError.INVALID_LOG_ARGUMENT]: 'First argument to `onLog` must be null or a function.'
+  [AppError.INVALID_LOG_ARGUMENT]:
+    'First argument to `onLog` must be null or a function.'
 };
 
 type ErrorParams = { [key in AppError]: { appName: string } };

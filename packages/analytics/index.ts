@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@ import '@firebase/installations';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { factory, settings, resetGlobalVars, getGlobalVars } from './src/factory';
+import {
+  factory,
+  settings,
+  resetGlobalVars,
+  getGlobalVars
+} from './src/factory';
 import { EventName } from './src/constants';
 import {
   Component,

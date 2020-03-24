@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,9 @@ export function resetGlobalVars(
 /**
  * For testing
  */
-export function getGlobalVars(): { initializedIdPromisesMap: { [gaId: string]: Promise<void> }} {
+export function getGlobalVars(): {
+  initializedIdPromisesMap: { [gaId: string]: Promise<void> };
+} {
   return {
     initializedIdPromisesMap
   };
