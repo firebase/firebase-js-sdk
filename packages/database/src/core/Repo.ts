@@ -423,7 +423,11 @@ export class Repo {
     const resolvedOnDisconnectTree = new SparseSnapshotTree();
     this.onDisconnect_.forEachTree(Path.Empty, (path, node) => {
       const resolved = resolveDeferredValueTree(
-        path, node, this.serverSyncTree_, serverValues);
+        path,
+        node,
+        this.serverSyncTree_,
+        serverValues
+      );
       resolvedOnDisconnectTree.remember(path, resolved);
     });
     let events: Event[] = [];
