@@ -19,7 +19,12 @@ import '@firebase/installations';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { factory, settings, resetGlobalVars, getGlobalVars } from './src/factory';
+import {
+  factory,
+  settings,
+  resetGlobalVars,
+  getGlobalVars
+} from './src/factory';
 import { EventName } from './src/constants';
 import {
   Component,
