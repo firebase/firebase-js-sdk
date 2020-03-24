@@ -4002,7 +4002,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4023,7 +4023,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4044,7 +4044,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4063,7 +4063,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4083,7 +4083,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4105,7 +4105,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4123,7 +4123,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4142,7 +4142,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4159,7 +4159,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4178,7 +4178,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4202,7 +4202,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4223,7 +4223,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4240,7 +4240,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4260,7 +4260,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4279,7 +4279,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4298,7 +4298,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4316,7 +4316,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4335,7 +4335,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4352,7 +4352,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4372,7 +4372,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4391,7 +4391,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4410,7 +4410,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
