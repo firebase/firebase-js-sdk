@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ declare namespace firebase {
       /**
        * The raw arguments passed to the log call.
        */
-      args: unknown[];
+      args: any[];
       /**
        * A string indicating the name of the package that made the log call,
        * such as `@firebase/firestore`.
@@ -8091,10 +8091,10 @@ declare namespace firebase.firestore {
      */
     isEqual(other: Timestamp): boolean;
 
-   /**
-    * Converts this object to a primitive string, which allows Timestamp objects to be compared
-    * using the `>`, `<=`, `>=` and `>` operators.
-    */
+    /**
+     * Converts this object to a primitive string, which allows Timestamp objects to be compared
+     * using the `>`, `<=`, `>=` and `>` operators.
+     */
     valueOf(): string;
   }
 
