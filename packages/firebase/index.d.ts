@@ -8091,10 +8091,10 @@ declare namespace firebase.firestore {
      */
     isEqual(other: Timestamp): boolean;
 
-   /**
-    * Converts this object to a primitive string, which allows Timestamp objects to be compared
-    * using the `>`, `<=`, `>=` and `>` operators.
-    */
+    /**
+     * Converts this object to a primitive string, which allows Timestamp objects to be compared
+     * using the `>`, `<=`, `>=` and `>` operators.
+     */
     valueOf(): string;
   }
 
