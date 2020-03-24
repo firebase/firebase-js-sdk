@@ -1,0 +1,161 @@
+const { resolve } = require('path');
+const fs = require('fs');
+const { execSync } = require('child_process');
+const https = require('https');
+const terser = require('terser');
+
+const repoRoot = resolve(__dirname, '..');
+
+const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
+
+const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL;
+
+// CDN scripts
+function generateReportForCDNScripts() {
+    const reports = [];
+    const firebaseRoot = resolve(__dirname, '../packages/firebase');
+    const pkgJson = require(`${firebaseRoot}/package.json`);
+
+    const special_files = [
+        'firebase-performance-standalone.es2017.js',
+        'firebase-performance-standalone.js',
+        'firebase.js'
+    ];
+
+    const files = [
+        ...special_files.map(file => `${firebaseRoot}/${file}`),
+        ...pkgJson.components.map(component => `${firebaseRoot}/firebase-${component}.js`)
+    ];
+
+    for (const file of files) {
+        const { size } = fs.statSync(file);
+        const fileName = file.split('/').slice(-1)[0];
+        reports.push(makeReportObject('firebase', fileName, size));
+    }
+
+    return reports;
+}
+
+// NPM packages
+function generateReportForNPMPackages() {
+    const reports = [];
+    const fields = [
+        'main',
+        'module',
+        'esm2017',
+        'browser',
+        'react-native',
+        'lite',
+        'lite-esm2017'
+    ];
+
+    const packageInfo = JSON.parse(
+        execSync('npx lerna ls --json --scope @firebase/*', { cwd: repoRoot }).toString()
+    );
+
+    for (const package of packageInfo) {
+        const packageJson = require(`${package.location}/package.json`);
+
+        for (const field of fields) {
+            if (packageJson[field]) {
+                const filePath = `${package.location}/${packageJson[field]}`;
+
+                const rawCode = fs.readFileSync(filePath, 'utf-8');
+
+                // remove comments and whitespaces, then get size
+                const { code } = terser.minify(rawCode, {
+                    output: {
+                        comments: false
+                    },
+                    mangle: false,
+                    compress: false
+                });
+
+                const size = Buffer.byteLength(code, 'utf-8')
+                reports.push(makeReportObject(packageJson.name, field, size));
+            }
+        }
+    }
+
+    return reports;
+}
+
+function makeReportObject(sdk, type, value) {
+    return {
+        sdk,
+        type,
+        value
+    };
+}
+
+function generateSizeReport() {
+    const reports = [
+        ...generateReportForCDNScripts(),
+        ...generateReportForNPMPackages()
+    ];
+
+    for (const r of reports) {
+        console.log(r.sdk, r.type, r.value);
+    }
+
+    console.log(`Github Action URL: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`);
+
+    return {
+        log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
+        metric: "BinarySize",
+        results: reports
+    };
+}
+
+function constructRequestPath() {
+    const repo = process.env.GITHUB_REPOSITORY;
+    const commit = process.env.GITHUB_SHA;
+    let path = `/repos/${repo}/commits/${commit}/reports`;
+    if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
+        const pullRequestNumber = process.env.GITHUB_PULL_REQUEST_NUMBER;
+        const pullRequestBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
+        path += `?pull_request=${pullRequestNumber}&base_commit=${pullRequestBaseSha}`;
+    }
+    return path;
+}
+
+function constructRequestOptions(path) {
+    const accessToken = execSync('gcloud auth print-identity-token', { encoding: 'utf8' }).trim();
+    return {
+        path: path,
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        }
+    };
+}
+
+function upload(report) {
+    if (!process.env.GITHUB_ACTIONS) {
+        console.log('Metrics upload is only enabled on CI.');
+        return;
+    }
+
+    const path = constructRequestPath();
+    const options = constructRequestOptions(path);
+
+    console.log(`${report.metric} report:`, report);
+    console.log(`Posting to metrics service endpoint: ${path} ...`);
+
+    const request = https.request(METRICS_SERVICE_URL, options, response => {
+        response.setEncoding('utf8');
+        console.log(`Response status code: ${response.statusCode}`);
+        response.on('data', console.log);
+        response.on('end', () => {
+            if (response.statusCode !== 202) {
+                process.exit(1);
+            }
+        })
+    });
+    request.write(JSON.stringify(report));
+    request.end();
+}
+
+const report = generateSizeReport();
+upload(report);
