@@ -32,11 +32,7 @@ const LOG_TAG = 'SimpleDb';
 const TRANSACTION_RETRY_COUNT = 3;
 
 // The different modes supported by `SimpleDb.runTransaction()`
-type SimpleDbTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent';
+type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
@@ -276,8 +272,7 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const readonly = mode.startsWith('readonly');
-    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode === 'readonly';
     let attemptNumber = 0;
 
     while (true) {
@@ -318,7 +313,6 @@ export class SimpleDb {
         // Note: We cannot use an instanceof check for FirestoreException, since the
         // exception is wrapped in a generic error by our async/await handling.
         const retryable =
-          idempotent &&
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         debug(

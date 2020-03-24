@@ -61,6 +61,7 @@ $ git stash pop
 Pre-Push Validation Succeeded
 
 `);
+    process.exit();
   } catch (err) {
     console.error(chalk`
 {red Pre-Push Validation Failed, error body below}

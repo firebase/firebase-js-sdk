@@ -262,10 +262,14 @@ export class TestPlatform implements Platform {
   btoa(raw: string): string {
     return this.basePlatform.btoa(raw);
   }
+
+  randomBytes(nBytes: number): Uint8Array {
+    return this.basePlatform.randomBytes(nBytes);
+  }
 }
 
 /** Returns true if we are running under Node. */
-export function isNode() : boolean {
+export function isNode(): boolean {
   return (
     typeof process !== 'undefined' &&
     process.title !== undefined &&
