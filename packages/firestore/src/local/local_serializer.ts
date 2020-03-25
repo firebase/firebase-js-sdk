@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,9 +79,7 @@ export class LocalSerializer {
     const dbReadTime = this.toDbTimestampKey(readTime);
     const parentPath = maybeDoc.key.path.popLast().toArray();
     if (maybeDoc instanceof Document) {
-      const doc = maybeDoc.proto
-        ? maybeDoc.proto
-        : this.remoteSerializer.toDocument(maybeDoc);
+      const doc = this.remoteSerializer.toDocument(maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,

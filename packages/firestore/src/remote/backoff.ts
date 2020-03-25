@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 import { AsyncQueue, TimerId } from '../util/async_queue';
-import * as log from '../util/log';
+import { DEBUG, log } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 const LOG_TAG = 'ExponentialBackoff';
 
@@ -120,7 +120,8 @@ export class ExponentialBackoff {
     );
 
     if (this.currentBaseMs > 0) {
-      log.debug(
+      log(
+        DEBUG,
         LOG_TAG,
         `Backing off for ${remainingDelayMs} ms ` +
           `(base delay: ${this.currentBaseMs} ms, ` +

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 import { getUA } from '@firebase/util';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug, error } from '../util/log';
+import { DEBUG, log } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -68,7 +68,7 @@ export class SimpleDb {
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
-    debug(LOG_TAG, 'Opening database:', name);
+    log(DEBUG, LOG_TAG, 'Opening database:', name);
     return new PersistencePromise<SimpleDb>((resolve, reject) => {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -111,7 +111,8 @@ export class SimpleDb {
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        debug(
+        log(
+          DEBUG,
           LOG_TAG,
           'Database "' + name + '" requires upgrade from version:',
           event.oldVersion
@@ -125,7 +126,8 @@ export class SimpleDb {
             SCHEMA_VERSION
           )
           .next(() => {
-            debug(
+            log(
+              DEBUG,
               LOG_TAG,
               'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
             );
@@ -136,7 +138,7 @@ export class SimpleDb {
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
-    debug(LOG_TAG, 'Removing database:', name);
+    log(DEBUG, LOG_TAG, 'Removing database:', name);
     return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
@@ -250,7 +252,8 @@ export class SimpleDb {
     // whatever reason it's much harder to hit after 12.2 so we only proactively
     // log on 12.2.
     if (iOSVersion === 12.2) {
-      error(
+      log(
+        ERROR,
         'Firestore persistence suffers from a bug in iOS 12.2 ' +
           'Safari that may cause your app to stop working. See ' +
           'https://stackoverflow.com/q/56496296/110915 for details ' +
@@ -315,7 +318,8 @@ export class SimpleDb {
         const retryable =
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        debug(
+        log(
+          DEBUG,
           LOG_TAG,
           'Transaction failed with error: %s. Retrying: %s.',
           error.message,
@@ -455,7 +459,8 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      debug(
+      log(
+        DEBUG,
         LOG_TAG,
         'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
@@ -514,10 +519,10 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      debug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
+      log(DEBUG, LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      debug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
+      log(DEBUG, LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -531,7 +536,7 @@ export class SimpleDbStore<
    * @return The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    debug(LOG_TAG, 'ADD', this.store.name, value, value);
+    log(DEBUG, LOG_TAG, 'ADD', this.store.name, value, value);
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -552,13 +557,13 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      debug(LOG_TAG, 'GET', this.store.name, key, result);
+      log(DEBUG, LOG_TAG, 'GET', this.store.name, key, result);
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    debug(LOG_TAG, 'DELETE', this.store.name, key);
+    log(DEBUG, LOG_TAG, 'DELETE', this.store.name, key);
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -570,7 +575,7 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    debug(LOG_TAG, 'COUNT', this.store.name);
+    log(DEBUG, LOG_TAG, 'COUNT', this.store.name);
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -598,7 +603,7 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    debug(LOG_TAG, 'DELETE ALL', this.store.name);
+    log(DEBUG, LOG_TAG, 'DELETE ALL', this.store.name);
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);

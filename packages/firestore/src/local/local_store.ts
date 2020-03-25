@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import {
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { DEBUG, log } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
@@ -610,7 +610,8 @@ export class LocalStore {
                 documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
-                log.debug(
+                log(
+                  DEBUG,
                   LOG_TAG,
                   'Ignoring outdated watch update for ',
                   key,
@@ -1119,7 +1120,7 @@ export async function ignoreIfPrimaryLeaseLoss(
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
-    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    log(DEBUG, LOG_TAG, 'Unexpectedly lost primary lease');
   } else {
     throw err;
   }

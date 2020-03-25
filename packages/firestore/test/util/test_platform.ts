@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,6 +217,10 @@ export class TestPlatform implements Platform {
   ) {
     this.mockDocument = new FakeDocument();
     this.mockWindow = new FakeWindow(this.mockStorage);
+  }
+
+  get useProto3Json(): boolean {
+    return this.basePlatform.useProto3Json;
   }
 
   get document(): Document | null {

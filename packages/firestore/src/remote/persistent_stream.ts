@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { DEBUG, ERROR, log } from '../util/log';
 
 import { CancelablePromise } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
@@ -328,8 +328,9 @@ export abstract class PersistentStream<
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
       // Log the error. (Probably either 'quota exceeded' or 'max queue length reached'.)
-      log.error(error.toString());
-      log.error(
+      log(ERROR, error.toString());
+      log(
+        ERROR,
         'Using maximum backoff delay to prevent overloading the backend.'
       );
       this.backoff.resetToMax();
@@ -466,7 +467,7 @@ export abstract class PersistentStream<
   // Visible for tests
   handleStreamClose(error?: FirestoreError): Promise<void> {
     assert(this.isStarted(), "Can't handle server close on non-started stream");
-    log.debug(LOG_TAG, `close with error: ${error}`);
+    log(DEBUG, LOG_TAG, `close with error: ${error}`);
 
     this.stream = null;
 
@@ -491,7 +492,8 @@ export abstract class PersistentStream<
         if (this.closeCount === startCloseCount) {
           return fn();
         } else {
-          log.debug(
+          log(
+            DEBUG,
             LOG_TAG,
             'stream callback skipped by getCloseGuardedDispatcher.'
           );

@@ -1,4 +1,10 @@
 # Unreleased
+- [changed] Changed the in-memory representation of Firestore documents to
+  reduce memory allocations and improve performance. Calls to 
+  `DocumentSnapshot.getData()` and `DocumentSnapshot.toObject()` will see
+  the biggest improvement.
+
+# 1.10.1
 - [fixed] Fixed an issue where the number value `-0.0` would lose its sign when
   stored in Firestore.
 

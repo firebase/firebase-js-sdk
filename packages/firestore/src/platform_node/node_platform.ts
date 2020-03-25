@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
 export class NodePlatform implements Platform {
+  readonly useProto3Json = false;
   readonly base64Available = true;
 
   readonly document = null;

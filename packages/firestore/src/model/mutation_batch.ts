@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { assert } from '../util/assert';
-import * as misc from '../util/misc';
+import { arrayEquals } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import {
   documentKeySet,
@@ -175,8 +175,10 @@ export class MutationBatch {
   isEqual(other: MutationBatch): boolean {
     return (
       this.batchId === other.batchId &&
-      misc.arrayEquals(this.mutations, other.mutations) &&
-      misc.arrayEquals(this.baseMutations, other.baseMutations)
+      arrayEquals(this.mutations, other.mutations, (l, r) => l.isEqual(r)) &&
+      arrayEquals(this.baseMutations, other.baseMutations, (l, r) =>
+        l.isEqual(r)
+      )
     );
   }
 }

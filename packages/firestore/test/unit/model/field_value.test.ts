@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,85 +15,71 @@
  * limitations under the License.
  */
 
+import * as api from '../../../src/protos/firestore_proto_api';
+
 import { expect } from 'chai';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
-import * as fieldValue from '../../../src/model/field_value';
-import { primitiveComparator } from '../../../src/util/misc';
-import {
-  blob,
-  dbId,
-  expectCorrectComparisonGroups,
-  expectEqualitySets,
-  field,
-  key,
-  mask,
-  ref,
-  wrap,
-  wrapObject
-} from '../../util/helpers';
+import { ObjectValue, TypeOrder } from '../../../src/model/field_value';
+import { typeOrder } from '../../../src/model/values';
+import { wrap, wrapObject, field, mask } from '../../util/helpers';
 
 describe('FieldValue', () => {
-  const date1 = new Date(2016, 4, 2, 1, 5);
-  const date2 = new Date(2016, 5, 20, 10, 20, 30);
-
   it('can extract fields', () => {
     const objValue = wrapObject({ foo: { a: 1, b: true, c: 'string' } });
 
-    expect(objValue).to.be.an.instanceof(fieldValue.ObjectValue);
-
-    expect(objValue.field(field('foo'))).to.be.an.instanceof(
-      fieldValue.ObjectValue
+    expect(typeOrder(objValue.field(field('foo'))!)).to.equal(
+      TypeOrder.ObjectValue
     );
-    expect(objValue.field(field('foo.a'))).to.be.an.instanceof(
-      fieldValue.IntegerValue
+    expect(typeOrder(objValue.field(field('foo.a'))!)).to.equal(
+      TypeOrder.NumberValue
     );
-    expect(objValue.field(field('foo.b'))).to.be.an.instanceof(
-      fieldValue.BooleanValue
+    expect(typeOrder(objValue.field(field('foo.b'))!)).to.equal(
+      TypeOrder.BooleanValue
     );
-    expect(objValue.field(field('foo.c'))).to.be.an.instanceof(
-      fieldValue.StringValue
+    expect(typeOrder(objValue.field(field('foo.c'))!)).to.equal(
+      TypeOrder.StringValue
     );
 
     expect(objValue.field(field('foo.a.b'))).to.be.null;
     expect(objValue.field(field('bar'))).to.be.null;
     expect(objValue.field(field('bar.a'))).to.be.null;
 
-    expect(objValue.field(field('foo'))!.value()).to.deep.equal({
-      a: 1,
-      b: true,
-      c: 'string'
-    });
-    expect(objValue.field(field('foo.a'))!.value()).to.equal(1);
-    expect(objValue.field(field('foo.b'))!.value()).to.equal(true);
-    expect(objValue.field(field('foo.c'))!.value()).to.equal('string');
+    expect(objValue.field(field('foo'))!).to.deep.equal(
+      wrap({
+        a: 1,
+        b: true,
+        c: 'string'
+      })
+    );
+    expect(objValue.field(field('foo.a'))).to.deep.equal(wrap(1));
+    expect(objValue.field(field('foo.b'))).to.deep.equal(wrap(true));
+    expect(objValue.field(field('foo.c'))).to.deep.equal(wrap('string'));
   });
 
   it('can overwrite existing fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
     const objValue2 = setField(objValue, 'foo', wrap('new-foo-value'));
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: 'foo-value'
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({ foo: 'new-foo-value' });
+    assertObjectEquals(objValue2, { foo: 'new-foo-value' });
   });
 
   it('can add new fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
     const objValue2 = setField(objValue, 'bar', wrap('bar-value'));
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: 'foo-value'
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({
+    assertObjectEquals(objValue2, {
       foo: 'foo-value',
       bar: 'bar-value'
     });
   });
 
   it('can add multiple new fields', () => {
-    let objValue = fieldValue.ObjectValue.EMPTY;
+    let objValue = ObjectValue.EMPTY;
     objValue = objValue
       .toBuilder()
       .set(field('a'), wrap('a'))
@@ -104,17 +90,17 @@ describe('FieldValue', () => {
       .set(field('c'), wrap('c'))
       .build();
 
-    expect(objValue.value()).to.deep.equal({ a: 'a', b: 'b', c: 'c' });
+    assertObjectEquals(objValue, { a: 'a', b: 'b', c: 'c' });
   });
 
   it('can implicitly create objects', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
     const objValue2 = setField(objValue, 'a.b', wrap('b-value'));
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: 'foo-value'
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({
+    assertObjectEquals(objValue2, {
       foo: 'foo-value',
       a: { b: 'b-value' }
     });
@@ -124,20 +110,20 @@ describe('FieldValue', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
 
     const objValue2 = setField(objValue, 'foo.bar', wrap('bar-value'));
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: 'foo-value'
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({ foo: { bar: 'bar-value' } });
+    assertObjectEquals(objValue2, { foo: { bar: 'bar-value' } });
   });
 
   it('can add to nested objects', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
 
     const objValue2 = setField(objValue, 'foo.baz', wrap('baz-value'));
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: { bar: 'bar-value' }
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({
+    assertObjectEquals(objValue2, {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
   });
@@ -146,11 +132,11 @@ describe('FieldValue', () => {
     const objValue = wrapObject({ foo: 'foo-value', bar: 'bar-value' });
 
     const objValue2 = deleteField(objValue, 'foo');
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: 'foo-value',
       bar: 'bar-value'
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({ bar: 'bar-value' });
+    assertObjectEquals(objValue2, { bar: 'bar-value' });
   });
 
   it('can delete nested keys', () => {
@@ -159,10 +145,10 @@ describe('FieldValue', () => {
     });
 
     const objValue2 = deleteField(objValue, 'foo.bar');
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({ foo: { baz: 'baz-value' } });
+    assertObjectEquals(objValue2, { foo: { baz: 'baz-value' } });
   });
 
   it('can delete added keys', () => {
@@ -174,17 +160,17 @@ describe('FieldValue', () => {
       .delete(field('a'))
       .build();
 
-    expect(objValue.value()).to.deep.equal({});
+    assertObjectEquals(objValue, {});
   });
 
   it('can delete, resulting in empty object', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
 
     const objValue2 = deleteField(objValue, 'foo.bar');
-    expect(objValue.value()).to.deep.equal({
+    assertObjectEquals(objValue, {
       foo: { bar: 'bar-value' }
     }); // unmodified original
-    expect(objValue2.value()).to.deep.equal({ foo: {} });
+    assertObjectEquals(objValue2, { foo: {} });
   });
 
   it('will not delete nested keys on primitive values', () => {
@@ -194,10 +180,10 @@ describe('FieldValue', () => {
     const objValue2 = deleteField(objValue, 'foo.baz');
     const objValue3 = deleteField(objValue, 'foo.bar.baz');
     const objValue4 = deleteField(objValue, 'a.b');
-    expect(objValue.value()).to.deep.equal(expected);
-    expect(objValue2.value()).to.deep.equal(expected);
-    expect(objValue3.value()).to.deep.equal(expected);
-    expect(objValue4.value()).to.deep.equal(expected);
+    assertObjectEquals(objValue, expected);
+    assertObjectEquals(objValue2, expected);
+    assertObjectEquals(objValue3, expected);
+    assertObjectEquals(objValue4, expected);
   });
 
   it('can delete multiple fields', () => {
@@ -213,7 +199,7 @@ describe('FieldValue', () => {
       .delete(field('c'))
       .build();
 
-    expect(objValue.value()).to.deep.equal({});
+    assertObjectEquals(objValue, {});
   });
 
   it('provides field mask', () => {
@@ -234,259 +220,11 @@ describe('FieldValue', () => {
     expect(actualMask.isEqual(expectedMask)).to.be.true;
   });
 
-  it('compares values for equality', () => {
-    // Each subarray compares equal to each other and false to every other value
-    const values = [
-      [wrap(true), fieldValue.BooleanValue.TRUE],
-      [wrap(false), fieldValue.BooleanValue.FALSE],
-      [wrap(null), fieldValue.NullValue.INSTANCE],
-      [wrap(0 / 0), wrap(Number.NaN), fieldValue.DoubleValue.NAN],
-      // -0.0 and 0.0 order the same but are not considered equal.
-      [wrap(-0.0)],
-      [wrap(0.0)],
-      [wrap(1), new fieldValue.IntegerValue(1)],
-      // Doubles and Integers order the same but are not considered equal.
-      [new fieldValue.DoubleValue(1)],
-      [wrap(1.1), new fieldValue.DoubleValue(1.1)],
-      [wrap(blob(0, 1, 2)), new fieldValue.BlobValue(blob(0, 1, 2))],
-      [new fieldValue.BlobValue(blob(0, 1))],
-      [wrap('string'), new fieldValue.StringValue('string')],
-      [new fieldValue.StringValue('strin')],
-      // latin small letter e + combining acute accent
-      [new fieldValue.StringValue('e\u0301b')],
-      // latin small letter e with acute accent
-      [new fieldValue.StringValue('\u00e9a')],
-      [wrap(date1), new fieldValue.TimestampValue(Timestamp.fromDate(date1))],
-      [new fieldValue.TimestampValue(Timestamp.fromDate(date2))],
-      [
-        // NOTE: ServerTimestampValues can't be parsed via wrap().
-        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null),
-        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null)
-      ],
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2), null)],
-      [
-        wrap(new GeoPoint(0, 1)),
-        new fieldValue.GeoPointValue(new GeoPoint(0, 1))
-      ],
-      [new fieldValue.GeoPointValue(new GeoPoint(1, 0))],
-      [
-        new fieldValue.RefValue(dbId('project'), key('coll/doc1')),
-        wrap(ref('project', 'coll/doc1'))
-      ],
-      [new fieldValue.RefValue(dbId('project'), key('coll/doc2'))],
-      [wrap(['foo', 'bar']), wrap(['foo', 'bar'])],
-      [wrap(['foo', 'bar', 'baz'])],
-      [wrap(['foo'])],
-      [wrap({ bar: 1, foo: 2 }), wrap({ foo: 2, bar: 1 })],
-      [wrap({ bar: 2, foo: 1 })],
-      [wrap({ bar: 1, foo: 1 })],
-      [wrap({ foo: 1 })]
-    ];
-    expectEqualitySets(values, (v1, v2) => v1.isEqual(v2));
-  });
-
-  it('orders types correctly', () => {
-    const groups = [
-      // null first
-      [wrap(null)],
-
-      // booleans
-      [wrap(false)],
-      [wrap(true)],
-
-      // numbers
-      [wrap(NaN)],
-      [wrap(-Infinity)],
-      [wrap(-Number.MAX_VALUE)],
-      [wrap(Number.MIN_SAFE_INTEGER - 1)],
-      [wrap(Number.MIN_SAFE_INTEGER)],
-      [wrap(-1.1)],
-      // Integers and Doubles order the same.
-      [new fieldValue.IntegerValue(-1), new fieldValue.DoubleValue(-1)],
-      [wrap(-Number.MIN_VALUE)],
-      // zeros all compare the same.
-      [
-        new fieldValue.IntegerValue(0),
-        new fieldValue.DoubleValue(0),
-        new fieldValue.DoubleValue(-0)
-      ],
-      [wrap(Number.MIN_VALUE)],
-      [new fieldValue.IntegerValue(1), new fieldValue.DoubleValue(1)],
-      [wrap(1.1)],
-      [wrap(Number.MAX_SAFE_INTEGER)],
-      [wrap(Number.MAX_SAFE_INTEGER + 1)],
-      [wrap(Infinity)],
-
-      // timestamps
-      [wrap(date1)],
-      [wrap(date2)],
-
-      // server timestamps come after all concrete timestamps.
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null)],
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2), null)],
-
-      // strings
-      [wrap('')],
-      [wrap('\u0000\ud7ff\ue000\uffff')],
-      [wrap('(╯°□°）╯︵ ┻━┻')],
-      [wrap('a')],
-      [wrap('abc def')],
-      // latin small letter e + combining acute accent + latin small letter b
-      [wrap('e\u0301b')],
-      [wrap('æ')],
-      // latin small letter e with acute accent + latin small letter a
-      [wrap('\u00e9a')],
-
-      // blobs
-      [wrap(blob())],
-      [wrap(blob(0))],
-      [wrap(blob(0, 1, 2, 3, 4))],
-      [wrap(blob(0, 1, 2, 4, 3))],
-      [wrap(blob(255))],
-
-      // reference values
-      [new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1'))],
-      [new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc2'))],
-      [new fieldValue.RefValue(dbId('p1', 'd1'), key('c10/doc1'))],
-      [new fieldValue.RefValue(dbId('p1', 'd1'), key('c2/doc1'))],
-      [new fieldValue.RefValue(dbId('p1', 'd2'), key('c1/doc1'))],
-      [new fieldValue.RefValue(dbId('p2', 'd1'), key('c1/doc1'))],
-
-      // geo points
-      [wrap(new GeoPoint(-90, -180))],
-      [wrap(new GeoPoint(-90, 0))],
-      [wrap(new GeoPoint(-90, 180))],
-      [wrap(new GeoPoint(0, -180))],
-      [wrap(new GeoPoint(0, 0))],
-      [wrap(new GeoPoint(0, 180))],
-      [wrap(new GeoPoint(1, -180))],
-      [wrap(new GeoPoint(1, 0))],
-      [wrap(new GeoPoint(1, 180))],
-      [wrap(new GeoPoint(90, -180))],
-      [wrap(new GeoPoint(90, 0))],
-      [wrap(new GeoPoint(90, 180))],
-
-      // arrays
-      [wrap([])],
-      [wrap(['bar'])],
-      [wrap(['foo'])],
-      [wrap(['foo', 1])],
-      [wrap(['foo', 2])],
-      [wrap(['foo', '0'])],
-
-      // objects
-      [wrap({ bar: 0 })],
-      [wrap({ bar: 0, foo: 1 })],
-      [wrap({ foo: 1 })],
-      [wrap({ foo: 2 })],
-      [wrap({ foo: '0' })]
-    ];
-
-    expectCorrectComparisonGroups(
-      groups,
-      (left: fieldValue.FieldValue, right: fieldValue.FieldValue) => {
-        return left.compareTo(right);
-      }
-    );
-  });
-
-  it('estimates size correctly for fixed sized values', () => {
-    // This test verifies that each member of a group takes up the same amount
-    // of space in memory (based on its estimated in-memory size).
-    const equalityGroups = [
-      { expectedByteSize: 4, elements: [wrap(null), wrap(false), wrap(true)] },
-      {
-        expectedByteSize: 4,
-        elements: [wrap(blob(0, 1)), wrap(blob(128, 129))]
-      },
-      {
-        expectedByteSize: 8,
-        elements: [wrap(NaN), wrap(Infinity), wrap(1), wrap(1.1)]
-      },
-      {
-        expectedByteSize: 16,
-        elements: [wrap(new GeoPoint(0, 0)), wrap(new GeoPoint(0, 0))]
-      },
-      {
-        expectedByteSize: 16,
-        elements: [wrap(Timestamp.fromMillis(100)), wrap(Timestamp.now())]
-      },
-      {
-        expectedByteSize: 16,
-        elements: [
-          new fieldValue.ServerTimestampValue(Timestamp.fromMillis(100), null),
-          new fieldValue.ServerTimestampValue(Timestamp.now(), null)
-        ]
-      },
-      {
-        expectedByteSize: 20,
-        elements: [
-          new fieldValue.ServerTimestampValue(
-            Timestamp.fromMillis(100),
-            wrap(true)
-          ),
-          new fieldValue.ServerTimestampValue(Timestamp.now(), wrap(false))
-        ]
-      },
-      {
-        expectedByteSize: 11,
-        elements: [
-          new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1')),
-          new fieldValue.RefValue(dbId('p2', 'd2'), key('c2/doc2'))
-        ]
-      },
-      { expectedByteSize: 6, elements: [wrap('foo'), wrap('bar')] },
-      { expectedByteSize: 4, elements: [wrap(['a', 'b']), wrap(['c', 'd'])] },
-      {
-        expectedByteSize: 6,
-        elements: [wrap({ a: 'a', b: 'b' }), wrap({ c: 'c', d: 'd' })]
-      }
-    ];
-
-    for (const group of equalityGroups) {
-      for (const element of group.elements) {
-        expect(element.approximateByteSize()).to.equal(group.expectedByteSize);
-      }
-    }
-  });
-
-  it('estimates size correctly for relatively sized values', () => {
-    // This test verifies for each group that the estimated size increases
-    // as the size of the underlying data grows.
-    const relativeGroups = [
-      [wrap(blob(0)), wrap(blob(0, 1))],
-      [
-        new fieldValue.ServerTimestampValue(Timestamp.fromMillis(100), null),
-        new fieldValue.ServerTimestampValue(Timestamp.now(), wrap(null))
-      ],
-      [
-        new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1')),
-        new fieldValue.RefValue(dbId('p1', 'd1'), key('c1/doc1/c2/doc2'))
-      ],
-      [wrap('foo'), wrap('foobar')],
-      [wrap(['a', 'b']), wrap(['a', 'bc'])],
-      [wrap(['a', 'b']), wrap(['a', 'b', 'c'])],
-      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'bc' })],
-      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', bc: 'b' })],
-      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })]
-    ];
-
-    for (const group of relativeGroups) {
-      const expectedOrder = group;
-      const actualOrder = group
-        .slice()
-        .sort((l, r) =>
-          primitiveComparator(l.approximateByteSize(), r.approximateByteSize())
-        );
-      expect(expectedOrder).to.deep.equal(actualOrder);
-    }
-  });
-
   function setField(
-    objectValue: fieldValue.ObjectValue,
+    objectValue: ObjectValue,
     fieldPath: string,
-    value: fieldValue.FieldValue
-  ): fieldValue.ObjectValue {
+    value: api.Value
+  ): ObjectValue {
     return objectValue
       .toBuilder()
       .set(field(fieldPath), value)
@@ -494,12 +232,19 @@ describe('FieldValue', () => {
   }
 
   function deleteField(
-    objectValue: fieldValue.ObjectValue,
+    objectValue: ObjectValue,
     fieldPath: string
-  ): fieldValue.ObjectValue {
+  ): ObjectValue {
     return objectValue
       .toBuilder()
       .delete(field(fieldPath))
       .build();
+  }
+
+  function assertObjectEquals(
+    objValue: ObjectValue,
+    data: { [k: string]: unknown }
+  ): void {
+    expect(objValue.isEqual(wrapObject(data)));
   }
 });

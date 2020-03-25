@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import { Blob } from '../../../src/api/blob';
 import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
+import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import { DocumentReference } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,
@@ -36,7 +38,6 @@ import {
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import * as fieldValue from '../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -46,6 +47,7 @@ import {
   VerifyMutation
 } from '../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
+import { refValue } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
@@ -71,13 +73,20 @@ import {
   path,
   ref,
   setMutation,
+  testUserDataReader,
+  testUserDataWriter,
   transformMutation,
   version,
   wrap,
   wrapObject
 } from '../../util/helpers';
+
 import { ByteString } from '../../../src/util/byte_string';
 import { isNode } from '../../util/test_platform';
+
+const userDataWriter = testUserDataWriter();
+const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
+const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
 let verifyProtobufJsRoundTrip: (jsonValue: api.Value) => void = () => {};
 
@@ -92,9 +101,6 @@ if (isNode()) {
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
-  const proto3JsonSerializer = new JsonProtoSerializer(partition, {
-    useProto3Json: true
-  });
 
   /**
    * Wraps the given target in TargetData. This is useful because the APIs we're
@@ -116,37 +122,53 @@ describe('Serializer', () => {
      */
     function verifyFieldValueRoundTrip(opts: {
       /** The FieldValue to test. */
-      value: fieldValue.FieldValue;
+      value: unknown;
       /** The expected one_of field to be used (e.g. 'nullValue') */
       valueType: string;
       /** The expected JSON value for the field (e.g. 'NULL_VALUE') */
       jsonValue: unknown;
+      /** The expected ProtoJS value. */
+      protoJsValue?: unknown;
       /**
        * If true, uses the proto3Json serializer (and skips the round-trip
        * through protobufJs).
        */
       useProto3Json?: boolean;
     }): void {
-      const { value, valueType, jsonValue } = opts;
-      const serializer = opts.useProto3Json ? proto3JsonSerializer : s;
+      let { value, valueType, jsonValue, protoJsValue } = opts;
+      protoJsValue = protoJsValue ?? jsonValue;
 
-      // Convert FieldValue to JSON and verify.
-      const actualJsonProto = serializer.toValue(value);
+      // Convert value to JSON and verify.
+      const actualJsonProto = protobufJsonReader.parseQueryValue(
+        'verifyFieldValueRoundTrip',
+        value
+      );
       expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
+      const actualReturnFieldValue = userDataWriter.convertValue(
+        actualJsonProto
+      );
+      expect(actualReturnFieldValue).to.deep.equal(value);
+
+      // Convert value to ProtoJs and verify.
+      const actualProtoJsProto = protoJsReader.parseQueryValue(
+        'verifyFieldValueRoundTrip',
+        value
+      );
+      expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
+      const actualProtoJsReturnFieldValue = userDataWriter.convertValue(
+        actualProtoJsProto
+      );
+      expect(actualProtoJsReturnFieldValue).to.deep.equal(value);
 
       // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
       if (!opts.useProto3Json) {
-        verifyProtobufJsRoundTrip(actualJsonProto);
+        verifyProtobufJsRoundTrip(actualProtoJsProto);
       }
-
-      // Convert JSON back to FieldValue.
-      const actualReturnFieldValue = serializer.fromValue(actualJsonProto);
-      expect(actualReturnFieldValue.isEqual(value)).to.be.true;
     }
 
     it('converts NullValue', () => {
       verifyFieldValueRoundTrip({
-        value: fieldValue.NullValue.INSTANCE,
+        value: null,
         valueType: 'nullValue',
         jsonValue: 'NULL_VALUE'
       });
@@ -156,7 +178,7 @@ describe('Serializer', () => {
       const examples = [true, false];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
-          value: fieldValue.BooleanValue.of(example),
+          value: example,
           valueType: 'booleanValue',
           jsonValue: example
         });
@@ -175,7 +197,7 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
-          value: new fieldValue.IntegerValue(example),
+          value: example,
           valueType: 'integerValue',
           jsonValue: '' + example
         });
@@ -185,23 +207,45 @@ describe('Serializer', () => {
     it('converts DoubleValue', () => {
       const examples = [
         Number.MIN_VALUE,
-        -10.0,
-        -1.0,
-        0.0,
-        1.0,
-        10.0,
-        Number.MAX_VALUE,
-        NaN,
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY
+        -10.1,
+        -1.1,
+        0.1,
+        1.1,
+        10.1,
+        Number.MAX_VALUE
       ];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
-          value: new fieldValue.DoubleValue(example),
+          value: example,
           valueType: 'doubleValue',
           jsonValue: example
         });
       }
+    });
+
+    it('converts NaN', () => {
+      verifyFieldValueRoundTrip({
+        value: NaN,
+        valueType: 'doubleValue',
+        jsonValue: 'NaN',
+        protoJsValue: NaN
+      });
+    });
+
+    it('converts Infinity', () => {
+      verifyFieldValueRoundTrip({
+        value: Number.POSITIVE_INFINITY,
+        valueType: 'doubleValue',
+        jsonValue: 'Infinity',
+        protoJsValue: Number.POSITIVE_INFINITY
+      });
+
+      verifyFieldValueRoundTrip({
+        value: Number.NEGATIVE_INFINITY,
+        valueType: 'doubleValue',
+        jsonValue: '-Infinity',
+        protoJsValue: Number.NEGATIVE_INFINITY
+      });
     });
 
     it('converts StringValue', () => {
@@ -215,7 +259,7 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         verifyFieldValueRoundTrip({
-          value: new fieldValue.StringValue(example),
+          value: example,
           valueType: 'stringValue',
           jsonValue: example
         });
@@ -229,73 +273,77 @@ describe('Serializer', () => {
       ];
 
       const expectedJson = [
+        '2016-01-02T10:20:50.850000000Z',
+        '2016-06-17T10:50:15.000000000Z'
+      ];
+
+      const expectedProtoJs = [
         { seconds: '1451730050', nanos: 850000000 },
         { seconds: '1466160615', nanos: 0 }
       ];
 
       for (let i = 0; i < examples.length; i++) {
         verifyFieldValueRoundTrip({
-          value: new fieldValue.TimestampValue(Timestamp.fromDate(examples[i])),
+          value: examples[i],
           valueType: 'timestampValue',
-          jsonValue: expectedJson[i]
+          jsonValue: expectedJson[i],
+          protoJsValue: expectedProtoJs[i]
         });
       }
     });
 
     it('converts TimestampValue from string', () => {
       expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
-      );
+        userDataWriter.convertValue({
+          timestampValue: '2017-03-07T07:42:58.916123456Z'
+        })
+      ).to.deep.equal(new Timestamp(1488872578, 916123456).toDate());
 
       expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
-      );
+        userDataWriter.convertValue({
+          timestampValue: '2017-03-07T07:42:58.916123Z'
+        })
+      ).to.deep.equal(new Timestamp(1488872578, 916123000).toDate());
 
       expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
-      );
+        userDataWriter.convertValue({
+          timestampValue: '2017-03-07T07:42:58.916Z'
+        })
+      ).to.deep.equal(new Timestamp(1488872578, 916000000).toDate());
 
       expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
-      );
+        userDataWriter.convertValue({
+          timestampValue: '2017-03-07T07:42:58Z'
+        })
+      ).to.deep.equal(new Timestamp(1488872578, 0).toDate());
     });
 
     it('converts TimestampValue to string (useProto3Json=true)', () => {
       expect(
-        proto3JsonSerializer.toValue(
-          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
-        )
-      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123456Z' });
-
-      expect(
-        proto3JsonSerializer.toValue(
-          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+        protobufJsonReader.parseQueryValue(
+          'timestampConversion',
+          new Timestamp(1488872578, 916123000)
         )
       ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
 
       expect(
-        proto3JsonSerializer.toValue(
-          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+        protobufJsonReader.parseQueryValue(
+          'timestampConversion',
+          new Timestamp(1488872578, 916000000)
         )
       ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
 
       expect(
-        proto3JsonSerializer.toValue(
-          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000))
+        protobufJsonReader.parseQueryValue(
+          'timestampConversion',
+          new Timestamp(1488872578, 916000)
         )
       ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
 
       expect(
-        proto3JsonSerializer.toValue(
-          new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+        protobufJsonReader.parseQueryValue(
+          'timestampConversion',
+          new Timestamp(1488872578, 0)
         )
       ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
     });
@@ -308,36 +356,25 @@ describe('Serializer', () => {
       };
 
       verifyFieldValueRoundTrip({
-        value: new fieldValue.GeoPointValue(example),
+        value: example,
         valueType: 'geoPointValue',
         jsonValue: expected
       });
     });
 
-    it('converts BlobValue to Uint8Array', () => {
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const example = Blob.fromUint8Array(new Uint8Array(bytes));
-      const expected = new Uint8Array(bytes);
+    it('converts BlobValue', () => {
+      const bytes = new Uint8Array([0, 1, 2, 3, 4, 5]);
 
       verifyFieldValueRoundTrip({
-        value: new fieldValue.BlobValue(example),
+        value: Blob.fromUint8Array(bytes),
         valueType: 'bytesValue',
-        jsonValue: expected
-      });
-    });
-
-    it('converts BlobValue to Base64 string (useProto3Json=true)', () => {
-      const base64 = 'AAECAwQF';
-      verifyFieldValueRoundTrip({
-        value: new fieldValue.BlobValue(Blob.fromBase64String(base64)),
-        valueType: 'bytesValue',
-        jsonValue: base64,
-        useProto3Json: true
+        jsonValue: 'AAECAwQF',
+        protoJsValue: bytes
       });
     });
 
     it('converts ArrayValue', () => {
-      const value = wrap([true, 'foo']);
+      const value = [true, 'foo'];
       const jsonValue = {
         values: [{ booleanValue: true }, { stringValue: 'foo' }]
       };
@@ -350,15 +387,15 @@ describe('Serializer', () => {
 
     it('converts empty ArrayValue', () => {
       verifyFieldValueRoundTrip({
-        value: wrap([]),
+        value: [],
         valueType: 'arrayValue',
         jsonValue: { values: [] }
       });
     });
 
-    it('converts ObjectValue.EMPTY', () => {
+    it('converts empty ObjectValue', () => {
       verifyFieldValueRoundTrip({
-        value: wrap({}),
+        value: {},
         valueType: 'mapValue',
         jsonValue: { fields: {} }
       });
@@ -380,8 +417,8 @@ describe('Serializer', () => {
         },
         s: 'foo'
       };
-      const objValue = wrapObject(original);
-      expect(objValue.value()).to.deep.equal(original);
+      const objValue = wrap(original);
+      expect(userDataWriter.convertValue(objValue)).to.deep.equal(original);
 
       const expectedJson: api.Value = {
         mapValue: {
@@ -426,24 +463,28 @@ describe('Serializer', () => {
       };
 
       verifyFieldValueRoundTrip({
-        value: objValue,
+        value: original,
         valueType: 'mapValue',
         jsonValue: expectedJson.mapValue
       });
     });
 
     it('converts RefValue', () => {
-      const example = 'projects/project1/databases/database1/documents/docs/1';
-      const value: fieldValue.FieldValue = new fieldValue.RefValue(
+      // verifyFieldValueRoundTrip cannot be used for RefValues since the
+      // serializer takes a DocumentKeyReference but returns a DocumentReference
+      const example = new DocumentKeyReference(
         dbId('project1', 'database1'),
         key('docs/1')
       );
+      const actualValue = protoJsReader.parseQueryValue('refValue', example);
+      expect(actualValue).to.deep.equal(
+        refValue(dbId('project1', 'database1'), key('docs/1'))
+      );
 
-      verifyFieldValueRoundTrip({
-        value,
-        valueType: 'referenceValue',
-        jsonValue: example
-      });
+      const roundtripResult = userDataWriter.convertValue(
+        actualValue
+      ) as DocumentReference;
+      expect(roundtripResult._key.isEqual(key('docs/1'))).to.be.true;
     });
   });
 
@@ -630,12 +671,12 @@ describe('Serializer', () => {
             {
               fieldPath: 'a',
               appendMissingElements: {
-                values: [s.toValue(wrap('a')), s.toValue(wrap(2))]
+                values: [wrap('a'), wrap(2)]
               }
             },
             {
               fieldPath: 'bar.baz',
-              removeAllFromArray: { values: [s.toValue(wrap({ x: 1 }))] }
+              removeAllFromArray: { values: [wrap({ x: 1 })] }
             }
           ]
         },
@@ -678,7 +719,7 @@ describe('Serializer', () => {
     const d = doc('foo/bar', 42, { a: 5, b: 'b' });
     const proto = {
       name: s.toName(d.key),
-      fields: s.toFields(d.data()),
+      fields: d.toProto().mapValue.fields,
       updateTime: s.toVersion(d.version)
     };
     const serialized = s.toDocument(d);
@@ -1378,7 +1419,7 @@ describe('Serializer', () => {
         documentChange: {
           document: {
             name: s.toName(key('coll/1')),
-            fields: s.toFields(wrapObject({ foo: 'bar' })),
+            fields: wrap({ foo: 'bar' }).mapValue!.fields,
             updateTime: s.toVersion(SnapshotVersion.fromMicroseconds(5))
           },
           targetIds: [1, 2]
@@ -1398,7 +1439,7 @@ describe('Serializer', () => {
         documentChange: {
           document: {
             name: s.toName(key('coll/1')),
-            fields: s.toFields(wrapObject({ foo: 'bar' })),
+            fields: wrap({ foo: 'bar' }).mapValue!.fields,
             updateTime: s.toVersion(SnapshotVersion.fromMicroseconds(5))
           },
           targetIds: [2],

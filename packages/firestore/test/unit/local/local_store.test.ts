@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import * as api from '../../../src/protos/firestore_proto_api';
 
 import { expect } from 'chai';
 import { PublicFieldValue } from '../../../src/api/field_value';
@@ -75,7 +77,6 @@ import {
   byteStringFromString
 } from '../../util/helpers';
 
-import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
@@ -154,7 +155,7 @@ class LocalStoreTester {
 
   afterAcknowledgingMutation(options: {
     documentVersion: TestSnapshotVersion;
-    transformResult?: FieldValue;
+    transformResult?: api.Value;
   }): LocalStoreTester {
     this.prepareNextStep();
 
@@ -1251,7 +1252,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
         .afterAcknowledgingMutation({
           documentVersion: 2,
-          transformResult: new IntegerValue(1)
+          transformResult: { integerValue: 1 }
         })
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true })
@@ -1314,7 +1315,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true }))
         .afterAcknowledgingMutation({
           documentVersion: 3,
-          transformResult: new IntegerValue(1)
+          transformResult: { integerValue: 1 }
         })
         .toReturnChanged(
           doc('foo/bar', 3, { sum: 3 }, { hasLocalMutations: true })
@@ -1322,7 +1323,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 3, { sum: 3 }, { hasLocalMutations: true }))
         .afterAcknowledgingMutation({
           documentVersion: 4,
-          transformResult: new IntegerValue(1339)
+          transformResult: { integerValue: 1339 }
         })
         .toReturnChanged(
           doc('foo/bar', 4, { sum: 1339 }, { hasCommittedMutations: true })
