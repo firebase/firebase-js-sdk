@@ -16,6 +16,7 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
+import { primitiveComparator } from './misc';
 
 /**
  * Immutable class that represents a "proto" byte string.
@@ -28,11 +29,7 @@ import { PlatformSupport } from '../platform/platform';
 export class ByteString {
   static readonly EMPTY_BYTE_STRING = new ByteString('');
 
-  private readonly _binaryString: string;
-
-  private constructor(binaryString: string) {
-    this._binaryString = binaryString;
-  }
+  private constructor(private readonly binaryString: string) {}
 
   static fromBase64String(base64: string): ByteString {
     const binaryString = PlatformSupport.getPlatform().atob(base64);
@@ -45,19 +42,23 @@ export class ByteString {
   }
 
   toBase64(): string {
-    return PlatformSupport.getPlatform().btoa(this._binaryString);
+    return PlatformSupport.getPlatform().btoa(this.binaryString);
   }
 
   toUint8Array(): Uint8Array {
-    return uint8ArrayFromBinaryString(this._binaryString);
+    return uint8ArrayFromBinaryString(this.binaryString);
   }
 
   approximateByteSize(): number {
-    return this._binaryString.length * 2;
+    return this.binaryString.length * 2;
+  }
+
+  compareTo(other: ByteString): number {
+    return primitiveComparator(this.binaryString, other.binaryString);
   }
 
   isEqual(other: ByteString): boolean {
-    return this._binaryString === other._binaryString;
+    return this.binaryString === other.binaryString;
   }
 }
 

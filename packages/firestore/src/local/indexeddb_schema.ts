@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,22 +33,23 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /**
  * Schema Version for the Web client:
- * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
- *    Cache
- * 2. Used to ensure a targetGlobal object exists and add targetCount to it. No
- *    longer required because migration 3 unconditionally clears it.
- * 3. Dropped and re-created Query Cache to deal with cache corruption related
- *    to limbo resolution. Addresses
- *    https://github.com/firebase/firebase-ios-sdk/issues/1548
- * 4. Multi-Tab Support.
- * 5. Removal of held write acks.
- * 6. Create document global for tracking document cache size.
- * 7. Ensure every cached document has a sentinel row with a sequence number.
- * 8. Add collection-parent index for Collection Group queries.
- * 9. Change RemoteDocumentChanges store to be keyed by readTime rather than
- *    an auto-incrementing ID. This is required for Index-Free queries.
+ * 1.  Initial version including Mutation Queue, Query Cache, and Remote
+ *     Document Cache
+ * 2.  Used to ensure a targetGlobal object exists and add targetCount to it. No
+ *     longer required because migration 3 unconditionally clears it.
+ * 3.  Dropped and re-created Query Cache to deal with cache corruption related
+ *     to limbo resolution. Addresses
+ *     https://github.com/firebase/firebase-ios-sdk/issues/1548
+ * 4.  Multi-Tab Support.
+ * 5.  Removal of held write acks.
+ * 6.  Create document global for tracking document cache size.
+ * 7.  Ensure every cached document has a sentinel row with a sequence number.
+ * 8.  Add collection-parent index for Collection Group queries.
+ * 9.  Change RemoteDocumentChanges store to be keyed by readTime rather than
+ *     an auto-incrementing ID. This is required for Index-Free queries.
+ * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -71,7 +72,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
-      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+      `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
     const simpleDbTransaction = new SimpleDbTransaction(txn);
@@ -144,6 +145,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         dropRemoteDocumentChangesStore(db);
         createRemoteDocumentReadTimeIndex(txn);
       });
+    }
+
+    if (fromVersion < 10 && toVersion >= 10) {
+      p = p.next(() => this.rewriteCanonicalIds(simpleDbTransaction));
     }
     return p;
   }
@@ -298,6 +303,17 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return addEntry(path.popLast());
           });
       });
+  }
+
+  private rewriteCanonicalIds(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+    return targetStore.iterate((key, originalDbTarget) => {
+      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
+      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      return targetStore.put(updatedDbTarget);
+    });
   }
 }
 
@@ -1078,6 +1094,8 @@ export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 // V9 does not change the set of stores.
+
+// V10 does not change the set of stores.
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is

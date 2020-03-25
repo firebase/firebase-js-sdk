@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
+import * as api from '../protos/firestore_proto_api';
+
 import { Timestamp } from '../api/timestamp';
 import { assert } from '../util/assert';
-import * as misc from '../util/misc';
+import { JsonProtoSerializer } from '../remote/serializer';
 import {
-  ArrayValue,
-  DoubleValue,
-  FieldValue,
-  IntegerValue,
-  NumberValue,
-  ServerTimestampValue
-} from './field_value';
+  valueEquals,
+  isArray,
+  isInteger,
+  isNumber,
+  normalizeNumber
+} from './values';
+import { serverTimestamp } from './server_timestamps';
+import { arrayEquals } from '../util/misc';
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {
@@ -34,18 +37,18 @@ export interface TransformOperation {
    * optionally using the provided localWriteTime.
    */
   applyToLocalView(
-    previousValue: FieldValue | null,
+    previousValue: api.Value | null,
     localWriteTime: Timestamp
-  ): FieldValue;
+  ): api.Value;
 
   /**
    * Computes a final transform result after the transform has been acknowledged
    * by the server, potentially using the server-provided transformResult.
    */
   applyToRemoteDocument(
-    previousValue: FieldValue | null,
-    transformResult: FieldValue | null
-  ): FieldValue;
+    previousValue: api.Value | null,
+    transformResult: api.Value | null
+  ): api.Value;
 
   /**
    * If this transform operation is not idempotent, returns the base value to
@@ -62,7 +65,7 @@ export interface TransformOperation {
    * @return a base value to store along with the mutation, or null for
    * idempotent transforms.
    */
-  computeBaseValue(previousValue: FieldValue | null): FieldValue | null;
+  computeBaseValue(previousValue: api.Value | null): api.Value | null;
 
   isEqual(other: TransformOperation): boolean;
 }
@@ -73,20 +76,20 @@ export class ServerTimestampTransform implements TransformOperation {
   static instance = new ServerTimestampTransform();
 
   applyToLocalView(
-    previousValue: FieldValue | null,
+    previousValue: api.Value | null,
     localWriteTime: Timestamp
-  ): FieldValue {
-    return new ServerTimestampValue(localWriteTime!, previousValue);
+  ): api.Value {
+    return serverTimestamp(localWriteTime!, previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue | null,
-    transformResult: FieldValue | null
-  ): FieldValue {
+    previousValue: api.Value | null,
+    transformResult: api.Value | null
+  ): api.Value {
     return transformResult!;
   }
 
-  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+  computeBaseValue(previousValue: api.Value | null): api.Value | null {
     return null; // Server timestamps are idempotent and don't require a base value.
   }
 
@@ -97,84 +100,84 @@ export class ServerTimestampTransform implements TransformOperation {
 
 /** Transforms an array value via a union operation. */
 export class ArrayUnionTransformOperation implements TransformOperation {
-  constructor(readonly elements: FieldValue[]) {}
+  constructor(readonly elements: api.Value[]) {}
 
   applyToLocalView(
-    previousValue: FieldValue | null,
+    previousValue: api.Value | null,
     localWriteTime: Timestamp
-  ): FieldValue {
+  ): api.Value {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue | null,
-    transformResult: FieldValue | null
-  ): FieldValue {
+    previousValue: api.Value | null,
+    transformResult: api.Value | null
+  ): api.Value {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
     // applications.
     return this.apply(previousValue);
   }
 
-  private apply(previousValue: FieldValue | null): FieldValue {
-    const result = coercedFieldValuesArray(previousValue);
+  private apply(previousValue: api.Value | null): api.Value {
+    const values = coercedFieldValuesArray(previousValue);
     for (const toUnion of this.elements) {
-      if (!result.find(element => element.isEqual(toUnion))) {
-        result.push(toUnion);
+      if (!values.some(element => valueEquals(element, toUnion))) {
+        values.push(toUnion);
       }
     }
-    return new ArrayValue(result);
+    return { arrayValue: { values } };
   }
 
-  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+  computeBaseValue(previousValue: api.Value | null): api.Value | null {
     return null; // Array transforms are idempotent and don't require a base value.
   }
 
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayUnionTransformOperation &&
-      misc.arrayEquals(other.elements, this.elements)
+      arrayEquals(this.elements, other.elements, valueEquals)
     );
   }
 }
 
 /** Transforms an array value via a remove operation. */
 export class ArrayRemoveTransformOperation implements TransformOperation {
-  constructor(readonly elements: FieldValue[]) {}
+  constructor(readonly elements: api.Value[]) {}
 
   applyToLocalView(
-    previousValue: FieldValue | null,
+    previousValue: api.Value | null,
     localWriteTime: Timestamp
-  ): FieldValue {
+  ): api.Value {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue | null,
-    transformResult: FieldValue | null
-  ): FieldValue {
+    previousValue: api.Value | null,
+    transformResult: api.Value | null
+  ): api.Value {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
     // applications.
     return this.apply(previousValue);
   }
 
-  private apply(previousValue: FieldValue | null): FieldValue {
-    let result = coercedFieldValuesArray(previousValue);
+  private apply(previousValue: api.Value | null): api.Value {
+    let values = coercedFieldValuesArray(previousValue);
     for (const toRemove of this.elements) {
-      result = result.filter(element => !element.isEqual(toRemove));
+      values = values.filter(element => !valueEquals(element, toRemove));
     }
-    return new ArrayValue(result);
+    return { arrayValue: { values } };
   }
 
-  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+  computeBaseValue(previousValue: api.Value | null): api.Value | null {
     return null; // Array transforms are idempotent and don't require a base value.
   }
 
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayRemoveTransformOperation &&
-      misc.arrayEquals(other.elements, this.elements)
+      arrayEquals(this.elements, other.elements, valueEquals)
     );
   }
 }
@@ -186,35 +189,36 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
 export class NumericIncrementTransformOperation implements TransformOperation {
-  constructor(readonly operand: NumberValue) {}
+  constructor(
+    private readonly serializer: JsonProtoSerializer,
+    readonly operand: api.Value
+  ) {
+    assert(
+      isNumber(operand),
+      'NumericIncrementTransform transform requires a NumberValue'
+    );
+  }
 
   applyToLocalView(
-    previousValue: FieldValue | null,
+    previousValue: api.Value | null,
     localWriteTime: Timestamp
-  ): FieldValue {
-    const baseValue = this.computeBaseValue(previousValue);
+  ): api.Value {
     // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
     // precision and resolves overflows by reducing precision, we do not
     // manually cap overflows at 2^63.
-
-    // Return an integer value iff the previous value and the operand is an
-    // integer.
-    if (
-      baseValue instanceof IntegerValue &&
-      this.operand instanceof IntegerValue
-    ) {
-      const sum = baseValue.internalValue + this.operand.internalValue;
-      return new IntegerValue(sum);
+    const baseValue = this.computeBaseValue(previousValue);
+    const sum = this.asNumber(baseValue) + this.asNumber(this.operand);
+    if (isInteger(baseValue) && isInteger(this.operand)) {
+      return this.serializer.toInteger(sum);
     } else {
-      const sum = baseValue.internalValue + this.operand.internalValue;
-      return new DoubleValue(sum);
+      return this.serializer.toDouble(sum);
     }
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue | null,
-    transformResult: FieldValue | null
-  ): FieldValue {
+    previousValue: api.Value | null,
+    transformResult: api.Value | null
+  ): api.Value {
     assert(
       transformResult !== null,
       "Didn't receive transformResult for NUMERIC_ADD transform"
@@ -224,27 +228,26 @@ export class NumericIncrementTransformOperation implements TransformOperation {
 
   /**
    * Inspects the provided value, returning the provided value if it is already
-   * a NumberValue, otherwise returning a coerced IntegerValue of 0.
+   * a NumberValue, otherwise returning a coerced value of 0.
    */
-  computeBaseValue(previousValue: FieldValue | null): NumberValue {
-    return previousValue instanceof NumberValue
-      ? previousValue
-      : new IntegerValue(0);
+  computeBaseValue(previousValue: api.Value | null): api.Value {
+    return isNumber(previousValue) ? previousValue! : { integerValue: 0 };
   }
 
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof NumericIncrementTransformOperation &&
-      this.operand.isEqual(other.operand)
+      valueEquals(this.operand, other.operand)
     );
+  }
+
+  private asNumber(value: api.Value): number {
+    return normalizeNumber(value.integerValue || value.doubleValue);
   }
 }
 
-function coercedFieldValuesArray(value: FieldValue | null): FieldValue[] {
-  if (value instanceof ArrayValue) {
-    return value.internalValue.slice();
-  } else {
-    // coerce to empty array.
-    return [];
-  }
+function coercedFieldValuesArray(value: api.Value | null): api.Value[] {
+  return isArray(value) && value.arrayValue.values
+    ? value.arrayValue.values.slice()
+    : [];
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import { DatabaseInfo } from '../core/database_info';
 import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { estimateByteSize } from '../model/values';
 import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
@@ -474,7 +475,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(maybeDoc: MaybeDocument): number {
     let documentSize = maybeDoc.key.toString().length;
     if (maybeDoc instanceof Document) {
-      documentSize += maybeDoc.data().approximateByteSize();
+      documentSize += estimateByteSize(maybeDoc.toProto());
     }
     return documentSize;
   }
