@@ -64,7 +64,9 @@ describe('FirebaseAnalytics instance tests', () => {
       resetGlobalVars();
       app = getFakeApp(analyticsId);
       fidDeferred = new Deferred<void>();
-      const installations = getFakeInstallations('fid-1234', () => fidDeferred.resolve());
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
 
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
@@ -132,7 +134,9 @@ describe('FirebaseAnalytics instance tests', () => {
       resetGlobalVars();
       const app = getFakeApp(analyticsId);
       fidDeferred = new Deferred<void>();
-      const installations = getFakeInstallations('fid-1234', () => fidDeferred.resolve());
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
       analyticsSettings({

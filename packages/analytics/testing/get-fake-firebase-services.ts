@@ -45,7 +45,10 @@ export function getFakeInstallations(
   onFidResolve?: Function
 ): FirebaseInstallations {
   return {
-    getId: async () => { onFidResolve && onFidResolve(); return fid; },
+    getId: async () => {
+      onFidResolve && onFidResolve();
+      return fid;
+    },
     getToken: async () => 'authToken',
     onIdChange: () => () => undefined,
     delete: async () => undefined

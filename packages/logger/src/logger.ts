@@ -34,7 +34,7 @@ export interface LogCallbackParams {
   message: string;
   args: unknown[];
   type: string;
-};
+}
 
 /**
  * A container for all of the Logger instances

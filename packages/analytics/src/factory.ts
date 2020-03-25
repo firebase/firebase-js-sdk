@@ -88,7 +88,9 @@ export function resetGlobalVars(
 /**
  * For testing
  */
-export function getGlobalVars(): { initializedIdPromisesMap: { [gaId: string]: Promise<void> }} {
+export function getGlobalVars(): {
+  initializedIdPromisesMap: { [gaId: string]: Promise<void> };
+} {
   return {
     initializedIdPromisesMap
   };

@@ -36,7 +36,8 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.INVALID_APP_ARGUMENT]:
     'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.',
-  [AppError.INVALID_LOG_ARGUMENT]: 'First argument to `onLog` must be null or a function.'
+  [AppError.INVALID_LOG_ARGUMENT]:
+    'First argument to `onLog` must be null or a function.'
 };
 
 type ErrorParams = { [key in AppError]: { appName: string } };
