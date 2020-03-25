@@ -405,7 +405,10 @@ export class SpecBuilder {
     return this;
   }
 
-  failDatabaseTransaction(options?: { rejectedDocs?: string[] }): this {
+  failDatabaseTransaction(options?: {
+    rejectedDocs?: string[];
+    rejectedTargets?: Query[];
+  }): this {
     this.assertStep('failDatabaseTransaction() requires previous step');
     const currentStep = this.currentStep!;
     currentStep.failDatabaseTransactions = true;
@@ -418,6 +421,10 @@ export class SpecBuilder {
     currentStep.expectedState.userCallbacks.rejectedDocs.push(
       ...(options?.rejectedDocs || [])
     );
+    options?.rejectedTargets?.forEach(query => {
+      this.removeQueryFromActiveTargets(query, this.getTargetId(query));
+      currentStep.expectedState!.activeTargets = { ...this.activeTargets };
+    });
     return this;
   }
 

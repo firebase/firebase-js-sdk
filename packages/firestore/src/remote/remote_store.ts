@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -405,12 +405,9 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-        // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.MIN.
-        await this.raiseWatchSnapshot(snapshotVersion);
-      }
+      // We have received a target change with a global snapshot if the snapshot
+      // version is not equal to SnapshotVersion.MIN.
+      await this.raiseWatchSnapshot(snapshotVersion);
     }
   }
 

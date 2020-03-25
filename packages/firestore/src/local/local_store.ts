@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,159 +512,159 @@ export class LocalStore {
 
     return this.persistence
       .runTransaction('Apply remote event', 'readwrite-primary', txn => {
-        const documentBuffer = this.remoteDocuments.newChangeBuffer({
-          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-        });
-
-        // Reset newTargetDataByTargetMap in case this transaction gets re-run.
-        newTargetDataByTargetMap = this.targetDataByTarget;
-
-        const promises = [] as Array<PersistencePromise<void>>;
-        objUtils.forEachNumber(
-          remoteEvent.targetChanges,
-          (targetId: TargetId, change: TargetChange) => {
-            const oldTargetData = newTargetDataByTargetMap.get(targetId);
-            if (!oldTargetData) {
-              return;
-            }
-
-            // Only update the remote keys if the target is still active. This
-            // ensures that we can persist the updated target data along with
-            // the updated assignment.
-            promises.push(
-              this.targetCache
-                .removeMatchingKeys(txn, change.removedDocuments, targetId)
-                .next(() => {
-                  return this.targetCache.addMatchingKeys(
-                    txn,
-                    change.addedDocuments,
-                    targetId
-                  );
-                })
-            );
-
-            const resumeToken = change.resumeToken;
-            // Update the resume token if the change includes one.
-            if (resumeToken.approximateByteSize() > 0) {
-              const newTargetData = oldTargetData
-                .withResumeToken(resumeToken, remoteVersion)
-                .withSequenceNumber(txn.currentSequenceNumber);
-              newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
-                targetId,
-                newTargetData
-              );
-
-              // Update the target data if there are target changes (or if
-              // sufficient time has passed since the last update).
-              if (
-                LocalStore.shouldPersistTargetData(
-                  oldTargetData,
-                  newTargetData,
-                  change
-                )
-              ) {
-                promises.push(
-                  this.targetCache.updateTargetData(txn, newTargetData)
-                );
-              }
-            }
-          }
-        );
-
-        let changedDocs = maybeDocumentMap();
-        let updatedKeys = documentKeySet();
-        remoteEvent.documentUpdates.forEach((key, doc) => {
-          updatedKeys = updatedKeys.add(key);
-        });
-
-        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
-        // documents in advance in a single call.
-        promises.push(
-          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-            remoteEvent.documentUpdates.forEach((key, doc) => {
-              const existingDoc = existingDocs.get(key);
-
-              // Note: The order of the steps below is important, since we want
-              // to ensure that rejected limbo resolutions (which fabricate
-              // NoDocuments with SnapshotVersion.MIN) never add documents to
-              // cache.
-              if (
-                doc instanceof NoDocument &&
-                doc.version.isEqual(SnapshotVersion.MIN)
-              ) {
-                // NoDocuments with SnapshotVersion.MIN are used in manufactured
-                // events. We remove these documents from cache since we lost
-                // access.
-                documentBuffer.removeEntry(key, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else if (
-                existingDoc == null ||
-                doc.version.compareTo(existingDoc.version) > 0 ||
-                (doc.version.compareTo(existingDoc.version) === 0 &&
-                  existingDoc.hasPendingWrites)
-              ) {
-                assert(
-                  !SnapshotVersion.MIN.isEqual(remoteVersion),
-                  'Cannot add a document when the remote version is zero'
-                );
-                documentBuffer.addEntry(doc, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else {
-                log.debug(
-                  LOG_TAG,
-                  'Ignoring outdated watch update for ',
-                  key,
-                  '. Current version:',
-                  existingDoc.version,
-                  ' Watch version:',
-                  doc.version
-                );
-              }
-
-              if (remoteEvent.resolvedLimboDocuments.has(key)) {
-                promises.push(
-                  this.persistence.referenceDelegate.updateLimboDocument(
-                    txn,
-                    key
-                  )
-                );
-              }
-            });
-          })
-        );
+        let updateRemoteVersion = PersistencePromise.resolve();
 
         // HACK: The only reason we allow a null snapshot version is so that we
         // can synthesize remote events when we get permission denied errors while
         // trying to resolve the state of a locally cached document that is in
         // limbo.
         if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
-          const updateRemoteVersion = this.targetCache
+          updateRemoteVersion = this.targetCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
-              assert(
-                remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
-                'Watch stream reverted to previous snapshot?? ' +
-                  remoteVersion +
-                  ' < ' +
-                  lastRemoteSnapshotVersion
-              );
+              if (remoteVersion.compareTo(lastRemoteSnapshotVersion) < 0) {
+                return PersistencePromise.resolve();
+              }
               return this.targetCache.setTargetsMetadata(
                 txn,
                 txn.currentSequenceNumber,
                 remoteVersion
               );
             });
-          promises.push(updateRemoteVersion);
         }
 
-        return PersistencePromise.waitFor(promises)
-          .next(() => documentBuffer.apply(txn))
-          .next(() => {
-            return this.localDocuments.getLocalViewOfDocuments(
-              txn,
-              changedDocs
-            );
+        return updateRemoteVersion.next(() => {
+          const promises = [] as Array<PersistencePromise<void>>;
+
+          const documentBuffer = this.remoteDocuments.newChangeBuffer({
+            trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
           });
+
+          // Reset newTargetDataByTargetMap in case this transaction gets re-run.
+          newTargetDataByTargetMap = this.targetDataByTarget;
+
+          objUtils.forEachNumber(
+            remoteEvent.targetChanges,
+            (targetId: TargetId, change: TargetChange) => {
+              const oldTargetData = newTargetDataByTargetMap.get(targetId);
+              if (!oldTargetData) {
+                return;
+              }
+
+              // Only update the remote keys if the target is still active. This
+              // ensures that we can persist the updated target data along with
+              // the updated assignment.
+              promises.push(
+                this.targetCache
+                  .removeMatchingKeys(txn, change.removedDocuments, targetId)
+                  .next(() => {
+                    return this.targetCache.addMatchingKeys(
+                      txn,
+                      change.addedDocuments,
+                      targetId
+                    );
+                  })
+              );
+
+              const resumeToken = change.resumeToken;
+              // Update the resume token if the change includes one.
+              if (resumeToken.approximateByteSize() > 0) {
+                const newTargetData = oldTargetData
+                  .withResumeToken(resumeToken, remoteVersion)
+                  .withSequenceNumber(txn.currentSequenceNumber);
+                newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
+                  targetId,
+                  newTargetData
+                );
+
+                // Update the target data if there are target changes (or if
+                // sufficient time has passed since the last update).
+                if (
+                  LocalStore.shouldPersistTargetData(
+                    oldTargetData,
+                    newTargetData,
+                    change
+                  )
+                ) {
+                  promises.push(
+                    this.targetCache.updateTargetData(txn, newTargetData)
+                  );
+                }
+              }
+            }
+          );
+
+          let changedDocs = maybeDocumentMap();
+          let updatedKeys = documentKeySet();
+          remoteEvent.documentUpdates.forEach((key, doc) => {
+            updatedKeys = updatedKeys.add(key);
+          });
+
+          // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+          // documents in advance in a single call.
+          promises.push(
+            documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+              remoteEvent.documentUpdates.forEach((key, doc) => {
+                const existingDoc = existingDocs.get(key);
+
+                // Note: The order of the steps below is important, since we want
+                // to ensure that rejected limbo resolutions (which fabricate
+                // NoDocuments with SnapshotVersion.MIN) never add documents to
+                // cache.
+                if (
+                  doc instanceof NoDocument &&
+                  doc.version.isEqual(SnapshotVersion.MIN)
+                ) {
+                  // NoDocuments with SnapshotVersion.MIN are used in manufactured
+                  // events. We remove these documents from cache since we lost
+                  // access.
+                  documentBuffer.removeEntry(key, remoteVersion);
+                  changedDocs = changedDocs.insert(key, doc);
+                } else if (
+                  existingDoc == null ||
+                  doc.version.compareTo(existingDoc.version) > 0 ||
+                  (doc.version.compareTo(existingDoc.version) === 0 &&
+                    existingDoc.hasPendingWrites)
+                ) {
+                  assert(
+                    !SnapshotVersion.MIN.isEqual(remoteVersion),
+                    'Cannot add a document when the remote version is zero'
+                  );
+                  documentBuffer.addEntry(doc, remoteVersion);
+                  changedDocs = changedDocs.insert(key, doc);
+                } else {
+                  log.debug(
+                    LOG_TAG,
+                    'Ignoring outdated watch update for ',
+                    key,
+                    '. Current version:',
+                    existingDoc.version,
+                    ' Watch version:',
+                    doc.version
+                  );
+                }
+
+                if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                  promises.push(
+                    this.persistence.referenceDelegate.updateLimboDocument(
+                      txn,
+                      key
+                    )
+                  );
+                }
+              });
+            })
+          );
+
+          return PersistencePromise.waitFor(promises)
+            .next(() => documentBuffer.apply(txn))
+            .next(() => {
+              return this.localDocuments.getLocalViewOfDocuments(
+                txn,
+                changedDocs
+              );
+            });
+        });
       })
       .then(changedDocs => {
         this.targetDataByTarget = newTargetDataByTargetMap;
@@ -1102,6 +1102,20 @@ export class LocalStore {
   }
 }
 
+
+export function isPrimaryLeaseLoss(
+  err: FirestoreError
+): boolean {
+  if (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 /**
  * Verifies the error thrown by a LocalStore operation. If a LocalStore
  * operation fails because the primary lease has been taken by another client,
@@ -1115,10 +1129,7 @@ export class LocalStore {
 export async function ignoreIfPrimaryLeaseLoss(
   err: FirestoreError
 ): Promise<void> {
-  if (
-    err.code === Code.FAILED_PRECONDITION &&
-    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
-  ) {
+  if (isPrimaryLeaseLoss(err)) {
     log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
   } else {
     throw err;

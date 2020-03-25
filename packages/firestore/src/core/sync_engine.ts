@@ -17,7 +17,7 @@
 
 import { User } from '../auth/user';
 import {
-  ignoreIfPrimaryLeaseLoss,
+  ignoreIfPrimaryLeaseLoss, isPrimaryLeaseLoss,
   LocalStore,
   LocalWriteResult
 } from '../local/local_store';
@@ -337,8 +337,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupTarget(queryView.targetId);
-          })
-          .catch(ignoreIfPrimaryLeaseLoss);
+          }).catch ((err) => {
+            log.debug(LOG_TAG, 'Unexpected error: ' + err);
+          });
       }
     } else {
       this.removeAndCleanupTarget(queryView.targetId);
@@ -443,7 +444,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+      if (!isPrimaryLeaseLoss(error)) {
+        objUtils.forEachNumber(remoteEvent.targetChanges, targetId => {
+          this.rejectListen(
+            targetId,
+            new FirestoreError(Code.INTERNAL, error.message)
+          );
+          this.remoteStore.unlisten(targetId);
+        });
+      }
     }
   }
 
@@ -523,10 +532,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       return this.applyRemoteEvent(event);
     } else {
-      await this.localStore
-        .releaseTarget(targetId, /* keepPersistedTargetData */ false)
-        .then(() => this.removeAndCleanupTarget(targetId, err))
-        .catch(ignoreIfPrimaryLeaseLoss);
+      try {
+        await this.localStore.releaseTarget(
+          targetId,
+          /* keepPersistedTargetData */ false
+        );
+      } catch (error) {
+        await ignoreIfPrimaryLeaseLoss(error);
+      } finally {
+        this.removeAndCleanupTarget(targetId, err);
+      }
     }
   }
 
