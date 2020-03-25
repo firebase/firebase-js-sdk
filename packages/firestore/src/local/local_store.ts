@@ -1102,10 +1102,7 @@ export class LocalStore {
   }
 }
 
-
-export function isPrimaryLeaseLoss(
-  err: FirestoreError
-): boolean {
+export function isPrimaryLeaseLoss(err: FirestoreError): boolean {
   if (
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG

@@ -17,7 +17,8 @@
 
 import { User } from '../auth/user';
 import {
-  ignoreIfPrimaryLeaseLoss, isPrimaryLeaseLoss,
+  ignoreIfPrimaryLeaseLoss,
+  isPrimaryLeaseLoss,
   LocalStore,
   LocalWriteResult
 } from '../local/local_store';
@@ -337,7 +338,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupTarget(queryView.targetId);
-          }).catch ((err) => {
+          })
+          .catch(err => {
             log.debug(LOG_TAG, 'Unexpected error: ' + err);
           });
       }
