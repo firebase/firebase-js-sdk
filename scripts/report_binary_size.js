@@ -67,7 +67,7 @@ function generateReportForNPMPackages() {
   function collectBinarySize(path) {
     const packageJsonPath = `${path}/package.json`;
     if (!fs.existsSync(packageJsonPath)) {
-        return;
+      return;
     }
 
     const packageJson = require(packageJsonPath);
@@ -96,19 +96,19 @@ function generateReportForNPMPackages() {
 }
 
 function traverseDirs(path, executor, level, levelLimit) {
-    if (level > levelLimit) {
-        return;
+  if (level > levelLimit) {
+    return;
+  }
+
+  executor(path);
+
+  for (const name of fs.readdirSync(path)) {
+    const p = `${path}/${name}`;
+
+    if (fs.lstatSync(p).isDirectory()) {
+      traverseDirs(p, executor, level + 1, levelLimit);
     }
-
-    executor(path);
-
-    for (const name of fs.readdirSync(path)) {
-        const p = `${path}/${name}`;
-
-        if(fs.lstatSync(p).isDirectory()) {
-            traverseDirs(p, executor, level + 1, levelLimit);
-        }
-    }
+  }
 }
 
 function makeReportObject(sdk, type, value) {
