@@ -75,6 +75,7 @@ export const enum AuthErrorCode {
   MISSING_PHONE_NUMBER = 'missing-phone-number',
   MISSING_SESSION_INFO = 'missing-verification-id',
   MODULE_DESTROYED = 'app-deleted',
+  MFA_REQUIRED = 'multi-factor-auth-required',
   NEED_CONFIRMATION = 'account-exists-with-different-credential',
   NETWORK_REQUEST_FAILED = 'network-request-failed',
   NULL_USER = 'null-user',
@@ -245,6 +246,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'The phone auth credential was created with an empty verification ID.',
   [AuthErrorCode.MODULE_DESTROYED]:
     'This instance of FirebaseApp has been deleted.',
+  [AuthErrorCode.MFA_REQUIRED]:
+    'Proof of ownership of a second factor is required to complete sign-in.',
   [AuthErrorCode.NEED_CONFIRMATION]:
     'An account already exists with the same email address but different ' +
     'sign-in credentials. Sign in using a provider associated with this ' +
@@ -314,7 +317,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'disabled.'
 };
 
-type AuthErrorParams = { [key in AuthErrorCode]: { appName: AppName } };
+type AuthErrorParams = { [key in AuthErrorCode]: { appName: AppName, serverResponse?: object } };
 
 export const AUTH_ERROR_FACTORY = new ErrorFactory<
   AuthErrorCode,

@@ -20,7 +20,7 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { MultiFactorSession } from '../../model/multifactor';
+import { MultiFactorSession, MultiFactorSessionType } from '../../model/multi_factor';
 import { initializeAuth } from '../initialize_auth';
 import {
   sendPhoneVerificationCode,
@@ -31,6 +31,12 @@ import {
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha_verifier';
 import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import { AuthCredential } from '../../model/auth_credential';
+import { StartPhoneMfaEnrollmentRequest, startEnrollPhoneMfa } from '../../api/account_management';
+
+export interface PhoneInfoOptions {
+  phoneNumber: string,
+  session?: MultiFactorSession,
+}
 
 export class PhoneAuthProvider implements AuthProvider {
   static readonly PROVIDER_ID = ProviderId.PHONE;
@@ -67,9 +73,8 @@ export class PhoneAuthProvider implements AuthProvider {
   }
 
   async verifyPhoneNumber(
-    phoneNumber: string,
+    options: PhoneInfoOptions|string,
     applicationVerifier: ApplicationVerifier,
-    multiFactorSession?: MultiFactorSession
   ): Promise<string> {
     const recaptchaToken = await applicationVerifier.verify();
     if (typeof recaptchaToken !== 'string') {
@@ -85,13 +90,35 @@ export class PhoneAuthProvider implements AuthProvider {
     }
 
     try {
-      const verificationId = (
+      let phoneNumber: string;
+      let session: MultiFactorSession | undefined;
+      if (typeof options === 'string') {
+        phoneNumber = options
+      } else {
+        phoneNumber = options.phoneNumber;
+        session = options.session;
+      }
+      
+      // Try MFA methods first
+      if (session?.type === MultiFactorSessionType.ENROLL) {
+        const request: StartPhoneMfaEnrollmentRequest = {
+          idToken: session.rawSession,
+          phoneEnrollmentInfo: {
+            phoneNumber,
+            recaptchaToken,
+          }
+        }
+
+        return (await startEnrollPhoneMfa(this.auth, request)).phoneSessionInfo.sessionInfo;
+      }
+
+      // If we're here, it's simple good old-fashioned phone sign in
+      return (
         await sendPhoneVerificationCode(this.auth, {
           phoneNumber,
           recaptchaToken
         })
       ).sessionInfo;
-      return verificationId;
     } finally {
       applicationVerifier.reset();
     }

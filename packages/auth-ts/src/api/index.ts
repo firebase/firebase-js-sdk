@@ -24,6 +24,7 @@ import {
 } from './errors';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { FirebaseError } from '@firebase/util';
+import { IdTokenResponse } from '../model/id_token';
 
 // TODO: pass this in for emulator
 export const PRODUCTION_URL = 'https://identitytoolkit.googleapis.com';
@@ -47,7 +48,9 @@ export enum Endpoint {
   SEND_OOB_CODE = '/v1/accounts:sendOobCode',
   SET_ACCOUNT_INFO = '/v1/accounts:update',
   GET_ACCOUNT_INFO = '/v1/accounts:lookup',
-  GET_RECAPTCHA_PARAM = '/v1/recaptchaParams'
+  GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
+  START_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
+  FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
 }
 
 export async function performApiRequest<T, V>(
@@ -96,4 +99,19 @@ export async function performApiRequest<T, V>(
       appName: auth.name
     });
   }
+}
+
+export async function performSignInRequest<T, V extends IdTokenResponse>(
+  auth: Auth,
+  method: HttpMethod,
+  path: Endpoint,
+  request?: T,
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
+): Promise<V> {
+  const serverResponse = await performApiRequest<T, V>(auth, method, path, request, customErrorMap);
+  if (serverResponse.mfaPendingCredential) {
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {appName: auth.name, serverResponse});
+  }
+
+  return serverResponse;
 }

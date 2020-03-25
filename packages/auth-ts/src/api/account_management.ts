@@ -19,6 +19,8 @@ import { Auth } from '..';
 import { performApiRequest, HttpMethod, Endpoint } from '.';
 import { Operation } from '../model/action_code_info';
 import { IdTokenResponse } from '../model/id_token';
+import { MultiFactorInfo } from '../model/multi_factor';
+import { SignInWithPhoneNumberRequest } from './authentication';
 
 export interface ResetPasswordRequest {
   oobCode: string;
@@ -131,6 +133,12 @@ export interface APIUserInfo {
   tenantId?: string;
   passwordHash?: string;
   providerUserInfo: ProviderUserInfo[];
+  mfaInfo?: Array<{
+    phoneInfo?: string;
+    mfaEnrollmentId?: string;
+    displayName?: string;
+    enrolledAt?: number;
+  }>;
 }
 
 export interface ProviderUserInfo {
@@ -158,6 +166,51 @@ export async function getAccountInfo(
     auth,
     HttpMethod.POST,
     Endpoint.GET_ACCOUNT_INFO,
+    request
+  );
+}
+
+export interface StartPhoneMfaEnrollmentRequest {
+  idToken: string;
+
+  phoneEnrollmentInfo: {
+    phoneNumber: string;
+    recaptchaToken: string;
+  };
+}
+
+export interface StartPhoneMfaEnrollmentResponse {
+  phoneSessionInfo: {
+    sessionInfo: string;
+  };
+}
+
+export function startEnrollPhoneMfa(
+  auth: Auth,
+  request: StartPhoneMfaEnrollmentRequest
+): Promise<StartPhoneMfaEnrollmentResponse> {
+  return performApiRequest<StartPhoneMfaEnrollmentRequest, StartPhoneMfaEnrollmentResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_PHONE_MFA_ENROLLMENT,
+    request
+  );
+}
+
+export interface PhoneMfaEnrollmentRequest {
+  phoneVerificationInfo: SignInWithPhoneNumberRequest,
+}
+
+export interface PhoneMfaEnrollmentResponse extends IdTokenResponse{}
+
+export function enrollPhoneMfa(
+  auth: Auth,
+  request: PhoneMfaEnrollmentRequest
+): Promise<PhoneMfaEnrollmentResponse> {
+  return performApiRequest<PhoneMfaEnrollmentRequest, PhoneMfaEnrollmentResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
     request
   );
 }

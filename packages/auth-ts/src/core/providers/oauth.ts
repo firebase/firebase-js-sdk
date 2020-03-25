@@ -55,13 +55,16 @@ export class OAuthProvider implements AuthProvider {
   setDefaultLanguage(languageCode: LanguageCode | null): void {
     this.defaultLanguageCode = languageCode;
   }
+
   setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
     this.customParameters = customOAuthParameters;
-    throw new Error('not implemented');
+    return this;
   }
+
   getCustomParameters(): CustomParameters {
     return this.customParameters;
   }
+  
   addScope(scope: string) {
     // If not already added, add scope to list.
     if (!this.scopes.includes(scope)) {

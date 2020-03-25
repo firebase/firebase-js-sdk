@@ -17,6 +17,7 @@
 
 import { ProviderId } from '../core/providers';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { MultiFactorInfo } from './multi_factor';
 
 /**
  * Raw encoded JWT
@@ -126,6 +127,10 @@ export interface IdTokenResponse {
   refreshToken: string;
   expiresIn: string;
   localId: string;
+
+  // MFA-specific fields
+  mfaPendingCredential?: string;
+  mfaInfo?: MultiFactorInfo[];
 }
 
 export async function verifyTokenResponseUid(

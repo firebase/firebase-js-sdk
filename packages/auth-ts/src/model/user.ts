@@ -25,6 +25,7 @@ import { deleteUser } from '../core/account_management/delete';
 import { Auth } from './auth';
 import { ProviderId } from '../core/providers/index';
 import { reload } from '../core/account_management/reload';
+import { MultiFactorInfo } from './multi_factor';
 
 export interface UserInfo {
   readonly uid: string;
@@ -68,6 +69,7 @@ export class User implements UserInfo {
   isAnonymous: boolean;
   providerData: UserInfo[] = [];
   redirectEventId_: string | null = null;
+  mfaInfo_: MultiFactorInfo[]|null = null;
 
   // On the root user object
   readonly providerId = ProviderId.FIREBASE;
@@ -113,7 +115,8 @@ export class User implements UserInfo {
       tenantId,
       isAnonymous,
       providerData,
-      redirectEventId_
+      redirectEventId_,
+      mfaInfo_,
     } = object;
     const stsTokenManager = StsTokenManager.fromPlainObject(managerObject);
     const user = new User({
@@ -130,7 +133,8 @@ export class User implements UserInfo {
       metadata,
       tenantId,
       providerData,
-      redirectEventId_
+      redirectEventId_,
+      mfaInfo_,
     });
 
     return user;

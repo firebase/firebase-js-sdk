@@ -43,7 +43,4 @@ export class CustomOAuthProvider extends OAuthProvider {
   ): OAuthCredential {
     throw new Error('not implemented');
   }
-  setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
-    throw new Error('not implemented');
-  }
 }

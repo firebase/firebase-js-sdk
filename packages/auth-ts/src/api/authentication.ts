@@ -314,71 +314,7 @@ export async function verifyPhoneNumberForExisting(
   );
 }
 
-export interface VerifyAssertionRequest {
-  autoCreate?: boolean;
-  requestUri: string;
-  postBody?: string;
-  pendingIdToken?: string;
-  sessionId?: string;
-  idToken?: string;
-  returnIdpCredential?: boolean;
-  tenantId?: string;
-}
-
-// export interface VerifyAssertionResponse extends IdTokenResponse {
-//   oauthIdToken?: string;
-//   providerId?: string;
-//   pendingToken?: string;
-//   nonce?: string;
-// }
-
-// export async function verifyAssertion(
-//   auth: Auth,
-//   request: VerifyAssertionRequest,
-// ): Promise<VerifyAssertionResponse> {
-//   const response = await performApiRequest<
-//   VerifyAssertionRequest,
-//   VerifyAssertionResponse,
-//   >(
-//     auth,
-//     HttpMethod.POST,
-//     Endpoint.VERIFY_ASSERTION,
-//     request,
-//   );
-
-// }
-
 export type PhoneOrOauthTokenResponse =
   | SignInWithPhoneNumberResponse
   | SignInWithIdpResponse
   | IdTokenResponse;
-
-//   function(request; response) {
-//     // This makes it possible for OIDC providers to:
-//     // 1. Initialize an OIDC Auth credential on successful response.
-//     // 2. Initialize an OIDC Auth credential within the recovery error.
-
-//     // When request has sessionId and response has OIDC ID token and no pending
-//     // token, a credential with raw nonce and OIDC ID token needs to be returned.
-//     if (response[fireauth.RpcHandler.AuthServerField.OAUTH_ID_TOKEN] &&
-//         response[fireauth.RpcHandler.AuthServerField.PROVIDER_ID] &&
-//         response[fireauth.RpcHandler.AuthServerField.PROVIDER_ID]
-//             .indexOf(fireauth.constants.OIDC_PREFIX) == 0 &&
-//         // Use pendingToken instead of idToken and rawNonce when available.
-//         !response[fireauth.RpcHandler.AuthServerField.PENDING_TOKEN]) {
-//       if (request[fireauth.RpcHandler.AuthServerField.SESSION_ID]) {
-//         // For full OAuth flow, the nonce is in the session ID.
-//         response[fireauth.RpcHandler.InjectedResponseField.NONCE] =
-//             request[fireauth.RpcHandler.AuthServerField.SESSION_ID];
-//       } else if (request[fireauth.RpcHandler.AuthServerField.POST_BODY]) {
-//         // For credential flow, the nonce is in the postBody nonce field.
-//         var queryData = new goog.Uri.QueryData(
-//             request[fireauth.RpcHandler.AuthServerField.POST_BODY]);
-//         if (queryData.containsKey(
-//                 fireauth.RpcHandler.InjectedResponseField.NONCE)) {
-//           response[fireauth.RpcHandler.InjectedResponseField.NONCE] =
-//               queryData.get(fireauth.RpcHandler.InjectedResponseField.NONCE);
-//         }
-//       }
-//     }
-//     return response;

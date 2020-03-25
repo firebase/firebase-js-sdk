@@ -92,6 +92,9 @@ import {
   linkWithPopup
 } from './core/strategies/popup';
 import { signInWithCustomToken } from './core/strategies/custom_token';
+import { PhoneMultiFactorGenerator } from './core/mfa/multi_factor_assertion';
+import { MultiFactorAssertion, MultiFactorInfo } from './model/multi_factor';
+import { multiFactor } from './core/mfa/multi_factor';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -112,10 +115,34 @@ enum Persistence {
   NONE = 'none'
 }
 
+const firebaseApp = (firebase as FirebaseApp);
+
+interface FirebaseNamespace {
+  auth?: {
+    (app?: FirebaseApp): FirebaseAuth;
+    // Auth: typeof FirebaseAuth;
+    EmailAuthProvider: typeof EmailAuthProvider;
+    FacebookAuthProvider: typeof FacebookAuthProvider;
+    GithubAuthProvider: typeof GithubAuthProvider;
+    GoogleAuthProvider: typeof GoogleAuthProvider;
+    OAuthProvider: typeof OAuthProvider;
+    SAMLAuthProvider: typeof SAMLAuthProvider;
+    PhoneAuthProvider: typeof PhoneAuthProvider;
+    RecaptchaVerifier: typeof RecaptchaVerifier;
+    TwitterAuthProvider: typeof TwitterAuthProvider;
+    Auth: {
+      Persistence: typeof Persistence;
+    };
+    PhoneMultiFactorGenerator: {
+      assertion(cred: PhoneAuthCredential): MultiFactorAssertion;
+    };
+  };
+}
+
 /**
  * Replicate the original Firebase Auth interface, which provides one stateful object with all methods defined for all platforms.
  */
-(firebase as FirebaseApp).auth = function() {
+firebaseApp.auth = function() {
   if (memo) {
     return memo;
   }
@@ -130,6 +157,7 @@ enum Persistence {
   // TODO: maybe try not to race condition? how about that
   auth.onAuthStateChanged((user: User | null) => {
     if (user) {
+      const mfaUser = multiFactor(user);
       Object.assign(user, {
         apiKey: auth.config.apiKey,
         appName: auth.name,
@@ -210,6 +238,17 @@ enum Persistence {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return linkWithPopup(auth, user, provider, resolver);
+        },
+        multiFactor: {
+          getSession() {
+            return mfaUser.getSession();
+          },
+          enroll(assertion: MultiFactorAssertion, displayName?: string) {
+            return mfaUser.enroll(auth, assertion, displayName);
+          },
+          get enrolledFactors(): MultiFactorInfo[] {
+            return mfaUser.enrolledFactors;
+          },
         }
       });
     }
@@ -328,29 +367,18 @@ enum Persistence {
       }
     }
   });
+
+  const LegacyPhoneMultiFactorGenerator = {
+    assertion(credential: PhoneAuthCredential) {
+      return PhoneMultiFactorGenerator.assertion(auth, credential);
+    }
+  };
+
+  Object.assign(firebaseApp.auth, {PhoneMultiFactorGenerator: LegacyPhoneMultiFactorGenerator});
   return memo;
 };
 
-interface FirebaseNamespace {
-  auth?: {
-    (app?: FirebaseApp): FirebaseAuth;
-    // Auth: typeof FirebaseAuth;
-    EmailAuthProvider: typeof EmailAuthProvider;
-    FacebookAuthProvider: typeof FacebookAuthProvider;
-    GithubAuthProvider: typeof GithubAuthProvider;
-    GoogleAuthProvider: typeof GoogleAuthProvider;
-    OAuthProvider: typeof OAuthProvider;
-    SAMLAuthProvider: typeof SAMLAuthProvider;
-    PhoneAuthProvider: typeof PhoneAuthProvider;
-    RecaptchaVerifier: typeof RecaptchaVerifier;
-    TwitterAuthProvider: typeof TwitterAuthProvider;
-    Auth: {
-      Persistence: typeof Persistence;
-    };
-  };
-}
-
-Object.assign((firebase as FirebaseNamespace).auth, {
+Object.assign(firebaseApp.auth, {
   EmailAuthProvider,
   FacebookAuthProvider,
   GithubAuthProvider,
