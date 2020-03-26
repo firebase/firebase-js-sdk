@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 const { resolve } = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
@@ -19,6 +36,7 @@ function generateReportForCDNScripts() {
   const special_files = [
     'firebase-performance-standalone.es2017.js',
     'firebase-performance-standalone.js',
+    'firebase-firestore.memory.js',
     'firebase.js'
   ];
 
@@ -58,12 +76,22 @@ function generateReportForNPMPackages() {
   );
 
   for (const package of packageInfo) {
-    const packageJson = require(`${package.location}/package.json`);
+    // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
+    // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
+    traverseDirs(package.location, collectBinarySize, 0, 1);
+  }
+
+  function collectBinarySize(path) {
+    const packageJsonPath = `${path}/package.json`;
+    if (!fs.existsSync(packageJsonPath)) {
+      return;
+    }
+
+    const packageJson = require(packageJsonPath);
 
     for (const field of fields) {
       if (packageJson[field]) {
-        const filePath = `${package.location}/${packageJson[field]}`;
-
+        const filePath = `${path}/${packageJson[field]}`;
         const rawCode = fs.readFileSync(filePath, 'utf-8');
 
         // remove comments and whitespaces, then get size
@@ -82,6 +110,22 @@ function generateReportForNPMPackages() {
   }
 
   return reports;
+}
+
+function traverseDirs(path, executor, level, levelLimit) {
+  if (level > levelLimit) {
+    return;
+  }
+
+  executor(path);
+
+  for (const name of fs.readdirSync(path)) {
+    const p = `${path}/${name}`;
+
+    if (fs.lstatSync(p).isDirectory()) {
+      traverseDirs(p, executor, level + 1, levelLimit);
+    }
+  }
 }
 
 function makeReportObject(sdk, type, value) {
