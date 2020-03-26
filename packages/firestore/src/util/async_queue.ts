@@ -17,7 +17,7 @@
 
 import { assert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { ERROR, log } from './log';
+import { logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 
 // Accept any return type from setTimeout().
@@ -287,7 +287,7 @@ export class AsyncQueue {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';
-          log(ERROR, 'INTERNAL UNHANDLED ERROR: ', message);
+          logError('INTERNAL UNHANDLED ERROR: ', message);
 
           // Escape the promise chain and throw the error globally so that
           // e.g. any global crash reporting library detects and reports it.

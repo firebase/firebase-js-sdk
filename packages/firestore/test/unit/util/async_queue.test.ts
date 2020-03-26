@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, setLogLevel, SILENT } from '../../../src/util/log';
+import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 describe('AsyncQueue', () => {
@@ -76,7 +76,7 @@ describe('AsyncQueue', () => {
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
-    setLogLevel(SILENT);
+    setLogLevel(LogLevel.SILENT);
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue

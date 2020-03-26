@@ -68,7 +68,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { DEBUG, ERROR, log, setLogLevel, SILENT } from '../util/log';
+import { logError, setLogLevel, LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
@@ -195,18 +195,13 @@ class FirestoreSettings {
     // Nobody should set timestampsInSnapshots anymore, but the error depends on
     // whether they set it to true or false...
     if (settings.timestampsInSnapshots === true) {
-      log(
-        ERROR,
-        `
+      logError(`
   The timestampsInSnapshots setting now defaults to true and you no
   longer need to explicitly set it. In a future release, the setting
   will be removed entirely and so it is recommended that you remove it
-  from your firestore.settings() call now.`
-      );
+  from your firestore.settings() call now.`);
     } else if (settings.timestampsInSnapshots === false) {
-      log(
-        ERROR,
-        `
+      logError(`
   The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
   YOUR CODE.
 
@@ -225,8 +220,7 @@ class FirestoreSettings {
   timestamp.toDate();
 
   Please audit all existing usages of Date when you enable the new
-  behavior.`
-      );
+  behavior.`);
     }
     this.timestampsInSnapshots = objUtils.defaulted(
       settings.timestampsInSnapshots,
@@ -397,8 +391,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
-        log(
-          ERROR,
+        logError(
           "The 'experimentalTabSynchronization' setting has been renamed to " +
             "'synchronizeTabs'. In a future release, the setting will be removed " +
             'and it is recommended that you update your ' +
@@ -662,13 +655,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
     switch (level) {
       case 'debug':
-        setLogLevel(DEBUG);
+        setLogLevel(LogLevel.DEBUG);
         break;
       case 'error':
-        setLogLevel(ERROR);
+        setLogLevel(LogLevel.ERROR);
         break;
       case 'silent':
-        setLogLevel(SILENT);
+        setLogLevel(LogLevel.SILENT);
         break;
       default:
         throw new FirestoreError(

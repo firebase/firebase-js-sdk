@@ -28,7 +28,7 @@ import {
 } from '../model/mutation_batch';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { log, DEBUG } from '../util/log';
+import { logDebug } from '../util/log';
 import * as objUtils from '../util/obj';
 
 import { DocumentKeySet } from '../model/collections';
@@ -138,8 +138,7 @@ export class RemoteStore implements TargetMetadataProvider {
     this.connectivityMonitor.addCallback((status: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
         if (this.canUseNetwork()) {
-          log(
-            DEBUG,
+          logDebug(
             LOG_TAG,
             'Restarting streams for network reachability change.'
           );
@@ -217,8 +216,7 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
-      log(
-        DEBUG,
+      logDebug(
         LOG_TAG,
         `Stopping write stream with ${this.writePipeline.length} pending writes`
       );
@@ -229,7 +227,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   async shutdown(): Promise<void> {
-    log(DEBUG, LOG_TAG, 'RemoteStore shutting down.');
+    logDebug(LOG_TAG, 'RemoteStore shutting down.');
     this.networkEnabled = false;
     await this.disableNetworkInternal();
     this.connectivityMonitor.shutdown();
@@ -662,8 +660,7 @@ export class RemoteStore implements TargetMetadataProvider {
     // no longer valid. Note that the handshake does not count as a write: see
     // comments on isPermanentWriteError for details.
     if (isPermanentError(error.code)) {
-      log(
-        DEBUG,
+      logDebug(
         LOG_TAG,
         'RemoteStore error before completed handshake; resetting stream token: ',
         this.writeStream.lastStreamToken
@@ -720,7 +717,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      log(DEBUG, LOG_TAG, 'RemoteStore restarting streams for new credential');
+      logDebug(LOG_TAG, 'RemoteStore restarting streams for new credential');
       await this.restartNetwork();
     }
   }

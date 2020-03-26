@@ -33,7 +33,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { DEBUG, log } from '../util/log';
+import { logDebug } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -324,7 +324,7 @@ export class FirestoreClient {
    * implementation is available in this.persistence.
    */
   private initializeRest(user: User): Promise<void> {
-    log(DEBUG, LOG_TAG, 'Initializing. user=', user.uid);
+    logDebug(LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -406,7 +406,7 @@ export class FirestoreClient {
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    log(DEBUG, LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
+    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
     return this.syncEngine.handleCredentialChange(user);
   }
 

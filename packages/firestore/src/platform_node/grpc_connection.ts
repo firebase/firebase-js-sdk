@@ -30,7 +30,7 @@ import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { DEBUG, ERROR, log } from '../util/log';
+import { logError, logDebug } from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 
@@ -91,7 +91,7 @@ export class GrpcConnection implements Connection {
 
   private ensureActiveStub(): GeneratedGrpcStub {
     if (!this.cachedStub) {
-      log(DEBUG, LOG_TAG, 'Creating Firestore stub.');
+      logDebug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
@@ -112,18 +112,13 @@ export class GrpcConnection implements Connection {
     const metadata = createMetadata(this.databaseInfo, token);
 
     return nodePromise((callback: NodeCallback<Resp>) => {
-      log(DEBUG, LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
+      logDebug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
       return stub[rpcName](
         request,
         metadata,
         (grpcError?: grpc.ServiceError, value?: Resp) => {
           if (grpcError) {
-            log(
-              DEBUG,
-              LOG_TAG,
-              `RPC '${rpcName}' failed with error:`,
-              grpcError
-            );
+            logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
             callback(
               new FirestoreError(
                 mapCodeFromRpcCode(grpcError.code),
@@ -131,8 +126,7 @@ export class GrpcConnection implements Connection {
               )
             );
           } else {
-            log(
-              DEBUG,
+            logDebug(
               LOG_TAG,
               `RPC '${rpcName}' completed with response:`,
               value
@@ -152,8 +146,7 @@ export class GrpcConnection implements Connection {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
 
-    log(
-      DEBUG,
+    logDebug(
       LOG_TAG,
       `RPC '${rpcName}' invoked (streaming) with request:`,
       request
@@ -162,15 +155,15 @@ export class GrpcConnection implements Connection {
     const metadata = createMetadata(this.databaseInfo, token);
     const stream = stub[rpcName](request, metadata);
     stream.on('data', (response: Resp) => {
-      log(DEBUG, LOG_TAG, `RPC ${rpcName} received result:`, response);
+      logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
     });
     stream.on('end', () => {
-      log(DEBUG, LOG_TAG, `RPC '${rpcName}' completed.`);
+      logDebug(LOG_TAG, `RPC '${rpcName}' completed.`);
       responseDeferred.resolve(results);
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
-      log(DEBUG, LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
+      logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
       const code = mapCodeFromRpcCode(grpcError.code);
       responseDeferred.reject(new FirestoreError(code, grpcError.message));
     });
@@ -199,46 +192,40 @@ export class GrpcConnection implements Connection {
     const stream = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
-          log(DEBUG, LOG_TAG, 'GRPC stream sending:', msg);
+          logDebug(LOG_TAG, 'GRPC stream sending:', msg);
           try {
             grpcStream.write(msg);
           } catch (e) {
             // This probably means we didn't conform to the proto.  Make sure to
             // log the message we sent.
-            log(ERROR, 'Failure sending:', msg);
-            log(ERROR, 'Error:', e);
+            logError('Failure sending:', msg);
+            logError('Error:', e);
             throw e;
           }
         } else {
-          log(
-            DEBUG,
-            LOG_TAG,
-            'Not sending because gRPC stream is closed:',
-            msg
-          );
+          logDebug(LOG_TAG, 'Not sending because gRPC stream is closed:', msg);
         }
       },
       closeFn: () => {
-        log(DEBUG, LOG_TAG, 'GRPC stream closed locally via close().');
+        logDebug(LOG_TAG, 'GRPC stream closed locally via close().');
         close();
       }
     });
 
     grpcStream.on('data', (msg: Resp) => {
       if (!closed) {
-        log(DEBUG, LOG_TAG, 'GRPC stream received:', msg);
+        logDebug(LOG_TAG, 'GRPC stream received:', msg);
         stream.callOnMessage(msg);
       }
     });
 
     grpcStream.on('end', () => {
-      log(DEBUG, LOG_TAG, 'GRPC stream ended.');
+      logDebug(LOG_TAG, 'GRPC stream ended.');
       close();
     });
 
     grpcStream.on('error', (grpcError: grpc.ServiceError) => {
-      log(
-        DEBUG,
+      logDebug(
         LOG_TAG,
         'GRPC stream error. Code:',
         grpcError.code,
@@ -249,7 +236,7 @@ export class GrpcConnection implements Connection {
       close(new FirestoreError(code, grpcError.message));
     });
 
-    log(DEBUG, LOG_TAG, 'Opening GRPC stream');
+    logDebug(LOG_TAG, 'Opening GRPC stream');
     // TODO(dimond): Since grpc has no explicit open status (or does it?) we
     // simulate an onOpen in the next loop after the stream had it's listeners
     // registered

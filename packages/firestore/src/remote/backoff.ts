@@ -16,7 +16,7 @@
  */
 
 import { AsyncQueue, TimerId } from '../util/async_queue';
-import { DEBUG, log } from '../util/log';
+import { logDebug } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 const LOG_TAG = 'ExponentialBackoff';
 
@@ -120,8 +120,7 @@ export class ExponentialBackoff {
     );
 
     if (this.currentBaseMs > 0) {
-      log(
-        DEBUG,
+      logDebug(
         LOG_TAG,
         `Backing off for ${remainingDelayMs} ms ` +
           `(base delay: ${this.currentBaseMs} ms, ` +

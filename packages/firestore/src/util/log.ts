@@ -19,9 +19,7 @@ import { Logger, LogLevel } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';
 
-export const DEBUG = LogLevel.DEBUG;
-export const ERROR = LogLevel.ERROR;
-export const SILENT = LogLevel.SILENT;
+export { LogLevel };
 
 const logClient = new Logger('@firebase/firestore');
 
@@ -34,8 +32,15 @@ export function setLogLevel(newLevel: LogLevel): void {
   logClient.logLevel = newLevel;
 }
 
-export function log(logLevel: LogLevel, msg: string, ...obj: unknown[]): void {
-  if (logClient.logLevel <= logLevel) {
+export function logDebug(msg: string, ...obj: unknown[]): void {
+  if (logClient.logLevel <= LogLevel.DEBUG) {
+    const args = obj.map(argToString);
+    logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+  }
+}
+
+export function logError(msg: string, ...obj: unknown[]): void {
+  if (logClient.logLevel <= LogLevel.ERROR) {
     const args = obj.map(argToString);
     logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
   }

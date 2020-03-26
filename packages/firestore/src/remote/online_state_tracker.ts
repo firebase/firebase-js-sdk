@@ -19,7 +19,7 @@ import { OnlineState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
-import { log, ERROR, DEBUG } from '../util/log';
+import { logError, logDebug } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
@@ -181,10 +181,10 @@ export class OnlineStateTracker {
       `Internet connection at the moment. The client will operate in offline ` +
       `mode until it is able to successfully connect to the backend.`;
     if (this.shouldWarnClientIsOffline) {
-      log(ERROR, message);
+      logError(message);
       this.shouldWarnClientIsOffline = false;
     } else {
-      log(DEBUG, LOG_TAG, message);
+      logDebug(LOG_TAG, message);
     }
   }
 

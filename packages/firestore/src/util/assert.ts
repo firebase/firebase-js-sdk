@@ -16,7 +16,7 @@
  */
 
 import { SDK_VERSION } from '../core/version';
-import { log, ERROR } from './log';
+import { logError } from './log';
 
 /**
  * Unconditionally fails, throwing an Error with the given message.
@@ -30,7 +30,7 @@ export function fail(failure: string): never {
   // exception is swallowed.
   const message =
     `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
-  log(ERROR, message);
+  logError(message);
 
   // NOTE: We don't use FirestoreError here because these are internal failures
   // that cannot be handled by the user. (Also it would create a circular
