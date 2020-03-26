@@ -98,5 +98,34 @@ describeSpec(
         .failDatabaseTransaction({ rejectedTargets: [query] })
         .expectEvents(query, { errorCode: Code.INTERNAL });
     });
+
+    specTest('Only fails targets that cannot be persisted', [], () => {
+      const query1 = Query.atPath(path('collection1'));
+      const query2 = Query.atPath(path('collection2'));
+      const doc1a = doc('collection1/keyA', 1, { foo: 'a' });
+      const doc2a = doc('collection2/keyA', 2, { foo: 'b' });
+      const doc1b = doc('collection1/keyB', 3, { foo: 'b' });
+      const doc2b = doc('collection2/keyB', 4, { foo: 'b' });
+      return spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1, doc1a)
+        .expectEvents(query1, {
+          added: [doc1a]
+        })
+        .userListens(query2)
+        .watchAcksFull(query2, 2, doc2a)
+        .expectEvents(query2, {
+          added: [doc2a]
+        })
+        .watchSends({ affects: [query1] }, doc1b)
+        .watchSnapshots(3)
+        .failDatabaseTransaction({ rejectedTargets: [query1] })
+        .expectEvents(query1, { errorCode: Code.INTERNAL })
+        .watchSends({ affects: [query2] }, doc2b)
+        .watchSnapshots(4)
+        .expectEvents(query2, {
+          added: [doc2b]
+        });
+    });
   }
 );

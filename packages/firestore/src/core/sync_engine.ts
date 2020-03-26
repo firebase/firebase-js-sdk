@@ -540,7 +540,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           /* keepPersistedTargetData */ false
         );
       } catch (error) {
-        await ignoreIfPrimaryLeaseLoss(error);
+        log.error(LOG_TAG, 'Failed to release target: ' + error.message);
       } finally {
         this.removeAndCleanupTarget(targetId, err);
       }
