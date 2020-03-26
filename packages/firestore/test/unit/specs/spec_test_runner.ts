@@ -405,7 +405,7 @@ abstract class TestRunner {
     q.canonicalId()
   );
 
-  private expectedLimboDocs: DocumentKey[];
+  private expectedActiveLimboDocs: DocumentKey[];
   private expectedInactiveLimboDocs: DocumentKey[];
   private expectedActiveTargets: {
     [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
@@ -458,7 +458,7 @@ abstract class TestRunner {
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
 
-    this.expectedLimboDocs = [];
+    this.expectedActiveLimboDocs = [];
     this.expectedInactiveLimboDocs = [];
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
@@ -508,13 +508,22 @@ abstract class TestRunner {
       remoteStoreOnlineStateChangedHandler,
       connectivityMonitor
     );
-    this.syncEngine = new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      this.user,
-      this.maxConcurrentLimboResolutions
-    );
+    if (this.maxConcurrentLimboResolutions) {
+      this.syncEngine = new SyncEngine(
+        this.localStore,
+        this.remoteStore,
+        this.sharedClientState,
+        this.user,
+        this.maxConcurrentLimboResolutions
+      );
+    } else {
+      this.syncEngine = new SyncEngine(
+        this.localStore,
+        this.remoteStore,
+        this.sharedClientState,
+        this.user
+      );
+    }
 
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
@@ -1041,8 +1050,8 @@ abstract class TestRunner {
           expectedState.watchStreamRequestCount
         );
       }
-      if ('limboDocs' in expectedState) {
-        this.expectedLimboDocs = expectedState.limboDocs!.map(key);
+      if ('activeLimboDocs' in expectedState) {
+        this.expectedActiveLimboDocs = expectedState.activeLimboDocs!.map(key);
       }
       if ('inactiveLimboDocs' in expectedState) {
         this.expectedInactiveLimboDocs = expectedState.inactiveLimboDocs!.map(
@@ -1112,7 +1121,7 @@ abstract class TestRunner {
           `(${targetIds.join(', ')})`
       );
     });
-    for (const expectedLimboDoc of this.expectedLimboDocs) {
+    for (const expectedLimboDoc of this.expectedActiveLimboDocs) {
       expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
         null,
         'Expected doc to be in limbo, but was not: ' +
@@ -1681,7 +1690,7 @@ export interface StateExpectation {
    * Current documents in limbo that have an active target.
    * Verified in each step until overwritten.
    */
-  limboDocs?: string[];
+  activeLimboDocs?: string[];
   /**
    * Current documents in limbo that do NOT have an active target.
    * Verified in each step until overwritten.

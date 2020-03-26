@@ -73,7 +73,6 @@ import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
-const DEFAULT_MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /**
  * QueryView contains all of the data that SyncEngine needs to keep track of for
@@ -149,15 +148,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     q.canonicalId()
   );
   private queriesByTarget: { [targetId: number]: Query[] } = {};
+  /** The keys of documents that are in limbo for which we haven't yet started a limbo resolution query. */
+  private limboListenQueue: DocumentKey[] = [];
+  /** Keeps track of the target ID for each document that is in limbo with an active target. */
   private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
+  /** Keeps track of the information about an active limbo resolution for each active target ID that was started for the purpose of limbo resolution. */
   private limboResolutionsByTarget: {
     [targetId: number]: LimboResolution;
   } = {};
-  private readonly maxConcurrentLimboResolutions: number = DEFAULT_MAX_CONCURRENT_LIMBO_RESOLUTIONS;
-  /** The keys of documents whose limbo resolutions are enqueued. */
-  private limboListenQueue: DocumentKey[] = [];
   private limboDocumentRefs = new ReferenceSet();
   /** Stores user completion handlers, indexed by User and BatchId. */
   private mutationUserCallbacks = {} as {
@@ -179,12 +179,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
     private currentUser: User,
-    maxConcurrentLimboResolutions?: number
-  ) {
-    if (maxConcurrentLimboResolutions) {
-      this.maxConcurrentLimboResolutions = maxConcurrentLimboResolutions;
-    }
-  }
+    private maxConcurrentLimboResolutions: number = 100
+  ) {}
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
@@ -495,7 +491,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // So go ahead and remove it from bookkeeping.
       this.limboTargetsByKey = this.limboTargetsByKey.remove(limboKey);
       delete this.limboResolutionsByTarget[targetId];
-      this.startEnqueuedLimboResolutions();
+      this.pumpLimboResolutionListenQueue();
 
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
@@ -750,7 +746,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.remoteStore.unlisten(limboTargetId);
     this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
     delete this.limboResolutionsByTarget[limboTargetId];
-    this.startEnqueuedLimboResolutions();
+    this.pumpLimboResolutionListenQueue();
   }
 
   private updateTrackedLimbos(
@@ -782,11 +778,30 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (!this.limboTargetsByKey.get(key)) {
       log.debug(LOG_TAG, 'New document in limbo: ' + key);
       this.limboListenQueue.push(key);
-      this.startEnqueuedLimboResolutions();
+      this.pumpLimboResolutionListenQueue();
     }
   }
 
-  private startEnqueuedLimboResolutions(): void {
+  /**
+   * Starts listens for documents in limbo that are enqueued for resolution.
+   *
+   * When a document goes into limbo it is enqueued for resolution. This method
+   * repeatedly removes entries from the limbo resolution queue and starts a
+   * listen for them until either (1) the queue is empty, meaning that all
+   * documents that were in limbo either have active listens or have been
+   * resolved, or (2) the maximum number of concurrent limbo resolution listens
+   * has been reached.
+   *
+   * This method is invoked every time an entry is added to the limbo
+   * resolution queue and every time that a limbo resolution listen completes
+   * (either successfully or unsuccessfully). This ensures that all documents in
+   * limbo are eventually resolved.
+   *
+   * A maximum number of concurrent limbo resolution listens was implemented to
+   * prevent an unbounded number of active limbo resolution listens that can
+   * exhaust server resources and result in "resource exhausted" errors.
+   */
+  private pumpLimboResolutionListenQueue(): void {
     while (
       this.limboListenQueue.length > 0 &&
       this.limboTargetsByKey.size < this.maxConcurrentLimboResolutions

@@ -358,7 +358,7 @@ export class SpecBuilder {
       enableNetwork: false,
       expectedState: {
         activeTargets: {},
-        limboDocs: [],
+        activeLimboDocs: [],
         inactiveLimboDocs: []
       }
     };
@@ -387,7 +387,7 @@ export class SpecBuilder {
       restart: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: [],
+        activeLimboDocs: [],
         inactiveLimboDocs: []
       }
     };
@@ -403,7 +403,7 @@ export class SpecBuilder {
       shutdown: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: [],
+        activeLimboDocs: [],
         inactiveLimboDocs: []
       }
     };
@@ -443,20 +443,6 @@ export class SpecBuilder {
    * limbo yet.
    */
   expectLimboDocs(...keys: DocumentKey[]): this {
-    return this.expectLimboDocsEx({ activeKeys: keys, inactiveKeys: [] });
-  }
-
-  /**
-   * Expects the documents with the given keys to be in limbo. All documents in
-   * the "activeKeys" list are expected to have an active target, and all
-   * documents in the "inactiveKeys" list are expected to not have an active
-   * target.  For the limbo resolutions that should be active, a targetId will
-   * be assigned if it hasn't already been assigned.
-   */
-  expectLimboDocsEx(limboDocs: {
-    activeKeys: DocumentKey[];
-    inactiveKeys: DocumentKey[];
-  }): this {
     this.assertStep('Limbo expectation requires previous step');
     const currentStep = this.currentStep!;
 
@@ -466,7 +452,7 @@ export class SpecBuilder {
       delete this.activeTargets[targetId];
     });
 
-    limboDocs.activeKeys.forEach(key => {
+    keys.forEach(key => {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
       if (!objUtils.contains(this.limboMapping, path)) {
@@ -481,15 +467,27 @@ export class SpecBuilder {
     });
 
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.limboDocs = limboDocs.activeKeys.map(k =>
+    currentStep.expectedState.activeLimboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
-    );
-    currentStep.expectedState.inactiveLimboDocs = limboDocs.inactiveKeys.map(
-      k => SpecBuilder.keyToSpec(k)
     );
     currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
+    return this;
+  }
+
+  /**
+   * Expects a document to be in limbo, but *without* a targetId.
+   */
+  expectInactiveLimboDocs(...keys: DocumentKey[]): this {
+    this.assertStep('Limbo expectation requires previous step');
+    const currentStep = this.currentStep!;
+
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.inactiveLimboDocs = keys.map(k =>
+      SpecBuilder.keyToSpec(k)
+    );
+
     return this;
   }
 
