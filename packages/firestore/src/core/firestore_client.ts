@@ -30,7 +30,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { AsyncQueue } from '../util/async_queue';
-import { Bundle, NamedBundleQuery } from '../util/bundle';
+import { Bundle} from '../util/bundle';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -60,6 +60,7 @@ import { Transaction } from './transaction';
 import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import { NamedQuery } from './named_query';
+import {NamedBundleQuery} from "../protos/firestore_bundle_proto";
 
 const LOG_TAG = 'FirestoreClient';
 

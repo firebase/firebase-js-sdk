@@ -20,7 +20,7 @@ import { Target } from '../core/target';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
+import {BundleMetadata, NamedBundleQuery} from "../protos/firestore_bundle_proto";
 
 /**
  * Represents named queries loaded via bundles.

@@ -440,17 +440,23 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
+  private buf2hex(buffer:ArrayBuffer) { // buffer is an ArrayBuffer
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+  }
+
   async loadBundle(
     bundleData: Uint8Array,
     deferred: Deferred<void>
   ): Promise<void> {
+    console.log(`SyncEngine sees ${this.buf2hex(bundleData.buffer.slice(0, 100))}`);
     const bundle = new Bundle(bundleData);
     const shouldLoadRest = await this.localStore.newerBundleExists(
       bundle.getBundleMetadata()
     );
 
     if (!shouldLoadRest) {
-      return Promise.resolve();
+      deferred.resolve();
+      return;
     }
 
     const changes = await this.localStore.applyBundleDocuments(

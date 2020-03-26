@@ -64,15 +64,14 @@ import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/proto_byte_string';
 import { NamedQueryCache } from './named_query_cache';
-import {
-  BundledDocumentMetadata,
-  BundleMetadata,
-  NamedBundleQuery
-} from '../util/bundle';
 import * as api from '../protos/firestore_proto_api';
 import { LocalSerializer } from './local_serializer';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { IndexedDbPersistence } from './indexeddb_persistence';
+import {
+  BundledDocumentMetadata, BundleMetadata,
+  NamedBundleQuery
+} from "../protos/firestore_bundle_proto";
 
 const LOG_TAG = 'LocalStore';
 

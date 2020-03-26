@@ -17,9 +17,9 @@
 
 import { LimitType, Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
-import { NamedBundleQuery } from '../util/bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Timestamp } from '../api/timestamp';
+import {NamedBundleQuery} from "../protos/firestore_bundle_proto";
 
 export class NamedQuery {
   static from(

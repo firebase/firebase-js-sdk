@@ -19,7 +19,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
+import {BundleMetadata, NamedBundleQuery} from "../protos/firestore_bundle_proto";
 
 export class MemoryNamedQueryCache implements NamedQueryCache {
   clear(

@@ -1311,6 +1311,7 @@ apiDescribe('Database', (persistence: boolean) => {
           });
         });
 
+        /*
         const nq: Query | null = await db.namedQuery(
           'my-bundle',
           'restaurants'
@@ -1321,6 +1322,7 @@ apiDescribe('Database', (persistence: boolean) => {
         snap.docs.forEach(value => {
           console.log(`snap: ${value.data()['city']}`);
         });
+         */
       });
     });
 

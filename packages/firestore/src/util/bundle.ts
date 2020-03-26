@@ -16,6 +16,11 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
+import {
+  BundledDocumentMetadata,
+  BundleMetadata,
+  NamedBundleQuery
+} from "../protos/firestore_bundle_proto";
 
 // Provides a high level API to read bundles.
 export class Bundle {
@@ -86,47 +91,13 @@ export class Bundle {
   }
 }
 
-interface Timestamp {
-  /** Timestamp seconds */
-  seconds?: number | null;
-
-  /** Timestamp nanos */
-  nanos?: number | null;
-}
-
-export interface BundleMetadata {
-  /** BundleMetadata name */
-  name?: string | null;
-
-  /** BundleMetadata createTime */
-  createTime?: Timestamp | null;
-}
-
-export interface NamedBundleQuery {
-  /** NamedBundleQuery name */
-  name?: string | null;
-
-  /** NamedBundleQuery queryTarget */
-  queryTarget?: api.QueryTarget | null;
-
-  /** NamedBundleQuery readTime */
-  readTime?: Timestamp | null;
-}
-
-/** Properties of a BundledDocumentMetadata. */
-export interface BundledDocumentMetadata {
-  /** BundledDocumentMetadata documentKey */
-  documentKey?: string | null;
-
-  /** BundledDocumentMetadata readTime */
-  readTime?: Timestamp | null;
-}
-
 class BundleElementCursor {
   private readFrom = 0;
   private textDecoder = new TextDecoder('utf-8');
 
-  constructor(private data: ArrayBuffer) {}
+  constructor(private data: ArrayBuffer) {
+    console.log(`Read buffer ${this.buf2hex(data.slice(0, 100))}`);
+  }
 
   // Returns a Blob representing the next bundle element.
   public readElement(): ArrayBuffer {
@@ -157,7 +128,8 @@ class BundleElementCursor {
     const stringValue = this.textDecoder.decode(
       new DataView(this.readElement())
     );
-    return JSON.parse(stringValue).documentMetadata || null;
+    // TODO: Why is this required??
+    return JSON.parse(stringValue)["documentMetadata"] || null;
   }
 
   public readAsDocument(): api.Document | null {
@@ -170,6 +142,10 @@ class BundleElementCursor {
   public next(): void {
     const length = this.readLength();
     this.readFrom = this.readFrom + 4 + length;
+  }
+
+  private buf2hex(buffer:ArrayBuffer) { // buffer is an ArrayBuffer
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
   }
 
   private readLength(): number {

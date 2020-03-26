@@ -30,10 +30,13 @@ import {
 } from './indexeddb_schema';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { Timestamp } from '../api/timestamp';
-import { BundleMetadata, NamedBundleQuery } from '../util/bundle';
 import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
 import { immediateSuccessor } from '../util/misc';
+import {
+  BundleMetadata,
+  NamedBundleQuery
+} from "../protos/firestore_bundle_proto";
 
 export class IndexedDbNamedQueryCache implements NamedQueryCache {
   clear(
@@ -86,12 +89,13 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
     return namedQueryStore(transaction)
       .get([bundleId, queryName])
       .next(q => {
-        console.log(`from cache read query: ${JSON.stringify(q)}`);
+        console.log(`Read DbNamedQuery: ${JSON.stringify(q)}`);
         result = {
           queryTarget: q?.query! as QueryTarget,
           name: queryName,
           readTime: q?.queryReadTime!
         };
+        console.log(`NamedBundleQuery is : ${JSON.stringify(result)}`);
       })
       .next(() => result);
   }
@@ -102,7 +106,7 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
     queryName: string,
     query: NamedBundleQuery
   ): PersistencePromise<void> {
-    const toAdd = {
+    let toAdd = {
       bundleId: bundleMetadata.name as string,
       bundleCreateTime: new DbTimestamp(
         bundleMetadata.createTime?.seconds!,
@@ -115,7 +119,8 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
         query.readTime?.nanos!
       )
     };
-    console.log(`setting named query ${JSON.stringify(query)}`);
+    toAdd.query = (query.queryTarget as QueryTarget);
+    console.log(`Saving db named query ${JSON.stringify(toAdd)}`);
     return namedQueryStore(transaction)
       .add(toAdd)
       .next(k => {
