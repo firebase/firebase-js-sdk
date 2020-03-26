@@ -23,6 +23,7 @@ import { authCredentialFromTokenResponse } from './auth_credential';
 import { User } from '../../model/user';
 import { verifyTokenResponseUid } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { callApiWithMfaContext } from '../mfa/error_processor';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -58,10 +59,9 @@ export async function signIn(params: IdpTaskParams): Promise<UserCredential> {
   const request = paramsToRequest(params);
   const auth = params.auth;
 
-  const response = await signInWithIdp(auth, request);
+  const response = await callApiWithMfaContext(() => signInWithIdp(auth, request), OperationType.SIGN_IN);
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   const credential = authCredentialFromTokenResponse(response);
-  auth.updateCurrentUser(user);
   return new UserCredential(user, credential, OperationType.SIGN_IN);
 }
 
@@ -75,7 +75,7 @@ export async function reauth(params: IdpTaskParams): Promise<UserCredential> {
   }
   const request = paramsToRequest(params);
 
-  const requestPromise = signInWithIdp(auth, request);
+  const requestPromise = callApiWithMfaContext(() => signInWithIdp(auth, request), OperationType.REAUTHENTICATE, user);
   const idTokenResponse = await verifyTokenResponseUid(
     requestPromise,
     user.uid,
@@ -99,7 +99,7 @@ export async function link(params: IdpTaskParams): Promise<UserCredential> {
   const request = paramsToRequest(params);
   request.idToken = await user.getIdToken();
 
-  const idTokenResponse = await signInWithIdp(auth, request);
+  const idTokenResponse = await callApiWithMfaContext(() => signInWithIdp(auth, request), OperationType.LINK, user);
   user.stsTokenManager.updateFromServerResponse(idTokenResponse);
   const cred = authCredentialFromTokenResponse(idTokenResponse);
   const userCred = new UserCredential(user, cred, OperationType.LINK);

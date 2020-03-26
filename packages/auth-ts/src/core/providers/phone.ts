@@ -20,13 +20,15 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { Auth } from '../../model/auth';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { MultiFactorSession, MultiFactorSessionType } from '../../model/multi_factor';
+import { MultiFactorSession, MultiFactorSessionType, MultiFactorInfo } from '../../model/multi_factor';
 import { initializeAuth } from '../initialize_auth';
 import {
   sendPhoneVerificationCode,
   signInWithPhoneNumber,
   linkWithPhoneNumber,
-  verifyPhoneNumberForExisting
+  verifyPhoneNumberForExisting,
+  StartPhoneMfaSignInRequest,
+  startSignInPhoneMfa
 } from '../../api/authentication';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha_verifier';
 import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
@@ -36,6 +38,7 @@ import { StartPhoneMfaEnrollmentRequest, startEnrollPhoneMfa } from '../../api/a
 export interface PhoneInfoOptions {
   phoneNumber: string,
   session?: MultiFactorSession,
+  multiFactorHint?: MultiFactorInfo,
 }
 
 export class PhoneAuthProvider implements AuthProvider {
@@ -92,11 +95,13 @@ export class PhoneAuthProvider implements AuthProvider {
     try {
       let phoneNumber: string;
       let session: MultiFactorSession | undefined;
+      let multiFactorHint: MultiFactorInfo | undefined;
       if (typeof options === 'string') {
         phoneNumber = options
       } else {
         phoneNumber = options.phoneNumber;
         session = options.session;
+        multiFactorHint = options.multiFactorHint;
       }
       
       // Try MFA methods first
@@ -107,9 +112,22 @@ export class PhoneAuthProvider implements AuthProvider {
             phoneNumber,
             recaptchaToken,
           }
-        }
+        };
 
         return (await startEnrollPhoneMfa(this.auth, request)).phoneSessionInfo.sessionInfo;
+      } else if (session?.type === MultiFactorSessionType.SIGN_IN) {
+        if (!multiFactorHint) {
+          throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {appName: this.auth.name});
+        }
+
+        const request: StartPhoneMfaSignInRequest = {
+          mfaPendingCredential: session.rawSession,
+          mfaEnrollmentId: multiFactorHint.uid,
+          phoneSignInInfo: {
+            recaptchaToken,
+          },
+        };
+        return (await startSignInPhoneMfa(this.auth, request)).phoneResponseInfo.sessionInfo;
       }
 
       // If we're here, it's simple good old-fashioned phone sign in

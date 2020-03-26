@@ -17,7 +17,7 @@
 
 import { Auth } from '../model/auth';
 import { IdToken, IdTokenResponse } from '../model/id_token';
-import { performApiRequest, Endpoint, HttpMethod } from '.';
+import { performApiRequest, Endpoint, HttpMethod, performSignInRequest } from '.';
 import { ServerErrorMap, ServerError } from './errors';
 import { AuthErrorCode } from '../core/errors';
 
@@ -57,7 +57,7 @@ export async function signUp(
   auth: Auth,
   request: SignUpRequest
 ): Promise<SignUpResponse> {
-  return performApiRequest<SignUpRequest, SignUpResponse>(
+  return performSignInRequest<SignUpRequest, SignUpResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_UP,
@@ -75,7 +75,7 @@ export async function signInWithCustomToken(
   auth: Auth,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
-  return performApiRequest<
+  return performSignInRequest<
     SignInWithCustomTokenRequest,
     SignInWithCustomTokenResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, request);
@@ -96,7 +96,7 @@ export async function signInWithPassword(
   auth: Auth,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
-  return performApiRequest<
+  return performSignInRequest<
     SignInWithPasswordRequest,
     SignInWithPasswordResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
@@ -173,7 +173,7 @@ export async function signInWithEmailLink(
   auth: Auth,
   request: SignInWithEmailLinkRequest
 ): Promise<SignInWithEmailLinkResponse> {
-  return performApiRequest<
+  return performSignInRequest<
     SignInWithEmailLinkRequest,
     SignInWithEmailLinkResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
@@ -222,7 +222,7 @@ export async function signInWithIdp(
   auth: Auth,
   request: SignInWithIdpRequest
 ): Promise<SignInWithIdpResponse> {
-  return performApiRequest<SignInWithIdpRequest, SignInWithIdpResponse>(
+  return performSignInRequest<SignInWithIdpRequest, SignInWithIdpResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_IDP,
@@ -267,7 +267,7 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performApiRequest<
+  return performSignInRequest<
     SignInWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
@@ -277,7 +277,7 @@ export async function linkWithPhoneNumber(
   auth: Auth,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performApiRequest<
+  return performSignInRequest<
     LinkWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
@@ -302,7 +302,7 @@ export async function verifyPhoneNumberForExisting(
     ...request,
     operation: 'REAUTH'
   };
-  return performApiRequest<
+  return performSignInRequest<
     VerifyPhoneNumberForExistingRequest,
     SignInWithPhoneNumberResponse
   >(
@@ -311,6 +311,51 @@ export async function verifyPhoneNumberForExisting(
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
     apiRequest,
     VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_
+  );
+}
+
+export interface StartPhoneMfaSignInRequest {
+  mfaPendingCredential: string;
+  mfaEnrollmentId: string;
+  phoneSignInInfo: {
+    recaptchaToken: string;
+  };
+}
+
+export interface StartPhoneMfaSignInResponse {
+  phoneResponseInfo: {
+    sessionInfo: string;
+  };
+}
+
+export function startSignInPhoneMfa(
+  auth: Auth,
+  request: StartPhoneMfaSignInRequest
+): Promise<StartPhoneMfaSignInResponse> {
+  return performApiRequest<StartPhoneMfaSignInRequest, StartPhoneMfaSignInResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_PHONE_MFA_SIGN_IN,
+    request
+  );
+}
+
+export interface FinalizePhoneMfaSignInRequest {
+  mfaPendingCredential: string;
+  phoneVerificationInfo: SignInWithPhoneNumberRequest,
+}
+
+export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse{}
+
+export function finalizeSignInPhoneMfa(
+  auth: Auth,
+  request: FinalizePhoneMfaSignInRequest
+): Promise<FinalizePhoneMfaSignInResponse> {
+  return performApiRequest<FinalizePhoneMfaSignInRequest, FinalizePhoneMfaSignInResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
+    request
   );
 }
 

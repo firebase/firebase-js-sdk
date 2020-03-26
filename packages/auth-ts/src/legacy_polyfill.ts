@@ -95,6 +95,8 @@ import { signInWithCustomToken } from './core/strategies/custom_token';
 import { PhoneMultiFactorGenerator } from './core/mfa/multi_factor_assertion';
 import { MultiFactorAssertion, MultiFactorInfo } from './model/multi_factor';
 import { multiFactor } from './core/mfa/multi_factor';
+import { AuthErrorCode } from './core/errors';
+import { getMultiFactorResolver } from './core/mfa/multi_factor_resolver';
 
 interface FirebaseAuth extends Auth {}
 interface UserCredential {
@@ -154,6 +156,19 @@ firebaseApp.auth = function() {
       browserLocalPersistence
     ]
   });
+
+  async function catchMfaErr<T>(cb: () => Promise<T>): Promise<T> {
+    try {
+      return await cb();
+    } catch (e) {
+      if (e.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
+        e.resolver = getMultiFactorResolver(auth, e);
+      }
+  
+      throw e;
+    }
+  }
+
   // TODO: maybe try not to race condition? how about that
   auth.onAuthStateChanged((user: User | null) => {
     if (user) {
@@ -179,7 +194,7 @@ firebaseApp.auth = function() {
         reauthenticateWithCredential(
           credential: AuthCredential
         ): Promise<UserCredential> {
-          return reauthenticateWithCredential(auth, user, credential);
+          return catchMfaErr(() => reauthenticateWithCredential(auth, user, credential));
         },
         reauthenticateWithPhoneNumber(
           number: string,
@@ -191,7 +206,7 @@ firebaseApp.auth = function() {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return reauthenticateWithRedirect(auth, user, provider, resolver);
+          return catchMfaErr(() => reauthenticateWithRedirect(auth, user, provider, resolver));
         },
         reauthenticateWithPopup(
           provider: OAuthProvider
@@ -199,7 +214,7 @@ firebaseApp.auth = function() {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return reauthenticateWithPopup(auth, user, provider, resolver);
+          return catchMfaErr(() => reauthenticateWithPopup(auth, user, provider, resolver));
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
@@ -279,7 +294,7 @@ firebaseApp.auth = function() {
         ? cordovaPopupRedirectResolver
         : browserPopupRedirectResolver;
 
-      const result = await resolver.getRedirectResult(auth);
+      const result = await catchMfaErr(() => resolver.getRedirectResult(auth));
       if (!result) {
         return { user: null, credential: null, operationType: null };
       }
@@ -304,7 +319,7 @@ firebaseApp.auth = function() {
       return signInAnonymously(auth);
     },
     signInWithCredential(credential: AuthCredential): Promise<UserCredential> {
-      return signInWithCredential(auth, credential);
+      return catchMfaErr(() => signInWithCredential(auth, credential));
     },
     createUserWithEmailAndPassword(
       email: string,
@@ -316,16 +331,16 @@ firebaseApp.auth = function() {
       email: string,
       password: string
     ): Promise<UserCredential> {
-      return signInWithEmailAndPassword(auth, email, password);
+      return catchMfaErr(() => signInWithEmailAndPassword(auth, email, password));
     },
     signInWithCustomToken(token: string): Promise<UserCredential> {
-      return signInWithCustomToken(auth, token);
+      return catchMfaErr(() => signInWithCustomToken(auth, token));
     },
     signInWithEmailLink(
       email: string,
       emailLink?: string
     ): Promise<UserCredential> {
-      return signInWithEmailLink(auth, email, emailLink);
+      return catchMfaErr(() => signInWithEmailLink(auth, email, emailLink));
     },
     signInWithRedirect(provider: OAuthProvider): Promise<never> {
       return signInWithRedirect(
@@ -337,13 +352,13 @@ firebaseApp.auth = function() {
       );
     },
     signInWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
-      return signInWithPopup(
+      return catchMfaErr(() => signInWithPopup(
         auth,
         provider,
         isMobileCordova()
           ? cordovaPopupRedirectResolver
           : browserPopupRedirectResolver
-      );
+      ));
     },
     signInWithPhoneNumber(
       phoneNumber: string,

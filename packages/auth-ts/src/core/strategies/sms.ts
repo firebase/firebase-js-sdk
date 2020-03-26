@@ -27,8 +27,6 @@ import {
 import { User } from '../../model/user';
 import { checkIfAlreadyLinked } from '.';
 import { ProviderId } from '../providers';
-import { verifyPhoneNumberForExisting } from '../../api/authentication';
-import { verifyTokenResponseUid } from '../../model/id_token';
 
 export async function signInWithPhoneNumber(
   auth: Auth,

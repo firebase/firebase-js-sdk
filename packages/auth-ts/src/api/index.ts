@@ -51,7 +51,9 @@ export enum Endpoint {
   GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
   START_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
   FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
-}
+  START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
+  FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
+};
 
 export async function performApiRequest<T, V>(
   auth: Auth,

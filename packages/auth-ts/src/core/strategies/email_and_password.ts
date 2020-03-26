@@ -29,6 +29,7 @@ import { signInWithCredential } from './auth_credential';
 import { resetPassword } from '../../api/account_management';
 import { ActionCodeInfo } from '../../model/action_code_info';
 import { checkActionCode } from './action_code';
+import { callApiWithMfaContext } from '../mfa/error_processor';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -53,10 +54,12 @@ export async function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  return signInWithCredential(
-    auth,
-    EmailAuthProvider.credential(email, password)
-  );
+  return callApiWithMfaContext(() => {
+    return signInWithCredential(
+      auth,
+      EmailAuthProvider.credential(email, password)
+    );
+  }, OperationType.SIGN_IN);
 }
 
 export async function sendEmailVerification(

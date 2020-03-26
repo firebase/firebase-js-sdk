@@ -17,11 +17,10 @@
 
 import { Auth } from '../../model/auth';
 import { User, UserInfo } from '../../model/user';
-import { getAccountInfo, ProviderUserInfo, APIUserInfo } from '../../api/account_management';
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Mutable } from '../util/mutable';
-import { MultiFactorInfo } from '../../model/multi_factor';
-import { ProviderId } from '../providers';
+import { extractMfaInfo } from '../../model/multi_factor';
 
 export async function reloadWithoutSaving(
   auth: Auth,
@@ -49,7 +48,7 @@ export async function reloadWithoutSaving(
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
-    mfaInfo_: extractMfaInfo(coreAccount),
+    mfaInfo_: coreAccount.mfaInfo ? extractMfaInfo(coreAccount.mfaInfo) : undefined,
     metadata: {
       creationTime: coreAccount.createdAt?.toString(),
       lastSignInTime: coreAccount.lastLoginAt?.toString()
@@ -73,23 +72,6 @@ function mergeProviderData(
     o => !newData.some(n => n.providerId == o.providerId)
   );
   return [...deduped, ...newData];
-}
-
-function extractMfaInfo(userInfo: APIUserInfo): MultiFactorInfo[]|undefined {
-  // For now, only phone is supported
-  const factorId = ProviderId.PHONE;
-
-  return userInfo.mfaInfo?.map(ifo => {
-    const enrollmentTime = ifo.enrolledAt ? 
-        new Date(ifo.enrolledAt).toUTCString() : null;
-    return {
-      phoneNumber: ifo.phoneInfo,
-      uid: ifo.mfaEnrollmentId!,
-      enrollmentTime,
-      displayName: ifo.displayName,
-      factorId,
-    };
-  });
 }
 
 function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {

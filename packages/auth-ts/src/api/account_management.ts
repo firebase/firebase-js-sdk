@@ -18,8 +18,7 @@
 import { Auth } from '..';
 import { performApiRequest, HttpMethod, Endpoint } from '.';
 import { Operation } from '../model/action_code_info';
-import { IdTokenResponse } from '../model/id_token';
-import { MultiFactorInfo } from '../model/multi_factor';
+import { IdTokenResponse, APIMFAInfo } from '../model/id_token';
 import { SignInWithPhoneNumberRequest } from './authentication';
 
 export interface ResetPasswordRequest {
@@ -133,12 +132,7 @@ export interface APIUserInfo {
   tenantId?: string;
   passwordHash?: string;
   providerUserInfo: ProviderUserInfo[];
-  mfaInfo?: Array<{
-    phoneInfo?: string;
-    mfaEnrollmentId?: string;
-    displayName?: string;
-    enrolledAt?: number;
-  }>;
+  mfaInfo?: APIMFAInfo[];
 }
 
 export interface ProviderUserInfo {

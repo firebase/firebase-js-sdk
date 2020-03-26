@@ -21,6 +21,7 @@ import { PhoneAuthCredential } from '../providers/phone';
 import { enrollPhoneMfa } from '../../api/account_management';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { finalizeSignInPhoneMfa } from '../../api/authentication';
 
 abstract class AbstractMultiFactorAssertion implements MultiFactorAssertion {
   constructor(readonly factorId: ProviderId, readonly auth: Auth) {}
@@ -66,7 +67,8 @@ export class PhoneMultiFactorAssertion extends AbstractMultiFactorAssertion {
   }
 
   finalizeSignIn(request: SignInRequestInfo): Promise<IdTokenResponse> {
-    throw new Error('not implemented');
+    const phoneVerificationInfo = this.credential.makeVerificationRequest();
+    return finalizeSignInPhoneMfa(this.auth, {...request, phoneVerificationInfo});
   }
 }
 

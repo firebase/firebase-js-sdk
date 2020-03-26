@@ -37,12 +37,13 @@ import { TwitterAuthProvider } from '../providers/twitter';
 import { SAML_PROVIDER_PREFIX, SAMLAuthProvider } from '../providers/saml';
 import { GenericOAuthCredential } from '../providers/oauth_credential';
 import { OAuthProvider } from '../providers/oauth';
+import { callApiWithMfaContext } from '../mfa/error_processor';
 
 export async function signInWithCredential(
   auth: Auth,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  const response: IdTokenResponse = await credential.getIdTokenResponse_(auth);
+  const response = await callApiWithMfaContext(() => credential.getIdTokenResponse_(auth), OperationType.SIGN_IN);
   const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   return new UserCredential(user, credential, OperationType.SIGN_IN);
 }
@@ -54,7 +55,8 @@ export async function linkWithCredential(
 ): Promise<UserCredential> {
   await checkIfAlreadyLinked(auth, user, credential.providerId);
   const token = await user.getIdToken();
-  const response = await credential.linkToIdToken_(auth, token);
+
+  const response = await callApiWithMfaContext(() => credential.linkToIdToken_(auth, token), OperationType.LINK, user);
   const newCred = authCredentialFromTokenResponse(response);
   user.stsTokenManager.updateFromServerResponse(response);
   await user.reload(auth);
@@ -133,7 +135,8 @@ export async function reauthenticateWithCredential(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  const idTokenResponse = await credential.matchIdTokenWithUid_(auth, user.uid);
+  const idTokenResponse = await callApiWithMfaContext(() => credential.matchIdTokenWithUid_(auth, user.uid), OperationType.REAUTHENTICATE, user);
+
   user.stsTokenManager.updateFromServerResponse(idTokenResponse);
   const newCred = authCredentialFromTokenResponse(idTokenResponse);
   const userCred = new UserCredential(

@@ -16,9 +16,10 @@
  */
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
-import { AuthCredential } from './auth_credential';
-import { IdTokenResponse } from './id_token';
+import { IdTokenResponse, APIMFAInfo } from './id_token';
 import { Auth } from './auth';
+import { UserCredential } from './user_credential';
+import { ProviderId } from '../core/providers';
 
 export enum MultiFactorSessionType {
   ENROLL = 'enroll',
@@ -62,6 +63,13 @@ export interface MultiFactorUser {
   unenroll(option: MultiFactorInfo|string): Promise<void>;
 }
 
+export interface MultiFactorResolver {
+  readonly auth: Auth;
+  readonly session: MultiFactorSession;
+  readonly hints: MultiFactorInfo[];
+  resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
+}
+
 export class MultiFactorSession {
   readonly type: MultiFactorSessionType;
 
@@ -89,4 +97,21 @@ export class MultiFactorSession {
     // Based on checks in the constructor we know it's safe to assert this
     return (this.idToken ? this.idToken : this.mfaPendingCredential)!;
   }
+}
+
+export function extractMfaInfo(mfaInfo: APIMFAInfo[]): MultiFactorInfo[] {
+  // For now, only phone is supported
+  const factorId = ProviderId.PHONE;
+
+  return mfaInfo.map(ifo => {
+    const enrollmentTime = ifo.enrolledAt ? 
+        new Date(ifo.enrolledAt).toUTCString() : null;
+    return {
+      phoneNumber: ifo.phoneInfo,
+      uid: ifo.mfaEnrollmentId!,
+      enrollmentTime,
+      displayName: ifo.displayName,
+      factorId,
+    };
+  });
 }

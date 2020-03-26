@@ -130,7 +130,14 @@ export interface IdTokenResponse {
 
   // MFA-specific fields
   mfaPendingCredential?: string;
-  mfaInfo?: MultiFactorInfo[];
+  mfaInfo?: APIMFAInfo[];
+}
+
+export interface APIMFAInfo {
+  phoneInfo?: string;
+  mfaEnrollmentId?: string;
+  displayName?: string;
+  enrolledAt?: number;
 }
 
 export async function verifyTokenResponseUid(
