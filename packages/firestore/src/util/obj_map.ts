@@ -16,7 +16,7 @@
  */
 
 import { Equatable } from './misc';
-import * as objUtil from './obj';
+import { forEach, isEmpty } from './obj';
 
 type Entry<K, V> = [K, V];
 
@@ -98,7 +98,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   }
 
   forEach(fn: (key: KeyType, val: ValueType) => void): void {
-    objUtil.forEach(this.inner, (_, entries) => {
+    forEach(this.inner, (_, entries) => {
       for (const [k, v] of entries) {
         fn(k, v);
       }
@@ -106,6 +106,6 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   }
 
   isEmpty(): boolean {
-    return objUtil.isEmpty(this.inner);
+    return isEmpty(this.inner);
   }
 }

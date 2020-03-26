@@ -30,7 +30,7 @@ import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug, error } from '../util/log';
-import * as objUtils from '../util/obj';
+import { forEach } from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import {
@@ -612,7 +612,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   getAllActiveQueryTargets(): TargetIdSet {
     let activeTargets = targetIdSet();
-    objUtils.forEach(this.activeClients, (key, value) => {
+    forEach(this.activeClients, (key, value) => {
       activeTargets = activeTargets.unionWith(value.activeTargetIds);
     });
     return activeTargets;

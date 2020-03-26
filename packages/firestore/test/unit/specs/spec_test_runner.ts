@@ -86,7 +86,7 @@ import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
-import * as obj from '../../../src/util/obj';
+import { forEach, size } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
@@ -408,9 +408,10 @@ abstract class TestRunner {
   );
 
   private expectedLimboDocs: DocumentKey[];
-  private expectedActiveTargets: {
-    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
-  };
+  private expectedActiveTargets: Map<
+    TargetId,
+    { queries: SpecQuery[]; resumeToken: string }
+  >;
 
   private networkEnabled = true;
 
@@ -458,7 +459,10 @@ abstract class TestRunner {
     this.numClients = config.numClients;
 
     this.expectedLimboDocs = [];
-    this.expectedActiveTargets = {};
+    this.expectedActiveTargets = new Map<
+      TargetId,
+      { queries: SpecQuery[]; resumeToken: string }
+    >();
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
     this.snapshotsInSyncListeners = [];
@@ -1042,7 +1046,10 @@ abstract class TestRunner {
         this.expectedLimboDocs = expectedState.limboDocs!.map(key);
       }
       if ('activeTargets' in expectedState) {
-        this.expectedActiveTargets = expectedState.activeTargets!;
+        this.expectedActiveTargets.clear();
+        forEach(expectedState.activeTargets!, (key, value) => {
+          this.expectedActiveTargets.set(Number(key), value);
+        });
       }
       if ('isPrimary' in expectedState) {
         expect(this.isPrimaryClient).to.eq(
@@ -1094,9 +1101,10 @@ abstract class TestRunner {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
-      const targetIds: number[] = [];
-      obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
-      expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
+      const targetIds = new Array(this.expectedActiveTargets.keys()).map(
+        n => '' + n
+      );
+      expect(this.expectedActiveTargets.has(targetId)).to.equal(
         true,
         `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
           `expected active target IDs (${targetIds.join(', ')})`
@@ -1128,15 +1136,15 @@ abstract class TestRunner {
 
     // TODO(mrschmidt): Refactor so this is only executed after primary tab
     // change
-    if (!obj.isEmpty(this.expectedActiveTargets)) {
+    if (this.expectedActiveTargets.size > 0) {
       await this.connection.waitForWatchOpen();
       await this.queue.drain();
     }
 
-    const actualTargets = obj.shallowCopy(this.connection.activeTargets);
-    obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
-      expect(obj.contains(actualTargets, targetId)).to.equal(
-        true,
+    const actualTargets = { ...this.connection.activeTargets };
+    this.expectedActiveTargets.forEach((expected, targetId) => {
+      expect(actualTargets[targetId]).to.not.equal(
+        undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
       const actualTarget = actualTargets[targetId];
@@ -1161,7 +1169,7 @@ abstract class TestRunner {
       expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
       delete actualTargets[targetId];
     });
-    expect(obj.size(actualTargets)).to.equal(
+    expect(size(actualTargets)).to.equal(
       0,
       'Unexpected active targets: ' + JSON.stringify(actualTargets)
     );

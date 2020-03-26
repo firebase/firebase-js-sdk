@@ -41,7 +41,7 @@ export class RemoteEvent {
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    readonly targetChanges: { [targetId: number]: TargetChange },
+    readonly targetChanges: Map<TargetId, TargetChange>,
     /**
      * A set of targets that is known to be inconsistent. Listens for these
      * targets should be re-established without resume tokens.
@@ -69,12 +69,14 @@ export class RemoteEvent {
     targetId: TargetId,
     current: boolean
   ): RemoteEvent {
-    const targetChanges = {
-      [targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
+    const targetChanges = new Map<TargetId, TargetChange>();
+    targetChanges.set(
+      targetId,
+      TargetChange.createSynthesizedTargetChangeForCurrentChange(
         targetId,
         current
       )
-    };
+    );
     return new RemoteEvent(
       SnapshotVersion.MIN,
       targetChanges,

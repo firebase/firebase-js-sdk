@@ -34,7 +34,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
-import * as objUtils from '../../../src/util/obj';
+import { forEach } from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
 
@@ -232,7 +232,7 @@ export class SpecBuilder {
     this.addQueryToActiveTargets(targetId, query, resumeToken);
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -252,9 +252,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -274,7 +272,7 @@ export class SpecBuilder {
 
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -426,9 +424,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
     });
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -442,14 +438,14 @@ export class SpecBuilder {
 
     // Clear any preexisting limbo watch targets, which we'll re-create as
     // necessary from the provided keys below.
-    objUtils.forEach(this.limboMapping, (key, targetId) => {
+    forEach(this.limboMapping, (key, targetId) => {
       delete this.activeTargets[targetId];
     });
 
     keys.forEach(key => {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
-      if (!objUtils.contains(this.limboMapping, path)) {
+      if (!this.limboMapping[path]) {
         this.limboMapping[path] = this.limboIdGenerator.next();
       }
       // Limbo doc queries are always without resume token
@@ -464,9 +460,7 @@ export class SpecBuilder {
     currentStep.expectedState.limboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -593,7 +587,7 @@ export class SpecBuilder {
     if (cause) {
       delete this.activeTargets[this.getTargetId(query)];
       this.currentStep.expectedState = {
-        activeTargets: objUtils.shallowCopy(this.activeTargets)
+        activeTargets: { ...this.activeTargets }
       };
     }
     return this;
@@ -783,9 +777,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -805,9 +797,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 

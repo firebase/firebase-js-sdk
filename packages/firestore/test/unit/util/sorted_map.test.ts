@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { primitiveComparator } from '../../../src/util/misc';
-import * as obj from '../../../src/util/obj';
+import { forEach } from '../../../src/util/obj';
 import { LLRBNode, SortedMap } from '../../../src/util/sorted_map';
 
 function shuffle(arr: number[]): void {
@@ -363,7 +363,7 @@ describe('SortedMap Tests', () => {
       max: number
     ): void => {
       const keys: number[] = [];
-      obj.forEach(tree, k => keys.push(Number(k)));
+      forEach(tree, k => keys.push(Number(k)));
 
       keys.sort();
       expect(keys.length).to.equal(max);
