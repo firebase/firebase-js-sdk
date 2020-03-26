@@ -18,7 +18,8 @@
 import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
-import * as log from '../util/log';
+
+import { log, ERROR } from '../util/log';
 
 import { DocumentReference, Firestore } from './database';
 import { Blob } from './blob';
@@ -139,7 +140,8 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
     if (!databaseId.isEqual(this.firestore._databaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
-      log.error(
+      log(
+        ERROR,
         `Document ${key} contains a document ` +
           `reference within a different database (` +
           `${databaseId.projectId}/${databaseId.database}) which is not ` +

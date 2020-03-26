@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 import { assert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import * as log from './log';
+import { ERROR, log } from './log';
 import { CancelablePromise, Deferred } from './promise';
 
 // Accept any return type from setTimeout().
@@ -287,7 +287,7 @@ export class AsyncQueue {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';
-          log.error('INTERNAL UNHANDLED ERROR: ', message);
+          log(ERROR, 'INTERNAL UNHANDLED ERROR: ', message);
 
           // Escape the promise chain and throw the error globally so that
           // e.g. any global crash reporting library detects and reports it.

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import {
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { DEBUG, log } from '../util/log';
 import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
@@ -114,18 +114,19 @@ export class WebChannelConnection implements Connection {
           switch (xhr.getLastErrorCode()) {
             case ErrorCode.NO_ERROR:
               const json = xhr.getResponseJson() as Resp;
-              log.debug(LOG_TAG, 'XHR received:', JSON.stringify(json));
+              log(DEBUG, LOG_TAG, 'XHR received:', JSON.stringify(json));
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              log.debug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+              log(DEBUG, LOG_TAG, 'RPC "' + rpcName + '" timed out');
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
               break;
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
-              log.debug(
+              log(
+                DEBUG,
                 LOG_TAG,
                 'RPC "' + rpcName + '" failed with status:',
                 status,
@@ -160,7 +161,7 @@ export class WebChannelConnection implements Connection {
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
-                log.debug(LOG_TAG, 'RPC "' + rpcName + '" failed');
+                log(DEBUG, LOG_TAG, 'RPC "' + rpcName + '" failed');
                 reject(
                   new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                 );
@@ -179,7 +180,7 @@ export class WebChannelConnection implements Connection {
               );
           }
         } finally {
-          log.debug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
+          log(DEBUG, LOG_TAG, 'RPC "' + rpcName + '" completed.');
         }
       });
 
@@ -190,7 +191,7 @@ export class WebChannelConnection implements Connection {
       delete jsonObj.database;
 
       const requestString = JSON.stringify(jsonObj);
-      log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
+      log(DEBUG, LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
       // Content-Type: text/plain will avoid preflight requests which might
       // mess with CORS and redirects by proxies. If we add custom headers
       // we will need to change this code to potentially use the
@@ -282,7 +283,7 @@ export class WebChannelConnection implements Connection {
     }
 
     const url = urlParts.join('');
-    log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
+    log(DEBUG, LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
     const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -301,14 +302,14 @@ export class WebChannelConnection implements Connection {
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
-            log.debug(LOG_TAG, 'Opening WebChannel transport.');
+            log(DEBUG, LOG_TAG, 'Opening WebChannel transport.');
             channel.open();
             opened = true;
           }
-          log.debug(LOG_TAG, 'WebChannel sending:', msg);
+          log(DEBUG, LOG_TAG, 'WebChannel sending:', msg);
           channel.send(msg);
         } else {
-          log.debug(LOG_TAG, 'Not sending because WebChannel is closed:', msg);
+          log(DEBUG, LOG_TAG, 'Not sending because WebChannel is closed:', msg);
         }
       },
       closeFn: () => channel.close()
@@ -337,14 +338,14 @@ export class WebChannelConnection implements Connection {
 
     unguardedEventListen(WebChannel.EventType.OPEN, () => {
       if (!closed) {
-        log.debug(LOG_TAG, 'WebChannel transport opened.');
+        log(DEBUG, LOG_TAG, 'WebChannel transport opened.');
       }
     });
 
     unguardedEventListen(WebChannel.EventType.CLOSE, () => {
       if (!closed) {
         closed = true;
-        log.debug(LOG_TAG, 'WebChannel transport closed');
+        log(DEBUG, LOG_TAG, 'WebChannel transport closed');
         streamBridge.callOnClose();
       }
     });
@@ -352,7 +353,7 @@ export class WebChannelConnection implements Connection {
     unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        log.debug(LOG_TAG, 'WebChannel transport errored:', err);
+        log(DEBUG, LOG_TAG, 'WebChannel transport errored:', err);
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
@@ -385,7 +386,7 @@ export class WebChannelConnection implements Connection {
             msgDataOrError.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
-            log.debug(LOG_TAG, 'WebChannel received error:', error);
+            log(DEBUG, LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
@@ -403,7 +404,7 @@ export class WebChannelConnection implements Connection {
             streamBridge.callOnClose(new FirestoreError(code, message));
             channel.close();
           } else {
-            log.debug(LOG_TAG, 'WebChannel received:', msgData);
+            log(DEBUG, LOG_TAG, 'WebChannel received:', msgData);
             streamBridge.callOnMessage(msgData);
           }
         }

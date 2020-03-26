@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { debug } from '../util/log';
+import { log, DEBUG } from '../util/log';
 import {
   ConnectivityMonitor,
   ConnectivityMonitorCallback,
@@ -53,14 +53,14 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   }
 
   private onNetworkAvailable(): void {
-    debug(LOG_TAG, 'Network connectivity changed: AVAILABLE');
+    log(DEBUG, LOG_TAG, 'Network connectivity changed: AVAILABLE');
     for (const callback of this.callbacks) {
       callback(NetworkStatus.AVAILABLE);
     }
   }
 
   private onNetworkUnavailable(): void {
-    debug(LOG_TAG, 'Network connectivity changed: UNAVAILABLE');
+    log(DEBUG, LOG_TAG, 'Network connectivity changed: UNAVAILABLE');
     for (const callback of this.callbacks) {
       callback(NetworkStatus.UNAVAILABLE);
     }

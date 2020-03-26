@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import { Platform } from '../platform/platform';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { debug, error } from '../util/log';
+import { log, ERROR, DEBUG } from '../util/log';
 import * as objUtils from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
@@ -233,7 +233,8 @@ export class MutationMetadata {
         firestoreError
       );
     } else {
-      error(
+      log(
+        ERROR,
         LOG_TAG,
         `Failed to parse mutation state for ID '${batchId}': ${value}`
       );
@@ -313,7 +314,8 @@ export class QueryTargetMetadata {
         firestoreError
       );
     } else {
-      error(
+      log(
+        ERROR,
         LOG_TAG,
         `Failed to parse target state for ID '${targetId}': ${value}`
       );
@@ -383,7 +385,8 @@ class RemoteClientState implements ClientState {
     if (validData) {
       return new RemoteClientState(clientId, activeTargetIdsSet);
     } else {
-      error(
+      log(
+        ERROR,
         LOG_TAG,
         `Failed to parse client data for instance '${clientId}': ${value}`
       );
@@ -419,7 +422,7 @@ export class SharedOnlineState {
         onlineState.onlineState as OnlineState
       );
     } else {
-      error(LOG_TAG, `Failed to parse online state: ${value}`);
+      log(ERROR, LOG_TAG, `Failed to parse online state: ${value}`);
       return null;
     }
   }
@@ -729,26 +732,27 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private getItem(key: string): string | null {
     const value = this.storage.getItem(key);
-    debug(LOG_TAG, 'READ', key, value);
+    log(DEBUG, LOG_TAG, 'READ', key, value);
     return value;
   }
 
   private setItem(key: string, value: string): void {
-    debug(LOG_TAG, 'SET', key, value);
+    log(DEBUG, LOG_TAG, 'SET', key, value);
     this.storage.setItem(key, value);
   }
 
   private removeItem(key: string): void {
-    debug(LOG_TAG, 'REMOVE', key);
+    log(DEBUG, LOG_TAG, 'REMOVE', key);
     this.storage.removeItem(key);
   }
 
   private handleWebStorageEvent(event: StorageEvent): void {
     if (event.storageArea === this.storage) {
-      debug(LOG_TAG, 'EVENT', event.key, event.newValue);
+      log(DEBUG, LOG_TAG, 'EVENT', event.key, event.newValue);
 
       if (event.key === this.localClientStorageKey) {
-        error(
+        log(
+          ERROR,
           'Received WebStorage notification for local change. Another client might have ' +
             'garbage-collected our state'
         );
@@ -948,7 +952,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     mutationBatch: MutationMetadata
   ): Promise<void> {
     if (mutationBatch.user.uid !== this.currentUser.uid) {
-      debug(
+      log(
+        DEBUG,
         LOG_TAG,
         `Ignoring mutation for non-active user ${mutationBatch.user.uid}`
       );
@@ -1029,7 +1034,7 @@ function fromWebStorageSequenceNumber(
       assert(typeof parsed === 'number', 'Found non-numeric sequence number');
       sequenceNumber = parsed;
     } catch (e) {
-      error(LOG_TAG, 'Failed to read sequence number from WebStorage', e);
+      log(ERROR, LOG_TAG, 'Failed to read sequence number from WebStorage', e);
     }
   }
   return sequenceNumber;

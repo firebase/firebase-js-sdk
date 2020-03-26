@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { DEBUG, log } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -324,7 +324,7 @@ export class FirestoreClient {
    * implementation is available in this.persistence.
    */
   private initializeRest(user: User): Promise<void> {
-    debug(LOG_TAG, 'Initializing. user=', user.uid);
+    log(DEBUG, LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -406,7 +406,7 @@ export class FirestoreClient {
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    debug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
+    log(DEBUG, LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
     return this.syncEngine.handleCredentialChange(user);
   }
 

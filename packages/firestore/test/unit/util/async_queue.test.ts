@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
+import { getLogLevel, setLogLevel, SILENT } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 describe('AsyncQueue', () => {
@@ -76,7 +76,7 @@ describe('AsyncQueue', () => {
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
+    setLogLevel(SILENT);
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
