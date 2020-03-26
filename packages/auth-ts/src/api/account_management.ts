@@ -208,3 +208,22 @@ export function enrollPhoneMfa(
     request
   );
 }
+
+export interface WithdrawMfaRequest {
+  idToken: string;
+  mfaEnrollmentId: string;
+}
+
+export interface WithdrawMfaResponse extends IdTokenResponse {}
+
+export function withdrawMfa(
+  auth: Auth,
+  request: WithdrawMfaRequest,
+): Promise<WithdrawMfaResponse> {
+  return performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.WITHDRAW_MFA,
+    request
+  );
+}

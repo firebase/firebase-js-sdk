@@ -53,6 +53,7 @@ export enum Endpoint {
   FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
+  WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
 };
 
 export async function performApiRequest<T, V>(

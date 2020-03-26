@@ -261,6 +261,9 @@ firebaseApp.auth = function() {
           enroll(assertion: MultiFactorAssertion, displayName?: string) {
             return mfaUser.enroll(auth, assertion, displayName);
           },
+          unenroll(option: MultiFactorInfo|string): Promise<void> {
+            return mfaUser.unenroll(auth, option);
+          },
           get enrolledFactors(): MultiFactorInfo[] {
             return mfaUser.enrolledFactors;
           },

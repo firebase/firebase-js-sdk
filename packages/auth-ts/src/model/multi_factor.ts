@@ -60,7 +60,7 @@ export interface MultiFactorUser {
   readonly enrolledFactors: MultiFactorInfo[];
   getSession(): Promise<MultiFactorSession>;
   enroll(auth: Auth, assertion: MultiFactorAssertion, displayName?: string): Promise<void>;
-  unenroll(option: MultiFactorInfo|string): Promise<void>;
+  unenroll(auth: Auth, option: MultiFactorInfo|string): Promise<void>;
 }
 
 export interface MultiFactorResolver {

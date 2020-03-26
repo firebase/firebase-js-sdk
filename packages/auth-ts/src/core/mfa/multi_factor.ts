@@ -18,6 +18,8 @@
 import { MultiFactorUser, MultiFactorInfo, MultiFactorSession, MultiFactorAssertion } from "../../model/multi_factor";
 import { User } from '../../model/user';
 import { Auth } from '../../model/auth';
+import { withdrawMfa } from '../../api/account_management';
+import { AuthErrorCode } from '../errors';
 
 class MultiFactorUserImpl implements MultiFactorUser {
   constructor(readonly user: User) {}
@@ -33,8 +35,19 @@ class MultiFactorUserImpl implements MultiFactorUser {
     await this.user.reload(auth);
   }
 
-  async unenroll(option: MultiFactorInfo|string): Promise<void> {
-
+  async unenroll(auth: Auth, option: MultiFactorInfo|string): Promise<void> {
+    const mfaEnrollmentId = typeof option === 'string' ? option : option.uid;
+    const idToken = await this.user.getIdToken();
+    const response = await withdrawMfa(auth, {idToken, mfaEnrollmentId});
+    this.user.mfaInfo_ = this.user.mfaInfo_?.filter(ifo => ifo.uid !== mfaEnrollmentId) || null;
+    this.user.stsTokenManager.updateFromServerResponse(response);
+    try {
+      await this.user.reload(auth);
+    } catch (e) {
+      if (e.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`) {
+        throw e;
+      }
+    }
   }
 
   get enrolledFactors(): MultiFactorInfo[] {
