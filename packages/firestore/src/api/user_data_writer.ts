@@ -19,8 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
 
-import { log, ERROR } from '../util/log';
-
 import { DocumentReference, Firestore } from './database';
 import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
@@ -42,6 +40,7 @@ import { forEach } from '../util/obj';
 import { TypeOrder } from '../model/field_value';
 import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
+import { log, ERROR } from '../util/log';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 

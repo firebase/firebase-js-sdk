@@ -16,7 +16,6 @@
  */
 
 import { SDK_VERSION } from '../core/version';
-
 import { log, ERROR } from './log';
 
 /**
