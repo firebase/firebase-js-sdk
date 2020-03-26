@@ -93,7 +93,7 @@ export class Location {
 
     const cloudStorageHost =
       '(?:storage.googleapis.com|storage.cloud.google.com)';
-    const cloudStoragePath = '([^?]*)';
+    const cloudStoragePath = '([^?#]*)';
     const cloudStorageRegExp = new RegExp(
       `^https?://${cloudStorageHost}/${bucketDomain}/${cloudStoragePath}`,
       'i'

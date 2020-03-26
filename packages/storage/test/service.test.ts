@@ -201,6 +201,12 @@ GOOG4-RSA-SHA256`
       );
       assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
     });
+    it('Works with storage.cloud.google.com URLs and escaped slash', () => {
+      const ref = service.refFromURL(
+        `https://storage.cloud.google.com/mybucket/path%20with%20space%2Fimage.png`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
+    });
   });
   describe('Argument verification', () => {
     const service = new Service(
