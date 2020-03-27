@@ -2,7 +2,7 @@
 import * as ts from 'typescript';
 
 // Location of file that includes the asserts
-const DECLARING_FILE = "packages/firestore/src/util/assert.ts";
+const DECLARING_FILE = 'packages/firestore/src/util/assert.ts';
 
 export function removeAsserts(
   program: ts.Program
@@ -15,10 +15,8 @@ export function removeAsserts(
 
 /** Transformer that removes all "asserts" and "fail" statement from the SDK. */
 class RemoveAsserts {
-  constructor(
-    private readonly typeChecker: ts.TypeChecker,
-  ) {}
-  
+  constructor(private readonly typeChecker: ts.TypeChecker) {}
+
   visitNodeAndChildren<T extends ts.Node>(
     node: T,
     context: ts.TransformationContext
@@ -33,11 +31,16 @@ class RemoveAsserts {
   visitNode(node: ts.Node): ts.Node {
     if (ts.isCallExpression(node)) {
       const signature = this.typeChecker.getResolvedSignature(node);
-      if (signature && signature.declaration &&
-        signature.declaration.kind === ts.SyntaxKind.FunctionDeclaration) {
+      if (
+        signature &&
+        signature.declaration &&
+        signature.declaration.kind === ts.SyntaxKind.FunctionDeclaration
+      ) {
         const declaration = signature.declaration as ts.FunctionDeclaration;
-        if(declaration && declaration.getSourceFile().fileName.indexOf(
-          DECLARING_FILE) >= 0) {
+        if (
+          declaration &&
+          declaration.getSourceFile().fileName.indexOf(DECLARING_FILE) >= 0
+        ) {
           const method = declaration.name!.text;
           if (method === 'assert') {
             return ts.createEmptyStatement();
