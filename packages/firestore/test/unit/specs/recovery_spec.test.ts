@@ -47,12 +47,6 @@ describeSpec(
         { hasLocalMutations: true }
       );
       const doc1 = doc('collection/key1', 1, { foo: 'a' });
-      const doc2Local = doc(
-        'collection/key2',
-        0,
-        { foo: 'b' },
-        { hasLocalMutations: true }
-      );
       const doc3Local = doc(
         'collection/key3',
         0,
