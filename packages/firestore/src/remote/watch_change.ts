@@ -28,7 +28,7 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
@@ -624,7 +624,7 @@ export class WatchChangeAggregator {
   protected isActiveTarget(targetId: TargetId): boolean {
     const targetActive = this.targetDataForActiveTarget(targetId) !== null;
     if (!targetActive) {
-      debug(LOG_TAG, 'Detected inactive target', targetId);
+      logDebug(LOG_TAG, 'Detected inactive target', targetId);
     }
     return targetActive;
   }

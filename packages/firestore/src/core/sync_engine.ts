@@ -34,7 +34,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -534,7 +534,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // had, we would have cached the affected documents), and so we will just
       // see any resulting document changes via normal remote document updates
       // as applicable.
-      log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      logDebug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
       return;
     }
 
@@ -610,7 +610,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
-      log.debug(
+      logDebug(
         LOG_TAG,
         'The network is disabled. The task returned by ' +
           "'awaitPendingWrites()' will not complete until the network is enabled."
@@ -750,7 +750,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
         this.trackLimboChange(limboChange);
       } else if (limboChange instanceof RemovedLimboDocument) {
-        log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
+        logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
         const isReferenced = this.limboDocumentRefs.containsKey(
           limboChange.key
@@ -768,7 +768,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
     if (!this.limboTargetsByKey.get(key)) {
-      log.debug(LOG_TAG, 'New document in limbo: ' + key);
+      logDebug(LOG_TAG, 'New document in limbo: ' + key);
       const limboTargetId = this.limboTargetIdGenerator.next();
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget.set(
@@ -1049,7 +1049,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
-      log.debug(LOG_TAG, 'Ignoring unexpected query state notification.');
+      logDebug(LOG_TAG, 'Ignoring unexpected query state notification.');
       return;
     }
 

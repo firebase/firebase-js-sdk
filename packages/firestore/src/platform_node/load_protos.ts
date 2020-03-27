@@ -45,7 +45,7 @@ export function loadProtos(): grpc.GrpcObject {
     'google/firestore/v1/firestore.proto'
   );
 
-  const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
+  const packageDefinition = loadSync(firestoreProtoFile, {
     ...protoLoaderOptions,
     includeDirs: [root]
   });
