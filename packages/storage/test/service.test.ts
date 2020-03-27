@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,6 +181,31 @@ describe('Firebase Storage > Service', () => {
           'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       assert.equal(ref.toString(), 'gs://mybucket/child/path/image.png');
+    });
+    it('Works with storage.googleapis.com URLs', () => {
+      const ref = service.refFromURL(
+        `https://storage.googleapis.com/mybucket/path%20with%20space/image.png`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
+    });
+    it('Works with storage.googleapis.com URLs with query params', () => {
+      const ref = service.refFromURL(
+        `https://storage.googleapis.com/mybucket/path%20with%20space/image.png?X-Goog-Algorithm=
+GOOG4-RSA-SHA256`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
+    });
+    it('Works with storage.cloud.google.com URLs', () => {
+      const ref = service.refFromURL(
+        `https://storage.cloud.google.com/mybucket/path%20with%20space/image.png`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
+    });
+    it('Works with storage.cloud.google.com URLs and escaped slash', () => {
+      const ref = service.refFromURL(
+        `https://storage.cloud.google.com/mybucket/path%20with%20space%2Fimage.png`
+      );
+      assert.equal(ref.toString(), 'gs://mybucket/path with space/image.png');
     });
   });
   describe('Argument verification', () => {
