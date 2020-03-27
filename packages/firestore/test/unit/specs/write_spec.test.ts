@@ -1082,9 +1082,11 @@ describeSpec('Writes:', [], () => {
         .client(0)
         // The old primary doesn't yet know that client 1 has stolen the
         // primary lease.
-        .expectListen(query2)
+        .expectListen(query2, 'resume-token-2000')
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
+        .expectUnlisten(query1)
+        .expectUnlisten(query2)
         // Raise the metadata event from LocalStorage.
         .expectEvents(query1, {
           metadata: [docV1Acknowledged]
