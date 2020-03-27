@@ -29,7 +29,7 @@ import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
 import {
-  appendPrivatePrefixTransformers,
+  firestoreTransformers,
   manglePrivatePropertiesOptions
 } from './terser.config';
 
@@ -102,7 +102,7 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
-    transformers: appendPrivatePrefixTransformers,
+    transformers: firestoreTransformers,
     cacheRoot: `./.cache/es5.mangled/`
   }),
   json(),
@@ -118,7 +118,7 @@ const es2017BuildPlugins = [
       }
     },
     cacheRoot: './.cache/es2017.mangled/',
-    transformers: appendPrivatePrefixTransformers
+    transformers: firestoreTransformers
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
