@@ -33,20 +33,17 @@ import { Indexable } from './misc';
  *
  * @see https://github.com/firebase/firebase-js-sdk/issues/2487
  */
-interface DeferredExistingValue {
-  getImmediateChild(childName: string): DeferredExistingValue;
+interface ValueProvider {
+  getImmediateChild(childName: string): ValueProvider;
   node(): Node;
 }
 
-class ExistingSnapshotValue implements DeferredExistingValue {
-  private node_: Node;
-  constructor(node: Node) {
-    this.node_ = node;
-  }
+class ExistingValueProvider implements ValueProvider {
+  constructor(readonly node_: Node) {}
 
-  getImmediateChild(childName: string): DeferredExistingValue {
+  getImmediateChild(childName: string): ValueProvider {
     const child = this.node_.getImmediateChild(childName);
-    return new ExistingSnapshotValue(child);
+    return new ExistingValueProvider(child);
   }
 
   node(): Node {
@@ -54,7 +51,7 @@ class ExistingSnapshotValue implements DeferredExistingValue {
   }
 }
 
-class DeferredSyncTreeValue implements DeferredExistingValue {
+class DeferredValueProvider implements ValueProvider {
   private syncTree_: SyncTree;
   private path_: Path;
 
@@ -63,9 +60,9 @@ class DeferredSyncTreeValue implements DeferredExistingValue {
     this.path_ = path;
   }
 
-  getImmediateChild(childName: string): DeferredExistingValue {
+  getImmediateChild(childName: string): ValueProvider {
     const childPath = this.path_.child(childName);
-    return new DeferredSyncTreeValue(this.syncTree_, childPath);
+    return new DeferredValueProvider(this.syncTree_, childPath);
   }
 
   node(): Node {
@@ -97,7 +94,7 @@ export const generateWithValues = function(
  */
 export const resolveDeferredLeafValue = function(
   value: { [k: string]: unknown } | string | number | boolean,
-  existingVal: DeferredExistingValue,
+  existingVal: ValueProvider,
   serverValues: { [k: string]: unknown }
 ): string | number | boolean {
   if (!value || typeof value !== 'object') {
@@ -116,7 +113,7 @@ export const resolveDeferredLeafValue = function(
 
 const resolveScalarDeferredValue = function(
   op: string,
-  existing: DeferredExistingValue,
+  existing: ValueProvider,
   serverValues: { [k: string]: unknown }
 ): string | number | boolean {
   switch (op) {
@@ -129,7 +126,7 @@ const resolveScalarDeferredValue = function(
 
 const resolveComplexDeferredValue = function(
   op: object,
-  existing: DeferredExistingValue,
+  existing: ValueProvider,
   unused: { [k: string]: unknown }
 ): string | number | boolean {
   if (!op.hasOwnProperty('increment')) {
@@ -178,7 +175,7 @@ export const resolveDeferredValueTree = function(
 ): Node {
   return resolveDeferredValue(
     node,
-    new DeferredSyncTreeValue(syncTree, path),
+    new DeferredValueProvider(syncTree, path),
     serverValues
   );
 };
@@ -198,14 +195,14 @@ export const resolveDeferredValueSnapshot = function(
 ): Node {
   return resolveDeferredValue(
     node,
-    new ExistingSnapshotValue(existing),
+    new ExistingValueProvider(existing),
     serverValues
   );
 };
 
 function resolveDeferredValue(
   node: Node,
-  existingVal: DeferredExistingValue,
+  existingVal: ValueProvider,
   serverValues: Indexable
 ): Node {
   const rawPri = node.getPriority().val() as
