@@ -23,7 +23,7 @@ import { Code } from '../../../src/util/error';
 
 describeSpec(
   'Persistence Recovery',
-  ['durable-persistence', 'no-ios', 'no-android', 'exclusive'],
+  ['durable-persistence', 'no-ios', 'no-android'],
   () => {
     specTest('Recovers when write cannot be persisted', [], () => {
       return spec()
@@ -63,15 +63,15 @@ describeSpec(
       const doc3 = doc('collection/key3', 2, { foo: 'c' });
       return spec()
         .userListens(query)
-        .userSets('collection/key1', doc1Local.value())
+        .userSets('collection/key1', { foo: 'a' })
         .expectEvents(query, {
           added: [doc1Local],
           fromCache: true,
           hasPendingWrites: true
         })
-        .userSets('collection/key2', doc2Local.value())
+        .userSets('collection/key2', { foo: 'b' })
         .failDatabaseTransaction({ rejectedDocs: ['collection/key2'] })
-        .userSets('collection/key3', doc3Local.value())
+        .userSets('collection/key3', { foo: 'c' })
         .expectEvents(query, {
           added: [doc3Local],
           fromCache: true,
