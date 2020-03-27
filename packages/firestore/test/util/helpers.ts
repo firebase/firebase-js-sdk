@@ -512,7 +512,13 @@ export function byteStringFromString(value: string): ByteString {
   return ByteString.fromBase64String(base64);
 }
 
-/** Decodes a base 64 decoded string. */
+/** 
+ * Decodes a base 64 decoded string.
+ *
+ * Note that this is typed to accept Uint8Arrays to match the types used
+ * by the spec tests. Since the spec tests only use JSON strings, this method
+ * throws if an Uint8Array is passed.
+ */
 export function stringFromBase64String(
   value?: string | Uint8Array
 ): ByteString {
