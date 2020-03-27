@@ -19,8 +19,8 @@ jobs:
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - run:
-          - echo "${{ github.event_name }}"
-          - echo "${{ github.event.pull_request.head.repo.fork }}"
+      - run: |
+          echo "${{ github.event_name }}"
+          echo "${{ github.event.pull_request.head.repo.fork }}"
 
   # TODO(yifany): Enable startup times testing on CI.
