@@ -68,7 +68,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { logError, setLogLevel, LogLevel } from '../util/log';
+import {logError, setLogLevel, LogLevel, getLogLevel} from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
@@ -648,6 +648,19 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     return new WriteBatch(this);
+  }
+
+  static get logLevel(): firestore.LogLevel {
+    switch (getLogLevel()) {
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.ERROR:
+        return 'error';
+      case LogLevel.SILENT:
+        return 'silent';
+      default:
+        return fail('Unknown log level: ' + getLogLevel());
+    }
   }
 
   static setLogLevel(level: firestore.LogLevel): void {
