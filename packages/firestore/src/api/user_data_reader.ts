@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,11 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import { Timestamp } from '../api/timestamp';
+import * as api from '../protos/firestore_proto_api';
+
+import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import {
-  FieldValue,
-  NumberValue,
-  ObjectValue,
-  ArrayValue,
-  BlobValue,
-  BooleanValue,
-  DoubleValue,
-  GeoPointValue,
-  IntegerValue,
-  NullValue,
-  RefValue,
-  StringValue,
-  TimestampValue
-} from '../model/field_value';
-
 import {
   FieldMask,
   FieldTransform,
@@ -49,17 +35,15 @@ import { FieldPath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
-import { primitiveComparator } from '../util/misc';
 import { Dict, forEach, isEmpty } from '../util/obj';
-import { SortedMap } from '../util/sorted_map';
-import * as typeUtils from '../util/types';
-
+import { ObjectValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
+import { JsonProtoSerializer } from '../remote/serializer';
 import { SortedSet } from '../util/sorted_set';
 import { Blob } from './blob';
 import {
@@ -291,7 +275,7 @@ class ParseContext {
  *    avoiding a circular dependency between user_data_converter.ts and
  *    database.ts
  *  * Tests to convert test-only sentinels (e.g. '<DELETE>') into types
- *    compatible with UserDataConverter.
+ *    compatible with UserDataReader.
  *
  * Returns the converted value (can return back the input to act as a no-op).
  *
@@ -312,8 +296,11 @@ export class DocumentKeyReference {
  * Helper for parsing raw user input (provided via the API) into internal model
  * classes.
  */
-export class UserDataConverter {
-  constructor(private preConverter: DataPreConverter) {}
+export class UserDataReader {
+  constructor(
+    private readonly serializer: JsonProtoSerializer,
+    private readonly preConverter: DataPreConverter
+  ) {}
 
   /** Parse document data from a non-merge set() call. */
   parseSetData(methodName: string, input: unknown): ParsedSetData {
@@ -323,11 +310,10 @@ export class UserDataConverter {
       FieldPath.EMPTY_PATH
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
-
-    const updateData = this.parseData(input, context);
+    const updateData = this.parseObject(input, context)!;
 
     return new ParsedSetData(
-      updateData as ObjectValue,
+      new ObjectValue(updateData),
       /* fieldMask= */ null,
       context.fieldTransforms
     );
@@ -345,8 +331,8 @@ export class UserDataConverter {
       FieldPath.EMPTY_PATH
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
+    const updateData = this.parseObject(input, context);
 
-    const updateData = this.parseData(input, context) as ObjectValue;
     let fieldMask: FieldMask;
     let fieldTransforms: FieldTransform[];
 
@@ -388,7 +374,7 @@ export class UserDataConverter {
       );
     }
     return new ParsedSetData(
-      updateData as ObjectValue,
+      new ObjectValue(updateData),
       fieldMask,
       fieldTransforms
     );
@@ -501,7 +487,7 @@ export class UserDataConverter {
     methodName: string,
     input: unknown,
     allowArrays = false
-  ): FieldValue {
+  ): api.Value {
     const context = new ParseContext(
       allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
       methodName,
@@ -535,11 +521,11 @@ export class UserDataConverter {
    * @return The parsed value, or null if the value was a FieldValue sentinel
    * that should not be included in the resulting parsed data.
    */
-  private parseData(input: unknown, context: ParseContext): FieldValue | null {
+  private parseData(input: unknown, context: ParseContext): api.Value | null {
     input = this.runPreConverter(input, context);
     if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
-      return this.parseObject(input as Dict<unknown>, context);
+      return this.parseObject(input, context);
     } else if (input instanceof FieldValueImpl) {
       // FieldValues usually parse into transforms (except FieldValue.delete())
       // in which case we do not want to include this field in our parsed data
@@ -575,8 +561,11 @@ export class UserDataConverter {
     }
   }
 
-  private parseObject(obj: Dict<unknown>, context: ParseContext): FieldValue {
-    let result = new SortedMap<string, FieldValue>(primitiveComparator);
+  private parseObject(
+    obj: Dict<unknown>,
+    context: ParseContext
+  ): { mapValue: api.MapValue } {
+    const fields: Dict<api.Value> = {};
 
     if (isEmpty(obj)) {
       // If we encounter an empty object, we explicitly add it to the update
@@ -591,16 +580,16 @@ export class UserDataConverter {
           context.childContextForField(key)
         );
         if (parsedValue != null) {
-          result = result.insert(key, parsedValue);
+          fields[key] = parsedValue;
         }
       });
     }
 
-    return new ObjectValue(result);
+    return { mapValue: { fields } };
   }
 
-  private parseArray(array: unknown[], context: ParseContext): FieldValue {
-    const result = [] as FieldValue[];
+  private parseArray(array: unknown[], context: ParseContext): api.Value {
+    const values: api.Value[] = [];
     let entryIndex = 0;
     for (const entry of array) {
       let parsedEntry = this.parseData(
@@ -610,12 +599,12 @@ export class UserDataConverter {
       if (parsedEntry == null) {
         // Just include nulls in the array for fields being replaced with a
         // sentinel.
-        parsedEntry = NullValue.INSTANCE;
+        parsedEntry = { nullValue: 'NULL_VALUE' };
       }
-      result.push(parsedEntry);
+      values.push(parsedEntry);
       entryIndex++;
     }
-    return new ArrayValue(result);
+    return { arrayValue: { values } };
   }
 
   /**
@@ -686,8 +675,11 @@ export class UserDataConverter {
       const operand = this.parseQueryValue(
         'FieldValue.increment',
         value._operand
-      ) as NumberValue;
-      const numericIncrement = new NumericIncrementTransformOperation(operand);
+      );
+      const numericIncrement = new NumericIncrementTransformOperation(
+        this.serializer,
+        operand
+      );
       context.fieldTransforms.push(
         new FieldTransform(context.path, numericIncrement)
       );
@@ -701,37 +693,43 @@ export class UserDataConverter {
    *
    * @return The parsed value
    */
-  private parseScalarValue(value: unknown, context: ParseContext): FieldValue {
+  private parseScalarValue(value: unknown, context: ParseContext): api.Value {
     if (value === null) {
-      return NullValue.INSTANCE;
+      return { nullValue: 'NULL_VALUE' };
     } else if (typeof value === 'number') {
-      if (typeUtils.isSafeInteger(value)) {
-        return new IntegerValue(value);
-      } else {
-        return new DoubleValue(value);
-      }
+      return this.serializer.toNumber(value);
     } else if (typeof value === 'boolean') {
-      return BooleanValue.of(value);
+      return { booleanValue: value };
     } else if (typeof value === 'string') {
-      return new StringValue(value);
+      return { stringValue: value };
     } else if (value instanceof Date) {
-      return new TimestampValue(Timestamp.fromDate(value));
+      const timestamp = Timestamp.fromDate(value);
+      return { timestampValue: this.serializer.toTimestamp(timestamp) };
     } else if (value instanceof Timestamp) {
       // Firestore backend truncates precision down to microseconds. To ensure
       // offline mode works the same with regards to truncation, perform the
       // truncation immediately without waiting for the backend to do that.
-      return new TimestampValue(
-        new Timestamp(
-          value.seconds,
-          Math.floor(value.nanoseconds / 1000) * 1000
-        )
+      const timestamp = new Timestamp(
+        value.seconds,
+        Math.floor(value.nanoseconds / 1000) * 1000
       );
+      return { timestampValue: this.serializer.toTimestamp(timestamp) };
     } else if (value instanceof GeoPoint) {
-      return new GeoPointValue(value);
+      return {
+        geoPointValue: {
+          latitude: value.latitude,
+          longitude: value.longitude
+        }
+      };
     } else if (value instanceof Blob) {
-      return new BlobValue(value);
+      return { bytesValue: this.serializer.toBytes(value) };
     } else if (value instanceof DocumentKeyReference) {
-      return new RefValue(value.databaseId, value.key);
+      return {
+        referenceValue: this.serializer.toResourceName(
+          value.key.path,
+          value.databaseId
+        )
+      };
     } else {
       throw context.createError(
         `Unsupported field value: ${valueDescription(value)}`
@@ -742,7 +740,7 @@ export class UserDataConverter {
   private parseArrayTransformElements(
     methodName: string,
     elements: unknown[]
-  ): FieldValue[] {
+  ): api.Value[] {
     return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
       // being unioned or removed are not considered writes since they cannot
@@ -782,7 +780,7 @@ function validatePlainObject(
   message: string,
   context: ParseContext,
   input: unknown
-): void {
+): asserts input is Dict<unknown> {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
     const description = valueDescription(input);
     if (description === 'an object') {

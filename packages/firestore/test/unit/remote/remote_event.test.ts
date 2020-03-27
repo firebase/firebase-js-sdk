@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
@@ -40,7 +39,8 @@ import {
   resumeTokenForSnapshot,
   size,
   updateMapping,
-  version
+  version,
+  key
 } from '../../util/helpers';
 import { ByteString } from '../../../src/util/byte_string';
 
@@ -582,7 +582,7 @@ describe('RemoteEvent', () => {
 
   it('synthesizes deletes', () => {
     const targets = limboListens(1);
-    const limboKey = DocumentKey.fromPathString('coll/limbo');
+    const limboKey = key('coll/limbo');
     const resolveLimboTarget = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [1]
@@ -604,7 +604,7 @@ describe('RemoteEvent', () => {
 
   it("doesn't synthesize deletes in the wrong state", () => {
     const targets = limboListens(1);
-    const limboKey = DocumentKey.fromPathString('coll/limbo');
+    const limboKey = key('coll/limbo');
     const wrongState = new WatchTargetChange(WatchTargetChangeState.NoChange, [
       1
     ]);

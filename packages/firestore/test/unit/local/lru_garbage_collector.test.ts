@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { path, wrapObject } from '../../util/helpers';
+import { key, path, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -140,7 +140,7 @@ function genericLruGarbageCollectorTests(
   }
 
   function nextTestDocumentKey(): DocumentKey {
-    return DocumentKey.fromPathString('docs/doc_' + ++previousDocNum);
+    return key('docs/doc_' + ++previousDocNum);
   }
 
   function emptyTargetDataMap(): SortedMap<TargetId, TargetData> {
@@ -247,8 +247,11 @@ function genericLruGarbageCollectorTests(
     return new Document(
       key,
       SnapshotVersion.fromMicroseconds(1000),
-      {},
-      wrapObject({ foo: 3, bar: false })
+      wrapObject({
+        foo: 3,
+        bar: false
+      }),
+      {}
     );
   }
 
@@ -782,8 +785,11 @@ function genericLruGarbageCollectorTests(
         const doc = new Document(
           middleDocToUpdate,
           SnapshotVersion.fromMicroseconds(2000),
-          {},
-          wrapObject({ foo: 4, bar: true })
+          wrapObject({
+            foo: 4,
+            bar: true
+          }),
+          {}
         );
         return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);

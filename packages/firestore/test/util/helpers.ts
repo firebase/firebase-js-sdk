@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,19 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
+import * as api from '../../src/protos/firestore_proto_api';
+
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { FieldValueImpl } from '../../src/api/field_value';
+import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   DocumentKeyReference,
-  UserDataConverter
-} from '../../src/api/user_data_converter';
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -60,11 +64,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import {
-  FieldValue,
-  JsonObject,
-  ObjectValue
-} from '../../src/model/field_value';
+import { JsonObject, ObjectValue } from '../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -90,6 +90,7 @@ import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
 
 export type TestSnapshotVersion = number;
 
@@ -103,7 +104,26 @@ const preConverter = (input: unknown): unknown => {
   return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
-const dataConverter = new UserDataConverter(preConverter);
+export function testUserDataWriter(): UserDataWriter {
+  // We should pass in a proper Firestore instance, but for now, only
+  // `ensureClientConfigured()` and `_databaseId` is used in our test usage of
+  // UserDataWriter.
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const firestore: any = {
+    ensureClientConfigured: () => {},
+    _databaseId: new DatabaseId('test-project')
+  };
+  return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
+}
+
+export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
+  useProto3Json = useProto3Json ?? PlatformSupport.getPlatform().useProto3Json;
+  return new UserDataReader(
+    new JsonProtoSerializer(new DatabaseId('test-project'), { useProto3Json }),
+    preConverter
+  );
+}
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
   return SnapshotVersion.fromMicroseconds(v);
@@ -125,7 +145,7 @@ export function doc(
   json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), options, wrapObject(json));
+  return new Document(key(keyStr), version(ver), wrapObject(json), options);
 }
 
 export function deletedDoc(
@@ -147,16 +167,15 @@ export function removedDoc(keyStr: string): NoDocument {
   return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
 }
 
-export function wrap(value: unknown): FieldValue {
+export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return dataConverter.parseQueryValue('wrap', value);
+  return testUserDataReader().parseQueryValue('wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
-  // Cast is safe here because value passed in is a map
-  return wrap(obj) as ObjectValue;
+  return new ObjectValue(wrap(obj) as { mapValue: api.MapValue });
 }
 
 export function dbId(project: string, database?: string): DatabaseId {
@@ -226,7 +245,7 @@ export function patchMutation(
     precondition = Precondition.exists(true);
   }
 
-  const parsed = dataConverter.parseUpdateData('patchMutation', json);
+  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
   return new PatchMutation(
     key(keyStr),
     parsed.data,
@@ -249,7 +268,10 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = dataConverter.parseUpdateData('transformMutation()', data);
+  const result = testUserDataReader().parseUpdateData(
+    'transformMutation()',
+    data
+  );
   return new TransformMutation(key(keyStr), result.fieldTransforms);
 }
 
@@ -263,7 +285,7 @@ export function bound(
   values: Array<[string, {}, firestore.OrderByDirection]>,
   before: boolean
 ): Bound {
-  const components: FieldValue[] = [];
+  const components: api.Value[] = [];
   for (const value of values) {
     const [_, dataValue] = value;
     components.push(wrap(dataValue));

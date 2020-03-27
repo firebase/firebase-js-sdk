@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ export function get<V>(obj: Dict<V>, key: string | number): V | null {
   return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : null;
 }
 
-export function size<V>(obj: Dict<V>): number {
+export function size<V>(obj: object): number {
   let count = 0;
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -63,6 +63,12 @@ export function values<V>(obj: Dict<V>): V[] {
   const vs: V[] = [];
   forEach(obj, (_, v) => vs.push(v));
   return vs;
+}
+
+export function keys<V>(obj: Dict<V>): string[] {
+  const ks: string[] = [];
+  forEach(obj, k => ks.push(k));
+  return ks;
 }
 
 export function forEach<V>(
