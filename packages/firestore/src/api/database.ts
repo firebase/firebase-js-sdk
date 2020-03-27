@@ -68,7 +68,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import {logError, setLogLevel, LogLevel, getLogLevel} from '../util/log';
+import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
