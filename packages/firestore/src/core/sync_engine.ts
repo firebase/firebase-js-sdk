@@ -551,10 +551,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           targetId,
           /* keepPersistedTargetData */ false
         );
+        this.removeAndCleanupTarget(targetId, err);
       } catch (error) {
         log.error(LOG_TAG, 'Failed to release target: ' + error.message);
-      } finally {
-        this.removeAndCleanupTarget(targetId, err);
+        if (!isPrimaryLeaseLoss(error)) {
+          this.removeAndCleanupTarget(targetId, err);
+        }
       }
     }
   }

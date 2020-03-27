@@ -510,7 +510,6 @@ export class LocalStore {
     const remoteVersion = remoteEvent.snapshotVersion;
     let newTargetDataByTargetMap = this.targetDataByTarget;
 
-    console.error(remoteEvent.snapshotVersion.toString())
     return this.persistence
       .runTransaction('Apply remote event', 'readwrite-primary', txn => {
         return this.targetCache
