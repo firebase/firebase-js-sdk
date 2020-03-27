@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 import { fail } from '../util/assert';
 import { Code } from '../util/error';
-import * as log from '../util/log';
+import { logError } from '../util/log';
 
 /**
  * Error Codes describing the different ways GRPC can fail. These are copied
@@ -131,7 +131,7 @@ export function mapCodeFromRpcCode(code: number | undefined): Code {
   if (code === undefined) {
     // This shouldn't normally happen, but in certain error cases (like trying
     // to send invalid proto messages) we may get an error with no GRPC code.
-    log.error('GRPC error has no .code');
+    logError('GRPC error has no .code');
     return Code.UNKNOWN;
   }
 

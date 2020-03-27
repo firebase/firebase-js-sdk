@@ -68,10 +68,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-// eslint-disable-next-line import/no-duplicates
-import * as log from '../util/log';
-// eslint-disable-next-line import/no-duplicates
-import { LogLevel } from '../util/log';
+import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
@@ -198,13 +195,13 @@ class FirestoreSettings {
     // Nobody should set timestampsInSnapshots anymore, but the error depends on
     // whether they set it to true or false...
     if (settings.timestampsInSnapshots === true) {
-      log.error(`
+      logError(`
   The timestampsInSnapshots setting now defaults to true and you no
   longer need to explicitly set it. In a future release, the setting
   will be removed entirely and so it is recommended that you remove it
   from your firestore.settings() call now.`);
     } else if (settings.timestampsInSnapshots === false) {
-      log.error(`
+      logError(`
   The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
   YOUR CODE.
 
@@ -394,7 +391,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
-        log.error(
+        logError(
           "The 'experimentalTabSynchronization' setting has been renamed to " +
             "'synchronizeTabs'. In a future release, the setting will be removed " +
             'and it is recommended that you update your ' +
@@ -654,15 +651,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   static get logLevel(): firestore.LogLevel {
-    switch (log.getLogLevel()) {
+    switch (getLogLevel()) {
       case LogLevel.DEBUG:
         return 'debug';
-      case LogLevel.ERROR:
-        return 'error';
       case LogLevel.SILENT:
         return 'silent';
       default:
-        return fail('Unknown log level: ' + log.getLogLevel());
+        // The default log level is error
+        return 'error';
     }
   }
 
@@ -671,13 +667,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
     switch (level) {
       case 'debug':
-        log.setLogLevel(log.LogLevel.DEBUG);
+        setLogLevel(LogLevel.DEBUG);
         break;
       case 'error':
-        log.setLogLevel(log.LogLevel.ERROR);
+        setLogLevel(LogLevel.ERROR);
         break;
       case 'silent':
-        log.setLogLevel(log.LogLevel.SILENT);
+        setLogLevel(LogLevel.SILENT);
         break;
       default:
         throw new FirestoreError(

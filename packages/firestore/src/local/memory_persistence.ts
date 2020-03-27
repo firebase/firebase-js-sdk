@@ -20,7 +20,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { logDebug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
@@ -172,7 +172,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
