@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,6 +220,24 @@ apiDescribe('Database', (persistence: boolean) => {
         });
 
       unsubscribe();
+    });
+  });
+
+  it('update with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.update('a', {});
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+    });
+  });
+
+  it('merge with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.set({ 'a': {} }, { merge: true });
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
     });
   });
 

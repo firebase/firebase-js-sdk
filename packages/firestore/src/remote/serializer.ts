@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 import { Blob } from '../api/blob';
-import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -35,7 +34,7 @@ import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import * as fieldValue from '../model/field_value';
+import { ObjectValue } from '../model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -52,10 +51,12 @@ import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as obj from '../util/obj';
 import { ByteString } from '../util/byte_string';
-import * as typeUtils from '../util/types';
-
+import {
+  isNegativeZero,
+  isNullOrUndefined,
+  isSafeInteger
+} from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -72,6 +73,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -93,29 +95,8 @@ const OPERATORS = (() => {
   return ops;
 })();
 
-// A RegExp matching ISO 8601 UTC timestamps with optional fraction.
-const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
-
 function assertPresent(value: unknown, description: string): asserts value {
-  assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
-}
-
-function parseInt64(value: number | string): number {
-  // TODO(bjornick): Handle int64 greater than 53 bits.
-  if (typeof value === 'number') {
-    return value;
-  } else if (typeof value === 'string') {
-    return Number(value);
-  } else {
-    return fail("can't parse " + value);
-  }
-}
-
-// This is a supplement to the generated proto interfaces, which fail to account
-// for the fact that a timestamp may be encoded as either a string OR this.
-interface TimestampProto {
-  seconds?: string;
-  nanos?: number;
+  assert(!isNullOrUndefined(value), description + ' is missing');
 }
 
 export interface SerializerOptions {
@@ -157,46 +138,66 @@ export class JsonProtoSerializer {
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | null {
-    if (this.options.useProto3Json || typeUtils.isNullOrUndefined(val)) {
+  private toInt32Proto(val: number | null): number | { value: number } | null {
+    if (this.options.useProto3Json || isNullOrUndefined(val)) {
       return val;
     } else {
-      // ProtobufJS requires that we wrap Int32Values.
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { value: val } as any;
+      return { value: val };
     }
   }
 
   /**
    * Returns a number (or null) from a google.protobuf.Int32Value proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as accepting "number" because that's what
-   * our generated proto interfaces say Int32Value must be, but it actually
-   * accepts { value: number } to match our serialization in toInt32Value().
    */
-  private fromInt32Value(val: number | undefined): number | null {
+  private fromInt32Proto(
+    val: number | { value: number } | undefined
+  ): number | null {
     let result;
     if (typeof val === 'object') {
-      // Use any because we need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = (val as any).value;
+      result = val.value;
     } else {
-      // We accept raw numbers (without the {value: ... } wrapper) for
-      // compatibility with legacy persisted data.
       result = val;
     }
-    return typeUtils.isNullOrUndefined(result) ? null : result;
+    return isNullOrUndefined(result) ? null : result;
+  }
+
+  /**
+   * Returns an IntegerValue for `value`.
+   */
+  toInteger(value: number): api.Value {
+    return { integerValue: '' + value };
+  }
+
+  /**
+   * Returns an DoubleValue for `value` that is encoded based the serializer's
+   * `useProto3Json` setting.
+   */
+  toDouble(value: number): api.Value {
+    if (this.options.useProto3Json) {
+      if (isNaN(value)) {
+        return { doubleValue: 'NaN' };
+      } else if (value === Infinity) {
+        return { doubleValue: 'Infinity' };
+      } else if (value === -Infinity) {
+        return { doubleValue: '-Infinity' };
+      }
+    }
+    return { doubleValue: isNegativeZero(value) ? '-0' : value };
+  }
+
+  /**
+   * Returns a value for a number that's appropriate to put into a proto.
+   * The return value is an IntegerValue if it can safely represent the value,
+   * otherwise a DoubleValue is returned.
+   */
+  toNumber(value: number): api.Value {
+    return isSafeInteger(value) ? this.toInteger(value) : this.toDouble(value);
   }
 
   /**
    * Returns a value for a Date that's appropriate to put into a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say dates must be. But it's easier and safer
-   * to actually return a Timestamp proto.
    */
-  private toTimestamp(timestamp: Timestamp): string {
+  toTimestamp(timestamp: Timestamp): api.Timestamp {
     if (this.options.useProto3Json) {
       // Serialize to ISO-8601 date format, but with full nano resolution.
       // Since JS Date has only millis, let's only use it for the seconds and
@@ -217,62 +218,21 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromTimestamp(date: string | TimestampProto): Timestamp {
-    // The json interface (for the browser) will return an iso timestamp string,
-    // while the proto js library (for node) will return a
-    // google.protobuf.Timestamp instance.
-    if (typeof date === 'string') {
-      // TODO(b/37282237): Use strings for Proto3 timestamps
-      // assert(this.options.useProto3Json,
-      //   'The timestamp string format requires Proto3.');
-      return this.fromIso8601String(date);
-    } else {
-      assert(!!date, 'Cannot deserialize null or undefined timestamp.');
-      // TODO(b/37282237): Use strings for Proto3 timestamps
-      // assert(!this.options.useProto3Json,
-      //   'The timestamp instance format requires Proto JS.');
-      const seconds = parseInt64(date.seconds || '0');
-      const nanos = date.nanos || 0;
-      return new Timestamp(seconds, nanos);
-    }
-  }
-
-  private fromIso8601String(utc: string): Timestamp {
-    // The date string can have higher precision (nanos) than the Date class
-    // (millis), so we do some custom parsing here.
-
-    // Parse the nanos right out of the string.
-    let nanos = 0;
-    const fraction = ISO_REG_EXP.exec(utc);
-    assert(!!fraction, 'invalid timestamp: ' + utc);
-    if (fraction[1]) {
-      // Pad the fraction out to 9 digits (nanos).
-      let nanoStr = fraction[1];
-      nanoStr = (nanoStr + '000000000').substr(0, 9);
-      nanos = Number(nanoStr);
-    }
-
-    // Parse the date to get the seconds.
-    const date = new Date(utc);
-    const seconds = Math.floor(date.getTime() / 1000);
-
-    return new Timestamp(seconds, nanos);
+  private fromTimestamp(date: api.Timestamp): Timestamp {
+    const timestamp = normalizeTimestamp(date);
+    return new Timestamp(timestamp.seconds, timestamp.nanos);
   }
 
   /**
    * Returns a value for bytes that's appropriate to put in a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say bytes must be. But it should return
-   * an Uint8Array in Node.
    *
    * Visible for testing.
    */
-  toBytes(bytes: Blob | ByteString): string {
+  toBytes(bytes: Blob | ByteString): string | Uint8Array {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      return (bytes.toUint8Array() as unknown) as string;
+      return bytes.toUint8Array();
     }
   }
 
@@ -295,38 +255,17 @@ export class JsonProtoSerializer {
     }
   }
 
-  /**
-   * Parse the blob from the protos into the internal Blob class. Note that the
-   * typings assume all blobs are strings, but they are actually Uint8Arrays
-   * on Node.
-   */
-  private fromBlob(blob: string | Uint8Array): Blob {
-    if (typeof blob === 'string') {
-      assert(
-        this.options.useProto3Json,
-        'Expected bytes to be passed in as Uint8Array, but got a string instead.'
-      );
-      return Blob.fromBase64String(blob);
-    } else {
-      assert(
-        !this.options.useProto3Json,
-        'Expected bytes to be passed in as Uint8Array, but got a string instead.'
-      );
-      return Blob.fromUint8Array(blob);
-    }
-  }
-
-  toVersion(version: SnapshotVersion): string {
+  toVersion(version: SnapshotVersion): api.Timestamp {
     return this.toTimestamp(version.toTimestamp());
   }
 
-  fromVersion(version: string): SnapshotVersion {
+  fromVersion(version: api.Timestamp): SnapshotVersion {
     assert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
 
-  toResourceName(databaseId: DatabaseId, path: ResourcePath): string {
-    return this.fullyQualifiedPrefixPath(databaseId)
+  toResourceName(path: ResourcePath, databaseId?: DatabaseId): string {
+    return this.fullyQualifiedPrefixPath(databaseId || this.databaseId)
       .child('documents')
       .child(path)
       .canonicalString();
@@ -335,14 +274,14 @@ export class JsonProtoSerializer {
   fromResourceName(name: string): ResourcePath {
     const resource = ResourcePath.fromString(name);
     assert(
-      this.isValidResourceName(resource),
+      isValidResourceName(resource),
       'Tried to deserialize invalid key ' + resource.toString()
     );
     return resource;
   }
 
   toName(key: DocumentKey): string {
-    return this.toResourceName(this.databaseId, key.path);
+    return this.toResourceName(key.path);
   }
 
   fromName(name: string): DocumentKey {
@@ -366,7 +305,7 @@ export class JsonProtoSerializer {
   }
 
   toQueryPath(path: ResourcePath): string {
-    return this.toResourceName(this.databaseId, path);
+    return this.toResourceName(path);
   }
 
   fromQueryPath(name: string): ResourcePath {
@@ -410,135 +349,11 @@ export class JsonProtoSerializer {
     return resourceName.popFirst(5);
   }
 
-  private isValidResourceName(path: ResourcePath): boolean {
-    // Resource names have at least 4 components (project ID, database ID)
-    return (
-      path.length >= 4 &&
-      path.get(0) === 'projects' &&
-      path.get(2) === 'databases'
-    );
-  }
-
-  toValue(val: fieldValue.FieldValue): api.Value {
-    if (val instanceof fieldValue.NullValue) {
-      return { nullValue: 'NULL_VALUE' };
-    } else if (val instanceof fieldValue.BooleanValue) {
-      return { booleanValue: val.value() };
-    } else if (val instanceof fieldValue.IntegerValue) {
-      return { integerValue: '' + val.value() };
-    } else if (val instanceof fieldValue.DoubleValue) {
-      const doubleValue = val.value();
-      if (this.options.useProto3Json) {
-        // Proto 3 let's us encode NaN and Infinity as string values as
-        // expected by the backend. This is currently not checked by our unit
-        // tests because they rely on protobuf.js.
-        if (isNaN(doubleValue)) {
-          return { doubleValue: 'NaN' } as {};
-        } else if (doubleValue === Infinity) {
-          return { doubleValue: 'Infinity' } as {};
-        } else if (doubleValue === -Infinity) {
-          return { doubleValue: '-Infinity' } as {};
-        } else if (typeUtils.isNegativeZero(doubleValue)) {
-          return { doubleValue: '-0' } as {};
-        }
-      }
-      return { doubleValue: val.value() };
-    } else if (val instanceof fieldValue.StringValue) {
-      return { stringValue: val.value() };
-    } else if (val instanceof fieldValue.ObjectValue) {
-      return { mapValue: this.toMapValue(val) };
-    } else if (val instanceof fieldValue.ArrayValue) {
-      return { arrayValue: this.toArrayValue(val) };
-    } else if (val instanceof fieldValue.TimestampValue) {
-      return {
-        timestampValue: this.toTimestamp(val.internalValue)
-      };
-    } else if (val instanceof fieldValue.GeoPointValue) {
-      return {
-        geoPointValue: {
-          latitude: val.value().latitude,
-          longitude: val.value().longitude
-        }
-      };
-    } else if (val instanceof fieldValue.BlobValue) {
-      return {
-        bytesValue: this.toBytes(val.value())
-      };
-    } else if (val instanceof fieldValue.RefValue) {
-      return {
-        referenceValue: this.toResourceName(val.databaseId, val.key.path)
-      };
-    } else {
-      return fail('Unknown FieldValue ' + JSON.stringify(val));
-    }
-  }
-
-  fromValue(obj: api.Value): fieldValue.FieldValue {
-    if ('nullValue' in obj) {
-      return fieldValue.NullValue.INSTANCE;
-    } else if ('booleanValue' in obj) {
-      return fieldValue.BooleanValue.of(obj.booleanValue!);
-    } else if ('integerValue' in obj) {
-      return new fieldValue.IntegerValue(parseInt64(obj.integerValue!));
-    } else if ('doubleValue' in obj) {
-      if (this.options.useProto3Json) {
-        // Proto 3 uses the string values 'NaN' and 'Infinity'.
-        if ((obj.doubleValue as {}) === 'NaN') {
-          return fieldValue.DoubleValue.NAN;
-        } else if ((obj.doubleValue as {}) === 'Infinity') {
-          return fieldValue.DoubleValue.POSITIVE_INFINITY;
-        } else if ((obj.doubleValue as {}) === '-Infinity') {
-          return fieldValue.DoubleValue.NEGATIVE_INFINITY;
-        } else if ((obj.doubleValue as {}) === '-0') {
-          return new fieldValue.DoubleValue(-0);
-        }
-      }
-
-      return new fieldValue.DoubleValue(obj.doubleValue!);
-    } else if ('stringValue' in obj) {
-      return new fieldValue.StringValue(obj.stringValue!);
-    } else if ('mapValue' in obj) {
-      return this.fromFields(obj.mapValue!.fields || {});
-    } else if ('arrayValue' in obj) {
-      // "values" is not present if the array is empty
-      assertPresent(obj.arrayValue, 'arrayValue');
-      const values = obj.arrayValue.values || [];
-      return new fieldValue.ArrayValue(values.map(v => this.fromValue(v)));
-    } else if ('timestampValue' in obj) {
-      assertPresent(obj.timestampValue, 'timestampValue');
-      return new fieldValue.TimestampValue(
-        this.fromTimestamp(obj.timestampValue!)
-      );
-    } else if ('geoPointValue' in obj) {
-      assertPresent(obj.geoPointValue, 'geoPointValue');
-      const latitude = obj.geoPointValue.latitude || 0;
-      const longitude = obj.geoPointValue.longitude || 0;
-      return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
-    } else if ('bytesValue' in obj) {
-      assertPresent(obj.bytesValue, 'bytesValue');
-      const blob = this.fromBlob(obj.bytesValue);
-      return new fieldValue.BlobValue(blob);
-    } else if ('referenceValue' in obj) {
-      assertPresent(obj.referenceValue, 'referenceValue');
-      const resourceName = this.fromResourceName(obj.referenceValue);
-      const dbId = new DatabaseId(resourceName.get(1), resourceName.get(3));
-      const key = new DocumentKey(
-        this.extractLocalPathFromResourceName(resourceName)
-      );
-      return new fieldValue.RefValue(dbId, key);
-    } else {
-      return fail('Unknown Value proto ' + JSON.stringify(obj));
-    }
-  }
-
   /** Creates an api.Document from key and fields (but no create/update time) */
-  toMutationDocument(
-    key: DocumentKey,
-    fields: fieldValue.ObjectValue
-  ): api.Document {
+  toMutationDocument(key: DocumentKey, fields: ObjectValue): api.Document {
     return {
       name: this.toName(key),
-      fields: this.toFields(fields)
+      fields: fields.proto.mapValue.fields
     };
   }
 
@@ -549,7 +364,7 @@ export class JsonProtoSerializer {
     );
     return {
       name: this.toName(document.key),
-      fields: this.toFields(document.data()),
+      fields: document.toProto().mapValue.fields,
       updateTime: this.toTimestamp(document.version.toTimestamp())
     };
   }
@@ -560,46 +375,10 @@ export class JsonProtoSerializer {
   ): Document {
     const key = this.fromName(document.name!);
     const version = this.fromVersion(document.updateTime!);
-    return new Document(
-      key,
-      version,
-      { hasCommittedMutations: !!hasCommittedMutations },
-      undefined,
-      document,
-      v => this.fromValue(v)
-    );
-  }
-
-  toFields(fields: fieldValue.ObjectValue): { [key: string]: api.Value } {
-    const result: { [key: string]: api.Value } = {};
-    fields.forEach((key, value) => {
-      result[key] = this.toValue(value);
+    const data = new ObjectValue({ mapValue: { fields: document.fields } });
+    return new Document(key, version, data, {
+      hasCommittedMutations: !!hasCommittedMutations
     });
-    return result;
-  }
-
-  fromFields(object: {}): fieldValue.ObjectValue {
-    // Proto map<string, Value> gets mapped to Object, so cast it.
-    const map = object as { [key: string]: api.Value };
-    const result = fieldValue.ObjectValue.newBuilder();
-    obj.forEach(map, (key, value) => {
-      result.set(new FieldPath([key]), this.fromValue(value));
-    });
-    return result.build();
-  }
-
-  toMapValue(map: fieldValue.ObjectValue): api.MapValue {
-    return {
-      fields: this.toFields(map)
-    };
-  }
-
-  toArrayValue(array: fieldValue.ArrayValue): api.ArrayValue {
-    const result: api.Value[] = [];
-    array.forEach(value => {
-      result.push(this.toValue(value));
-    });
-    return { values: result };
   }
 
   private fromFound(doc: api.BatchGetDocumentsResponse): Document {
@@ -611,9 +390,8 @@ export class JsonProtoSerializer {
     assertPresent(doc.found.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found.name);
     const version = this.fromVersion(doc.found.updateTime);
-    return new Document(key, version, {}, undefined, doc.found, v =>
-      this.fromValue(v)
-    );
+    const data = new ObjectValue({ mapValue: { fields: doc.found.fields } });
+    return new Document(key, version, data, {});
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -674,7 +452,7 @@ export class JsonProtoSerializer {
           documentChange: {
             document: {
               name: this.toName(doc.key),
-              fields: this.toFields(doc.data()),
+              fields: doc.toProto().mapValue.fields,
               updateTime: this.toVersion(doc.version)
             },
             targetIds: watchChange.updatedTargetIds,
@@ -750,14 +528,10 @@ export class JsonProtoSerializer {
       );
       const key = this.fromName(entityChange.document.name);
       const version = this.fromVersion(entityChange.document.updateTime);
-      const doc = new Document(
-        key,
-        version,
-        {},
-        undefined,
-        entityChange.document!,
-        v => this.fromValue(v)
-      );
+      const data = new ObjectValue({
+        mapValue: { fields: entityChange.document.fields }
+      });
+      const doc = new Document(key, version, data, {});
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -879,7 +653,9 @@ export class JsonProtoSerializer {
     if (proto.update) {
       assertPresent(proto.update.name, 'name');
       const key = this.fromName(proto.update.name);
-      const value = this.fromFields(proto.update.fields || {});
+      const value = new ObjectValue({
+        mapValue: { fields: proto.update.fields }
+      });
       if (proto.updateMask) {
         const fieldMask = this.fromDocumentMask(proto.updateMask);
         return new PatchMutation(key, value, fieldMask, precondition);
@@ -932,7 +708,7 @@ export class JsonProtoSerializer {
 
   private fromWriteResult(
     proto: api.WriteResult,
-    commitTime: string
+    commitTime: api.Timestamp
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     let version = proto.updateTime
@@ -948,18 +724,16 @@ export class JsonProtoSerializer {
       version = this.fromVersion(commitTime);
     }
 
-    let transformResults: fieldValue.FieldValue[] | null = null;
+    let transformResults: api.Value[] | null = null;
     if (proto.transformResults && proto.transformResults.length > 0) {
-      transformResults = proto.transformResults.map(result =>
-        this.fromValue(result)
-      );
+      transformResults = proto.transformResults;
     }
     return new MutationResult(version, transformResults);
   }
 
   fromWriteResults(
     protos: api.WriteResult[] | undefined,
-    commitTime?: string
+    commitTime?: api.Timestamp
   ): MutationResult[] {
     if (protos && protos.length > 0) {
       assert(
@@ -983,20 +757,20 @@ export class JsonProtoSerializer {
       return {
         fieldPath: fieldTransform.field.canonicalString(),
         appendMissingElements: {
-          values: transform.elements.map(v => this.toValue(v))
+          values: transform.elements
         }
       };
     } else if (transform instanceof ArrayRemoveTransformOperation) {
       return {
         fieldPath: fieldTransform.field.canonicalString(),
         removeAllFromArray: {
-          values: transform.elements.map(v => this.toValue(v))
+          values: transform.elements
         }
       };
     } else if (transform instanceof NumericIncrementTransformOperation) {
       return {
         fieldPath: fieldTransform.field.canonicalString(),
-        increment: this.toValue(transform.operand)
+        increment: transform.operand
       };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
@@ -1013,22 +787,14 @@ export class JsonProtoSerializer {
       transform = ServerTimestampTransform.instance;
     } else if ('appendMissingElements' in proto) {
       const values = proto.appendMissingElements!.values || [];
-      transform = new ArrayUnionTransformOperation(
-        values.map(v => this.fromValue(v))
-      );
+      transform = new ArrayUnionTransformOperation(values);
     } else if ('removeAllFromArray' in proto) {
       const values = proto.removeAllFromArray!.values || [];
-      transform = new ArrayRemoveTransformOperation(
-        values.map(v => this.fromValue(v))
-      );
+      transform = new ArrayRemoveTransformOperation(values);
     } else if ('increment' in proto) {
-      const operand = this.fromValue(proto.increment!);
-      assert(
-        operand instanceof fieldValue.NumberValue,
-        'NUMERIC_ADD transform requires a NumberValue'
-      );
       transform = new NumericIncrementTransformOperation(
-        operand as fieldValue.NumberValue
+        this,
+        proto.increment!
       );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
@@ -1086,7 +852,7 @@ export class JsonProtoSerializer {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toInt32Value(target.limit);
+    const limit = this.toInt32Proto(target.limit);
     if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
@@ -1132,7 +898,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit = this.fromInt32Value(query.limit);
+      limit = this.fromInt32Proto(query.limit);
     }
 
     let startAt: Bound | null = null;
@@ -1249,13 +1015,13 @@ export class JsonProtoSerializer {
   private toCursor(cursor: Bound): api.Cursor {
     return {
       before: cursor.before,
-      values: cursor.position.map(component => this.toValue(component))
+      values: cursor.position
     };
   }
 
   private fromCursor(cursor: api.Cursor): Bound {
     const before = !!cursor.before;
-    const position = cursor.values!.map(component => this.fromValue(component));
+    const position = cursor.values || [];
     return new Bound(position, before);
   }
 
@@ -1333,21 +1099,21 @@ export class JsonProtoSerializer {
     return FieldFilter.create(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
-      this.fromValue(filter.fieldFilter!.value!)
+      filter.fieldFilter!.value!
     );
   }
 
   // visible for testing
   toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
     if (filter.op === Operator.EQUAL) {
-      if (filter.value.isEqual(fieldValue.DoubleValue.NAN)) {
+      if (isNanValue(filter.value)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
             op: 'IS_NAN'
           }
         };
-      } else if (filter.value.isEqual(fieldValue.NullValue.INSTANCE)) {
+      } else if (isNullValue(filter.value)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
@@ -1360,7 +1126,7 @@ export class JsonProtoSerializer {
       fieldFilter: {
         field: this.toFieldPathReference(filter.field),
         op: this.toOperatorName(filter.op),
-        value: this.toValue(filter.value)
+        value: filter.value
       }
     };
   }
@@ -1371,20 +1137,16 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(
-          nanField,
-          Operator.EQUAL,
-          fieldValue.DoubleValue.NAN
-        );
+        return FieldFilter.create(nanField, Operator.EQUAL, {
+          doubleValue: NaN
+        });
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(
-          nullField,
-          Operator.EQUAL,
-          fieldValue.NullValue.INSTANCE
-        );
+        return FieldFilter.create(nullField, Operator.EQUAL, {
+          nullValue: 'NULL_VALUE'
+        });
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
       default:
@@ -1407,4 +1169,13 @@ export class JsonProtoSerializer {
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
     return FieldMask.fromArray(fields);
   }
+}
+
+export function isValidResourceName(path: ResourcePath): boolean {
+  // Resource names have at least 4 components (project ID, database ID)
+  return (
+    path.length >= 4 &&
+    path.get(0) === 'projects' &&
+    path.get(2) === 'databases'
+  );
 }

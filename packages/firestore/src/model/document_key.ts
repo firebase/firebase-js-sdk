@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,10 @@ export class DocumentKey {
       'Invalid DocumentKey with an odd number of segments: ' +
         path.toArray().join('/')
     );
+  }
+
+  static fromName(name: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
   }
 
   /** Returns true if the document is in the specified collectionId. */
@@ -59,21 +63,10 @@ export class DocumentKey {
   /**
    * Creates and returns a new document key with the given segments.
    *
-   * @param path The segments of the path to the document
+   * @param segments The segments of the path to the document
    * @return A new instance of DocumentKey
    */
   static fromSegments(segments: string[]): DocumentKey {
     return new DocumentKey(new ResourcePath(segments.slice()));
-  }
-
-  /**
-   * Creates and returns a new document key using '/' to split the string into
-   * segments.
-   *
-   * @param path The slash-separated path string to the document
-   * @return A new instance of DocumentKey
-   */
-  static fromPathString(path: string): DocumentKey {
-    return new DocumentKey(ResourcePath.fromString(path));
   }
 }

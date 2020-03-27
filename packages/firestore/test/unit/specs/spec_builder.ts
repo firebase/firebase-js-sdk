@@ -36,7 +36,7 @@ import { assert, fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
-import { TestSnapshotVersion } from '../../util/helpers';
+import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
@@ -54,6 +54,8 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+
+const userDataWriter = testUserDataWriter();
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
@@ -901,7 +903,7 @@ export class SpecBuilder {
           return [
             filter.field.canonicalString(),
             filter.op.name,
-            filter.value.value()
+            userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
           return fail('Unknown filter: ' + filter);
@@ -924,7 +926,9 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
-        value: doc.data().value(),
+        value: userDataWriter.convertValue(doc.toProto()) as JsonObject<
+          unknown
+        >,
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations
