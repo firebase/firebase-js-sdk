@@ -22,6 +22,8 @@ jobs:
       - run: yarn install
       - run: yarn build
 
+      - run: node scripts/show_github_event.js
+
       - name: Run health-metrics/binary-size test
         run: yarn size-report
 
