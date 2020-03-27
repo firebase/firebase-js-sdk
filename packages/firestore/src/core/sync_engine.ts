@@ -413,6 +413,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('applyRemoteEvent()');
     try {
       const changes = await this.localStore.applyRemoteEvent(remoteEvent);
+      
+      if (!changes) {
+        return Promise.resolve();
+      }
       // Update `receivedDocument` as appropriate for any limbo targets.
       objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
         const limboResolution = this.limboResolutionsByTarget[Number(targetId)];
@@ -446,15 +450,23 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
-      if (!isPrimaryLeaseLoss(error)) {
-        objUtils.forEachNumber(remoteEvent.targetChanges, targetId => {
-          this.rejectListen(
-            targetId,
-            new FirestoreError(Code.INTERNAL, error.message)
-          );
-          this.remoteStore.unlisten(targetId);
-        });
+      if (isPrimaryLeaseLoss(error)) {
+        return;
       }
+      // error
+      let p = Promise.resolve();
+      objUtils.forEachNumber(remoteEvent.targetChanges, targetId => {
+        p = p
+          .then()
+          .then(() =>
+            this.rejectListen(
+              targetId,
+              new FirestoreError(Code.INTERNAL, error.message)
+            )
+          );
+        this.remoteStore.unlisten(targetId);
+      });
+      return p;
     }
   }
 

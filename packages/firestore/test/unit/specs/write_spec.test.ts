@@ -1032,7 +1032,7 @@ describeSpec('Writes:', [], () => {
     );
   });
 
-  specTest('Writes are held during primary failover', ['multi-client'], () => {
+  specTest('Writes are held during primary failover', ['exclusive', 'multi-client'], () => {
     const query1 = Query.atPath(path('collection'));
     const query2 = Query.atPath(path('collection/doc'));
     const docV1 = doc(
