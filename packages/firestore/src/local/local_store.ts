@@ -725,7 +725,7 @@ export class LocalStore {
               );
               const existingDoc = existingDocs.get(key);
               const readSnapshotTime = SnapshotVersion.fromTimestamp(
-                new Timestamp(meta.readTime!.seconds!, meta.readTime!.nanos!)
+                new Timestamp(meta.readTime!.seconds!, meta.readTime!.nanoseconds!)
               );
               if (
                 existingDoc == null ||

@@ -93,7 +93,7 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
         result = {
           queryTarget: q?.query! as QueryTarget,
           name: queryName,
-          readTime: q?.queryReadTime!
+          readTime: new Timestamp(q?.queryReadTime.seconds!, q?.queryReadTime.nanoseconds!)
         };
         console.log(`NamedBundleQuery is : ${JSON.stringify(result)}`);
       })
@@ -110,13 +110,13 @@ export class IndexedDbNamedQueryCache implements NamedQueryCache {
       bundleId: bundleMetadata.name as string,
       bundleCreateTime: new DbTimestamp(
         bundleMetadata.createTime?.seconds!,
-        bundleMetadata.createTime?.nanos!
+        (bundleMetadata.createTime as any).nanos as number
       ),
       name: queryName,
       query: query.queryTarget as QueryTarget,
       queryReadTime: new DbTimestamp(
         query.readTime?.seconds!,
-        query.readTime?.nanos!
+        (query.readTime as any).nanos as number
       )
     };
     toAdd.query = (query.queryTarget as QueryTarget);

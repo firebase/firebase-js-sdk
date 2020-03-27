@@ -42,7 +42,7 @@ export class NamedQuery {
       SnapshotVersion.fromTimestamp(
         new Timestamp(
           bundleQuery.readTime!.seconds!,
-          bundleQuery.readTime!.nanos!
+          bundleQuery.readTime!.nanoseconds!
         )
       )
     );

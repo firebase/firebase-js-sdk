@@ -513,6 +513,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (!v) {
         return null;
       }
+      console.log(`Query readtime is ${JSON.stringify(v!.readTime)}`);
       return new Query(v?.query!, this, undefined, v!.readTime.toTimestamp()!);
     });
   }

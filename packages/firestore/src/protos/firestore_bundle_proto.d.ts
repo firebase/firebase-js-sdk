@@ -1,12 +1,5 @@
 import * as api from "./firestore_proto_api";
-
-interface Timestamp {
-  /** Timestamp seconds */
-  seconds?: number | null;
-
-  /** Timestamp nanos */
-  nanos?: number | null;
-}
+import {Timestamp} from "../api/timestamp";
 
 export interface BundleMetadata {
   /** BundleMetadata name */
