@@ -24,7 +24,7 @@ describeSpec(
   'Persistence Recovery',
   ['durable-persistence', 'no-ios', 'no-android', 'exclusive'],
   () => {
-    specTest('Recovers from failed write', [], () => {
+    specTest('Recovers when write cannot be persisted', [], () => {
       return spec()
         .userSets('collection/key1', { foo: 'a' })
         .expectNumOutstandingWrites(1)
@@ -38,7 +38,7 @@ describeSpec(
         .expectNumOutstandingWrites(0);
     });
 
-    specTest('Does not surface failed writes', [], () => {
+    specTest('Does not surface non-persisted writes', [], () => {
       const query = Query.atPath(path('collection'));
       const doc1Local = doc(
         'collection/key1',
@@ -47,7 +47,12 @@ describeSpec(
         { hasLocalMutations: true }
       );
       const doc1 = doc('collection/key1', 1, { foo: 'a' });
-      const doc2Local = doc('collection/key2', 0, { foo: 'b' });
+      const doc2Local = doc(
+        'collection/key2',
+        0,
+        { foo: 'b' },
+        { hasLocalMutations: true }
+      );
       const doc3Local = doc(
         'collection/key3',
         0,
