@@ -654,12 +654,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     switch (getLogLevel()) {
       case LogLevel.DEBUG:
         return 'debug';
-      case LogLevel.ERROR:
-        return 'error';
       case LogLevel.SILENT:
         return 'silent';
       default:
-        return fail('Unknown log level: ' + getLogLevel());
+        // The default log level is error
+        return 'error';
     }
   }
 
