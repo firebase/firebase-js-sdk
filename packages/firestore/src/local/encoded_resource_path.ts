@@ -72,7 +72,7 @@ const encodedEscape = '\u0011';
 /**
  * Encodes a resource path into a IndexedDb-compatible string form.
  */
-export function encode(path: ResourcePath): EncodedResourcePath {
+export function encodeResourcePath(path: ResourcePath): EncodedResourcePath {
   let result = '';
   for (let i = 0; i < path.length; i++) {
     if (result.length > 0) {
@@ -114,7 +114,7 @@ function encodeSeparator(result: string): string {
  * decoding resource names from the server; those are One Platform format
  * strings.
  */
-export function decode(path: EncodedResourcePath): ResourcePath {
+export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
   // Event the empty path must encode as a path of at least length 2. A path
   // with exactly 2 must be the empty path.
   const length = path.length;

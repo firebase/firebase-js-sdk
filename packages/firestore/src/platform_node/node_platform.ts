@@ -16,7 +16,7 @@
  */
 
 import { randomBytes } from 'crypto';
-import * as util from 'util';
+import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
@@ -57,8 +57,8 @@ export class NodePlatform implements Platform {
   }
 
   formatJSON(value: unknown): string {
-    // util.inspect() results in much more readable output than JSON.stringify()
-    return util.inspect(value, { depth: 100 });
+    // util's inspect() results in much more readable output than JSON.stringify()
+    return inspect(value, { depth: 100 });
   }
 
   atob(encoded: string): string {

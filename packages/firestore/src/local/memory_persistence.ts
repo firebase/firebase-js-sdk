@@ -22,14 +22,13 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
-import { encode } from './encoded_resource_path';
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-
 import { DatabaseInfo } from '../core/database_info';
 import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
@@ -330,7 +329,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encode(k.path));
+  > = new ObjectMap(k => encodeResourcePath(k.path));
 
   readonly garbageCollector: LruGarbageCollector;
 
