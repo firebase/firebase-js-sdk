@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   binary-size-test:
     name: Binary Size
+    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-latest
     env:
       METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
