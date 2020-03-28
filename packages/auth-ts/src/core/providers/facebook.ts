@@ -20,13 +20,18 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 import { OAuthCredential } from '../../model/auth_credential';
+import {GenericOAuthCredential} from './oauth_credential';
 
 export class FacebookAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.FACEBOOK;
   static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
   readonly providerId: ProviderId = FacebookAuthProvider.PROVIDER_ID;
   static credential(accessToken: string): OAuthCredential {
-    throw new Error('not implemented');
+    return new GenericOAuthCredential({
+      providerId: this.PROVIDER_ID,
+      signInMethod: this.FACEBOOK_SIGN_IN_METHOD,
+      accessToken
+    });
   }
   static credentialFromResult(
     userCredential: UserCredential
