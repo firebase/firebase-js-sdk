@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,24 +124,7 @@ describe('EncodedResourcePath', () => {
       path('food')
     ]);
   });
-
-  it('prefixes successors correctly', async () => {
-    assertPrefixSuccessorEquals('\u0001\u0002', ResourcePath.EMPTY_PATH);
-    assertPrefixSuccessorEquals(
-      'foo' + sep + 'bar\u0001\u0002',
-      path('foo/bar')
-    );
-  });
 });
-
-function assertPrefixSuccessorEquals(
-  expected: string,
-  path: ResourcePath
-): void {
-  expect(
-    EncodedResourcePath.prefixSuccessor(EncodedResourcePath.encode(path))
-  ).to.deep.equal(expected);
-}
 
 function assertEncoded(expected: string, path: ResourcePath): Promise<void> {
   const encoded = EncodedResourcePath.encode(path);

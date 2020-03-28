@@ -1420,7 +1420,7 @@ describe('Serializer', () => {
           document: {
             name: s.toName(key('coll/1')),
             fields: wrap({ foo: 'bar' }).mapValue!.fields,
-            updateTime: s.toVersion(SnapshotVersion.fromMicroseconds(5))
+            updateTime: s.toVersion(version(5))
           },
           targetIds: [1, 2]
         }
@@ -1440,7 +1440,7 @@ describe('Serializer', () => {
           document: {
             name: s.toName(key('coll/1')),
             fields: wrap({ foo: 'bar' }).mapValue!.fields,
-            updateTime: s.toVersion(SnapshotVersion.fromMicroseconds(5))
+            updateTime: s.toVersion(version(5))
           },
           targetIds: [2],
           removedTargetIds: [1]
@@ -1459,7 +1459,7 @@ describe('Serializer', () => {
       const actual = s.fromWatchChange({
         documentDelete: {
           document: s.toName(key('coll/1')),
-          readTime: s.toVersion(SnapshotVersion.fromMicroseconds(5)),
+          readTime: s.toVersion(version(5)),
           removedTargetIds: [1, 2]
         }
       });
