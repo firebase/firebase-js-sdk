@@ -22,5 +22,9 @@ jobs:
       - run: |
           echo "${{ github.event_name }}"
           echo "${{ github.event.pull_request.head.repo.fork }}"
+          echo "${{ github.event_name != 'pull_request' }}"
+          echo "${{ github.event.pull_request.head.repo.fork != 'true' }}"
+          echo "${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != 'true' }}"
+          echo "${{ (github.event_name != 'pull_request') || (github.event.pull_request.head.repo.fork != 'true') }}"
 
   # TODO(yifany): Enable startup times testing on CI.
