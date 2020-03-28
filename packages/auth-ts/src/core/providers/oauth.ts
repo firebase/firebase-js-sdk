@@ -64,7 +64,7 @@ export class OAuthProvider implements AuthProvider {
   getCustomParameters(): CustomParameters {
     return this.customParameters;
   }
-  
+
   addScope(scope: string) {
     // If not already added, add scope to list.
     if (!this.scopes.includes(scope)) {

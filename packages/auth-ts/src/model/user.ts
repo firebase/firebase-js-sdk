@@ -69,7 +69,7 @@ export class User implements UserInfo {
   isAnonymous: boolean;
   providerData: UserInfo[] = [];
   redirectEventId_: string | null = null;
-  mfaInfo_: MultiFactorInfo[]|null = null;
+  mfaInfo_: MultiFactorInfo[] | null = null;
 
   // On the root user object
   readonly providerId = ProviderId.FIREBASE;
@@ -116,7 +116,7 @@ export class User implements UserInfo {
       isAnonymous,
       providerData,
       redirectEventId_,
-      mfaInfo_,
+      mfaInfo_
     } = object;
     const stsTokenManager = StsTokenManager.fromPlainObject(managerObject);
     const user = new User({
@@ -134,7 +134,7 @@ export class User implements UserInfo {
       tenantId,
       providerData,
       redirectEventId_,
-      mfaInfo_,
+      mfaInfo_
     });
 
     return user;

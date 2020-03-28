@@ -17,7 +17,12 @@
 
 import { Auth } from '../model/auth';
 import { IdToken, IdTokenResponse } from '../model/id_token';
-import { performApiRequest, Endpoint, HttpMethod, performSignInRequest } from '.';
+import {
+  performApiRequest,
+  Endpoint,
+  HttpMethod,
+  performSignInRequest
+} from '.';
 import { ServerErrorMap, ServerError } from './errors';
 import { AuthErrorCode } from '../core/errors';
 
@@ -332,31 +337,27 @@ export function startSignInPhoneMfa(
   auth: Auth,
   request: StartPhoneMfaSignInRequest
 ): Promise<StartPhoneMfaSignInResponse> {
-  return performApiRequest<StartPhoneMfaSignInRequest, StartPhoneMfaSignInResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.START_PHONE_MFA_SIGN_IN,
-    request
-  );
+  return performApiRequest<
+    StartPhoneMfaSignInRequest,
+    StartPhoneMfaSignInResponse
+  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_SIGN_IN, request);
 }
 
 export interface FinalizePhoneMfaSignInRequest {
   mfaPendingCredential: string;
-  phoneVerificationInfo: SignInWithPhoneNumberRequest,
+  phoneVerificationInfo: SignInWithPhoneNumberRequest;
 }
 
-export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse{}
+export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
   request: FinalizePhoneMfaSignInRequest
 ): Promise<FinalizePhoneMfaSignInResponse> {
-  return performApiRequest<FinalizePhoneMfaSignInRequest, FinalizePhoneMfaSignInResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
-    request
-  );
+  return performApiRequest<
+    FinalizePhoneMfaSignInRequest,
+    FinalizePhoneMfaSignInResponse
+  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, request);
 }
 
 export type PhoneOrOauthTokenResponse =

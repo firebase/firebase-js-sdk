@@ -53,8 +53,8 @@ export enum Endpoint {
   FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
-  WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
-};
+  WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw'
+}
 
 export async function performApiRequest<T, V>(
   auth: Auth,
@@ -111,9 +111,18 @@ export async function performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = await performApiRequest<T, V>(auth, method, path, request, customErrorMap);
+  const serverResponse = await performApiRequest<T, V>(
+    auth,
+    method,
+    path,
+    request,
+    customErrorMap
+  );
   if (serverResponse.mfaPendingCredential) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {appName: auth.name, serverResponse});
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
+      appName: auth.name,
+      serverResponse
+    });
   }
 
   return serverResponse;

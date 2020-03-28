@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import { MultiFactorAssertion, MultiFactorSession, EnrollmentRequestInfo, MultiFactorActionOutcome, MultiFactorSessionType, SignInRequestInfo } from '../../model/multi_factor';
+import {
+  MultiFactorAssertion,
+  MultiFactorSession,
+  EnrollmentRequestInfo,
+  MultiFactorActionOutcome,
+  MultiFactorSessionType,
+  SignInRequestInfo
+} from '../../model/multi_factor';
 import { ProviderId } from '../providers';
 import { PhoneAuthCredential } from '../providers/phone';
 import { enrollPhoneMfa } from '../../api/account_management';
@@ -26,7 +33,10 @@ import { finalizeSignInPhoneMfa } from '../../api/authentication';
 abstract class AbstractMultiFactorAssertion implements MultiFactorAssertion {
   constructor(readonly factorId: ProviderId, readonly auth: Auth) {}
 
-  process(session: MultiFactorSession, displayName?: string): Promise<IdTokenResponse> {
+  process(
+    session: MultiFactorSession,
+    displayName?: string
+  ): Promise<IdTokenResponse> {
     switch (session.type) {
       case MultiFactorSessionType.ENROLL:
         return this.handleEnroll(session, displayName);
@@ -35,9 +45,12 @@ abstract class AbstractMultiFactorAssertion implements MultiFactorAssertion {
     }
   }
 
-  private handleEnroll(session: MultiFactorSession, displayName?: string): Promise<IdTokenResponse> {
+  private handleEnroll(
+    session: MultiFactorSession,
+    displayName?: string
+  ): Promise<IdTokenResponse> {
     const idToken = session.rawSession;
-    const request: EnrollmentRequestInfo = {idToken};
+    const request: EnrollmentRequestInfo = { idToken };
     if (displayName) {
       request.displayName = displayName;
     }
@@ -47,12 +60,14 @@ abstract class AbstractMultiFactorAssertion implements MultiFactorAssertion {
 
   private handleSignIn(session: MultiFactorSession): Promise<IdTokenResponse> {
     const mfaPendingCredential = session.rawSession;
-    const request: SignInRequestInfo = {mfaPendingCredential};
+    const request: SignInRequestInfo = { mfaPendingCredential };
 
     return this.finalizeSignIn(request);
   }
 
-  abstract finalizeEnrollment(request: EnrollmentRequestInfo): Promise<IdTokenResponse>;
+  abstract finalizeEnrollment(
+    request: EnrollmentRequestInfo
+  ): Promise<IdTokenResponse>;
   abstract finalizeSignIn(request: SignInRequestInfo): Promise<IdTokenResponse>;
 }
 
@@ -63,19 +78,25 @@ export class PhoneMultiFactorAssertion extends AbstractMultiFactorAssertion {
 
   finalizeEnrollment(request: EnrollmentRequestInfo): Promise<IdTokenResponse> {
     const phoneVerificationInfo = this.credential.makeVerificationRequest();
-    return enrollPhoneMfa(this.auth, {...request, phoneVerificationInfo});
+    return enrollPhoneMfa(this.auth, { ...request, phoneVerificationInfo });
   }
 
   finalizeSignIn(request: SignInRequestInfo): Promise<IdTokenResponse> {
     const phoneVerificationInfo = this.credential.makeVerificationRequest();
-    return finalizeSignInPhoneMfa(this.auth, {...request, phoneVerificationInfo});
+    return finalizeSignInPhoneMfa(this.auth, {
+      ...request,
+      phoneVerificationInfo
+    });
   }
 }
 
 export class PhoneMultiFactorGenerator {
   private constructor() {}
 
-  static assertion(auth: Auth, credential: PhoneAuthCredential): MultiFactorAssertion {
+  static assertion(
+    auth: Auth,
+    credential: PhoneAuthCredential
+  ): MultiFactorAssertion {
     return new PhoneMultiFactorAssertion(credential, auth);
   }
 }

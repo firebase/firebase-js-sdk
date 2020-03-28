@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { MultiFactorUser, MultiFactorInfo, MultiFactorSession, MultiFactorAssertion } from "../../model/multi_factor";
+import {
+  MultiFactorUser,
+  MultiFactorInfo,
+  MultiFactorSession,
+  MultiFactorAssertion
+} from '../../model/multi_factor';
 import { User } from '../../model/user';
 import { Auth } from '../../model/auth';
 import { withdrawMfa } from '../../api/account_management';
@@ -28,18 +33,23 @@ class MultiFactorUserImpl implements MultiFactorUser {
     return new MultiFactorSession(await this.user.getIdToken(), null);
   }
 
-  async enroll(auth: Auth, assertion: MultiFactorAssertion, displayName?: string): Promise<void> {
+  async enroll(
+    auth: Auth,
+    assertion: MultiFactorAssertion,
+    displayName?: string
+  ): Promise<void> {
     const session = await this.getSession();
     const idTokenResponse = await assertion.process(session, displayName);
     this.user.stsTokenManager.updateFromServerResponse(idTokenResponse);
     await this.user.reload(auth);
   }
 
-  async unenroll(auth: Auth, option: MultiFactorInfo|string): Promise<void> {
+  async unenroll(auth: Auth, option: MultiFactorInfo | string): Promise<void> {
     const mfaEnrollmentId = typeof option === 'string' ? option : option.uid;
     const idToken = await this.user.getIdToken();
-    const response = await withdrawMfa(auth, {idToken, mfaEnrollmentId});
-    this.user.mfaInfo_ = this.user.mfaInfo_?.filter(ifo => ifo.uid !== mfaEnrollmentId) || null;
+    const response = await withdrawMfa(auth, { idToken, mfaEnrollmentId });
+    this.user.mfaInfo_ =
+      this.user.mfaInfo_?.filter(ifo => ifo.uid !== mfaEnrollmentId) || null;
     this.user.stsTokenManager.updateFromServerResponse(response);
     try {
       await this.user.reload(auth);

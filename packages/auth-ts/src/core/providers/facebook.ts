@@ -20,7 +20,7 @@ import { UserCredential } from '../../model/user_credential';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider, CustomParameters } from './oauth';
 import { OAuthCredential } from '../../model/auth_credential';
-import {GenericOAuthCredential} from './oauth_credential';
+import { GenericOAuthCredential } from './oauth_credential';
 
 export class FacebookAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = ProviderId.FACEBOOK;

@@ -48,7 +48,9 @@ export async function reloadWithoutSaving(
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
-    mfaInfo_: coreAccount.mfaInfo ? extractMfaInfo(coreAccount.mfaInfo) : undefined,
+    mfaInfo_: coreAccount.mfaInfo
+      ? extractMfaInfo(coreAccount.mfaInfo)
+      : undefined,
     metadata: {
       creationTime: coreAccount.createdAt?.toString(),
       lastSignInTime: coreAccount.lastLoginAt?.toString()

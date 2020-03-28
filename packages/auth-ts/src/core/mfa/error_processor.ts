@@ -20,20 +20,28 @@ import { User } from '../../model/user';
 import { OperationType } from '../../model/user_credential';
 import { IdTokenResponse } from '../../model/id_token';
 
-function processIfMfaError(e: any, user: User|null, operationType: OperationType) {
+function processIfMfaError(
+  e: any,
+  user: User | null,
+  operationType: OperationType
+) {
   if (e.code === AuthErrorCode.MFA_REQUIRED) {
-    Object.assign(e, {user, operationType});
+    Object.assign(e, { user, operationType });
   }
 
   return e;
 }
 
-export async function callApiWithMfaContext<T>(cb: () => Promise<T>, operationType: OperationType, user?: User): Promise<T> {
+export async function callApiWithMfaContext<T>(
+  cb: () => Promise<T>,
+  operationType: OperationType,
+  user?: User
+): Promise<T> {
   try {
     return await cb();
   } catch (e) {
     if (e.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
-      Object.assign(e, {user, operationType});
+      Object.assign(e, { user, operationType });
     }
 
     throw e;

@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { MultiFactorResolver, MultiFactorSession, MultiFactorInfo, MultiFactorAssertion, extractMfaInfo } from "../../model/multi_factor";
+import {
+  MultiFactorResolver,
+  MultiFactorSession,
+  MultiFactorInfo,
+  MultiFactorAssertion,
+  extractMfaInfo
+} from '../../model/multi_factor';
 import { Auth } from '../../model/auth';
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
@@ -34,10 +40,12 @@ class MultiFactorResolverImpl implements MultiFactorResolver {
     readonly hints: MultiFactorInfo[],
     private readonly originalResponse: IdTokenResponse,
     private readonly operationType: OperationType,
-    private readonly user: User|null,
+    private readonly user: User | null
   ) {}
 
-  async resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential> {
+  async resolveSignIn(
+    assertion: MultiFactorAssertion
+  ): Promise<UserCredential> {
     const result = await assertion.process(this.session);
     // Clear out the unneeded fields from the old login response
     delete this.originalResponse.mfaInfo;
@@ -52,12 +60,19 @@ class MultiFactorResolverImpl implements MultiFactorResolver {
       );
       this.user.stsTokenManager.updateFromServerResponse(idTokenResponse);
       const cred = authCredentialFromTokenResponse(idTokenResponse);
-      const userCred = new UserCredential(this.user, cred, OperationType.REAUTHENTICATE);
-    
+      const userCred = new UserCredential(
+        this.user,
+        cred,
+        OperationType.REAUTHENTICATE
+      );
+
       await this.user.reload(this.auth);
       return userCred;
     } else {
-      const user = await initializeCurrentUserFromIdTokenResponse(this.auth, result);
+      const user = await initializeCurrentUserFromIdTokenResponse(
+        this.auth,
+        result
+      );
       const credential = authCredentialFromTokenResponse(result);
       return new UserCredential(user, credential, OperationType.SIGN_IN);
     }
@@ -66,14 +81,14 @@ class MultiFactorResolverImpl implements MultiFactorResolver {
 
 export function getMultiFactorResolver(
   auth: Auth,
-  error: AnyError,
+  error: AnyError
 ): MultiFactorResolver | null {
   if (!error.serverResponse || !error.operationType) {
     return null;
   }
 
   const serverResponse = error.serverResponse as IdTokenResponse;
-  const {mfaInfo, mfaPendingCredential} = serverResponse;
+  const { mfaInfo, mfaPendingCredential } = serverResponse;
   if (!mfaPendingCredential) {
     return null;
   }
@@ -87,6 +102,6 @@ export function getMultiFactorResolver(
     multiFactorInfo,
     serverResponse,
     error.operationType as OperationType,
-    (error.user as User) || null,
+    (error.user as User) || null
   );
 }

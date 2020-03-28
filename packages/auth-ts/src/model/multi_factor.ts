@@ -23,12 +23,15 @@ import { ProviderId } from '../core/providers';
 
 export enum MultiFactorSessionType {
   ENROLL = 'enroll',
-  SIGN_IN = 'signin',
-};
+  SIGN_IN = 'signin'
+}
 
 export interface MultiFactorAssertion {
   readonly factorId: string;
-  process(session: MultiFactorSession, displayName?: string): Promise<IdTokenResponse>;
+  process(
+    session: MultiFactorSession,
+    displayName?: string
+  ): Promise<IdTokenResponse>;
 }
 
 export interface EnrollmentRequestInfo {
@@ -41,8 +44,8 @@ export interface SignInRequestInfo {
 }
 
 export interface MultiFactorActionOutcome {
-  idToken: string,
-  refreshToken: string,
+  idToken: string;
+  refreshToken: string;
 }
 
 export interface MultiFactorInfo {
@@ -59,8 +62,12 @@ export interface PhoneMultiFactorInfo extends MultiFactorInfo {
 export interface MultiFactorUser {
   readonly enrolledFactors: MultiFactorInfo[];
   getSession(): Promise<MultiFactorSession>;
-  enroll(auth: Auth, assertion: MultiFactorAssertion, displayName?: string): Promise<void>;
-  unenroll(auth: Auth, option: MultiFactorInfo|string): Promise<void>;
+  enroll(
+    auth: Auth,
+    assertion: MultiFactorAssertion,
+    displayName?: string
+  ): Promise<void>;
+  unenroll(auth: Auth, option: MultiFactorInfo | string): Promise<void>;
 }
 
 export interface MultiFactorResolver {
@@ -74,23 +81,25 @@ export class MultiFactorSession {
   readonly type: MultiFactorSessionType;
 
   constructor(
-    private readonly idToken: string|null = null,
-    private readonly mfaPendingCredential: string|null = null,
+    private readonly idToken: string | null = null,
+    private readonly mfaPendingCredential: string | null = null
   ) {
     // Exactly one of idToken and mfaPendingCredential should be set
     if (!idToken && !mfaPendingCredential) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-        appName: 'TODO',
+        appName: 'TODO'
       });
     }
 
     if (idToken && mfaPendingCredential) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-        appName: 'TODO',
+        appName: 'TODO'
       });
     }
 
-    this.type = idToken ? MultiFactorSessionType.ENROLL : MultiFactorSessionType.SIGN_IN;
+    this.type = idToken
+      ? MultiFactorSessionType.ENROLL
+      : MultiFactorSessionType.SIGN_IN;
   }
 
   get rawSession(): string {
@@ -104,14 +113,15 @@ export function extractMfaInfo(mfaInfo: APIMFAInfo[]): MultiFactorInfo[] {
   const factorId = ProviderId.PHONE;
 
   return mfaInfo.map(ifo => {
-    const enrollmentTime = ifo.enrolledAt ? 
-        new Date(ifo.enrolledAt).toUTCString() : null;
+    const enrollmentTime = ifo.enrolledAt
+      ? new Date(ifo.enrolledAt).toUTCString()
+      : null;
     return {
       phoneNumber: ifo.phoneInfo,
       uid: ifo.mfaEnrollmentId!,
       enrollmentTime,
       displayName: ifo.displayName,
-      factorId,
+      factorId
     };
   });
 }

@@ -318,7 +318,13 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'disabled.'
 };
 
-type AuthErrorParams = { [key in AuthErrorCode]: { appName: AppName, serverResponse?: object, user?: User } };
+type AuthErrorParams = {
+  [key in AuthErrorCode]: {
+    appName: AppName;
+    serverResponse?: object;
+    user?: User;
+  };
+};
 
 export const AUTH_ERROR_FACTORY = new ErrorFactory<
   AuthErrorCode,

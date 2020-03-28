@@ -117,7 +117,7 @@ enum Persistence {
   NONE = 'none'
 }
 
-const firebaseApp = (firebase as FirebaseApp);
+const firebaseApp = firebase as FirebaseApp;
 
 interface FirebaseNamespace {
   auth?: {
@@ -164,7 +164,7 @@ firebaseApp.auth = function() {
       if (e.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
         e.resolver = getMultiFactorResolver(auth, e);
       }
-  
+
       throw e;
     }
   }
@@ -194,7 +194,9 @@ firebaseApp.auth = function() {
         reauthenticateWithCredential(
           credential: AuthCredential
         ): Promise<UserCredential> {
-          return catchMfaErr(() => reauthenticateWithCredential(auth, user, credential));
+          return catchMfaErr(() =>
+            reauthenticateWithCredential(auth, user, credential)
+          );
         },
         reauthenticateWithPhoneNumber(
           number: string,
@@ -206,7 +208,9 @@ firebaseApp.auth = function() {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return catchMfaErr(() => reauthenticateWithRedirect(auth, user, provider, resolver));
+          return catchMfaErr(() =>
+            reauthenticateWithRedirect(auth, user, provider, resolver)
+          );
         },
         reauthenticateWithPopup(
           provider: OAuthProvider
@@ -214,7 +218,9 @@ firebaseApp.auth = function() {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return catchMfaErr(() => reauthenticateWithPopup(auth, user, provider, resolver));
+          return catchMfaErr(() =>
+            reauthenticateWithPopup(auth, user, provider, resolver)
+          );
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
@@ -261,12 +267,12 @@ firebaseApp.auth = function() {
           enroll(assertion: MultiFactorAssertion, displayName?: string) {
             return mfaUser.enroll(auth, assertion, displayName);
           },
-          unenroll(option: MultiFactorInfo|string): Promise<void> {
+          unenroll(option: MultiFactorInfo | string): Promise<void> {
             return mfaUser.unenroll(auth, option);
           },
           get enrolledFactors(): MultiFactorInfo[] {
             return mfaUser.enrolledFactors;
-          },
+          }
         }
       });
     }
@@ -334,7 +340,9 @@ firebaseApp.auth = function() {
       email: string,
       password: string
     ): Promise<UserCredential> {
-      return catchMfaErr(() => signInWithEmailAndPassword(auth, email, password));
+      return catchMfaErr(() =>
+        signInWithEmailAndPassword(auth, email, password)
+      );
     },
     signInWithCustomToken(token: string): Promise<UserCredential> {
       return catchMfaErr(() => signInWithCustomToken(auth, token));
@@ -355,13 +363,15 @@ firebaseApp.auth = function() {
       );
     },
     signInWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
-      return catchMfaErr(() => signInWithPopup(
-        auth,
-        provider,
-        isMobileCordova()
-          ? cordovaPopupRedirectResolver
-          : browserPopupRedirectResolver
-      ));
+      return catchMfaErr(() =>
+        signInWithPopup(
+          auth,
+          provider,
+          isMobileCordova()
+            ? cordovaPopupRedirectResolver
+            : browserPopupRedirectResolver
+        )
+      );
     },
     signInWithPhoneNumber(
       phoneNumber: string,
@@ -392,7 +402,9 @@ firebaseApp.auth = function() {
     }
   };
 
-  Object.assign(firebaseApp.auth, {PhoneMultiFactorGenerator: LegacyPhoneMultiFactorGenerator});
+  Object.assign(firebaseApp.auth, {
+    PhoneMultiFactorGenerator: LegacyPhoneMultiFactorGenerator
+  });
   return memo;
 };
 
