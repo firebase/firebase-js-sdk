@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import '../../test/setup';
+import '../test/setup';
 import {
   initializeApp,
   getApps,

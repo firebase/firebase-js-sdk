@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import '../../test/setup';
+import '../test/setup';
 import { FirebaseAppImplNext } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppInternal } from '@firebase/app-types-exp';

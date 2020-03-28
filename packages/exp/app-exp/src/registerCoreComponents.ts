@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
-import { PlatformLoggerService } from '../platformLoggerService';
-import { name, version } from '../../package.json';
+import { PlatformLoggerService } from './platformLoggerService';
+import { name, version } from '../package.json';
 import { registerComponent } from './internal';
 import { registerVersion } from '.';
 

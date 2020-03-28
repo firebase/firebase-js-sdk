@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "declaration": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   },
   "exclude": [
     "dist/**/*"
