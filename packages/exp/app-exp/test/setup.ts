@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { testFxn } from '../src';
+import { use } from 'chai';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
-describe('Simple test', () => {
-  it('Should skip this test');
-  it('Should test this fxn', () => {
-    expect(testFxn()).to.equal(42);
-  });
-  it('Should test this async thing', async () => {
-    // Do some async assertions, you can use `await` syntax if it helps
-    const val = await Promise.resolve(42);
-    expect(val).to.equal(42);
-  });
+use(sinonChai);
+
+afterEach(async () => {
+  restore();
 });

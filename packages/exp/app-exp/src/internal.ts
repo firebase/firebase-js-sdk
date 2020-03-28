@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseAppInternalNext, FirebaseAppNext } from '@firebase/app-types/next';
+import { FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
 import { Component, Provider, Name } from '@firebase/component';
-import { logger } from '../logger';
+import { logger } from './logger';
 
-export const apps = new Map<string, FirebaseAppNext>();
+export const apps = new Map<string, FirebaseApp>();
 
 // Registered components. Private Components only. Public components are not needed any more because
 // the public APIs are directly exported from the respective packages.
@@ -30,7 +30,7 @@ export const components = new Map<string, Component<any>>();
  * @param component the component being added to this app's container
  */
 export function addComponent(
-  app: FirebaseAppInternalNext,
+  app: FirebaseAppInternal,
   component: Component
 ): void {
   try {
@@ -44,7 +44,7 @@ export function addComponent(
 }
 
 export function addOrOverwriteComponent(
-  app: FirebaseAppInternalNext,
+  app: FirebaseAppInternal,
   component: Component
 ): void {
   app.container.addOrOverwriteComponent(component);
@@ -69,14 +69,14 @@ export function registerComponent(component: Component): boolean {
 
   // add the component to existing app instances
   for (const app of apps.values()) {
-    addComponent(app as FirebaseAppInternalNext, component);
+    addComponent(app as FirebaseAppInternal, component);
   }
 
   return true;
 }
 
 
-export function getProvider<T extends Name>(app: FirebaseAppInternalNext, name: T): Provider<T> {
+export function getProvider<T extends Name>(app: FirebaseAppInternal, name: T): Provider<T> {
   return app.container.getProvider(name);
 }
 

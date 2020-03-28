@@ -23,7 +23,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@firebase/template-types": "0.1.0",
+    "@firebase/app-types-exp": "0.800.0",
     "tslib": "1.11.1"
   },
   "license": "Apache-2.0",

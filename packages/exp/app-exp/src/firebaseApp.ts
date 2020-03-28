@@ -16,23 +16,23 @@
  */
 
 import {
-  FirebaseAppNext,
-  FirebaseOptionsNext,
-  FirebaseAppConfigNext
-} from '@firebase/app-types/next';
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseAppConfig
+} from '@firebase/app-types-exp';
 import { ComponentContainer } from '@firebase/component';
-import { ERROR_FACTORY, AppError } from '../errors';
+import { ERROR_FACTORY, AppError } from '../src/errors';
 
-export class FirebaseAppImplNext implements FirebaseAppNext {
-  private readonly options_: FirebaseOptionsNext;
+export class FirebaseAppImplNext implements FirebaseApp {
+  private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private automaticDataCollectionEnabled_: boolean;
   private isDeleted = false;
   private readonly container: ComponentContainer;
 
   constructor(
-    options: FirebaseOptionsNext,
-    config: Required<FirebaseAppConfigNext>,
+    options: FirebaseOptions,
+    config: Required<FirebaseAppConfig>,
     container: ComponentContainer
   ) {
     this.options_ = { ...options };
@@ -57,7 +57,7 @@ export class FirebaseAppImplNext implements FirebaseAppNext {
     return this.name_;
   }
 
-  get options(): FirebaseOptionsNext {
+  get options(): FirebaseOptions {
     this.checkDestroyed();
     return this.options_;
   }

@@ -16,44 +16,44 @@
  */
 
 import {
-  FirebaseAppNext,
-  FirebaseOptionsNext,
-  FirebaseAppConfigNext,
-  FirebaseAppInternalNext
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseAppConfig,
+  FirebaseAppInternal
 } from '@firebase/app-types-exp';
-import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from '../constants';
-import { ERROR_FACTORY, AppError } from '../errors';
+import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
+import { ERROR_FACTORY, AppError } from './errors';
 import {
   ComponentContainer,
   Component,
   Name,
   ComponentType
 } from '@firebase/component';
-import { version } from '../../firebase/package.json';
+import { version } from '../../../firebase/package.json';
 import { FirebaseAppImplNext } from './firebaseApp';
 import { apps, components, registerComponent } from './internal';
-import { logger } from '../logger';
+import { logger } from './logger';
 
 export const SDK_VERSION = version;
 
 export function initializeApp(
-  options: FirebaseOptionsNext,
-  config?: FirebaseAppConfigNext
-): FirebaseAppNext;
+  options: FirebaseOptions,
+  config?: FirebaseAppConfig
+): FirebaseApp;
 export function initializeApp(
-  options: FirebaseOptionsNext,
+  options: FirebaseOptions,
   name?: string
-): FirebaseAppNext;
+): FirebaseApp;
 export function initializeApp(
-  options: FirebaseOptionsNext,
+  options: FirebaseOptions,
   rawConfig = {}
-): FirebaseAppNext {
+): FirebaseApp {
   if (typeof rawConfig !== 'object') {
     const name = rawConfig;
     rawConfig = { name };
   }
 
-  const config: Required<FirebaseAppConfigNext> = {
+  const config: Required<FirebaseAppConfig> = {
     name: DEFAULT_ENTRY_NAME,
     automaticDataCollectionEnabled: false,
     ...rawConfig
@@ -82,7 +82,7 @@ export function initializeApp(
   return newApp;
 }
 
-export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseAppNext {
+export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = apps.get(name);
   if (!app) {
     throw ERROR_FACTORY.create(AppError.NO_APP, { appName: name });
@@ -91,16 +91,16 @@ export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseAppNext {
   return app;
 }
 
-export function getApps(): FirebaseAppNext[] {
+export function getApps(): FirebaseApp[] {
   return Array.from(apps.values());
 }
 
-export async function deleteApp(app: FirebaseAppNext): Promise<void> {
+export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
   if (apps.has(name)) {
     apps.delete(name);
-    await (app as FirebaseAppInternalNext).container.getProviders().map(provider => provider.delete());
-    (app as FirebaseAppInternalNext).isDeleted = true;
+    await (app as FirebaseAppInternal).container.getProviders().map(provider => provider.delete());
+    (app as FirebaseAppInternal).isDeleted = true;
   }
 }
 

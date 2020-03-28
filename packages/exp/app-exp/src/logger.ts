@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  * limitations under the License.
  */
 
-import { testFxn } from './src';
+import { Logger } from '@firebase/logger';
 
-testFxn();
+export const logger = new Logger('@firebase/app');
