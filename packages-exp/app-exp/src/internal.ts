@@ -75,8 +75,10 @@ export function registerComponent(component: Component): boolean {
   return true;
 }
 
-
-export function getProvider<T extends Name>(app: FirebaseAppInternal, name: T): Provider<T> {
+export function getProvider<T extends Name>(
+  app: FirebaseAppInternal,
+  name: T
+): Provider<T> {
   return app.container.getProvider(name);
 }
 

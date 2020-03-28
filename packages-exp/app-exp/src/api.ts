@@ -99,7 +99,9 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
   if (apps.has(name)) {
     apps.delete(name);
-    await (app as FirebaseAppInternal).container.getProviders().map(provider => provider.delete());
+    await (app as FirebaseAppInternal).container
+      .getProviders()
+      .map(provider => provider.delete());
     (app as FirebaseAppInternal).isDeleted = true;
   }
 }
