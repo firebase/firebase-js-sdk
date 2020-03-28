@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   binary-size-test:
     name: Binary Size
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != 'true'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork == 'false'
     runs-on: ubuntu-latest
     env:
       METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
@@ -22,9 +22,9 @@ jobs:
       - run: |
           echo "${{ github.event_name }}"
           echo "${{ github.event.pull_request.head.repo.fork }}"
-          echo "${{ github.event_name != 'pull_request' }}"
-          echo "${{ github.event.pull_request.head.repo.fork != 'true' }}"
-          echo "${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != 'true' }}"
-          echo "${{ (github.event_name != 'pull_request') || (github.event.pull_request.head.repo.fork != 'true') }}"
+          echo "${{ github.event_name == 'push' }}"
+          echo "${{ github.event.pull_request.head.repo.fork == 'false' }}"
+          echo "${{ github.event_name == 'push' || github.event.pull_request.head.repo.fork == 'false' }}"
+          echo "${{ (github.event_name == 'push') || (github.event.pull_request.head.repo.fork == 'false') }}"
 
   # TODO(yifany): Enable startup times testing on CI.
