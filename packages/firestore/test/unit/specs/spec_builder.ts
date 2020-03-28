@@ -17,7 +17,6 @@
 
 import { FieldFilter, Filter, Query } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
-import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
   Document,
@@ -82,8 +81,7 @@ export class ClientMemoryState {
   activeTargets: ActiveTargetMap = {};
   queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
   limboMapping: LimboMap = {};
-
-  limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  nextLimboTarget = 1;
 
   constructor() {
     this.reset();
@@ -94,7 +92,13 @@ export class ClientMemoryState {
     this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
     this.limboMapping = {};
     this.activeTargets = {};
-    this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
+    this.nextLimboTarget = 1;
+  }
+
+  nextLimboTargetId(): TargetId {
+    const nextLimboTargetId = this.nextLimboTarget;
+    this.nextLimboTarget += 2;
+    return nextLimboTargetId;
   }
 
   /**
@@ -112,7 +116,7 @@ export class ClientMemoryState {
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
   private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
+  private nextTargetId = 2;
 
   /**
    * Returns a cached target ID for the provided Target, or a new ID if no
@@ -122,7 +126,8 @@ class CachedTargetIdGenerator {
     if (this.queryMapping.has(target)) {
       return this.queryMapping.get(target)!;
     }
-    const targetId = this.targetIdGenerator.next();
+    const targetId = this.nextTargetId;
+    this.nextTargetId += 2;
     this.queryMapping.set(target, targetId);
     return targetId;
   }
@@ -170,8 +175,8 @@ export class SpecBuilder {
     return this.currentClientState;
   }
 
-  private get limboIdGenerator(): TargetIdGenerator {
-    return this.clientState.limboIdGenerator;
+  private nextLimboTargetId(): TargetId {
+    return this.clientState.nextLimboTargetId();
   }
 
   private get queryMapping(): ObjectMap<Target, TargetId> {
@@ -450,7 +455,7 @@ export class SpecBuilder {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
       if (!objUtils.contains(this.limboMapping, path)) {
-        this.limboMapping[path] = this.limboIdGenerator.next();
+        this.limboMapping[path] = this.nextLimboTargetId();
       }
       // Limbo doc queries are always without resume token
       this.addQueryToActiveTargets(

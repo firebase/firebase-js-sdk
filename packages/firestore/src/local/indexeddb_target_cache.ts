@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 
-import { TargetIdGenerator } from '../core/target_id_generator';
 import * as EncodedResourcePath from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
@@ -60,15 +59,12 @@ export class IndexedDbTargetCache implements TargetCache {
   // to IndexedDb whenever we need to read metadata. We can revisit if it turns
   // out to have a meaningful performance impact.
 
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
-
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.highestTargetId = this.targetIdGenerator.after(
-        metadata.highestTargetId
-      );
+      // Target IDs in persistence start at two and remain even.
+      metadata.highestTargetId += 2;
       return this.saveMetadata(transaction, metadata).next(
         () => metadata.highestTargetId
       );

@@ -51,7 +51,6 @@ import { ListenSequence } from './listen_sequence';
 import { Query, LimitType } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
-import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
 import {
   BatchId,
@@ -161,7 +160,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   };
   /** Stores user callbacks waiting for all pending writes to be acknowledged. */
   private pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
-  private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  private nextLimboTargetId = 1;
 
   // The primary state is set to `true` or `false` immediately after Firestore
   // startup. In the interim, a client should only be considered primary if
@@ -770,7 +769,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const key = limboChange.key;
     if (!this.limboTargetsByKey.get(key)) {
       logDebug(LOG_TAG, 'New document in limbo: ' + key);
-      const limboTargetId = this.limboTargetIdGenerator.next();
+
+      // Target IDs in SyncEngine start at 1 and remain odd.
+      const limboTargetId = this.nextLimboTargetId;
+      this.nextLimboTargetId += 2;
+
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(

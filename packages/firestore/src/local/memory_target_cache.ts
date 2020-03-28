@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -52,8 +51,6 @@ export class MemoryTargetCache implements TargetCache {
 
   private targetCount = 0;
 
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
-
   constructor(private readonly persistence: MemoryPersistence) {}
 
   forEachTarget(
@@ -79,9 +76,9 @@ export class MemoryTargetCache implements TargetCache {
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
-    const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
-    this.highestTargetId = nextTargetId;
-    return PersistencePromise.resolve(nextTargetId);
+    // Target IDs in persistence start at two and remain even.
+    this.highestTargetId += 2;
+    return PersistencePromise.resolve(this.highestTargetId);
   }
 
   setTargetsMetadata(
