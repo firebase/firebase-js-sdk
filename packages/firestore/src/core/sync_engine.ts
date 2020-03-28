@@ -184,11 +184,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
   subscribe(syncEngineListener: SyncEngineListener): void {
-    assert(syncEngineListener !== null, 'SyncEngine listener cannot be null');
-    assert(
-      this.syncEngineListener === null,
-      'SyncEngine already has a subscriber.'
-    );
+    assert(syncEngineListener !== null);
+    assert(this.syncEngineListener === null);
 
     this.syncEngineListener = syncEngineListener;
   }
@@ -260,14 +257,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       /* updateLimboDocuments= */ this.isPrimary === true,
       synthesizedTargetChange
     );
-    assert(
-      viewChange.limboChanges.length === 0,
-      'View returned limbo docs before target ack from the server.'
-    );
-    assert(
-      !!viewChange.snapshot,
-      'applyChanges for new view should always return a snapshot'
-    );
+    assert(viewChange.limboChanges.length === 0);
+    assert(!!viewChange.snapshot);
 
     const data = new QueryView(query, targetId, view);
     this.queryViewsByQuery.set(query, data);
@@ -304,7 +295,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('unlisten()');
 
     const queryView = this.queryViewsByQuery.get(query)!;
-    assert(!!queryView, 'Trying to unlisten on query not found:' + query);
+    assert(!!queryView);
 
     // Only clean up the query view and target if this is the only query mapped
     // to the target.
@@ -408,21 +399,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             targetChange.addedDocuments.size +
               targetChange.modifiedDocuments.size +
               targetChange.removedDocuments.size <=
-              1,
-            'Limbo resolution for single document contains multiple changes.'
+              1
           );
           if (targetChange.addedDocuments.size > 0) {
             limboResolution.receivedDocument = true;
           } else if (targetChange.modifiedDocuments.size > 0) {
-            assert(
-              limboResolution.receivedDocument,
-              'Received change for limbo target document without add.'
-            );
+            assert(limboResolution.receivedDocument);
           } else if (targetChange.removedDocuments.size > 0) {
-            assert(
-              limboResolution.receivedDocument,
-              'Received remove for limbo target document without add.'
-            );
+            assert(limboResolution.receivedDocument);
             limboResolution.receivedDocument = false;
           } else {
             // This was probably just a CURRENT targetChange or similar.
@@ -455,10 +439,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const newViewSnapshots = [] as ViewSnapshot[];
       this.queryViewsByQuery.forEach((query, queryView) => {
         const viewChange = queryView.view.applyOnlineStateChange(onlineState);
-        assert(
-          viewChange.limboChanges.length === 0,
-          'OnlineState should not affect limbo documents.'
-        );
+        assert(viewChange.limboChanges.length === 0);
         if (viewChange.snapshot) {
           newViewSnapshots.push(viewChange.snapshot);
         }
@@ -550,7 +531,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.processUserCallback(batchId, error ? error : null);
       this.localStore.removeCachedMutationBatchMetadata(batchId);
     } else {
-      fail(`Unknown batchState: ${batchState}`);
+      fail();
     }
 
     await this.emitNewSnapsAndNotifyLocalStore(documents);
@@ -679,10 +660,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (newCallbacks) {
       const callback = newCallbacks.get(batchId);
       if (callback) {
-        assert(
-          batchId === newCallbacks.minKey(),
-          'Mutation callbacks processed out-of-order?'
-        );
+        assert(batchId === newCallbacks.minKey());
         if (error) {
           callback.reject(error);
         } else {
@@ -702,8 +680,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     assert(
       this.queriesByTarget[targetId] &&
-        this.queriesByTarget[targetId].length !== 0,
-      `There are no queries mapped to target id ${targetId}`
+        this.queriesByTarget[targetId].length !== 0
     );
 
     for (const query of this.queriesByTarget[targetId]) {
@@ -761,7 +738,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           this.removeLimboTarget(limboChange.key);
         }
       } else {
-        fail('Unknown limbo change: ' + JSON.stringify(limboChange));
+        fail();
       }
     }
   }
@@ -858,10 +835,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   private assertSubscribed(fnName: string): void {
-    assert(
-      this.syncEngineListener !== null,
-      'Trying to call ' + fnName + ' before calling subscribe().'
-    );
+    assert(this.syncEngineListener !== null);
   }
 
   async handleCredentialChange(user: User): Promise<void> {
@@ -976,7 +950,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
         for (const query of queries) {
           const queryView = this.queryViewsByQuery.get(query);
-          assert(!!queryView, `No query view found for ${query}`);
+          assert(!!queryView);
 
           const viewChange = await this.synchronizeViewAndComputeSnapshot(
             queryView
@@ -986,14 +960,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           }
         }
       } else {
-        assert(
-          this.isPrimary === true,
-          'A secondary tab should never have an active target without an active query.'
-        );
+        assert(this.isPrimary === true);
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.
         const target = await this.localStore.getTarget(targetId);
-        assert(!!target, `Target for id ${targetId} not found`);
+        assert(!!target);
         targetData = await this.localStore.allocateTarget(target);
         await this.initializeViewAndComputeSnapshot(
           this.synthesizeTargetToQuery(target!),
@@ -1075,7 +1046,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           break;
         }
         default:
-          fail('Unexpected target state: ' + state);
+          fail();
       }
     }
   }
@@ -1090,12 +1061,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
 
     for (const targetId of added) {
-      assert(
-        !this.queriesByTarget[targetId],
-        'Trying to add an already active target'
-      );
+      assert(!this.queriesByTarget[targetId]);
       const target = await this.localStore.getTarget(targetId);
-      assert(!!target, `Query data for active target ${targetId} not found`);
+      assert(!!target);
       const targetData = await this.localStore.allocateTarget(target);
       await this.initializeViewAndComputeSnapshot(
         this.synthesizeTargetToQuery(target),
@@ -1149,7 +1117,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
       for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
-        assert(!!queryView, `No query view found for ${query}`);
+        assert(!!queryView);
         keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
       return keySet;

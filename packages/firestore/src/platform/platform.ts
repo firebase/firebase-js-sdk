@@ -74,14 +74,14 @@ export class PlatformSupport {
   private static platform: Platform;
   static setPlatform(platform: Platform): void {
     if (PlatformSupport.platform) {
-      fail('Platform already defined');
+      fail();
     }
     PlatformSupport.platform = platform;
   }
 
   static getPlatform(): Platform {
     if (!PlatformSupport.platform) {
-      fail('Platform not set');
+      fail();
     }
     return PlatformSupport.platform;
   }

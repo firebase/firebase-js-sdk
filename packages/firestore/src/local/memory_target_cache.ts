@@ -113,10 +113,7 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(
-      !this.targets.has(targetData.target),
-      'Adding a target that already exists'
-    );
+    assert(!this.targets.has(targetData.target));
     this.saveTargetData(targetData);
     this.targetCount += 1;
     return PersistencePromise.resolve();
@@ -126,10 +123,7 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(
-      this.targets.has(targetData.target),
-      'Updating a non-existent target'
-    );
+    assert(this.targets.has(targetData.target));
     this.saveTargetData(targetData);
     return PersistencePromise.resolve();
   }
@@ -138,11 +132,8 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(this.targetCount > 0, 'Removing a target from an empty cache');
-    assert(
-      this.targets.has(targetData.target),
-      'Removing a non-existent target from the cache'
-    );
+    assert(this.targetCount > 0);
+    assert(this.targets.has(targetData.target));
     this.targets.delete(targetData.target);
     this.references.removeReferencesForId(targetData.targetId);
     this.targetCount -= 1;
@@ -191,7 +182,7 @@ export class MemoryTargetCache implements TargetCache {
   ): never {
     // This method is only needed for multi-tab and we can't implement it
     // efficiently without additional data structures.
-    return fail('Not yet implemented.');
+    return fail();
   }
 
   addMatchingKeys(

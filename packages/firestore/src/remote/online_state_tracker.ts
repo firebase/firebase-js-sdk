@@ -89,19 +89,13 @@ export class OnlineStateTracker {
     if (this.watchStreamFailures === 0) {
       this.setAndBroadcast(OnlineState.Unknown);
 
-      assert(
-        this.onlineStateTimer === null,
-        `onlineStateTimer shouldn't be started yet`
-      );
+      assert(this.onlineStateTimer === null);
       this.onlineStateTimer = this.asyncQueue.enqueueAfterDelay(
         TimerId.OnlineStateTimeout,
         ONLINE_STATE_TIMEOUT_MS,
         () => {
           this.onlineStateTimer = null;
-          assert(
-            this.state === OnlineState.Unknown,
-            'Timer should be canceled if we transitioned to a different state.'
-          );
+          assert(this.state === OnlineState.Unknown);
           this.logClientOfflineWarningIfNecessary(
             `Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
               `seconds.`
@@ -130,8 +124,8 @@ export class OnlineStateTracker {
 
       // To get to OnlineState.Online, set() must have been called which would
       // have reset our heuristics.
-      assert(this.watchStreamFailures === 0, 'watchStreamFailures must be 0');
-      assert(this.onlineStateTimer === null, 'onlineStateTimer must be null');
+      assert(this.watchStreamFailures === 0);
+      assert(this.onlineStateTimer === null);
     } else {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {

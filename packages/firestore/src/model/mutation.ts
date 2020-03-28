@@ -139,10 +139,7 @@ export class Precondition {
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
   ) {
-    assert(
-      updateTime === undefined || exists === undefined,
-      'Precondition can specify "exists" or "updateTime" but not both'
-    );
+    assert(updateTime === undefined || exists === undefined);
   }
 
   /** Creates a new Precondition with an exists flag. */
@@ -173,7 +170,7 @@ export class Precondition {
     } else if (this.exists !== undefined) {
       return this.exists === maybeDoc instanceof Document;
     } else {
-      assert(this.isNone, 'Precondition should be empty');
+      assert(this.isNone);
       return true;
     }
   }
@@ -300,10 +297,7 @@ export abstract class Mutation {
 
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
-      assert(
-        maybeDoc.key.isEqual(this.key),
-        'Can only apply a mutation to a document with the same key'
-      );
+      assert(maybeDoc.key.isEqual(this.key));
     }
   }
 
@@ -345,10 +339,7 @@ export class SetMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
-      mutationResult.transformResults == null,
-      'Transform results received by SetMutation.'
-    );
+    assert(mutationResult.transformResults == null);
 
     // Unlike applyToLocalView, if we're applying a mutation to a remote
     // document the server has accepted the mutation so the precondition must
@@ -422,10 +413,7 @@ export class PatchMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
-      mutationResult.transformResults == null,
-      'Transform results received by PatchMutation.'
-    );
+    assert(mutationResult.transformResults == null);
 
     if (!this.precondition.isValidFor(maybeDoc)) {
       // Since the mutation was not rejected, we know that the  precondition
@@ -533,10 +521,7 @@ export class TransformMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
-      mutationResult.transformResults != null,
-      'Transform results missing for TransformMutation.'
-    );
+    assert(mutationResult.transformResults != null);
 
     if (!this.precondition.isValidFor(maybeDoc)) {
       // Since the mutation was not rejected, we know that the  precondition
@@ -625,14 +610,8 @@ export class TransformMutation extends Mutation {
    * safe.
    */
   private requireDocument(maybeDoc: MaybeDocument | null): Document {
-    assert(
-      maybeDoc instanceof Document,
-      'Unknown MaybeDocument type ' + maybeDoc
-    );
-    assert(
-      maybeDoc.key.isEqual(this.key),
-      'Can only transform a document with the same key'
-    );
+    assert(maybeDoc instanceof Document);
+    assert(maybeDoc.key.isEqual(this.key));
     return maybeDoc;
   }
 
@@ -650,11 +629,7 @@ export class TransformMutation extends Mutation {
     serverTransformResults: Array<api.Value | null>
   ): api.Value[] {
     const transformResults: api.Value[] = [];
-    assert(
-      this.fieldTransforms.length === serverTransformResults.length,
-      `server transform result count (${serverTransformResults.length}) ` +
-        `should match field transform count (${this.fieldTransforms.length})`
-    );
+    assert(this.fieldTransforms.length === serverTransformResults.length);
 
     for (let i = 0; i < serverTransformResults.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
@@ -718,10 +693,7 @@ export class TransformMutation extends Mutation {
     data: ObjectValue,
     transformResults: api.Value[]
   ): ObjectValue {
-    assert(
-      transformResults.length === this.fieldTransforms.length,
-      'TransformResults length mismatch.'
-    );
+    assert(transformResults.length === this.fieldTransforms.length);
 
     const builder = data.toBuilder();
     for (let i = 0; i < this.fieldTransforms.length; i++) {
@@ -747,10 +719,7 @@ export class DeleteMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
-      mutationResult.transformResults == null,
-      'Transform results received by DeleteMutation.'
-    );
+    assert(mutationResult.transformResults == null);
 
     // Unlike applyToLocalView, if we're applying a mutation to a remote
     // document the server has accepted the mutation so the precondition must
@@ -773,10 +742,7 @@ export class DeleteMutation extends Mutation {
     }
 
     if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(this.key),
-        'Can only apply mutation to document with same key'
-      );
+      assert(maybeDoc.key.isEqual(this.key));
     }
     return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
   }
@@ -812,7 +778,7 @@ export class VerifyMutation extends Mutation {
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
   ): MaybeDocument {
-    fail('VerifyMutation should only be used in Transactions.');
+    fail();
   }
 
   applyToLocalView(
@@ -820,11 +786,11 @@ export class VerifyMutation extends Mutation {
     baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
-    fail('VerifyMutation should only be used in Transactions.');
+    fail();
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
-    fail('VerifyMutation should only be used in Transactions.');
+    fail();
   }
 
   isEqual(other: Mutation): boolean {

@@ -114,7 +114,7 @@ export class Datastore {
       const result: MaybeDocument[] = [];
       keys.forEach(key => {
         const doc = docs.get(key);
-        assert(!!doc, 'Missing entity in write response for ' + key);
+        assert(!!doc);
         result.push(doc);
       });
       return result;

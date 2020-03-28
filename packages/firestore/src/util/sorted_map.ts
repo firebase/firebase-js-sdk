@@ -227,10 +227,7 @@ export class SortedMapIterator<K, V> {
   }
 
   getNext(): Entry<K, V> {
-    assert(
-      this.nodeStack.length > 0,
-      'getNext() called on iterator when hasNext() is false.'
-    );
+    assert(this.nodeStack.length > 0);
 
     let node = this.nodeStack.pop()!;
     const result = { key: node.key, value: node.value };
@@ -511,14 +508,14 @@ export class LLRBNode<K, V> {
   // leaves is equal on both sides.  This function verifies that or asserts.
   protected check(): number {
     if (this.isRed() && this.left.isRed()) {
-      throw fail('Red node has red child(' + this.key + ',' + this.value + ')');
+      throw fail();
     }
     if (this.right.isRed()) {
-      throw fail('Right child of (' + this.key + ',' + this.value + ') is red');
+      throw fail();
     }
     const blackDepth = (this.left as LLRBNode<K, V>).check();
     if (blackDepth !== (this.right as LLRBNode<K, V>).check()) {
-      throw fail('Black depths differ');
+      throw fail();
     } else {
       return blackDepth + (this.isRed() ? 0 : 1);
     }
@@ -528,19 +525,19 @@ export class LLRBNode<K, V> {
 // Represents an empty node (a leaf node in the Red-Black Tree).
 export class LLRBEmptyNode<K, V> {
   get key(): never {
-    throw fail('LLRBEmptyNode has no key.');
+    throw fail();
   }
   get value(): never {
-    throw fail('LLRBEmptyNode has no value.');
+    throw fail();
   }
   get color(): never {
-    throw fail('LLRBEmptyNode has no color.');
+    throw fail();
   }
   get left(): never {
-    throw fail('LLRBEmptyNode has no left child.');
+    throw fail();
   }
   get right(): never {
-    throw fail('LLRBEmptyNode has no right child.');
+    throw fail();
   }
   size = 0;
 

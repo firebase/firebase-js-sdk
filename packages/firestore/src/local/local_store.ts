@@ -198,10 +198,7 @@ export class LocalStore {
     private queryEngine: QueryEngine,
     initialUser: User
   ) {
-    assert(
-      persistence.started,
-      'LocalStore was passed an unstarted persistence implementation'
-    );
+    assert(persistence.started);
     this.persistence.referenceDelegate.setInMemoryPins(
       this.localViewReferences
     );
@@ -432,7 +429,7 @@ export class LocalStore {
         return this.mutationQueue
           .lookupMutationBatch(txn, batchId)
           .next((batch: MutationBatch | null) => {
-            assert(batch !== null, 'Attempt to reject nonexistent batch!');
+            assert(batch !== null);
             affectedKeys = batch.keys();
             return this.mutationQueue.removeMutationBatch(txn, batch);
           })
@@ -603,10 +600,7 @@ export class LocalStore {
                 (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
-                assert(
-                  !SnapshotVersion.MIN.isEqual(remoteVersion),
-                  'Cannot add a document when the remote version is zero'
-                );
+                assert(!SnapshotVersion.MIN.isEqual(remoteVersion));
                 documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
@@ -641,13 +635,7 @@ export class LocalStore {
           const updateRemoteVersion = this.targetCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
-              assert(
-                remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
-                'Watch stream reverted to previous snapshot?? ' +
-                  remoteVersion +
-                  ' < ' +
-                  lastRemoteSnapshotVersion
-              );
+              assert(remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0);
               return this.targetCache.setTargetsMetadata(
                 txn,
                 txn.currentSequenceNumber,
@@ -688,10 +676,7 @@ export class LocalStore {
     newTargetData: TargetData,
     change: TargetChange
   ): boolean {
-    assert(
-      newTargetData.resumeToken.approximateByteSize() > 0,
-      'Attempted to persist target data with no resume token'
-    );
+    assert(newTargetData.resumeToken.approximateByteSize() > 0);
 
     // Always persist target data if we don't already have a resume token.
     if (oldTargetData.resumeToken.approximateByteSize() === 0) {
@@ -737,10 +722,7 @@ export class LocalStore {
 
       if (!viewChange.fromCache) {
         const targetData = this.targetDataByTarget.get(targetId);
-        assert(
-          targetData !== null,
-          `Can't set limbo-free snapshot version for unknown target: ${targetId}`
-        );
+        assert(targetData !== null);
 
         // Advance the last limbo free snapshot version
         const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
@@ -883,10 +865,7 @@ export class LocalStore {
     keepPersistedTargetData: boolean
   ): Promise<void> {
     const targetData = this.targetDataByTarget.get(targetId);
-    assert(
-      targetData !== null,
-      `Tried to release nonexistent target: ${targetId}`
-    );
+    assert(targetData !== null);
 
     const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
     return this.persistence
@@ -1010,21 +989,11 @@ export class LocalStore {
         .next((remoteDoc: MaybeDocument | null) => {
           let doc = remoteDoc;
           const ackVersion = batchResult.docVersions.get(docKey);
-          assert(
-            ackVersion !== null,
-            'ackVersions should contain every doc in the write.'
-          );
+          assert(ackVersion !== null);
           if (!doc || doc.version.compareTo(ackVersion!) < 0) {
             doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
             if (!doc) {
-              assert(
-                !remoteDoc,
-                'Mutation batch ' +
-                  batch +
-                  ' applied to document ' +
-                  remoteDoc +
-                  ' resulted in null'
-              );
+              assert(!remoteDoc);
             } else {
               // We use the commitVersion as the readTime rather than the
               // document's updateTime since the updateTime is not advanced

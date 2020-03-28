@@ -226,10 +226,7 @@ export class LruScheduler {
   }
 
   start(localStore: LocalStore): void {
-    assert(
-      this.gcTask === null,
-      'Cannot start an already started LruScheduler'
-    );
+    assert(this.gcTask === null);
     if (
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
       LruParams.COLLECTION_DISABLED
@@ -250,7 +247,7 @@ export class LruScheduler {
   }
 
   private scheduleGC(localStore: LocalStore): void {
-    assert(this.gcTask === null, 'Cannot schedule GC while a task is pending');
+    assert(this.gcTask === null);
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
     logDebug(
       'LruGarbageCollector',

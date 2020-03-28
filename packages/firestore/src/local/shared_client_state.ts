@@ -187,10 +187,7 @@ export class MutationMetadata {
     readonly state: MutationBatchState,
     readonly error?: FirestoreError
   ) {
-    assert(
-      (error !== undefined) === (state === 'rejected'),
-      `MutationMetadata must contain an error iff state is 'rejected'`
-    );
+    assert((error !== undefined) === (state === 'rejected'));
   }
 
   /**
@@ -269,10 +266,7 @@ export class QueryTargetMetadata {
     readonly state: QueryTargetState,
     readonly error?: FirestoreError
   ) {
-    assert(
-      (error !== undefined) === (state === 'rejected'),
-      `QueryTargetMetadata must contain an error iff state is 'rejected'`
-    );
+    assert((error !== undefined) === (state === 'rejected'));
   }
 
   /**
@@ -548,15 +542,9 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   async start(): Promise<void> {
-    assert(!this.started, 'WebStorageSharedClientState already started');
-    assert(
-      this.syncEngine !== null,
-      'syncEngine property must be set before calling start()'
-    );
-    assert(
-      this.onlineStateHandler !== null,
-      'onlineStateHandler property must be set before calling start()'
-    );
+    assert(!this.started);
+    assert(this.syncEngine !== null);
+    assert(this.onlineStateHandler !== null);
 
     // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
@@ -809,7 +797,7 @@ export class WebStorageSharedClientState implements SharedClientState {
             }
           }
         } else if (event.key === this.sequenceNumberKey) {
-          assert(!!this.sequenceNumberHandler, 'Missing sequenceNumberHandler');
+          assert(!!this.sequenceNumberHandler);
           const sequenceNumber = fromWebStorageSequenceNumber(event.newValue);
           if (sequenceNumber !== ListenSequence.INVALID) {
             this.sequenceNumberHandler!(sequenceNumber);
@@ -897,7 +885,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     value: string
   ): RemoteClientState | null {
     const clientId = this.fromWebStorageClientStateKey(key);
-    assert(clientId !== null, `Cannot parse client state key '${key}'`);
+    assert(clientId !== null);
     return RemoteClientState.fromWebStorageEntry(clientId, value);
   }
 
@@ -910,7 +898,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     value: string
   ): MutationMetadata | null {
     const match = this.mutationBatchKeyRe.exec(key);
-    assert(match !== null, `Cannot parse mutation batch key '${key}'`);
+    assert(match !== null);
 
     const batchId = Number(match[1]);
     const userId = match[2] !== undefined ? match[2] : null;
@@ -930,7 +918,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     value: string
   ): QueryTargetMetadata | null {
     const match = this.queryTargetKeyRe.exec(key);
-    assert(match !== null, `Cannot parse query target key '${key}'`);
+    assert(match !== null);
 
     const targetId = Number(match[1]);
     return QueryTargetMetadata.fromWebStorageEntry(targetId, value);
@@ -1026,7 +1014,7 @@ function fromWebStorageSequenceNumber(
   if (seqString != null) {
     try {
       const parsed = JSON.parse(seqString);
-      assert(typeof parsed === 'number', 'Found non-numeric sequence number');
+      assert(typeof parsed === 'number');
       sequenceNumber = parsed;
     } catch (e) {
       logError(LOG_TAG, 'Failed to read sequence number from WebStorage', e);

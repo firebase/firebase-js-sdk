@@ -30,10 +30,7 @@ export function createWebStorageClientStateKey(
   persistenceKey: string,
   clientId: ClientId
 ): string {
-  assert(
-    clientId.indexOf('_') === -1,
-    `Client key cannot contain '_', but was '${clientId}'`
-  );
+  assert(clientId.indexOf('_') === -1);
 
   return `${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_${clientId}`;
 }

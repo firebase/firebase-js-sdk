@@ -53,10 +53,7 @@ export class ObjectValue {
   static EMPTY = new ObjectValue({ mapValue: {} });
 
   constructor(public readonly proto: { mapValue: api.MapValue }) {
-    assert(
-      !isServerTimestamp(proto),
-      'ServerTimestamps should be converted to ServerTimestampValue'
-    );
+    assert(!isServerTimestamp(proto));
   }
 
   /** Returns a new Builder instance that is based on an empty object. */
@@ -162,7 +159,7 @@ export class ObjectValueBuilder {
    * @return The current Builder instance.
    */
   set(path: FieldPath, value: api.Value): ObjectValueBuilder {
-    assert(!path.isEmpty(), 'Cannot set field for empty path on ObjectValue');
+    assert(!path.isEmpty());
     this.setOverlay(path, value);
     return this;
   }
@@ -175,10 +172,7 @@ export class ObjectValueBuilder {
    * @return The current Builder instance.
    */
   delete(path: FieldPath): ObjectValueBuilder {
-    assert(
-      !path.isEmpty(),
-      'Cannot delete field for empty path on ObjectValue'
-    );
+    assert(!path.isEmpty());
     this.setOverlay(path, null);
     return this;
   }

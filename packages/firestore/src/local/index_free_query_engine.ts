@@ -64,10 +64,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    assert(
-      this.localDocumentsView !== undefined,
-      'setLocalDocumentsView() not called'
-    );
+    assert(this.localDocumentsView !== undefined);
 
     // Queries that match all documents don't benefit from using
     // IndexFreeQueries. It is more efficient to scan all documents in a

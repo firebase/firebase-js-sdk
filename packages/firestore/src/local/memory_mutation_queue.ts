@@ -69,20 +69,11 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
-    assert(
-      batchIndex === 0,
-      'Can only acknowledge the first batch in the mutation queue'
-    );
+    assert(batchIndex === 0);
 
     // Verify that the batch in the queue is the one to be acknowledged.
     const check = this.mutationQueue[batchIndex];
-    assert(
-      batchId === check.batchId,
-      'Queue ordering failure: expected batch ' +
-        batchId +
-        ', got batch ' +
-        check.batchId
-    );
+    assert(batchId === check.batchId);
 
     this.lastStreamToken = streamToken;
     return PersistencePromise.resolve();
@@ -108,17 +99,14 @@ export class MemoryMutationQueue implements MutationQueue {
     baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
-    assert(mutations.length !== 0, 'Mutation batches should not be empty');
+    assert(mutations.length !== 0);
 
     const batchId = this.nextBatchId;
     this.nextBatchId++;
 
     if (this.mutationQueue.length > 0) {
       const prior = this.mutationQueue[this.mutationQueue.length - 1];
-      assert(
-        prior.batchId < batchId,
-        'Mutation batchIDs must be monotonically increasing order'
-      );
+      assert(prior.batchId < batchId);
     }
 
     const batch = new MutationBatch(
@@ -156,7 +144,7 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
     const mutationBatch = this.findMutationBatch(batchId);
-    assert(mutationBatch != null, 'Failed to find local mutation batch.');
+    assert(mutationBatch != null);
     return PersistencePromise.resolve<DocumentKeySet | null>(
       mutationBatch.keys()
     );
@@ -197,15 +185,9 @@ export class MemoryMutationQueue implements MutationQueue {
     const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
     const result: MutationBatch[] = [];
     this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-      assert(
-        documentKey.isEqual(ref.key),
-        "Should only iterate over a single key's batches"
-      );
+      assert(documentKey.isEqual(ref.key));
       const batch = this.findMutationBatch(ref.targetOrBatchId);
-      assert(
-        batch !== null,
-        'Batches in the index must exist in the main table'
-      );
+      assert(batch !== null);
       result.push(batch!);
     });
 
@@ -222,10 +204,7 @@ export class MemoryMutationQueue implements MutationQueue {
       const start = new DocReference(documentKey, 0);
       const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
       this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-        assert(
-          documentKey.isEqual(ref.key),
-          "For each key, should only iterate over a single key's batches"
-        );
+        assert(documentKey.isEqual(ref.key));
 
         uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
       });
@@ -238,10 +217,7 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    assert(
-      !query.isCollectionGroupQuery(),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
+    assert(!query.isCollectionGroupQuery());
     // Use the query path as a prefix for testing if a document matches the
     // query.
     const prefix = query.path;
@@ -302,10 +278,7 @@ export class MemoryMutationQueue implements MutationQueue {
     // Find the position of the first batch for removal. This need not be the
     // first entry in the queue.
     const batchIndex = this.indexOfExistingBatchId(batch.batchId, 'removed');
-    assert(
-      batchIndex === 0,
-      'Can only remove the first entry of the mutation queue'
-    );
+    assert(batchIndex === 0);
     this.mutationQueue.shift();
 
     let references = this.batchesByDocumentKey;
@@ -338,10 +311,7 @@ export class MemoryMutationQueue implements MutationQueue {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
-      assert(
-        this.batchesByDocumentKey.isEmpty(),
-        'Document leak -- detected dangling mutation references when queue is empty.'
-      );
+      assert(this.batchesByDocumentKey.isEmpty());
     }
     return PersistencePromise.resolve();
   }
@@ -356,10 +326,7 @@ export class MemoryMutationQueue implements MutationQueue {
    */
   private indexOfExistingBatchId(batchId: BatchId, action: string): number {
     const index = this.indexOfBatchId(batchId);
-    assert(
-      index >= 0 && index < this.mutationQueue.length,
-      'Batches must exist to be ' + action
-    );
+    assert(index >= 0 && index < this.mutationQueue.length);
     return index;
   }
 
@@ -397,7 +364,7 @@ export class MemoryMutationQueue implements MutationQueue {
     }
 
     const batch = this.mutationQueue[index];
-    assert(batch.batchId === batchId, 'If found batch must match');
+    assert(batch.batchId === batchId);
     return batch;
   }
 }

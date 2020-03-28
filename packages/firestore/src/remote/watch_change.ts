@@ -191,7 +191,7 @@ class TargetState {
           removedDocuments = removedDocuments.add(key);
           break;
         default:
-          fail('Encountered invalid change type: ' + changeType);
+          fail();
       }
     });
 
@@ -330,10 +330,7 @@ export class WatchChangeAggregator {
           if (!targetState.isPending) {
             this.removeTarget(targetId);
           }
-          assert(
-            !targetChange.cause,
-            'WatchChangeAggregator does not handle errored targets'
-          );
+          assert(!targetChange.cause);
           break;
         case WatchTargetChangeState.Current:
           if (this.isActiveTarget(targetId)) {
@@ -351,7 +348,7 @@ export class WatchChangeAggregator {
           }
           break;
         default:
-          fail('Unknown target watch change state: ' + targetChange.state);
+          fail();
       }
     });
   }
@@ -399,10 +396,7 @@ export class WatchChangeAggregator {
             new NoDocument(key, SnapshotVersion.forDeletedDoc())
           );
         } else {
-          assert(
-            expectedCount === 1,
-            'Single document existence filter with count: ' + expectedCount
-          );
+          assert(expectedCount === 1);
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
@@ -647,10 +641,7 @@ export class WatchChangeAggregator {
    * from all documents).
    */
   private resetTarget(targetId: TargetId): void {
-    assert(
-      !this.targetStates[targetId].isPending,
-      'Should only reset active targets'
-    );
+    assert(!this.targetStates[targetId].isPending);
     this.targetStates[targetId] = new TargetState();
 
     // Trigger removal for any documents currently mapped to this target.

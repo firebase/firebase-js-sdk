@@ -324,10 +324,7 @@ export class AsyncQueue {
   ): CancelablePromise<T> {
     this.verifyNotFailed();
 
-    assert(
-      delayMs >= 0,
-      `Attempted to schedule an operation with a negative delay of ${delayMs}`
-    );
+    assert(delayMs >= 0);
 
     // Fast-forward delays for timerIds that have been overriden.
     if (this.timerIdsToSkip.indexOf(timerId) > -1) {
@@ -348,10 +345,7 @@ export class AsyncQueue {
 
   private verifyNotFailed(): void {
     if (this.failure) {
-      fail(
-        'AsyncQueue is already failed: ' +
-          (this.failure.stack || this.failure.message)
-      );
+      fail();
     }
   }
 
@@ -362,10 +356,7 @@ export class AsyncQueue {
    * to catch some bugs.
    */
   verifyOperationInProgress(): void {
-    assert(
-      this.operationInProgress,
-      'verifyOpInProgress() called when no op in progress on this queue.'
-    );
+    assert(this.operationInProgress);
   }
 
   /**
@@ -410,8 +401,7 @@ export class AsyncQueue {
     return this.drain().then(() => {
       assert(
         lastTimerId === TimerId.All ||
-          this.containsDelayedOperation(lastTimerId),
-        `Attempted to drain to missing operation ${lastTimerId}`
+          this.containsDelayedOperation(lastTimerId)
       );
 
       // Run ops in the same order they'd run if they ran naturally.
@@ -439,7 +429,7 @@ export class AsyncQueue {
   private removeDelayedOperation(op: DelayedOperation<unknown>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
-    assert(index >= 0, 'Delayed operation not found.');
+    assert(index >= 0);
     this.delayedOperations.splice(index, 1);
   }
 }

@@ -42,10 +42,7 @@ export class SimpleQueryEngine implements QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    assert(
-      this.localDocumentsView !== undefined,
-      'setLocalDocumentsView() not called'
-    );
+    assert(this.localDocumentsView !== undefined);
 
     // TODO: Once LocalDocumentsView provides a getCollectionDocuments()
     // method, we should call that here and then filter the results.

@@ -50,10 +50,7 @@ export class TargetIdGenerator {
    * will use the seed value as the next target ID.
    */
   constructor(private generatorId: number, seed?: number) {
-    assert(
-      (generatorId & RESERVED_BITS) === generatorId,
-      `Generator ID ${generatorId} contains more than ${RESERVED_BITS} reserved bits`
-    );
+    assert((generatorId & RESERVED_BITS) === generatorId);
     this.seek(seed !== undefined ? seed : this.generatorId);
   }
 
@@ -74,10 +71,7 @@ export class TargetIdGenerator {
   }
 
   private seek(targetId: TargetId): void {
-    assert(
-      (targetId & RESERVED_BITS) === this.generatorId,
-      'Cannot supply target ID from different generator ID'
-    );
+    assert((targetId & RESERVED_BITS) === this.generatorId);
     this.nextId = targetId;
   }
 

@@ -78,10 +78,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     doc: MaybeDocument,
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
-    assert(
-      !readTime.isEqual(SnapshotVersion.MIN),
-      'Cannot add a document with a read time of zero'
-    );
+    assert(!readTime.isEqual(SnapshotVersion.MIN));
 
     const key = doc.key;
     const entry = this.docs.get(key);
@@ -141,10 +138,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
-      !query.isCollectionGroupQuery(),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
+    assert(!query.isCollectionGroupQuery());
     let results = documentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down

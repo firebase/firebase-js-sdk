@@ -216,7 +216,7 @@ export abstract class PersistentStream<
       return;
     }
 
-    assert(this.state === PersistentStreamState.Initial, 'Already started');
+    assert(this.state === PersistentStreamState.Initial);
     this.auth();
   }
 
@@ -241,7 +241,7 @@ export abstract class PersistentStream<
    * inhibit backoff if required.
    */
   inhibitBackoff(): void {
-    assert(!this.isStarted(), 'Can only inhibit backoff in a stopped state');
+    assert(!this.isStarted());
 
     this.state = PersistentStreamState.Initial;
     this.backoff.reset();
@@ -309,10 +309,9 @@ export abstract class PersistentStream<
     finalState: PersistentStreamState,
     error?: FirestoreError
   ): Promise<void> {
-    assert(this.isStarted(), 'Only started streams should be closed.');
+    assert(this.isStarted());
     assert(
-      finalState === PersistentStreamState.Error || isNullOrUndefined(error),
-      "Can't provide an error when not in an error state."
+      finalState === PersistentStreamState.Error || isNullOrUndefined(error)
     );
 
     // Cancel any outstanding timers (they're guaranteed not to execute).
@@ -376,10 +375,7 @@ export abstract class PersistentStream<
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
   private auth(): void {
-    assert(
-      this.state === PersistentStreamState.Initial,
-      'Must be in initial state to auth'
-    );
+    assert(this.state === PersistentStreamState.Initial);
 
     this.state = PersistentStreamState.Starting;
 
@@ -414,20 +410,14 @@ export abstract class PersistentStream<
   }
 
   private startStream(token: Token | null): void {
-    assert(
-      this.state === PersistentStreamState.Starting,
-      'Trying to start stream in a non-starting state'
-    );
+    assert(this.state === PersistentStreamState.Starting);
 
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
     this.stream = this.startRpc(token);
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
-        assert(
-          this.state === PersistentStreamState.Starting,
-          'Expected stream to be in state Starting, but was ' + this.state
-        );
+        assert(this.state === PersistentStreamState.Starting);
         this.state = PersistentStreamState.Open;
         return this.listener!.onOpen();
       });
@@ -445,27 +435,21 @@ export abstract class PersistentStream<
   }
 
   private performBackoff(): void {
-    assert(
-      this.state === PersistentStreamState.Error,
-      'Should only perform backoff when in Error state'
-    );
+    assert(this.state === PersistentStreamState.Error);
     this.state = PersistentStreamState.Backoff;
 
     this.backoff.backoffAndRun(async () => {
-      assert(
-        this.state === PersistentStreamState.Backoff,
-        'Backoff elapsed but state is now: ' + this.state
-      );
+      assert(this.state === PersistentStreamState.Backoff);
 
       this.state = PersistentStreamState.Initial;
       this.start();
-      assert(this.isStarted(), 'PersistentStream should have started');
+      assert(this.isStarted());
     });
   }
 
   // Visible for tests
   handleStreamClose(error?: FirestoreError): Promise<void> {
-    assert(this.isStarted(), "Can't handle server close on non-started stream");
+    assert(this.isStarted());
     logDebug(LOG_TAG, `close with error: ${error}`);
 
     this.stream = null;
@@ -694,17 +678,13 @@ export class PersistentWriteStream extends PersistentStream<
 
   protected onMessage(responseProto: api.WriteResponse): Promise<void> {
     // Always capture the last stream token.
-    assert(
-      !!responseProto.streamToken,
-      'Got a write response without a stream token'
-    );
+    assert(!!responseProto.streamToken);
     this.lastStreamToken = this.serializer.fromBytes(responseProto.streamToken);
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
       assert(
-        !responseProto.writeResults || responseProto.writeResults.length === 0,
-        'Got mutation results for handshake'
+        !responseProto.writeResults || responseProto.writeResults.length === 0
       );
       this.handshakeComplete_ = true;
       return this.listener!.onHandshakeComplete();
@@ -731,8 +711,8 @@ export class PersistentWriteStream extends PersistentStream<
    * calls should wait until onHandshakeComplete was called.
    */
   writeHandshake(): void {
-    assert(this.isOpen(), 'Writing handshake requires an opened stream');
-    assert(!this.handshakeComplete_, 'Handshake already completed');
+    assert(this.isOpen());
+    assert(!this.handshakeComplete_);
     // TODO(dimond): Support stream resumption. We intentionally do not set the
     // stream token on the handshake, ignoring any stream token we might have.
     const request: WriteRequest = {};
@@ -742,15 +722,9 @@ export class PersistentWriteStream extends PersistentStream<
 
   /** Sends a group of mutations to the Firestore backend to apply. */
   writeMutations(mutations: Mutation[]): void {
-    assert(this.isOpen(), 'Writing mutations requires an opened stream');
-    assert(
-      this.handshakeComplete_,
-      'Handshake must be complete before writing mutations'
-    );
-    assert(
-      this.lastStreamToken.approximateByteSize() > 0,
-      'Trying to write mutation without a token'
-    );
+    assert(this.isOpen());
+    assert(this.handshakeComplete_);
+    assert(this.lastStreamToken.approximateByteSize() > 0);
 
     const request: WriteRequest = {
       streamToken: this.serializer.toBytes(this.lastStreamToken),

@@ -45,10 +45,7 @@ function createMetadata(
   databaseInfo: DatabaseInfo,
   token: Token | null
 ): grpc.Metadata {
-  assert(
-    token === null || token.type === 'OAuth',
-    'If provided, token must be OAuth'
-  );
+  assert(token === null || token.type === 'OAuth');
 
   const metadata = new grpc.Metadata();
   if (token) {

@@ -243,10 +243,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
-      !query.isCollectionGroupQuery(),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
+    assert(!query.isCollectionGroupQuery());
     let results = documentMap();
 
     const immediateChildrenPathLength = query.path.length + 1;
@@ -363,7 +360,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobal.key)
       .next(metadata => {
-        assert(!!metadata, 'Missing document cache metadata');
+        assert(!!metadata);
         return metadata!;
       });
   }
@@ -437,15 +434,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
       this.changes.forEach((key, maybeDocument) => {
         const previousSize = this.documentSizes.get(key);
-        assert(
-          previousSize !== undefined,
-          `Cannot modify a document that wasn't read (for ${key})`
-        );
+        assert(previousSize !== undefined);
         if (maybeDocument) {
-          assert(
-            !this.readTime.isEqual(SnapshotVersion.MIN),
-            'Cannot add a document with a read time of zero'
-          );
+          assert(!this.readTime.isEqual(SnapshotVersion.MIN));
           const doc = this.documentCache.serializer.toDbRemoteDocument(
             maybeDocument,
             this.readTime
@@ -565,7 +556,7 @@ export function dbDocumentSize(doc: DbRemoteDocument): number {
   } else if (doc.noDocument) {
     value = doc.noDocument;
   } else {
-    throw fail('Unknown remote document type');
+    throw fail();
   }
   return JSON.stringify(value).length;
 }

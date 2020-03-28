@@ -250,24 +250,15 @@ class MockConnection implements Connection {
         sendFn: (request: WriteRequest) => {
           ++this.writeStreamRequestCount;
           if (firstCall) {
-            assert(
-              !!request.database,
-              'projectId must be set in the first message'
-            );
-            assert(
-              !request.writes,
-              'mutations must not be set in first request'
-            );
+            assert(!!request.database);
+            assert(!request.writes);
             this.ackWrite(); // just send the token
             firstCall = false;
             return;
           }
 
-          assert(
-            !!request.streamToken,
-            'streamToken must be set on all writes'
-          );
-          assert(!!request.writes, 'writes must be set on all writes');
+          assert(!!request.streamToken);
+          assert(!!request.writes);
 
           const barrier = this.writeSendBarriers.shift();
           if (!barrier) {
@@ -296,7 +287,7 @@ class MockConnection implements Connection {
       // Replace 'any' with conditional types.
       return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
-      assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
+      assert(rpcName === 'Listen');
       if (this.watchStream !== null) {
         throw new Error('Stream opened twice!');
       }
@@ -312,7 +303,7 @@ class MockConnection implements Connection {
           } else if (request.removeTarget) {
             delete this.activeTargets[request.removeTarget];
           } else {
-            fail('Invalid listen request');
+            fail();
           }
         },
         closeFn: () => {
@@ -379,12 +370,12 @@ class SharedWriteTracker {
   }
 
   peek(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    assert(this.writes.length > 0);
     return this.writes[0];
   }
 
   shift(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    assert(this.writes.length > 0);
     return this.writes.shift()!;
   }
 }
@@ -619,7 +610,7 @@ abstract class TestRunner {
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else {
-      return fail('Unknown step: ' + JSON.stringify(step));
+      return fail();
     }
   }
 
@@ -666,7 +657,7 @@ abstract class TestRunner {
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
-    assert(!!eventEmitter, 'There must be a query to unlisten too!');
+    assert(!!eventEmitter);
     this.queryListeners.delete(query);
     await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
@@ -779,10 +770,7 @@ abstract class TestRunner {
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
-      assert(
-        !watchEntity.doc,
-        'Exactly one of `doc` or `docs` needs to be set'
-      );
+      assert(!watchEntity.doc);
       return sequence(watchEntity.docs, (specDocument: SpecDocument) => {
         return this.doWatchEntity({
           doc: specDocument,
@@ -816,16 +804,13 @@ abstract class TestRunner {
       );
       return this.doWatchEvent(change);
     } else {
-      return fail('Either doc or docs must be set');
+      return fail();
     }
   }
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
-    assert(
-      targetIds.length === 1,
-      'ExistenceFilters currently support exactly one target only.'
-    );
+    assert(targetIds.length === 1);
     const keys = watchFilter.slice(1);
     const filter = new ExistenceFilter(keys.length);
     const change = new ExistenceFilterChange(targetIds[0], filter);
@@ -1339,9 +1324,7 @@ export async function runSpec(
   try {
     await sequence(steps, async step => {
       assert(
-        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
-        "Cannot use 'client()' to initialize a test that is not tagged with " +
-          "'multi-client'. Did you mean to use 'spec()'?"
+        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1
       );
 
       ++count;

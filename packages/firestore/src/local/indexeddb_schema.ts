@@ -69,10 +69,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     toVersion: number
   ): PersistencePromise<void> {
     assert(
-      fromVersion < toVersion &&
-        fromVersion >= 0 &&
-        toVersion <= SCHEMA_VERSION,
-      `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
+      fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION
     );
 
     const simpleDbTransaction = new SimpleDbTransaction(txn);
@@ -195,10 +192,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return PersistencePromise.forEach(
               dbBatches,
               (dbBatch: DbMutationBatch) => {
-                assert(
-                  dbBatch.userId === queue.userId,
-                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
-                );
+                assert(dbBatch.userId === queue.userId);
                 const batch = this.serializer.fromDbMutationBatch(dbBatch);
 
                 return removeMutationBatch(
@@ -866,10 +860,7 @@ export class DbTargetDocument {
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
-    assert(
-      (targetId === 0) === (sequenceNumber !== undefined),
-      'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
-    );
+    assert((targetId === 0) === (sequenceNumber !== undefined));
   }
 }
 

@@ -136,7 +136,7 @@ function isWrite(dataSource: UserDataSource): boolean {
     case UserDataSource.ArrayArgument:
       return false;
     default:
-      throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
+      throw fail();
   }
 }
 
@@ -353,9 +353,7 @@ export class UserDataReader {
             stringOrFieldPath
           );
         } else {
-          throw fail(
-            'Expected stringOrFieldPath to be a string or a FieldPath'
-          );
+          throw fail();
         }
 
         if (!context.contains(fieldPath)) {
@@ -494,11 +492,8 @@ export class UserDataReader {
       FieldPath.EMPTY_PATH
     );
     const parsed = this.parseData(input, context);
-    assert(parsed != null, 'Parsed data should not be null.');
-    assert(
-      context.fieldTransforms.length === 0,
-      'Field transforms should have been disallowed.'
-    );
+    assert(parsed != null);
+    assert(context.fieldTransforms.length === 0);
     return parsed;
   }
 
@@ -633,11 +628,7 @@ export class UserDataReader {
         // fieldMask so it gets deleted.
         context.fieldMask.push(context.path);
       } else if (context.dataSource === UserDataSource.Update) {
-        assert(
-          context.path.length > 0,
-          'FieldValue.delete() at the top level should have already' +
-            ' been handled.'
-        );
+        assert(context.path.length > 0);
         throw context.createError(
           'FieldValue.delete() can only appear at the top level ' +
             'of your update data'
@@ -684,7 +675,7 @@ export class UserDataReader {
         new FieldTransform(context.path, numericIncrement)
       );
     } else {
-      fail('Unknown FieldValue type: ' + value);
+      fail();
     }
   }
 

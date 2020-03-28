@@ -150,13 +150,7 @@ export class View {
         const oldDoc = oldDocumentSet.get(key);
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
-          assert(
-            key.isEqual(newDoc.key),
-            'Mismatching keys found in document changes: ' +
-              key +
-              ' != ' +
-              newDoc.key
-          );
+          assert(key.isEqual(newDoc.key));
           newDoc = this.query.matches(newDoc) ? newDoc : null;
         }
 
@@ -242,10 +236,7 @@ export class View {
       }
     }
 
-    assert(
-      !needsRefill || !previousChanges,
-      'View was refilled using docs that themselves needed refilling.'
-    );
+    assert(!needsRefill || !previousChanges);
     return {
       documentSet: newDocumentSet,
       changeSet,
@@ -288,7 +279,7 @@ export class View {
     updateLimboDocuments: boolean,
     targetChange?: TargetChange
   ): ViewChange {
-    assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
+    assert(!docChanges.needsRefill);
     const oldDocs = this.documentSet;
     this.documentSet = docChanges.documentSet;
     this.mutatedKeys = docChanges.mutatedKeys;
@@ -390,10 +381,7 @@ export class View {
         key => (this._syncedDocuments = this._syncedDocuments.add(key))
       );
       targetChange.modifiedDocuments.forEach(key =>
-        assert(
-          this._syncedDocuments.has(key),
-          `Modified document ${key} not found in view.`
-        )
+        assert(this._syncedDocuments.has(key))
       );
       targetChange.removedDocuments.forEach(
         key => (this._syncedDocuments = this._syncedDocuments.delete(key))
@@ -491,7 +479,7 @@ function compareChangeType(c1: ChangeType, c2: ChangeType): number {
       case ChangeType.Removed:
         return 0;
       default:
-        return fail('Unknown ChangeType: ' + change);
+        return fail();
     }
   };
 

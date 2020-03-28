@@ -62,7 +62,7 @@ export function typeOrder(value: api.Value): TypeOrder {
     }
     return TypeOrder.ObjectValue;
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail();
   }
 }
 
@@ -102,7 +102,7 @@ export function valueEquals(left: api.Value, right: api.Value): boolean {
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
     default:
-      return fail('Unexpected value type: ' + JSON.stringify(left));
+      return fail();
   }
 }
 
@@ -224,7 +224,7 @@ export function valueCompare(left: api.Value, right: api.Value): number {
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
     default:
-      throw fail('Invalid value type: ' + leftType);
+      throw fail();
   }
 }
 
@@ -377,7 +377,7 @@ function canonifyValue(value: api.Value): string {
   } else if ('mapValue' in value) {
     return canonifyMap(value.mapValue!);
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail();
   }
 }
 
@@ -468,7 +468,7 @@ export function estimateByteSize(value: api.Value): number {
     case TypeOrder.ObjectValue:
       return estimateMapByteSize(value.mapValue!);
     default:
-      throw fail('Invalid value type: ' + JSON.stringify(value));
+      throw fail();
   }
 }
 
@@ -494,7 +494,7 @@ function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
 export function normalizeTimestamp(
   date: api.Timestamp
 ): { seconds: number; nanos: number } {
-  assert(!!date, 'Cannot normalize null or undefined timestamp.');
+  assert(!!date);
 
   // The json interface (for the browser) will return an iso timestamp string,
   // while the proto js library (for node) will return a
@@ -506,7 +506,7 @@ export function normalizeTimestamp(
     // Parse the nanos right out of the string.
     let nanos = 0;
     const fraction = ISO_TIMESTAMP_REG_EXP.exec(date);
-    assert(!!fraction, 'invalid timestamp: ' + date);
+    assert(!!fraction);
     if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction[1];

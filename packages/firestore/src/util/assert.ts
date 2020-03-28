@@ -25,25 +25,19 @@ import { logError } from './log';
  * @example
  * let futureVar = fail('not implemented yet');
  */
-export function fail(failure: string): never {
-  // Log the failure in addition to throw an exception, just in case the
-  // exception is swallowed.
-  const message =
-    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
-  logError(message);
-
+export function fail(): never {
   // NOTE: We don't use FirestoreError here because these are internal failures
   // that cannot be handled by the user. (Also it would create a circular
   // dependency between the error and assert modules which doesn't work.)
-  throw new Error(message);
+  throw new Error('Internal Failure');
 }
 
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
  */
-export function assert(assertion: boolean, message: string): asserts assertion {
+export function assert(assertion: boolean): asserts assertion {
   if (!assertion) {
-    fail(message);
+    fail();
   }
 }

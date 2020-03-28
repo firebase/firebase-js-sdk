@@ -84,7 +84,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
       case TypeOrder.ObjectValue:
         return this.convertObject(value.mapValue!);
       default:
-        throw fail('Invalid value type: ' + JSON.stringify(value));
+        throw fail();
     }
   }
 
@@ -130,10 +130,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
   private convertReference(name: string): DocumentReference<T> {
     const resourcePath = ResourcePath.fromString(name);
-    assert(
-      isValidResourceName(resourcePath),
-      'ReferenceValue is not valid ' + name
-    );
+    assert(isValidResourceName(resourcePath));
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
 

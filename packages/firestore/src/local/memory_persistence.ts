@@ -224,7 +224,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
 
   private get orphanedDocuments(): Set<DocumentKey> {
     if (!this._orphanedDocuments) {
-      throw fail('orphanedDocuments is only valid during a transaction.');
+      throw fail();
     } else {
       return this._orphanedDocuments;
     }
@@ -534,7 +534,7 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
   }
 
   getPersistence(): Persistence {
-    assert(!!this.clientId, 'initialize() not called');
+    assert(!!this.clientId);
     return new MemoryPersistence(
       this.clientId,
       p => new MemoryEagerDelegate(p)

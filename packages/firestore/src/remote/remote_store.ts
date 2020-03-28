@@ -262,10 +262,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * not being listened to.
    */
   unlisten(targetId: TargetId): void {
-    assert(
-      objUtils.contains(this.listenTargets, targetId),
-      `unlisten called on target no currently watched: ${targetId}`
-    );
+    assert(objUtils.contains(this.listenTargets, targetId));
 
     delete this.listenTargets[targetId];
     if (this.watchStream.isOpen()) {
@@ -314,10 +311,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWatchStream(): void {
-    assert(
-      this.shouldStartWatchStream(),
-      'startWatchStream() called when shouldStartWatchStream() is false.'
-    );
+    assert(this.shouldStartWatchStream());
 
     this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.watchStream.start();
@@ -354,10 +348,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
-        !this.shouldStartWatchStream(),
-        'Watch stream was stopped gracefully while still needed.'
-      );
+      assert(!this.shouldStartWatchStream());
     }
 
     this.cleanUpWatchStreamState();
@@ -397,10 +388,7 @@ export class RemoteStore implements TargetMetadataProvider {
     } else if (watchChange instanceof ExistenceFilterChange) {
       this.watchChangeAggregator!.handleExistenceFilter(watchChange);
     } else {
-      assert(
-        watchChange instanceof WatchTargetChange,
-        'Expected watchChange to be an instance of WatchTargetChange'
-      );
+      assert(watchChange instanceof WatchTargetChange);
       this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
@@ -420,10 +408,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    assert(
-      !snapshotVersion.isEqual(SnapshotVersion.MIN),
-      "Can't raise event for unknown SnapshotVersion"
-    );
+    assert(!snapshotVersion.isEqual(SnapshotVersion.MIN));
     const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(
       snapshotVersion
     );
@@ -482,7 +467,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** Handles an error on a target */
   private handleTargetError(watchChange: WatchTargetChange): Promise<void> {
-    assert(!!watchChange.cause, 'Handling target error without a cause');
+    assert(!!watchChange.cause);
     const error = watchChange.cause!;
     let promiseChain = Promise.resolve();
     watchChange.targetIds.forEach(targetId => {
@@ -551,10 +536,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * immediately if the write stream is established.
    */
   private addToWritePipeline(batch: MutationBatch): void {
-    assert(
-      this.canAddToWritePipeline(),
-      'addToWritePipeline called when pipeline is full'
-    );
+    assert(this.canAddToWritePipeline());
     this.writePipeline.push(batch);
 
     if (this.writeStream.isOpen() && this.writeStream.handshakeComplete) {
@@ -571,10 +553,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWriteStream(): void {
-    assert(
-      this.shouldStartWriteStream(),
-      'startWriteStream() called when shouldStartWriteStream() is false.'
-    );
+    assert(this.shouldStartWriteStream());
     this.writeStream.start();
   }
 
@@ -601,10 +580,7 @@ export class RemoteStore implements TargetMetadataProvider {
   ): Promise<void> {
     // This is a response to a write containing mutations and should be
     // correlated to the first write in our write pipeline.
-    assert(
-      this.writePipeline.length > 0,
-      'Got result for empty write pipeline'
-    );
+    assert(this.writePipeline.length > 0);
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(
       batch,
@@ -623,10 +599,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
-        !this.shouldStartWriteStream(),
-        'Write stream was stopped gracefully while still needed.'
-      );
+      assert(!this.shouldStartWriteStream());
     }
 
     // If the write stream closed due to an error, invoke the error callbacks if

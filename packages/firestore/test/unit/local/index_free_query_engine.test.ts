@@ -139,10 +139,7 @@ describe('IndexFreeQueryEngine', () => {
     query: Query,
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
-    assert(
-      localDocuments.expectIndexFreeExecution !== undefined,
-      'Encountered runQuery() call not wrapped in expectIndexFreeQuery()/expectFullCollectionQuery()'
-    );
+    assert(localDocuments.expectIndexFreeExecution !== undefined);
 
     return persistence.runTransaction('runQuery', 'readonly', txn => {
       return targetCache

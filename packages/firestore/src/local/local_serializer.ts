@@ -67,7 +67,7 @@ export class LocalSerializer {
       const version = this.fromDbTimestamp(remoteDoc.unknownDocument.version);
       return new UnknownDocument(key, version);
     } else {
-      return fail('Unexpected DbRemoteDocument');
+      return fail();
     }
   }
 
@@ -113,7 +113,7 @@ export class LocalSerializer {
         parentPath
       );
     } else {
-      return fail('Unexpected MaybeDocument');
+      return fail();
     }
   }
 
@@ -225,13 +225,7 @@ export class LocalSerializer {
 
   /** Encodes TargetData into a DbTarget for storage locally. */
   toDbTarget(targetData: TargetData): DbTarget {
-    assert(
-      TargetPurpose.Listen === targetData.purpose,
-      'Only queries with purpose ' +
-        TargetPurpose.Listen +
-        ' may be stored, got ' +
-        targetData.purpose
-    );
+    assert(TargetPurpose.Listen === targetData.purpose);
     const dbTimestamp = this.toDbTimestamp(targetData.snapshotVersion);
     const dbLastLimboFreeTimestamp = this.toDbTimestamp(
       targetData.lastLimboFreeSnapshotVersion

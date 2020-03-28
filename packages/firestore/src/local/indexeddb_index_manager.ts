@@ -51,7 +51,7 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
-    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
+    assert(collectionPath.length % 2 === 1);
     if (!this.collectionParentsCache.has(collectionPath)) {
       const collectionId = collectionPath.lastSegment();
       const parentPath = collectionPath.popLast();

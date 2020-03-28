@@ -39,17 +39,17 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   onOpen(callback: () => void): void {
-    assert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
+    assert(!this.wrappedOnOpen);
     this.wrappedOnOpen = callback;
   }
 
   onClose(callback: (err?: FirestoreError) => void): void {
-    assert(!this.wrappedOnClose, 'Called onClose on stream twice!');
+    assert(!this.wrappedOnClose);
     this.wrappedOnClose = callback;
   }
 
   onMessage(callback: (msg: O) => void): void {
-    assert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
+    assert(!this.wrappedOnMessage);
     this.wrappedOnMessage = callback;
   }
 
@@ -62,26 +62,17 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   callOnOpen(): void {
-    assert(
-      this.wrappedOnOpen !== undefined,
-      'Cannot call onOpen because no callback was set'
-    );
+    assert(this.wrappedOnOpen !== undefined);
     this.wrappedOnOpen();
   }
 
   callOnClose(err?: FirestoreError): void {
-    assert(
-      this.wrappedOnClose !== undefined,
-      'Cannot call onClose because no callback was set'
-    );
+    assert(this.wrappedOnClose !== undefined);
     this.wrappedOnClose(err);
   }
 
   callOnMessage(msg: O): void {
-    assert(
-      this.wrappedOnMessage !== undefined,
-      'Cannot call onMessage because no callback was set'
-    );
+    assert(this.wrappedOnMessage !== undefined);
     this.wrappedOnMessage(msg);
   }
 }

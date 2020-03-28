@@ -157,14 +157,11 @@ export function specTest(
   } else {
     builder = commentOrBuilder;
   }
-  assert(!!builder, 'Missing spec builder');
+  assert(!!builder);
   // Union in the tags for the describeSpec().
   tags = tags.concat(describeTags);
   for (const tag of tags) {
-    assert(
-      KNOWN_TAGS.indexOf(tag) >= 0,
-      'Unknown tag "' + tag + '" on test: ' + name
-    );
+    assert(KNOWN_TAGS.indexOf(tag) >= 0);
   }
 
   if (!writeJSONFile) {
@@ -192,11 +189,7 @@ export function specTest(
       }
     }
   } else {
-    assert(
-      tags.indexOf(EXCLUSIVE_TAG) === -1,
-      `The 'exclusive' tag is only supported for development and should not be exported to ` +
-        `other platforms.`
-    );
+    assert(tags.indexOf(EXCLUSIVE_TAG) === -1);
     const spec = builder();
 
     const specJSON = spec.toJSON();

@@ -94,10 +94,7 @@ export function lookupOrInsert<V>(
 }
 
 export function isEmpty<V>(obj: Dict<V>): boolean {
-  assert(
-    obj != null && typeof obj === 'object',
-    'isEmpty() expects object parameter.'
-  );
+  assert(obj != null && typeof obj === 'object');
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       return false;
@@ -107,9 +104,6 @@ export function isEmpty<V>(obj: Dict<V>): boolean {
 }
 
 export function shallowCopy<V>(obj: Dict<V>): Dict<V> {
-  assert(
-    obj && typeof obj === 'object',
-    'shallowCopy() expects object parameter.'
-  );
+  assert(obj && typeof obj === 'object');
   return { ...obj };
 }

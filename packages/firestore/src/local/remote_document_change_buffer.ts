@@ -70,18 +70,12 @@ export abstract class RemoteDocumentChangeBuffer {
     // Right now (for simplicity) we just track a single readTime for all the
     // added entries since we expect them to all be the same, but we could
     // rework to store per-entry readTimes if necessary.
-    assert(
-      this._readTime === undefined || this._readTime.isEqual(value),
-      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
-    );
+    assert(this._readTime === undefined || this._readTime.isEqual(value));
     this._readTime = value;
   }
 
   protected get readTime(): SnapshotVersion {
-    assert(
-      this._readTime !== undefined,
-      'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
-    );
+    assert(this._readTime !== undefined);
     return this._readTime;
   }
 
@@ -165,6 +159,6 @@ export abstract class RemoteDocumentChangeBuffer {
 
   /** Helper to assert this.changes is not null  */
   protected assertNotApplied(): void {
-    assert(!this.changesApplied, 'Changes have already been applied.');
+    assert(!this.changesApplied);
   }
 }

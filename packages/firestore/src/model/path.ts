@@ -32,13 +32,13 @@ abstract class BasePath<B extends BasePath<B>> {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
-      fail('offset ' + offset + ' out of range ' + segments.length);
+      fail();
     }
 
     if (length === undefined) {
       length = segments.length - offset;
     } else if (length > segments.length - offset) {
-      fail('length ' + length + ' out of range ' + (segments.length - offset));
+      fail();
     }
     this.segments = segments;
     this.offset = offset;
@@ -90,7 +90,7 @@ abstract class BasePath<B extends BasePath<B>> {
 
   popFirst(size?: number): B {
     size = size === undefined ? 1 : size;
-    assert(this.length >= size, "Can't call popFirst() with less segments");
+    assert(this.length >= size);
     return this.construct(
       this.segments,
       this.offset + size,
@@ -99,12 +99,12 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   popLast(): B {
-    assert(!this.isEmpty(), "Can't call popLast() on empty path");
+    assert(!this.isEmpty());
     return this.construct(this.segments, this.offset, this.length - 1);
   }
 
   firstSegment(): string {
-    assert(!this.isEmpty(), "Can't call firstSegment() on empty path");
+    assert(!this.isEmpty());
     return this.segments[this.offset];
   }
 
@@ -113,7 +113,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   get(index: number): string {
-    assert(index < this.length, 'Index out of range');
+    assert(index < this.length);
     return this.segments[this.offset + index];
   }
 

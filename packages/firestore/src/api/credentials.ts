@@ -116,17 +116,14 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   invalidateToken(): void {}
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    assert(!this.changeListener);
     this.changeListener = changeListener;
     // Fire with initial user.
     changeListener(User.UNAUTHENTICATED);
   }
 
   removeChangeListener(): void {
-    assert(
-      this.changeListener !== null,
-      'removeChangeListener() when no listener registered'
-    );
+    assert(this.changeListener !== null);
     this.changeListener = null;
   }
 }
@@ -190,10 +187,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   getToken(): Promise<Token | null> {
-    assert(
-      this.tokenListener != null,
-      'getToken cannot be called after listener removed.'
-    );
+    assert(this.tokenListener != null);
 
     // Take note of the current value of the tokenCounter so that this method
     // can fail (with an ABORTED error) if there is a token change while the
@@ -217,10 +211,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         );
       } else {
         if (tokenData) {
-          assert(
-            typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
-          );
+          assert(typeof tokenData.accessToken === 'string');
           return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
           return null;
@@ -234,7 +225,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    assert(!this.changeListener);
     this.changeListener = changeListener;
 
     // Fire the initial event
@@ -244,11 +235,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   removeChangeListener(): void {
-    assert(this.tokenListener != null, 'removeChangeListener() called twice');
-    assert(
-      this.changeListener !== null,
-      'removeChangeListener() called when no listener registered'
-    );
+    assert(this.tokenListener != null);
+    assert(this.changeListener !== null);
 
     if (this.auth) {
       this.auth.removeAuthTokenListener(this.tokenListener!);
@@ -263,10 +251,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   // to guarantee to get the actual user.
   private getUser(): User {
     const currentUid = this.auth && this.auth.getUid();
-    assert(
-      currentUid === null || typeof currentUid === 'string',
-      'Received invalid UID: ' + currentUid
-    );
+    assert(currentUid === null || typeof currentUid === 'string');
     return new User(currentUid);
   }
 }
@@ -348,8 +333,7 @@ export function makeCredentialsProvider(
           client !== null &&
           client['auth'] &&
           client['auth']['getAuthHeaderValueForFirstParty']
-        ),
-        'unexpected gapi interface'
+        )
       );
       return new FirstPartyCredentialsProvider(
         client,

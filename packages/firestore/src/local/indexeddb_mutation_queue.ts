@@ -92,7 +92,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
-    assert(user.uid !== '', 'UserID must not be an empty string.');
+    assert(user.uid !== '');
     const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(
       userId,
@@ -173,7 +173,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // We write an empty object to obtain key
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return mutationStore.add({} as any).next(batchId => {
-      assert(typeof batchId === 'number', 'Auto-generated key is not a number');
+      assert(typeof batchId === 'number');
 
       const batch = new MutationBatch(
         batchId,
@@ -222,10 +222,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .get(batchId)
       .next(dbBatch => {
         if (dbBatch) {
-          assert(
-            dbBatch.userId === this.userId,
-            `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
-          );
+          assert(dbBatch.userId === this.userId);
           return this.serializer.fromDbMutationBatch(dbBatch);
         }
         return null;
@@ -266,10 +263,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         { index: DbMutationBatch.userMutationsIndex, range },
         (key, dbBatch, control) => {
           if (dbBatch.userId === this.userId) {
-            assert(
-              dbBatch.batchId >= nextBatchId,
-              'Should have found mutation after ' + nextBatchId
-            );
+            assert(dbBatch.batchId >= nextBatchId);
             foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
           }
           control.done();
@@ -346,17 +340,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (!mutation) {
-              throw fail(
-                'Dangling document-mutation reference found: ' +
-                  indexKey +
-                  ' which points to ' +
-                  batchId
-              );
+              throw fail();
             }
-            assert(
-              mutation.userId === this.userId,
-              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
-            );
+            assert(mutation.userId === this.userId);
             results.push(this.serializer.fromDbMutationBatch(mutation));
           });
       })
@@ -411,14 +397,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    assert(
-      !query.isDocumentQuery(),
-      "Document queries shouldn't go down this path"
-    );
-    assert(
-      !query.isCollectionGroupQuery(),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
+    assert(!query.isDocumentQuery());
+    assert(!query.isCollectionGroupQuery());
 
     const queryPath = query.path;
     const immediateChildrenLength = queryPath.length + 1;
@@ -478,16 +458,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (mutation === null) {
-              throw fail(
-                'Dangling document-mutation reference found, ' +
-                  'which points to ' +
-                  batchId
-              );
+              throw fail();
             }
-            assert(
-              mutation.userId === this.userId,
-              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
-            );
+            assert(mutation.userId === this.userId);
             results.push(this.serializer.fromDbMutationBatch(mutation));
           })
       );
@@ -549,12 +522,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           }
         })
         .next(() => {
-          assert(
-            danglingMutationReferences.length === 0,
-            'Document leak -- detected dangling mutation references when queue is empty. ' +
-              'Dangling keys: ' +
-              danglingMutationReferences.map(p => p.canonicalString())
-          );
+          assert(danglingMutationReferences.length === 0);
         });
     });
   }
@@ -656,11 +624,7 @@ export function removeMutationBatch(
   );
   promises.push(
     removePromise.next(() => {
-      assert(
-        numDeleted === 1,
-        'Dangling document-mutation reference found: Missing batch ' +
-          batch.batchId
-      );
+      assert(numDeleted === 1);
     })
   );
   const removedDocuments: DocumentKey[] = [];

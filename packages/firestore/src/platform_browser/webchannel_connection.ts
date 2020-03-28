@@ -167,16 +167,7 @@ export class WebChannelConnection implements Connection {
               }
               break;
             default:
-              fail(
-                'RPC "' +
-                  rpcName +
-                  '" failed with unanticipated ' +
-                  'webchannel error ' +
-                  xhr.getLastErrorCode() +
-                  ': ' +
-                  xhr.getLastError() +
-                  ', giving up.'
-              );
+              fail();
           }
         } finally {
           logDebug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
@@ -374,7 +365,7 @@ export class WebChannelConnection implements Connection {
       msg => {
         if (!closed) {
           const msgData = msg!.data[0];
-          assert(!!msgData, 'Got a webchannel message without data.');
+          assert(!!msgData);
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
@@ -423,7 +414,7 @@ export class WebChannelConnection implements Connection {
   // visible for testing
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
-    assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
+    assert(urlRpcName !== undefined);
     return (
       this.baseUrl +
       '/' +

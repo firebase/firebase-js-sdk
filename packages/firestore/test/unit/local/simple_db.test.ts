@@ -345,7 +345,7 @@ describe('SimpleDb', () => {
           iterated.push(value);
           return PersistencePromise.reject(new Error('Expected error'));
         })
-        .next(() => fail('Promise not rejected'))
+        .next(() => fail())
         .catch(err => {
           expect(err.message).to.eq('Expected error');
           expect(iterated).to.deep.equal([testData[0]]);

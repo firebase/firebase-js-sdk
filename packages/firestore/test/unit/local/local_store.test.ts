@@ -298,10 +298,7 @@ class LocalStoreTester {
 
   toReturnChanged(...docs: MaybeDocument[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      assert(
-        this.lastChanges !== null,
-        'Called toReturnChanged() without prior after()'
-      );
+      assert(this.lastChanges !== null);
       expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
       for (const doc of docs) {
         const returned = this.lastChanges.get(doc.key);
@@ -320,10 +317,7 @@ class LocalStoreTester {
 
   toReturnRemoved(...keyStrings: string[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      assert(
-        this.lastChanges !== null,
-        'Called toReturnRemoved() without prior after()'
-      );
+      assert(this.lastChanges !== null);
       expect(this.lastChanges.size).to.equal(
         keyStrings.length,
         'Number of actual changes mismatched number of expected changes'

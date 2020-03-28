@@ -71,7 +71,7 @@ export class Transaction {
       if (doc instanceof NoDocument || doc instanceof Document) {
         this.recordVersion(doc);
       } else {
-        fail('Document in a transaction was a ' + doc.constructor.name);
+        fail();
       }
     });
     return docs;
@@ -125,7 +125,7 @@ export class Transaction {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
       docVersion = SnapshotVersion.forDeletedDoc();
     } else {
-      throw fail('Document in a transaction was a ' + doc.constructor.name);
+      throw fail();
     }
 
     const existingVersion = this.readVersions.get(doc.key);
@@ -195,9 +195,6 @@ export class Transaction {
   }
 
   private ensureCommitNotCalled(): void {
-    assert(
-      !this.committed,
-      'A transaction object cannot be used after its update callback has been invoked.'
-    );
+    assert(!this.committed);
   }
 }

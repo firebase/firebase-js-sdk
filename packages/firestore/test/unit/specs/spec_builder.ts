@@ -209,10 +209,7 @@ export class SpecBuilder {
 
   // Configures Garbage Collection behavior (on or off). Default is on.
   withGCEnabled(gcEnabled: boolean): this {
-    assert(
-      !this.currentStep,
-      'withGCEnabled() must be called before all spec steps.'
-    );
+    assert(!this.currentStep);
     this.config.useGarbageCollection = gcEnabled;
     return this;
   }
@@ -483,7 +480,7 @@ export class SpecBuilder {
     } else if (doc instanceof NoDocument) {
       // Don't send any updates
     } else {
-      fail('Unknown parameter: ' + doc);
+      fail();
     }
     this.watchCurrents(query, 'resume-token-' + version);
     this.watchSnapshots(version);
@@ -755,8 +752,7 @@ export class SpecBuilder {
     }
     assert(
       !events.errorCode ||
-        !(events.added || events.modified || events.removed || events.metadata),
-      "Can't provide both error and events"
+        !(events.added || events.modified || events.removed || events.metadata)
     );
     currentStep.expectedSnapshotEvents.push({
       query: SpecBuilder.queryToSpec(query),
@@ -890,7 +886,7 @@ export class SpecBuilder {
             userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
-          return fail('Unknown filter: ' + filter);
+          return fail();
         }
       });
     }
@@ -997,13 +993,10 @@ export class SpecBuilder {
     if (queryTargetId && limboTargetId) {
       // TODO(dimond): add support for query for doc and limbo doc at the same
       // time?
-      fail('Found both query and limbo doc with target ID, not supported yet');
+      fail();
     }
     const targetId = queryTargetId || limboTargetId;
-    assert(
-      !isNullOrUndefined(targetId),
-      'No target ID found for query/limbo doc in spec'
-    );
+    assert(!isNullOrUndefined(targetId));
     return targetId;
   }
 }

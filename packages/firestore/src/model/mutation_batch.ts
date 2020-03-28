@@ -55,7 +55,7 @@ export class MutationBatch {
     public baseMutations: Mutation[],
     public mutations: Mutation[]
   ) {
-    assert(mutations.length > 0, 'Cannot create an empty mutation batch');
+    assert(mutations.length > 0);
   }
 
   /**
@@ -73,20 +73,11 @@ export class MutationBatch {
     batchResult: MutationBatchResult
   ): MaybeDocument | null {
     if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(docKey),
-        `applyToRemoteDocument: key ${docKey} should match maybeDoc key
-        ${maybeDoc.key}`
-      );
+      assert(maybeDoc.key.isEqual(docKey));
     }
 
     const mutationResults = batchResult.mutationResults;
-    assert(
-      mutationResults.length === this.mutations.length,
-      `Mismatch between mutations length
-      (${this.mutations.length}) and mutation results length
-      (${mutationResults.length}).`
-    );
+    assert(mutationResults.length === this.mutations.length);
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
@@ -110,11 +101,7 @@ export class MutationBatch {
     maybeDoc: MaybeDocument | null
   ): MaybeDocument | null {
     if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(docKey),
-        `applyToLocalDocument: key ${docKey} should match maybeDoc key
-        ${maybeDoc.key}`
-      );
+      assert(maybeDoc.key.isEqual(docKey));
     }
 
     // First, apply the base state. This allows us to apply non-idempotent
@@ -208,13 +195,7 @@ export class MutationBatchResult {
     results: MutationResult[],
     streamToken: ByteString
   ): MutationBatchResult {
-    assert(
-      batch.mutations.length === results.length,
-      'Mutations sent ' +
-        batch.mutations.length +
-        ' must equal results received ' +
-        results.length
-    );
+    assert(batch.mutations.length === results.length);
 
     let versionMap = documentVersionMap();
     const mutations = batch.mutations;

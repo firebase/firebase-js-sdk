@@ -193,10 +193,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     private readonly serializer: JsonProtoSerializer,
     readonly operand: api.Value
   ) {
-    assert(
-      isNumber(operand),
-      'NumericIncrementTransform transform requires a NumberValue'
-    );
+    assert(isNumber(operand));
   }
 
   applyToLocalView(
@@ -219,10 +216,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     previousValue: api.Value | null,
     transformResult: api.Value | null
   ): api.Value {
-    assert(
-      transformResult !== null,
-      "Didn't receive transformResult for NUMERIC_ADD transform"
-    );
+    assert(transformResult !== null);
     return transformResult;
   }
 

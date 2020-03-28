@@ -225,7 +225,7 @@ export function filter(path: string, op: string, value: unknown): FieldFilter {
   if (filter instanceof FieldFilter) {
     return filter;
   } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
+    return fail();
   }
 }
 
@@ -335,7 +335,7 @@ export function docAddedRemoteEvent(
   activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+  assert(docs.length !== 0);
 
   const allTargets = activeTargets
     ? activeTargets
@@ -360,10 +360,7 @@ export function docAddedRemoteEvent(
   let version = SnapshotVersion.MIN;
 
   for (const doc of docs) {
-    assert(
-      !(doc instanceof Document) || !doc.hasLocalMutations,
-      "Docs from remote updates shouldn't have local changes."
-    );
+    assert(!(doc instanceof Document) || !doc.hasLocalMutations);
     const docChange = new DocumentWatchChange(
       updatedInTargets || [],
       removedFromTargets || [],
@@ -383,10 +380,7 @@ export function docUpdateRemoteEvent(
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
-    "Docs from remote updates shouldn't have local changes."
-  );
+  assert(!(doc instanceof Document) || !doc.hasLocalMutations);
   const docChange = new DocumentWatchChange(
     updatedInTargets || [],
     removedFromTargets || [],
@@ -525,7 +519,7 @@ export function resumeTokenForSnapshot(
 
 export function orderBy(path: string, op?: string): OrderBy {
   op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+  assert(op === 'asc' || op === 'desc');
   const dir: Direction =
     op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
   return new OrderBy(field(path), dir);
@@ -601,7 +595,7 @@ export function documentSet(...args: unknown[]): DocumentSet {
     docSet = new DocumentSet();
   }
   for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+    assert(doc instanceof Document);
     docSet = docSet.add(doc);
   }
   return docSet;
@@ -642,14 +636,10 @@ export class DocComparator {
 export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(left) + ' does not support isEqual (left) ' + message
-    );
+    return fail();
   }
   if (typeof right.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(right) + ' does not support isEqual (right) ' + message
-    );
+    return fail();
   }
   expect(left.isEqual(right)).to.equal(true, message);
   expect(right.isEqual(left)).to.equal(true, message);

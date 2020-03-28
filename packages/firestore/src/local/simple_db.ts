@@ -64,10 +64,7 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    assert(
-      SimpleDb.isAvailable(),
-      'IndexedDB not supported in current environment.'
-    );
+    assert(SimpleDb.isAvailable());
     logDebug(LOG_TAG, 'Opening database:', name);
     return new PersistencePromise<SimpleDb>((resolve, reject) => {
       // TODO(mikelehen): Investigate browser compatibility.
@@ -478,7 +475,7 @@ export class SimpleDbTransaction {
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
-    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    assert(!!store);
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
 }
@@ -738,10 +735,7 @@ export class SimpleDbStore<
       if (typeof indexOrRange === 'string') {
         indexName = indexOrRange;
       } else {
-        assert(
-          range === undefined,
-          '3rd argument must not be defined if 2nd is a range.'
-        );
+        assert(range === undefined);
         range = indexOrRange;
       }
     }

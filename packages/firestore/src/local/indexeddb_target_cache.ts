@@ -141,7 +141,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
-        assert(metadata.targetCount > 0, 'Removing from an empty target cache');
+        assert(metadata.targetCount > 0);
         metadata.targetCount -= 1;
         return this.saveMetadata(transaction, metadata);
       });
@@ -420,7 +420,7 @@ function retrieveMetadata(
     DbTargetGlobal.store
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    assert(metadata !== null, 'Missing metadata row.');
+    assert(metadata !== null);
     return metadata;
   });
 }

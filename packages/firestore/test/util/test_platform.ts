@@ -65,7 +65,7 @@ export class FakeWindow {
         // The spec tests currently do not rely on 'unload' listeners.
         break;
       default:
-        fail(`MockWindow doesn't support events of type '${type}'`);
+        fail();
     }
   }
 
@@ -76,10 +76,7 @@ export class FakeWindow {
         registeredListener => listener !== registeredListener
       );
       const newCount = this.storageListeners.length;
-      assert(
-        newCount === oldCount - 1,
-        "Listener passed to 'removeEventListener' doesn't match any registered listener."
-      );
+      assert(newCount === oldCount - 1);
     }
   }
 }
@@ -96,10 +93,7 @@ export class FakeDocument {
   }
 
   addEventListener(type: string, listener: EventListener): void {
-    assert(
-      type === 'visibilitychange',
-      "FakeDocument only supports events of type 'visibilitychange'"
-    );
+    assert(type === 'visibilitychange');
     this.visibilityListener = listener;
   }
 

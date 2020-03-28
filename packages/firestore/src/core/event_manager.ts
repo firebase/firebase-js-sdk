@@ -73,10 +73,7 @@ export class EventManager implements SyncEngineListener {
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.
     const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
-    assert(
-      !raisedEvent,
-      "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
-    );
+    assert(!raisedEvent);
 
     if (queryInfo.viewSnap) {
       const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
@@ -226,10 +223,7 @@ export class QueryListener {
    * indeed raised.
    */
   onViewSnapshot(snap: ViewSnapshot): boolean {
-    assert(
-      snap.docChanges.length > 0 || snap.syncStateChanged,
-      'We got a new snapshot with no changes?'
-    );
+    assert(snap.docChanges.length > 0 || snap.syncStateChanged);
 
     if (!this.options.includeMetadataChanges) {
       // Remove the metadata only changes.
@@ -288,10 +282,7 @@ export class QueryListener {
     snap: ViewSnapshot,
     onlineState: OnlineState
   ): boolean {
-    assert(
-      !this.raisedInitialEvent,
-      'Determining whether to raise first event but already had first event'
-    );
+    assert(!this.raisedInitialEvent);
 
     // Always raise the first event when we're synced
     if (!snap.fromCache) {
@@ -304,10 +295,7 @@ export class QueryListener {
     // Don't raise the event if we're online, aren't synced yet (checked
     // above) and are waiting for a sync.
     if (this.options.waitForSyncWhenOnline && maybeOnline) {
-      assert(
-        snap.fromCache,
-        'Waiting for sync, but snapshot is not from cache'
-      );
+      assert(snap.fromCache);
       return false;
     }
 
@@ -337,10 +325,7 @@ export class QueryListener {
   }
 
   private raiseInitialEvent(snap: ViewSnapshot): void {
-    assert(
-      !this.raisedInitialEvent,
-      'Trying to raise initial events for second time'
-    );
+    assert(!this.raisedInitialEvent);
     snap = ViewSnapshot.fromInitialDocuments(
       snap.query,
       snap.docs,

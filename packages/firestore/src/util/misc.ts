@@ -41,7 +41,7 @@ export class AutoId {
         }
       });
     }
-    assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    assert(autoId.length === 20);
     return autoId;
   }
 }

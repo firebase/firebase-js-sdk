@@ -472,7 +472,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     observer: PartialObserver<void>
   ): Unsubscribe {
     const errHandler = (err: Error): void => {
-      throw fail('Uncaught Error in onSnapshotsInSync');
+      throw fail();
     };
     const asyncObserver = new AsyncObserver<void>({
       next: () => {
@@ -514,9 +514,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     persistenceProvider: PersistenceProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
-    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
+    assert(!!this._settings.host);
 
-    assert(!this._firestoreClient, 'configureClient() called multiple times');
+    assert(!this._firestoreClient);
 
     const databaseInfo = this.makeDatabaseInfo();
 
@@ -712,7 +712,7 @@ export class Transaction implements firestore.Transaction {
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
         if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
+          return fail();
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
@@ -734,9 +734,7 @@ export class Transaction implements firestore.Transaction {
             ref._converter
           );
         } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
+          throw fail();
         }
       });
   }
@@ -1212,10 +1210,7 @@ export class DocumentReference<T = firestore.DocumentData>
     const asyncObserver = new AsyncObserver<ViewSnapshot>({
       next: snapshot => {
         if (observer.next) {
-          assert(
-            snapshot.docs.size <= 1,
-            'Too many documents returned on a document query'
-          );
+          assert(snapshot.docs.size <= 1);
           const doc = snapshot.docs.get(this._key);
 
           observer.next(
@@ -1457,10 +1452,7 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   implements firestore.QueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
-    assert(
-      data !== undefined,
-      'Document in a QueryDocumentSnapshot should exist'
-    );
+    assert(data !== undefined);
     return data;
   }
 }
@@ -2539,14 +2531,8 @@ export function changesFromSnapshot<T>(
         snapshot.mutatedKeys.has(change.doc.key),
         converter
       );
-      assert(
-        change.type === ChangeType.Added,
-        'Invalid event type for first snapshot'
-      );
-      assert(
-        !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
-        'Got added events in wrong order'
-      );
+      assert(change.type === ChangeType.Added);
+      assert(!lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0);
       lastDoc = change.doc;
       return {
         type: 'added' as firestore.DocumentChangeType,
@@ -2576,7 +2562,7 @@ export function changesFromSnapshot<T>(
         let newIndex = -1;
         if (change.type !== ChangeType.Added) {
           oldIndex = indexTracker.indexOf(change.doc.key);
-          assert(oldIndex >= 0, 'Index for document not found');
+          assert(oldIndex >= 0);
           indexTracker = indexTracker.delete(change.doc.key);
         }
         if (change.type !== ChangeType.Removed) {
@@ -2598,7 +2584,7 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
     case ChangeType.Removed:
       return 'removed';
     default:
-      return fail('Unknown change type: ' + type);
+      return fail();
   }
 }
 

@@ -183,9 +183,7 @@ export class IndexedDbPersistence implements Persistence {
     if (txn instanceof IndexedDbTransaction) {
       return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
     } else {
-      throw fail(
-        'IndexedDbPersistence must use instances of IndexedDbTransaction'
-      );
+      throw fail();
     }
   }
 
@@ -304,8 +302,8 @@ export class IndexedDbPersistence implements Persistence {
    * @return {Promise<void>} Whether persistence was enabled.
    */
   private start(): Promise<void> {
-    assert(!this.started, 'IndexedDbPersistence double-started!');
-    assert(this.window !== null, "Expected 'window' to be defined");
+    assert(!this.started);
+    assert(this.window !== null);
 
     return SimpleDb.openOrCreate(
       this.dbName,
@@ -717,10 +715,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getMutationQueue(user: User): MutationQueue {
-    assert(
-      this.started,
-      'Cannot initialize MutationQueue before persistence is started.'
-    );
+    assert(this.started);
     return IndexedDbMutationQueue.forUser(
       user,
       this.serializer,
@@ -730,26 +725,17 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getTargetCache(): IndexedDbTargetCache {
-    assert(
-      this.started,
-      'Cannot initialize TargetCache before persistence is started.'
-    );
+    assert(this.started);
     return this.targetCache;
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
-    assert(
-      this.started,
-      'Cannot initialize RemoteDocumentCache before persistence is started.'
-    );
+    assert(this.started);
     return this.remoteDocumentCache;
   }
 
   getIndexManager(): IndexedDbIndexManager {
-    assert(
-      this.started,
-      'Cannot initialize IndexManager before persistence is started.'
-    );
+    assert(this.started);
     return this.indexManager;
   }
 
@@ -947,8 +933,7 @@ export class IndexedDbPersistence implements Persistence {
     if (this.documentVisibilityHandler) {
       assert(
         this.document !== null &&
-          typeof this.document.addEventListener === 'function',
-        "Expected 'document.addEventListener' to be a function"
+          typeof this.document.addEventListener === 'function'
       );
       this.document.removeEventListener(
         'visibilitychange',
@@ -988,10 +973,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
-      assert(
-        typeof this.window.removeEventListener === 'function',
-        "Expected 'window.removeEventListener' to be a function"
-      );
+      assert(typeof this.window.removeEventListener === 'function');
       this.window.removeEventListener('unload', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
@@ -1314,11 +1296,8 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
     initialUser: User,
     settings: PersistenceSettings
   ): Promise<void> {
-    assert(
-      settings.durable,
-      'IndexedDbPersistenceProvider can only provide durable persistence'
-    );
-    assert(!this.persistence, 'configure() already called');
+    assert(settings.durable);
+    assert(!this.persistence);
 
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo
@@ -1363,17 +1342,17 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
   }
 
   getPersistence(): Persistence {
-    assert(!!this.persistence, 'initialize() not called');
+    assert(!!this.persistence);
     return this.persistence;
   }
 
   getSharedClientState(): SharedClientState {
-    assert(!!this.sharedClientState, 'initialize() not called');
+    assert(!!this.sharedClientState);
     return this.sharedClientState;
   }
 
   getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    assert(!!this.gcScheduler, 'initialize() not called');
+    assert(!!this.gcScheduler);
     return this.gcScheduler;
   }
 
