@@ -21,9 +21,8 @@ jobs:
       - run: |
           echo "${{ github.event_name }}"
           echo "${{ github.event.pull_request.head.repo.fork }}"
-          echo "${{ github.event_name == 'push' }}"
           echo "${{ !(github.event.pull_request.head.repo.fork) }}"
-          echo "${{ github.event_name == 'push' || github.event.pull_request.head.repo.fork == 'false' }}"
-          echo "${{ (github.event_name == 'push') || (github.event.pull_request.head.repo.fork == 'false') }}"
+          echo "${{ github.event.pull_request.head.repo.fork == true }}"
+          echo "${{ github.event.pull_request.head.repo.fork == false }}"
 
   # TODO(yifany): Enable startup times testing on CI.
