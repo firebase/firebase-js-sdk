@@ -21,7 +21,7 @@ import {
   FirebaseAppConfig
 } from '@firebase/app-types-exp';
 import { ComponentContainer } from '@firebase/component';
-import { ERROR_FACTORY, AppError } from '../src/errors';
+import { ERROR_FACTORY, AppError } from './errors';
 
 export class FirebaseAppImplNext implements FirebaseApp {
   private readonly options_: FirebaseOptions;

@@ -47,7 +47,7 @@
   },
   "workspaces": [
     "packages/*",
-    "packages/exp/*",
+    "packages-exp/*",
     "integration/*"
   ],
   "devDependencies": {

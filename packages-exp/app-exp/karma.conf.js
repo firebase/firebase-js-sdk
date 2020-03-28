@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../../config/karma.base');
+const karmaBase = require('../../config/karma.base');
 
 const files = ['src/**/*.test.ts'];
 

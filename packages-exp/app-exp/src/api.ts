@@ -29,7 +29,7 @@ import {
   Name,
   ComponentType
 } from '@firebase/component';
-import { version } from '../../../firebase/package.json';
+import { version } from '../../../packages/firebase/package.json';
 import { FirebaseAppImplNext } from './firebaseApp';
 import { apps, components, registerComponent } from './internal';
 import { logger } from './logger';
