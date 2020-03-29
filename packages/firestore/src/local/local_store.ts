@@ -506,7 +506,7 @@ export class LocalStore {
    * LocalDocuments are re-calculated if there are remaining mutations in the
    * queue.
    */
-  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap | null> {
+  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const remoteVersion = remoteEvent.snapshotVersion;
     let newTargetDataByTargetMap = this.targetDataByTarget;
 
@@ -523,7 +523,9 @@ export class LocalStore {
             // limbo.
             if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
               if (remoteVersion.compareTo(lastRemoteSnapshotVersion) < 0) {
-                return PersistencePromise.resolve<MaybeDocumentMap|null>(null);
+                return PersistencePromise.reject<MaybeDocumentMap>(
+                  new Error('Remote version went back in time')
+                );
               }
               promises.push(
                 this.targetCache.setTargetsMetadata(
@@ -656,10 +658,9 @@ export class LocalStore {
 
             return PersistencePromise.waitFor(promises)
               .next(() => documentBuffer.apply(txn))
-              .next(() => this.localDocuments.getLocalViewOfDocuments(
-                txn,
-                changedDocs
-              )).next(result => PersistencePromise.resolve<MaybeDocumentMap|null>(result));
+              .next(() =>
+                this.localDocuments.getLocalViewOfDocuments(txn, changedDocs)
+              );
           });
       })
       .then(changedDocs => {
@@ -1098,17 +1099,6 @@ export class LocalStore {
   }
 }
 
-export function isPrimaryLeaseLoss(err: FirestoreError): boolean {
-  if (
-    err.code === Code.FAILED_PRECONDITION &&
-    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 /**
  * Verifies the error thrown by a LocalStore operation. If a LocalStore
  * operation fails because the primary lease has been taken by another client,
@@ -1119,12 +1109,14 @@ export function isPrimaryLeaseLoss(err: FirestoreError): boolean {
  * @param err An error returned by a LocalStore operation.
  * @return A Promise that resolves after we recovered, or the original error.
  */
-export async function ignoreIfPrimaryLeaseLoss(
-  err: FirestoreError
-): Promise<void> {
-  if (isPrimaryLeaseLoss(err)) {
+export function handlePrimaryLeaseLoss(err: FirestoreError): boolean {
+  if (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  ) {
     log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    return true;
   } else {
-    throw err;
+    return false;
   }
 }

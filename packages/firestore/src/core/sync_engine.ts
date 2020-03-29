@@ -17,8 +17,7 @@
 
 import { User } from '../auth/user';
 import {
-  ignoreIfPrimaryLeaseLoss,
-  isPrimaryLeaseLoss,
+  handlePrimaryLeaseLoss,
   LocalStore,
   LocalWriteResult
 } from '../local/local_store';
@@ -340,7 +339,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.removeAndCleanupTarget(queryView.targetId);
           })
           .catch(err => {
-            log.debug(LOG_TAG, 'Unexpected error: ' + err);
+            if (!handlePrimaryLeaseLoss(err)) {
+              log.error(LOG_TAG, 'Unexpected error: ' + err);
+            }
           });
       }
     } else {
@@ -413,10 +414,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('applyRemoteEvent()');
     try {
       const changes = await this.localStore.applyRemoteEvent(remoteEvent);
-      
-      if (!changes) {
-        return Promise.resolve();
-      }
       // Update `receivedDocument` as appropriate for any limbo targets.
       objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
         const limboResolution = this.limboResolutionsByTarget[Number(targetId)];
@@ -450,10 +447,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
-      if (isPrimaryLeaseLoss(error)) {
+      if (handlePrimaryLeaseLoss(error)) {
         return;
       }
-      // error
+
+      // If `applyRemoteEvent` fails, we unlisten and return errors for all
+      // targets affected by the remote event. This allows the user to relisten
+      // to these targets from a previously persisted state.
       let p = Promise.resolve();
       objUtils.forEachNumber(remoteEvent.targetChanges, targetId => {
         p = p
@@ -553,8 +553,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         this.removeAndCleanupTarget(targetId, err);
       } catch (error) {
-        log.error(LOG_TAG, 'Failed to release target: ' + error.message);
-        if (!isPrimaryLeaseLoss(error)) {
+        if (!handlePrimaryLeaseLoss(error)) {
+          log.error(LOG_TAG, 'Failed to release target: ' + error.message);
           this.removeAndCleanupTarget(targetId, err);
         }
       }
@@ -620,8 +620,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+    } catch (err) {
+      if (!handlePrimaryLeaseLoss(err)) {
+        // Error
+      }
     }
   }
 
@@ -643,8 +645,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const changes = await this.localStore.rejectBatch(batchId);
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+    } catch (err) {
+      if (!handlePrimaryLeaseLoss(err)) {
+        // Error
+      }
     }
   }
 
@@ -1162,7 +1166,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           this.remoteStore.unlisten(targetId);
           this.removeAndCleanupTarget(targetId);
         })
-        .catch(ignoreIfPrimaryLeaseLoss);
+        .catch(err => {
+          if (!handlePrimaryLeaseLoss(err)) {
+          }
+        });
     }
   }
 

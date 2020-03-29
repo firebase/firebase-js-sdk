@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import { handlePrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -589,7 +589,11 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(ignoreIfPrimaryLeaseLoss);
+      .catch(err => {
+        if (!handlePrimaryLeaseLoss(err)) {
+          // Error
+        }
+      });
   }
 
   private onMutationResult(
@@ -666,7 +670,11 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
-        .catch(ignoreIfPrimaryLeaseLoss);
+        .catch(err => {
+          if (!handlePrimaryLeaseLoss(err)) {
+            // Error
+          }
+        });
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.

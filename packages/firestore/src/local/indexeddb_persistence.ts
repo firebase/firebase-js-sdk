@@ -501,7 +501,7 @@ export class IndexedDbPersistence implements Persistence {
       ).catch(() => {
         // Ignore primary lease violations or any other type of error. The next
         // primary will run `maybeGarbageCollectMultiClientState()` again.
-        // We don't use `ignoreIfPrimaryLeaseLoss()` since we don't want to depend
+        // We don't use `handlePrimaryLeaseLoss()` since we don't want to depend
         // on LocalStore.
         return [];
       });
