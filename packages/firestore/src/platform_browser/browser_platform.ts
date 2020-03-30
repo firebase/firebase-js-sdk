@@ -75,7 +75,8 @@ export class BrowserPlatform implements Platform {
     }
 
     const v = new Uint8Array(nBytes);
-    // Polyfill for IE11.
+    // Polyfill for IE
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const crypto = window.crypto || (window as any).msCrypto;
     crypto.getRandomValues(v);
     return v;
