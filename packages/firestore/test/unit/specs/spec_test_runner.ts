@@ -1094,7 +1094,7 @@ abstract class TestRunner {
       // Always validate that the expected limbo docs match the actual limbo
       // docs
       this.validateActiveLimboDocs();
-      this.validateEnqeuedLimboDocs();
+      this.validateEnqueuedLimboDocs();
       // Always validate that the expected active targets match the actual
       // active targets
       await this.validateActiveTargets();
@@ -1135,7 +1135,7 @@ abstract class TestRunner {
     );
   }
 
-  private validateEnqeuedLimboDocs(): void {
+  private validateEnqueuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
     this.syncEngine.enqueuedLimboDocumentResolutions().forEach(key => {
       actualLimboDocs = actualLimboDocs.add(key);
