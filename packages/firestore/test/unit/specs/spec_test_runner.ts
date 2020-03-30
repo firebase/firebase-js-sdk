@@ -102,8 +102,10 @@ import {
   setMutation,
   TestSnapshotVersion,
   version,
-  byteStringFromString
+  byteStringFromString,
+  stringFromBase64String
 } from '../../util/helpers';
+import { encodeWatchChange } from '../../util/spec_test_helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
@@ -858,7 +860,7 @@ abstract class TestRunner {
   }
 
   private async doWatchEvent(watchChange: WatchChange): Promise<void> {
-    const protoJSON = this.serializer.toTestWatchChange(watchChange);
+    const protoJSON = encodeWatchChange(watchChange);
     this.connection.watchStream!.callOnMessage(protoJSON);
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
@@ -1197,7 +1199,13 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
+      expect(actualTarget.resumeToken).to.equal(
+        expectedTarget.resumeToken,
+        `ResumeToken does not match - expected:
+         ${stringFromBase64String(
+           expectedTarget.resumeToken
+         )}, actual: ${stringFromBase64String(expectedTarget.resumeToken)}`
+      );
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
