@@ -364,10 +364,10 @@ export class Repo {
     const changedChildren: { [k: string]: Node } = {};
     each(childrenToMerge, (changedKey: string, changedValue: unknown) => {
       empty = false;
-      const newNodeUnresolved = nodeFromJSON(changedValue);
-      changedChildren[changedKey] = resolveDeferredValueSnapshot(
-        newNodeUnresolved,
-        this.serverSyncTree_.calcCompleteEventCache(path.child(changedKey)),
+      changedChildren[changedKey] = resolveDeferredValueTree(
+        path.child(changedKey),
+        nodeFromJSON(changedValue),
+        this.serverSyncTree_,
         serverValues
       );
     });
@@ -420,11 +420,16 @@ export class Repo {
     this.log_('onDisconnectEvents');
 
     const serverValues = this.generateServerValues();
-    const resolvedOnDisconnectTree = resolveDeferredValueTree(
-      this.onDisconnect_,
-      this.serverSyncTree_,
-      serverValues
-    );
+    const resolvedOnDisconnectTree = new SparseSnapshotTree();
+    this.onDisconnect_.forEachTree(Path.Empty, (path, node) => {
+      const resolved = resolveDeferredValueTree(
+        path,
+        node,
+        this.serverSyncTree_,
+        serverValues
+      );
+      resolvedOnDisconnectTree.remember(path, resolved);
+    });
     let events: Event[] = [];
 
     resolvedOnDisconnectTree.forEachTree(Path.Empty, (path, snap) => {
