@@ -53,6 +53,7 @@ import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
+const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -369,7 +370,8 @@ export class FirestoreClient {
           this.localStore,
           this.remoteStore,
           this.sharedClientState,
-          user
+          user,
+          MAX_CONCURRENT_LIMBO_RESOLUTIONS
         );
 
         this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
