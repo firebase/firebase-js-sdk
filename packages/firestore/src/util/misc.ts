@@ -56,23 +56,8 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
-/** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
-}
-
-/** Helper to compare nullable (or undefined-able) objects using isEqual(). */
-export function equals<T>(
-  left: Equatable<T> | null | undefined,
-  right: T | null | undefined
-): boolean {
-  if (left !== null && left !== undefined) {
-    return !!(right && left.isEqual(right));
-  } else {
-    // HACK: Explicitly cast since TypeScript's type narrowing apparently isn't
-    // smart enough.
-    return (left as null | undefined) === right;
-  }
 }
 
 /** Helper to compare arrays using isEqual(). */
