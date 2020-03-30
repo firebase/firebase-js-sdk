@@ -422,7 +422,7 @@ export class WatchChangeAggregator {
   createRemoteEvent(snapshotVersion: SnapshotVersion): RemoteEvent {
     const targetChanges = new Map<TargetId, TargetChange>();
 
-    for (const [targetId, targetState] of this.targetStates) {
+    this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
         if (targetState.current && targetData.target.isDocumentQuery()) {
@@ -453,7 +453,7 @@ export class WatchChangeAggregator {
           targetState.clearPendingChanges();
         }
       }
-    }
+    });
 
     let resolvedLimboDocuments = documentKeySet();
 
