@@ -511,22 +511,13 @@ abstract class TestRunner {
       remoteStoreOnlineStateChangedHandler,
       connectivityMonitor
     );
-    if (this.maxConcurrentLimboResolutions) {
-      this.syncEngine = new SyncEngine(
-        this.localStore,
-        this.remoteStore,
-        this.sharedClientState,
-        this.user,
-        this.maxConcurrentLimboResolutions
-      );
-    } else {
-      this.syncEngine = new SyncEngine(
-        this.localStore,
-        this.remoteStore,
-        this.sharedClientState,
-        this.user
-      );
-    }
+    this.syncEngine = new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
+      this.user,
+      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
+    );
 
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;

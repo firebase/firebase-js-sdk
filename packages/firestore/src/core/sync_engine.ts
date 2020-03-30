@@ -188,7 +188,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
     private currentUser: User,
-    private maxConcurrentLimboResolutions: number = 100
+    private maxConcurrentLimboResolutions: number
   ) {}
 
   // Only used for testing.
