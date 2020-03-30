@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { logDebug } from '../util/log';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
@@ -35,6 +35,7 @@ import { DatabaseInfo } from '../core/database_info';
 import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { estimateByteSize } from '../model/values';
 import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
@@ -88,7 +89,7 @@ export class MemoryPersistence implements Persistence {
   private _started = false;
 
   readonly referenceDelegate: MemoryReferenceDelegate;
-  
+
   /**
    * The constructor accepts a factory for creating a reference delegate. This
    * allows both the delegate and this instance to have strong references to
@@ -171,7 +172,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
@@ -474,7 +475,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(maybeDoc: MaybeDocument): number {
     let documentSize = maybeDoc.key.toString().length;
     if (maybeDoc instanceof Document) {
-      documentSize += maybeDoc.data().approximateByteSize();
+      documentSize += estimateByteSize(maybeDoc.toProto());
     }
     return documentSize;
   }

@@ -83,7 +83,10 @@ describe('FirebaseAnalytics methods', () => {
       const initPromise1 = new Deferred<void>();
       const initPromise2 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+        {
+          [mockAnalyticsId]: initPromise1.promise,
+          otherId: initPromise2.promise
+        },
         'dataLayer',
         'gtag'
       );
@@ -110,7 +113,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -138,7 +144,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -165,7 +174,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -249,7 +261,10 @@ describe('FirebaseAnalytics methods', () => {
       const initPromise1 = new Deferred<void>();
       const initPromise2 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+        {
+          [mockAnalyticsId]: initPromise1.promise,
+          otherId: initPromise2.promise
+        },
         'dataLayer',
         'gtag'
       );
@@ -278,7 +293,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -312,7 +330,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -342,7 +363,10 @@ describe('FirebaseAnalytics methods', () => {
         const initPromise1 = new Deferred<void>();
         const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: initPromise1.promise, otherId: initPromise2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );

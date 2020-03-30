@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,13 @@
  */
 
 import { expect } from 'chai';
-import { expectEqual, expectNotEqual, doc, field } from '../../util/helpers';
+import {
+  doc,
+  expectEqual,
+  expectNotEqual,
+  field,
+  wrap
+} from '../../util/helpers';
 
 describe('Document', () => {
   it('can be constructed', () => {
@@ -26,11 +32,13 @@ describe('Document', () => {
     };
     const document = doc('rooms/Eros', 1, data);
 
-    const value = document.value();
-    expect(value).to.deep.equal({
-      desc: 'Discuss all the project related stuff',
-      owner: 'Jonny'
-    });
+    const value = document.data();
+    expect(value.proto).to.deep.equal(
+      wrap({
+        desc: 'Discuss all the project related stuff',
+        owner: 'Jonny'
+      })
+    );
     expect(value).not.to.equal(data);
     expect(document.hasLocalMutations).to.equal(false);
   });
@@ -42,11 +50,11 @@ describe('Document', () => {
     };
     const document = doc('rooms/Eros', 1, data, { hasLocalMutations: true });
 
-    expect(document.field(field('desc'))!.value()).to.deep.equal(
-      'Discuss all the project related stuff'
+    expect(document.field(field('desc'))).to.deep.equal(
+      wrap('Discuss all the project related stuff')
     );
-    expect(document.field(field('owner.title'))!.value()).to.deep.equal(
-      'scallywag'
+    expect(document.field(field('owner.title'))).to.deep.equal(
+      wrap('scallywag')
     );
     expect(document.hasLocalMutations).to.equal(true);
   });

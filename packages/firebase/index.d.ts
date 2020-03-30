@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ declare namespace firebase {
       /**
        * The raw arguments passed to the log call.
        */
-      args: unknown[];
+      args: any[];
       /**
        * A string indicating the name of the package that made the log call,
        * such as `@firebase/firestore`.
@@ -4426,13 +4426,20 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
     logEvent(
       eventName: 'add_payment_info',
-      eventParams?: { [key: string]: any },
+      eventParams?: {
+        coupon?: EventParams['coupon'];
+        currency?: EventParams['currency'];
+        items?: EventParams['items'];
+        payment_type?: EventParams['payment_type'];
+        value?: EventParams['value'];
+        [key: string]: any;
+      },
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
 
@@ -4440,7 +4447,28 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'add_shipping_info',
+      eventParams: {
+        coupon?: EventParams['coupon'];
+        currency?: EventParams['currency'];
+        items?: EventParams['items'];
+        shipping_tier?: EventParams['shipping_tier'];
+        value?: EventParams['value'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4459,7 +4487,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4479,7 +4507,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4501,7 +4529,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4519,7 +4547,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4538,7 +4566,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4555,7 +4583,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4574,12 +4602,12 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
     logEvent(
-      eventName: 'purchase',
+      eventName: 'purchase' | 'refund',
       eventParams: {
         value?: EventParams['value'];
         currency?: EventParams['currency'];
@@ -4588,6 +4616,7 @@ declare namespace firebase.analytics {
         shipping?: EventParams['shipping'];
         items?: EventParams['items'];
         coupon?: EventParams['coupon'];
+        affiliation?: EventParams['affiliation'];
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
@@ -4597,29 +4626,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
-     * {@link https://developers.google.com/gtagjs/reference/event
-     * the gtag.js reference documentation}.
-     */
-    logEvent(
-      eventName: 'refund',
-      eventParams: {
-        value?: EventParams['value'];
-        currency?: EventParams['currency'];
-        transaction_id: EventParams['transaction_id'];
-        tax?: EventParams['tax'];
-        shipping?: EventParams['shipping'];
-        items?: EventParams['items'];
-        [key: string]: any;
-      },
-      options?: firebase.analytics.AnalyticsCallOptions
-    ): void;
-
-    /**
-     * Sends analytics event with given `eventParams`. This method
-     * automatically associates this logged event with this Firebase web
-     * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4640,7 +4647,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4657,7 +4664,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4677,7 +4684,45 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'select_item',
+      eventParams: {
+        items?: EventParams['items'];
+        item_list_name?: EventParams['item_list_name'];
+        item_list_id?: EventParams['item_list_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of recommended event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'select_promotion' | 'view_promotion',
+      eventParams: {
+        items?: EventParams['items'];
+        promotion_id?: EventParams['promotion_id'];
+        promotion_name?: EventParams['promotion_name'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4695,7 +4740,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4714,7 +4759,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4731,7 +4776,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4751,14 +4796,35 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
     logEvent(
-      eventName: 'view_item' | 'view_item_list',
+      eventName: 'view_cart' | 'view_item',
+      eventParams: {
+        currency?: EventParams['currency'];
+        items?: EventParams['items'];
+        value?: EventParams['value'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of recommended event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'view_item_list',
       eventParams: {
         items?: EventParams['items'];
+        item_list_name?: EventParams['item_list_name'];
+        item_list_id?: EventParams['item_list_id'];
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
@@ -4768,24 +4834,7 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * List of official event parameters can be found in
-     * {@link https://developers.google.com/gtagjs/reference/event
-     * the gtag.js reference documentation}.
-     */
-    logEvent(
-      eventName: 'view_promotion',
-      eventParams: {
-        promotions?: EventParams['promotions'];
-        [key: string]: any;
-      },
-      options?: firebase.analytics.AnalyticsCallOptions
-    ): void;
-
-    /**
-     * Sends analytics event with given `eventParams`. This method
-     * automatically associates this logged event with this Firebase web
-     * app instance on this device.
-     * List of official event parameters can be found in
+     * List of recommended event parameters can be found in
      * {@link https://developers.google.com/gtagjs/reference/event
      * the gtag.js reference documentation}.
      */
@@ -4901,6 +4950,13 @@ declare namespace firebase.analytics {
     value?: number;
     event_label?: string;
     event_category: string;
+    shipping_tier?: string;
+    item_list_id?: string;
+    item_list_name?: string;
+    promotion_id?: string;
+    promotion_name?: string;
+    payment_type?: string;
+    affiliation?: string;
   }
 
   /**
@@ -4916,6 +4972,7 @@ declare namespace firebase.analytics {
    */
   export type EventNameString =
     | 'add_payment_info'
+    | 'add_shipping_info'
     | 'add_to_cart'
     | 'add_to_wishlist'
     | 'begin_checkout'
@@ -4930,10 +4987,13 @@ declare namespace firebase.analytics {
     | 'screen_view'
     | 'search'
     | 'select_content'
+    | 'select_item'
+    | 'select_promotion'
     | 'set_checkout_option'
     | 'share'
     | 'sign_up'
     | 'timing_complete'
+    | 'view_cart'
     | 'view_item'
     | 'view_item_list'
     | 'view_promotion'
@@ -4946,9 +5006,11 @@ declare namespace firebase.analytics {
    */
   export enum EventName {
     ADD_PAYMENT_INFO = 'add_payment_info',
+    ADD_SHIPPING_INFO = 'add_shipping_info',
     ADD_TO_CART = 'add_to_cart',
     ADD_TO_WISHLIST = 'add_to_wishlist',
     BEGIN_CHECKOUT = 'begin_checkout',
+    /** @deprecated */
     CHECKOUT_PROGRESS = 'checkout_progress',
     EXCEPTION = 'exception',
     GENERATE_LEAD = 'generate_lead',
@@ -4960,10 +5022,14 @@ declare namespace firebase.analytics {
     SCREEN_VIEW = 'screen_view',
     SEARCH = 'search',
     SELECT_CONTENT = 'select_content',
+    SELECT_ITEM = 'select_item',
+    SELECT_PROMOTION = 'select_promotion',
+    /** @deprecated */
     SET_CHECKOUT_OPTION = 'set_checkout_option',
     SHARE = 'share',
     SIGN_UP = 'sign_up',
     TIMING_COMPLETE = 'timing_complete',
+    VIEW_CART = 'view_cart',
     VIEW_ITEM = 'view_item',
     VIEW_ITEM_LIST = 'view_item_list',
     VIEW_PROMOTION = 'view_promotion',
@@ -4973,17 +5039,39 @@ declare namespace firebase.analytics {
   export type Currency = string | number;
 
   export interface Item {
-    brand?: string;
-    category?: string;
-    creative_name?: string;
-    creative_slot?: string;
-    id?: string;
-    location_id?: string;
-    name?: string;
+    item_id?: string;
+    item_name?: string;
+    item_brand?: string;
+    item_category?: string;
+    item_category2?: string;
+    item_category3?: string;
+    item_category4?: string;
+    item_category5?: string;
+    item_variant?: string;
     price?: Currency;
     quantity?: number;
+    index?: number;
+    coupon?: string;
+    item_list_name?: string;
+    item_list_id?: string;
+    discount?: Currency;
+    affiliation?: string;
+    creative_name?: string;
+    creative_slot?: string;
+    promotion_id?: string;
+    promotion_name?: string;
+    location_id?: string;
+    /** @deprecated Use item_brand instead. */
+    brand?: string;
+    /** @deprecated Use item_category instead. */
+    category?: string;
+    /** @deprecated Use item_id instead. */
+    id?: string;
+    /** @deprecated Use item_name instead. */
+    name?: string;
   }
 
+  /** @deprecated Use Item instead. */
   export interface Promotion {
     creative_name?: string;
     creative_slot?: string;
@@ -8091,10 +8179,10 @@ declare namespace firebase.firestore {
      */
     isEqual(other: Timestamp): boolean;
 
-   /**
-    * Converts this object to a primitive string, which allows Timestamp objects to be compared
-    * using the `>`, `<=`, `>=` and `>` operators.
-    */
+    /**
+     * Converts this object to a primitive string, which allows Timestamp objects to be compared
+     * using the `>`, `<=`, `>=` and `>` operators.
+     */
     valueOf(): string;
   }
 

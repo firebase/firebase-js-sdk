@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { Query, LimitType } from '../core/query';
+import { LimitType, Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -28,7 +28,7 @@ import {
 } from '../model/collections';
 import { Document } from '../model/document';
 import { assert } from '../util/assert';
-import { debug, getLogLevel, LogLevel } from '../util/log';
+import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
 // TOOD(b/140938512): Drop SimpleQueryEngine and rename IndexFreeQueryEngine.
@@ -99,7 +99,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
         }
 
         if (getLogLevel() <= LogLevel.DEBUG) {
-          debug(
+          logDebug(
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
             lastLimboFreeSnapshotVersion.toString(),
@@ -194,7 +194,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     query: Query
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
-      debug(
+      logDebug(
         'IndexFreeQueryEngine',
         'Using full collection scan to execute query: %s',
         query.toString()

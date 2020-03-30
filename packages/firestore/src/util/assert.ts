@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
  */
 
 import { SDK_VERSION } from '../core/version';
-
-import { error } from './log';
+import { logError } from './log';
 
 /**
  * Unconditionally fails, throwing an Error with the given message.
@@ -31,7 +30,7 @@ export function fail(failure: string): never {
   // exception is swallowed.
   const message =
     `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
-  error(message);
+  logError(message);
 
   // NOTE: We don't use FirestoreError here because these are internal failures
   // that cannot be handled by the user. (Also it would create a circular

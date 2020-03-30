@@ -60,7 +60,11 @@ async function publishPackage(pkg, releaseType) {
       args = [...args, '--tag', 'next'];
     } else if (releaseType === 'Canary') {
       // Write proxy registry token for this package to .npmrc.
-      await exec(`echo "//wombat-dressing-room.appspot.com/:_authToken=${process.env[getEnvTokenKey(pkg)]}" >> ~/.npmrc`);
+      await exec(
+        `echo "//wombat-dressing-room.appspot.com/:_authToken=${
+          process.env[getEnvTokenKey(pkg)]
+        }" >> ~/.npmrc`
+      );
       args = [
         ...args,
         '--tag',

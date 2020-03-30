@@ -11,6 +11,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/'{app,installations}' --include-dependencies build",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",

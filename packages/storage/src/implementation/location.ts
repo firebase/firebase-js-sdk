@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,6 @@ export class Location {
       }
     }
     const gsPath = '(/(.*))?$';
-    const path = '(/([^?#]*).*)?$';
     const gsRegex = new RegExp('^gs://' + bucketDomain + gsPath, 'i');
     const gsIndices = { bucket: 1, path: 3 };
 
@@ -84,15 +83,35 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     const version = 'v[A-Za-z0-9_]+';
-    const hostRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
-    const httpRegex = new RegExp(
-      `^https?://${hostRegex}/${version}/b/${bucketDomain}/o${path}`,
+    const firebaseStorageHost = DEFAULT_HOST.replace(/[.]/g, '\\.');
+    const firebaseStoragePath = '(/([^?#]*).*)?$';
+    const firebaseStorageRegExp = new RegExp(
+      `^https?://${firebaseStorageHost}/${version}/b/${bucketDomain}/o${firebaseStoragePath}`,
       'i'
     );
-    const httpIndices = { bucket: 1, path: 3 };
+    const firebaseStorageIndices = { bucket: 1, path: 3 };
+
+    const cloudStorageHost =
+      '(?:storage.googleapis.com|storage.cloud.google.com)';
+    const cloudStoragePath = '([^?#]*)';
+    const cloudStorageRegExp = new RegExp(
+      `^https?://${cloudStorageHost}/${bucketDomain}/${cloudStoragePath}`,
+      'i'
+    );
+    const cloudStorageIndices = { bucket: 1, path: 2 };
+
     const groups = [
       { regex: gsRegex, indices: gsIndices, postModify: gsModify },
-      { regex: httpRegex, indices: httpIndices, postModify: httpModify }
+      {
+        regex: firebaseStorageRegExp,
+        indices: firebaseStorageIndices,
+        postModify: httpModify
+      },
+      {
+        regex: cloudStorageRegExp,
+        indices: cloudStorageIndices,
+        postModify: httpModify
+      }
     ];
     for (let i = 0; i < groups.length; i++) {
       const group = groups[i];

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/testing",
-  "version": "0.17.1",
+  "version": "0.18.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -9,13 +9,14 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.12.0",
+    "firebase": "7.13.1",
     "@firebase/logger": "0.2.0",
     "@firebase/util": "0.2.43",
     "@types/request": "2.48.4",

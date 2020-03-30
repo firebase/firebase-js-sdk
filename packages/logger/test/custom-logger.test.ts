@@ -28,11 +28,11 @@ describe(`Custom log handler`, () => {
 
   describe('Callback log level set to INFO (default)', () => {
     before(() => {
-      setUserLogHandler((callbackParams) => {
+      setUserLogHandler(callbackParams => {
         result = callbackParams;
       });
     });
-    
+
     beforeEach(() => {
       result = null;
       spies = {
@@ -71,7 +71,12 @@ describe(`Custom log handler`, () => {
       // Default log level is INFO.
       client1.info('info message!', ['hello'], 1, { a: 3 });
       expect(result.message).to.equal('info message! ["hello"] 1 {"a":3}');
-      expect(result.args).to.deep.equal(['info message!', ['hello'], 1, { a: 3 }]);
+      expect(result.args).to.deep.equal([
+        'info message!',
+        ['hello'],
+        1,
+        { a: 3 }
+      ]);
       expect(result.level).to.equal('info');
       expect(result.type).to.equal('@firebase/test-logger');
     });
@@ -88,7 +93,7 @@ describe(`Custom log handler`, () => {
       expect(result.level).to.equal('error');
       expect(spies.errorSpy.called).to.be.true;
     });
-  
+
     it('does not call custom callback when log call is not above set log level', () => {
       // Default log level is INFO.
       client1.log('message you should not see');
@@ -102,11 +107,14 @@ describe(`Custom log handler`, () => {
 
   describe('Callback log level set to WARN with options', () => {
     before(() => {
-      setUserLogHandler((callbackParams) => {
-        result = callbackParams;
-      }, { level: 'warn' });
+      setUserLogHandler(
+        callbackParams => {
+          result = callbackParams;
+        },
+        { level: 'warn' }
+      );
     });
-    
+
     beforeEach(() => {
       result = null;
       spies = {
@@ -136,7 +144,7 @@ describe(`Custom log handler`, () => {
       expect(result.level).to.equal('error');
       expect(spies.errorSpy.called).to.be.true;
     });
-  
+
     it('does not call custom callback when log call is not above set log level', () => {
       client1.debug('message you should not see');
       expect(result).to.be.null;
@@ -158,11 +166,11 @@ describe(`Custom log handler`, () => {
   describe('Global log level set to VERBOSE with setLogLevel()', () => {
     before(() => {
       setLogLevel('verbose');
-      setUserLogHandler((callbackParams) => {
+      setUserLogHandler(callbackParams => {
         result = callbackParams;
       });
     });
-    
+
     beforeEach(() => {
       result = null;
       spies = {
@@ -198,7 +206,7 @@ describe(`Custom log handler`, () => {
       expect(result.level).to.equal('error');
       expect(spies.errorSpy.called).to.be.true;
     });
-  
+
     it('does not call custom callback when log call is not above set log level', () => {
       client1.debug('message you should not see');
       expect(result).to.be.null;

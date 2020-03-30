@@ -16,7 +16,7 @@
  */
 
 /**
- * This file serves as the public entrypoint for users that import 
+ * This file serves as the public entrypoint for users that import
  * `firebase/firestore/memory`.
  */
 

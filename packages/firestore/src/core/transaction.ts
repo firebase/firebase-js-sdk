@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
+import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
 import { documentVersionMap } from '../model/collections';
 import { Document, NoDocument, MaybeDocument } from '../model/document';
 
