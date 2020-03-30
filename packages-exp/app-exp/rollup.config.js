@@ -39,8 +39,11 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'src/index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+    input: {
+      index: 'src/index.ts',
+      internal: 'src/internal.ts'
+    },
+    output: [{ dir: 'dist/esm5', format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -48,8 +51,11 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    input: {
+      index: 'src/index.ts',
+      internal: 'src/internal.ts'
+    },
+    output: [{ dir: 'dist/cjs', format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -77,9 +83,12 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: 'src/index.ts',
+    input: {
+      index: 'src/index.ts',
+      internal: 'src/internal.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },

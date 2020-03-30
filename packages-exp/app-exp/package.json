@@ -4,10 +4,10 @@
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/cjs/index.js",
+  "browser": "dist/esm5/index.js",
+  "module": "dist/esm5/index.js",
+  "esm2017": "dist/esm2017/index.js",
   "files": [
     "dist"
   ],
@@ -45,7 +45,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/esm5/packages-exp/app-exp/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

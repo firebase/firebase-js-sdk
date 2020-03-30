@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import '../test/setup';
-import { FirebaseAppImplNext } from './firebaseApp';
+import { FirebaseAppImpl } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppInternal } from '@firebase/app-types-exp';
 
@@ -26,7 +26,7 @@ describe('FirebaseAppNext', () => {
     const options = {
       apiKey: 'APIKEY'
     };
-    const app = new FirebaseAppImplNext(
+    const app = new FirebaseAppImpl(
       options,
       { name: 'test', automaticDataCollectionEnabled: false },
       new ComponentContainer('test')
@@ -41,7 +41,7 @@ describe('FirebaseAppNext', () => {
     const options = {
       apiKey: 'APIKEY'
     };
-    const app = new FirebaseAppImplNext(
+    const app = new FirebaseAppImpl(
       options,
       { name: 'test', automaticDataCollectionEnabled: false },
       new ComponentContainer('test')
@@ -52,7 +52,7 @@ describe('FirebaseAppNext', () => {
   });
 
   it('sets automaticDataCollectionEnabled', () => {
-    const app = new FirebaseAppImplNext(
+    const app = new FirebaseAppImpl(
       {},
       { name: 'test', automaticDataCollectionEnabled: false },
       new ComponentContainer('test')
@@ -64,7 +64,7 @@ describe('FirebaseAppNext', () => {
   });
 
   it('throws accessing any property after being deleted', () => {
-    const app = new FirebaseAppImplNext(
+    const app = new FirebaseAppImpl(
       {},
       { name: 'test', automaticDataCollectionEnabled: false },
       new ComponentContainer('test')

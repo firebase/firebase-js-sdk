@@ -20,10 +20,10 @@ import {
   FirebaseOptions,
   FirebaseAppConfig
 } from '@firebase/app-types-exp';
-import { ComponentContainer } from '@firebase/component';
+import { ComponentContainer, Component, ComponentType } from '@firebase/component';
 import { ERROR_FACTORY, AppError } from './errors';
 
-export class FirebaseAppImplNext implements FirebaseApp {
+export class FirebaseAppImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private automaticDataCollectionEnabled_: boolean;
@@ -40,6 +40,11 @@ export class FirebaseAppImplNext implements FirebaseApp {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled;
     this.container = container;
+    this.container.addComponent(new Component(
+      'app-exp',
+      () => this,
+      ComponentType.PUBLIC
+    ));
   }
 
   get automaticDataCollectionEnabled(): boolean {

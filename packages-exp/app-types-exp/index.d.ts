@@ -93,6 +93,7 @@ export interface PlatformLoggerService {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
+    'app-exp': FirebaseApp;
     'platform-logger': PlatformLoggerService;
   }
 }
