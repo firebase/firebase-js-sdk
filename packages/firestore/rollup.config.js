@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,13 @@ const es5BuildPlugins = [
     transformers: appendPrivatePrefixTransformers,
     cacheRoot: `./.cache/es5.mangled/`
   }),
+  {
+    transform(code) {
+      // Allow Rollup to drop unused classes. 
+      // See https://github.com/rollup/rollup/issues/2807
+      return code.replace(/\/\*\* @class \*\//g, "\/*@__PURE__*\/");
+    }
+  },
   json(),
   terser(manglePrivatePropertiesOptions)
 ];
@@ -152,7 +159,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es5BuildPlugins,
+    plugins: es2017BuildPlugins,
     external: resolveBrowserExterns
   },
   // ES2017 ESM build (memory-only)
