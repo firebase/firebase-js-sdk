@@ -23,7 +23,8 @@
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "postbuild": "tsc --allowJs dist/*.js --sourceMap --outDir dist/es3 && rm dist/es3/*esm2017* && mv dist/es3/*.js dist &&  rm -r dist/es3"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",

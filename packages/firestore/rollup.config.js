@@ -102,6 +102,9 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
+    compilerOptions: {
+      target: 'es2017'
+    },
     transformers: appendPrivatePrefixTransformers,
     cacheRoot: `./.cache/es5.mangled/`
   }),
@@ -196,6 +199,9 @@ const browserBuilds = [
 const nodeBuildPlugins = [
   typescriptPlugin({
     typescript,
+    compilerOptions: {
+      target: 'es2017'
+    },
     cacheRoot: `./.cache/node/`
   }),
   json(),
