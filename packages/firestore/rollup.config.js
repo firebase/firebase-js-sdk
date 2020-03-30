@@ -24,6 +24,7 @@ import copy from 'rollup-plugin-copy-assets';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
+import babel from 'rollup-plugin-babel';
 
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
@@ -101,19 +102,17 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
 
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript,
+    typescript:  {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
     transformers: appendPrivatePrefixTransformers,
     cacheRoot: `./.cache/es5.mangled/`
   }),
-  {
-    transform(code) {
-      // Allow Rollup to drop unused classes. 
-      // See https://github.com/rollup/rollup/issues/2807
-      return code.replace(/\/\*\* @class \*\//g, "\/*@__PURE__*\/");
-    }
-  },
   json(),
-  terser(manglePrivatePropertiesOptions)
+  terser(manglePrivatePropertiesOptions),
+  babel()
 ];
 
 const es2017BuildPlugins = [
@@ -202,16 +201,13 @@ const browserBuilds = [
 
 const nodeBuildPlugins = [
   typescriptPlugin({
-    typescript,
+    typescript:  {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
     cacheRoot: `./.cache/node/`
   }),
-  {
-    transform(code) {
-      // Allow Rollup to drop unused classes. 
-      // See https://github.com/rollup/rollup/issues/2807
-      return code.replace(/\/\*\* @class \*\//g, "\/*@__PURE__*\/");
-    }
-  },
   json(),
   // Needed as we also use the *.proto files
   copy({
@@ -219,7 +215,8 @@ const nodeBuildPlugins = [
   }),
   replace({
     'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
-  })
+  }),
+  babel()
 ];
 
 const nodeBuilds = [

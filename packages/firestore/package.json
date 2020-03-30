@@ -51,6 +51,7 @@
   "devDependencies": {
     "protobufjs": "6.8.9",
     "rollup": "2.0.6",
+    "rollup-plugin-babel": "4.4.0",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
