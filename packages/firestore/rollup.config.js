@@ -205,6 +205,13 @@ const nodeBuildPlugins = [
     typescript,
     cacheRoot: `./.cache/node/`
   }),
+  {
+    transform(code) {
+      // Allow Rollup to drop unused classes. 
+      // See https://github.com/rollup/rollup/issues/2807
+      return code.replace(/\/\*\* @class \*\//g, "\/*@__PURE__*\/");
+    }
+  },
   json(),
   // Needed as we also use the *.proto files
   copy({
