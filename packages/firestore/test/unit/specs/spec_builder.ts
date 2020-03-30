@@ -359,7 +359,7 @@ export class SpecBuilder {
       expectedState: {
         activeTargets: {},
         activeLimboDocs: [],
-        inactiveLimboDocs: []
+        enqueuedLimboDocs: []
       }
     };
     return this;
@@ -388,7 +388,7 @@ export class SpecBuilder {
       expectedState: {
         activeTargets: {},
         activeLimboDocs: [],
-        inactiveLimboDocs: []
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -404,7 +404,7 @@ export class SpecBuilder {
       expectedState: {
         activeTargets: {},
         activeLimboDocs: [],
-        inactiveLimboDocs: []
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -477,14 +477,15 @@ export class SpecBuilder {
   }
 
   /**
-   * Expects a document to be in limbo, but *without* a targetId.
+   * Expects a document to be in limbo, enqueued for limbo resolution, and
+   * therefore *without* an active targetId.
    */
-  expectInactiveLimboDocs(...keys: DocumentKey[]): this {
+  expectEnqueuedLimboDocs(...keys: DocumentKey[]): this {
     this.assertStep('Limbo expectation requires previous step');
     const currentStep = this.currentStep!;
 
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.inactiveLimboDocs = keys.map(k =>
+    currentStep.expectedState.enqueuedLimboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
 

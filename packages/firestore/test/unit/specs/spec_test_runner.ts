@@ -406,7 +406,7 @@ abstract class TestRunner {
   );
 
   private expectedActiveLimboDocs: DocumentKey[];
-  private expectedInactiveLimboDocs: DocumentKey[];
+  private expectedEnqueuedLimboDocs: DocumentKey[];
   private expectedActiveTargets: {
     [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
   };
@@ -459,7 +459,7 @@ abstract class TestRunner {
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
 
     this.expectedActiveLimboDocs = [];
-    this.expectedInactiveLimboDocs = [];
+    this.expectedEnqueuedLimboDocs = [];
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
@@ -1053,8 +1053,8 @@ abstract class TestRunner {
       if ('activeLimboDocs' in expectedState) {
         this.expectedActiveLimboDocs = expectedState.activeLimboDocs!.map(key);
       }
-      if ('inactiveLimboDocs' in expectedState) {
-        this.expectedInactiveLimboDocs = expectedState.inactiveLimboDocs!.map(
+      if ('enqueuedLimboDocs' in expectedState) {
+        this.expectedEnqueuedLimboDocs = expectedState.enqueuedLimboDocs!.map(
           key
         );
       }
@@ -1094,7 +1094,7 @@ abstract class TestRunner {
       // Always validate that the expected limbo docs match the actual limbo
       // docs
       this.validateActiveLimboDocs();
-      this.validateInactiveLimboDocs();
+      this.validateEnqeuedLimboDocs();
       // Always validate that the expected active targets match the actual
       // active targets
       await this.validateActiveTargets();
@@ -1135,20 +1135,20 @@ abstract class TestRunner {
     );
   }
 
-  private validateInactiveLimboDocs(): void {
+  private validateEnqeuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.syncEngine.documentsEnqueuedForLimboResolution().forEach(key => {
+    this.syncEngine.enqueuedLimboDocumentResolutions().forEach(key => {
       actualLimboDocs = actualLimboDocs.add(key);
     });
     let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.expectedInactiveLimboDocs.forEach(key => {
+    this.expectedEnqueuedLimboDocs.forEach(key => {
       expectedLimboDocs = expectedLimboDocs.add(key);
     });
     actualLimboDocs.forEach(key => {
       expect(expectedLimboDocs.has(key)).to.equal(
         true,
         `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
-          `the set of expected inactive limbo documents ` +
+          `the set of expected enqueued limbo documents ` +
           `(${expectedLimboDocs.toString()})`
       );
     });
@@ -1692,10 +1692,11 @@ export interface StateExpectation {
    */
   activeLimboDocs?: string[];
   /**
-   * Current documents in limbo that do NOT have an active target.
+   * Current documents in limbo that are enqueued and therefore do not have an
+   * active target.
    * Verified in each step until overwritten.
    */
-  inactiveLimboDocs?: string[];
+  enqueuedLimboDocs?: string[];
   /**
    * Whether the instance holds the primary lease. Used in multi-client tests.
    */

@@ -674,7 +674,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchCurrents(query, 'resume-token-2000')
           .watchSnapshots(2000)
           .expectLimboDocs(doc1.key, doc2.key)
-          .expectInactiveLimboDocs(doc3.key, doc4.key, doc5.key)
+          .expectEnqueuedLimboDocs(doc3.key, doc4.key, doc5.key)
           // Limbo document causes query to be "inconsistent"
           .expectEvents(query, { fromCache: true })
           .watchAcks(limboQuery1)
@@ -689,7 +689,7 @@ describeSpec('Limbo Documents:', [], () => {
           })
           // Start the second round of limbo resolutions.
           .expectLimboDocs(doc3.key, doc4.key)
-          .expectInactiveLimboDocs(doc5.key)
+          .expectEnqueuedLimboDocs(doc5.key)
           .watchAcks(limboQuery3)
           .watchAcks(limboQuery4)
           // Resolve limbo documents doc3 and doc4 in a single snapshot.
@@ -702,7 +702,7 @@ describeSpec('Limbo Documents:', [], () => {
           })
           // Start the final round of limbo resolutions.
           .expectLimboDocs(doc5.key)
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
           .watchAcks(limboQuery5)
           // Resolve limbo document doc5.
           .watchCurrents(limboQuery5, 'resume-token-2003')
@@ -712,7 +712,7 @@ describeSpec('Limbo Documents:', [], () => {
             fromCache: false
           })
           .expectLimboDocs()
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
       );
     }
   );
@@ -751,7 +751,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchCurrents(query, 'resume-token-2000')
           .watchSnapshots(2000)
           .expectLimboDocs(doc1.key, doc2.key)
-          .expectInactiveLimboDocs(doc3.key, doc4.key, doc5.key)
+          .expectEnqueuedLimboDocs(doc3.key, doc4.key, doc5.key)
           // Limbo document causes query to be "inconsistent"
           .expectEvents(query, { fromCache: true })
           .watchAcks(limboQuery1)
@@ -762,7 +762,7 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(query, { removed: [doc1], fromCache: true })
           // Start the next limbo resolution since one has finished.
           .expectLimboDocs(doc2.key, doc3.key)
-          .expectInactiveLimboDocs(doc4.key, doc5.key)
+          .expectEnqueuedLimboDocs(doc4.key, doc5.key)
           .watchAcks(limboQuery3)
           // Resolve the limbo documents doc2 in its own snapshot.
           .watchCurrents(limboQuery2, 'resume-token-2002')
@@ -770,7 +770,7 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(query, { removed: [doc2], fromCache: true })
           // Start the next limbo resolution since one has finished.
           .expectLimboDocs(doc3.key, doc4.key)
-          .expectInactiveLimboDocs(doc5.key)
+          .expectEnqueuedLimboDocs(doc5.key)
           .watchAcks(limboQuery4)
           // Resolve the limbo documents doc3 in its own snapshot.
           .watchCurrents(limboQuery3, 'resume-token-2003')
@@ -778,7 +778,7 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(query, { removed: [doc3], fromCache: true })
           // Start the next limbo resolution since one has finished.
           .expectLimboDocs(doc4.key, doc5.key)
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
           .watchAcks(limboQuery5)
           // Resolve the limbo documents doc4 in its own snapshot.
           .watchCurrents(limboQuery4, 'resume-token-2004')
@@ -786,13 +786,13 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(query, { removed: [doc4], fromCache: true })
           // The final limbo document listen is already active; resolve it.
           .expectLimboDocs(doc5.key)
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
           // Resolve the limbo documents doc5 in its own snapshot.
           .watchCurrents(limboQuery5, 'resume-token-2005')
           .watchSnapshots(2005)
           .expectEvents(query, { removed: [doc5], fromCache: false })
           .expectLimboDocs()
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
       );
     }
   );
@@ -823,7 +823,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchCurrents(query, 'resume-token-1001')
           .watchSnapshots(2000)
           .expectLimboDocs(doc1.key)
-          .expectInactiveLimboDocs(doc2.key)
+          .expectEnqueuedLimboDocs(doc2.key)
           // Limbo document causes query to be "inconsistent"
           .expectEvents(query, { fromCache: true })
           .watchRemoves(
@@ -835,7 +835,7 @@ describeSpec('Limbo Documents:', [], () => {
           // start.
           .expectEvents(query, { removed: [doc1], fromCache: true })
           .expectLimboDocs(doc2.key)
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
           // Reject the listen for the second limbo resolution as well, in order
           // to exercise the code path of a rejected limbo resolution without
           // any enqueued limbo resolutions.
@@ -845,7 +845,7 @@ describeSpec('Limbo Documents:', [], () => {
           )
           .expectEvents(query, { removed: [doc2] })
           .expectLimboDocs()
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
       );
     }
   );
@@ -910,7 +910,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchAcksFull(query, 1002, docB1, docB2, docB3)
           // The docAs are now in limbo; the client begins limbo resolution.
           .expectLimboDocs(docA1.key, docA2.key)
-          .expectInactiveLimboDocs(docA3.key)
+          .expectEnqueuedLimboDocs(docA3.key)
           .watchAcks(docA1Query)
           .watchAcks(docA2Query)
           .watchCurrents(docA1Query, 'resume-token-1003')
@@ -918,13 +918,13 @@ describeSpec('Limbo Documents:', [], () => {
           .watchSnapshots(1003)
           .expectEvents(query, { removed: [docA1, docA2], fromCache: true })
           .expectLimboDocs(docA3.key)
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
           .watchAcks(docA3Query)
           .watchCurrents(docA3Query, 'resume-token-1004')
           .watchSnapshots(1004)
           .expectEvents(query, { removed: [docA3] })
           .expectLimboDocs()
-          .expectInactiveLimboDocs()
+          .expectEnqueuedLimboDocs()
       );
     }
   );
