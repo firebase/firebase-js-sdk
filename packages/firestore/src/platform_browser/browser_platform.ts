@@ -25,6 +25,10 @@ import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
+// Polyfill for IE
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const crypto = window.crypto || (window as any).msCrypto;
+
 export class BrowserPlatform implements Platform {
   readonly useProto3Json = true;
   readonly base64Available: boolean;
@@ -75,9 +79,6 @@ export class BrowserPlatform implements Platform {
     }
 
     const v = new Uint8Array(nBytes);
-    // Polyfill for IE
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const crypto = window.crypto || (window as any).msCrypto;
     crypto.getRandomValues(v);
     return v;
   }
