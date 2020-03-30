@@ -30,12 +30,57 @@ import {
   ComponentType
 } from '@firebase/component';
 import { version } from '../../../packages/firebase/package.json';
-import { FirebaseAppImplNext } from './firebaseApp';
+import { FirebaseAppImpl } from './firebaseApp';
 import { apps, components, registerComponent } from './internal';
 import { logger } from './logger';
 
+/**
+ * The current SDK version.
+ */
 export const SDK_VERSION = version;
 
+/**
+  * Creates and initializes a Firebase {@link @firebase/app-types-exp#FirebaseApp app} instance.
+  *
+  * See
+  * {@link
+  *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
+  *   Add Firebase to your app} and
+  * {@link
+  *   https://firebase.google.com/docs/web/setup#multiple-projects
+  *   Initialize multiple projects} for detailed documentation.
+  *
+  * @example
+  * ```javascript
+  *
+  * // Initialize default app
+  * // Retrieve your own options values by adding a web app on
+  * // https://console.firebase.google.com
+  * initializeApp({
+  *   apiKey: "AIza....",                             // Auth / General Use
+  *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
+  *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
+  *   storageBucket: "YOUR_APP.appspot.com",          // Storage
+  *   messagingSenderId: "123456789"                  // Cloud Messaging
+  * });
+  * ```
+  *
+  * @example
+  * ```javascript
+  *
+  * // Initialize another app
+  * const otherApp = initializeApp({
+  *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
+  *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
+  * }, "otherApp");
+  * ```
+  *
+  * @param options Options to configure the app's services.
+  * @param name Optional name of the app to initialize. If no name
+  *   is provided, the default is `"[DEFAULT]"`.
+  *
+  * @return {!firebase.app.App} The initialized app.
+*/
 export function initializeApp(
   options: FirebaseOptions,
   config?: FirebaseAppConfig
@@ -75,13 +120,40 @@ export function initializeApp(
     container.addComponent(component);
   }
 
-  const newApp = new FirebaseAppImplNext(options, config, container);
+  const newApp = new FirebaseAppImpl(options, config, container);
 
   apps.set(name, newApp);
 
   return newApp;
 }
 
+/**
+ * Retrieves a Firebase {@link @firebase/app-types-exp#FirebaseApp app} instance.
+ *
+ * When called with no arguments, the default app is returned. When an app name
+ * is provided, the app corresponding to that name is returned.
+ *
+ * An exception is thrown if the app being retrieved has not yet been
+ * initialized.
+ *
+ * @example
+ * ```javascript
+ * // Return the default app
+ * const app = getApp();
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Return a named app
+ * const otherApp = getApp("otherApp");
+ * ```
+ *
+ * @param name Optional name of the app to return. If no name is
+ *   provided, the default is `"[DEFAULT]"`.
+ *
+ * @return The app corresponding to the provided app name.
+ *   If no app name is provided, the default app is returned.
+ */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = apps.get(name);
   if (!app) {
@@ -91,10 +163,28 @@ export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   return app;
 }
 
+/**
+ * A (read-only) array of all initialized apps.
+ */
 export function getApps(): FirebaseApp[] {
   return Array.from(apps.values());
 }
 
+/**
+ * Renders this app unusable and frees the resources of all associated
+ * services.
+ *
+ * @example
+ * ```javascript
+ * deleteApp(app)
+ *   .then(function() {
+ *     console.log("App deleted successfully");
+ *   })
+ *   .catch(function(error) {
+ *     console.log("Error deleting app:", error);
+ *   });
+ * ```
+ */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
   if (apps.has(name)) {
@@ -106,6 +196,12 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
   }
 }
 
+/**
+ * Registers a library's name and version for platform logging purposes.
+ * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
+ * @param version Current version of that library.
+ * @param variant Bundle variant, e.g., node, rn, etc.
+ */
 export function registerVersion(
   libraryKeyOrName: string,
   version: string,

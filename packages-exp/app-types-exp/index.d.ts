@@ -17,15 +17,45 @@
 
 import { ComponentContainer } from '@firebase/component';
 
+/**
+ * A FirebaseApp holds the initialization information for a collection of
+ * services.
+ *
+ * Do not call this constructor directly. Instead, use
+ * {@link firebase.initializeApp|`firebase.initializeApp()`} to create an app.
+ *
+ */
 export interface FirebaseApp {
   /**
-   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
-   * App.
+   * The (read-only) name for this app.
+   *
+   * The default app's name is `"[DEFAULT]"`.
+   *
+   * @example
+   * ```javascript
+   * // The default app's name is "[DEFAULT]"
+   * const app = initializeApp(defaultAppConfig);
+   * console.log(app.name);  // "[DEFAULT]"
+   * ```
+   *
+   * @example
+   * ```javascript
+   * // A named app's name is what you provide to initializeApp()
+   * const otherApp = initializeApp(otherAppConfig, "other");
+   * console.log(otherApp.name);  // "other"
+   * ```
    */
   readonly name: string;
 
   /**
-   * The (read-only) configuration options from the app initialization.
+   * The (read-only) configuration options for this app. These are the original
+   * parameters given in {@link @firebase/app-exp#initializApp}.
+   *
+   * @example
+   * ```javascript
+   * const app = initializeApp(config);
+   * console.log(app.options.databaseURL === config.databaseURL);  // true
+   * ```
    */
   readonly options: FirebaseOptions;
 
