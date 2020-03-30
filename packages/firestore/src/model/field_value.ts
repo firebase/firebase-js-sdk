@@ -256,7 +256,7 @@ export class ObjectValueBuilder {
         { ...existingValue.mapValue.fields }
       : {};
 
-    currentOverlays.forEach((value, pathSegment) => {
+    for (const [pathSegment, value] of currentOverlays) {
       if (value instanceof Map) {
         const nested = this.applyOverlay(currentPath.child(pathSegment), value);
         if (nested != null) {
@@ -270,7 +270,7 @@ export class ObjectValueBuilder {
         delete resultAtPath[pathSegment];
         modified = true;
       }
-    });
+    }
 
     return modified ? { mapValue: { fields: resultAtPath } } : null;
   }

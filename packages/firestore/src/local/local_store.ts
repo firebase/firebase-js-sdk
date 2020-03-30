@@ -519,10 +519,10 @@ export class LocalStore {
         newTargetDataByTargetMap = this.targetDataByTarget;
 
         const promises = [] as Array<PersistencePromise<void>>;
-        remoteEvent.targetChanges.forEach((change, targetId) => {
+        for (const [targetId, change] of remoteEvent.targetChanges) {
           const oldTargetData = newTargetDataByTargetMap.get(targetId);
           if (!oldTargetData) {
-            return;
+            continue;
           }
 
           // Only update the remote keys if the target is still active. This
@@ -565,7 +565,7 @@ export class LocalStore {
               );
             }
           }
-        });
+        }
 
         let changedDocs = maybeDocumentMap();
         let updatedKeys = documentKeySet();

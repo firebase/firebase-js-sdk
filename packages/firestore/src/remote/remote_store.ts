@@ -343,9 +343,9 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWatchStreamOpen(): Promise<void> {
-    this.listenTargets.forEach((targetData, targetId) => {
+    for (const [_, targetData] of this.listenTargets) {
       this.sendWatchRequest(targetData);
-    });
+    }
   }
 
   private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
@@ -428,7 +428,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // Update in-memory resume tokens. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
-    remoteEvent.targetChanges.forEach((change, targetId) => {
+    for (const [targetId, change] of remoteEvent.targetChanges) {
       if (change.resumeToken.approximateByteSize() > 0) {
         const targetData = this.listenTargets.get(targetId);
         // A watched target might have been removed already.
@@ -439,7 +439,7 @@ export class RemoteStore implements TargetMetadataProvider {
           );
         }
       }
-    });
+    }
 
     // Re-establish listens for the targets that have been invalidated by
     // existence filter mismatches.

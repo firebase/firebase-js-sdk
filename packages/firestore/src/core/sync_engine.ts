@@ -398,7 +398,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     try {
       const changes = await this.localStore.applyRemoteEvent(remoteEvent);
       // Update `receivedDocument` as appropriate for any limbo targets.
-      remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+      for (const [targetId, targetChange] of remoteEvent.targetChanges) {
         const limboResolution = this.limboResolutionsByTarget.get(targetId);
         if (limboResolution) {
           // Since this is a limbo resolution lookup, it's for a single document
@@ -427,7 +427,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // This was probably just a CURRENT targetChange or similar.
           }
         }
-      });
+      }
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
       await ignoreIfPrimaryLeaseLoss(error);
@@ -643,11 +643,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   /** Reject all outstanding callbacks waiting for pending writes to complete. */
   private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
-    this.pendingWritesCallbacks.forEach(callbacks => {
-      callbacks.forEach(callback => {
+    for (const [_, callbacks] of this.pendingWritesCallbacks) {
+      for (const callback of callbacks) {
         callback.reject(new FirestoreError(Code.CANCELLED, errorMessage));
-      });
-    });
+      }
+    }
 
     this.pendingWritesCallbacks.clear();
   }
@@ -913,22 +913,18 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
       const activeTargets: TargetId[] = [];
 
-      let p = Promise.resolve();
-      this.queriesByTarget.forEach((_, targetId) => {
+      for (const [targetId] of this.queriesByTarget) {
         if (this.sharedClientState.isLocalQueryTarget(targetId)) {
           activeTargets.push(targetId);
         } else {
-          p = p.then(() => {
-            this.removeAndCleanupTarget(targetId);
-            return this.localStore.releaseTarget(
-              targetId,
-              /*keepPersistedTargetData=*/ true
-            );
-          });
+          await this.removeAndCleanupTarget(targetId);
+          await this.localStore.releaseTarget(
+            targetId,
+            /*keepPersistedTargetData=*/ true
+          );
         }
         this.remoteStore.unlisten(targetId);
-      });
-      await p;
+      }
 
       await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
       this.resetLimboDocuments();
@@ -938,9 +934,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   // PORTING NOTE: Multi-tab only.
   private resetLimboDocuments(): void {
-    this.limboResolutionsByTarget.forEach((_, targetId) => {
+    for (const [targetId] of this.limboResolutionsByTarget) {
       this.remoteStore.unlisten(targetId);
-    });
+    }
     this.limboDocumentRefs.removeAllReferences();
     this.limboResolutionsByTarget = new Map<TargetId, LimboResolution>();
     this.limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
