@@ -20,4 +20,4 @@
  * `firebase/firestore/memory`.
  */
 
-import '../../../firestore/dist/index.memory.esm2017';
+import '@firebase/firestore/memory';
