@@ -182,7 +182,7 @@ export class Precondition {
     return (
       this.exists === other.exists &&
       (this.updateTime
-        ? !!other.updateTime && this.updateTime?.isEqual(other.updateTime)
+        ? !!other.updateTime && this.updateTime.isEqual(other.updateTime)
         : !other.updateTime)
     );
   }
