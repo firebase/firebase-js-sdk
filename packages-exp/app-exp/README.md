@@ -1,4 +1,4 @@
-# @firebase/app
+# @firebase/app-exp
 
 This package coordinates the communication between the different Firebase components
 
