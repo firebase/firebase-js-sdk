@@ -26,7 +26,61 @@ import { resolveNodeExterns, resolveBrowserExterns } from './rollup.shared';
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
-const plugins = [
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    compilerOptions: {
+      allowJs: true,
+      importHelpers: true
+    },
+    include: ['dist/*.js']
+  }),
+  terser({
+    output: {
+      comments: 'all',
+      beautify: true
+    },
+    mangle: true
+  }),
+  sourcemaps()
+];
+
+const browserBuilds = [
+  {
+    input: pkg.esm2017,
+    output: { file: pkg.module, format: 'es', sourcemap: true },
+    plugins: browserPlugins,
+    external: resolveBrowserExterns
+  },
+  {
+    input: path.resolve('./memory', memoryPkg.esm2017),
+    output: {
+      file: path.resolve('./memory', memoryPkg.module),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: browserPlugins,
+    external: resolveBrowserExterns
+  },
+  {
+    input: pkg.esm2017,
+    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+    plugins: browserPlugins,
+    external: resolveBrowserExterns
+  },
+  {
+    input: path.resolve('./memory', memoryPkg.esm2017),
+    output: {
+      file: path.resolve('./memory', memoryPkg.browser),
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: browserPlugins,
+    external: resolveBrowserExterns
+  }
+];
+
+const nodePlugins = [
   typescriptPlugin({
     typescript,
     compilerOptions: {
@@ -45,46 +99,11 @@ const plugins = [
   sourcemaps()
 ];
 
-const browserBuilds = [
-  {
-    input: pkg.esm2017,
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: plugins,
-    external: resolveBrowserExterns
-  },
-  {
-    input: path.resolve('./memory', memoryPkg.esm2017),
-    output: {
-      file: path.resolve('./memory', memoryPkg.module),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: plugins,
-    external: resolveBrowserExterns
-  },
-  {
-    input: pkg.esm2017,
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: plugins,
-    external: resolveBrowserExterns
-  },
-  {
-    input: path.resolve('./memory', memoryPkg.esm2017),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: plugins,
-    external: resolveBrowserExterns
-  }
-];
-
 const nodeBuilds = [
   {
     input: pkg.mainES2017,
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: plugins,
+    plugins: nodePlugins,
     external: resolveNodeExterns
   },
   {
@@ -96,7 +115,7 @@ const nodeBuilds = [
         sourcemap: true
       }
     ],
-    plugins: plugins,
+    plugins: nodePlugins,
     external: resolveNodeExterns
   }
 ];
