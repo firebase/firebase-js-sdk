@@ -31,7 +31,9 @@ import {
   appendPrivatePrefixTransformers,
   manglePrivatePropertiesOptions,
   resolveNodeExterns,
-  resolveBrowserExterns
+  resolveBrowserExterns,
+  browserDeps,
+  nodeDeps
 } from './rollup.shared';
 
 // This Firestore Rollup configuration provides a number of different builds:

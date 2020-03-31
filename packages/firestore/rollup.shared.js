@@ -20,7 +20,24 @@ import * as path from 'path';
 import { externs } from './externs.json';
 import { renameInternals } from './scripts/rename-internals';
 import { extractPublicIdentifiers } from './scripts/extract-api';
-import pkg from './package';
+
+import pkg from './package.json';
+
+export const browserDeps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
+export const nodeDeps = [...browserDeps, 'util', 'path'];
+
+/** Resolves the external dependencies for the browser build. */
+export function resolveBrowserExterns(id) {
+  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
+
+/** Resolves the external dependencies for the Node build. */
+export function resolveNodeExterns(id) {
+  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
 
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
@@ -54,19 +71,3 @@ export const manglePrivatePropertiesOptions = {
     }
   }
 };
-
-const browserDeps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-const nodeDeps = [...browserDeps, 'util', 'path'];
-
-/** Resolves the external dependencies for the browser build. */
-export function resolveBrowserExterns(id) {
-  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
-
-/** Resolves the external dependencies for the Node build. */
-export function resolveNodeExterns(id) {
-  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
