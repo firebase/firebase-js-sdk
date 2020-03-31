@@ -21,7 +21,6 @@ import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
-import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 
@@ -30,8 +29,10 @@ import memoryPkg from './memory/package.json';
 
 import {
   appendPrivatePrefixTransformers,
-  manglePrivatePropertiesOptions
-} from './terser.config';
+  manglePrivatePropertiesOptions,
+  resolveNodeExterns,
+  resolveBrowserExterns
+} from './rollup.shared';
 
 // This Firestore Rollup configuration provides a number of different builds:
 // - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
@@ -52,22 +53,6 @@ import {
 // for a description of the various JavaScript formats used in our SDKs.
 
 // MARK: Browser builds
-
-const browserDeps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-const nodeDeps = [...browserDeps, 'util', 'path'];
-
-/** Resolves the external dependencies for the browser build. */
-function resolveBrowserExterns(id) {
-  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
-
-/** Resolves the external dependencies for the Node build. */
-function resolveNodeExterns(id) {
-  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
 
 /**
  * Resolves the external dependencies for the Memory-based Firestore
@@ -99,17 +84,7 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
   return deps.some(dep => externsId === dep || externsId.startsWith(`${dep}/`));
 }
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    transformers: appendPrivatePrefixTransformers,
-    cacheRoot: `./.cache/es5.mangled/`
-  }),
-  json(),
-  terser(manglePrivatePropertiesOptions)
-];
-
-const es2017BuildPlugins = [
+const browserBuildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -117,7 +92,7 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
-    cacheRoot: './.cache/es2017.mangled/',
+    cacheRoot: './.cache/browser/',
     transformers: appendPrivatePrefixTransformers
   }),
   json({ preferConst: true }),
@@ -125,26 +100,7 @@ const es2017BuildPlugins = [
 ];
 
 const browserBuilds = [
-  // ES5 ESM Build (with persistence)
-  {
-    input: 'index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
-    external: resolveBrowserExterns
-  },
-  // ES5 ESM Build (memory-only)
-  {
-    input: 'index.memory.ts',
-    output: {
-      file: path.resolve('./memory', memoryPkg.module),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: (id, referencedBy) =>
-      resolveMemoryExterns(browserDeps, id, referencedBy)
-  },
-  // ES2017 ESM build (with persistence)
+  // Persistence build
   {
     input: 'index.ts',
     output: {
@@ -152,10 +108,10 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: browserBuildPlugins,
     external: resolveBrowserExterns
   },
-  // ES2017 ESM build (memory-only)
+  // Memory-only build
   {
     input: 'index.memory.ts',
     output: {
@@ -163,31 +119,9 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: browserBuildPlugins,
     external: (id, referencedBy) =>
       resolveMemoryExterns(browserDeps, id, referencedBy)
-  },
-  // ES5 CJS Build (with persistence)
-  //
-  // This build is based on the mangling in the ESM build above, since
-  // Terser's Property name mangling doesn't work well with CJS's syntax.
-  {
-    input: pkg.module,
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [sourcemaps()]
-  },
-  // ES5 CJS Build (memory-only)
-  //
-  // This build is based on the mangling in the ESM build above, since
-  // Terser's Property name mangling doesn't work well with CJS's syntax.
-  {
-    input: path.resolve('./memory', memoryPkg.module),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [sourcemaps()]
   }
 ];
 
@@ -196,6 +130,9 @@ const browserBuilds = [
 const nodeBuildPlugins = [
   typescriptPlugin({
     typescript,
+    compilerOptions: {
+      target: 'es2017'
+    },
     cacheRoot: `./.cache/node/`
   }),
   json(),
@@ -209,19 +146,19 @@ const nodeBuildPlugins = [
 ];
 
 const nodeBuilds = [
-  // ES5 CJS build (with persistence)
+  // Persistence build
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: [{ file: pkg.mainES2017, format: 'cjs', sourcemap: true }],
     plugins: nodeBuildPlugins,
     external: resolveNodeExterns
   },
-  // ES5 CJS build (memory-only)
+  // Memory-only build
   {
     input: 'index.node.memory.ts',
     output: [
       {
-        file: path.resolve('./memory', memoryPkg.main),
+        file: path.resolve('./memory', memoryPkg.mainES2017),
         format: 'cjs',
         sourcemap: true
       }
