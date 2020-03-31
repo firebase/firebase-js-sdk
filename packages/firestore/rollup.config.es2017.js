@@ -36,7 +36,7 @@ import {
   nodeDeps
 } from './rollup.shared';
 
-// This Firestore Rollup configuration provides a number of different builds:
+// Firestore is released in a number of different build configurations:
 // - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
 //   ES2017 in ESM format.
 // - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
@@ -47,6 +47,10 @@ import {
 //
 // The in-memory builds are roughly 130 KB smaller, but throw an exception
 // for calls to `enablePersistence()` or `clearPersistence()`.
+//
+// We use two different rollup pipelines to take advantage of tree shaking in
+// the ES2017 builds. The build pipeline in this file produces ES2017 builds
+// that are consumed by `rollup.config.es.js`.
 //
 // All browser builds rely on Terser's property name mangling to reduce code
 // size.

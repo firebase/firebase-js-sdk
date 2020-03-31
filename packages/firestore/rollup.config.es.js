@@ -26,6 +26,11 @@ import { resolveNodeExterns, resolveBrowserExterns } from './rollup.shared';
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
+// This file defines the second rollup pipeline and transpiles the ES2017 SDK
+// into ES3 code. By splitting the build process into two independent build
+// pipelines, we take advantage of tree shaking in ES2017 builds even for
+// language levels that don't support tree shaking.
+
 const browserPlugins = [
   typescriptPlugin({
     typescript,
@@ -41,6 +46,25 @@ const browserPlugins = [
       beautify: true
     },
     mangle: true
+  }),
+  sourcemaps()
+];
+
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    compilerOptions: {
+      allowJs: true,
+      importHelpers: true
+    },
+    include: ['dist/*.js']
+  }),
+  terser({
+    output: {
+      comments: 'all',
+      beautify: true
+    },
+    mangle: false
   }),
   sourcemaps()
 ];
@@ -78,25 +102,6 @@ const browserBuilds = [
     plugins: browserPlugins,
     external: resolveBrowserExterns
   }
-];
-
-const nodePlugins = [
-  typescriptPlugin({
-    typescript,
-    compilerOptions: {
-      allowJs: true,
-      importHelpers: true
-    },
-    include: ['dist/*.js']
-  }),
-  terser({
-    output: {
-      comments: 'all',
-      beautify: true
-    },
-    mangle: false
-  }),
-  sourcemaps()
 ];
 
 const nodeBuilds = [
