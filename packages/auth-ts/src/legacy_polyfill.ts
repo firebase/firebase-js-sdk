@@ -98,7 +98,10 @@ import { MultiFactorAssertion, MultiFactorInfo } from './model/multi_factor';
 import { multiFactor } from './core/mfa/multi_factor';
 import { AuthErrorCode } from './core/errors';
 import { getMultiFactorResolver } from './core/mfa/multi_factor_resolver';
-import { AdditionalUserInfo, getAdditionalUserInfo } from './model/additional_user_info';
+import {
+  AdditionalUserInfo,
+  getAdditionalUserInfo
+} from './model/additional_user_info';
 
 interface FirebaseAuth extends Auth {}
 interface LegacyUserCredential {
@@ -109,8 +112,12 @@ interface LegacyUserCredential {
   additionalUserInfo: AdditionalUserInfo | null;
 }
 
-function addAdditionalUserInfo(userCredential: UserCredential): LegacyUserCredential {
-  return Object.assign({}, userCredential, {additionalUserInfo: getAdditionalUserInfo(userCredential)});
+function addAdditionalUserInfo(
+  userCredential: UserCredential
+): LegacyUserCredential {
+  return Object.assign({}, userCredential, {
+    additionalUserInfo: getAdditionalUserInfo(userCredential)
+  });
 }
 
 interface FirebaseApp {
@@ -228,7 +235,7 @@ firebaseApp.auth = function() {
             : browserPopupRedirectResolver;
           return catchMfaErr(() =>
             reauthenticateWithPopup(auth, user, provider, resolver)
-          ).then(cred => !!cred ? addAdditionalUserInfo(cred) : null);
+          ).then(cred => (!!cred ? addAdditionalUserInfo(cred) : null));
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
@@ -236,7 +243,9 @@ firebaseApp.auth = function() {
         linkWithCredential(
           credential: AuthCredential
         ): Promise<LegacyUserCredential> {
-          return linkWithCredential(auth, user, credential).then(addAdditionalUserInfo);;
+          return linkWithCredential(auth, user, credential).then(
+            addAdditionalUserInfo
+          );
         },
         linkWithPhoneNumber(
           phoneNumber: string,
@@ -262,11 +271,15 @@ firebaseApp.auth = function() {
             : browserPopupRedirectResolver;
           return linkWithRedirect(auth, user, provider, resolver);
         },
-        linkWithPopup(provider: OAuthProvider): Promise<LegacyUserCredential | null> {
+        linkWithPopup(
+          provider: OAuthProvider
+        ): Promise<LegacyUserCredential | null> {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return linkWithPopup(auth, user, provider, resolver).then(cred => !!cred ? addAdditionalUserInfo(cred) : null);;
+          return linkWithPopup(auth, user, provider, resolver).then(cred =>
+            !!cred ? addAdditionalUserInfo(cred) : null
+          );
         },
         multiFactor: {
           getSession() {
@@ -313,7 +326,12 @@ firebaseApp.auth = function() {
 
       const result = await catchMfaErr(() => resolver.getRedirectResult(auth));
       if (!result) {
-        return { user: null, credential: null, operationType: null , additionalUserInfo: null};
+        return {
+          user: null,
+          credential: null,
+          operationType: null,
+          additionalUserInfo: null
+        };
       }
       return addAdditionalUserInfo(result);
     },
@@ -335,14 +353,20 @@ firebaseApp.auth = function() {
     signInAnonymously(): Promise<LegacyUserCredential> {
       return signInAnonymously(auth).then(addAdditionalUserInfo);
     },
-    signInWithCredential(credential: AuthCredential): Promise<LegacyUserCredential> {
-      return catchMfaErr(() => signInWithCredential(auth, credential)).then(addAdditionalUserInfo);
+    signInWithCredential(
+      credential: AuthCredential
+    ): Promise<LegacyUserCredential> {
+      return catchMfaErr(() => signInWithCredential(auth, credential)).then(
+        addAdditionalUserInfo
+      );
     },
     createUserWithEmailAndPassword(
       email: string,
       password: string
     ): Promise<LegacyUserCredential> {
-      return createUserWithEmailAndPassword(auth, email, password).then(addAdditionalUserInfo);
+      return createUserWithEmailAndPassword(auth, email, password).then(
+        addAdditionalUserInfo
+      );
     },
     signInWithEmailAndPassword(
       email: string,
@@ -353,13 +377,17 @@ firebaseApp.auth = function() {
       ).then(addAdditionalUserInfo);
     },
     signInWithCustomToken(token: string): Promise<LegacyUserCredential> {
-      return catchMfaErr(() => signInWithCustomToken(auth, token)).then(addAdditionalUserInfo);
+      return catchMfaErr(() => signInWithCustomToken(auth, token)).then(
+        addAdditionalUserInfo
+      );
     },
     signInWithEmailLink(
       email: string,
       emailLink?: string
     ): Promise<LegacyUserCredential> {
-      return catchMfaErr(() => signInWithEmailLink(auth, email, emailLink)).then(addAdditionalUserInfo);
+      return catchMfaErr(() =>
+        signInWithEmailLink(auth, email, emailLink)
+      ).then(addAdditionalUserInfo);
     },
     signInWithRedirect(provider: OAuthProvider): Promise<never> {
       return signInWithRedirect(
@@ -370,7 +398,9 @@ firebaseApp.auth = function() {
           : browserPopupRedirectResolver
       );
     },
-    signInWithPopup(provider: OAuthProvider): Promise<LegacyUserCredential | null> {
+    signInWithPopup(
+      provider: OAuthProvider
+    ): Promise<LegacyUserCredential | null> {
       return catchMfaErr(() =>
         signInWithPopup(
           auth,
@@ -379,7 +409,7 @@ firebaseApp.auth = function() {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver
         )
-      ).then(cred => !!cred ? addAdditionalUserInfo(cred) : cred);
+      ).then(cred => (!!cred ? addAdditionalUserInfo(cred) : cred));
     },
     signInWithPhoneNumber(
       phoneNumber: string,

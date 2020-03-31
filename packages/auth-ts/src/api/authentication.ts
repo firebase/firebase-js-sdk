@@ -25,7 +25,7 @@ import {
 } from '.';
 import { ServerErrorMap, ServerError } from './errors';
 import { AuthErrorCode } from '../core/errors';
-import {ProviderId} from '../core/providers';
+import { ProviderId } from '../core/providers';
 
 export interface CreateAuthUriRequest {
   identifier: string;

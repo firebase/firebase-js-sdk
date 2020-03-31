@@ -38,10 +38,12 @@ export async function userFromIdTokenResponse(
   return user;
 }
 
-export async function createUserCredentialFromIdTokenResponse(auth: Auth,
-                                                              credential: AuthCredential | null,
-                                                              operationType: OperationType,
-                                                              idTokenResponse: IdTokenResponse): Promise<UserCredential> {
+export async function createUserCredentialFromIdTokenResponse(
+  auth: Auth,
+  credential: AuthCredential | null,
+  operationType: OperationType,
+  idTokenResponse: IdTokenResponse
+): Promise<UserCredential> {
   const user = await initializeCurrentUserFromIdTokenResponse(
     auth,
     idTokenResponse

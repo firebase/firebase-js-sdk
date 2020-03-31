@@ -28,5 +28,10 @@ export async function signInWithCustomToken(
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
     token: customToken
   });
-  return createUserCredentialFromIdTokenResponse(auth, null, OperationType.SIGN_IN, response);
+  return createUserCredentialFromIdTokenResponse(
+    auth,
+    null,
+    OperationType.SIGN_IN,
+    response
+  );
 }

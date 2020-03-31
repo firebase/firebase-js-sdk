@@ -16,7 +16,7 @@
  */
 
 import { Auth } from '../../model/auth';
-import {UserCredential, OperationType} from '../../model/user_credential';
+import { UserCredential, OperationType } from '../../model/user_credential';
 import { SignInWithIdpRequest, signInWithIdp } from '../../api/authentication';
 import { authCredentialFromTokenResponse } from './auth_credential';
 import { User } from '../../model/user';
@@ -64,7 +64,12 @@ export async function signIn(params: IdpTaskParams): Promise<UserCredential> {
     OperationType.SIGN_IN
   );
   const credential = authCredentialFromTokenResponse(response);
-  return createUserCredentialFromIdTokenResponse(auth, credential, OperationType.SIGN_IN, response);
+  return createUserCredentialFromIdTokenResponse(
+    auth,
+    credential,
+    OperationType.SIGN_IN,
+    response
+  );
 }
 
 export async function reauth(params: IdpTaskParams): Promise<UserCredential> {

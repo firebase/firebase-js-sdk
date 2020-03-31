@@ -16,7 +16,7 @@
  */
 
 import { Auth } from '../../model/auth';
-import {UserCredential, OperationType } from '../../model/user_credential';
+import { UserCredential, OperationType } from '../../model/user_credential';
 import { User } from '../../model/user';
 import * as api from '../../api/authentication';
 import { EmailAuthProvider } from '../providers/email';
