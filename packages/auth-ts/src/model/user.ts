@@ -36,6 +36,13 @@ export interface UserInfo {
   readonly photoURL: string | null;
 }
 
+export interface AdditionalUserInfo {
+  readonly isNewUser: boolean;
+  readonly profile: ProfileInfo;
+  readonly providerId: string;
+  readonly username?: string | null;
+}
+
 export interface UserMetadata {
   readonly creationTime?: string;
   readonly lastSignInTime?: string;
