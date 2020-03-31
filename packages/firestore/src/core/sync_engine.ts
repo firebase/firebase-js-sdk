@@ -451,6 +451,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         return;
       }
 
+      if (error.message === 'Remote version went back in time') {
+        return;
+      }
+      
       // If `applyRemoteEvent` fails, we unlisten and return errors for all
       // targets affected by the remote event. This allows the user to relisten
       // to these targets from a previously persisted state.
