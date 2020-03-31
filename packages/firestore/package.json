@@ -49,6 +49,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
+    "@types/json-stable-stringify": "^1.0.32",
+    "json-stable-stringify": "^1.0.1",
     "protobufjs": "6.8.9",
     "rollup": "2.0.6",
     "rollup-plugin-copy-assets": "1.1.0",

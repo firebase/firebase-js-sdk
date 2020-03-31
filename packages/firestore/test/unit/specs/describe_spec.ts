@@ -19,6 +19,7 @@ import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { assert } from '../../../src/util/assert';
+import { primitiveComparator } from '../../../src/util/misc';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { SpecBuilder } from './spec_builder';
@@ -247,7 +248,10 @@ export function describeSpec(
     // Note: We use json-stable-stringify instead of JSON.stringify() to ensure
     // that the generated JSON does not produce diffs merely due to the order
     // of the keys in an object changing.
-    const output = stringify(specsInThisTest, { space: 2, cmp: stringifyCmp });
+    const output = stringify(specsInThisTest, {
+      space: 2,
+      cmp: stringifyComparator
+    });
     writeJSONFile(output);
   }
 }
@@ -258,6 +262,7 @@ export function describeSpec(
  * ordered in the generated JSON in the same relative order of this array.
  */
 const stringifyCustomOrdering = [
+  'comment',
   'describeName',
   'itName',
   'tags',
@@ -266,42 +271,39 @@ const stringifyCustomOrdering = [
 ];
 
 /**
+ * Assigns a "group number" to the given key in the generated JSON.
+ *
+ * Keys with lower group numbers should be ordered before keys with greater
+ * group numbers. Keys with equal group numbers should be ordered
+ * alphabetically.
+ */
+function stringifyGroup(s: string): number {
+  const index = stringifyCustomOrdering.indexOf(s);
+  if (index >= 0) {
+    return index;
+  } else if (!s.startsWith('expected')) {
+    return stringifyCustomOrdering.length;
+  } else {
+    return stringifyCustomOrdering.length + 1;
+  }
+}
+
+/**
  * A comparator function for stringify() that sorts keys in the JSON output.
  *
- * In order to produce semi-readable JSON that has an intuitive top-level key
- * arrangement, some keys are sorted non-alphabetically; namely, the ordering
- * defined in `stringifyCustomOrdering` is used, falling back to alphabetical
- * ordering if one or both of the key are not overridden.
+ * In order to produce JSON that has somewhat-intuitively-ordered keys, this
+ * comparator intentionally deviates from pure alphabetic ordering, placing
+ * some logically-first keys before others.
  */
-function stringifyCmp(a: stringify.Element, b: stringify.Element): number {
-  // If the keys are equal, then avoid the costly computations below.
-  if (a.key === b.key) {
-    return 0;
-  }
-
-  // If the keys have a custom ordering, then use it.
-  const aIndex = stringifyCustomOrdering.indexOf(a.key);
-  const bIndex = stringifyCustomOrdering.indexOf(b.key);
-  if (aIndex >= 0 && bIndex >= 0) {
-    return aIndex - bIndex;
-  }
-
-  // Order "expected" blocks after other blocks since the expectations logically
-  // occur after the steps are executed.
-  if (a.key.startsWith('expected')) {
-    if (!b.key.startsWith('expected')) {
-      return 1;
-    }
-  } else if (b.key.startsWith('expected')) {
-    return -1;
-  }
-
-  // If all else fails, order alphabetically.
-  if (a.key < b.key) {
-    return -1;
-  } else if (a.key > b.key) {
-    return 1;
+function stringifyComparator(
+  a: stringify.Element,
+  b: stringify.Element
+): number {
+  const aGroup = stringifyGroup(a.key);
+  const bGroup = stringifyGroup(b.key);
+  if (aGroup === bGroup) {
+    return primitiveComparator(a.key, b.key);
   } else {
-    return 0;
+    return primitiveComparator(aGroup, bGroup);
   }
 }

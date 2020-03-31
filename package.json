@@ -128,9 +128,5 @@
     "hooks": {
       "pre-push": "node tools/gitHooks/prepush.js"
     }
-  },
-  "dependencies": {
-    "@types/json-stable-stringify": "^1.0.32",
-    "json-stable-stringify": "^1.0.1"
   }
 }
