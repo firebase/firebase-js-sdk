@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "RTDB Unit Tests (Node)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/packages/firebase/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/database",
       "args": [
         "test/{,!(browser)/**/}*.test.ts",

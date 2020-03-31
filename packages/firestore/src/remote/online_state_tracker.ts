@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { OnlineState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logError, logDebug } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
@@ -181,10 +181,10 @@ export class OnlineStateTracker {
       `Internet connection at the moment. The client will operate in offline ` +
       `mode until it is able to successfully connect to the backend.`;
     if (this.shouldWarnClientIsOffline) {
-      log.error(message);
+      logError(message);
       this.shouldWarnClientIsOffline = false;
     } else {
-      log.debug(LOG_TAG, message);
+      logDebug(LOG_TAG, message);
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,8 @@ import {
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 
@@ -520,56 +519,53 @@ export class LocalStore {
         newTargetDataByTargetMap = this.targetDataByTarget;
 
         const promises = [] as Array<PersistencePromise<void>>;
-        objUtils.forEachNumber(
-          remoteEvent.targetChanges,
-          (targetId: TargetId, change: TargetChange) => {
-            const oldTargetData = newTargetDataByTargetMap.get(targetId);
-            if (!oldTargetData) {
-              return;
-            }
+        remoteEvent.targetChanges.forEach((change, targetId) => {
+          const oldTargetData = newTargetDataByTargetMap.get(targetId);
+          if (!oldTargetData) {
+            return;
+          }
 
-            // Only update the remote keys if the target is still active. This
-            // ensures that we can persist the updated target data along with
-            // the updated assignment.
-            promises.push(
-              this.targetCache
-                .removeMatchingKeys(txn, change.removedDocuments, targetId)
-                .next(() => {
-                  return this.targetCache.addMatchingKeys(
-                    txn,
-                    change.addedDocuments,
-                    targetId
-                  );
-                })
+          // Only update the remote keys if the target is still active. This
+          // ensures that we can persist the updated target data along with
+          // the updated assignment.
+          promises.push(
+            this.targetCache
+              .removeMatchingKeys(txn, change.removedDocuments, targetId)
+              .next(() => {
+                return this.targetCache.addMatchingKeys(
+                  txn,
+                  change.addedDocuments,
+                  targetId
+                );
+              })
+          );
+
+          const resumeToken = change.resumeToken;
+          // Update the resume token if the change includes one.
+          if (resumeToken.approximateByteSize() > 0) {
+            const newTargetData = oldTargetData
+              .withResumeToken(resumeToken, remoteVersion)
+              .withSequenceNumber(txn.currentSequenceNumber);
+            newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
+              targetId,
+              newTargetData
             );
 
-            const resumeToken = change.resumeToken;
-            // Update the resume token if the change includes one.
-            if (resumeToken.approximateByteSize() > 0) {
-              const newTargetData = oldTargetData
-                .withResumeToken(resumeToken, remoteVersion)
-                .withSequenceNumber(txn.currentSequenceNumber);
-              newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
-                targetId,
-                newTargetData
+            // Update the target data if there are target changes (or if
+            // sufficient time has passed since the last update).
+            if (
+              LocalStore.shouldPersistTargetData(
+                oldTargetData,
+                newTargetData,
+                change
+              )
+            ) {
+              promises.push(
+                this.targetCache.updateTargetData(txn, newTargetData)
               );
-
-              // Update the target data if there are target changes (or if
-              // sufficient time has passed since the last update).
-              if (
-                LocalStore.shouldPersistTargetData(
-                  oldTargetData,
-                  newTargetData,
-                  change
-                )
-              ) {
-                promises.push(
-                  this.targetCache.updateTargetData(txn, newTargetData)
-                );
-              }
             }
           }
-        );
+        });
 
         let changedDocs = maybeDocumentMap();
         let updatedKeys = documentKeySet();
@@ -610,7 +606,7 @@ export class LocalStore {
                 documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
-                log.debug(
+                logDebug(
                   LOG_TAG,
                   'Ignoring outdated watch update for ',
                   key,
@@ -1119,7 +1115,7 @@ export async function ignoreIfPrimaryLeaseLoss(
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
-    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    logDebug(LOG_TAG, 'Unexpectedly lost primary lease');
   } else {
     throw err;
   }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -313,8 +313,10 @@ export class Repo {
     // (b) store unresolved paths on JSON parse
     const serverValues = this.generateServerValues();
     const newNodeUnresolved = nodeFromJSON(newVal, newPriority);
+    const existing = this.serverSyncTree_.calcCompleteEventCache(path);
     const newNode = resolveDeferredValueSnapshot(
       newNodeUnresolved,
+      existing,
       serverValues
     );
 
@@ -362,9 +364,10 @@ export class Repo {
     const changedChildren: { [k: string]: Node } = {};
     each(childrenToMerge, (changedKey: string, changedValue: unknown) => {
       empty = false;
-      const newNodeUnresolved = nodeFromJSON(changedValue);
-      changedChildren[changedKey] = resolveDeferredValueSnapshot(
-        newNodeUnresolved,
+      changedChildren[changedKey] = resolveDeferredValueTree(
+        path.child(changedKey),
+        nodeFromJSON(changedValue),
+        this.serverSyncTree_,
         serverValues
       );
     });
@@ -417,10 +420,16 @@ export class Repo {
     this.log_('onDisconnectEvents');
 
     const serverValues = this.generateServerValues();
-    const resolvedOnDisconnectTree = resolveDeferredValueTree(
-      this.onDisconnect_,
-      serverValues
-    );
+    const resolvedOnDisconnectTree = new SparseSnapshotTree();
+    this.onDisconnect_.forEachTree(Path.Empty, (path, node) => {
+      const resolved = resolveDeferredValueTree(
+        path,
+        node,
+        this.serverSyncTree_,
+        serverValues
+      );
+      resolvedOnDisconnectTree.remember(path, resolved);
+    });
     let events: Event[] = [];
 
     resolvedOnDisconnectTree.forEachTree(Path.Empty, (path, snap) => {

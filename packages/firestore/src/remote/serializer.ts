@@ -65,7 +65,7 @@ import {
   TransformOperation
 } from '../model/transform_operation';
 import { ExistenceFilter } from './existence_filter';
-import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
+import { mapCodeFromRpcCode } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -415,86 +415,6 @@ export class JsonProtoSerializer {
       return this.fromMissing(result);
     }
     return fail('invalid batch get response: ' + JSON.stringify(result));
-  }
-
-  private toWatchTargetChangeState(
-    state: WatchTargetChangeState
-  ): api.TargetChangeTargetChangeType {
-    switch (state) {
-      case WatchTargetChangeState.Added:
-        return 'ADD';
-      case WatchTargetChangeState.Current:
-        return 'CURRENT';
-      case WatchTargetChangeState.NoChange:
-        return 'NO_CHANGE';
-      case WatchTargetChangeState.Removed:
-        return 'REMOVE';
-      case WatchTargetChangeState.Reset:
-        return 'RESET';
-      default:
-        return fail('Unknown WatchTargetChangeState: ' + state);
-    }
-  }
-
-  toTestWatchChange(watchChange: WatchChange): api.ListenResponse {
-    if (watchChange instanceof ExistenceFilterChange) {
-      return {
-        filter: {
-          count: watchChange.existenceFilter.count,
-          targetId: watchChange.targetId
-        }
-      };
-    }
-    if (watchChange instanceof DocumentWatchChange) {
-      if (watchChange.newDoc instanceof Document) {
-        const doc = watchChange.newDoc;
-        return {
-          documentChange: {
-            document: {
-              name: this.toName(doc.key),
-              fields: doc.toProto().mapValue.fields,
-              updateTime: this.toVersion(doc.version)
-            },
-            targetIds: watchChange.updatedTargetIds,
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
-      } else if (watchChange.newDoc instanceof NoDocument) {
-        const doc = watchChange.newDoc;
-        return {
-          documentDelete: {
-            document: this.toName(doc.key),
-            readTime: this.toVersion(doc.version),
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
-      } else if (watchChange.newDoc === null) {
-        return {
-          documentRemove: {
-            document: this.toName(watchChange.key),
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
-      }
-    }
-    if (watchChange instanceof WatchTargetChange) {
-      let cause: api.Status | undefined = undefined;
-      if (watchChange.cause) {
-        cause = {
-          code: mapRpcCodeFromCode(watchChange.cause.code),
-          message: watchChange.cause.message
-        };
-      }
-      return {
-        targetChange: {
-          targetChangeType: this.toWatchTargetChangeState(watchChange.state),
-          targetIds: watchChange.targetIds,
-          resumeToken: this.toBytes(watchChange.resumeToken),
-          cause
-        }
-      };
-    }
-    return fail('Unrecognized watch change: ' + JSON.stringify(watchChange));
   }
 
   fromWatchChange(change: api.ListenResponse): WatchChange {
