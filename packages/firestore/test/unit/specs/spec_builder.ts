@@ -217,6 +217,11 @@ export class SpecBuilder {
     return this;
   }
 
+  withMaxConcurrentLimboResolutions(value?: number): this {
+    this.config.maxConcurrentLimboResolutions = value;
+    return this;
+  }
+
   userListens(query: Query, resumeToken?: string): this {
     this.nextStep();
 
@@ -353,7 +358,8 @@ export class SpecBuilder {
       enableNetwork: false,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     return this;
@@ -381,7 +387,8 @@ export class SpecBuilder {
       restart: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -396,7 +403,8 @@ export class SpecBuilder {
       shutdown: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -457,10 +465,26 @@ export class SpecBuilder {
     });
 
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.limboDocs = keys.map(k =>
+    currentStep.expectedState.activeLimboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
+    return this;
+  }
+
+  /**
+   * Expects a document to be in limbo, enqueued for limbo resolution, and
+   * therefore *without* an active targetId.
+   */
+  expectEnqueuedLimboDocs(...keys: DocumentKey[]): this {
+    this.assertStep('Limbo expectation requires previous step');
+    const currentStep = this.currentStep!;
+
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.enqueuedLimboDocs = keys.map(k =>
+      SpecBuilder.keyToSpec(k)
+    );
+
     return this;
   }
 
