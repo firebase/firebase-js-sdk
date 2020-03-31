@@ -101,7 +101,7 @@ import { getMultiFactorResolver } from './core/mfa/multi_factor_resolver';
 import {
   AdditionalUserInfo,
   getAdditionalUserInfo
-} from './model/additional_user_info';
+} from './core/account_management/additional_user_info';
 
 interface FirebaseAuth extends Auth {}
 interface LegacyUserCredential {

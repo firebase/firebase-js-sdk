@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '../core/providers';
-import { UserCredential } from './user_credential';
-import { IdTokenResponse, parseIdToken } from './id_token';
+import { ProviderId } from '../providers';
+import { UserCredential } from '../../model/user_credential';
+import { IdTokenResponse, parseIdToken } from '../../model/id_token';
 
 export interface AdditionalUserInfo {
   readonly isNewUser: boolean;
@@ -49,7 +49,7 @@ const additionalInfo = new WeakMap<UserCredential, AdditionalUserInfo>();
 function additionalUserInfoFromIdTokenResponse(
   idTokenResponse: IdTokenResponse
 ): AdditionalUserInfo | null {
-  const providerId = idTokenResponse.providerId;
+  const {providerId} = idTokenResponse;
   const profile =
     typeof idTokenResponse.rawUserInfo === 'string'
       ? JSON.parse(idTokenResponse.rawUserInfo)
@@ -57,7 +57,7 @@ function additionalUserInfoFromIdTokenResponse(
   const isNewUser =
     !!idTokenResponse.isNewUser ||
     idTokenResponse.kind === 'identitytoolkit#SignupNewUserResponse';
-  if (!providerId && idTokenResponse.idToken !== undefined) {
+  if (!providerId && !!idTokenResponse) {
     const providerId = parseIdToken(idTokenResponse.idToken).signInProvider;
     return new GenericAdditionalUserInfo(isNewUser, providerId, null, profile);
   }

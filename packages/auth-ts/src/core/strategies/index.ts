@@ -22,7 +22,7 @@ import { ProviderId } from '../providers';
 import { reloadWithoutSaving } from '../account_management/reload';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { AuthCredential } from '../../model/auth_credential';
-import { updateAdditionalUserInfoFromIdTokenResponse } from '../../model/additional_user_info';
+import { updateAdditionalUserInfoFromIdTokenResponse } from '../account_management/additional_user_info';
 import { OperationType, UserCredential } from '../../model/user_credential';
 
 export async function userFromIdTokenResponse(
