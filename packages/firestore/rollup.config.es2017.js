@@ -128,25 +128,6 @@ const es2017BuildPlugins = [
 ];
 
 const browserBuilds = [
-  // ES5 ESM Build (with persistence)
-  {
-    input: 'index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
-    external: resolveBrowserExterns
-  },
-  // ES5 ESM Build (memory-only)
-  {
-    input: 'index.memory.ts',
-    output: {
-      file: path.resolve('./memory', memoryPkg.module),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: (id, referencedBy) =>
-      resolveMemoryExterns(browserDeps, id, referencedBy)
-  },
   // ES2017 ESM build (with persistence)
   {
     input: 'index.ts',
@@ -170,28 +151,6 @@ const browserBuilds = [
     external: (id, referencedBy) =>
       resolveMemoryExterns(browserDeps, id, referencedBy)
   },
-  // ES5 CJS Build (with persistence)
-  //
-  // This build is based on the mangling in the ESM build above, since
-  // Terser's Property name mangling doesn't work well with CJS's syntax.
-  {
-    input: pkg.module,
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [sourcemaps()]
-  },
-  // ES5 CJS Build (memory-only)
-  //
-  // This build is based on the mangling in the ESM build above, since
-  // Terser's Property name mangling doesn't work well with CJS's syntax.
-  {
-    input: path.resolve('./memory', memoryPkg.module),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [sourcemaps()]
-  }
 ];
 
 // MARK: Node builds
@@ -218,7 +177,7 @@ const nodeBuilds = [
   // ES5 CJS build (with persistence)
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: [{ file: pkg.mainES2017, format: 'cjs', sourcemap: true }],
     plugins: nodeBuildPlugins,
     external: resolveNodeExterns
   },
@@ -227,7 +186,7 @@ const nodeBuilds = [
     input: 'index.node.memory.ts',
     output: [
       {
-        file: path.resolve('./memory', memoryPkg.main),
+        file: path.resolve('./memory', memoryPkg.mainES2017),
         format: 'cjs',
         sourcemap: true
       }

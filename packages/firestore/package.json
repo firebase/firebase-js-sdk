@@ -5,7 +5,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "prebuild": "tsc -d --downlevelIteration --declarationDir dist/lib --emitDeclarationOnly && tsc -m es2015 --moduleResolution node scripts/*.ts ",
-    "build": "rollup -c && yarn transpile",
+    "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",
     "predev": "yarn prebuild",
@@ -23,10 +23,10 @@
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "prepare": "yarn build",
-    "transpile": "tsc --allowJs dist/*.js --sourceMap --outDir dist/es3 && rm dist/es3/*esm2017* && mv dist/es3/*.js dist &&  rm -r dist/es3"
+    "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
+  "mainES2017": "dist/index.node.esm2017.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
