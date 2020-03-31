@@ -30,6 +30,9 @@ const es5BuildPlugins = [
     compilerOptions: {
       allowJs: true,
     },
+    include: [
+      "dist/*.js"
+    ],
   }),
 ];
 
