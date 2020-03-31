@@ -19,7 +19,7 @@ import * as api from '../protos/firestore_proto_api';
 
 import { TypeOrder } from './field_value';
 import { assert, fail } from '../util/assert';
-import { forEach, size } from '../util/obj';
+import { forEach, objectSize } from '../util/obj';
 import { ByteString } from '../util/byte_string';
 import { isNegativeZero } from '../util/types';
 import { DocumentKey } from './document_key';
@@ -162,7 +162,7 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
   const leftMap = left.mapValue!.fields || {};
   const rightMap = right.mapValue!.fields || {};
 
-  if (size(leftMap) !== size(rightMap)) {
+  if (objectSize(leftMap) !== objectSize(rightMap)) {
     return false;
   }
 

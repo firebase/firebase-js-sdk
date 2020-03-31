@@ -512,7 +512,7 @@ export function byteStringFromString(value: string): ByteString {
   return ByteString.fromBase64String(base64);
 }
 
-/** 
+/**
  * Decodes a base 64 decoded string.
  *
  * Note that this is typed to accept Uint8Arrays to match the types used

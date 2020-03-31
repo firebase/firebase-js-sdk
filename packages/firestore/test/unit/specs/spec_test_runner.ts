@@ -86,7 +86,7 @@ import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
-import { forEach, size } from '../../../src/util/obj';
+import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
@@ -116,6 +116,7 @@ import {
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
 import { SortedSet } from '../../../src/util/sorted_set';
+import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -412,10 +413,7 @@ abstract class TestRunner {
 
   private expectedActiveLimboDocs: DocumentKey[];
   private expectedEnqueuedLimboDocs: DocumentKey[];
-  private expectedActiveTargets:  Map<
-    TargetId,
-    { queries: SpecQuery[]; resumeToken: string }
-    >;
+  private expectedActiveTargets: Map<TargetId, ActiveTargetSpec>;
 
   private networkEnabled = true;
 
@@ -465,10 +463,7 @@ abstract class TestRunner {
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
     this.expectedActiveLimboDocs = [];
     this.expectedEnqueuedLimboDocs = [];
-    this.expectedActiveTargets =new Map<
-      TargetId,
-      { queries: SpecQuery[]; resumeToken: string }
-      >();
+    this.expectedActiveTargets = new Map<TargetId, ActiveTargetSpec>();
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
     this.snapshotsInSyncListeners = [];
@@ -1215,7 +1210,7 @@ abstract class TestRunner {
       );
       delete actualTargets[targetId];
     });
-    expect(size(actualTargets)).to.equal(
+    expect(objectSize(actualTargets)).to.equal(
       0,
       'Unexpected active targets: ' + JSON.stringify(actualTargets)
     );
@@ -1713,9 +1708,7 @@ export interface StateExpectation {
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */
-  activeTargets?: {
-    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
-  };
+  activeTargets?: ActiveTargetMap;
   /**
    * Expected set of callbacks for previously written docs.
    */

@@ -96,7 +96,7 @@ import {
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import {Dict} from "../util/obj";
+import { Dict } from '../util/obj';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -339,7 +339,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
-    if (contains(settingsLiteral as objUtils.Dict<{}>, 'persistence')) {
+    if (contains(settingsLiteral, 'persistence')) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"persistence" is now specified with a separate call to ' +
@@ -552,15 +552,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
-    const options = app.options as Dict<unknown>;
-    if (contains(options, 'projectId')) {
+    if (!contains(app.options, 'projectId')) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
       );
     }
 
-    const projectId = options['projectId'];
+    const projectId = app.options.projectId;
     if (!projectId || typeof projectId !== 'string') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -2622,7 +2621,7 @@ function applyFirestoreDataConverter<T>(
   return [convertedValue, functionName];
 }
 
-function contains(obj: Dict<unknown>, key: string): boolean {
+function contains(obj: object, key: string): obj is { key : unknown } {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
 

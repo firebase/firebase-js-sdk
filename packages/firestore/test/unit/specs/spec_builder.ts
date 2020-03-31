@@ -63,8 +63,13 @@ export interface LimboMap {
   [key: string]: TargetId;
 }
 
+export interface ActiveTargetSpec {
+  queries: SpecQuery[];
+  resumeToken: string;
+}
+
 export interface ActiveTargetMap {
-  [targetId: string]: { queries: SpecQuery[]; resumeToken: string };
+  [targetId: string]: ActiveTargetSpec;
 }
 
 /**

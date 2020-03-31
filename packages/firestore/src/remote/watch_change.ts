@@ -595,11 +595,12 @@ export class WatchChangeAggregator {
   }
 
   private ensureTargetState(targetId: TargetId): TargetState {
-    if (!this.targetStates.has(targetId)) {
-      this.targetStates.set(targetId, new TargetState());
+    let result = this.targetStates.get(targetId);
+    if (!result) {
+      result = new TargetState();
+      this.targetStates.set(targetId, result);
     }
-
-    return this.targetStates.get(targetId)!;
+    return result;
   }
 
   private ensureDocumentTargetMapping(key: DocumentKey): SortedSet<TargetId> {

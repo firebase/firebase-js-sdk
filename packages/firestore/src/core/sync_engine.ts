@@ -413,7 +413,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const changes = await this.localStore.applyRemoteEvent(remoteEvent);
       // Update `receivedDocument` as appropriate for any limbo targets.
       remoteEvent.targetChanges.forEach((targetChange, targetId) => {
-        const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
+        const limboResolution = this.activeLimboResolutionsByTarget.get(
+          targetId
+        );
         if (limboResolution) {
           // Since this is a limbo resolution lookup, it's for a single document
           // and it could be added, modified, or removed, but not a combination.
@@ -491,7 +493,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     // PORTING NOTE: Multi-tab only.
     this.sharedClientState.updateQueryState(targetId, 'rejected', err);
-    
+
     const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
@@ -755,7 +757,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     this.remoteStore.unlisten(limboTargetId);
     this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(key);
-this.activeLimboResolutionsByTarget.delete(limboTargetId);
+    this.activeLimboResolutionsByTarget.delete(limboTargetId);
     this.pumpEnqueuedLimboResolutions();
   }
 
@@ -807,9 +809,10 @@ this.activeLimboResolutionsByTarget.delete(limboTargetId);
     ) {
       const key = this.enqueuedLimboResolutions.shift()!;
       const limboTargetId = this.limboTargetIdGenerator.next();
-      this.activeLimboResolutionsByTarget.set(limboTargetId, new LimboResolution(
-        key
-      ));
+      this.activeLimboResolutionsByTarget.set(
+        limboTargetId,
+        new LimboResolution(key)
+      );
       this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.insert(
         key,
         limboTargetId
