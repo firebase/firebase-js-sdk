@@ -49,7 +49,7 @@ const additionalInfo = new WeakMap<UserCredential, AdditionalUserInfo>();
 function additionalUserInfoFromIdTokenResponse(
   idTokenResponse: IdTokenResponse
 ): AdditionalUserInfo | null {
-  const {providerId} = idTokenResponse;
+  const { providerId } = idTokenResponse;
   const profile =
     typeof idTokenResponse.rawUserInfo === 'string'
       ? JSON.parse(idTokenResponse.rawUserInfo)
