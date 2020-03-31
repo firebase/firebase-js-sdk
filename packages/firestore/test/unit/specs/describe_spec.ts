@@ -24,6 +24,8 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
 
+import * as stringify from 'json-stable-stringify';
+
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
@@ -242,7 +244,64 @@ export function describeSpec(
   } else {
     specsInThisTest = {};
     builder();
-    const output = JSON.stringify(specsInThisTest, null, 2);
+    // Note: We use json-stable-stringify instead of JSON.stringify() to ensure
+    // that the generated JSON does not produce diffs merely due to the order
+    // of the keys in an object changing.
+    const output = stringify(specsInThisTest, { space: 2, cmp: stringifyCmp });
     writeJSONFile(output);
+  }
+}
+
+/**
+ * The key ordering overrides used when sorting keys in the generated JSON.
+ * If both keys being compared are present in this array then they should be
+ * ordered in the generated JSON in the same relative order of this array.
+ */
+const stringifyCustomOrdering = [
+  'describeName',
+  'itName',
+  'tags',
+  'config',
+  'steps'
+];
+
+/**
+ * A comparator function for stringify() that sorts keys in the JSON output.
+ *
+ * In order to produce semi-readable JSON that has an intuitive top-level key
+ * arrangement, some keys are sorted non-alphabetically; namely, the ordering
+ * defined in `stringifyCustomOrdering` is used, falling back to alphabetical
+ * ordering if one or both of the key are not overridden.
+ */
+function stringifyCmp(a: stringify.Element, b: stringify.Element): number {
+  // If the keys are equal, then avoid the costly computations below.
+  if (a.key === b.key) {
+    return 0;
+  }
+
+  // If the keys have a custom ordering, then use it.
+  const aIndex = stringifyCustomOrdering.indexOf(a.key);
+  const bIndex = stringifyCustomOrdering.indexOf(b.key);
+  if (aIndex >= 0 && bIndex >= 0) {
+    return aIndex - bIndex;
+  }
+
+  // Order "expected" blocks after other blocks since the expectations logically
+  // occur after the steps are executed.
+  if (a.key.startsWith('expected')) {
+    if (!b.key.startsWith('expected')) {
+      return 1;
+    }
+  } else if (b.key.startsWith('expected')) {
+    return -1;
+  }
+
+  // If all else fails, order alphabetically.
+  if (a.key < b.key) {
+    return -1;
+  } else if (a.key > b.key) {
+    return 1;
+  } else {
+    return 0;
   }
 }
