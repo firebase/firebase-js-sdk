@@ -75,6 +75,7 @@ import {
   reauthenticateWithPhoneNumber
 } from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
+import { UserCredential } from './model/user_credential';
 import { ProviderId, AuthProvider } from './core/providers';
 import { unlink } from './core/account_management/unlink';
 import {
@@ -97,12 +98,26 @@ import { MultiFactorAssertion, MultiFactorInfo } from './model/multi_factor';
 import { multiFactor } from './core/mfa/multi_factor';
 import { AuthErrorCode } from './core/errors';
 import { getMultiFactorResolver } from './core/mfa/multi_factor_resolver';
+import {
+  AdditionalUserInfo,
+  getAdditionalUserInfo
+} from './core/account_management/additional_user_info';
 
 interface FirebaseAuth extends Auth {}
-interface UserCredential {
+interface LegacyUserCredential {
   user: User | null;
   credential: AuthCredential | null;
   operationType: OperationType | null;
+  // TODO: Change to be legacy AdditionalUserInfo
+  additionalUserInfo: AdditionalUserInfo | null;
+}
+
+function addAdditionalUserInfo(
+  userCredential: UserCredential
+): LegacyUserCredential {
+  return Object.assign({}, userCredential, {
+    additionalUserInfo: getAdditionalUserInfo(userCredential)
+  });
 }
 
 interface FirebaseApp {
@@ -193,10 +208,10 @@ firebaseApp.auth = function() {
         },
         reauthenticateWithCredential(
           credential: AuthCredential
-        ): Promise<UserCredential> {
+        ): Promise<LegacyUserCredential> {
           return catchMfaErr(() =>
             reauthenticateWithCredential(auth, user, credential)
-          );
+          ).then(addAdditionalUserInfo);
         },
         reauthenticateWithPhoneNumber(
           number: string,
@@ -214,21 +229,23 @@ firebaseApp.auth = function() {
         },
         reauthenticateWithPopup(
           provider: OAuthProvider
-        ): Promise<UserCredential | null> {
+        ): Promise<LegacyUserCredential | null> {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
           return catchMfaErr(() =>
             reauthenticateWithPopup(auth, user, provider, resolver)
-          );
+          ).then(cred => (!!cred ? addAdditionalUserInfo(cred) : null));
         },
         updateProfile(profile: ProfileInfo): Promise<void> {
           return updateProfile(auth, user, profile);
         },
         linkWithCredential(
           credential: AuthCredential
-        ): Promise<UserCredential> {
-          return linkWithCredential(auth, user, credential);
+        ): Promise<LegacyUserCredential> {
+          return linkWithCredential(auth, user, credential).then(
+            addAdditionalUserInfo
+          );
         },
         linkWithPhoneNumber(
           phoneNumber: string,
@@ -254,11 +271,15 @@ firebaseApp.auth = function() {
             : browserPopupRedirectResolver;
           return linkWithRedirect(auth, user, provider, resolver);
         },
-        linkWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+        linkWithPopup(
+          provider: OAuthProvider
+        ): Promise<LegacyUserCredential | null> {
           const resolver = isMobileCordova()
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver;
-          return linkWithPopup(auth, user, provider, resolver);
+          return linkWithPopup(auth, user, provider, resolver).then(cred =>
+            !!cred ? addAdditionalUserInfo(cred) : null
+          );
         },
         multiFactor: {
           getSession() {
@@ -298,16 +319,21 @@ firebaseApp.auth = function() {
     fetchSignInMethodsForEmail(email: string): Promise<string[]> {
       return fetchSignInMethodsForEmail(auth, email);
     },
-    async getRedirectResult(): Promise<UserCredential> {
+    async getRedirectResult(): Promise<LegacyUserCredential> {
       const resolver = isMobileCordova()
         ? cordovaPopupRedirectResolver
         : browserPopupRedirectResolver;
 
       const result = await catchMfaErr(() => resolver.getRedirectResult(auth));
       if (!result) {
-        return { user: null, credential: null, operationType: null };
+        return {
+          user: null,
+          credential: null,
+          operationType: null,
+          additionalUserInfo: null
+        };
       }
-      return result;
+      return addAdditionalUserInfo(result);
     },
     isSignInWithEmailLink(emailLink: string): boolean {
       return isSignInWithEmailLink(auth, emailLink);
@@ -324,34 +350,44 @@ firebaseApp.auth = function() {
     ): Promise<void> {
       return sendSignInLinkToEmail(auth, email, actionCodeSettings);
     },
-    signInAnonymously(): Promise<UserCredential> {
-      return signInAnonymously(auth);
+    signInAnonymously(): Promise<LegacyUserCredential> {
+      return signInAnonymously(auth).then(addAdditionalUserInfo);
     },
-    signInWithCredential(credential: AuthCredential): Promise<UserCredential> {
-      return catchMfaErr(() => signInWithCredential(auth, credential));
+    signInWithCredential(
+      credential: AuthCredential
+    ): Promise<LegacyUserCredential> {
+      return catchMfaErr(() => signInWithCredential(auth, credential)).then(
+        addAdditionalUserInfo
+      );
     },
     createUserWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<UserCredential> {
-      return createUserWithEmailAndPassword(auth, email, password);
+    ): Promise<LegacyUserCredential> {
+      return createUserWithEmailAndPassword(auth, email, password).then(
+        addAdditionalUserInfo
+      );
     },
     signInWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<UserCredential> {
+    ): Promise<LegacyUserCredential> {
       return catchMfaErr(() =>
         signInWithEmailAndPassword(auth, email, password)
-      );
+      ).then(addAdditionalUserInfo);
     },
-    signInWithCustomToken(token: string): Promise<UserCredential> {
-      return catchMfaErr(() => signInWithCustomToken(auth, token));
+    signInWithCustomToken(token: string): Promise<LegacyUserCredential> {
+      return catchMfaErr(() => signInWithCustomToken(auth, token)).then(
+        addAdditionalUserInfo
+      );
     },
     signInWithEmailLink(
       email: string,
       emailLink?: string
-    ): Promise<UserCredential> {
-      return catchMfaErr(() => signInWithEmailLink(auth, email, emailLink));
+    ): Promise<LegacyUserCredential> {
+      return catchMfaErr(() =>
+        signInWithEmailLink(auth, email, emailLink)
+      ).then(addAdditionalUserInfo);
     },
     signInWithRedirect(provider: OAuthProvider): Promise<never> {
       return signInWithRedirect(
@@ -362,7 +398,9 @@ firebaseApp.auth = function() {
           : browserPopupRedirectResolver
       );
     },
-    signInWithPopup(provider: OAuthProvider): Promise<UserCredential | null> {
+    signInWithPopup(
+      provider: OAuthProvider
+    ): Promise<LegacyUserCredential | null> {
       return catchMfaErr(() =>
         signInWithPopup(
           auth,
@@ -371,7 +409,7 @@ firebaseApp.auth = function() {
             ? cordovaPopupRedirectResolver
             : browserPopupRedirectResolver
         )
-      );
+      ).then(cred => (!!cred ? addAdditionalUserInfo(cred) : cred));
     },
     signInWithPhoneNumber(
       phoneNumber: string,

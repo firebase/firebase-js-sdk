@@ -19,7 +19,7 @@ import { Auth } from '../../model/auth';
 import { OperationType, UserCredential } from '../../model/user_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication';
-import { initializeCurrentUserFromIdTokenResponse } from './index';
+import { createUserCredentialFromIdTokenResponse } from './index';
 
 export async function signInWithCustomToken(
   auth: Auth,
@@ -28,6 +28,10 @@ export async function signInWithCustomToken(
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
     token: customToken
   });
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return new UserCredential(user, null, OperationType.SIGN_IN);
+  return createUserCredentialFromIdTokenResponse(
+    auth,
+    null,
+    OperationType.SIGN_IN,
+    response
+  );
 }

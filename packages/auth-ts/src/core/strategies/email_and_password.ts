@@ -20,7 +20,6 @@ import { UserCredential, OperationType } from '../../model/user_credential';
 import { User } from '../../model/user';
 import * as api from '../../api/authentication';
 import { EmailAuthProvider } from '../providers/email';
-import { initializeCurrentUserFromIdTokenResponse } from '.';
 import {
   setActionCodeSettingsOnRequest,
   ActionCodeSettings
@@ -30,6 +29,7 @@ import { resetPassword } from '../../api/account_management';
 import { ActionCodeInfo } from '../../model/action_code_info';
 import { checkActionCode } from './action_code';
 import { callApiWithMfaContext } from '../mfa/error_processor';
+import { createUserCredentialFromIdTokenResponse } from './index';
 
 export async function createUserWithEmailAndPassword(
   auth: Auth,
@@ -41,11 +41,11 @@ export async function createUserWithEmailAndPassword(
     email,
     password
   });
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return new UserCredential(
-    user,
+  return createUserCredentialFromIdTokenResponse(
+    auth,
     EmailAuthProvider.credential(email, password),
-    OperationType.SIGN_IN
+    OperationType.SIGN_IN,
+    response
   );
 }
 

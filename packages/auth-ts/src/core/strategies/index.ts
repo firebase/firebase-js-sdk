@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { Auth } from '../..';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, StsTokenManager } from '../../model/user';
 import { ProviderId } from '../providers';
 import { reloadWithoutSaving } from '../account_management/reload';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthCredential } from '../../model/auth_credential';
+import { updateAdditionalUserInfoFromIdTokenResponse } from '../account_management/additional_user_info';
+import { OperationType, UserCredential } from '../../model/user_credential';
 
 export async function userFromIdTokenResponse(
   auth: Auth,
@@ -35,7 +38,22 @@ export async function userFromIdTokenResponse(
   return user;
 }
 
-export async function initializeCurrentUserFromIdTokenResponse(
+export async function createUserCredentialFromIdTokenResponse(
+  auth: Auth,
+  credential: AuthCredential | null,
+  operationType: OperationType,
+  idTokenResponse: IdTokenResponse
+): Promise<UserCredential> {
+  const user = await initializeCurrentUserFromIdTokenResponse(
+    auth,
+    idTokenResponse
+  );
+  const userCred = new UserCredential(user, credential, operationType);
+  updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
+  return userCred;
+}
+
+async function initializeCurrentUserFromIdTokenResponse(
   auth: Auth,
   idTokenResponse: IdTokenResponse
 ): Promise<User> {

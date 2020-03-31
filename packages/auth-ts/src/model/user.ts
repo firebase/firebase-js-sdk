@@ -23,7 +23,7 @@ import {
 } from './id_token';
 import { deleteUser } from '../core/account_management/delete';
 import { Auth } from './auth';
-import { ProviderId } from '../core/providers/index';
+import { ProviderId } from '../core/providers';
 import { reload } from '../core/account_management/reload';
 import { MultiFactorInfo } from './multi_factor';
 

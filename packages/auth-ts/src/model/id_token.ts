@@ -123,6 +123,7 @@ export function encodeIdToken(
 }
 
 export interface IdTokenResponse {
+  providerId?: ProviderId;
   idToken: IdToken;
   refreshToken: string;
   expiresIn: string;
@@ -131,6 +132,12 @@ export interface IdTokenResponse {
   // MFA-specific fields
   mfaPendingCredential?: string;
   mfaInfo?: APIMFAInfo[];
+  isNewUser?: boolean;
+  rawUserInfo?: string;
+  screenName?: string | null;
+  displayName?: string | null;
+  photoUrl?: string | null;
+  kind: string;
 }
 
 export interface APIMFAInfo {
