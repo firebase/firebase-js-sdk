@@ -2622,7 +2622,7 @@ function applyFirestoreDataConverter<T>(
   return [convertedValue, functionName];
 }
 
-function contains<V>(obj: Dict<V>, key: string): boolean {
+function contains(obj: Dict<unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
 
