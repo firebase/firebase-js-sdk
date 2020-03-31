@@ -18,8 +18,7 @@
 import { expect } from 'chai';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  prefixSuccessor
+  encodeResourcePath
 } from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
@@ -128,22 +127,7 @@ describe('EncodedResourcePath', () => {
       path('food')
     ]);
   });
-
-  it('prefixes successors correctly', async () => {
-    assertPrefixSuccessorEquals('\u0001\u0002', ResourcePath.EMPTY_PATH);
-    assertPrefixSuccessorEquals(
-      'foo' + sep + 'bar\u0001\u0002',
-      path('foo/bar')
-    );
-  });
 });
-
-function assertPrefixSuccessorEquals(
-  expected: string,
-  path: ResourcePath
-): void {
-  expect(prefixSuccessor(encodeResourcePath(path))).to.deep.equal(expected);
-}
 
 function assertEncoded(expected: string, path: ResourcePath): Promise<void> {
   const encoded = encodeResourcePath(path);

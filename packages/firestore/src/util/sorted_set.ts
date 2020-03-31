@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,6 @@ export class SortedSet<T> {
 
   constructor(private comparator: (left: T, right: T) => number) {
     this.data = new SortedMap<T, boolean>(this.comparator);
-  }
-
-  /**
-   * Creates a SortedSet from the keys of the map.
-   * This is currently implemented as an O(n) copy.
-   */
-  static fromMapKeys<K, V>(map: SortedMap<K, V>): SortedSet<K> {
-    let keys = new SortedSet<K>(map.comparator);
-    map.forEach(key => {
-      keys = keys.add(key);
-    });
-    return keys;
   }
 
   has(elem: T): boolean {

@@ -91,6 +91,7 @@ import { query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { Timestamp } from '../../src/api/timestamp';
 
 export type TestSnapshotVersion = number;
 
@@ -126,7 +127,9 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
 }
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
-  return SnapshotVersion.fromMicroseconds(v);
+  const seconds = Math.floor(v / 1e6);
+  const nanos = (v % 1e6) * 1e3;
+  return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
 }
 
 export function ref(
