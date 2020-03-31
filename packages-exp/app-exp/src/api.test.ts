@@ -30,7 +30,12 @@ import {
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { FirebaseAppInternal } from '@firebase/app-types-exp';
-import { clearComponents, components, registerComponent, getProvider } from './internal';
+import {
+  clearComponents,
+  components,
+  registerComponent,
+  getProvider
+} from './internal';
 import { createTestComponent } from '../test/util';
 import { Component, ComponentType } from '@firebase/component';
 import { Logger } from '@firebase/logger';
@@ -44,7 +49,7 @@ declare module '@firebase/component' {
 describe('API tests', () => {
   afterEach(() => {
     for (const app of getApps()) {
-      deleteApp(app).catch(() => { });
+      deleteApp(app).catch(() => {});
     }
   });
 
@@ -143,7 +148,7 @@ describe('API tests', () => {
       const app1 = initializeApp({});
       const app2 = initializeApp({}, 'App2');
 
-      deleteApp(app1).catch(() => { });
+      deleteApp(app1).catch(() => {});
 
       const apps = getApps();
 
@@ -157,7 +162,7 @@ describe('API tests', () => {
       const app = initializeApp({});
       expect((app as FirebaseAppInternal).isDeleted).to.be.false;
 
-      await deleteApp(app).catch(() => { });
+      await deleteApp(app).catch(() => {});
       expect((app as FirebaseAppInternal).isDeleted).to.be.true;
     });
 
@@ -165,7 +170,7 @@ describe('API tests', () => {
       const app = initializeApp({});
       expect(getApps().length).to.equal(1);
 
-      deleteApp(app).catch(() => { });
+      deleteApp(app).catch(() => {});
       expect(getApps().length).to.equal(0);
     });
   });
@@ -213,7 +218,6 @@ describe('API tests', () => {
 
   describe('User Log Methods', () => {
     describe('Integration Tests', () => {
-
       beforeEach(() => {
         clearComponents();
       });

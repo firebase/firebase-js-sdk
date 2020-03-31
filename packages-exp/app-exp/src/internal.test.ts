@@ -48,7 +48,7 @@ describe('Internal API tests', () => {
       const testComp = createTestComponent('test');
 
       addComponent(app, testComp);
-      
+
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
       );

@@ -29,10 +29,7 @@ export const components = new Map<string, Component<any>>();
 /**
  * @param component the component being added to this app's container
  */
-export function addComponent(
-  app: FirebaseApp,
-  component: Component
-): void {
+export function addComponent(app: FirebaseApp, component: Component): void {
   try {
     (app as FirebaseAppInternal).container.addComponent(component);
   } catch (e) {

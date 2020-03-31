@@ -256,7 +256,10 @@ export function registerVersion(
  * @param logCallback An optional custom log handler that executes user code whenever
  * the Firebase SDK makes a logging call.
  */
-export function onLog(logCallback: LogCallback | null, options?: LogOptions): void {
+export function onLog(
+  logCallback: LogCallback | null,
+  options?: LogOptions
+): void {
   if (logCallback !== null && typeof logCallback !== 'function') {
     throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
       appName: name
