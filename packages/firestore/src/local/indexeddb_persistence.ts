@@ -28,8 +28,11 @@ import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
-
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath,
+  EncodedResourcePath
+} from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -1244,7 +1247,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.
             if (nextToReport !== ListenSequence.INVALID) {
-              f(new DocumentKey(decode(nextPath)), nextToReport);
+              f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
             }
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
@@ -1264,7 +1267,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         // need to check if the last key we iterated over was an orphaned
         // document and report it.
         if (nextToReport !== ListenSequence.INVALID) {
-          f(new DocumentKey(decode(nextPath)), nextToReport);
+          f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
         }
       });
   }
@@ -1275,7 +1278,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 }
 
 function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
-  return [0, encode(key.path)];
+  return [0, encodeResourcePath(key.path)];
 }
 
 /**
@@ -1286,7 +1289,7 @@ function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
 ): DbTargetDocument {
-  return new DbTargetDocument(0, encode(key.path), sequenceNumber);
+  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
 }
 
 function writeSentinelKey(

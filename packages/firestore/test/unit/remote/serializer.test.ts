@@ -56,7 +56,7 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../src/util/error';
-import * as obj from '../../../src/util/obj';
+import { forEach } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -1280,7 +1280,7 @@ describe('Serializer', () => {
     it('contains all Operators', () => {
       // giant hack
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      obj.forEach(Operator as any, (name, op) => {
+      forEach(Operator as any, (name, op) => {
         if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
           expect(s.fromOperatorName(s.toOperatorName(op))).to.deep.equal(op);
@@ -1295,7 +1295,7 @@ describe('Serializer', () => {
     it('contains all Directions', () => {
       // giant hack
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      obj.forEach(Direction as any, (name, dir) => {
+      forEach(Direction as any, (name, dir) => {
         if (dir instanceof Direction) {
           expect(s.toDirection(dir), 'for ' + name).to.exist;
           expect(s.fromDirection(s.toDirection(dir))).to.deep.equal(dir);

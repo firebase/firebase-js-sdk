@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-
-import * as EncodedResourcePath from './encoded_resource_path';
+import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import {
   IndexedDbPersistence,
@@ -336,7 +335,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         // the rows for documentKey will occur before any rows for
         // documents nested in a subcollection beneath documentKey so we
         // can stop as soon as we hit any such row.
-        const path = EncodedResourcePath.decode(encodedPath);
+        const path = decodeResourcePath(encodedPath);
         if (userID !== this.userId || !documentKey.path.isEqual(path)) {
           control.done();
           return;
@@ -389,7 +388,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           // the rows for documentKey will occur before any rows for
           // documents nested in a subcollection beneath documentKey so we
           // can stop as soon as we hit any such row.
-          const path = EncodedResourcePath.decode(encodedPath);
+          const path = decodeResourcePath(encodedPath);
           if (userID !== this.userId || !documentKey.path.isEqual(path)) {
             control.done();
             return;
@@ -447,7 +446,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return documentMutationsStore(transaction)
       .iterate({ range: indexStart }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;
-        const path = EncodedResourcePath.decode(encodedPath);
+        const path = decodeResourcePath(encodedPath);
         if (userID !== this.userId || !queryPath.isPrefixOf(path)) {
           control.done();
           return;
@@ -544,7 +543,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             control.done();
             return;
           } else {
-            const path = EncodedResourcePath.decode(key[1]);
+            const path = decodeResourcePath(key[1]);
             danglingMutationReferences.push(path);
           }
         })

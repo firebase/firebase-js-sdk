@@ -19,7 +19,7 @@ import * as api from '../protos/firestore_proto_api';
 
 import { TypeOrder } from './field_value';
 import { assert, fail } from '../util/assert';
-import { forEach, keys, size } from '../util/obj';
+import { forEach, objectSize } from '../util/obj';
 import { ByteString } from '../util/byte_string';
 import { isNegativeZero } from '../util/types';
 import { DocumentKey } from './document_key';
@@ -162,7 +162,7 @@ function objectEquals(left: api.Value, right: api.Value): boolean {
   const leftMap = left.mapValue!.fields || {};
   const rightMap = right.mapValue!.fields || {};
 
-  if (size(leftMap) !== size(rightMap)) {
+  if (objectSize(leftMap) !== objectSize(rightMap)) {
     return false;
   }
 
@@ -320,9 +320,9 @@ function compareArrays(left: api.ArrayValue, right: api.ArrayValue): number {
 
 function compareMaps(left: api.MapValue, right: api.MapValue): number {
   const leftMap = left.fields || {};
-  const leftKeys = keys(leftMap);
+  const leftKeys = Object.keys(leftMap);
   const rightMap = right.fields || {};
-  const rightKeys = keys(rightMap);
+  const rightKeys = Object.keys(rightMap);
 
   // Even though MapValues are likely sorted correctly based on their insertion
   // order (e.g. when received from the backend), local modifications can bring
@@ -401,7 +401,7 @@ function canonifyReference(referenceValue: string): string {
 function canonifyMap(mapValue: api.MapValue): string {
   // Iteration order in JavaScript is not guaranteed. To ensure that we generate
   // matching canonical IDs for identical maps, we need to sort the keys.
-  const sortedKeys = keys(mapValue.fields || {}).sort();
+  const sortedKeys = Object.keys(mapValue.fields || {}).sort();
 
   let result = '{';
   let first = true;

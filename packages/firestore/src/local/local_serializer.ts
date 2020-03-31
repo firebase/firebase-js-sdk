@@ -32,7 +32,11 @@ import { ByteString } from '../util/byte_string';
 
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { Target } from '../core/target';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath,
+  EncodedResourcePath
+} from './encoded_resource_path';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -181,7 +185,7 @@ export class LocalSerializer {
     const encodedKeys: EncodedResourcePath[] = [];
 
     keys.forEach(key => {
-      encodedKeys.push(encode(key.path));
+      encodedKeys.push(encodeResourcePath(key.path));
     });
 
     return encodedKeys;
@@ -192,7 +196,7 @@ export class LocalSerializer {
     let keys = documentKeySet();
 
     for (const documentKey of encodedPaths) {
-      keys = keys.add(new DocumentKey(decode(documentKey)));
+      keys = keys.add(new DocumentKey(decodeResourcePath(documentKey)));
     }
 
     return keys;
