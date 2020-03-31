@@ -21,7 +21,6 @@ import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
-import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 
@@ -99,20 +98,7 @@ export function resolveMemoryExterns(deps, externsId, referencedBy) {
   return deps.some(dep => externsId === dep || externsId.startsWith(`${dep}/`));
 }
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    compilerOptions: {
-      target: 'es2017'
-    },
-    transformers: appendPrivatePrefixTransformers,
-    cacheRoot: `./.cache/es5.mangled/`
-  }),
-  json(),
-  terser(manglePrivatePropertiesOptions)
-];
-
-const es2017BuildPlugins = [
+const browserBuildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -120,7 +106,7 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
-    cacheRoot: './.cache/es2017.mangled/',
+    cacheRoot: './.cache/browser/',
     transformers: appendPrivatePrefixTransformers
   }),
   json({ preferConst: true }),
@@ -136,7 +122,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: browserBuildPlugins,
     external: resolveBrowserExterns
   },
   // ES2017 ESM build (memory-only)
@@ -147,7 +133,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: browserBuildPlugins,
     external: (id, referencedBy) =>
       resolveMemoryExterns(browserDeps, id, referencedBy)
   },

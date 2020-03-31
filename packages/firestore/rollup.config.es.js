@@ -24,11 +24,28 @@ import typescript from 'typescript';
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
+const browserDeps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
+const nodeDeps = [...browserDeps, 'util', 'path'];
+
+/** Resolves the external dependencies for the browser build. */
+function resolveBrowserExterns(id) {
+  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
+
+/** Resolves the external dependencies for the Node build. */
+function resolveNodeExterns(id) {
+  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+}
+
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
     compilerOptions: {
       allowJs: true,
+      importHelpers: true,
     },
     include: [
       "dist/*.js"
@@ -40,7 +57,8 @@ const browserBuilds = [
   {
     input: pkg.esm2017,
     output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins
+    plugins: es5BuildPlugins,
+    external: resolveBrowserExterns
   },
   {
     input: path.resolve('./memory', memoryPkg.esm2017),
@@ -49,12 +67,14 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es5BuildPlugins
+    plugins: es5BuildPlugins,
+    external: resolveBrowserExterns
   },
   {
     input: pkg.esm2017,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: [sourcemaps()]
+    plugins: [sourcemaps()],
+    external: resolveBrowserExterns
   },
   {
     input: path.resolve('./memory', memoryPkg.esm2017),
@@ -63,7 +83,8 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [sourcemaps()]
+    plugins: [sourcemaps()],
+    external: resolveBrowserExterns
   }
 ];
 
@@ -71,7 +92,8 @@ const nodeBuilds = [
   {
     input: pkg.mainES2017,
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: [sourcemaps()]
+    plugins: [sourcemaps()],
+    external: resolveNodeExterns
   },
   {
     input: path.resolve('./memory', memoryPkg.mainES2017),
@@ -82,7 +104,8 @@ const nodeBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [sourcemaps()]
+    plugins: [sourcemaps()],
+    external: resolveNodeExterns
   }
 ];
 
