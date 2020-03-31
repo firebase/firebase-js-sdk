@@ -16,7 +16,10 @@
  */
 
 import { expect } from 'chai';
-import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
@@ -127,9 +130,9 @@ describe('EncodedResourcePath', () => {
 });
 
 function assertEncoded(expected: string, path: ResourcePath): Promise<void> {
-  const encoded = EncodedResourcePath.encode(path);
+  const encoded = encodeResourcePath(path);
   expect(encoded).to.deep.equal(expected);
-  const decoded = EncodedResourcePath.decode(encoded);
+  const decoded = decodeResourcePath(encoded);
   expect(decoded.toArray()).to.deep.equal(path.toArray());
 
   let store: SimpleDbStore<string, boolean>;
@@ -151,7 +154,7 @@ async function assertOrdered(paths: ResourcePath[]): Promise<void> {
   // Compute the encoded forms of all the given paths
   const encoded: string[] = [];
   for (const path of paths) {
-    encoded.push(EncodedResourcePath.encode(path));
+    encoded.push(encodeResourcePath(path));
   }
 
   // Insert those all into a table, but backwards

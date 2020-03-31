@@ -84,7 +84,7 @@ import {
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
-import { Dict, forEach } from '../../src/util/obj';
+import { Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
@@ -515,7 +515,7 @@ export function byteStringFromString(value: string): ByteString {
   return ByteString.fromBase64String(base64);
 }
 
-/** 
+/**
  * Decodes a base 64 decoded string.
  *
  * Note that this is typed to accept Uint8Arrays to match the types used
@@ -815,13 +815,20 @@ export function expectEqualitySets<T>(
   }
 }
 
-/** Returns the number of keys in this object. */
-export function size(obj: JsonObject<unknown>): number {
-  let c = 0;
-  forEach(obj, () => c++);
-  return c;
-}
-
 export function expectFirestoreError(err: Error): void {
   expect(err.name).to.equal('FirebaseError');
+}
+
+export function forEachNumber<V>(
+  obj: Dict<V>,
+  fn: (key: number, val: V) => void
+): void {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const num = Number(key);
+      if (!isNaN(num)) {
+        fn(num, obj[key]);
+      }
+    }
+  }
 }
