@@ -94,7 +94,8 @@ describe('API tests', () => {
       registerComponent(comp2);
 
       const app = initializeApp({}) as FirebaseAppInternal;
-      expect(app.container.getProviders().length).to.equal(components.size);
+      // -1 here to not count the FirebaseApp provider that's added during initializeApp
+      expect(app.container.getProviders().length - 1).to.equal(components.size);
     });
   });
 

@@ -1,10 +1,9 @@
 /**
- * Logger for Firebase packages.
+ * Firebase App
  * 
- * @remark This is specifically tailored for Firebase JS SDK usage, if you are not a
-member of the Firebase team, please avoid using this package
-* @packageDocumentation
-*/
+ * @remark This package coordinates the communication between the different Firebase components
+ * @packageDocumentation
+ */
 
 /**
  * @license
