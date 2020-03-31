@@ -367,7 +367,11 @@ export class WatchChangeAggregator {
     if (targetChange.targetIds.length > 0) {
       targetChange.targetIds.forEach(fn);
     } else {
-      this.targetStates.forEach((_, targetId) => fn(targetId));
+      this.targetStates.forEach((_, targetId) => {
+        if (this.isActiveTarget(targetId)) {
+          fn(targetId);
+        }
+      });
     }
   }
 
