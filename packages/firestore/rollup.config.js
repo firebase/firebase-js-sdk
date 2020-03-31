@@ -152,7 +152,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es5BuildPlugins,
+    plugins: es2017BuildPlugins,
     external: resolveBrowserExterns
   },
   // ES2017 ESM build (memory-only)

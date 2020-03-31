@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,6 +248,7 @@ Repo.prototype.startTransaction = function(
     const newNodeUnresolved = nodeFromJSON(newVal, priorityForNode);
     const newNode = resolveDeferredValueSnapshot(
       newNodeUnresolved,
+      currentState,
       serverValues
     );
     transaction.currentOutputSnapshotRaw = newNodeUnresolved;
@@ -533,6 +534,7 @@ Repo.prototype.startTransaction = function(
           const serverValues = this.generateServerValues();
           const newNodeResolved = resolveDeferredValueSnapshot(
             newDataNode,
+            currentNode,
             serverValues
           );
 

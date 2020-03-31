@@ -19,7 +19,7 @@ import { dbGet, dbSet, dbRemove } from '../helpers/idb-manager';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
 import { requestUpdateToken, requestGetToken, requestDeleteToken } from './api';
-import { arrayToBase64 } from '../helpers/array-to-base64';
+import { arrayToBase64, base64ToArray} from '../helpers/array-base64-translator';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 /** UpdateRegistration will be called once every week. */
@@ -158,7 +158,9 @@ async function getPushSubscription(
   }
   return swRegistration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: vapidKey
+    // Chrome <= 75 doesn't support base64-encoded VAPID key. For backward compatibility, VAPID key
+    // submitted to pushManager#subscribe must be of type Uint8Array.
+    applicationServerKey: base64ToArray(vapidKey)
   });
 }
 
