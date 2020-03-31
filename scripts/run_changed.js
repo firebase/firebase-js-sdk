@@ -98,7 +98,7 @@ async function getChangedPackages() {
       }
     }
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {
