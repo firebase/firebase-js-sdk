@@ -30,7 +30,6 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'vs1': VersionService;
     'vs2': VersionService;
-    'test-shell': Promise<void>;
   }
 }
 

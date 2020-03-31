@@ -33,6 +33,13 @@ import { version } from '../../../packages/firebase/package.json';
 import { FirebaseAppImpl } from './firebaseApp';
 import { apps, components, registerComponent } from './internal';
 import { logger } from './logger';
+import {
+  LogLevel,
+  setLogLevel as setLogLevelImpl,
+  LogCallback,
+  LogOptions,
+  setUserLogHandler
+} from '@firebase/logger';
 
 /**
  * The current SDK version.
@@ -243,3 +250,30 @@ export function registerVersion(
     )
   );
 }
+
+/**
+ * Sets log handler for all Firebase SDKs.
+ * @param logCallback An optional custom log handler that executes user code whenever
+ * the Firebase SDK makes a logging call.
+ */
+export function onLog(logCallback: LogCallback | null, options?: LogOptions): void {
+  if (logCallback !== null && typeof logCallback !== 'function') {
+    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
+      appName: name
+    });
+  }
+  setUserLogHandler(logCallback, options);
+}
+
+/**
+ * Sets log level for all Firebase SDKs.
+ *
+ * All of the log types above the current log level are captured (i.e. if
+ * you set the log level to `info`, errors are logged, but `debug` and
+ * `verbose` logs are not).
+ */
+export function setLogLevel(logLevel: LogLevel): void {
+  setLogLevelImpl(logLevel);
+}
+
+export { LogLevel } from '@firebase/logger';

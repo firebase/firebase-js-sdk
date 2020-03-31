@@ -30,11 +30,11 @@ export const components = new Map<string, Component<any>>();
  * @param component the component being added to this app's container
  */
 export function addComponent(
-  app: FirebaseAppInternal,
+  app: FirebaseApp,
   component: Component
 ): void {
   try {
-    app.container.addComponent(component);
+    (app as FirebaseAppInternal).container.addComponent(component);
   } catch (e) {
     logger.debug(
       `Component ${component.name} failed to register with FirebaseApp ${app.name}`,
@@ -44,10 +44,10 @@ export function addComponent(
 }
 
 export function addOrOverwriteComponent(
-  app: FirebaseAppInternal,
+  app: FirebaseApp,
   component: Component
 ): void {
-  app.container.addOrOverwriteComponent(component);
+  (app as FirebaseAppInternal).container.addOrOverwriteComponent(component);
 }
 
 /**
@@ -76,10 +76,10 @@ export function registerComponent(component: Component): boolean {
 }
 
 export function getProvider<T extends Name>(
-  app: FirebaseAppInternal,
+  app: FirebaseApp,
   name: T
 ): Provider<T> {
-  return app.container.getProvider(name);
+  return (app as FirebaseAppInternal).container.getProvider(name);
 }
 
 /**

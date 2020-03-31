@@ -48,11 +48,12 @@ describe('Internal API tests', () => {
       const testComp = createTestComponent('test');
 
       addComponent(app, testComp);
-
+      
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
       );
     });
+
     it('does NOT throw registering duplicate components', () => {
       const app = initializeApp({}) as FirebaseAppInternal;
       const testComp = createTestComponent('test');

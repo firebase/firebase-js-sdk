@@ -16,24 +16,35 @@
  */
 
 import { expect } from 'chai';
-import { stub } from 'sinon';
+import { stub, spy } from 'sinon';
 import '../test/setup';
 import {
   initializeApp,
   getApps,
   deleteApp,
   getApp,
-  registerVersion
+  registerVersion,
+  setLogLevel,
+  LogLevel,
+  onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { FirebaseAppInternal } from '@firebase/app-types-exp';
-import { clearComponents, components, registerComponent } from './internal';
+import { clearComponents, components, registerComponent, getProvider } from './internal';
 import { createTestComponent } from '../test/util';
+import { Component, ComponentType } from '@firebase/component';
+import { Logger } from '@firebase/logger';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'test-shell': void;
+  }
+}
 
 describe('API tests', () => {
   afterEach(() => {
     for (const app of getApps()) {
-      deleteApp(app).catch(() => {});
+      deleteApp(app).catch(() => { });
     }
   });
 
@@ -132,7 +143,7 @@ describe('API tests', () => {
       const app1 = initializeApp({});
       const app2 = initializeApp({}, 'App2');
 
-      deleteApp(app1).catch(() => {});
+      deleteApp(app1).catch(() => { });
 
       const apps = getApps();
 
@@ -146,7 +157,7 @@ describe('API tests', () => {
       const app = initializeApp({});
       expect((app as FirebaseAppInternal).isDeleted).to.be.false;
 
-      await deleteApp(app).catch(() => {});
+      await deleteApp(app).catch(() => { });
       expect((app as FirebaseAppInternal).isDeleted).to.be.true;
     });
 
@@ -154,7 +165,7 @@ describe('API tests', () => {
       const app = initializeApp({});
       expect(getApps().length).to.equal(1);
 
-      deleteApp(app).catch(() => {});
+      deleteApp(app).catch(() => { });
       expect(getApps().length).to.equal(0);
     });
   });
@@ -197,6 +208,75 @@ describe('API tests', () => {
       registerVersion('remote-config', '1.2/3');
       expect(warnStub.args[1][1]).to.include('version name "1.2/3"');
       expect(components.size).to.equal(initialSize);
+    });
+  });
+
+  describe('User Log Methods', () => {
+    describe('Integration Tests', () => {
+
+      beforeEach(() => {
+        clearComponents();
+      });
+
+      it(`respects log level set through setLogLevel()`, () => {
+        const warnSpy = spy(console, 'warn');
+        const infoSpy = spy(console, 'info');
+        const logSpy = spy(console, 'log');
+        const app = initializeApp({});
+        registerComponent(
+          new Component(
+            'test-shell',
+            () => {
+              const logger = new Logger('@firebase/logger-test');
+              logger.warn('hello');
+              expect(warnSpy.called).to.be.true;
+              setLogLevel(LogLevel.WARN);
+              logger.info('hi');
+              expect(infoSpy.called).to.be.false;
+              logger.log('hi');
+              expect(logSpy.called).to.be.false;
+              logSpy.resetHistory();
+              infoSpy.resetHistory();
+              setLogLevel(LogLevel.DEBUG);
+              logger.info('hi');
+              expect(infoSpy.called).to.be.true;
+              logger.log('hi');
+              expect(logSpy.called).to.be.true;
+              return {};
+            },
+            ComponentType.PUBLIC
+          )
+        );
+
+        getProvider(app, 'test-shell').getImmediate();
+      });
+
+      it(`correctly triggers callback given to onLog()`, () => {
+        const infoSpy = spy(console, 'info');
+        let result: any = null;
+        // Note: default log level is INFO.
+        const app = initializeApp({});
+        registerComponent(
+          new Component(
+            'test-shell',
+            () => {
+              const logger = new Logger('@firebase/logger-test');
+              onLog(logData => {
+                result = logData;
+              });
+              logger.info('hi');
+              expect(result.level).to.equal('info');
+              expect(result.message).to.equal('hi');
+              expect(result.args).to.deep.equal(['hi']);
+              expect(result.type).to.equal('@firebase/logger-test');
+              expect(infoSpy.called).to.be.true;
+              return {};
+            },
+            ComponentType.PUBLIC
+          )
+        );
+        getProvider(app, 'test-shell').getImmediate();
+      });
     });
   });
 });
