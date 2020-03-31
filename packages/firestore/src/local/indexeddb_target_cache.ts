@@ -44,7 +44,7 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { Target } from '../core/target';
+import { generateNextTargetId, Target } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -63,8 +63,7 @@ export class IndexedDbTargetCache implements TargetCache {
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      // Target IDs in persistence start at two and remain even.
-      metadata.highestTargetId += 2;
+      metadata.highestTargetId = generateNextTargetId(metadata.highestTargetId);
       return this.saveMetadata(transaction, metadata).next(
         () => metadata.highestTargetId
       );

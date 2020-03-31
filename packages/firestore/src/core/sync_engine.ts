@@ -50,7 +50,7 @@ import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
 import { Query, LimitType } from './query';
 import { SnapshotVersion } from './snapshot_version';
-import { Target } from './target';
+import { generateNextTargetId, Target, TARGET_ID_OFFSET_SYNC_ENGINE } from './target';
 import { Transaction } from './transaction';
 import {
   BatchId,
@@ -173,7 +173,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   };
   /** Stores user callbacks waiting for all pending writes to be acknowledged. */
   private pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
-  private nextLimboTargetId = 1;
+  private nextLimboTargetId = TARGET_ID_OFFSET_SYNC_ENGINE;
 
   // The primary state is set to `true` or `false` immediately after Firestore
   // startup. In the interim, a client should only be considered primary if
@@ -808,9 +808,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.activeLimboTargetsByKey.size < this.maxConcurrentLimboResolutions
     ) {
       const key = this.enqueuedLimboResolutions.shift()!;
-      // Target IDs in SyncEngine start at 1 and remain odd.
       const limboTargetId = this.nextLimboTargetId;
-      this.nextLimboTargetId += 2;
+      this.nextLimboTargetId = generateNextTargetId(limboTargetId);
       this.activeLimboResolutionsByTarget[limboTargetId] = new LimboResolution(
         key
       );
@@ -818,7 +817,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         key,
         limboTargetId
       );
->>>>>>> master
       this.remoteStore.listen(
         new TargetData(
           Query.atPath(key.path).toTarget(),

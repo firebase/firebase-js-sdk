@@ -29,7 +29,7 @@ import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { Target } from '../core/target';
+import { generateNextTargetId, Target } from '../core/target';
 
 export class MemoryTargetCache implements TargetCache {
   /**
@@ -76,8 +76,7 @@ export class MemoryTargetCache implements TargetCache {
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
-    // Target IDs in persistence start at two and remain even.
-    this.highestTargetId += 2;
+    this.highestTargetId = generateNextTargetId(this.highestTargetId);
     return PersistencePromise.resolve(this.highestTargetId);
   }
 
