@@ -138,7 +138,7 @@ class LocalStoreTester {
       .then(() => {
         return this.localStore.applyRemoteEvent(remoteEvent);
       })
-      .then(result => {
+      .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
     return this;

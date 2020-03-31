@@ -265,10 +265,8 @@ export class LruScheduler {
         return localStore
           .collectGarbage(this.garbageCollector)
           .then(() => this.scheduleGC(localStore))
-          .catch(err => {
-            if (!handlePrimaryLeaseLoss(err)) {
-              // Error
-            }
+          .catch(() => {
+            // TODO
           });
       }
     );

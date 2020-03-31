@@ -65,6 +65,8 @@ import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'LocalStore';
 
+const REMOTE_SNAPSHOT_REVERTED_ERROR_MSG = 'Remote version went back in time';
+
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
   batchId: BatchId;
@@ -523,7 +525,7 @@ export class LocalStore {
             if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
               if (remoteVersion.compareTo(lastRemoteSnapshotVersion) < 0) {
                 return PersistencePromise.reject<MaybeDocumentMap>(
-                  new Error('Remote version went back in time')
+                  new FirestoreError(Code.FAILED_PRECONDITION, REMOTE_SNAPSHOT_REVERTED_ERROR_MSG)
                 );
               }
               promises.push(
@@ -1111,6 +1113,19 @@ export function handlePrimaryLeaseLoss(err: FirestoreError): boolean {
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
     logDebug(LOG_TAG, 'Unexpectedly lost primary lease');
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+export function handleOutdatedRemoteSnapshot(err: FirestoreError): boolean {
+  if (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === REMOTE_SNAPSHOT_REVERTED_ERROR_MSG
+  ) {
+    logDebug(LOG_TAG, 'Remote version went back in time');
     return true;
   } else {
     return false;

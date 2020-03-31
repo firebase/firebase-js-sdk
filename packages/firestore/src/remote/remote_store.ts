@@ -590,10 +590,8 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(err => {
-        if (!handlePrimaryLeaseLoss(err)) {
-          // Error
-        }
+      .catch(() => {
+        // TODO
       });
   }
 
@@ -671,10 +669,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
-        .catch(err => {
-          if (!handlePrimaryLeaseLoss(err)) {
-            // Error
-          }
+        .catch(() => {
+          // TODO
         });
     } else {
       // Some other error, don't reset stream token. Our stream logic will

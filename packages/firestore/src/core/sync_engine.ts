@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import {
+  handleOutdatedRemoteSnapshot,
   handlePrimaryLeaseLoss,
   LocalStore,
   LocalWriteResult
@@ -38,7 +39,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import {logDebug, logError} from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -74,6 +75,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import {findIndex} from "../util/array";
 
 const LOG_TAG = 'SyncEngine';
 
@@ -346,16 +348,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (!targetRemainsActive) {
         await this.localStore
           .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
+          .catch(err => logError(LOG_TAG, 'Failed to release target: ' + err))
           .then(() => {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupTarget(queryView.targetId);
           })
-          .catch(err => {
-            if (!handlePrimaryLeaseLoss(err)) {
-              log.error(LOG_TAG, 'Unexpected error: ' + err);
-            }
-          });
       }
     } else {
       this.removeAndCleanupTarget(queryView.targetId);
@@ -462,11 +460,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
-      if (handlePrimaryLeaseLoss(error)) {
-        return;
-      }
-
-      if (error.message === 'Remote version went back in time') {
+      if (handlePrimaryLeaseLoss(error) || handleOutdatedRemoteSnapshot(error)) {
         return;
       }
       
@@ -474,9 +468,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // targets affected by the remote event. This allows the user to relisten
       // to these targets from a previously persisted state.
       let p = Promise.resolve();
-      objUtils.forEachNumber(remoteEvent.targetChanges, targetId => {
+      remoteEvent.targetChanges.forEach((_, targetId) => {
         p = p
-          .then()
           .then(() =>
             this.rejectListen(
               targetId,
@@ -568,18 +561,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       return this.applyRemoteEvent(event);
     } else {
-      try {
-        await this.localStore.releaseTarget(
-          targetId,
-          /* keepPersistedTargetData */ false
-        );
-        this.removeAndCleanupTarget(targetId, err);
-      } catch (error) {
-        if (!handlePrimaryLeaseLoss(error)) {
-          log.error(LOG_TAG, 'Failed to release target: ' + error.message);
-          this.removeAndCleanupTarget(targetId, err);
-        }
-      }
+      await this.localStore
+        .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+        .catch( error =>     logError(LOG_TAG, 'Failed to release target: ' + error.message))
+        .then(() => this.removeAndCleanupTarget(targetId, err))
     }
   }
 
@@ -642,10 +627,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (err) {
-      if (!handlePrimaryLeaseLoss(err)) {
-        // Error
-      }
+    } catch (error) {
+      // TODO
     }
   }
 
@@ -667,10 +650,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const changes = await this.localStore.rejectBatch(batchId);
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (err) {
-      if (!handlePrimaryLeaseLoss(err)) {
-        // Error
-      }
+    } catch (error) {
+      // TODO
     }
   }
 
@@ -1211,13 +1192,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // Release queries that are still active.
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+        .catch(error => logError(LOG_TAG, "Failed to release target " + error.message))
         .then(() => {
           this.remoteStore.unlisten(targetId);
           this.removeAndCleanupTarget(targetId);
-        })
-        .catch(err => {
-          if (!handlePrimaryLeaseLoss(err)) {
-          }
         });
     }
   }
