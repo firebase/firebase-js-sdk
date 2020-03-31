@@ -125,7 +125,7 @@ export function authCredentialFromTokenResponse(
         pendingToken,
         idToken: oauthIdToken,
         accessToken,
-        signInMethod: (providerId as unknown) as SignInMethod
+        signInMethod: providerId as string as SignInMethod
       });
     }
 
