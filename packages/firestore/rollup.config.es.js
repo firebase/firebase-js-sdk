@@ -40,7 +40,7 @@ const plugins = [
       comments: 'all',
       beautify: true
     },
-    mangle: {}
+    mangle: false
   }),
   sourcemaps()
 ];

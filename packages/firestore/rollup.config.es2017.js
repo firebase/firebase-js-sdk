@@ -94,7 +94,7 @@ const browserBuildPlugins = [
         target: 'es2017'
       }
     },
-    cacheRoot: './.cache/browser/',
+    clean: true,
     transformers: appendPrivatePrefixTransformers
   }),
   json({ preferConst: true }),
@@ -132,10 +132,12 @@ const browserBuilds = [
 const nodeBuildPlugins = [
   typescriptPlugin({
     typescript,
-    compilerOptions: {
-      target: 'es2017'
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
     },
-    cacheRoot: `./.cache/node/`
+    clean: true
   }),
   json(),
   // Needed as we also use the *.proto files
@@ -151,7 +153,7 @@ const nodeBuilds = [
   // Persistence build
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.mainES2017, format: 'cjs', sourcemap: true }],
+    output: [{ file: pkg.mainES2017, format: 'es', sourcemap: true }],
     plugins: nodeBuildPlugins,
     external: resolveNodeExterns
   },
@@ -161,7 +163,7 @@ const nodeBuilds = [
     output: [
       {
         file: path.resolve('./memory', memoryPkg.mainES2017),
-        format: 'cjs',
+        format: 'es',
         sourcemap: true
       }
     ],
