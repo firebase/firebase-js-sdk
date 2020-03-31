@@ -25,6 +25,7 @@ import {
 } from '.';
 import { ServerErrorMap, ServerError } from './errors';
 import { AuthErrorCode } from '../core/errors';
+import {ProviderId} from '../core/providers';
 
 export interface CreateAuthUriRequest {
   identifier: string;
@@ -215,7 +216,6 @@ export interface SignInWithIdpRequest {
 }
 
 export interface SignInWithIdpResponse extends IdTokenResponse {
-  providerId?: string;
   oauthAccessToken?: string;
   oauthTokenSecret?: string;
   nonce?: string;

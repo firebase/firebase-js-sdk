@@ -23,7 +23,7 @@ import {
 } from './id_token';
 import { deleteUser } from '../core/account_management/delete';
 import { Auth } from './auth';
-import { ProviderId } from '../core/providers/index';
+import { ProviderId } from '../core/providers';
 import { reload } from '../core/account_management/reload';
 import { MultiFactorInfo } from './multi_factor';
 
@@ -34,13 +34,6 @@ export interface UserInfo {
   readonly phoneNumber: string | null;
   readonly providerId: string | null;
   readonly photoURL: string | null;
-}
-
-export interface AdditionalUserInfo {
-  readonly isNewUser: boolean;
-  readonly profile: ProfileInfo;
-  readonly providerId: string;
-  readonly username?: string | null;
 }
 
 export interface UserMetadata {

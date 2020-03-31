@@ -26,8 +26,8 @@ import { Auth } from '../../model/auth';
 import { UserCredential, OperationType } from '../../model/user_credential';
 import { IdTokenResponse, verifyTokenResponseUid } from '../../model/id_token';
 import { User } from '../../model/user';
-import { initializeCurrentUserFromIdTokenResponse } from '../strategies';
 import { authCredentialFromTokenResponse } from '../strategies/auth_credential';
+import {createUserCredentialFromIdTokenResponse} from '../strategies';
 
 interface AnyError extends Error {
   [key: string]: unknown;
@@ -69,12 +69,8 @@ class MultiFactorResolverImpl implements MultiFactorResolver {
       await this.user.reload(this.auth);
       return userCred;
     } else {
-      const user = await initializeCurrentUserFromIdTokenResponse(
-        this.auth,
-        result
-      );
       const credential = authCredentialFromTokenResponse(result);
-      return new UserCredential(user, credential, OperationType.SIGN_IN);
+      return createUserCredentialFromIdTokenResponse(this.auth, credential, OperationType.SIGN_IN, result);
     }
   }
 }

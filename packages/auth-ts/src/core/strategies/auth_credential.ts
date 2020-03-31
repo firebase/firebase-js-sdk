@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 import { UserCredential, OperationType } from '../../model/user_credential';
-import { Auth } from '../..';
-import {
-  initializeCurrentUserFromIdTokenResponse,
-  checkIfAlreadyLinked
-} from '.';
-import { IdTokenResponse, parseIdToken } from '../../model/id_token';
+import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import {
   PhoneOrOauthTokenResponse,
@@ -38,6 +33,7 @@ import { SAML_PROVIDER_PREFIX, SAMLAuthProvider } from '../providers/saml';
 import { GenericOAuthCredential } from '../providers/oauth_credential';
 import { OAuthProvider } from '../providers/oauth';
 import { callApiWithMfaContext } from '../mfa/error_processor';
+import { checkIfAlreadyLinked, createUserCredentialFromIdTokenResponse } from './index';
 
 export async function signInWithCredential(
   auth: Auth,
@@ -47,8 +43,8 @@ export async function signInWithCredential(
     () => credential.getIdTokenResponse_(auth),
     OperationType.SIGN_IN
   );
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
-  return new UserCredential(user, credential, OperationType.SIGN_IN);
+  return createUserCredentialFromIdTokenResponse(auth, credential, OperationType.SIGN_IN, response);
+
 }
 
 export async function linkWithCredential(
@@ -122,7 +118,7 @@ export function authCredentialFromTokenResponse(
         pendingToken,
         idToken: oauthIdToken,
         accessToken,
-        signInMethod: providerId as SignInMethod
+        signInMethod: providerId as unknown as SignInMethod
       });
     }
 

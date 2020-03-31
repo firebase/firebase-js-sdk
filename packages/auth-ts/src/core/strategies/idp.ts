@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { Auth } from '../..';
-import { UserCredential, OperationType } from '../../model/user_credential';
+import { Auth } from '../../model/auth';
+import {UserCredential, OperationType} from '../../model/user_credential';
 import { SignInWithIdpRequest, signInWithIdp } from '../../api/authentication';
-import { initializeCurrentUserFromIdTokenResponse } from '.';
 import { authCredentialFromTokenResponse } from './auth_credential';
 import { User } from '../../model/user';
 import { verifyTokenResponseUid } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { callApiWithMfaContext } from '../mfa/error_processor';
+import { createUserCredentialFromIdTokenResponse } from './index';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -63,9 +63,8 @@ export async function signIn(params: IdpTaskParams): Promise<UserCredential> {
     () => signInWithIdp(auth, request),
     OperationType.SIGN_IN
   );
-  const user = await initializeCurrentUserFromIdTokenResponse(auth, response);
   const credential = authCredentialFromTokenResponse(response);
-  return new UserCredential(user, credential, OperationType.SIGN_IN);
+  return createUserCredentialFromIdTokenResponse(auth, credential, OperationType.SIGN_IN, response);
 }
 
 export async function reauth(params: IdpTaskParams): Promise<UserCredential> {

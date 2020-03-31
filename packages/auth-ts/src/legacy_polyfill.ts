@@ -76,7 +76,6 @@ import {
 } from './core/strategies/sms';
 import { AuthCredential } from './model/auth_credential';
 import { UserCredential } from './model/user_credential';
-import { AdditionalUserInfo } from './model/user';
 import { ProviderId, AuthProvider } from './core/providers';
 import { unlink } from './core/account_management/unlink';
 import {
@@ -99,7 +98,7 @@ import { MultiFactorAssertion, MultiFactorInfo } from './model/multi_factor';
 import { multiFactor } from './core/mfa/multi_factor';
 import { AuthErrorCode } from './core/errors';
 import { getMultiFactorResolver } from './core/mfa/multi_factor_resolver';
-import {getAdditionalUserInfo} from './core/account_management/additional_user_info';
+import { AdditionalUserInfo, getAdditionalUserInfo } from './model/additional_user_info';
 
 interface FirebaseAuth extends Auth {}
 interface LegacyUserCredential {
