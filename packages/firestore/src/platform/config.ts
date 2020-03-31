@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType, Provider } from '@firebase/component';
@@ -37,7 +37,6 @@ import { FieldPath } from '../api/field_path';
 import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
-import { shallowCopy } from '../util/obj';
 
 const firestoreNamespace = {
   Firestore: PublicFirestore,
@@ -80,6 +79,6 @@ export function configureForFirebase(
         return firestoreFactory(app, container.getProvider('auth-internal'));
       },
       ComponentType.PUBLIC
-    ).setServiceProps(shallowCopy(firestoreNamespace))
+    ).setServiceProps({ ...firestoreNamespace })
   );
 }

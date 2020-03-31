@@ -165,6 +165,10 @@ function constructRequestPath() {
     const pullRequestNumber = process.env.GITHUB_PULL_REQUEST_NUMBER;
     const pullRequestBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
     path += `?pull_request=${pullRequestNumber}&base_commit=${pullRequestBaseSha}`;
+  } else if (process.env.GITHUB_EVENT_NAME === 'push') {
+    const ref = process.env.GITHUB_REF; // 'refs/heads/<some-branch-name>'
+    const branch = ref.substring('refs/heads/'.length);
+    path += `?branch=${branch}`;
   }
   return path;
 }

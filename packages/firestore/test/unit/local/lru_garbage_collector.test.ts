@@ -20,7 +20,6 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -49,7 +48,7 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { key, path, wrapObject } from '../../util/helpers';
+import { key, path, version, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -246,7 +245,7 @@ function genericLruGarbageCollectorTests(
     const key = nextTestDocumentKey();
     return new Document(
       key,
-      SnapshotVersion.fromMicroseconds(1000),
+      version(1000),
       wrapObject({
         foo: 3,
         bar: false
@@ -784,7 +783,7 @@ function genericLruGarbageCollectorTests(
       txn => {
         const doc = new Document(
           middleDocToUpdate,
-          SnapshotVersion.fromMicroseconds(2000),
+          version(2000),
           wrapObject({
             foo: 4,
             bar: true

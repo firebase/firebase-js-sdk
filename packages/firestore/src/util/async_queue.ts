@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 import { assert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import * as log from './log';
+import { logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 
 // Accept any return type from setTimeout().
@@ -287,16 +287,7 @@ export class AsyncQueue {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';
-          log.error('INTERNAL UNHANDLED ERROR: ', message);
-
-          // Escape the promise chain and throw the error globally so that
-          // e.g. any global crash reporting library detects and reports it.
-          // (but not for simulated errors in our tests since this breaks mocha)
-          if (message.indexOf('Firestore Test Simulated Error') < 0) {
-            setTimeout(() => {
-              throw error;
-            }, 0);
-          }
+          logError('INTERNAL UNHANDLED ERROR: ', message);
 
           // Re-throw the error so that this.tail becomes a rejected Promise and
           // all further attempts to chain (via .then) will just short-circuit

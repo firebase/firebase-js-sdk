@@ -38,7 +38,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -49,7 +49,6 @@ import {
   QueryTargetState,
   SharedClientStateSyncer
 } from '../local/shared_client_state_syncer';
-import * as objUtils from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
 import { Query, LimitType } from './query';
@@ -151,13 +150,24 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
   );
-  private queriesByTarget: { [targetId: number]: Query[] } = {};
-  private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
+  private queriesByTarget = new Map<TargetId, Query[]>();
+  /**
+   * The keys of documents that are in limbo for which we haven't yet started a
+   * limbo resolution query.
+   */
+  private enqueuedLimboResolutions: DocumentKey[] = [];
+  /**
+   * Keeps track of the target ID for each document that is in limbo with an
+   * active target.
+   */
+  private activeLimboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
-  private limboResolutionsByTarget: {
-    [targetId: number]: LimboResolution;
-  } = {};
+  /**
+   * Keeps track of the information about an active limbo resolution for each
+   * active target ID that was started for the purpose of limbo resolution.
+   */
+  private activeLimboResolutionsByTarget = new Map<TargetId, LimboResolution>();
   private limboDocumentRefs = new ReferenceSet();
   /** Stores user completion handlers, indexed by User and BatchId. */
   private mutationUserCallbacks = {} as {
@@ -178,7 +188,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     private remoteStore: RemoteStore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
-    private currentUser: User
+    private currentUser: User,
+    private maxConcurrentLimboResolutions: number
   ) {}
 
   // Only used for testing.
@@ -275,10 +286,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     const data = new QueryView(query, targetId, view);
     this.queryViewsByQuery.set(query, data);
-    if (!this.queriesByTarget[targetId]) {
-      this.queriesByTarget[targetId] = [];
+    if (this.queriesByTarget.has(targetId)) {
+      this.queriesByTarget.get(targetId)!.push(query);
+    } else {
+      this.queriesByTarget.set(targetId, [query]);
     }
-    this.queriesByTarget[targetId].push(query);
     return viewChange.snapshot!;
   }
 
@@ -312,10 +324,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     // Only clean up the query view and target if this is the only query mapped
     // to the target.
-    const queries = this.queriesByTarget[queryView.targetId];
+    const queries = this.queriesByTarget.get(queryView.targetId)!;
     if (queries.length > 1) {
-      this.queriesByTarget[queryView.targetId] = queries.filter(
-        q => !q.isEqual(query)
+      this.queriesByTarget.set(
+        queryView.targetId,
+        queries.filter(q => !q.isEqual(query))
       );
       this.queryViewsByQuery.delete(query);
       return;
@@ -415,8 +428,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     try {
       const changes = await this.localStore.applyRemoteEvent(remoteEvent);
       // Update `receivedDocument` as appropriate for any limbo targets.
-      objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
-        const limboResolution = this.limboResolutionsByTarget[Number(targetId)];
+      remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+        const limboResolution = this.activeLimboResolutionsByTarget.get(
+          targetId
+        );
         if (limboResolution) {
           // Since this is a limbo resolution lookup, it's for a single document
           // and it could be added, modified, or removed, but not a combination.
@@ -518,13 +533,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // PORTING NOTE: Multi-tab only.
     this.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
-    const limboResolution = this.limboResolutionsByTarget[targetId];
+    const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
       // Since this query failed, we won't want to manually unlisten to it.
       // So go ahead and remove it from bookkeeping.
-      this.limboTargetsByKey = this.limboTargetsByKey.remove(limboKey);
-      delete this.limboResolutionsByTarget[targetId];
+      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
+        limboKey
+      );
+      this.activeLimboResolutionsByTarget.delete(targetId);
+      this.pumpEnqueuedLimboResolutions();
 
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
@@ -543,7 +561,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const resolvedLimboDocuments = documentKeySet().add(limboKey);
       const event = new RemoteEvent(
         SnapshotVersion.MIN,
-        /* targetChanges= */ {},
+        /* targetChanges= */ new Map<TargetId, TargetChange>(),
         /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
         documentUpdates,
         resolvedLimboDocuments
@@ -582,7 +600,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // had, we would have cached the affected documents), and so we will just
       // see any resulting document changes via normal remote document updates
       // as applicable.
-      log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      logDebug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
       return;
     }
 
@@ -662,7 +680,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
-      log.debug(
+      logDebug(
         LOG_TAG,
         'The network is disabled. The task returned by ' +
           "'awaitPendingWrites()' will not complete until the network is enabled."
@@ -752,19 +770,19 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.sharedClientState.removeLocalQueryTarget(targetId);
 
     assert(
-      this.queriesByTarget[targetId] &&
-        this.queriesByTarget[targetId].length !== 0,
+      this.queriesByTarget.has(targetId) &&
+        this.queriesByTarget.get(targetId)!.length !== 0,
       `There are no queries mapped to target id ${targetId}`
     );
 
-    for (const query of this.queriesByTarget[targetId]) {
+    for (const query of this.queriesByTarget.get(targetId)!) {
       this.queryViewsByQuery.delete(query);
       if (error) {
         this.syncEngineListener!.onWatchError(query, error);
       }
     }
 
-    delete this.queriesByTarget[targetId];
+    this.queriesByTarget.delete(targetId);
 
     if (this.isPrimary) {
       const limboKeys = this.limboDocumentRefs.referencesForId(targetId);
@@ -782,15 +800,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private removeLimboTarget(key: DocumentKey): void {
     // It's possible that the target already got removed because the query failed. In that case,
     // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
-    const limboTargetId = this.limboTargetsByKey.get(key);
+    const limboTargetId = this.activeLimboTargetsByKey.get(key);
     if (limboTargetId === null) {
       // This target already got removed, because the query failed.
       return;
     }
 
     this.remoteStore.unlisten(limboTargetId);
-    this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
-    delete this.limboResolutionsByTarget[limboTargetId];
+    this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(key);
+    this.activeLimboResolutionsByTarget.delete(limboTargetId);
+    this.pumpEnqueuedLimboResolutions();
   }
 
   private updateTrackedLimbos(
@@ -802,7 +821,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
         this.trackLimboChange(limboChange);
       } else if (limboChange instanceof RemovedLimboDocument) {
-        log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
+        logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
         const isReferenced = this.limboDocumentRefs.containsKey(
           limboChange.key
@@ -819,29 +838,55 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
-    if (!this.limboTargetsByKey.get(key)) {
-      log.debug(LOG_TAG, 'New document in limbo: ' + key);
+    if (!this.activeLimboTargetsByKey.get(key)) {
+      logDebug(LOG_TAG, 'New document in limbo: ' + key);
+      this.enqueuedLimboResolutions.push(key);
+      this.pumpEnqueuedLimboResolutions();
+    }
+  }
+
+  /**
+   * Starts listens for documents in limbo that are enqueued for resolution,
+   * subject to a maximum number of concurrent resolutions.
+   *
+   * Without bounding the number of concurrent resolutions, the server can fail
+   * with "resource exhausted" errors which can lead to pathological client
+   * behavior as seen in https://github.com/firebase/firebase-js-sdk/issues/2683.
+   */
+  private pumpEnqueuedLimboResolutions(): void {
+    while (
+      this.enqueuedLimboResolutions.length > 0 &&
+      this.activeLimboTargetsByKey.size < this.maxConcurrentLimboResolutions
+    ) {
+      const key = this.enqueuedLimboResolutions.shift()!;
       const limboTargetId = this.limboTargetIdGenerator.next();
-      const query = Query.atPath(key.path);
-      this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
+      this.activeLimboResolutionsByTarget.set(
+        limboTargetId,
+        new LimboResolution(key)
+      );
+      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.insert(
+        key,
+        limboTargetId
+      );
       this.remoteStore.listen(
         new TargetData(
-          query.toTarget(),
+          Query.atPath(key.path).toTarget(),
           limboTargetId,
           TargetPurpose.LimboResolution,
           ListenSequence.INVALID
         )
       );
-      this.limboTargetsByKey = this.limboTargetsByKey.insert(
-        key,
-        limboTargetId
-      );
     }
   }
 
   // Visible for testing
-  currentLimboDocs(): SortedMap<DocumentKey, TargetId> {
-    return this.limboTargetsByKey;
+  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId> {
+    return this.activeLimboTargetsByKey;
+  }
+
+  // Visible for testing
+  enqueuedLimboDocumentResolutions(): DocumentKey[] {
+    return this.enqueuedLimboResolutions;
   }
 
   private async emitNewSnapsAndNotifyLocalStore(
@@ -874,7 +919,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           })
           .then((viewDocChanges: ViewDocumentChanges) => {
             const targetChange =
-              remoteEvent && remoteEvent.targetChanges[queryView.targetId];
+              remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
               /* updateLimboDocuments= */ this.isPrimary === true,
@@ -963,7 +1008,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const activeTargets: TargetId[] = [];
 
       let p = Promise.resolve();
-      objUtils.forEachNumber(this.queriesByTarget, (targetId, _) => {
+      this.queriesByTarget.forEach((_, targetId) => {
         if (this.sharedClientState.isLocalQueryTarget(targetId)) {
           activeTargets.push(targetId);
         } else {
@@ -987,12 +1032,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   // PORTING NOTE: Multi-tab only.
   private resetLimboDocuments(): void {
-    objUtils.forEachNumber(this.limboResolutionsByTarget, targetId => {
+    this.activeLimboResolutionsByTarget.forEach((_, targetId) => {
       this.remoteStore.unlisten(targetId);
     });
     this.limboDocumentRefs.removeAllReferences();
-    this.limboResolutionsByTarget = [];
-    this.limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
+    this.activeLimboResolutionsByTarget = new Map<TargetId, LimboResolution>();
+    this.activeLimboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
       DocumentKey.comparator
     );
   }
@@ -1010,7 +1055,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const newViewSnapshots: ViewSnapshot[] = [];
     for (const targetId of targets) {
       let targetData: TargetData;
-      const queries = this.queriesByTarget[targetId];
+      const queries = this.queriesByTarget.get(targetId);
 
       if (queries && queries.length !== 0) {
         // For queries that have a local View, we need to update their state
@@ -1098,11 +1143,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
-      log.debug(LOG_TAG, 'Ignoring unexpected query state notification.');
+      logDebug(LOG_TAG, 'Ignoring unexpected query state notification.');
       return;
     }
 
-    if (this.queriesByTarget[targetId]) {
+    if (this.queriesByTarget.has(targetId)) {
       switch (state) {
         case 'current':
         case 'not-current': {
@@ -1142,7 +1187,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     for (const targetId of added) {
       assert(
-        !this.queriesByTarget[targetId],
+        !this.queriesByTarget.has(targetId),
         'Trying to add an already active target'
       );
       const target = await this.localStore.getTarget(targetId);
@@ -1159,7 +1204,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     for (const targetId of removed) {
       // Check that the target is still active since the target might have been
       // removed if it has been rejected by the backend.
-      if (!this.queriesByTarget[targetId]) {
+      if (!this.queriesByTarget.has(targetId)) {
         continue;
       }
 
@@ -1192,12 +1237,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    const limboResolution = this.limboResolutionsByTarget[targetId];
+    const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     if (limboResolution && limboResolution.receivedDocument) {
       return documentKeySet().add(limboResolution.key);
     } else {
       let keySet = documentKeySet();
-      const queries = this.queriesByTarget[targetId];
+      const queries = this.queriesByTarget.get(targetId);
       if (!queries) {
         return keySet;
       }

@@ -31,7 +31,7 @@ export class AutoId {
     let autoId = '';
     while (autoId.length < 20) {
       const bytes = PlatformSupport.getPlatform().randomBytes(40);
-      bytes.forEach(b => {
+      for (const b of Array.from(bytes)) {
         // Length of `chars` is 62. We only take bytes between 0 and 62*4-1
         // (both inclusive). The value is then evenly mapped to indices of `char`
         // via a modulo operation.
@@ -39,7 +39,7 @@ export class AutoId {
         if (autoId.length < 20 && b <= maxValue) {
           autoId += chars.charAt(b % 62);
         }
-      });
+      }
     }
     assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;
@@ -56,23 +56,8 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
-/** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
-}
-
-/** Helper to compare nullable (or undefined-able) objects using isEqual(). */
-export function equals<T>(
-  left: Equatable<T> | null | undefined,
-  right: T | null | undefined
-): boolean {
-  if (left !== null && left !== undefined) {
-    return !!(right && left.isEqual(right));
-  } else {
-    // HACK: Explicitly cast since TypeScript's type narrowing apparently isn't
-    // smart enough.
-    return (left as null | undefined) === right;
-  }
 }
 
 /** Helper to compare arrays using isEqual(). */

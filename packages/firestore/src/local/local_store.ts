@@ -39,9 +39,8 @@ import {
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 
@@ -536,125 +535,122 @@ export class LocalStore {
               );
             }
 
-            const documentBuffer = this.remoteDocuments.newChangeBuffer({
-              trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-            });
+        const documentBuffer = this.remoteDocuments.newChangeBuffer({
+          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+        });
 
-            // Reset newTargetDataByTargetMap in case this transaction gets re-run.
-            newTargetDataByTargetMap = this.targetDataByTarget;
+        // Reset newTargetDataByTargetMap in case this transaction gets re-run.
+        newTargetDataByTargetMap = this.targetDataByTarget;
 
-            objUtils.forEachNumber(
-              remoteEvent.targetChanges,
-              (targetId: TargetId, change: TargetChange) => {
-                const oldTargetData = newTargetDataByTargetMap.get(targetId);
-                if (!oldTargetData) {
-                  return;
-                }
+        remoteEvent.targetChanges.forEach((change, targetId) => {
+          const oldTargetData = newTargetDataByTargetMap.get(targetId);
+          if (!oldTargetData) {
+            return;
+          }
 
-                // Only update the remote keys if the target is still active. This
-                // ensures that we can persist the updated target data along with
-                // the updated assignment.
-                promises.push(
-                  this.targetCache
-                    .removeMatchingKeys(txn, change.removedDocuments, targetId)
-                    .next(() => {
-                      return this.targetCache.addMatchingKeys(
-                        txn,
-                        change.addedDocuments,
-                        targetId
-                      );
-                    })
+          // Only update the remote keys if the target is still active. This
+          // ensures that we can persist the updated target data along with
+          // the updated assignment.
+          promises.push(
+            this.targetCache
+              .removeMatchingKeys(txn, change.removedDocuments, targetId)
+              .next(() => {
+                return this.targetCache.addMatchingKeys(
+                  txn,
+                  change.addedDocuments,
+                  targetId
                 );
-
-                const resumeToken = change.resumeToken;
-                // Update the resume token if the change includes one.
-                if (resumeToken.approximateByteSize() > 0) {
-                  const newTargetData = oldTargetData
-                    .withResumeToken(resumeToken, remoteVersion)
-                    .withSequenceNumber(txn.currentSequenceNumber);
-                  newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
-                    targetId,
-                    newTargetData
-                  );
-
-                  // Update the target data if there are target changes (or if
-                  // sufficient time has passed since the last update).
-                  if (
-                    LocalStore.shouldPersistTargetData(
-                      oldTargetData,
-                      newTargetData,
-                      change
-                    )
-                  ) {
-                    promises.push(
-                      this.targetCache.updateTargetData(txn, newTargetData)
-                    );
-                  }
-                }
-              }
-            );
-
-            let changedDocs = maybeDocumentMap();
-            let updatedKeys = documentKeySet();
-            remoteEvent.documentUpdates.forEach((key, doc) => {
-              updatedKeys = updatedKeys.add(key);
-            });
-
-            // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
-            // documents in advance in a single call.
-            promises.push(
-              documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-                remoteEvent.documentUpdates.forEach((key, doc) => {
-                  const existingDoc = existingDocs.get(key);
-
-                  // Note: The order of the steps below is important, since we want
-                  // to ensure that rejected limbo resolutions (which fabricate
-                  // NoDocuments with SnapshotVersion.MIN) never add documents to
-                  // cache.
-                  if (
-                    doc instanceof NoDocument &&
-                    doc.version.isEqual(SnapshotVersion.MIN)
-                  ) {
-                    // NoDocuments with SnapshotVersion.MIN are used in manufactured
-                    // events. We remove these documents from cache since we lost
-                    // access.
-                    documentBuffer.removeEntry(key, remoteVersion);
-                    changedDocs = changedDocs.insert(key, doc);
-                  } else if (
-                    existingDoc == null ||
-                    doc.version.compareTo(existingDoc.version) > 0 ||
-                    (doc.version.compareTo(existingDoc.version) === 0 &&
-                      existingDoc.hasPendingWrites)
-                  ) {
-                    assert(
-                      !SnapshotVersion.MIN.isEqual(remoteVersion),
-                      'Cannot add a document when the remote version is zero'
-                    );
-                    documentBuffer.addEntry(doc, remoteVersion);
-                    changedDocs = changedDocs.insert(key, doc);
-                  } else {
-                    log.debug(
-                      LOG_TAG,
-                      'Ignoring outdated watch update for ',
-                      key,
-                      '. Current version:',
-                      existingDoc.version,
-                      ' Watch version:',
-                      doc.version
-                    );
-                  }
-
-                  if (remoteEvent.resolvedLimboDocuments.has(key)) {
-                    promises.push(
-                      this.persistence.referenceDelegate.updateLimboDocument(
-                        txn,
-                        key
-                      )
-                    );
-                  }
-                });
               })
+          );
+
+          const resumeToken = change.resumeToken;
+          // Update the resume token if the change includes one.
+          if (resumeToken.approximateByteSize() > 0) {
+            const newTargetData = oldTargetData
+              .withResumeToken(resumeToken, remoteVersion)
+              .withSequenceNumber(txn.currentSequenceNumber);
+            newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
+              targetId,
+              newTargetData
             );
+
+            // Update the target data if there are target changes (or if
+            // sufficient time has passed since the last update).
+            if (
+              LocalStore.shouldPersistTargetData(
+                oldTargetData,
+                newTargetData,
+                change
+              )
+            ) {
+              promises.push(
+                this.targetCache.updateTargetData(txn, newTargetData)
+              );
+            }
+          }
+        });
+
+        let changedDocs = maybeDocumentMap();
+        let updatedKeys = documentKeySet();
+        remoteEvent.documentUpdates.forEach((key, doc) => {
+          updatedKeys = updatedKeys.add(key);
+        });
+
+        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+        // documents in advance in a single call.
+        promises.push(
+          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+            remoteEvent.documentUpdates.forEach((key, doc) => {
+              const existingDoc = existingDocs.get(key);
+
+              // Note: The order of the steps below is important, since we want
+              // to ensure that rejected limbo resolutions (which fabricate
+              // NoDocuments with SnapshotVersion.MIN) never add documents to
+              // cache.
+              if (
+                doc instanceof NoDocument &&
+                doc.version.isEqual(SnapshotVersion.MIN)
+              ) {
+                // NoDocuments with SnapshotVersion.MIN are used in manufactured
+                // events. We remove these documents from cache since we lost
+                // access.
+                documentBuffer.removeEntry(key, remoteVersion);
+                changedDocs = changedDocs.insert(key, doc);
+              } else if (
+                existingDoc == null ||
+                doc.version.compareTo(existingDoc.version) > 0 ||
+                (doc.version.compareTo(existingDoc.version) === 0 &&
+                  existingDoc.hasPendingWrites)
+              ) {
+                assert(
+                  !SnapshotVersion.MIN.isEqual(remoteVersion),
+                  'Cannot add a document when the remote version is zero'
+                );
+                documentBuffer.addEntry(doc, remoteVersion);
+                changedDocs = changedDocs.insert(key, doc);
+              } else {
+                logDebug(
+                  LOG_TAG,
+                  'Ignoring outdated watch update for ',
+                  key,
+                  '. Current version:',
+                  existingDoc.version,
+                  ' Watch version:',
+                  doc.version
+                );
+              }
+
+              if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                promises.push(
+                  this.persistence.referenceDelegate.updateLimboDocument(
+                    txn,
+                    key
+                  )
+                );
+              }
+            });
+          })
+        );
 
             return PersistencePromise.waitFor(promises)
               .next(() => documentBuffer.apply(txn))
@@ -1114,7 +1110,7 @@ export function handlePrimaryLeaseLoss(err: FirestoreError): boolean {
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
-    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    logDebug(LOG_TAG, 'Unexpectedly lost primary lease');
     return true;
   } else {
     return false;

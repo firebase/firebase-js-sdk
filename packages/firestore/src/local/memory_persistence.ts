@@ -20,17 +20,15 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
-import * as obj from '../util/obj';
+import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
-import { encode } from './encoded_resource_path';
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-
 import { DatabaseInfo } from '../core/database_info';
 import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
@@ -172,7 +170,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
@@ -193,9 +191,9 @@ export class MemoryPersistence implements Persistence {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or(
-      obj
-        .values(this.mutationQueues)
-        .map(queue => () => queue.containsKey(transaction, key))
+      Object.values(this.mutationQueues).map(queue => () =>
+        queue.containsKey(transaction, key)
+      )
     );
   }
 }
@@ -331,7 +329,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encode(k.path));
+  > = new ObjectMap(k => encodeResourcePath(k.path));
 
   readonly garbageCollector: LruGarbageCollector;
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { logDebug } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -53,6 +53,7 @@ import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
+const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -324,7 +325,7 @@ export class FirestoreClient {
    * implementation is available in this.persistence.
    */
   private initializeRest(user: User): Promise<void> {
-    debug(LOG_TAG, 'Initializing. user=', user.uid);
+    logDebug(LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -369,7 +370,8 @@ export class FirestoreClient {
           this.localStore,
           this.remoteStore,
           this.sharedClientState,
-          user
+          user,
+          MAX_CONCURRENT_LIMBO_RESOLUTIONS
         );
 
         this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
@@ -406,7 +408,7 @@ export class FirestoreClient {
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    debug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
+    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
     return this.syncEngine.handleCredentialChange(user);
   }
 

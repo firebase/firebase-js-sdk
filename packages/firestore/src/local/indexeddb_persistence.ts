@@ -26,10 +26,13 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
-
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath,
+  EncodedResourcePath
+} from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -427,7 +430,7 @@ export class IndexedDbPersistence implements Persistence {
           throw e;
         }
 
-        log.debug(
+        logDebug(
           LOG_TAG,
           'Releasing owner lease after error during lease refresh',
           e
@@ -634,7 +637,7 @@ export class IndexedDbPersistence implements Persistence {
       })
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
-          log.debug(
+          logDebug(
             LOG_TAG,
             `Client ${
               canActAsPrimary ? 'is' : 'is not'
@@ -760,7 +763,7 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    log.debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
 
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
 
@@ -790,7 +793,7 @@ export class IndexedDbPersistence implements Persistence {
             })
             .next(holdsPrimaryLease => {
               if (!holdsPrimaryLease) {
-                log.error(
+                logError(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
                 this.isPrimary = false;
@@ -897,7 +900,7 @@ export class IndexedDbPersistence implements Persistence {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
-        log.debug(LOG_TAG, 'Releasing primary lease.');
+        logDebug(LOG_TAG, 'Releasing primary lease.');
         return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
@@ -913,7 +916,7 @@ export class IndexedDbPersistence implements Persistence {
     if (updateTimeMs < minAcceptable) {
       return false;
     } else if (updateTimeMs > maxAcceptable) {
-      log.error(
+      logError(
         `Detected an update time that is in the future: ${updateTimeMs} > ${maxAcceptable}`
       );
       return false;
@@ -1007,7 +1010,7 @@ export class IndexedDbPersistence implements Persistence {
       const isZombied =
         this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
         null;
-      log.debug(
+      logDebug(
         LOG_TAG,
         `Client '${clientId}' ${
           isZombied ? 'is' : 'is not'
@@ -1016,7 +1019,7 @@ export class IndexedDbPersistence implements Persistence {
       return isZombied;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't working.
-      log.error(LOG_TAG, 'Failed to get zombied client id.', e);
+      logError(LOG_TAG, 'Failed to get zombied client id.', e);
       return false;
     }
   }
@@ -1033,7 +1036,7 @@ export class IndexedDbPersistence implements Persistence {
       );
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to set zombie client id.', e);
+      logError('Failed to set zombie client id.', e);
     }
   }
 
@@ -1244,7 +1247,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.
             if (nextToReport !== ListenSequence.INVALID) {
-              f(new DocumentKey(decode(nextPath)), nextToReport);
+              f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
             }
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
@@ -1264,7 +1267,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         // need to check if the last key we iterated over was an orphaned
         // document and report it.
         if (nextToReport !== ListenSequence.INVALID) {
-          f(new DocumentKey(decode(nextPath)), nextToReport);
+          f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
         }
       });
   }
@@ -1275,7 +1278,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 }
 
 function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
-  return [0, encode(key.path)];
+  return [0, encodeResourcePath(key.path)];
 }
 
 /**
@@ -1286,7 +1289,7 @@ function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
 ): DbTargetDocument {
-  return new DbTargetDocument(0, encode(key.path), sequenceNumber);
+  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
 }
 
 function writeSentinelKey(
