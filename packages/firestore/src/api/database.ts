@@ -96,7 +96,6 @@ import {
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { Dict } from '../util/obj';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
