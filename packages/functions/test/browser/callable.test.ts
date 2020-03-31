@@ -43,6 +43,10 @@ describe('Firebase Functions > Call', () => {
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
+    if (!('Notification' in self)) {
+      console.log('No Notification API: skipping instance id test.');
+      return;
+    }
     // mock firebase messaging
     const messagingMock: FirebaseMessaging = ({
       getToken: async () => 'iid'

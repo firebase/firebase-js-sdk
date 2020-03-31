@@ -88,7 +88,8 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      await fidDeferred.promise;
+      // For IE: Need to wrap it in another function as FID fetch is wrapped in initializeGAId.
+      await (() => fidDeferred.promise);
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -158,7 +159,8 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      await fidDeferred.promise;
+      // For IE: Need to wrap it in another function as FID fetch is wrapped in initializeGAId.
+      await (() => fidDeferred.promise);
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
