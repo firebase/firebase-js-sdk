@@ -57,7 +57,7 @@ export class NodePlatform implements Platform {
   }
 
   formatJSON(value: unknown): string {
-    // util's inspect() results in much more readable output than JSON.stringify()
+    // util.inspect() results in much more readable output than JSON.stringify()
     return inspect(value, { depth: 100 });
   }
 
