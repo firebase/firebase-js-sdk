@@ -16,6 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -29,7 +30,7 @@ import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { generateNextTargetId, Target } from '../core/target';
+import { Target } from '../core/target';
 
 export class MemoryTargetCache implements TargetCache {
   /**
@@ -50,6 +51,8 @@ export class MemoryTargetCache implements TargetCache {
   private references = new ReferenceSet();
 
   private targetCount = 0;
+
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   constructor(private readonly persistence: MemoryPersistence) {}
 
@@ -76,7 +79,7 @@ export class MemoryTargetCache implements TargetCache {
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
-    this.highestTargetId = generateNextTargetId(this.highestTargetId);
+    this.highestTargetId = this.targetIdGenerator.next();
     return PersistencePromise.resolve(this.highestTargetId);
   }
 
@@ -98,6 +101,7 @@ export class MemoryTargetCache implements TargetCache {
     this.targets.set(targetData.target, targetData);
     const targetId = targetData.targetId;
     if (targetId > this.highestTargetId) {
+      this.targetIdGenerator = new TargetIdGenerator(targetId);
       this.highestTargetId = targetId;
     }
     if (targetData.sequenceNumber > this.highestSequenceNumber) {

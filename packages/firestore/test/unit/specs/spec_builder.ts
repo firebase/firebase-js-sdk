@@ -16,12 +16,8 @@
  */
 
 import { FieldFilter, Filter, Query } from '../../../src/core/query';
-import {
-  generateNextTargetId,
-  Target,
-  TARGET_ID_OFFSET_LOCAL_STORE,
-  TARGET_ID_OFFSET_SYNC_ENGINE
-} from '../../../src/core/target';
+import { Target } from '../../../src/core/target';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
   Document,
@@ -38,7 +34,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
-import * as objUtils from '../../../src/util/obj';
+import { forEach } from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
 
@@ -67,8 +63,13 @@ export interface LimboMap {
   [key: string]: TargetId;
 }
 
+export interface ActiveTargetSpec {
+  queries: SpecQuery[];
+  resumeToken: string;
+}
+
 export interface ActiveTargetMap {
-  [targetId: string]: { queries: SpecQuery[]; resumeToken: string };
+  [targetId: string]: ActiveTargetSpec;
 }
 
 /**
@@ -86,7 +87,8 @@ export class ClientMemoryState {
   activeTargets: ActiveTargetMap = {};
   queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
   limboMapping: LimboMap = {};
-  nextLimboTargetId = TARGET_ID_OFFSET_SYNC_ENGINE;
+
+  limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   constructor() {
     this.reset();
@@ -97,13 +99,7 @@ export class ClientMemoryState {
     this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
     this.limboMapping = {};
     this.activeTargets = {};
-    this.nextLimboTargetId = TARGET_ID_OFFSET_SYNC_ENGINE;
-  }
-
-  generateLimboTargetId(): TargetId {
-    const nextLimboTargetId = this.nextLimboTargetId;
-    this.nextLimboTargetId = generateNextTargetId(this.nextLimboTargetId);
-    return nextLimboTargetId;
+    this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
   }
 
   /**
@@ -121,7 +117,7 @@ export class ClientMemoryState {
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
   private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-  private nextTargetId = TARGET_ID_OFFSET_LOCAL_STORE;
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   /**
    * Returns a cached target ID for the provided Target, or a new ID if no
@@ -131,8 +127,7 @@ class CachedTargetIdGenerator {
     if (this.queryMapping.has(target)) {
       return this.queryMapping.get(target)!;
     }
-    const targetId = this.nextTargetId;
-    this.nextTargetId = generateNextTargetId(this.nextTargetId);
+    const targetId = this.targetIdGenerator.next();
     this.queryMapping.set(target, targetId);
     return targetId;
   }
@@ -180,8 +175,8 @@ export class SpecBuilder {
     return this.currentClientState;
   }
 
-  private generateLimboTargetId(): TargetId {
-    return this.clientState.generateLimboTargetId();
+  private get limboIdGenerator(): TargetIdGenerator {
+    return this.clientState.limboIdGenerator;
   }
 
   private get queryMapping(): ObjectMap<Target, TargetId> {
@@ -247,7 +242,7 @@ export class SpecBuilder {
     this.addQueryToActiveTargets(targetId, query, resumeToken);
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -267,9 +262,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -289,7 +282,7 @@ export class SpecBuilder {
 
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -444,9 +437,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
     });
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -460,15 +451,15 @@ export class SpecBuilder {
 
     // Clear any preexisting limbo watch targets, which we'll re-create as
     // necessary from the provided keys below.
-    objUtils.forEach(this.limboMapping, (key, targetId) => {
+    forEach(this.limboMapping, (key, targetId) => {
       delete this.activeTargets[targetId];
     });
 
     keys.forEach(key => {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
-      if (!objUtils.contains(this.limboMapping, path)) {
-        this.limboMapping[path] = this.generateLimboTargetId();
+      if (!this.limboMapping[path]) {
+        this.limboMapping[path] = this.limboIdGenerator.next();
       }
       // Limbo doc queries are always without resume token
       this.addQueryToActiveTargets(
@@ -482,9 +473,7 @@ export class SpecBuilder {
     currentStep.expectedState.activeLimboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -627,7 +616,7 @@ export class SpecBuilder {
     if (cause) {
       delete this.activeTargets[this.getTargetId(query)];
       this.currentStep.expectedState = {
-        activeTargets: objUtils.shallowCopy(this.activeTargets)
+        activeTargets: { ...this.activeTargets }
       };
     }
     return this;
@@ -817,9 +806,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -839,9 +826,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 

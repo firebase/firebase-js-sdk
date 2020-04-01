@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ async function getChangedPackages() {
       }
     }
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {

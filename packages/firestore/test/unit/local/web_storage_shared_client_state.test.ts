@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import * as objUtils from '../../../src/util/obj';
+import { objectSize } from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
 import {
   clearWebStorage,
@@ -103,7 +103,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
   get sharedClientState(): TestSharedClientState {
     return {
-      mutationCount: objUtils.size(this.mutationState),
+      mutationCount: objectSize(this.mutationState),
       mutationState: this.mutationState,
       targetIds: this.activeTargets,
       targetState: this.queryState,

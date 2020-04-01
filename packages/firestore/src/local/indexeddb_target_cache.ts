@@ -22,8 +22,11 @@ import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-
-import * as EncodedResourcePath from './encoded_resource_path';
+import { TargetIdGenerator } from '../core/target_id_generator';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
   IndexedDbPersistence,
@@ -44,7 +47,7 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { generateNextTargetId, Target } from '../core/target';
+import { Target } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -63,7 +66,8 @@ export class IndexedDbTargetCache implements TargetCache {
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.highestTargetId = generateNextTargetId(metadata.highestTargetId);
+      const targetIdGenerator = new TargetIdGenerator(metadata.highestTargetId);
+      metadata.highestTargetId = targetIdGenerator.next();
       return this.saveMetadata(transaction, metadata).next(
         () => metadata.highestTargetId
       );
@@ -275,7 +279,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
     keys.forEach(key => {
-      const path = EncodedResourcePath.encode(key.path);
+      const path = encodeResourcePath(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
       promises.push(this.referenceDelegate.addReference(txn, key));
     });
@@ -291,7 +295,7 @@ export class IndexedDbTargetCache implements TargetCache {
     // IndexedDb.
     const store = documentTargetStore(txn);
     return PersistencePromise.forEach(keys, (key: DocumentKey) => {
-      const path = EncodedResourcePath.encode(key.path);
+      const path = encodeResourcePath(key.path);
       return PersistencePromise.waitFor([
         store.delete([targetId, path]),
         this.referenceDelegate.removeReference(txn, key)
@@ -328,7 +332,7 @@ export class IndexedDbTargetCache implements TargetCache {
 
     return store
       .iterate({ range, keysOnly: true }, (key, _, control) => {
-        const path = EncodedResourcePath.decode(key[1]);
+        const path = decodeResourcePath(key[1]);
         const docKey = new DocumentKey(path);
         result = result.add(docKey);
       })
@@ -339,7 +343,7 @@ export class IndexedDbTargetCache implements TargetCache {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const path = EncodedResourcePath.encode(key.path);
+    const path = encodeResourcePath(key.path);
     const range = IDBKeyRange.bound(
       [path],
       [immediateSuccessor(path)],

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
-import * as obj from './obj';
+import { Dict, forEach } from './obj';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =
@@ -421,7 +421,7 @@ export function validateOptionNames(
   options: object,
   optionNames: string[]
 ): void {
-  obj.forEach(options as obj.Dict<unknown>, (key, _) => {
+  forEach(options as Dict<unknown>, (key, _) => {
     if (optionNames.indexOf(key) < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
