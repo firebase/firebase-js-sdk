@@ -16,8 +16,8 @@
  */
 
 import { use } from 'chai';
-import * as sinonChai from 'sinon-chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
 
 // Normalizes Sinon assertions to Chai syntax.
 use(sinonChai);

@@ -16,7 +16,7 @@
  */
 
 import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import * as firebase from '../src/api';
 import { base64 } from '@firebase/util';
 import { _FirebaseApp } from '@firebase/app-types/private';

@@ -17,8 +17,8 @@
 
 import { restore } from 'sinon';
 import { use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
 use(chaiAsPromised);
 use(sinonChai);
