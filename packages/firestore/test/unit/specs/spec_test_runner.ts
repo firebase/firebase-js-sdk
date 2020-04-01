@@ -324,13 +324,6 @@ class MockConnection implements Connection {
           ++this.watchStreamRequestCount;
           if (request.addTarget) {
             const targetId = request.addTarget.targetId!;
-            console.log(
-              request.addTarget!.resumeToken
-                ? PlatformSupport.getPlatform().atob(
-                    request.addTarget!.resumeToken as string
-                  )
-                : ''
-            );
             this.activeTargets[targetId] = request.addTarget;
           } else if (request.removeTarget) {
             delete this.activeTargets[request.removeTarget];

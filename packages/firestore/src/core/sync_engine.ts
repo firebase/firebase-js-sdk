@@ -75,8 +75,6 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
-import {findIndex} from "../util/array";
-
 const LOG_TAG = 'SyncEngine';
 
 /**
@@ -353,7 +351,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupTarget(queryView.targetId);
-          })
+          });
       }
     } else {
       this.removeAndCleanupTarget(queryView.targetId);
@@ -564,7 +562,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
         .catch( error =>     logError(LOG_TAG, 'Failed to release target: ' + error.message))
-        .then(() => this.removeAndCleanupTarget(targetId, err))
+        .then(() => this.removeAndCleanupTarget(targetId, err));
     }
   }
 
