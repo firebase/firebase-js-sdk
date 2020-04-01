@@ -57,6 +57,13 @@ const nodePlugins = [
     },
     include: ['dist/*.js']
   }),
+  terser({
+    output: {
+      comments: 'all',
+      beautify: true
+    },
+    mangle: false
+  }),
   sourcemaps()
 ];
 
