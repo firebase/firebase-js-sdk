@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,20 +116,6 @@ export class TargetData {
       this.snapshotVersion,
       lastLimboFreeSnapshotVersion,
       this.resumeToken
-    );
-  }
-
-  isEqual(other: TargetData): boolean {
-    return (
-      this.targetId === other.targetId &&
-      this.purpose === other.purpose &&
-      this.sequenceNumber === other.sequenceNumber &&
-      this.snapshotVersion.isEqual(other.snapshotVersion) &&
-      this.lastLimboFreeSnapshotVersion.isEqual(
-        other.lastLimboFreeSnapshotVersion
-      ) &&
-      this.resumeToken.isEqual(other.resumeToken) &&
-      this.target.isEqual(other.target)
     );
   }
 }

@@ -21,16 +21,14 @@ import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
-import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
-import { encode } from './encoded_resource_path';
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-
 import { DatabaseInfo } from '../core/database_info';
 import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
@@ -193,9 +191,9 @@ export class MemoryPersistence implements Persistence {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or(
-      obj
-        .values(this.mutationQueues)
-        .map(queue => () => queue.containsKey(transaction, key))
+      Object.values(this.mutationQueues).map(queue => () =>
+        queue.containsKey(transaction, key)
+      )
     );
   }
 }
@@ -331,7 +329,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encode(k.path));
+  > = new ObjectMap(k => encodeResourcePath(k.path));
 
   readonly garbageCollector: LruGarbageCollector;
 

@@ -29,10 +29,7 @@ import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-
-import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { Target } from '../core/target';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -173,31 +170,7 @@ export class LocalSerializer {
       mutations
     );
   }
-
-  /*
-   * Encodes a set of document keys into an array of EncodedResourcePaths.
-   */
-  toDbResourcePaths(keys: DocumentKeySet): EncodedResourcePath[] {
-    const encodedKeys: EncodedResourcePath[] = [];
-
-    keys.forEach(key => {
-      encodedKeys.push(encode(key.path));
-    });
-
-    return encodedKeys;
-  }
-
-  /** Decodes an array of EncodedResourcePaths into a set of document keys. */
-  fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
-    let keys = documentKeySet();
-
-    for (const documentKey of encodedPaths) {
-      keys = keys.add(new DocumentKey(decode(documentKey)));
-    }
-
-    return keys;
-  }
-
+  
   /** Decodes a DbTarget into TargetData */
   fromDbTarget(dbTarget: DbTarget): TargetData {
     const version = this.fromDbTimestamp(dbTarget.readTime);

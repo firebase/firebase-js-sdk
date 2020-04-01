@@ -70,7 +70,6 @@ import {
 } from '../util/input_validation';
 import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
@@ -166,7 +165,7 @@ class FirestoreSettings {
       this.host = settings.host;
 
       validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
-      this.ssl = objUtils.defaulted(settings.ssl, DEFAULT_SSL);
+      this.ssl = settings.ssl ?? DEFAULT_SSL;
     }
     validateOptionNames('settings', settings, [
       'host',
@@ -222,10 +221,8 @@ class FirestoreSettings {
   Please audit all existing usages of Date when you enable the new
   behavior.`);
     }
-    this.timestampsInSnapshots = objUtils.defaulted(
-      settings.timestampsInSnapshots,
-      DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
-    );
+    this.timestampsInSnapshots =
+      settings.timestampsInSnapshots ?? DEFAULT_TIMESTAMPS_IN_SNAPSHOTS;
 
     validateNamedOptionalType(
       'settings',
@@ -341,9 +338,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
-    if (
-      objUtils.contains(settingsLiteral as objUtils.Dict<{}>, 'persistence')
-    ) {
+    if (contains(settingsLiteral, 'persistence')) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"persistence" is now specified with a separate call to ' +
@@ -398,12 +393,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
             "firestore.enablePersistence() call to use 'synchronizeTabs'."
         );
       }
-      synchronizeTabs = objUtils.defaulted(
-        settings.synchronizeTabs !== undefined
-          ? settings.synchronizeTabs
-          : settings.experimentalTabSynchronization,
-        DEFAULT_SYNCHRONIZE_TABS
-      );
+      synchronizeTabs =
+        settings.synchronizeTabs ??
+        settings.experimentalTabSynchronization ??
+        DEFAULT_SYNCHRONIZE_TABS;
     }
 
     return this.configureClient(this._persistenceProvider, {
@@ -558,15 +551,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
-    const options = app.options as objUtils.Dict<{}>;
-    if (!objUtils.contains(options, 'projectId')) {
+    if (!contains(app.options, 'projectId')) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
       );
     }
 
-    const projectId = options['projectId'];
+    const projectId = app.options.projectId;
     if (!projectId || typeof projectId !== 'string') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -2626,6 +2618,10 @@ function applyFirestoreDataConverter<T>(
     convertedValue = value as firestore.DocumentData;
   }
   return [convertedValue, functionName];
+}
+
+function contains(obj: object, key: string): obj is { key: unknown } {
+  return Object.prototype.hasOwnProperty.call(obj, key);
 }
 
 // Export the classes with a private constructor (it will fail if invoked

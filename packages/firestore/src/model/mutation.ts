@@ -32,7 +32,7 @@ import { DocumentKey } from './document_key';
 import { ObjectValue, ObjectValueBuilder } from './field_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
-import { arrayEquals, equals } from '../util/misc';
+import { arrayEquals } from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -180,7 +180,10 @@ export class Precondition {
 
   isEqual(other: Precondition): boolean {
     return (
-      equals(this.updateTime, other.updateTime) && this.exists === other.exists
+      this.exists === other.exists &&
+      (this.updateTime
+        ? !!other.updateTime && this.updateTime.isEqual(other.updateTime)
+        : !other.updateTime)
     );
   }
 }

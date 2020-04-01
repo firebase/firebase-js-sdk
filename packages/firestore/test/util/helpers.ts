@@ -84,13 +84,14 @@ import {
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
-import { Dict, forEach } from '../../src/util/obj';
+import { Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { Timestamp } from '../../src/api/timestamp';
 
 export type TestSnapshotVersion = number;
 
@@ -126,7 +127,9 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
 }
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
-  return SnapshotVersion.fromMicroseconds(v);
+  const seconds = Math.floor(v / 1e6);
+  const nanos = (v % 1e6) * 1e3;
+  return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
 }
 
 export function ref(
@@ -812,13 +815,20 @@ export function expectEqualitySets<T>(
   }
 }
 
-/** Returns the number of keys in this object. */
-export function size(obj: JsonObject<unknown>): number {
-  let c = 0;
-  forEach(obj, () => c++);
-  return c;
-}
-
 export function expectFirestoreError(err: Error): void {
   expect(err.name).to.equal('FirebaseError');
+}
+
+export function forEachNumber<V>(
+  obj: Dict<V>,
+  fn: (key: number, val: V) => void
+): void {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const num = Number(key);
+      if (!isNaN(num)) {
+        fn(num, obj[key]);
+      }
+    }
+  }
 }
