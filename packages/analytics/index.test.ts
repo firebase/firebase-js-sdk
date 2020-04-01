@@ -88,8 +88,9 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      // For IE: Need to wrap it in another function as FID fetch is wrapped in initializeGAId.
-      await (() => fidDeferred.promise);
+      // For IE: Need then() or else "expect" runs immediately on FID resolve
+      // before the other statements in initializeGAId.
+      await fidDeferred.promise.then();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -159,8 +160,9 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      // For IE: Need to wrap it in another function as FID fetch is wrapped in initializeGAId.
-      await (() => fidDeferred.promise);
+      // For IE: Need then() or else "expect" runs immediately on FID resolve
+      // before the other statements in initializeGAId.
+      await fidDeferred.promise.then();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -197,8 +199,12 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['dataLayer'];
       removeGtagScript();
     });
-    it('Adds the script tag to the page', () => {
+    it('Adds the script tag to the page', async () => {
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await initializedIdPromisesMap[analyticsId];
       expect(findGtagScriptOnPage()).to.not.be.null;
+      expect(typeof window['gtag']).to.equal('function');
+      expect(Array.isArray(window['dataLayer'])).to.be.true;
     });
   });
 });
