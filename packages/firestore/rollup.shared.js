@@ -23,11 +23,11 @@ import { extractPublicIdentifiers } from './scripts/extract-api';
 
 import pkg from './package.json';
 
-export const browserDeps = Object.keys(
+const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export const nodeDeps = [...browserDeps, 'util', 'path'];
+const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
 export function resolveBrowserExterns(id) {

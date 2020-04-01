@@ -31,9 +31,7 @@ import {
   appendPrivatePrefixTransformers,
   manglePrivatePropertiesOptions,
   resolveNodeExterns,
-  resolveBrowserExterns,
-  browserDeps,
-  nodeDeps
+  resolveBrowserExterns
 } from './rollup.shared';
 
 // Firestore is released in a number of different build configurations:
@@ -49,9 +47,10 @@ import {
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
 // We use two different rollup pipelines to take advantage of tree shaking,
-// which Rollup only supports in pure ES2017 builds. The build pipeline in this
-// file produces pre-tree shaken ES2017 builds that are consumed by the ES5
-// builds in `rollup.config.es.js`.
+// as Rollup does not support tree shaking for Typescript classes transpiled
+// down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
+// produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
+// `rollup.config.es.js`.
 //
 // All browser builds rely on Terser's property name mangling to reduce code
 // size.
@@ -60,36 +59,6 @@ import {
 // for a description of the various JavaScript formats used in our SDKs.
 
 // MARK: Browser builds
-
-/**
- * Resolves the external dependencies for the Memory-based Firestore
- * implementation. Verifies that no persistence sources are used by Firestore's
- * memory-only implementation.
- */
-export function resolveMemoryExterns(deps, externsId, referencedBy) {
-  const externalRef = path
-    .resolve(path.dirname(referencedBy), externsId)
-    .replace('.ts', '');
-
-  const persistenceRef = [
-    'local/indexeddb_persistence.ts',
-    'local/indexeddb_index_manager.ts',
-    'local/indexeddb_mutation_queue.ts',
-    'local/indexeddb_remote_document_cache.ts',
-    'local/indexeddb_schema.ts',
-    'local/indexeddb_target_cache.ts',
-    'local/local_serializer.ts',
-    'local/lru_garbage_collector.ts',
-    'local/simple_db.ts',
-    'api/persistence.ts'
-  ].map(p => path.resolve(__dirname, 'src', p));
-
-  if (persistenceRef.indexOf(externalRef) !== -1) {
-    throw new Error('Unexpected reference in Memory-only client on ' + id);
-  }
-
-  return deps.some(dep => externsId === dep || externsId.startsWith(`${dep}/`));
-}
 
 const browserBuildPlugins = [
   typescriptPlugin({
@@ -127,8 +96,7 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: browserBuildPlugins,
-    external: (id, referencedBy) =>
-      resolveMemoryExterns(browserDeps, id, referencedBy)
+    external: resolveBrowserExterns
   }
 ];
 
@@ -173,8 +141,7 @@ const nodeBuilds = [
       }
     ],
     plugins: nodeBuildPlugins,
-    external: (id, referencedBy) =>
-      resolveMemoryExterns(nodeDeps, id, referencedBy)
+    external: resolveNodeExterns
   }
 ];
 
