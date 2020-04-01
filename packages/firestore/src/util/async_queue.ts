@@ -289,15 +289,6 @@ export class AsyncQueue {
           const message = error.stack || error.message || '';
           logError('INTERNAL UNHANDLED ERROR: ', message);
 
-          // Escape the promise chain and throw the error globally so that
-          // e.g. any global crash reporting library detects and reports it.
-          // (but not for simulated errors in our tests since this breaks mocha)
-          if (message.indexOf('Firestore Test Simulated Error') < 0) {
-            setTimeout(() => {
-              throw error;
-            }, 0);
-          }
-
           // Re-throw the error so that this.tail becomes a rejected Promise and
           // all further attempts to chain (via .then) will just short-circuit
           // and return the rejected Promise.

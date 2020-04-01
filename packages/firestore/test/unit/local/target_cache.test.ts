@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,12 +92,7 @@ describe('IndexedDbTargetCache', () => {
       originalSequenceNumber
     );
     const actualTargetData = await targetCache2.getTargetData(target);
-
-    if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
-      // TODO(b/140573486): This fails on Node with persistence since the
-      // resume token is read back as a string.
-      expect(targetData.isEqual(actualTargetData!)).to.be.true;
-    }
+    expect(targetData).to.deep.equal(actualTargetData);
 
     const actualSnapshotVersion = await targetCache2.getLastRemoteSnapshotVersion();
     expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
@@ -127,12 +122,12 @@ function genericTargetCacheTests(
   function testTargetData(
     target: Target,
     targetId: TargetId,
-    version?: number
+    testVersion?: number
   ): TargetData {
-    if (version === undefined) {
-      version = 0;
+    if (testVersion === undefined) {
+      testVersion = 0;
     }
-    const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
+    const snapshotVersion = version(testVersion);
     const resumeToken = resumeTokenForSnapshot(snapshotVersion);
     return new TargetData(
       target,
