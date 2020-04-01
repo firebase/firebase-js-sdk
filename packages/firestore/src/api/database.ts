@@ -2620,7 +2620,7 @@ function applyFirestoreDataConverter<T>(
   return [convertedValue, functionName];
 }
 
-function contains(obj: object, key: string): obj is { key : unknown } {
+function contains(obj: object, key: string): obj is { key: unknown } {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
 
