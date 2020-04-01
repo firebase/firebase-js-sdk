@@ -18,6 +18,7 @@
     ],
     "module": "ES2015",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "target": "es5",
