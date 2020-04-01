@@ -48,9 +48,10 @@ import {
 // The in-memory builds are roughly 130 KB smaller, but throw an exception
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
-// We use two different rollup pipelines to take advantage of tree shaking in
-// the ES2017 builds. The build pipeline in this file produces ES2017 builds
-// that are consumed by `rollup.config.es.js`.
+// We use two different rollup pipelines to take advantage of tree shaking,
+// which Rollup only supports in pure ES2017 builds. The build pipeline in this
+// file produces pre-tree shaken ES2017 builds that are consumed by the ES5
+// builds in `rollup.config.es.js`.
 //
 // All browser builds rely on Terser's property name mangling to reduce code
 // size.
@@ -157,7 +158,7 @@ const nodeBuilds = [
   // Persistence build
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.mainES2017, format: 'es', sourcemap: true }],
+    output: [{ file: pkg['main-esm2017'], format: 'es', sourcemap: true }],
     plugins: nodeBuildPlugins,
     external: resolveNodeExterns
   },
@@ -166,7 +167,7 @@ const nodeBuilds = [
     input: 'index.node.memory.ts',
     output: [
       {
-        file: path.resolve('./memory', memoryPkg.mainES2017),
+        file: path.resolve('./memory', memoryPkg['main-esm2017']),
         format: 'es',
         sourcemap: true
       }

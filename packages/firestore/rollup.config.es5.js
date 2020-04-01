@@ -27,7 +27,7 @@ import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
 // This file defines the second rollup pipeline and transpiles the ES2017 SDK
-// into ES3 code. By splitting the build process into two independent build
+// into ES5 code. By splitting the build process into two independent build
 // pipelines, we take advantage of tree shaking in ES2017 builds even for
 // language levels that don't support tree shaking.
 
@@ -35,8 +35,7 @@ const browserPlugins = [
   typescriptPlugin({
     typescript,
     compilerOptions: {
-      allowJs: true,
-      importHelpers: true
+      allowJs: true
     },
     include: ['dist/*.js']
   }),
@@ -54,17 +53,9 @@ const nodePlugins = [
   typescriptPlugin({
     typescript,
     compilerOptions: {
-      allowJs: true,
-      importHelpers: true
+      allowJs: true
     },
     include: ['dist/*.js']
-  }),
-  terser({
-    output: {
-      comments: 'all',
-      beautify: true
-    },
-    mangle: false
   }),
   sourcemaps()
 ];
@@ -106,13 +97,13 @@ const browserBuilds = [
 
 const nodeBuilds = [
   {
-    input: pkg.mainES2017,
+    input: pkg['main-esm2017'],
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: nodePlugins,
     external: resolveNodeExterns
   },
   {
-    input: path.resolve('./memory', memoryPkg.mainES2017),
+    input: path.resolve('./memory', memoryPkg['main-esm2017']),
     output: [
       {
         file: path.resolve('./memory', memoryPkg.main),
