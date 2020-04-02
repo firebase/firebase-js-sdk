@@ -21,7 +21,7 @@ import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
-import * as grpc from 'grpc';
+import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
 import { Component, ComponentType } from '@firebase/component';
