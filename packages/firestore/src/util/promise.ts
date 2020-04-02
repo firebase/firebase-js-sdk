@@ -31,13 +31,15 @@ export interface CancelablePromise<T> {
       | ((value: T) => TResult1 | PromiseLike<TResult1>)
       | undefined
       | null,
-    onrejected?:
+    onrejected?: 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       | ((reason: any) => TResult2 | PromiseLike<TResult2>)
       | undefined
       | null
   ): Promise<TResult1 | TResult2>;
   catch<TResult = never>(
     onrejected?:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       | ((reason: any) => TResult | PromiseLike<TResult>)
       | undefined
       | null
