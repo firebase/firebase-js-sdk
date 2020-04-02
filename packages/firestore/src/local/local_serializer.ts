@@ -170,7 +170,7 @@ export class LocalSerializer {
       mutations
     );
   }
-  
+
   /** Decodes a DbTarget into TargetData */
   fromDbTarget(dbTarget: DbTarget): TargetData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
