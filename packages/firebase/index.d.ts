@@ -6928,11 +6928,7 @@ declare namespace firebase.database.ServerValue {
    * @param delta the amount to modify the current value atomically.
    * @return a placeholder value for modifying data atomically server-side.
    */
-  function increment(delta: number) : {
-    '.sv': {
-      'increment': number
-    }
-  };
+  function increment(delta: number) : Object;
 }
 
 /**
