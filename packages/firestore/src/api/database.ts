@@ -200,7 +200,7 @@ class FirestoreSettings {
       );
     } else if (settings.timestampsInSnapshots === false) {
       logError(
-        'Support for `timestampsInSnapshots: false` will be removed soon. ' +
+        "Support for 'timestampsInSnapshots: false' will be removed soon. " +
           'You must update your code to handle Timestamp objects.'
       );
     }
