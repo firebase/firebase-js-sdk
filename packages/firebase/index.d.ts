@@ -7682,11 +7682,23 @@ declare namespace firebase.firestore {
      * causes unexpected behavior when using a timestamp from a snapshot as a
      * part of a subsequent query.
      *
-     * So now Firestore returns `Timestamp` values instead of `Date`, avoiding
-     * this kind of problem.
+     * Now, Firestore returns `Timestamp` values for all timestamp values stored 
+     * Cloud Firestore instead of system `Date` objects, avoiding this kind of 
+     * problem. Consequently, you must update your code to handle `Timestamp`
+     * objects instead of `Date` objects.
      *
-     * To opt into the old behavior of returning `Date` objects, you can
-     * temporarily set `timestampsInSnapshots` to false.
+     * If you wish to TEMPORARILY opt into the old behavior of returning  `Date`
+     * objects, you may TEMPORARILY set `timestampsInSnapshots` to false.  
+     * Opting into this behavior will no longer be possible in the next major 
+     * release of Firestore, after which code that expects Date objects WILL 
+     * BREAK.
+     *
+     * @example **Using Date objects in Firestore.**
+     * // With deprecated setting `timestampsInSnapshot: true`:
+     * const date : Date = snapshot.get('created_at');
+     * // With new default behavior:
+     * const timestamp : Timestamp = snapshot.get('created_at');
+     * const date : Date = timestamp.toDate();
      *
      * @deprecated This setting will be removed in a future release. You should
      * update your code to expect `Timestamp` objects and stop using the
