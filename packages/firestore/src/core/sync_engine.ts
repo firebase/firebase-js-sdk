@@ -16,7 +16,12 @@
  */
 
 import { User } from '../auth/user';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import {
+  handleOutdatedRemoteSnapshot,
+  handlePrimaryLeaseLoss,
+  LocalStore,
+  LocalWriteResult
+} from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -34,7 +39,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -342,12 +347,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (!targetRemainsActive) {
         await this.localStore
           .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
+          .catch(err => logError(LOG_TAG, 'Failed to release target: ' + err))
           .then(() => {
+            // Even if we failed release the query from local store, we unlisten
+            // from it and clean up the in-memory state. This allows the user
+            // to re-listen to the query later on.
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupTarget(queryView.targetId);
-          })
-          .catch(ignoreIfPrimaryLeaseLoss);
+          });
       }
     } else {
       this.removeAndCleanupTarget(queryView.targetId);
@@ -370,7 +378,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
-    const result = await this.localStore.localWrite(batch);
+
+    let result: LocalWriteResult;
+    try {
+      result = await this.localStore.localWrite(batch);
+    } catch (e) {
+      // If we can't persist the mutation, we reject the user callback and don't
+      // send the mutation. The user can then retry the write.
+      userCallback.reject(e);
+      return;
+    }
+
     this.sharedClientState.addPendingMutation(result.batchId);
     this.addMutationCallback(result.batchId, userCallback);
     await this.emitNewSnapsAndNotifyLocalStore(result.changes);
@@ -446,7 +464,29 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+      if (
+        handlePrimaryLeaseLoss(error) ||
+        handleOutdatedRemoteSnapshot(error)
+      ) {
+        // We don't reject listens if the primary lease is lost or if Watch
+        // has sent an outdated Watch snapshot (which we just ignore).
+        return;
+      }
+
+      // If `applyRemoteEvent` fails, we unlisten and return errors for all
+      // targets affected by the remote event. This allows the user to relisten
+      // to these targets from a previously persisted state.
+      let p = Promise.resolve();
+      remoteEvent.targetChanges.forEach((_, targetId) => {
+        p = p.then(() =>
+          this.rejectListen(
+            targetId,
+            new FirestoreError(Code.INTERNAL, error.message)
+          )
+        );
+        this.remoteStore.unlisten(targetId);
+      });
+      return p;
     }
   }
 
@@ -531,8 +571,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     } else {
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
-        .then(() => this.removeAndCleanupTarget(targetId, err))
-        .catch(ignoreIfPrimaryLeaseLoss);
+        .catch(error =>
+          logError(LOG_TAG, 'Failed to release target: ' + error.message)
+        )
+        .then(() => this.removeAndCleanupTarget(targetId, err));
     }
   }
 
@@ -596,7 +638,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+      logError(
+        LOG_TAG,
+        'Failed to persist write acknowledgment: ' + error.message
+      );
+      
+      // We close the write stream forcefully, which doesn't update the stream
+      // token. This ensures that the backend rejects the first write, which
+      // causes us to remove the write from the mutation queue upon retry.
+      await this.remoteStore.invalidateWriteStream();
     }
   }
 
@@ -619,7 +669,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
+      logError(LOG_TAG, 'Failed to persist write rejection: ' + error.message);
+      
+      // We close the write stream forcefully, which doesn't update the stream
+      // token. This ensures that the backend rejects the first write again.
+      await this.remoteStore.invalidateWriteStream();
     }
   }
 
@@ -1160,11 +1214,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // Release queries that are still active.
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+        .catch(error =>
+          logError(LOG_TAG, 'Failed to release target ' + error.message)
+        )
         .then(() => {
           this.remoteStore.unlisten(targetId);
           this.removeAndCleanupTarget(targetId);
-        })
-        .catch(ignoreIfPrimaryLeaseLoss);
+        });
     }
   }
 

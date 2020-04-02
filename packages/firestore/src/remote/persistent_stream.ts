@@ -305,7 +305,7 @@ export abstract class PersistentStream<
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
    */
-  private async close(
+  protected async close(
     finalState: PersistentStreamState,
     error?: FirestoreError
   ): Promise<void> {
@@ -634,7 +634,7 @@ export class PersistentWriteStream extends PersistentStream<
   api.WriteResponse,
   WriteStreamListener
 > {
-  private handshakeComplete_ = false;
+  private valid_ = false;
 
   constructor(
     queue: AsyncQueue,
@@ -668,17 +668,17 @@ export class PersistentWriteStream extends PersistentStream<
    * the stream is ready to accept mutations.
    */
   get handshakeComplete(): boolean {
-    return this.handshakeComplete_;
+    return this.valid_;
   }
 
   // Override of PersistentStream.start
   start(): void {
-    this.handshakeComplete_ = false;
+    this.valid_ = false;
     super.start();
   }
 
   protected tearDown(): void {
-    if (this.handshakeComplete_) {
+    if (this.valid_) {
       this.writeMutations([]);
     }
   }
@@ -700,13 +700,13 @@ export class PersistentWriteStream extends PersistentStream<
     );
     this.lastStreamToken = this.serializer.fromBytes(responseProto.streamToken);
 
-    if (!this.handshakeComplete_) {
+    if (!this.valid_) {
       // The first response is always the handshake response
       assert(
         !responseProto.writeResults || responseProto.writeResults.length === 0,
         'Got mutation results for handshake'
       );
-      this.handshakeComplete_ = true;
+      this.valid_ = true;
       return this.listener!.onHandshakeComplete();
     } else {
       // A successful first write response means the stream is healthy,
@@ -732,7 +732,7 @@ export class PersistentWriteStream extends PersistentStream<
    */
   writeHandshake(): void {
     assert(this.isOpen(), 'Writing handshake requires an opened stream');
-    assert(!this.handshakeComplete_, 'Handshake already completed');
+    assert(!this.valid_, 'Handshake already completed');
     // TODO(dimond): Support stream resumption. We intentionally do not set the
     // stream token on the handshake, ignoring any stream token we might have.
     const request: WriteRequest = {};
@@ -743,10 +743,7 @@ export class PersistentWriteStream extends PersistentStream<
   /** Sends a group of mutations to the Firestore backend to apply. */
   writeMutations(mutations: Mutation[]): void {
     assert(this.isOpen(), 'Writing mutations requires an opened stream');
-    assert(
-      this.handshakeComplete_,
-      'Handshake must be complete before writing mutations'
-    );
+    assert(this.valid_, 'Handshake must be complete before writing mutations');
     assert(
       this.lastStreamToken.approximateByteSize() > 0,
       'Trying to write mutation without a token'
@@ -758,5 +755,12 @@ export class PersistentWriteStream extends PersistentStream<
     };
 
     this.sendRequest(request);
+  }
+
+  async invalidateAndClose(): Promise<void> {
+    this.valid_ = false; // Prevent teardown
+    if (this.isStarted()) {
+      return this.close(PersistentStreamState.Initial);
+    }
   }
 }

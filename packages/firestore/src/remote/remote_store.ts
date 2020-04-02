@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -28,7 +28,7 @@ import {
 } from '../model/mutation_batch';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
@@ -403,12 +403,9 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-        // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.MIN.
-        await this.raiseWatchSnapshot(snapshotVersion);
-      }
+      // We have received a target change with a global snapshot if the snapshot
+      // version is not equal to SnapshotVersion.MIN.
+      await this.raiseWatchSnapshot(snapshotVersion);
     }
   }
 
@@ -513,17 +510,27 @@ export class RemoteStore implements TargetMetadataProvider {
         this.writePipeline.length > 0
           ? this.writePipeline[this.writePipeline.length - 1].batchId
           : BATCHID_UNKNOWN;
-      const batch = await this.localStore.nextMutationBatch(
-        lastBatchIdRetrieved
-      );
+      try {
+        const batch = await this.localStore.nextMutationBatch(
+          lastBatchIdRetrieved
+        );
 
-      if (batch === null) {
+        if (batch === null) {
+          if (this.writePipeline.length === 0) {
+            this.writeStream.markIdle();
+          }
+        } else {
+          this.addToWritePipeline(batch);
+          await this.fillWritePipeline();
+        }
+      } catch (error) {
+        logError(
+          LOG_TAG,
+          'Failed to retrieve the next mutation batch: ' + error.message
+        );
         if (this.writePipeline.length === 0) {
           this.writeStream.markIdle();
         }
-      } else {
-        this.addToWritePipeline(batch);
-        await this.fillWritePipeline();
       }
     }
 
@@ -593,7 +600,9 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(ignoreIfPrimaryLeaseLoss);
+      .catch(() => {
+        // TODO
+      });
   }
 
   private onMutationResult(
@@ -621,15 +630,6 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
-    if (error === undefined) {
-      // Graceful stop (due to stop() or idle timeout). Make sure that's
-      // desirable.
-      assert(
-        !this.shouldStartWriteStream(),
-        'Write stream was stopped gracefully while still needed.'
-      );
-    }
-
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
     if (error && this.writePipeline.length > 0) {
@@ -653,7 +653,6 @@ export class RemoteStore implements TargetMetadataProvider {
         }
       });
     }
-    // No pending writes, nothing to do
   }
 
   private async handleHandshakeError(error: FirestoreError): Promise<void> {
@@ -670,7 +669,9 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
-        .catch(ignoreIfPrimaryLeaseLoss);
+        .catch(() => {
+          // TODO
+        });
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
@@ -735,5 +736,9 @@ export class RemoteStore implements TargetMetadataProvider {
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
     }
+  }
+
+  invalidateWriteStream(): Promise<void> {
+    return this.writeStream.invalidateAndClose();
   }
 }

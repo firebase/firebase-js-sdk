@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1082,9 +1082,11 @@ describeSpec('Writes:', [], () => {
         .client(0)
         // The old primary doesn't yet know that client 1 has stolen the
         // primary lease.
-        .expectListen(query2)
+        .expectListen(query2, 'resume-token-2000')
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
+        .expectUnlisten(query1)
+        .expectUnlisten(query2)
         // Raise the metadata event from LocalStorage.
         .expectEvents(query1, {
           metadata: [docV1Acknowledged]

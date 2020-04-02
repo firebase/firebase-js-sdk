@@ -48,11 +48,17 @@ import {
 import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
+  PersistenceTransaction,
+  PersistenceTransactionMode,
+  PrimaryStateListener,
+  Persistence,
+  ReferenceDelegate
+} from '../../../src/local/persistence';
+import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
-import { Persistence } from '../../../src/local/persistence';
 import {
   ClientId,
   MemorySharedClientState,
@@ -115,6 +121,11 @@ import {
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { MutationQueue } from '../../../src/local/mutation_queue';
+import { TargetCache } from '../../../src/local/target_cache';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { IndexManager } from '../../../src/local/index_manager';
 import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 
@@ -338,6 +349,79 @@ class MockConnection implements Connection {
 }
 
 /**
+ * A test-only persistence implementation that delegates all calls to the
+ * underlying IndexedDB or Memory-based persistence implementations and is able
+ * to inject failed transactions.
+ */
+export class MockPersistence implements Persistence {
+  injectFailures = false;
+
+  constructor(private readonly delegate: Persistence) {}
+
+  get started(): boolean {
+    return this.delegate.started;
+  }
+
+  get referenceDelegate(): ReferenceDelegate {
+    return this.delegate.referenceDelegate;
+  }
+
+  shutdown(): Promise<void> {
+    return this.delegate.shutdown();
+  }
+
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void> {
+    return this.delegate.setPrimaryStateListener(primaryStateListener);
+  }
+
+  setDatabaseDeletedListener(
+    databaseDeletedListener: () => Promise<void>
+  ): void {
+    this.delegate.setDatabaseDeletedListener(databaseDeletedListener);
+  }
+
+  setNetworkEnabled(networkEnabled: boolean): void {
+    this.delegate.setNetworkEnabled(networkEnabled);
+  }
+
+  getActiveClients(): Promise<ClientId[]> {
+    return this.delegate.getActiveClients();
+  }
+
+  getMutationQueue(user: User): MutationQueue {
+    return this.delegate.getMutationQueue(user);
+  }
+
+  getTargetCache(): TargetCache {
+    return this.delegate.getTargetCache();
+  }
+
+  getRemoteDocumentCache(): RemoteDocumentCache {
+    return this.delegate.getRemoteDocumentCache();
+  }
+
+  getIndexManager(): IndexManager {
+    return this.delegate.getIndexManager();
+  }
+
+  runTransaction<T>(
+    action: string,
+    mode: PersistenceTransactionMode,
+    transactionOperation: (
+      transaction: PersistenceTransaction
+    ) => PersistencePromise<T>
+  ): Promise<T> {
+    if (this.injectFailures) {
+      return Promise.reject(new Error('Injected Failure'));
+    } else {
+      return this.delegate.runTransaction(action, mode, transactionOperation);
+    }
+  }
+}
+
+/**
  * Interface used for object that contain exactly one of either a view snapshot
  * or an error for the given query.
  */
@@ -391,6 +475,19 @@ class SharedWriteTracker {
     assert(this.writes.length > 0, 'No pending mutations');
     return this.writes.shift()!;
   }
+
+  removeAll(documentKey: string): void {
+    const filteredMutationBatches: Mutation[][] = [];
+    for (const mutations of this.writes) {
+      const filteredMutations = mutations.filter(
+        m => m.key.path.toString() !== documentKey
+      );
+      if (filteredMutations.length) {
+        filteredMutationBatches.push(filteredMutations);
+      }
+    }
+    this.writes = filteredMutationBatches;
+  }
 }
 
 abstract class TestRunner {
@@ -421,7 +518,7 @@ abstract class TestRunner {
   private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
-  private persistence!: Persistence;
+  private persistence!: MockPersistence;
   protected sharedClientState!: SharedClientState;
 
   private useGarbageCollection: boolean;
@@ -471,10 +568,11 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.sharedClientState = this.getSharedClientState();
-    this.persistence = await this.initPersistence(
+    const persistence = await this.initPersistence(
       this.serializer,
       this.useGarbageCollection
     );
+    this.persistence = new MockPersistence(persistence);
 
     const queryEngine = new IndexFreeQueryEngine();
     this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
@@ -571,6 +669,8 @@ abstract class TestRunner {
   }
 
   private doStep(step: SpecStep): Promise<void> {
+    this.persistence.injectFailures = !!step.failDatabaseTransactions;
+
     if ('userListen' in step) {
       return this.doListen(step.userListen!);
     } else if ('userUnlisten' in step) {
@@ -715,9 +815,18 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const documentKeys = mutations.map(val => val.key.path.toString());
     const syncEngineCallback = new Deferred<void>();
+
     syncEngineCallback.promise.then(
       () => this.acknowledgedDocs.push(...documentKeys),
-      () => this.rejectedDocs.push(...documentKeys)
+      (e: Error) => {
+        this.rejectedDocs.push(...documentKeys);
+
+        if (e.message === 'Injected Failure') {
+          // The write was not persisted, so we remove it from `sharedWrites`
+          // again.
+          documentKeys.forEach(key => this.sharedWrites.removeAll(key));
+        }
+      }
     );
 
     this.sharedWrites.push(mutations);
@@ -1206,7 +1315,7 @@ abstract class TestRunner {
         `ResumeToken does not match - expected:
          ${stringFromBase64String(
            expectedTarget.resumeToken
-         )}, actual: ${stringFromBase64String(expectedTarget.resumeToken)}`
+         )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
       delete actualTargets[targetId];
     });
@@ -1473,6 +1582,9 @@ export interface SpecStep {
   writeAck?: SpecWriteAck;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
+
+  /** Fail all database transactions. */
+  failDatabaseTransactions?: boolean;
 
   /**
    * Run a queued timer task (without waiting for the delay to expire). See

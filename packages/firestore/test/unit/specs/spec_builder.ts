@@ -418,6 +418,35 @@ export class SpecBuilder {
     return this;
   }
 
+  failDatabaseTransaction(options?: {
+    rejectedDocs?: string[];
+    rejectedTargets?: Query[];
+  }): this {
+    this.assertStep('failDatabaseTransaction() requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.failDatabaseTransactions = true;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.userCallbacks = currentStep.expectedState
+      .userCallbacks || {
+      acknowledgedDocs: [],
+      rejectedDocs: []
+    };
+    currentStep.expectedState.userCallbacks.rejectedDocs.push(
+      ...(options?.rejectedDocs || [])
+    );
+    options?.rejectedTargets?.forEach(query => {
+      this.removeQueryFromActiveTargets(query, this.getTargetId(query));
+      currentStep.expectedState!.activeTargets = { ...this.activeTargets };
+    });
+    if (currentStep.writeAck) {
+      currentStep.writeAck.keepInQueue = true;
+    }
+    if (currentStep.failWrite) {
+      currentStep.failWrite.keepInQueue = true;
+    }
+    return this;
+  }
+
   expectIsShutdown(): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
