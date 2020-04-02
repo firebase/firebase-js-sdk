@@ -784,22 +784,6 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('throws custom error when using docChanges as property', () => {
-    return withTestCollection(persistence, {}, async coll => {
-      const snapshot = await coll.get();
-      const expectedError =
-        'QuerySnapshot.docChanges has been changed from a property into a method';
-      // We are testing invalid API usage.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const docChange = snapshot.docChanges as any;
-      expect(() => docChange.length).to.throw(expectedError);
-      expect(() => {
-        for (const _ of docChange) {
-        }
-      }).to.throw(expectedError);
-    });
-  });
-
   it('can query collection groups', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
