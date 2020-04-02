@@ -124,6 +124,11 @@ export interface ServerValue {
   TIMESTAMP: {
     '.sv': string;
   };
+  increment(delta: number) : {
+    '.sv': {
+      'increment': number
+    }
+  };
 }
 
 export interface ThenableReference extends Reference, Promise<Reference> {}
