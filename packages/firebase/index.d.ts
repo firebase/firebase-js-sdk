@@ -7683,8 +7683,8 @@ declare namespace firebase.firestore {
      * part of a subsequent query.
      *
      * Now, Firestore returns `Timestamp` values for all timestamp values stored 
-     * Cloud Firestore instead of system `Date` objects, avoiding this kind of 
-     * problem. Consequently, you must update your code to handle `Timestamp`
+     * in Cloud Firestore instead of system `Date` objects, avoiding this kind 
+     * of problem. Consequently, you must update your code to handle `Timestamp`
      * objects instead of `Date` objects.
      *
      * If you wish to TEMPORARILY opt into the old behavior of returning  `Date`
