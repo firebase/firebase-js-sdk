@@ -35,7 +35,7 @@ export function setLogLevel(newLevel: LogLevel): void {
 export function logDebug(msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= LogLevel.DEBUG) {
     const args = obj.map(argToString);
-    logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+    logClient.debug(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
   }
 }
 
