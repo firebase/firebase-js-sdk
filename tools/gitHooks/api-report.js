@@ -30,7 +30,7 @@ const simpleGit = require('simple-git/promise');
 
 const git = simpleGit(projectRoot);
 
-async function doApiReports() {
+async function doApiReportsCommit() {
   const changedPackages = await getChangedPackages();
   const packageInfo = await getPackageInfo();
   const packageLocations = [];
@@ -65,4 +65,4 @@ async function doApiReports() {
   });
 }
 
-exports.doApiReports = doApiReports;
+exports.doApiReportsCommit = doApiReportsCommit;
