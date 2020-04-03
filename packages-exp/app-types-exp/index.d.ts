@@ -22,8 +22,9 @@ import { ComponentContainer } from '@firebase/component';
  * services.
  *
  * Do not call this constructor directly. Instead, use
- * {@link firebase.initializeApp|`firebase.initializeApp()`} to create an app.
+ * {@link @firebase/app-exp#initializeApp | initializeApp()} to create an app.
  *
+ * @public
  */
 export interface FirebaseApp {
   /**
@@ -49,7 +50,7 @@ export interface FirebaseApp {
 
   /**
    * The (read-only) configuration options for this app. These are the original
-   * parameters given in {@link @firebase/app-exp#initializApp}.
+   * parameters given in {@link @firebase/app-exp#initializeApp}.
    *
    * @example
    * ```javascript
@@ -65,12 +66,18 @@ export interface FirebaseApp {
   automaticDataCollectionEnabled: boolean;
 }
 
+/**
+ * @internal
+ */
 export interface FirebaseAppInternal extends FirebaseApp {
   container: ComponentContainer;
   isDeleted: boolean;
   checkDestroyed(): void;
 }
 
+/**
+ * @public
+ */
 export interface FirebaseOptions {
   apiKey?: string;
   authDomain?: string;
@@ -82,11 +89,17 @@ export interface FirebaseOptions {
   measurementId?: string;
 }
 
+/**
+ * @public
+ */
 export interface FirebaseAppConfig {
   name?: string;
   automaticDataCollectionEnabled?: boolean;
 }
 
+/**
+ * @public
+ */
 export interface PlatformLoggerService {
   getPlatformInfoString(): string;
 }

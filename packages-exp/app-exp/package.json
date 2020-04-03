@@ -23,7 +23,8 @@
     "prepare": "yarn build",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove_exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs"
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn api-report && yarn doc"
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.800.0",
