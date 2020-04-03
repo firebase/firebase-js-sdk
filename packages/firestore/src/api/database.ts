@@ -36,7 +36,6 @@ import {
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { LruParams } from '../local/lru_garbage_collector';
-import { MemoryPersistenceProvider } from '../local/memory_persistence';
 import { PersistenceProvider } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -304,7 +303,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    persistenceProvider: PersistenceProvider = new MemoryPersistenceProvider()
+    persistenceProvider: PersistenceProvider
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -486,9 +485,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryPersistenceProvider(), {
-        durable: false
-      });
+      this.configureClient(this._persistenceProvider, {durable: false});
     }
     return this._firestoreClient as FirestoreClient;
   }

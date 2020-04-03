@@ -253,59 +253,10 @@ export class FirestoreClient {
       persistenceResult.reject(error);
 
       // An unknown failure on the first stage shuts everything down.
-      if (!this.canFallback(error)) {
-        throw error;
-      }
-      console.warn(
-        'Error enabling offline persistence. Falling back to' +
-          ' persistence disabled: ' +
-          error
-      );
-      return this.initializePersistence(
-        new MemoryPersistenceProvider(),
-        { durable: false },
-        user,
-        persistenceResult
-      );
+      throw error;
     }
   }
-
-  /**
-   * Decides whether the provided error allows us to gracefully disable
-   * persistence (as opposed to crashing the client).
-   */
-  private canFallback(error: FirestoreError | DOMException): boolean {
-    if (error.name === 'FirebaseError') {
-      return (
-        error.code === Code.FAILED_PRECONDITION ||
-        error.code === Code.UNIMPLEMENTED
-      );
-    } else if (
-      typeof DOMException !== 'undefined' &&
-      error instanceof DOMException
-    ) {
-      // There are a few known circumstances where we can open IndexedDb but
-      // trying to read/write will fail (e.g. quota exceeded). For
-      // well-understood cases, we attempt to detect these and then gracefully
-      // fall back to memory persistence.
-      // NOTE: Rather than continue to add to this list, we could decide to
-      // always fall back, with the risk that we might accidentally hide errors
-      // representing actual SDK bugs.
-      return (
-        // When the browser is out of quota we could get either quota exceeded
-        // or an aborted error depending on whether the error happened during
-        // schema migration.
-        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-        error.code === DOM_EXCEPTION_ABORTED ||
-        // Firefox Private Browsing mode disables IndexedDb and returns
-        // INVALID_STATE for any usage.
-        error.code === DOM_EXCEPTION_INVALID_STATE
-      );
-    }
-
-    return true;
-  }
-
+  
   /**
    * Checks that the client has not been terminated. Ensures that other methods on
    * this class cannot be called after the client is terminated.
