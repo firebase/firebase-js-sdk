@@ -1,0 +1,56 @@
+{
+  "name": "@firebase/auth-compat-exp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@7 and prior versions",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/'{app,auth-compat-exp}' --include-dependencies build",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --opts ../../config/mocha.node.opts",
+    "type-check": "tsc -p . --noEmit",
+    "prepare": "yarn build"
+  },
+  "peerDependencies": {
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
+  },
+  "dependencies": {
+    "tslib": "1.11.1"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "rollup": "1.32.1",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.26.0",
+    "typescript": "3.8.3"
+  },
+  "repository": {
+    "directory": "packages-exp/auth-compat-exp",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
