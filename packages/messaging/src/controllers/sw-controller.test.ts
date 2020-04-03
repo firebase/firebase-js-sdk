@@ -218,8 +218,58 @@ describe('SwController', () => {
       expect(postMessageSpy).to.have.been.calledOnceWith(expectedMessage);
     });
 
+    it('sends a message to chrome extension clients if a chrome extension client is visible', async () => {
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'chrome-extension://aihpiglmnhnhijdnjghpfnlledckkhja/popup.html'
+      ))!;
+      client.visibilityState = 'visible';
+      const postMessageSpy = spy(client, 'postMessage');
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => NOTIFICATION_MESSAGE_PAYLOAD
+          }
+        })
+      );
+
+      const expectedMessage: InternalMessage = {
+        firebaseMessaging: {
+          type: MessageType.PUSH_RECEIVED,
+          payload: NOTIFICATION_MESSAGE_PAYLOAD
+        }
+      };
+      expect(postMessageSpy).to.have.been.calledOnceWith(expectedMessage);
+    });
+
     it('does not send a message to window clients if window clients are hidden', async () => {
       const client = (await self.clients.openWindow('https://example.org'))!;
+      const postMessageSpy = spy(client, 'postMessage');
+      const showNotificationSpy = spy(self.registration, 'showNotification');
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => NOTIFICATION_MESSAGE_PAYLOAD
+          }
+        })
+      );
+
+      expect(postMessageSpy).not.to.have.been.called;
+      expect(showNotificationSpy).to.have.been.calledWith('message title', {
+        ...NOTIFICATION_MESSAGE_PAYLOAD.notification,
+        data: {
+          ...NOTIFICATION_MESSAGE_PAYLOAD.notification!.data,
+          [FCM_MSG]: NOTIFICATION_MESSAGE_PAYLOAD
+        }
+      });
+    });
+
+    it('does not send a message to chrome extension background pages if background page is visible', async () => {
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'chrome-extension://aihpiglmnhnhijdnjghpfnlledckkhja/_generated_background_page.html'
+      ))!;
+      client.visibilityState = 'visible';
       const postMessageSpy = spy(client, 'postMessage');
       const showNotificationSpy = spy(self.registration, 'showNotification');
 
