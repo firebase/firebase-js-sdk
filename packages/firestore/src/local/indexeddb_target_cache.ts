@@ -62,15 +62,12 @@ export class IndexedDbTargetCache implements TargetCache {
   // to IndexedDb whenever we need to read metadata. We can revisit if it turns
   // out to have a meaningful performance impact.
 
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
-
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.highestTargetId = this.targetIdGenerator.after(
-        metadata.highestTargetId
-      );
+      const targetIdGenerator = new TargetIdGenerator(metadata.highestTargetId);
+      metadata.highestTargetId = targetIdGenerator.next();
       return this.saveMetadata(transaction, metadata).next(
         () => metadata.highestTargetId
       );
