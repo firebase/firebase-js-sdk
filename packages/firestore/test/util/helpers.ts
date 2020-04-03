@@ -82,7 +82,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import { assert, fail } from '../../src/util/assert';
+import { softAssert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
 import { Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
@@ -338,7 +338,7 @@ export function docAddedRemoteEvent(
   activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+  softAssert(docs.length !== 0, 'Cannot pass empty docs array');
 
   const allTargets = activeTargets
     ? activeTargets
@@ -363,7 +363,7 @@ export function docAddedRemoteEvent(
   let version = SnapshotVersion.MIN;
 
   for (const doc of docs) {
-    assert(
+    softAssert(
       !(doc instanceof Document) || !doc.hasLocalMutations,
       "Docs from remote updates shouldn't have local changes."
     );
@@ -386,7 +386,7 @@ export function docUpdateRemoteEvent(
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
+  softAssert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
@@ -525,7 +525,7 @@ export function byteStringFromString(value: string): ByteString {
 export function stringFromBase64String(
   value?: string | Uint8Array
 ): ByteString {
-  assert(
+  softAssert(
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
@@ -546,7 +546,7 @@ export function resumeTokenForSnapshot(
 
 export function orderBy(path: string, op?: string): OrderBy {
   op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+  softAssert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
   const dir: Direction =
     op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
   return new OrderBy(field(path), dir);
@@ -622,7 +622,10 @@ export function documentSet(...args: unknown[]): DocumentSet {
     docSet = new DocumentSet();
   }
   for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+    softAssert(
+      doc instanceof Document,
+      'Bad argument, expected Document: ' + doc
+    );
     docSet = docSet.add(doc);
   }
   return docSet;

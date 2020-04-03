@@ -16,7 +16,7 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { assert } from '../util/assert';
+import { softAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import {
   decodeResourcePath,
@@ -54,7 +54,7 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
-    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
+    softAssert(collectionPath.length % 2 === 1, 'Expected a collection path.');
     if (!this.collectionParentsCache.has(collectionPath)) {
       const collectionId = collectionPath.lastSegment();
       const parentPath = collectionPath.popLast();

@@ -16,7 +16,7 @@
  */
 
 import { getUA } from '@firebase/util';
-import { assert } from '../util/assert';
+import { softAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -64,7 +64,7 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    assert(
+    softAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
@@ -478,7 +478,7 @@ export class SimpleDbTransaction {
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
-    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    softAssert(!!store, 'Object store not part of transaction: ' + storeName);
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
 }
@@ -738,7 +738,7 @@ export class SimpleDbStore<
       if (typeof indexOrRange === 'string') {
         indexName = indexOrRange;
       } else {
-        assert(
+        softAssert(
           range === undefined,
           '3rd argument must not be defined if 2nd is a range.'
         );

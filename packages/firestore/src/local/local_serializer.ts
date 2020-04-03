@@ -27,7 +27,7 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert, fail } from '../util/assert';
+import { softAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
 import {
@@ -198,7 +198,7 @@ export class LocalSerializer {
 
   /** Encodes TargetData into a DbTarget for storage locally. */
   toDbTarget(targetData: TargetData): DbTarget {
-    assert(
+    softAssert(
       TargetPurpose.Listen === targetData.purpose,
       'Only queries with purpose ' +
         TargetPurpose.Listen +

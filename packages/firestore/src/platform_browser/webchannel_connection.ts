@@ -43,7 +43,7 @@ import {
   mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { assert, fail } from '../util/assert';
+import { softAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { Indexable } from '../util/misc';
@@ -374,7 +374,7 @@ export class WebChannelConnection implements Connection {
       msg => {
         if (!closed) {
           const msgData = msg!.data[0];
-          assert(!!msgData, 'Got a webchannel message without data.');
+          hardAssert(!!msgData, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
@@ -423,7 +423,10 @@ export class WebChannelConnection implements Connection {
   // visible for testing
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
-    assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
+    softAssert(
+      urlRpcName !== undefined,
+      'Unknown REST mapping for: ' + rpcName
+    );
     return (
       this.baseUrl +
       '/' +

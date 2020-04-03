@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { assert } from '../util/assert';
+import { hardAssert, softAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   FirebaseAuthInternal,
@@ -116,14 +116,14 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   invalidateToken(): void {}
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    softAssert(!this.changeListener, 'Can only call setChangeListener() once.');
     this.changeListener = changeListener;
     // Fire with initial user.
     changeListener(User.UNAUTHENTICATED);
   }
 
   removeChangeListener(): void {
-    assert(
+    softAssert(
       this.changeListener !== null,
       'removeChangeListener() when no listener registered'
     );
@@ -190,7 +190,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   getToken(): Promise<Token | null> {
-    assert(
+    softAssert(
       this.tokenListener != null,
       'getToken cannot be called after listener removed.'
     );
@@ -217,7 +217,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         );
       } else {
         if (tokenData) {
-          assert(
+          hardAssert(
             typeof tokenData.accessToken === 'string',
             'Invalid tokenData returned from getToken():' + tokenData
           );
@@ -234,7 +234,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    softAssert(!this.changeListener, 'Can only call setChangeListener() once.');
     this.changeListener = changeListener;
 
     // Fire the initial event
@@ -244,8 +244,11 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   removeChangeListener(): void {
-    assert(this.tokenListener != null, 'removeChangeListener() called twice');
-    assert(
+    softAssert(
+      this.tokenListener != null,
+      'removeChangeListener() called twice'
+    );
+    softAssert(
       this.changeListener !== null,
       'removeChangeListener() called when no listener registered'
     );
@@ -263,7 +266,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   // to guarantee to get the actual user.
   private getUser(): User {
     const currentUid = this.auth && this.auth.getUid();
-    assert(
+    hardAssert(
       currentUid === null || typeof currentUid === 'string',
       'Received invalid UID: ' + currentUid
     );
@@ -342,7 +345,7 @@ export function makeCredentialsProvider(
     case 'gapi':
       const client = credentials.client as Gapi;
       // Make sure this really is a Gapi client.
-      assert(
+      hardAssert(
         !!(
           typeof client === 'object' &&
           client !== null &&

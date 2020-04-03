@@ -26,7 +26,7 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import { assert } from '../util/assert';
+import { softAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
@@ -260,7 +260,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * not being listened to.
    */
   unlisten(targetId: TargetId): void {
-    assert(
+    softAssert(
       this.listenTargets.has(targetId),
       `unlisten called on target no currently watched: ${targetId}`
     );
@@ -312,7 +312,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWatchStream(): void {
-    assert(
+    softAssert(
       this.shouldStartWatchStream(),
       'startWatchStream() called when shouldStartWatchStream() is false.'
     );
@@ -352,7 +352,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
+      softAssert(
         !this.shouldStartWatchStream(),
         'Watch stream was stopped gracefully while still needed.'
       );
@@ -395,7 +395,7 @@ export class RemoteStore implements TargetMetadataProvider {
     } else if (watchChange instanceof ExistenceFilterChange) {
       this.watchChangeAggregator!.handleExistenceFilter(watchChange);
     } else {
-      assert(
+      softAssert(
         watchChange instanceof WatchTargetChange,
         'Expected watchChange to be an instance of WatchTargetChange'
       );
@@ -418,7 +418,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    assert(
+    softAssert(
       !snapshotVersion.isEqual(SnapshotVersion.MIN),
       "Can't raise event for unknown SnapshotVersion"
     );
@@ -483,7 +483,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** Handles an error on a target */
   private handleTargetError(watchChange: WatchTargetChange): Promise<void> {
-    assert(!!watchChange.cause, 'Handling target error without a cause');
+    softAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
     let promiseChain = Promise.resolve();
     watchChange.targetIds.forEach(targetId => {
@@ -552,7 +552,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * immediately if the write stream is established.
    */
   private addToWritePipeline(batch: MutationBatch): void {
-    assert(
+    softAssert(
       this.canAddToWritePipeline(),
       'addToWritePipeline called when pipeline is full'
     );
@@ -572,7 +572,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWriteStream(): void {
-    assert(
+    softAssert(
       this.shouldStartWriteStream(),
       'startWriteStream() called when shouldStartWriteStream() is false.'
     );
@@ -602,7 +602,7 @@ export class RemoteStore implements TargetMetadataProvider {
   ): Promise<void> {
     // This is a response to a write containing mutations and should be
     // correlated to the first write in our write pipeline.
-    assert(
+    softAssert(
       this.writePipeline.length > 0,
       'Got result for empty write pipeline'
     );
@@ -624,7 +624,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
+      softAssert(
         !this.shouldStartWriteStream(),
         'Write stream was stopped gracefully while still needed.'
       );

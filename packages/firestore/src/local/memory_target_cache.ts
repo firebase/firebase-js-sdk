@@ -20,7 +20,7 @@ import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert, fail } from '../util/assert';
+import { softAssert, fail } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
 import { ActiveTargets } from './lru_garbage_collector';
@@ -113,7 +113,7 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(
+    softAssert(
       !this.targets.has(targetData.target),
       'Adding a target that already exists'
     );
@@ -126,7 +126,7 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(
+    softAssert(
       this.targets.has(targetData.target),
       'Updating a non-existent target'
     );
@@ -138,8 +138,8 @@ export class MemoryTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
-    assert(this.targetCount > 0, 'Removing a target from an empty cache');
-    assert(
+    softAssert(this.targetCount > 0, 'Removing a target from an empty cache');
+    softAssert(
       this.targets.has(targetData.target),
       'Removing a non-existent target from the cache'
     );

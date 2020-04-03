@@ -31,7 +31,7 @@ import {
   typeOrder
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { softAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
@@ -95,7 +95,7 @@ export class Query {
           ];
         }
       } else {
-        assert(
+        softAssert(
           inequalityField === null ||
             (firstOrderByField !== null &&
               inequalityField.isEqual(firstOrderByField)),
@@ -128,7 +128,7 @@ export class Query {
   }
 
   addFilter(filter: Filter): Query {
-    assert(
+    softAssert(
       this.getInequalityFilterField() == null ||
         !(filter instanceof FieldFilter) ||
         !filter.isInequality() ||
@@ -136,7 +136,10 @@ export class Query {
       'Query must only have one inequality field.'
     );
 
-    assert(!this.isDocumentQuery(), 'No filtering allowed for document query');
+    softAssert(
+      !this.isDocumentQuery(),
+      'No filtering allowed for document query'
+    );
 
     const newFilters = this.filters.concat([filter]);
     return new Query(
@@ -152,7 +155,10 @@ export class Query {
   }
 
   addOrderBy(orderBy: OrderBy): Query {
-    assert(!this.startAt && !this.endAt, 'Bounds must be set after orderBy');
+    softAssert(
+      !this.startAt && !this.endAt,
+      'Bounds must be set after orderBy'
+    );
     // TODO(dimond): validate that orderBy does not list the same key twice.
     const newOrderBy = this.explicitOrderBy.concat([orderBy]);
     return new Query(
@@ -284,7 +290,7 @@ export class Query {
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key
-    assert(
+    softAssert(
       comparedOnKeyField,
       "orderBy used that doesn't compare on key field"
     );
@@ -449,7 +455,7 @@ export class Query {
   }
 
   private assertValidBound(bound: Bound): void {
-    assert(
+    softAssert(
       bound.position.length <= this.orderBy.length,
       'Bound is longer than orderBy'
     );
@@ -521,21 +527,21 @@ export class FieldFilter extends Filter {
   static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
     if (field.isKeyField()) {
       if (op === Operator.IN) {
-        assert(
+        softAssert(
           isArray(value),
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
-        assert(
+        softAssert(
           (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
         return new KeyFieldInFilter(field, value);
       } else {
-        assert(
+        softAssert(
           isReferenceValue(value),
           'Comparing on key, but filter value not a RefValue'
         );
-        assert(
+        softAssert(
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
@@ -560,13 +566,13 @@ export class FieldFilter extends Filter {
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
     } else if (op === Operator.IN) {
-      assert(
+      softAssert(
         isArray(value),
         'IN filter has invalid value: ' + value.toString()
       );
       return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
-      assert(
+      softAssert(
         isArray(value),
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
@@ -651,7 +657,10 @@ export class KeyFieldFilter extends FieldFilter {
 
   constructor(field: FieldPath, op: Operator, value: api.Value) {
     super(field, op, value);
-    assert(isReferenceValue(value), 'KeyFieldFilter expects a ReferenceValue');
+    softAssert(
+      isReferenceValue(value),
+      'KeyFieldFilter expects a ReferenceValue'
+    );
     this.key = DocumentKey.fromName(value.referenceValue);
   }
 
@@ -667,9 +676,9 @@ export class KeyFieldInFilter extends FieldFilter {
 
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
-    assert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
+    softAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
     this.keys = (value.arrayValue.values || []).map(v => {
-      assert(
+      softAssert(
         isReferenceValue(v),
         'Comparing on key with IN, but an array value was not a ReferenceValue'
       );
@@ -698,7 +707,7 @@ export class ArrayContainsFilter extends FieldFilter {
 export class InFilter extends FieldFilter {
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
-    assert(isArray(value), 'InFilter expects an ArrayValue');
+    softAssert(isArray(value), 'InFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
@@ -711,7 +720,7 @@ export class InFilter extends FieldFilter {
 export class ArrayContainsAnyFilter extends FieldFilter {
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);
-    assert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
+    softAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
@@ -768,7 +777,7 @@ export class Bound {
    * order.
    */
   sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
-    assert(
+    softAssert(
       this.position.length <= orderBy.length,
       "Bound has more components than query's orderBy"
     );
@@ -777,7 +786,7 @@ export class Bound {
       const orderByComponent = orderBy[i];
       const component = this.position[i];
       if (orderByComponent.field.isKeyField()) {
-        assert(
+        softAssert(
           isReferenceValue(component),
           'Bound has a non-key value where the key path is being used.'
         );
@@ -787,7 +796,7 @@ export class Bound {
         );
       } else {
         const docValue = doc.field(orderByComponent.field);
-        assert(
+        softAssert(
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );

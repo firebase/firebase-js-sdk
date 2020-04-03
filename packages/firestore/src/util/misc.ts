@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
+import { softAssert } from './assert';
 import { PlatformSupport } from '../platform/platform';
 
 export type EventHandler<E> = (value: E) => void;
@@ -41,7 +41,7 @@ export class AutoId {
         }
       }
     }
-    assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    softAssert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;
   }
 }

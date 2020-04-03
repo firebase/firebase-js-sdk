@@ -32,7 +32,7 @@ import {
   TransformMutation
 } from '../model/mutation';
 import { FieldPath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { softAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
@@ -494,8 +494,8 @@ export class UserDataReader {
       FieldPath.EMPTY_PATH
     );
     const parsed = this.parseData(input, context);
-    assert(parsed != null, 'Parsed data should not be null.');
-    assert(
+    softAssert(parsed != null, 'Parsed data should not be null.');
+    softAssert(
       context.fieldTransforms.length === 0,
       'Field transforms should have been disallowed.'
     );
@@ -633,7 +633,7 @@ export class UserDataReader {
         // fieldMask so it gets deleted.
         context.fieldMask.push(context.path);
       } else if (context.dataSource === UserDataSource.Update) {
-        assert(
+        softAssert(
           context.path.length > 0,
           'FieldValue.delete() at the top level should have already' +
             ' been handled.'

@@ -19,31 +19,49 @@ import { SDK_VERSION } from '../core/version';
 import { logError } from './log';
 
 /**
+ * Fails if the given assertion condition is false, throwing an Error with the
+ * given message if it did.
+ */
+export function hardAssert(
+  assertion: boolean,
+  message: string
+): asserts assertion {
+  if (!assertion) {
+    // Log the failure in addition to throw an exception, just in case the
+    // exception is swallowed.
+    const errorMessage =
+      `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + message;
+    logError(errorMessage);
+
+    // NOTE: We don't use FirestoreError here because these are internal failures
+    // that cannot be handled by the user. (Also it would create a circular
+    // dependency between the error and assert modules which doesn't work.)
+    throw new Error(errorMessage);
+  }
+}
+
+/**
  * Unconditionally fails, throwing an Error with the given message.
  *
+ * This is stripped out in production builds.
+ *  
  * Returns any so it can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
  */
 export function fail(failure: string): never {
-  // Log the failure in addition to throw an exception, just in case the
-  // exception is swallowed.
-  const message =
-    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
-  logError(message);
-
-  // NOTE: We don't use FirestoreError here because these are internal failures
-  // that cannot be handled by the user. (Also it would create a circular
-  // dependency between the error and assert modules which doesn't work.)
-  throw new Error(message);
+  hardAssert(false, failure);
 }
 
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
+ *
+ * This is stripped out in production builds.
  */
-export function assert(assertion: boolean, message: string): asserts assertion {
-  if (!assertion) {
-    fail(message);
-  }
+export function softAssert(
+  assertion: boolean,
+  message: string
+): asserts assertion {
+  hardAssert(assertion, message);
 }
