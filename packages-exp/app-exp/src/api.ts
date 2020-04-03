@@ -43,7 +43,7 @@ import {
 
 /**
  * The current SDK version.
- * 
+ *
  * @public
  */
 export const SDK_VERSION = version;
@@ -89,7 +89,7 @@ export const SDK_VERSION = version;
  *   is provided, the default is `"[DEFAULT]"`.
  *
  * @returns The initialized app.
- * 
+ *
  * @public
  */
 export function initializeApp(
@@ -98,10 +98,10 @@ export function initializeApp(
 ): FirebaseApp;
 /**
  * Creates and initializes a FirebaseApp instance.
- * 
+ *
  * @param options - Options to configure the app's services.
  * @param config - FirebaseApp Configuration
- * 
+ *
  * @public
  */
 export function initializeApp(
@@ -172,7 +172,7 @@ export function initializeApp(
  *
  * @returns The app corresponding to the provided app name.
  *   If no app name is provided, the default app is returned.
- * 
+ *
  * @public
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
@@ -206,7 +206,7 @@ export function getApps(): FirebaseApp[] {
  *     console.log("Error deleting app:", error);
  *   });
  * ```
- * 
+ *
  * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
@@ -225,7 +225,7 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
  * @param library - Name of 1p or 3p library (e.g. firestore, angularfire)
  * @param version - Current version of that library.
  * @param variant - Bundle variant, e.g., node, rn, etc.
- * 
+ *
  * @public
  */
 export function registerVersion(
@@ -274,7 +274,7 @@ export function registerVersion(
  * Sets log handler for all Firebase SDKs.
  * @param logCallback - An optional custom log handler that executes user code whenever
  * the Firebase SDK makes a logging call.
- * 
+ *
  * @public
  */
 export function onLog(
@@ -295,7 +295,7 @@ export function onLog(
  * All of the log types above the current log level are captured (i.e. if
  * you set the log level to `info`, errors are logged, but `debug` and
  * `verbose` logs are not).
- * 
+ *
  * @public
  */
 export function setLogLevel(logLevel: LogLevel): void {
