@@ -15,7 +15,7 @@ import { LogOptions } from '@firebase/logger';
 export function deleteApp(app: FirebaseApp): Promise<void>;
 
 // @public
-export function getApp123(name?: string): FirebaseApp;
+export function getApp(name?: string): FirebaseApp;
 
 // @public
 export function getApps(): FirebaseApp[];
