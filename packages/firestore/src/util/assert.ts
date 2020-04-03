@@ -44,7 +44,7 @@ export function hardAssert(
  * Unconditionally fails, throwing an Error with the given message.
  *
  * This is stripped out in production builds.
- *  
+ *
  * Returns any so it can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
