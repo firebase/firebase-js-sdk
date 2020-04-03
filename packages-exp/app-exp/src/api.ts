@@ -19,7 +19,7 @@ import {
   FirebaseApp,
   FirebaseOptions,
   FirebaseAppConfig,
-  FirebaseAppInternal
+  _FirebaseAppInternal
 } from '@firebase/app-types-exp';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
@@ -97,6 +97,7 @@ export function initializeApp(
   name?: string
 ): FirebaseApp;
 /**
+ * Creates and initializes a FirebaseApp instance.
  * 
  * @param options - Options to configure the app's services.
  * @param config - FirebaseApp Configuration
@@ -212,10 +213,10 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
   if (apps.has(name)) {
     apps.delete(name);
-    await (app as FirebaseAppInternal).container
+    await (app as _FirebaseAppInternal).container
       .getProviders()
       .map(provider => provider.delete());
-    (app as FirebaseAppInternal).isDeleted = true;
+    (app as _FirebaseAppInternal).isDeleted = true;
   }
 }
 
