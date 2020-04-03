@@ -81,3 +81,10 @@ typings/
 
 # NPM Lockfiles
 package-lock.json
+
+# temp folder used by api-extractor
+temp
+packages-exp/**/temp
+
+# temp markdowns generated for individual SDKs
+packages-exp/**/docs

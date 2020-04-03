@@ -10,7 +10,6 @@ const { projectRoot } = require('../release/utils/constants');
  * so we can use the existing infrastructure to release the exp packages under the existing npm 
  * package names.
  */
-const tmpFolder = 'tmp_exp';
 const packagesExpDirName = 'packages-exp';
 const packagesDirName = 'packages';
 
