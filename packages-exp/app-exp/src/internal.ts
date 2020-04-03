@@ -76,7 +76,8 @@ export function getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
 ): Provider<T> {
-  return (app as FirebaseAppInternal).container.getProvider(name);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { app, name } as any;
 }
 
 /**
