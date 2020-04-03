@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,9 +79,8 @@ export class MemoryTargetCache implements TargetCache {
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
-    const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
-    this.highestTargetId = nextTargetId;
-    return PersistencePromise.resolve(nextTargetId);
+    this.highestTargetId = this.targetIdGenerator.next();
+    return PersistencePromise.resolve(this.highestTargetId);
   }
 
   setTargetsMetadata(
@@ -102,6 +101,7 @@ export class MemoryTargetCache implements TargetCache {
     this.targets.set(targetData.target, targetData);
     const targetId = targetData.targetId;
     if (targetId > this.highestTargetId) {
+      this.targetIdGenerator = new TargetIdGenerator(targetId);
       this.highestTargetId = targetId;
     }
     if (targetData.sequenceNumber > this.highestSequenceNumber) {
