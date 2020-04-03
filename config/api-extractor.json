@@ -138,7 +138,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/etc/"
      */
-     "reportFolder": "<projectFolder>/api-review/",
+     "reportFolder": "<projectFolder>/../../common/api-review/",
 
     /**
      * Specifies the folder where the temporary report file is written.  The file name portion is determined by
