@@ -43,19 +43,21 @@ import {
 
 /**
  * The current SDK version.
+ * 
+ * @public
  */
 export const SDK_VERSION = version;
 
 /**
- * Creates and initializes a Firebase {@link @firebase/app-types-exp#FirebaseApp app} instance.
+ * Creates and initializes a FirebaseApp instance.
  *
  * See
  * {@link
  *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
- *   Add Firebase to your app} and
+ *   | Add Firebase to your app} and
  * {@link
  *   https://firebase.google.com/docs/web/setup#multiple-projects
- *   Initialize multiple projects} for detailed documentation.
+ *   | Initialize multiple projects} for detailed documentation.
  *
  * @example
  * ```javascript
@@ -82,19 +84,28 @@ export const SDK_VERSION = version;
  * }, "otherApp");
  * ```
  *
- * @param options Options to configure the app's services.
- * @param name Optional name of the app to initialize. If no name
+ * @param options - Options to configure the app's services.
+ * @param name - Optional name of the app to initialize. If no name
  *   is provided, the default is `"[DEFAULT]"`.
  *
- * @return {!firebase.app.App} The initialized app.
+ * @returns The initialized app.
+ * 
+ * @public
+ */
+export function initializeApp(
+  options: FirebaseOptions,
+  name?: string
+): FirebaseApp;
+/**
+ * 
+ * @param options - Options to configure the app's services.
+ * @param config - FirebaseApp Configuration
+ * 
+ * @public
  */
 export function initializeApp(
   options: FirebaseOptions,
   config?: FirebaseAppConfig
-): FirebaseApp;
-export function initializeApp(
-  options: FirebaseOptions,
-  name?: string
 ): FirebaseApp;
 export function initializeApp(
   options: FirebaseOptions,
@@ -135,7 +146,7 @@ export function initializeApp(
 }
 
 /**
- * Retrieves a Firebase {@link @firebase/app-types-exp#FirebaseApp app} instance.
+ * Retrieves a FirebaseApp instance.
  *
  * When called with no arguments, the default app is returned. When an app name
  * is provided, the app corresponding to that name is returned.
@@ -155,11 +166,13 @@ export function initializeApp(
  * const otherApp = getApp("otherApp");
  * ```
  *
- * @param name Optional name of the app to return. If no name is
+ * @param name - Optional name of the app to return. If no name is
  *   provided, the default is `"[DEFAULT]"`.
  *
- * @return The app corresponding to the provided app name.
+ * @returns The app corresponding to the provided app name.
  *   If no app name is provided, the default app is returned.
+ * 
+ * @public
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = apps.get(name);
@@ -172,6 +185,7 @@ export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
 
 /**
  * A (read-only) array of all initialized apps.
+ * @public
  */
 export function getApps(): FirebaseApp[] {
   return Array.from(apps.values());
@@ -191,6 +205,8 @@ export function getApps(): FirebaseApp[] {
  *     console.log("Error deleting app:", error);
  *   });
  * ```
+ * 
+ * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
@@ -205,9 +221,11 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
 
 /**
  * Registers a library's name and version for platform logging purposes.
- * @param library Name of 1p or 3p library (e.g. firestore, angularfire)
- * @param version Current version of that library.
- * @param variant Bundle variant, e.g., node, rn, etc.
+ * @param library - Name of 1p or 3p library (e.g. firestore, angularfire)
+ * @param version - Current version of that library.
+ * @param variant - Bundle variant, e.g., node, rn, etc.
+ * 
+ * @public
  */
 export function registerVersion(
   libraryKeyOrName: string,
@@ -253,8 +271,10 @@ export function registerVersion(
 
 /**
  * Sets log handler for all Firebase SDKs.
- * @param logCallback An optional custom log handler that executes user code whenever
+ * @param logCallback - An optional custom log handler that executes user code whenever
  * the Firebase SDK makes a logging call.
+ * 
+ * @public
  */
 export function onLog(
   logCallback: LogCallback | null,
@@ -274,6 +294,8 @@ export function onLog(
  * All of the log types above the current log level are captured (i.e. if
  * you set the log level to `info`, errors are logged, but `debug` and
  * `verbose` logs are not).
+ * 
+ * @public
  */
 export function setLogLevel(logLevel: LogLevel): void {
   setLogLevelImpl(logLevel);
