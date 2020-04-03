@@ -533,14 +533,13 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
 
   getPersistence(): Persistence {
     assert(!!this.clientId, 'initialize() not called');
-    return new MemoryPersistence(
-      this.clientId,
-      p => new MemoryEagerDelegate(p)
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return null as any;
   }
 
   getSharedClientState(): SharedClientState {
-    return new MemorySharedClientState();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return null as any;
   }
 
   clearPersistence(): never {
