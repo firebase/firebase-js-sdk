@@ -16,7 +16,7 @@
  */
 
 const glob = require('glob');
-const { projectRoot: root } = require('./constants');
+const { projectRoot: root } = require('../../utils');
 const { workspaces: rawWorkspaces } = require(`${root}/package.json`);
 const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 const { DepGraph } = require('dependency-graph');
@@ -25,15 +25,6 @@ const { promisify } = require('util');
 const { writeFile: _writeFile, existsSync } = require('fs');
 const writeFile = promisify(_writeFile);
 const clone = require('clone');
-
-function filterObjectByKey(raw, filter) {
-  return Object.keys(raw)
-    .filter(filter)
-    .reduce((obj, key) => {
-      obj[key] = raw[key];
-      return obj;
-    }, {});
-}
 
 function mapWorkspaceToPackages(workspaces) {
   return Promise.all(
@@ -48,6 +39,7 @@ function mapWorkspaceToPackages(workspaces) {
     )
   ).then(paths => paths.reduce((arr, val) => arr.concat(val), []));
 }
+exports.mapWorkspaceToPackages = mapWorkspaceToPackages;
 
 function mapPackagestoPkgJson(packagePaths) {
   return packagePaths

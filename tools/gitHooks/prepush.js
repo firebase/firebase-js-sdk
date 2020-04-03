@@ -17,6 +17,7 @@
 
 const { doPrettierCommit } = require('./prettier');
 const { doLicenseCommit } = require('./license');
+const { doApiReport } = require('./api-report');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const chalk = require('chalk');
@@ -56,6 +57,9 @@ $ git stash pop
 
     // Validate License headers exist
     await doLicenseCommit(changedFiles);
+
+    // Generate API reports
+    await doApiReport();
 
     console.log(chalk`
 Pre-Push Validation Succeeded

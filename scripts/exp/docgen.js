@@ -1,21 +1,28 @@
-const { spawn, exec } = require('child-process-promise');
-const { mapWorkspaceToPackages } = require('./release/utils/workspace');
-const { projectRoot } = require('./release/utils/constants');
+const { spawn } = require('child-process-promise');
+const { mapWorkspaceToPackages } = require('../release/utils/workspace');
+const { projectRoot } = require('../utils');
+const { removeExpSuffix } = require('./remove-exp');
 const fs = require('fs');
 const glob = require('glob');
 
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs() {
+    // TODO: change yarn command once exp packages become official
+    await spawn('yarn', ['build:exp'], {
+        stdio: 'inherit'
+    });
+
     await spawn('yarn', ['api-report'], {
         stdio: 'inherit'
     });
+
     if (!fs.existsSync(tmpDir)) {
         fs.mkdirSync(tmpDir);
     }
 
     // TODO: Throw error if path doesn't exist, once all packages add markdown support.
-    const apiJsonDirectories = (await mapWorkspaceToPackages([`${projectRoot}/packages/*`]))
+    const apiJsonDirectories = (await mapWorkspaceToPackages([`${projectRoot}/packages/*`, `${projectRoot}/packages-exp/*`]))
         .map(path => `${path}/temp`)
         .filter(path => fs.existsSync(path));
 
@@ -34,7 +41,9 @@ async function generateDocs() {
         fs.copyFileSync(paths[0], `${tmpDir}/${fileName}`);
     }
 
-    await exec('npx api-documenter markdown --input temp --output next-docs');
+    // Generate docs without the -exp suffix
+    removeExpSuffix(tmpDir);
+    await spawn('npx', ['api-documenter', 'markdown', '--input', 'temp', '--output', 'docs-exp'], { stdio: 'inherit' });
 }
 
 generateDocs();

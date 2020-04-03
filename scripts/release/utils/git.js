@@ -16,7 +16,7 @@
  */
 
 const simpleGit = require('simple-git/promise');
-const { projectRoot: root } = require('./constants');
+const { projectRoot: root } = require('../../utils');
 const git = simpleGit(root);
 const { exec } = require('child-process-promise');
 const ora = require('ora');

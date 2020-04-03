@@ -23,10 +23,8 @@ export interface FirebaseAppConfig {
   name?: string;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "FirebaseAppInternal" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export interface FirebaseAppInternal extends FirebaseApp {
+export interface _FirebaseAppInternal extends FirebaseApp {
   // (undocumented)
   checkDestroyed(): void;
   // (undocumented)

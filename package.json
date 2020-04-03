@@ -40,7 +40,7 @@
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
     "size-report": "node scripts/report_binary_size.js",
-    "api-report": "yarn build && lerna run --scope @firebase/*-exp api-report",
+    "api-report": "lerna run --scope @firebase/*-exp api-report",
     "doc": "node scripts/exp/docgen.js"
   },
   "repository": {

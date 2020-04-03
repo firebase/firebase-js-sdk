@@ -22,7 +22,7 @@ import { ComponentContainer } from '@firebase/component';
  * services.
  *
  * Do not call this constructor directly. Instead, use
- * {@link @firebase/app-exp#initializeApp | initializeApp()} to create an app.
+ * {@link @firebase/app-exp#(initializeApp:1) | initializeApp()} to create an app.
  *
  * @public
  */
@@ -50,7 +50,7 @@ export interface FirebaseApp {
 
   /**
    * The (read-only) configuration options for this app. These are the original
-   * parameters given in {@link @firebase/app-exp#initializeApp}.
+   * parameters given in {@link @firebase/app-exp#(initializeApp:1) | initializeApp()}.
    *
    * @example
    * ```javascript
@@ -69,7 +69,7 @@ export interface FirebaseApp {
 /**
  * @internal
  */
-export interface FirebaseAppInternal extends FirebaseApp {
+export interface _FirebaseAppInternal extends FirebaseApp {
   container: ComponentContainer;
   isDeleted: boolean;
   checkDestroyed(): void;

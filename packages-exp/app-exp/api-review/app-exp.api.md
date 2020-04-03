@@ -23,7 +23,7 @@ export function getApps(): FirebaseApp[];
 // @public
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
 
-// @public (undocumented)
+// @public
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
 
 export { LogLevel }
