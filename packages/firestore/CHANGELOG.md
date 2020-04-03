@@ -1,9 +1,6 @@
 # Unreleased
-- [changed] Limbo resolution now attempts to resolve a maximum of 100 documents
-  at a time, instead of resolving all at once (#2790). This addresses an issue
-  where the server can fail with "resource exhausted" errors if a large number
-  of documents are in limbo (e.g. 15,000), which can lead to the pathological
-  client behavior seen in #2683.
+- [changed] Firestore now limits the number of concurrent document lookups it
+  will perform when resolving inconsistencies in the local cache (#2683).
 - [changed] Changed the in-memory representation of Firestore documents to
   reduce memory allocations and improve performance. Calls to 
   `DocumentSnapshot.getData()` and `DocumentSnapshot.toObject()` will see
