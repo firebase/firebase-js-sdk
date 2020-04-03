@@ -119,9 +119,11 @@ export function testUserDataWriter(): UserDataWriter {
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  useProto3Json = useProto3Json ?? PlatformSupport.getPlatform().useProto3Json;
+  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    new JsonProtoSerializer(new DatabaseId('test-project'), { useProto3Json }),
+    useProto3Json !== undefined
+      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      : PlatformSupport.getPlatform().newSerializer(databaseId),
     preConverter
   );
 }

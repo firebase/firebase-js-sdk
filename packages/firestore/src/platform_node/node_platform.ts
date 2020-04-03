@@ -30,7 +30,6 @@ import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
 export class NodePlatform implements Platform {
-  readonly useProto3Json = false;
   readonly base64Available = true;
 
   readonly document = null;

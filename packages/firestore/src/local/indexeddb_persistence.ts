@@ -1328,9 +1328,9 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
     );
 
     // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
-    const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
-      useProto3Json: PlatformSupport.getPlatform().useProto3Json
-    });
+    const serializer = PlatformSupport.getPlatform().newSerializer(
+      databaseInfo.databaseId
+    );
 
     if (!WebStorageSharedClientState.isAvailable(platform)) {
       throw new FirestoreError(

@@ -30,7 +30,6 @@ import { WebChannelConnection } from './webchannel_connection';
 const crypto = window.crypto || (window as any).msCrypto;
 
 export class BrowserPlatform implements Platform {
-  readonly useProto3Json = true;
   readonly base64Available: boolean;
 
   constructor() {

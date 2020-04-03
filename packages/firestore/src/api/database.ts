@@ -544,9 +544,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         return value;
       }
     };
-    const serializer = new JsonProtoSerializer(databaseId, {
-      useProto3Json: PlatformSupport.getPlatform().useProto3Json
-    });
+    const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
     return new UserDataReader(serializer, preConverter);
   }
 
