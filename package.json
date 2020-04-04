@@ -39,7 +39,9 @@
     "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
-    "size-report": "node scripts/report_binary_size.js"
+    "size-report": "node scripts/report_binary_size.js",
+    "api-report": "lerna run --scope @firebase/*-exp api-report",
+    "docgen:exp": "node scripts/exp/docgen.js"
   },
   "repository": {
     "type": "git",
@@ -125,7 +127,9 @@
     "typescript": "3.8.3",
     "watch": "1.0.2",
     "webpack": "4.42.0",
-    "yargs": "15.3.1"
+    "yargs": "15.3.1",
+    "@microsoft/api-extractor": "7.7.8",
+    "@microsoft/api-documenter": "7.7.12"
   },
   "husky": {
     "hooks": {
