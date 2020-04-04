@@ -17,14 +17,8 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { LocalStore } from '../local/local_store';
-import { MemoryPersistenceProvider } from '../local/memory_persistence';
-import {
-  GarbageCollectionScheduler,
-  Persistence,
-  PersistenceProvider
-} from '../local/persistence';
+import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -49,8 +43,11 @@ import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
 import { Transaction } from './transaction';
-import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  ComponentProvider,
+  MemoryComponentProvider
+} from './component_provider';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -87,7 +84,7 @@ export class FirestoreClient {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private syncEngine!: SyncEngine;
-  private gcScheduler!: GarbageCollectionScheduler;
+  private gcScheduler!: GarbageCollectionScheduler | null;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState!: SharedClientState;
@@ -137,8 +134,7 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
-   * @param persistenceProvider Provider that returns the persistence
-   *    implementation.
+   * @param componentProvider Provider that returns all core components.
    * @param persistenceSettings Settings object to configure offline
    *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
@@ -147,7 +143,7 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(
-    persistenceProvider: PersistenceProvider,
+    componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
@@ -173,13 +169,29 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        this.initializePersistence(
-          persistenceProvider,
-          persistenceSettings,
-          user,
-          persistenceResult
-        )
-          .then(() => this.initializeRest(user))
+        logDebug(LOG_TAG, 'Initializing. user=', user.uid);
+
+        this.platform
+          .loadConnection(this.databaseInfo)
+          .then(async connection => {
+            const serializer = this.platform.newSerializer(
+              this.databaseInfo.databaseId
+            );
+            const datastore = new Datastore(
+              this.asyncQueue,
+              connection,
+              this.credentials,
+              serializer
+            );
+
+            await this.initializeComponents(
+              datastore,
+              componentProvider,
+              persistenceSettings,
+              user,
+              persistenceResult
+            );
+          })
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
@@ -215,8 +227,9 @@ export class FirestoreClient {
    * platform can't possibly support our implementation then this method rejects
    * the persistenceResult and falls back on memory-only persistence.
    *
-   * @param persistenceProvider The provider that provides either IndexedDb or
-   *     memory-backed persistence
+   * @param datastore The Datastore component.
+   * @param componentProvider The provider that provides all core componennts
+   *     for IndexedDB or memory-backed persistence
    * @param persistenceSettings Settings object to configure offline persistence
    * @param user The initial user
    * @param persistenceResult A deferred result indicating the user-visible
@@ -227,25 +240,39 @@ export class FirestoreClient {
    *     continue, i.e. that one of the persistence implementations actually
    *     succeeded.
    */
-  private async initializePersistence(
-    persistenceProvider: PersistenceProvider,
+  private async initializeComponents(
+    datastore: Datastore,
+    componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings,
     user: User,
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      await persistenceProvider.initialize(
+      await componentProvider.initialize(
         this.asyncQueue,
         this.databaseInfo,
         this.platform,
+        datastore,
         this.clientId,
         user,
+        MAX_CONCURRENT_LIMBO_RESOLUTIONS,
         persistenceSettings
       );
 
-      this.persistence = persistenceProvider.getPersistence();
-      this.gcScheduler = persistenceProvider.getGarbageCollectionScheduler();
-      this.sharedClientState = persistenceProvider.getSharedClientState();
+      this.persistence = componentProvider.getPersistence();
+      this.sharedClientState = componentProvider.getSharedClientState();
+      this.localStore = componentProvider.getLocalStore();
+      this.remoteStore = componentProvider.getRemoteStore();
+      this.syncEngine = componentProvider.getSyncEngine();
+      this.gcScheduler = componentProvider.getGarbageCollectionScheduler();
+      this.eventMgr = componentProvider.getEventManager();
+
+      // When a user calls clearPersistence() in one client, all other clients
+      // need to be terminated to allow the delete to succeed.
+      this.persistence.setDatabaseDeletedListener(async () => {
+        await this.terminate();
+      });
+
       persistenceResult.resolve();
     } catch (error) {
       // Regardless of whether or not the retry succeeds, from an user
@@ -261,8 +288,9 @@ export class FirestoreClient {
           ' persistence disabled: ' +
           error
       );
-      return this.initializePersistence(
-        new MemoryPersistenceProvider(),
+      return this.initializeComponents(
+        datastore,
+        new MemoryComponentProvider(),
         { durable: false },
         user,
         persistenceResult
@@ -319,92 +347,6 @@ export class FirestoreClient {
     }
   }
 
-  /**
-   * Initializes the rest of the FirestoreClient, assuming the initial user
-   * has been obtained from the credential provider and some persistence
-   * implementation is available in this.persistence.
-   */
-  private initializeRest(user: User): Promise<void> {
-    logDebug(LOG_TAG, 'Initializing. user=', user.uid);
-    return this.platform
-      .loadConnection(this.databaseInfo)
-      .then(async connection => {
-        const queryEngine = new IndexFreeQueryEngine();
-        this.localStore = new LocalStore(this.persistence, queryEngine, user);
-        await this.localStore.start();
-        const connectivityMonitor = this.platform.newConnectivityMonitor();
-        const serializer = this.platform.newSerializer(
-          this.databaseInfo.databaseId
-        );
-        const datastore = new Datastore(
-          this.asyncQueue,
-          connection,
-          this.credentials,
-          serializer
-        );
-
-        const remoteStoreOnlineStateChangedHandler = (
-          onlineState: OnlineState
-        ): void =>
-          this.syncEngine.applyOnlineStateChange(
-            onlineState,
-            OnlineStateSource.RemoteStore
-          );
-        const sharedClientStateOnlineStateChangedHandler = (
-          onlineState: OnlineState
-        ): void =>
-          this.syncEngine.applyOnlineStateChange(
-            onlineState,
-            OnlineStateSource.SharedClientState
-          );
-
-        this.remoteStore = new RemoteStore(
-          this.localStore,
-          datastore,
-          this.asyncQueue,
-          remoteStoreOnlineStateChangedHandler,
-          connectivityMonitor
-        );
-
-        this.syncEngine = new SyncEngine(
-          this.localStore,
-          this.remoteStore,
-          this.sharedClientState,
-          user,
-          MAX_CONCURRENT_LIMBO_RESOLUTIONS
-        );
-
-        this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-
-        // Set up wiring between sync engine and other components
-        this.remoteStore.syncEngine = this.syncEngine;
-        this.sharedClientState.syncEngine = this.syncEngine;
-
-        this.eventMgr = new EventManager(this.syncEngine);
-
-        // PORTING NOTE: LocalStore doesn't need an explicit start() on the Web.
-        await this.sharedClientState.start();
-        await this.remoteStore.start();
-
-        // NOTE: This will immediately call the listener, so we make sure to
-        // set it after localStore / remoteStore are started.
-        await this.persistence.setPrimaryStateListener(async isPrimary => {
-          await this.syncEngine.applyPrimaryState(isPrimary);
-          if (isPrimary && !this.gcScheduler.started) {
-            this.gcScheduler.start(this.localStore);
-          } else if (!isPrimary) {
-            this.gcScheduler.stop();
-          }
-        });
-
-        // When a user calls clearPersistence() in one client, all other clients
-        // need to be terminated to allow the delete to succeed.
-        await this.persistence.setDatabaseDeletedListener(async () => {
-          await this.terminate();
-        });
-      });
-  }
-
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
@@ -423,7 +365,10 @@ export class FirestoreClient {
   terminate(): Promise<void> {
     return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      this.gcScheduler.stop();
+      if (this.gcScheduler) {
+        this.gcScheduler.stop();
+      }
+
       await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
       await this.persistence.shutdown();

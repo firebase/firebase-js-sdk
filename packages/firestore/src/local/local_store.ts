@@ -62,6 +62,10 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/byte_string';
+import { IndexedDbPersistence } from './indexeddb_persistence';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import { IndexedDbTargetCache } from './indexeddb_target_cache';
 
 const LOG_TAG = 'LocalStore';
 
@@ -149,16 +153,16 @@ export class LocalStore {
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
    */
-  private mutationQueue: MutationQueue;
+  protected mutationQueue: MutationQueue;
 
   /** The set of all cached remote documents. */
-  private remoteDocuments: RemoteDocumentCache;
+  protected remoteDocuments: RemoteDocumentCache;
 
   /**
    * The "local" view of all documents (layering mutationQueue on top of
    * remoteDocumentCache).
    */
-  private localDocuments: LocalDocumentsView;
+  protected localDocuments: LocalDocumentsView;
 
   /**
    * The set of document references maintained by any local views.
@@ -166,7 +170,7 @@ export class LocalStore {
   private localViewReferences = new ReferenceSet();
 
   /** Maps a target to its `TargetData`. */
-  private targetCache: TargetCache;
+  protected targetCache: TargetCache;
 
   /**
    * Maps a targetID to data about its target.
@@ -174,7 +178,7 @@ export class LocalStore {
    * PORTING NOTE: We are using an immutable data structure on Web to make re-runs
    * of `applyRemoteEvent()` idempotent.
    */
-  private targetDataByTarget = new SortedMap<TargetId, TargetData>(
+  protected targetDataByTarget = new SortedMap<TargetId, TargetData>(
     primitiveComparator
   );
 
@@ -189,11 +193,11 @@ export class LocalStore {
    *
    * PORTING NOTE: This is only used for multi-tab synchronization.
    */
-  private lastDocumentChangeReadTime = SnapshotVersion.MIN;
+  protected lastDocumentChangeReadTime = SnapshotVersion.MIN;
 
   constructor(
     /** Manages our in-memory or durable persistence. */
-    private persistence: Persistence,
+    protected persistence: Persistence,
     private queryEngine: QueryEngine,
     initialUser: User
   ) {
@@ -213,11 +217,6 @@ export class LocalStore {
       this.persistence.getIndexManager()
     );
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
-  }
-
-  /** Starts the LocalStore. */
-  start(): Promise<void> {
-    return this.synchronizeLastDocumentChangeReadTime();
   }
 
   /**
@@ -354,29 +353,6 @@ export class LocalStore {
         const changes = batch.applyToLocalDocumentSet(existingDocs);
         return { batchId: batch.batchId, changes };
       });
-  }
-
-  /** Returns the local view of the documents affected by a mutation batch. */
-  // PORTING NOTE: Multi-tab only.
-  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
-    return this.persistence.runTransaction(
-      'Lookup mutation documents',
-      'readonly',
-      txn => {
-        return this.mutationQueue
-          .lookupMutationKeys(txn, batchId)
-          .next(keys => {
-            if (keys) {
-              return this.localDocuments.getDocuments(
-                txn,
-                keys
-              ) as PersistencePromise<MaybeDocumentMap | null>;
-            } else {
-              return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
-            }
-          });
-      }
-    );
   }
 
   /**
@@ -975,21 +951,6 @@ export class LocalStore {
     );
   }
 
-  // PORTING NOTE: Multi-tab only.
-  getActiveClients(): Promise<ClientId[]> {
-    return this.persistence.getActiveClients();
-  }
-
-  // PORTING NOTE: Multi-tab only.
-  removeCachedMutationBatchMetadata(batchId: BatchId): void {
-    this.mutationQueue.removeCachedMutationKeys(batchId);
-  }
-
-  // PORTING NOTE: Multi-tab only.
-  setNetworkEnabled(networkEnabled: boolean): void {
-    this.persistence.setNetworkEnabled(networkEnabled);
-  }
-
   private applyWriteToRemoteDocuments(
     txn: PersistenceTransaction,
     batchResult: MutationBatchResult,
@@ -1042,8 +1003,69 @@ export class LocalStore {
       txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
+}
 
-  // PORTING NOTE: Multi-tab only.
+/**
+ * An implementation of LocalStore that provides additional functionality
+ * for MultiTabSyncEngine.
+ */
+// PORTING NOTE: Web only.
+export class MultiTabLocalStore extends LocalStore {
+  protected mutationQueue: IndexedDbMutationQueue;
+  protected remoteDocuments: IndexedDbRemoteDocumentCache;
+  protected targetCache: IndexedDbTargetCache;
+
+  constructor(
+    protected persistence: IndexedDbPersistence,
+    queryEngine: QueryEngine,
+    initialUser: User
+  ) {
+    super(persistence, queryEngine, initialUser);
+
+    this.mutationQueue = persistence.getMutationQueue(initialUser);
+    this.remoteDocuments = persistence.getRemoteDocumentCache();
+    this.targetCache = persistence.getTargetCache();
+  }
+
+  /** Starts the LocalStore. */
+  start(): Promise<void> {
+    return this.synchronizeLastDocumentChangeReadTime();
+  }
+
+  /** Returns the local view of the documents affected by a mutation batch. */
+  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
+    return this.persistence.runTransaction(
+      'Lookup mutation documents',
+      'readonly',
+      txn => {
+        return this.mutationQueue
+          .lookupMutationKeys(txn, batchId)
+          .next(keys => {
+            if (keys) {
+              return this.localDocuments.getDocuments(
+                txn,
+                keys
+              ) as PersistencePromise<MaybeDocumentMap | null>;
+            } else {
+              return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
+            }
+          });
+      }
+    );
+  }
+
+  removeCachedMutationBatchMetadata(batchId: BatchId): void {
+    this.mutationQueue.removeCachedMutationKeys(batchId);
+  }
+
+  setNetworkEnabled(networkEnabled: boolean): void {
+    this.persistence.setNetworkEnabled(networkEnabled);
+  }
+
+  getActiveClients(): Promise<ClientId[]> {
+    return this.persistence.getActiveClients();
+  }
+
   getTarget(targetId: TargetId): Promise<Target | null> {
     const cachedTargetData = this.targetDataByTarget.get(targetId);
 
@@ -1068,7 +1090,6 @@ export class LocalStore {
    * initialization. Further invocations will return document changes since
    * the point of rejection.
    */
-  // PORTING NOTE: Multi-tab only.
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence
       .runTransaction('Get new document changes', 'readonly', txn =>
@@ -1088,7 +1109,6 @@ export class LocalStore {
    * synchronization marker so that calls to `getNewDocumentChanges()`
    * only return changes that happened after client initialization.
    */
-  // PORTING NOTE: Multi-tab only.
   async synchronizeLastDocumentChangeReadTime(): Promise<void> {
     this.lastDocumentChangeReadTime = await this.persistence.runTransaction(
       'Synchronize last document change read time',

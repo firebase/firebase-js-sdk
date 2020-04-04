@@ -23,6 +23,10 @@ import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
+import {
+  ComponentProvider,
+  MemoryComponentProvider
+} from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
@@ -36,8 +40,6 @@ import {
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { LruParams } from '../local/lru_garbage_collector';
-import { MemoryPersistenceProvider } from '../local/memory_persistence';
-import { PersistenceProvider } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
@@ -279,7 +281,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   private readonly _persistenceKey: string;
-  private readonly _persistenceProvider: PersistenceProvider;
+  private readonly _componentProvider: ComponentProvider;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
@@ -298,13 +300,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   readonly _dataReader: UserDataReader;
 
-  // Note: We are using `MemoryPersistenceProvider` as a default
-  // PersistenceProvider to ensure backwards compatibility with the format
+  // Note: We are using `MemoryComponentProvider` as a default
+  // ComponentProvider to ensure backwards compatibility with the format
   // expected by the console build.
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    persistenceProvider: PersistenceProvider = new MemoryPersistenceProvider()
+    persistenceProvider: ComponentProvider = new MemoryComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -329,7 +331,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._persistenceProvider = persistenceProvider;
+    this._componentProvider = persistenceProvider;
     this._settings = new FirestoreSettings({});
     this._dataReader = this.createDataReader(this._databaseId);
   }
@@ -399,7 +401,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         DEFAULT_SYNCHRONIZE_TABS;
     }
 
-    return this.configureClient(this._persistenceProvider, {
+    return this.configureClient(this._componentProvider, {
       durable: true,
       cacheSizeBytes: this._settings.cacheSizeBytes,
       synchronizeTabs
@@ -421,7 +423,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         const databaseInfo = this.makeDatabaseInfo();
-        await this._persistenceProvider.clearPersistence(databaseInfo);
+        await this._componentProvider.clearPersistence(databaseInfo);
         deferred.resolve();
       } catch (e) {
         deferred.reject(e);
@@ -486,7 +488,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryPersistenceProvider(), {
+      this.configureClient(new MemoryComponentProvider(), {
         durable: false
       });
     }
@@ -504,7 +506,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private configureClient(
-    persistenceProvider: PersistenceProvider,
+    componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     assert(!!this._settings.host, 'FirestoreSettings.host is not set');
@@ -520,10 +522,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    return this._firestoreClient.start(
-      persistenceProvider,
-      persistenceSettings
-    );
+    return this._firestoreClient.start(componentProvider, persistenceSettings);
   }
 
   private createDataReader(databaseId: DatabaseId): UserDataReader {

@@ -17,11 +17,10 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
-import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { Platform, PlatformSupport } from '../platform/platform';
+import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
@@ -30,8 +29,8 @@ import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  EncodedResourcePath
+  EncodedResourcePath,
+  encodeResourcePath
 } from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
@@ -60,14 +59,10 @@ import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
-  LruParams,
-  LruScheduler
+  LruParams
 } from './lru_garbage_collector';
-import { MutationQueue } from './mutation_queue';
 import {
-  GarbageCollectionScheduler,
   Persistence,
-  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG,
@@ -76,12 +71,7 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from './shared_client_state';
+import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
@@ -348,6 +338,13 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
+  /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void> {
@@ -359,6 +356,12 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
+  /**
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setDatabaseDeletedListener(
     databaseDeletedListener: () => Promise<void>
   ): void {
@@ -370,6 +373,12 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
+  /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setNetworkEnabled(networkEnabled: boolean): void {
     if (this.networkEnabled !== networkEnabled) {
       this.networkEnabled = networkEnabled;
@@ -691,6 +700,13 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
       'readonly',
@@ -719,7 +735,7 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getMutationQueue(user: User): IndexedDbMutationQueue {
     assert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
@@ -1299,91 +1315,4 @@ function writeSentinelKey(
   return documentTargetStore(txn).put(
     sentinelRow(key, txn.currentSequenceNumber)
   );
-}
-
-/**
- * Provides all components needed for IndexedDb persistence.
- */
-export class IndexedDbPersistenceProvider implements PersistenceProvider {
-  private persistence?: IndexedDbPersistence;
-  private gcScheduler?: GarbageCollectionScheduler;
-  private sharedClientState?: SharedClientState;
-
-  async initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    clientId: ClientId,
-    initialUser: User,
-    settings: PersistenceSettings
-  ): Promise<void> {
-    assert(
-      settings.durable,
-      'IndexedDbPersistenceProvider can only provide durable persistence'
-    );
-    assert(!this.persistence, 'configure() already called');
-
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-
-    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
-    const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
-      useProto3Json: PlatformSupport.getPlatform().useProto3Json
-    });
-
-    if (!WebStorageSharedClientState.isAvailable(platform)) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'IndexedDB persistence is only available on platforms that support LocalStorage.'
-      );
-    }
-
-    this.sharedClientState = settings.synchronizeTabs
-      ? new WebStorageSharedClientState(
-          asyncQueue,
-          platform,
-          persistenceKey,
-          clientId,
-          initialUser
-        )
-      : new MemorySharedClientState();
-
-    this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: settings.synchronizeTabs,
-      persistenceKey,
-      clientId,
-      platform,
-      queue: asyncQueue,
-      serializer,
-      lruParams: LruParams.withCacheSize(settings.cacheSizeBytes),
-      sequenceNumberSyncer: this.sharedClientState
-    });
-
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
-    this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-  }
-
-  getPersistence(): Persistence {
-    assert(!!this.persistence, 'initialize() not called');
-    return this.persistence;
-  }
-
-  getSharedClientState(): SharedClientState {
-    assert(!!this.sharedClientState, 'initialize() not called');
-    return this.sharedClientState;
-  }
-
-  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    assert(!!this.gcScheduler, 'initialize() not called');
-    return this.gcScheduler;
-  }
-
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
-  }
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
-  MaybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';
@@ -174,24 +173,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
-  }
-
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    throw new Error(
-      'getNewDocumentChanges() is not supported with MemoryPersistence'
-    );
-  }
-
-  getLastReadTime(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion> {
-    return PersistencePromise.resolve(SnapshotVersion.MIN);
   }
 
   newChangeBuffer(options?: {
