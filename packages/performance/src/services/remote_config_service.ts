@@ -167,7 +167,7 @@ function getRemoteConfig(
 /**
  * Processes config coming either from calling RC or from local storage.
  * This method only runs if call is successful or config in storage
- * is valie.
+ * is valid.
  */
 function processConfig(
   iid: string,
@@ -269,17 +269,26 @@ function shouldLogAfterSampling(samplingRate: number): boolean {
   return Math.random() <= samplingRate;
 }
 
-// True if event should be sent to transport endpoint rather than log endpoint.
-// rolloutPercent is in range [0.0, 100.0].
+/**
+ * True if event should be sent to transport endpoint rather than log endpoint.
+ * rolloutPercent is in range [0.0, 100.0].
+ * @param {string} iid Installation ID which identifies a web app installed on client.
+ * @param {number} rolloutPercent the possibility of this app sending events to transport endpoint.
+ * @return {boolean} true if this installation should send events to transport endpoint.
+ */
 export function isDestTransport(iid: string, rolloutPercent: number): boolean {
+  if (iid.length === 0) {
+    return false;
+  }
   return getHashPercent(iid) < rolloutPercent;
 }
-// Generate integer value range in [0, 99]. Return 100 if seed string is empty.
-export function getHashPercent(seed: string): number {
+/**
+ * Generate integer value range in [0, 99].
+ * @param {string} seed Same seed will generate consistent hash value using this algorithm.
+ * @return {number} Hash value in range [0, 99], generated from seed and hash algorithm.
+ */
+function getHashPercent(seed: string): number {
   let hash = 0;
-  if (seed.length === 0) {
-    return 100; // Empty seed is invalid so return value beyond valid range.
-  }
   for (let i = 0; i < seed.length; i++) {
     hash = (hash << 3) + hash - seed.charCodeAt(i);
   }

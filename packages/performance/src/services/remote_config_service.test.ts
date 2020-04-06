@@ -20,11 +20,7 @@ import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
-import {
-  getConfig,
-  isDestTransport,
-  getHashPercent
-} from './remote_config_service';
+import { getConfig, isDestTransport } from './remote_config_service';
 import { FirebaseApp } from '@firebase/app-types';
 import '../../test/setup';
 
@@ -355,105 +351,20 @@ describe('Performance Monitoring > remote_config_service', () => {
     });
   });
 
-  describe('getHashPercent', () => {
-    it('distributes to 100 buckets with 10000 samples', () => {
-      const buckets: number[] = [];
-      for (let i = 0; i < 100; i++) {
-        buckets.push(0);
-      }
-      for (let i = 0; i < 10000; i++) {
-        const randomString = Math.random()
-          .toString(36)
-          .substring(7, 29);
-        buckets[getHashPercent(randomString)] += 1;
-      }
-      for (let i = 0; i < 100; i++) {
-        expect(buckets[i]).to.be.greaterThan(0);
-      }
-      expect(buckets.length).to.be.equal(100);
-    });
-
-    it('generates same hash value with same seed', () => {
-      const randomString1 = Math.random()
-        .toString(36)
-        .substring(7, 29);
-      const hashValue1 = getHashPercent(randomString1);
-      const randomString2 = Math.random()
-        .toString(36)
-        .substring(7, 29);
-      const hashValue2 = getHashPercent(randomString2);
-      const randomString3 = Math.random()
-        .toString(36)
-        .substring(7, 29);
-      const hashValue3 = getHashPercent(randomString3);
-
-      expect(getHashPercent(randomString1)).to.be.equal(hashValue1);
-      expect(getHashPercent(randomString2)).to.be.equal(hashValue2);
-      expect(getHashPercent(randomString3)).to.be.equal(hashValue3);
-    });
-  });
-
   describe('isDestTransport', () => {
     it('marks traffic to cc when rollout percentage is 0', () => {
-      let toCc = 0;
-      let toTransport = 0;
-      const sampleAmount = 10000;
-
-      for (let i = 0; i < sampleAmount; i++) {
-        const randomString = Math.random()
-          .toString(36)
-          .substring(7, 29);
-        if (isDestTransport(randomString, 0)) {
-          toTransport += 1;
-        } else {
-          toCc += 1;
-        }
-      }
-      expect(toCc).to.be.equal(sampleAmount);
-      expect(toTransport).to.be.equal(0);
+      const shouldSendToTransport = isDestTransport('abc', 0); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToTransport).to.be.false;
     });
 
     it('marks traffic to transport when rollout percentage is 100', () => {
-      let toCc = 0;
-      let toTransport = 0;
-      const sampleAmount = 10000;
-
-      for (let i = 0; i < sampleAmount; i++) {
-        const randomString = Math.random()
-          .toString(36)
-          .substring(7, 29);
-        if (isDestTransport(randomString, 100)) {
-          toTransport += 1;
-        } else {
-          toCc += 1;
-        }
-      }
-      expect(toCc).to.be.equal(0);
-      expect(toTransport).to.be.equal(sampleAmount);
+      const shouldSendToTransport = isDestTransport('abc', 100); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToTransport).to.be.true;
     });
 
-    it('marks roughly half of traffic goes to transport when rollout percentage is 50', () => {
-      let toCc = 0;
-      let toTransport = 0;
-      const sampleAmount = 10000;
-
-      for (let i = 0; i < sampleAmount; i++) {
-        const randomString = Math.random()
-          .toString(36)
-          .substring(7, 29);
-        if (isDestTransport(randomString, 50)) {
-          toTransport += 1;
-        } else {
-          toCc += 1;
-        }
-      }
-      const diff = Math.abs(toCc - toTransport);
-      console.log(
-        'Transport traffic is ' +
-          (toTransport * 100) / sampleAmount +
-          '% when rollout 50%.'
-      );
-      expect(diff).to.be.lessThan(2000);
+    it('marks traffic to transport if hash percentage is lower than rollout percentage 50%', () => {
+      const shouldSendToTransport = isDestTransport('abc', 50); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToTransport).to.be.true;
     });
   });
 });

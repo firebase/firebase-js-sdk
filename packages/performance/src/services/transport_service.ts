@@ -153,11 +153,13 @@ function sendEventsToTransport(
       // Delete request if response include RESPONSE_ACTION_UNKNOWN or DELETE_REQUEST action.
       // Otherwise, retry request using normal scheduling if response include RETRY_REQUEST_LATER.
       const logResponseDetails: LogResponseDetails[] = res.logResponseDetails;
-      if (logResponseDetails && logResponseDetails.length > 0) {
-        if (logResponseDetails[0].responseAction === 'RETRY_REQUEST_LATER') {
-          queue = [...staged, ...queue];
-          consoleLogger.info(`Retry transport request later.`);
-        }
+      if (
+        Array.isArray(logResponseDetails) &&
+        logResponseDetails.length > 0 &&
+        logResponseDetails[0].responseAction === 'RETRY_REQUEST_LATER'
+      ) {
+        queue = [...staged, ...queue];
+        consoleLogger.info(`Retry transport request later.`);
       }
 
       remainingTries = DEFAULT_REMAINING_TRIES;
