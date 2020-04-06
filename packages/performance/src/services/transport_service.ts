@@ -35,7 +35,7 @@ interface BatchEvent {
 }
 
 /* eslint-disable camelcase */
-// CC/Transport accepted log format.
+// CC/Fl accepted log format.
 interface TransportBatchLogFormat {
   request_time_ms: string;
   client_info: ClientInfo;
@@ -124,18 +124,18 @@ function postToEndpoint(
   staged: BatchEvent[]
 ): Promise<void> {
   // Gradually rollout traffic from cc to transport using remote config.
-  if (SettingsService.getInstance().shouldSendToTransport) {
-    return sendEventsToTransport(data, staged);
+  if (SettingsService.getInstance().shouldSendToFl) {
+    return sendEventsToFl(data, staged);
   } else {
     return sendEventsToCc(data);
   }
 }
 
-function sendEventsToTransport(
+function sendEventsToFl(
   data: TransportBatchLogFormat,
   staged: BatchEvent[]
 ): Promise<void> {
-  return postToTransportEndpoint(data)
+  return postToFlEndpoint(data)
     .then(res => {
       if (!res.ok) {
         consoleLogger.info('Call to Firebase backend failed.');
@@ -191,11 +191,9 @@ function sendEventsToCc(data: TransportBatchLogFormat): Promise<void> {
     });
 }
 
-function postToTransportEndpoint(
-  data: TransportBatchLogFormat
-): Promise<Response> {
-  const transportFullUrl = SettingsService.getInstance().getTransportFullUrl();
-  return fetch(transportFullUrl, {
+function postToFlEndpoint(data: TransportBatchLogFormat): Promise<Response> {
+  const flTransportFullUrl = SettingsService.getInstance().getFlTransportFullUrl();
+  return fetch(flTransportFullUrl, {
     method: 'POST',
     body: JSON.stringify(data)
   });

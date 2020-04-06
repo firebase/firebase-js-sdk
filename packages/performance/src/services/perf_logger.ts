@@ -157,12 +157,11 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
 
   // Blacklist old log endpoint and new transport endpoint.
   const logEndpointHostName = new URL(settingsService.logEndPointUrl).hostname;
-  const transportEndpointHostName = new URL(
-    settingsService.transportEndpointUrl
-  ).hostname;
+  const flEndpointHostName = new URL(settingsService.flTransportEndpointUrl)
+    .hostname;
   if (
     networkRequestHostName === logEndpointHostName ||
-    networkRequestHostName === transportEndpointHostName
+    networkRequestHostName === flEndpointHostName
   ) {
     return;
   }

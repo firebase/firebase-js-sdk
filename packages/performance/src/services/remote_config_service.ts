@@ -34,7 +34,7 @@ interface SecondaryConfig {
   logSource?: number;
   logEndPointUrl?: string;
   transportKey?: string;
-  shouldSendToTransport?: boolean;
+  shouldSendToFl?: boolean;
   tracesSamplingRate?: number;
   networkRequestsSamplingRate?: number;
 }
@@ -43,13 +43,13 @@ interface SecondaryConfig {
 // retrieved, but the template does not have these fields.
 const SECONDARY_CONFIGS: SecondaryConfig = {
   loggingEnabled: true,
-  shouldSendToTransport: true
+  shouldSendToFl: true
 };
 
 // These values will be used if the remote config object is successfully
 // retrieved, but the config object state shows unspecified or no template.
 const NO_TEMPLATE_CONFIGS: SecondaryConfig = {
-  shouldSendToTransport: false
+  shouldSendToFl: false
 };
 
 /* eslint-disable camelcase */
@@ -215,24 +215,23 @@ function processConfig(
     state === 'INSTANCE_STATE_UNSPECIFIED' ||
     state === 'NO_TEMPLATE'
   ) {
-    if (NO_TEMPLATE_CONFIGS.shouldSendToTransport !== undefined) {
-      settingsServiceInstance.shouldSendToTransport =
-        NO_TEMPLATE_CONFIGS.shouldSendToTransport;
+    if (NO_TEMPLATE_CONFIGS.shouldSendToFl !== undefined) {
+      settingsServiceInstance.shouldSendToFl =
+        NO_TEMPLATE_CONFIGS.shouldSendToFl;
     }
   } else if (entries.fpr_log_transport_web_percent !== undefined) {
     // If config object state doesn't indicate no template, it can only be UPDATE for now.
     // - Performance Monitoring doesn't set etag in request, therefore state cannot be NO_CHANGE.
     // - Sampling rate flags and master flag are required, therefore state cannot be EMPTY_CONFIG.
     // If config object state is UPDATE and rollout flag is present, determine endpoint by iid.
-    settingsServiceInstance.shouldSendToTransport = isDestTransport(
+    settingsServiceInstance.shouldSendToFl = isDestFl(
       iid,
       Number(entries.fpr_log_transport_web_percent)
     );
-  } else if (SECONDARY_CONFIGS.shouldSendToTransport !== undefined) {
+  } else if (SECONDARY_CONFIGS.shouldSendToFl !== undefined) {
     // If config object state is UPDATE and rollout flag is not present, that means rollout is
     // complete and rollout flag is deprecated, therefore dispatch events to new transport endpoint.
-    settingsServiceInstance.shouldSendToTransport =
-      SECONDARY_CONFIGS.shouldSendToTransport;
+    settingsServiceInstance.shouldSendToFl = SECONDARY_CONFIGS.shouldSendToFl;
   }
 
   if (entries.fpr_vc_network_request_sampling_rate !== undefined) {
@@ -270,13 +269,13 @@ function shouldLogAfterSampling(samplingRate: number): boolean {
 }
 
 /**
- * True if event should be sent to transport endpoint rather than log endpoint.
+ * True if event should be sent to Fl transport endpoint rather than log endpoint.
  * rolloutPercent is in range [0.0, 100.0].
  * @param {string} iid Installation ID which identifies a web app installed on client.
- * @param {number} rolloutPercent the possibility of this app sending events to transport endpoint.
- * @return {boolean} true if this installation should send events to transport endpoint.
+ * @param {number} rolloutPercent the possibility of this app sending events to Fl endpoint.
+ * @return {boolean} true if this installation should send events to Fl endpoint.
  */
-export function isDestTransport(iid: string, rolloutPercent: number): boolean {
+export function isDestFl(iid: string, rolloutPercent: number): boolean {
   if (iid.length === 0) {
     return false;
   }

@@ -47,7 +47,7 @@ describe('Firebase Performance > transport_service', () => {
     fetchStub.restore();
     clock.restore();
     resetTransportService();
-    SettingsService.getInstance().shouldSendToTransport = false;
+    SettingsService.getInstance().shouldSendToFl = false;
   });
 
   it('throws an error when logging an empty message', () => {
@@ -85,10 +85,10 @@ describe('Firebase Performance > transport_service', () => {
   it('successful send a meesage to transport', () => {
     const transportDelayInterval = 30000;
     const setting = SettingsService.getInstance();
-    const transportFullUrl =
-      setting.transportEndpointUrl + '?key=' + setting.transportKey;
-    setting.shouldSendToTransport = true;
-    fetchStub.withArgs(transportFullUrl, match.any).resolves(
+    const flTransportFullUrl =
+      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
+    setting.shouldSendToFl = true;
+    fetchStub.withArgs(flTransportFullUrl, match.any).resolves(
       // DELETE_REQUEST means event dispatch is successful.
       new Response(
         '{\

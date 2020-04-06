@@ -40,14 +40,14 @@ export class SettingsService {
     'https://firebaselogging.googleapis.com/v0cc/log?format=json_proto';
   // Performance event transport endpoint URL which should be compatible with proto3.
   // New Address for transport service, not configurable via Remote Config.
-  transportEndpointUrl = mergeStrings(
+  flTransportEndpointUrl = mergeStrings(
     'hts/frbslgigp.ogepscmv/ieo/eaylg',
     'tp:/ieaeogn-agolai.o/1frlglgc/o'
   );
 
   transportKey = mergeStrings('AzSC8r6ReiGqFMyfvgow', 'Iayx0u-XT3vksVM-pIV');
 
-  shouldSendToTransport = false;
+  shouldSendToFl = false;
 
   // Source type for performance event logs.
   logSource = 462;
@@ -96,8 +96,8 @@ export class SettingsService {
     return apiKey;
   }
 
-  getTransportFullUrl(): string {
-    return this.transportEndpointUrl.concat('?key=', this.transportKey);
+  getFlTransportFullUrl(): string {
+    return this.flTransportEndpointUrl.concat('?key=', this.transportKey);
   }
 
   static getInstance(): SettingsService {

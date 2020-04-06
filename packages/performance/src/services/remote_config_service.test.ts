@@ -20,7 +20,7 @@ import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
-import { getConfig, isDestTransport } from './remote_config_service';
+import { getConfig, isDestFl } from './remote_config_service';
 import { FirebaseApp } from '@firebase/app-types';
 import '../../test/setup';
 
@@ -135,7 +135,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         TRANSPORT_KEY
       );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -176,7 +176,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         TRANSPORT_KEY
       );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -252,7 +252,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(IID);
 
       // If no template, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
     });
 
     it('marks event destination to cc if instance state unspecified', async () => {
@@ -270,7 +270,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(IID);
 
       // If instance state unspecified, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
     });
 
     it("marks event destination to cc if state doesn't exist", async () => {
@@ -285,10 +285,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(IID);
 
       // If "state" doesn't exist, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
     });
 
-    it('marks event destination to transport if template exists but no rollout flag', async () => {
+    it('marks event destination to Fl if template exists but no rollout flag', async () => {
       const CONFIG_WITHOUT_ROLLOUT_FLAG = `{"entries":{"fpr_enabled":"true",\
     "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
     "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
@@ -304,8 +304,8 @@ describe('Performance Monitoring > remote_config_service', () => {
       );
       await getConfig(IID);
 
-      // If template exists but no rollout flag, will send to transport.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
+      // If template exists but no rollout flag, will send to Fl.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
     });
 
     it('marks event destination to cc when instance is outside of rollout range', async () => {
@@ -326,10 +326,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(IID);
 
       // If rollout flag exists, will send to cc when this instance is out of rollout scope.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.false;
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
     });
 
-    it('marks event destination to transport when instance is within rollout range', async () => {
+    it('marks event destination to Fl when instance is within rollout range', async () => {
       const CONFIG_WITH_ROLLOUT_FLAG_40 = `{"entries":{"fpr_enabled":"true",\
     "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
     "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
@@ -346,25 +346,25 @@ describe('Performance Monitoring > remote_config_service', () => {
       );
       await getConfig(IID);
 
-      // If rollout flag exists, will send to transport when this instance is within rollout scope.
-      expect(SettingsService.getInstance().shouldSendToTransport).to.be.true;
+      // If rollout flag exists, will send to Fl when this instance is within rollout scope.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
     });
   });
 
-  describe('isDestTransport', () => {
+  describe('isDestFl', () => {
     it('marks traffic to cc when rollout percentage is 0', () => {
-      const shouldSendToTransport = isDestTransport('abc', 0); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToTransport).to.be.false;
+      const shouldSendToFl = isDestFl('abc', 0); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.false;
     });
 
-    it('marks traffic to transport when rollout percentage is 100', () => {
-      const shouldSendToTransport = isDestTransport('abc', 100); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToTransport).to.be.true;
+    it('marks traffic to Fl when rollout percentage is 100', () => {
+      const shouldSendToFl = isDestFl('abc', 100); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.true;
     });
 
-    it('marks traffic to transport if hash percentage is lower than rollout percentage 50%', () => {
-      const shouldSendToTransport = isDestTransport('abc', 50); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToTransport).to.be.true;
+    it('marks traffic to Fl if hash percentage is lower than rollout percentage 50%', () => {
+      const shouldSendToFl = isDestFl('abc', 50); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.true;
     });
   });
 });
