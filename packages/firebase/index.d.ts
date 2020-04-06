@@ -7682,8 +7682,8 @@ declare namespace firebase.firestore {
      * causes unexpected behavior when using a timestamp from a snapshot as a
      * part of a subsequent query.
      *
-     * Now, Firestore returns `Timestamp` values for all timestamp values stored 
-     * in Cloud Firestore instead of system `Date` objects, avoiding this kind 
+     * Now, Firestore returns `Timestamp` values for all timestamp values stored
+     * in Cloud Firestore instead of system `Date` objects, avoiding this kind
      * of problem. Consequently, you must update your code to handle `Timestamp`
      * objects instead of `Date` objects.
      *
