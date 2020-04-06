@@ -1206,7 +1206,7 @@ abstract class TestRunner {
         `ResumeToken does not match - expected:
          ${stringFromBase64String(
            expectedTarget.resumeToken
-         )}, actual: ${stringFromBase64String(expectedTarget.resumeToken)}`
+         )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
       delete actualTargets[targetId];
     });
