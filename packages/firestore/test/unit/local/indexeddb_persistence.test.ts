@@ -73,6 +73,8 @@ import {
   TEST_SERIALIZER
 } from './persistence_test_helpers';
 
+/* eslint-disable no-restricted-globals */
+
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>

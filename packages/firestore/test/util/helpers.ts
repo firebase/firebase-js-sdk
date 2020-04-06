@@ -93,6 +93,8 @@ import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 
+/* eslint-disable no-restricted-globals */
+
 export type TestSnapshotVersion = number;
 
 /**

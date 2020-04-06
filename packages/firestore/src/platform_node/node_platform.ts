@@ -36,6 +36,7 @@ export class NodePlatform implements Platform {
 
   get window(): Window | null {
     if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      // eslint-disable-next-line no-restricted-globals
       return window;
     }
 
