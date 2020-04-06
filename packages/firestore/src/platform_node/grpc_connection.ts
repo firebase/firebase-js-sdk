@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -21,11 +22,12 @@ import {
   credentials as GrpcCredentials,
   ServiceError
 } from '@grpc/grpc-js';
+import * as grpcPkgJson from '@grpc/grpc-js/package.json';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 
-const grpcVersion = import('@grpc/grpc-js/package.json').version;
+const grpcVersion = grpcPkgJson.version;
 
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';
