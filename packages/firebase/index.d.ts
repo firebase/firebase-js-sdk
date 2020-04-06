@@ -7687,11 +7687,11 @@ declare namespace firebase.firestore {
      * of problem. Consequently, you must update your code to handle `Timestamp`
      * objects instead of `Date` objects.
      *
-     * If you want to *temporarily* opt into the old behavior of returning
-     * `Date` objects, you may *temporarily* set `timestampsInSnapshots` to
+     * If you want to **temporarily** opt into the old behavior of returning
+     * `Date` objects, you may **temporarily** set `timestampsInSnapshots` to
      * false. Opting into this behavior will no longer be possible in the next
      * major release of Firestore, after which code that expects Date objects
-     * *will break*.
+     * **will break**.
      *
      * @example **Using Date objects in Firestore.**
      * // With deprecated setting `timestampsInSnapshot: true`:
