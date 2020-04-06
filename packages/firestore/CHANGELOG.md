@@ -1,6 +1,6 @@
 # Unreleased
-- [fixed] Reverted the use of the "crypto" global since it caused some user
-  issues (#2872).
+- [fixed] Temporarily reverted the use of window.crypto to generate document
+  IDs to address compatibility issues with IE 11, WebWorkers, and React Native.
 - [changed] Firestore now limits the number of concurrent document lookups it
   will perform when resolving inconsistencies in the local cache (#2683).
 - [changed] Changed the in-memory representation of Firestore documents to
