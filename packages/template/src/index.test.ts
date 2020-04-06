@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { testFxn } from '../src';
+import { testFxn } from './index';
 
 describe('Simple test', () => {
   it('Should skip this test');

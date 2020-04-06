@@ -23,7 +23,6 @@ module.exports = function(config) {
   config.set({
     ...karmaBase,
     files,
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     frameworks: ['mocha']
   });
 };
