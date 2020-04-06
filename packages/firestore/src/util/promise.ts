@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,7 @@ export interface Rejecter {
   (reason?: Error): void;
 }
 
-export interface CancelablePromise<T> {
-  // We are not extending Promise, since Node's Promise API require us to
-  // implement 'finally', which is not fully supported on Web.
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?:
-      | ((value: T) => TResult1 | PromiseLike<TResult1>)
-      | undefined
-      | null,
-    onrejected?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
-  ): Promise<TResult1 | TResult2>;
-  catch<TResult = never>(
-    onrejected?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
-  ): Promise<T | TResult>;
+export interface CancelablePromise<T> extends Promise<T> {
   cancel(): void;
 }
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 
@@ -31,7 +31,7 @@ export const components = new Map<string, Component<any>>();
  */
 export function addComponent(app: FirebaseApp, component: Component): void {
   try {
-    (app as FirebaseAppInternal).container.addComponent(component);
+    (app as _FirebaseAppInternal).container.addComponent(component);
   } catch (e) {
     logger.debug(
       `Component ${component.name} failed to register with FirebaseApp ${app.name}`,
@@ -44,7 +44,7 @@ export function addOrOverwriteComponent(
   app: FirebaseApp,
   component: Component
 ): void {
-  (app as FirebaseAppInternal).container.addOrOverwriteComponent(component);
+  (app as _FirebaseAppInternal).container.addOrOverwriteComponent(component);
 }
 
 /**
@@ -66,7 +66,7 @@ export function registerComponent(component: Component): boolean {
 
   // add the component to existing app instances
   for (const app of apps.values()) {
-    addComponent(app as FirebaseAppInternal, component);
+    addComponent(app as _FirebaseAppInternal, component);
   }
 
   return true;
@@ -76,7 +76,7 @@ export function getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
 ): Provider<T> {
-  return (app as FirebaseAppInternal).container.getProvider(name);
+  return (app as _FirebaseAppInternal).container.getProvider(name);
 }
 
 /**
