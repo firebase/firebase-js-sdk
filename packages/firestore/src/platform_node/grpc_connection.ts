@@ -25,8 +25,7 @@ import {
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const grpcVersion = require('@grpc/grpc-js/package.json').version;
+const grpcVersion = import('@grpc/grpc-js/package.json').version;
 
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';

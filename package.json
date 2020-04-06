@@ -59,7 +59,7 @@
     "@types/chai-as-promised": "7.1.2",
     "@types/long": "4.0.1",
     "@types/mocha": "7.0.2",
-    "@types/node": "13.11.0",
+    "@types/node": "12.13.0",
     "@types/sinon": "7.5.2",
     "@types/sinon-chai": "3.2.3",
     "@typescript-eslint/eslint-plugin": "2.24.0",

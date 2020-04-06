@@ -23,7 +23,6 @@
     "@firebase/logger": "0.2.1",
     "@firebase/util": "0.2.44",
     "@types/request": "2.48.4",
-    "firebase": "7.13.1",
     "request": "2.88.2"
   },
   "devDependencies": {
