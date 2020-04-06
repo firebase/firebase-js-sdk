@@ -34,7 +34,7 @@ async function fetchJson(path: string, req?: object): Promise<object> {
   };
 
   const response = await fetch(path, request);
-  return await response.json();
+  return response.json();
 }
 
 describe('mock fetch utility', () => {
