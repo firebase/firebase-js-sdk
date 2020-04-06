@@ -19,16 +19,18 @@ import { expect } from 'chai';
 import * as mockFetch from './mock_fetch';
 
 async function fetchJson(path: string, req?: object): Promise<object> {
-  const body = req ? {
-    body: JSON.stringify(req),
-  } : {};
+  const body = req
+    ? {
+        body: JSON.stringify(req)
+      }
+    : {};
   const request: RequestInit = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     referrerPolicy: 'no-referrer',
-    ...body,
+    ...body
   };
 
   const response = await fetch(path, request);
@@ -41,11 +43,11 @@ describe('mock fetch utility', () => {
 
   describe('matched requests', () => {
     it('returns the correct object for multiple routes', async () => {
-      mockFetch.mock('/a', {a: 1});
-      mockFetch.mock('/b', {b: 2});
+      mockFetch.mock('/a', { a: 1 });
+      mockFetch.mock('/b', { b: 2 });
 
-      expect(await fetchJson('/a')).to.eql({a: 1});
-      expect(await fetchJson('/b')).to.eql({b: 2});
+      expect(await fetchJson('/a')).to.eql({ a: 1 });
+      expect(await fetchJson('/b')).to.eql({ b: 2 });
     });
 
     it('passes through the status of the mock', async () => {
@@ -56,20 +58,20 @@ describe('mock fetch utility', () => {
     it('records calls to the mock', async () => {
       const someRequest = {
         sentence:
-            'Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo',
+          'Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo'
       };
 
       const mock = mockFetch.mock('/word', {});
       await fetchJson('/word', someRequest);
-      await fetchJson('/word', {a: 'b'});
+      await fetchJson('/word', { a: 'b' });
       await fetch('/word');
 
       expect(mock.calls.length).to.equal(3);
       expect(mock.calls[0].request).to.eql(someRequest);
-      expect(mock.calls[1].request).to.eql({a: 'b'});
+      expect(mock.calls[1].request).to.eql({ a: 'b' });
       expect(mock.calls[2].request).to.equal(undefined);
     });
-  })
+  });
 
   describe('route rejection', () => {
     it('if the route is not in the map', () => {
@@ -81,21 +83,24 @@ describe('mock fetch utility', () => {
 
     it('if call is not a string', () => {
       mockFetch.mock('/blah', {});
-      expect(() => fetch(new Request({} as any)))
-          .to.throw('URL passed to fetch was not a string');
+      expect(() => fetch(new Request({} as any))).to.throw(
+        'URL passed to fetch was not a string'
+      );
     });
   });
 });
 
 describe('mock fetch utility (no setUp/tearDown)', () => {
   it('errors if mock attempted without setup', () => {
-    expect(() => mockFetch.mock('/test', {})).to.throw('Mock fetch is not set up');
+    expect(() => mockFetch.mock('/test', {})).to.throw(
+      'Mock fetch is not set up'
+    );
   });
 
   it('routes do not carry to next run', async () => {
     mockFetch.setUp();
-    mockFetch.mock('/test', {first: 'first'});
-    expect(await fetchJson('/test')).to.eql({first: 'first'});
+    mockFetch.mock('/test', { first: 'first' });
+    expect(await fetchJson('/test')).to.eql({ first: 'first' });
     mockFetch.tearDown();
     mockFetch.setUp();
     expect(() => fetch('/test')).to.throw(

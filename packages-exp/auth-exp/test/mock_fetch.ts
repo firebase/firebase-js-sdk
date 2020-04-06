@@ -27,7 +27,7 @@ export interface Route {
   calls: Call[];
 }
 
-let fetchStub: SinonStub | null = null;;
+let fetchStub: SinonStub | null = null;
 let routes = new Map<string, Route>();
 
 // Using a constant rather than a function to enforce the type matches fetch()
@@ -44,13 +44,15 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   const { response, status, calls } = routes.get(input)!;
 
   calls.push({
-    request: request?.body ? JSON.parse(request.body as string) : undefined,
+    request: request?.body ? JSON.parse(request.body as string) : undefined
   });
 
   const blob = new Blob([JSON.stringify(response)]);
-  return Promise.resolve(new Response(blob, {
-    status,
-  }));
+  return Promise.resolve(
+    new Response(blob, {
+      status
+    })
+  );
 };
 
 export function setUp(): void {
@@ -66,7 +68,7 @@ export function mock(url: string, response: object, status = 200): Route {
   const route: Route = {
     response,
     status,
-    calls: [],
+    calls: []
   };
 
   routes.set(url, route);
