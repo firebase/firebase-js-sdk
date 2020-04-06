@@ -5,12 +5,16 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
+  "engines": {
+    "node": "^8.13.0 || >=10.10.0"
+  },
   "homepage": "https://github.com/firebase/firebase-js-sdk",
   "keywords": [
     "authentication",
     "database",
     "Firebase",
     "firebase",
+    "firestore",
     "functions",
     "realtime",
     "storage",
@@ -57,7 +61,7 @@
     "@types/chai-as-promised": "7.1.2",
     "@types/long": "4.0.1",
     "@types/mocha": "7.0.2",
-    "@types/node": "8.10.59",
+    "@types/node": "12.12.34",
     "@types/sinon": "7.5.2",
     "@types/sinon-chai": "3.2.3",
     "@typescript-eslint/eslint-plugin": "2.24.0",
