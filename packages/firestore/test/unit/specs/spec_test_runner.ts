@@ -18,7 +18,12 @@
 import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import {
+  ComponentProvider,
+  IndexedDbComponentProvider,
+  MemoryComponentProvider
+} from '../../../src/core/component_provider';
+import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
@@ -27,17 +32,12 @@ import {
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
-import {
-  OnlineState,
-  OnlineStateSource,
-  TargetId
-} from '../../../src/core/types';
+import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -46,18 +46,17 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
-  MemoryLruDelegate,
-  MemoryPersistence
+  MemoryLruDelegate
 } from '../../../src/local/memory_persistence';
-import { Persistence } from '../../../src/local/persistence';
+import {
+  GarbageCollectionScheduler,
+  Persistence
+} from '../../../src/local/persistence';
 import {
   ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
+  SharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
@@ -65,7 +64,7 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { Platform, PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
@@ -90,6 +89,7 @@ import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
@@ -100,23 +100,24 @@ import {
   patchMutation,
   path,
   setMutation,
+  stringFromBase64String,
   TestSnapshotVersion,
-  version,
-  byteStringFromString,
-  stringFromBase64String
+  version
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
-  TEST_PERSISTENCE_PREFIX,
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
 import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -400,6 +401,7 @@ abstract class TestRunner {
   private connection!: MockConnection;
   private eventManager!: EventManager;
   private syncEngine!: SyncEngine;
+  private gcScheduler!: GarbageCollectionScheduler | null;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
@@ -443,8 +445,8 @@ abstract class TestRunner {
   ) {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
-      new DatabaseId('project'),
-      'persistenceKey',
+      TEST_DATABASE_ID,
+      TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
       /*forceLongPolling=*/ false
@@ -470,16 +472,6 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.sharedClientState = this.getSharedClientState();
-    this.persistence = await this.initPersistence(
-      this.serializer,
-      this.useGarbageCollection
-    );
-
-    const queryEngine = new IndexFreeQueryEngine();
-    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
-    await this.localStore.start();
-
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -487,50 +479,25 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.RemoteStore
-      );
-    };
-    const sharedClientStateOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.SharedClientState
-      );
-    };
-    const connectivityMonitor = this.platform.newConnectivityMonitor();
-    this.remoteStore = new RemoteStore(
-      this.localStore,
-      this.datastore,
+
+    const componentProvider = await this.initializeComponentProvider(
       this.queue,
-      remoteStoreOnlineStateChangedHandler,
-      connectivityMonitor
-    );
-    this.syncEngine = new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
+      this.databaseInfo,
+      this.platform,
+      this.datastore,
+      this.clientId,
       this.user,
-      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
+      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      this.useGarbageCollection
     );
 
-    // Set up wiring between sync engine and other components
-    this.remoteStore.syncEngine = this.syncEngine;
-    this.sharedClientState.syncEngine = this.syncEngine;
-    this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-    this.eventManager = new EventManager(this.syncEngine);
-
-    await this.sharedClientState.start();
-    await this.remoteStore.start();
-
-    await this.persistence.setPrimaryStateListener(isPrimary =>
-      this.syncEngine.applyPrimaryState(isPrimary)
-    );
+    this.sharedClientState = componentProvider.sharedClientState;
+    this.persistence = componentProvider.persistence;
+    this.localStore = componentProvider.localStore;
+    this.remoteStore = componentProvider.remoteStore;
+    this.syncEngine = componentProvider.syncEngine;
+    this.eventManager = componentProvider.eventManager;
+    this.gcScheduler = componentProvider.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -539,12 +506,16 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initPersistence(
-    serializer: JsonProtoSerializer,
+  protected abstract initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence>;
-
-  protected abstract getSharedClientState(): SharedClientState;
+  ): Promise<ComponentProvider>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -947,6 +918,10 @@ abstract class TestRunner {
   }
 
   private async doShutdown(): Promise<void> {
+    if (this.gcScheduler) {
+      this.gcScheduler.stop();
+    }
+
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
@@ -962,9 +937,7 @@ abstract class TestRunner {
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything.
-    // No local store to shutdown.
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.doShutdown();
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
@@ -1031,6 +1004,10 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
+        assert(
+          this.persistence instanceof IndexedDbPersistence,
+          'numActiveClients is only supported for persistence-enabled tests'
+        );
         const activeClients = await this.persistence.getActiveClients();
         expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }
@@ -1206,7 +1183,7 @@ abstract class TestRunner {
         `ResumeToken does not match - expected:
          ${stringFromBase64String(
            expectedTarget.resumeToken
-         )}, actual: ${stringFromBase64String(expectedTarget.resumeToken)}`
+         )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
       delete actualTargets[targetId];
     });
@@ -1283,21 +1260,32 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new MemorySharedClientState();
-  }
-
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    return Promise.resolve(
-      new MemoryPersistence(this.clientId, p =>
-        gcEnabled
-          ? new MemoryEagerDelegate(p)
-          : new MemoryLruDelegate(p, LruParams.DEFAULT)
-      )
+  ): Promise<ComponentProvider> {
+    const persistenceProvider = new MemoryComponentProvider(
+      gcEnabled
+        ? MemoryEagerDelegate.factory
+        : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
+    await persistenceProvider.initialize(
+      asyncQueue,
+      databaseInfo,
+      platform,
+      datastore,
+      clientId,
+      initialUser,
+      maxConcurrentLimboResolutions,
+      { durable: false }
+    );
+    return persistenceProvider;
   }
 }
 
@@ -1306,31 +1294,32 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new WebStorageSharedClientState(
-      this.queue,
-      this.platform,
-      TEST_PERSISTENCE_PREFIX,
-      this.clientId,
-      this.user
-    );
-  }
-
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    // TODO(gsoltis): can we or should we disable this test if gc is enabled?
-    return IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: true,
-      persistenceKey: TEST_PERSISTENCE_PREFIX,
-      clientId: this.clientId,
-      platform: this.platform,
-      queue: this.queue,
-      serializer,
-      lruParams: LruParams.DEFAULT,
-      sequenceNumberSyncer: this.sharedClientState
-    });
+  ): Promise<ComponentProvider> {
+    const persistenceProvider = new IndexedDbComponentProvider();
+    await persistenceProvider.initialize(
+      asyncQueue,
+      databaseInfo,
+      platform,
+      datastore,
+      clientId,
+      initialUser,
+      maxConcurrentLimboResolutions,
+      {
+        durable: true,
+        cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
+        synchronizeTabs: true
+      }
+    );
+    return persistenceProvider;
   }
 
   static destroyPersistence(): Promise<void> {

@@ -25,7 +25,10 @@ import { CancelablePromise } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
-import { PersistenceTransaction } from './persistence';
+import {
+  GarbageCollectionScheduler,
+  PersistenceTransaction
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 
@@ -214,7 +217,7 @@ const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
  * This class is responsible for the scheduling of LRU garbage collection. It handles checking
  * whether or not GC is enabled, as well as which delay to use before the next run.
  */
-export class LruScheduler {
+export class LruScheduler implements GarbageCollectionScheduler {
   private hasRun: boolean = false;
   private gcTask: CancelablePromise<void> | null;
 

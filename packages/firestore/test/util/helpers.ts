@@ -524,13 +524,12 @@ export function byteStringFromString(value: string): ByteString {
  */
 export function stringFromBase64String(
   value?: string | Uint8Array
-): ByteString {
-  debugAssert(
+): string {
+    debugAssert(
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  const base64 = PlatformSupport.getPlatform().btoa(value ?? '');
-  return ByteString.fromBase64String(base64);
+  return PlatformSupport.getPlatform().atob(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */
