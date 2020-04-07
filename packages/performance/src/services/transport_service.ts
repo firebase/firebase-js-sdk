@@ -97,7 +97,8 @@ function processQueue(timeOffset: number): void {
 
     fetch(SettingsService.getInstance().logEndPointUrl, {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      importance: 'low'
     })
       .then(res => {
         if (!res.ok) {
