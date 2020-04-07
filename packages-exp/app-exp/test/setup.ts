@@ -17,7 +17,7 @@
 
 import { use } from 'chai';
 import { restore } from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 use(sinonChai);
 
