@@ -1,4 +1,6 @@
 # Unreleased
+- [changed] Firestore now limits the number of concurrent document lookups it
+  will perform when resolving inconsistencies in the local cache (#2683).
 - [changed] Changed the in-memory representation of Firestore documents to
   reduce memory allocations and improve performance. Calls to 
   `DocumentSnapshot.getData()` and `DocumentSnapshot.toObject()` will see
