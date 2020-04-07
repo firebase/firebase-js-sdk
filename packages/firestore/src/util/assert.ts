@@ -43,11 +43,7 @@ export function hardAssert(
 /**
  * Unconditionally fails, throwing an Error with the given message.
  *
- * The code of callsites invoking this function are stripped out in production
- * builds. Any side-effects of code within the fail() invocation will not
- * happen in this case.
- *
- * Returns any so it can be used in expressions:
+ * Returns `never` and can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
  */
