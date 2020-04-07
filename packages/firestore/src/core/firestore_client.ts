@@ -259,13 +259,13 @@ export class FirestoreClient {
         persistenceSettings
       );
 
-      this.persistence = componentProvider.getPersistence();
-      this.sharedClientState = componentProvider.getSharedClientState();
-      this.localStore = componentProvider.getLocalStore();
-      this.remoteStore = componentProvider.getRemoteStore();
-      this.syncEngine = componentProvider.getSyncEngine();
-      this.gcScheduler = componentProvider.getGarbageCollectionScheduler();
-      this.eventMgr = componentProvider.getEventManager();
+      this.persistence = componentProvider.persistence;
+      this.sharedClientState = componentProvider.sharedClientState;
+      this.localStore = componentProvider.localStore;
+      this.remoteStore = componentProvider.remoteStore;
+      this.syncEngine = componentProvider.syncEngine;
+      this.gcScheduler = componentProvider.gcScheduler;
+      this.eventMgr = componentProvider.eventManager;
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.

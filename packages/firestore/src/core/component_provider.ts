@@ -45,19 +45,19 @@ import {
 } from '../local/memory_persistence';
 
 /**
- * Initializes and wires up all core components for Firestore. Consumers have to
- * invoke initialize() once before accessing any of the individual components.
+ * Initializes and wires up all core components for Firestore. Implementations 
+ * override `initialize()` to provide all components.
  */
-export abstract class ComponentProvider {
-  protected persistence?: Persistence;
-  protected sharedClientState?: SharedClientState;
-  protected localStore?: LocalStore;
-  protected syncEngine?: SyncEngine;
-  protected gcScheduler?: GarbageCollectionScheduler | null;
-  protected remoteStore?: RemoteStore;
-  protected eventManager?: EventManager;
+export interface ComponentProvider {
+  persistence: Persistence;
+  sharedClientState: SharedClientState;
+  localStore: LocalStore;
+  syncEngine: SyncEngine;
+  gcScheduler: GarbageCollectionScheduler | null;
+  remoteStore: RemoteStore;
+  eventManager: EventManager;
 
-  abstract initialize(
+  initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
@@ -68,52 +68,21 @@ export abstract class ComponentProvider {
     persistenceSettings: PersistenceSettings
   ): Promise<void>;
 
-  abstract clearPersistence(databaseId: DatabaseInfo): Promise<void>;
-
-  getPersistence(): Persistence {
-    assert(!!this.persistence, 'initialize() not called');
-    return this.persistence;
-  }
-
-  getSharedClientState(): SharedClientState {
-    assert(!!this.sharedClientState, 'initialize() not called');
-    return this.sharedClientState;
-  }
-
-  getGarbageCollectionScheduler(): GarbageCollectionScheduler | null {
-    assert(this.gcScheduler !== undefined, 'initialize() not called');
-    return this.gcScheduler;
-  }
-
-  getLocalStore(): LocalStore {
-    assert(!!this.localStore, 'initialize() not called');
-    return this.localStore;
-  }
-
-  getRemoteStore(): RemoteStore {
-    assert(!!this.remoteStore, 'initialize() not called');
-    return this.remoteStore;
-  }
-
-  getSyncEngine(): SyncEngine {
-    assert(!!this.syncEngine, 'initialize() not called');
-    return this.syncEngine;
-  }
-
-  getEventManager(): EventManager {
-    assert(!!this.eventManager, 'initialize() not called');
-    return this.eventManager;
-  }
+  clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }
 
 /**
  * Provides all components needed for Firestore with IndexedDB persistence.
+ * Consumers have to call `initialize()` before accessing any properties.
  */
-export class IndexedDbComponentProvider extends ComponentProvider {
-  protected persistence?: IndexedDbPersistence;
-  protected localStore?: LocalStore;
-  protected syncEngine?: SyncEngine;
-  protected gcScheduler?: GarbageCollectionScheduler;
+export class IndexedDbComponentProvider implements ComponentProvider {
+  persistence!: IndexedDbPersistence;
+  sharedClientState!: SharedClientState;
+  localStore!: LocalStore;
+  syncEngine!: SyncEngine;
+  gcScheduler!: GarbageCollectionScheduler | null;
+  remoteStore!: RemoteStore;
+  eventManager!: EventManager;
 
   async initialize(
     asyncQueue: AsyncQueue,
@@ -230,13 +199,24 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'only available via the @firebase/firestore bundle or the ' +
   'firebase-firestore.js build.';
 
-export class MemoryComponentProvider extends ComponentProvider {
+/**
+ * Provides all components needed for Firestore with in-memory persistence.
+ * Consumers have to call `initialize()` before accessing any properties.
+ */
+export class MemoryComponentProvider implements ComponentProvider {
+  persistence!: Persistence;
+  sharedClientState!: SharedClientState;
+  localStore!: LocalStore;
+  syncEngine!: SyncEngine;
+  gcScheduler!: GarbageCollectionScheduler | null;
+  remoteStore!: RemoteStore;
+  eventManager!: EventManager;
+  
   constructor(
     readonly referenceDelegateFactory: (
       p: MemoryPersistence
     ) => MemoryReferenceDelegate = MemoryEagerDelegate.factory
   ) {
-    super();
   }
 
   async initialize(

@@ -491,13 +491,13 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    this.sharedClientState = componentProvider.getSharedClientState();
-    this.persistence = componentProvider.getPersistence();
-    this.localStore = componentProvider.getLocalStore();
-    this.remoteStore = componentProvider.getRemoteStore();
-    this.syncEngine = componentProvider.getSyncEngine();
-    this.eventManager = componentProvider.getEventManager();
-    this.gcScheduler = componentProvider.getGarbageCollectionScheduler();
+    this.sharedClientState = componentProvider.sharedClientState;
+    this.persistence = componentProvider.persistence;
+    this.localStore = componentProvider.localStore;
+    this.remoteStore = componentProvider.remoteStore;
+    this.syncEngine = componentProvider.syncEngine;
+    this.eventManager = componentProvider.eventManager;
+    this.gcScheduler = componentProvider.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
