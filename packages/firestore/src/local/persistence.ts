@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 import { User } from '../auth/user';
-
 import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
@@ -26,12 +25,8 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientId, SharedClientState } from './shared_client_state';
 import { TargetData } from './target_data';
-import { DatabaseInfo } from '../core/database_info';
-import { PersistenceSettings } from '../core/firestore_client';
-import { Platform } from '../platform/platform';
-import { AsyncQueue } from '../util/async_queue';
+import { ClientId } from './shared_client_state';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
@@ -296,27 +291,4 @@ export interface GarbageCollectionScheduler {
   readonly started: boolean;
   start(localStore: LocalStore): void;
   stop(): void;
-}
-
-/**
- * Provides all persistence components for Firestore. Consumers have to invoke
- * configure() once before accessing any of the individual components.
- */
-export interface PersistenceProvider {
-  initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    clientId: ClientId,
-    initialUser: User,
-    settings: PersistenceSettings
-  ): Promise<void>;
-
-  getPersistence(): Persistence;
-
-  getGarbageCollectionScheduler(): GarbageCollectionScheduler;
-
-  getSharedClientState(): SharedClientState;
-
-  clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }

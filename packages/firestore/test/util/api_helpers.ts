@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
-import { IndexedDbPersistenceProvider } from '../../src/local/indexeddb_persistence';
+import { IndexedDbComponentProvider } from '../../src/core/component_provider';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -49,7 +49,7 @@ export const FIRESTORE = new Firestore(
     database: 'database'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
-  new IndexedDbPersistenceProvider()
+  new IndexedDbComponentProvider()
 );
 
 export function firestore(): Firestore {
