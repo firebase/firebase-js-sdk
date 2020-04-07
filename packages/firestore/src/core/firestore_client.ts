@@ -248,7 +248,7 @@ export class FirestoreClient {
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      await componentProvider.initialize(
+      const components = await componentProvider.initialize(
         this.asyncQueue,
         this.databaseInfo,
         this.platform,
@@ -259,13 +259,13 @@ export class FirestoreClient {
         persistenceSettings
       );
 
-      this.persistence = componentProvider.persistence;
-      this.sharedClientState = componentProvider.sharedClientState;
-      this.localStore = componentProvider.localStore;
-      this.remoteStore = componentProvider.remoteStore;
-      this.syncEngine = componentProvider.syncEngine;
-      this.gcScheduler = componentProvider.gcScheduler;
-      this.eventMgr = componentProvider.eventManager;
+      this.persistence = components.persistence;
+      this.sharedClientState = components.sharedClientState;
+      this.localStore = components.localStore;
+      this.remoteStore = components.remoteStore;
+      this.syncEngine = components.syncEngine;
+      this.gcScheduler = components.gcScheduler;
+      this.eventMgr = components.eventManager;
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.

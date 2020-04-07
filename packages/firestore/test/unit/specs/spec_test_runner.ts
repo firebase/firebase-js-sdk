@@ -20,6 +20,7 @@ import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import {
   ComponentProvider,
+  Components,
   IndexedDbComponentProvider,
   MemoryComponentProvider
 } from '../../../src/core/component_provider';
@@ -480,7 +481,7 @@ abstract class TestRunner {
       this.serializer
     );
 
-    const componentProvider = await this.initializeComponentProvider(
+    const components = await this.initializeComponents(
       this.queue,
       this.databaseInfo,
       this.platform,
@@ -491,13 +492,13 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    this.sharedClientState = componentProvider.sharedClientState;
-    this.persistence = componentProvider.persistence;
-    this.localStore = componentProvider.localStore;
-    this.remoteStore = componentProvider.remoteStore;
-    this.syncEngine = componentProvider.syncEngine;
-    this.eventManager = componentProvider.eventManager;
-    this.gcScheduler = componentProvider.gcScheduler;
+    this.sharedClientState = components.sharedClientState;
+    this.persistence = components.persistence;
+    this.localStore = components.localStore;
+    this.remoteStore = components.remoteStore;
+    this.syncEngine = components.syncEngine;
+    this.eventManager = components.eventManager;
+    this.gcScheduler = components.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -506,7 +507,7 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initializeComponentProvider(
+  protected abstract initializeComponents(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
@@ -515,7 +516,7 @@ abstract class TestRunner {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<ComponentProvider>;
+  ): Promise<Components>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -1260,7 +1261,7 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected async initializeComponentProvider(
+  protected initializeComponents(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
@@ -1269,13 +1270,13 @@ class MemoryTestRunner extends TestRunner {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<ComponentProvider> {
+  ): Promise<Components> {
     const persistenceProvider = new MemoryComponentProvider(
       gcEnabled
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
-    await persistenceProvider.initialize(
+    return persistenceProvider.initialize(
       asyncQueue,
       databaseInfo,
       platform,
@@ -1285,7 +1286,6 @@ class MemoryTestRunner extends TestRunner {
       maxConcurrentLimboResolutions,
       { durable: false }
     );
-    return persistenceProvider;
   }
 }
 
@@ -1294,7 +1294,7 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  protected async initializeComponentProvider(
+  protected initializeComponents(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
     platform: Platform,
@@ -1303,9 +1303,9 @@ class IndexedDbTestRunner extends TestRunner {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<ComponentProvider> {
+  ): Promise<Components> {
     const persistenceProvider = new IndexedDbComponentProvider();
-    await persistenceProvider.initialize(
+    return persistenceProvider.initialize(
       asyncQueue,
       databaseInfo,
       platform,
@@ -1319,7 +1319,6 @@ class IndexedDbTestRunner extends TestRunner {
         synchronizeTabs: true
       }
     );
-    return persistenceProvider;
   }
 
   static destroyPersistence(): Promise<void> {
