@@ -19,6 +19,26 @@ import { SDK_VERSION } from '../core/version';
 import { logError } from './log';
 
 /**
+ * Unconditionally fails, throwing an Error with the given message.
+ *
+ * Returns `never` and can be used in expressions:
+ * @example
+ * let futureVar = fail('not implemented yet');
+ */
+export function fail(failure: string): never {
+  // Log the failure in addition to throw an exception, just in case the
+  // exception is swallowed.
+  const message =
+    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  logError(message);
+
+  // NOTE: We don't use FirestoreError here because these are internal failures
+  // that cannot be handled by the user. (Also it would create a circular
+  // dependency between the error and assert modules which doesn't work.)
+  throw new Error(message);
+}
+
+/**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
  */
@@ -27,29 +47,10 @@ export function hardAssert(
   message: string
 ): asserts assertion {
   if (!assertion) {
-    // Log the failure in addition to throw an exception, just in case the
-    // exception is swallowed.
-    const errorMessage =
-      `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + message;
-    logError(errorMessage);
-
-    // NOTE: We don't use FirestoreError here because these are internal failures
-    // that cannot be handled by the user. (Also it would create a circular
-    // dependency between the error and assert modules which doesn't work.)
-    throw new Error(errorMessage);
+    fail(message);
   }
 }
 
-/**
- * Unconditionally fails, throwing an Error with the given message.
- *
- * Returns `never` and can be used in expressions:
- * @example
- * let futureVar = fail('not implemented yet');
- */
-export function fail(failure: string): never {
-  hardAssert(false, failure);
-}
 
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
@@ -63,5 +64,7 @@ export function debugAssert(
   assertion: boolean,
   message: string
 ): asserts assertion {
-  hardAssert(assertion, message);
+  if (!assertion) {
+    fail(message);
+  }
 }

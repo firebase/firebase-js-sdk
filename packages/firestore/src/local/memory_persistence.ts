@@ -18,8 +18,7 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { debugAssert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';

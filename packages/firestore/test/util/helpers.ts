@@ -522,10 +522,8 @@ export function byteStringFromString(value: string): ByteString {
  * by the spec tests. Since the spec tests only use JSON strings, this method
  * throws if an Uint8Array is passed.
  */
-export function stringFromBase64String(
-  value?: string | Uint8Array
-): string {
-    debugAssert(
+export function stringFromBase64String(value?: string | Uint8Array): string {
+  debugAssert(
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );

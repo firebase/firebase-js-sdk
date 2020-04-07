@@ -1004,7 +1004,7 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
-        assert(
+        debugAssert(
           this.persistence instanceof IndexedDbPersistence,
           'numActiveClients is only supported for persistence-enabled tests'
         );
