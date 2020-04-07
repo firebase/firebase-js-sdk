@@ -41,7 +41,7 @@ interface SecondaryConfig {
 
 // These values will be used if the remote config object is successfully
 // retrieved, but the template does not have these fields.
-const SECONDARY_CONFIGS: SecondaryConfig = {
+const DEFAULT_CONFIGS: SecondaryConfig = {
   loggingEnabled: true,
   shouldSendToFl: true
 };
@@ -184,28 +184,28 @@ function processConfig(
     // known.
     settingsServiceInstance.loggingEnabled =
       String(entries.fpr_enabled) === 'true';
-  } else if (SECONDARY_CONFIGS.loggingEnabled !== undefined) {
+  } else if (DEFAULT_CONFIGS.loggingEnabled !== undefined) {
     // Config retrieved successfully, but there is no fpr_enabled in template.
     // Use secondary configs value.
-    settingsServiceInstance.loggingEnabled = SECONDARY_CONFIGS.loggingEnabled;
+    settingsServiceInstance.loggingEnabled = DEFAULT_CONFIGS.loggingEnabled;
   }
   if (entries.fpr_log_source) {
     settingsServiceInstance.logSource = Number(entries.fpr_log_source);
-  } else if (SECONDARY_CONFIGS.logSource) {
-    settingsServiceInstance.logSource = SECONDARY_CONFIGS.logSource;
+  } else if (DEFAULT_CONFIGS.logSource) {
+    settingsServiceInstance.logSource = DEFAULT_CONFIGS.logSource;
   }
 
   if (entries.fpr_log_endpoint_url) {
     settingsServiceInstance.logEndPointUrl = entries.fpr_log_endpoint_url;
-  } else if (SECONDARY_CONFIGS.logEndPointUrl) {
-    settingsServiceInstance.logEndPointUrl = SECONDARY_CONFIGS.logEndPointUrl;
+  } else if (DEFAULT_CONFIGS.logEndPointUrl) {
+    settingsServiceInstance.logEndPointUrl = DEFAULT_CONFIGS.logEndPointUrl;
   }
 
   // Key from Remote Config has to be non-empty string, otherwsie use local value.
   if (entries.fpr_log_transport_key) {
     settingsServiceInstance.transportKey = entries.fpr_log_transport_key;
-  } else if (SECONDARY_CONFIGS.transportKey) {
-    settingsServiceInstance.transportKey = SECONDARY_CONFIGS.transportKey;
+  } else if (DEFAULT_CONFIGS.transportKey) {
+    settingsServiceInstance.transportKey = DEFAULT_CONFIGS.transportKey;
   }
 
   // If config object state indicates that no template has been set, that means it is new user of
@@ -219,7 +219,7 @@ function processConfig(
       settingsServiceInstance.shouldSendToFl =
         NO_TEMPLATE_CONFIGS.shouldSendToFl;
     }
-  } else if (entries.fpr_log_transport_web_percent !== undefined) {
+  } else if (entries.fpr_log_transport_web_percent) {
     // If config object state doesn't indicate no template, it can only be UPDATE for now.
     // - Performance Monitoring doesn't set etag in request, therefore state cannot be NO_CHANGE.
     // - Sampling rate flags and master flag are required, therefore state cannot be EMPTY_CONFIG.
@@ -228,27 +228,27 @@ function processConfig(
       iid,
       Number(entries.fpr_log_transport_web_percent)
     );
-  } else if (SECONDARY_CONFIGS.shouldSendToFl !== undefined) {
+  } else if (DEFAULT_CONFIGS.shouldSendToFl !== undefined) {
     // If config object state is UPDATE and rollout flag is not present, that means rollout is
     // complete and rollout flag is deprecated, therefore dispatch events to new transport endpoint.
-    settingsServiceInstance.shouldSendToFl = SECONDARY_CONFIGS.shouldSendToFl;
+    settingsServiceInstance.shouldSendToFl = DEFAULT_CONFIGS.shouldSendToFl;
   }
 
   if (entries.fpr_vc_network_request_sampling_rate !== undefined) {
     settingsServiceInstance.networkRequestsSamplingRate = Number(
       entries.fpr_vc_network_request_sampling_rate
     );
-  } else if (SECONDARY_CONFIGS.networkRequestsSamplingRate !== undefined) {
+  } else if (DEFAULT_CONFIGS.networkRequestsSamplingRate !== undefined) {
     settingsServiceInstance.networkRequestsSamplingRate =
-      SECONDARY_CONFIGS.networkRequestsSamplingRate;
+      DEFAULT_CONFIGS.networkRequestsSamplingRate;
   }
   if (entries.fpr_vc_trace_sampling_rate !== undefined) {
     settingsServiceInstance.tracesSamplingRate = Number(
       entries.fpr_vc_trace_sampling_rate
     );
-  } else if (SECONDARY_CONFIGS.tracesSamplingRate !== undefined) {
+  } else if (DEFAULT_CONFIGS.tracesSamplingRate !== undefined) {
     settingsServiceInstance.tracesSamplingRate =
-      SECONDARY_CONFIGS.tracesSamplingRate;
+      DEFAULT_CONFIGS.tracesSamplingRate;
   }
   // Set the per session trace and network logging flags.
   settingsServiceInstance.logTraceAfterSampling = shouldLogAfterSampling(
@@ -269,7 +269,7 @@ function shouldLogAfterSampling(samplingRate: number): boolean {
 }
 
 /**
- * True if event should be sent to Fl transport endpoint rather than log endpoint.
+ * True if event should be sent to Fl transport endpoint rather than CC transport endpoint.
  * rolloutPercent is in range [0.0, 100.0].
  * @param {string} iid Installation ID which identifies a web app installed on client.
  * @param {number} rolloutPercent the possibility of this app sending events to Fl endpoint.
@@ -282,7 +282,7 @@ export function isDestFl(iid: string, rolloutPercent: number): boolean {
   return getHashPercent(iid) < rolloutPercent;
 }
 /**
- * Generate integer value range in [0, 99].
+ * Generate integer value range in [0, 99]. Implementation from String.hashCode() in Java.
  * @param {string} seed Same seed will generate consistent hash value using this algorithm.
  * @return {number} Hash value in range [0, 99], generated from seed and hash algorithm.
  */

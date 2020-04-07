@@ -156,6 +156,7 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   const networkRequestHostName = new URL(networkRequest.url).hostname;
 
   // Blacklist old log endpoint and new transport endpoint.
+  // Because Performance SDK doesn't instrument requests sent from SDK itself.
   const logEndpointHostName = new URL(settingsService.logEndPointUrl).hostname;
   const flEndpointHostName = new URL(settingsService.flTransportEndpointUrl)
     .hostname;

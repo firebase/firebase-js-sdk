@@ -65,6 +65,9 @@ export function setupTransportService(): void {
   }
 }
 
+/**
+ * Utilized by testing to clean up message queue and un-initialize transport service.
+ */
 export function resetTransportService(): void {
   isTransportSetup = false;
   queue = [];

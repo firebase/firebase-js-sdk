@@ -303,6 +303,8 @@ describe('Performance Monitoring > perf_logger', () => {
       );
     });
 
+    // Performance SDK doesn't instrument requests sent from SDK itself, therefore blacklist
+    // requests sent to cc endpoint.
     it('skips performance collection if domain is cc', () => {
       const CC_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
         connectEnd: 0,
@@ -338,6 +340,8 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub).not.called;
     });
 
+    // Performance SDK doesn't instrument requests sent from SDK itself, therefore blacklist
+    // requests sent to fl endpoint.
     it('skips performance collection if domain is fl', () => {
       const FL_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
         connectEnd: 0,
