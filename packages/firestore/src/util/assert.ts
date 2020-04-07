@@ -43,7 +43,9 @@ export function hardAssert(
 /**
  * Unconditionally fails, throwing an Error with the given message.
  *
- * This is stripped out in production builds.
+ * The code of callsites invoking this function are stripped out in production
+ * builds. Any side-effects of code within the fail() invocation will not
+ * happen in this case.
  *
  * Returns any so it can be used in expressions:
  * @example
@@ -57,7 +59,9 @@ export function fail(failure: string): never {
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
  *
- * This is stripped out in production builds.
+ * The code of callsites invoking this function are stripped out in production
+ * builds. Any side-effects of code within the debugAssert() invocation will not
+ * happen in this case.
  */
 export function softAssert(
   assertion: boolean,

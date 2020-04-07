@@ -22,7 +22,7 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { softAssert } from '../util/assert';
+import { hardAssert, softAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
@@ -69,7 +69,7 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
-    softAssert(
+    hardAssert(
       batchIndex === 0,
       'Can only acknowledge the first batch in the mutation queue'
     );
@@ -299,10 +299,9 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batch: MutationBatch
   ): PersistencePromise<void> {
-    // Find the position of the first batch for removal. This need not be the
-    // first entry in the queue.
+    // Find the position of the first batch for removal.
     const batchIndex = this.indexOfExistingBatchId(batch.batchId, 'removed');
-    softAssert(
+    hardAssert(
       batchIndex === 0,
       'Can only remove the first entry of the mutation queue'
     );

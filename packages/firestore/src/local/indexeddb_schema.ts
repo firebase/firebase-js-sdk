@@ -72,7 +72,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    softAssert(
+    hardAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,

@@ -21,7 +21,7 @@ import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { softAssert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
@@ -114,7 +114,7 @@ export class Datastore {
       const result: MaybeDocument[] = [];
       keys.forEach(key => {
         const doc = docs.get(key);
-        softAssert(!!doc, 'Missing entity in write response for ' + key);
+        hardAssert(!!doc, 'Missing entity in write response for ' + key);
         result.push(doc);
       });
       return result;
