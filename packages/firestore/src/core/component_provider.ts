@@ -74,7 +74,6 @@ export interface ComponentProvider {
 
 /**
  * Provides all components needed for Firestore with IndexedDB persistence.
- * Consumers have to call `initialize()` before accessing any properties.
  */
 export class IndexedDbComponentProvider implements ComponentProvider {
   async initialize(
@@ -199,7 +198,6 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
 
 /**
  * Provides all components needed for Firestore with in-memory persistence.
- * Consumers have to call `initialize()` before accessing any properties.
  */
 export class MemoryComponentProvider implements ComponentProvider {
   constructor(
