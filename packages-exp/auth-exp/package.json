@@ -19,6 +19,7 @@
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
+    "test:browser:debug": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --opts ../../config/mocha.node.opts",
     "type-check": "tsc -p . --noEmit",
     "prepare": "yarn build"
