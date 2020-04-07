@@ -266,10 +266,6 @@ export class TestPlatform implements Platform {
   btoa(raw: string): string {
     return this.basePlatform.btoa(raw);
   }
-
-  randomBytes(nBytes: number): Uint8Array {
-    return this.basePlatform.randomBytes(nBytes);
-  }
 }
 
 /** Returns true if we are running under Node. */

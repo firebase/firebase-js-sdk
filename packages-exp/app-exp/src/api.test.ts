@@ -29,7 +29,7 @@ import {
   onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { FirebaseAppInternal } from '@firebase/app-types-exp';
+import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 import {
   clearComponents,
   components,
@@ -109,7 +109,7 @@ describe('API tests', () => {
       registerComponent(comp1);
       registerComponent(comp2);
 
-      const app = initializeApp({}) as FirebaseAppInternal;
+      const app = initializeApp({}) as _FirebaseAppInternal;
       // -1 here to not count the FirebaseApp provider that's added during initializeApp
       expect(app.container.getProviders().length - 1).to.equal(components.size);
     });
@@ -160,10 +160,10 @@ describe('API tests', () => {
   describe('deleteApp', () => {
     it('marks an App as deleted', async () => {
       const app = initializeApp({});
-      expect((app as FirebaseAppInternal).isDeleted).to.be.false;
+      expect((app as _FirebaseAppInternal).isDeleted).to.be.false;
 
       await deleteApp(app).catch(() => {});
-      expect((app as FirebaseAppInternal).isDeleted).to.be.true;
+      expect((app as _FirebaseAppInternal).isDeleted).to.be.true;
     });
 
     it('removes App from the cache', () => {

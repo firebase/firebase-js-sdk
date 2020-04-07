@@ -16,7 +16,7 @@
  */
 
 import { loadSync } from '@grpc/proto-loader';
-import { loadPackageDefinition, GrpcObject } from 'grpc';
+import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
 import { join, resolve, isAbsolute } from 'path';
 // only used in tests
 // eslint-disable-next-line import/no-extraneous-dependencies

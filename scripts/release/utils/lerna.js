@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 const { exec } = require('child-process-promise');
 const npmRunPath = require('npm-run-path');
-const { projectRoot: root } = require('./constants');
+const { projectRoot: root } = require('../../utils');
 
 function getLernaUpdateJson() {
   let cache;
