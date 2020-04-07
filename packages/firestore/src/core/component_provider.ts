@@ -121,7 +121,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
         )
       : new MemorySharedClientState();
     this.sharedClientState.onlineStateHandler = onlineState =>
-      this.syncEngine!.applyOnlineStateChange(
+      this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.SharedClientState
       );
@@ -151,7 +151,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
       datastore,
       asyncQueue,
       onlineState =>
-        this.syncEngine!.applyOnlineStateChange(
+        this.syncEngine.applyOnlineStateChange(
           onlineState,
           OnlineStateSource.RemoteStore
         ),
@@ -249,7 +249,7 @@ export class MemoryComponentProvider implements ComponentProvider {
       datastore,
       asyncQueue,
       onlineState =>
-        this.syncEngine!.applyOnlineStateChange(
+        this.syncEngine.applyOnlineStateChange(
           onlineState,
           OnlineStateSource.RemoteStore
         ),
