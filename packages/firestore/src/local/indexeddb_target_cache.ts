@@ -371,14 +371,6 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => count > 0);
   }
 
-  /**
-   * Looks up a TargetData entry by target ID.
-   *
-   * @param targetId The target ID of the TargetData entry to look up.
-   * @return The cached TargetData entry, or null if the cache has no entry for
-   * the target.
-   */
-  // PORTING NOTE: Multi-tab only.
   getTargetDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId

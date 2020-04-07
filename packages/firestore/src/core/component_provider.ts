@@ -21,8 +21,8 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore, MultiTabLocalStore } from '../local/local_store';
-import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
+import { LocalStore } from '../local/local_store';
+import { SyncEngine } from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
@@ -111,8 +111,8 @@ export abstract class ComponentProvider {
  */
 export class IndexedDbComponentProvider extends ComponentProvider {
   protected persistence?: IndexedDbPersistence;
-  protected localStore?: MultiTabLocalStore;
-  protected syncEngine?: MultiTabSyncEngine;
+  protected localStore?: LocalStore;
+  protected syncEngine?: SyncEngine;
   protected gcScheduler?: GarbageCollectionScheduler;
 
   async initialize(
@@ -173,7 +173,7 @@ export class IndexedDbComponentProvider extends ComponentProvider {
       .garbageCollector;
 
     this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-    this.localStore = new MultiTabLocalStore(
+    this.localStore = new LocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       initialUser
@@ -189,7 +189,7 @@ export class IndexedDbComponentProvider extends ComponentProvider {
         ),
       platform.newConnectivityMonitor()
     );
-    this.syncEngine = new MultiTabSyncEngine(
+    this.syncEngine = new SyncEngine(
       this.localStore,
       this.remoteStore,
       this.sharedClientState,
@@ -256,7 +256,10 @@ export class MemoryComponentProvider extends ComponentProvider {
       );
     }
 
-    this.persistence = new MemoryPersistence(this.referenceDelegateFactory);
+    this.persistence = new MemoryPersistence(
+      clientId,
+      this.referenceDelegateFactory
+    );
     this.gcScheduler = null;
     this.sharedClientState = new MemorySharedClientState();
     this.localStore = new LocalStore(
@@ -288,6 +291,7 @@ export class MemoryComponentProvider extends ComponentProvider {
 
     await this.remoteStore.start();
     await this.remoteStore.applyPrimaryState(true);
+    await this.syncEngine.applyPrimaryState(true);
   }
 
   clearPersistence(): never {
