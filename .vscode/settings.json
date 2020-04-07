@@ -9,5 +9,6 @@
     // Exclude installed dependencies from searches too
     "**/node_modules": true
   },
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.associations": { "*.json": "jsonc" }
 }

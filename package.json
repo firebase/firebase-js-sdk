@@ -5,12 +5,16 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
+  "engines": {
+    "node": "^8.13.0 || >=10.10.0"
+  },
   "homepage": "https://github.com/firebase/firebase-js-sdk",
   "keywords": [
     "authentication",
     "database",
     "Firebase",
     "firebase",
+    "firestore",
     "functions",
     "realtime",
     "storage",
@@ -39,7 +43,9 @@
     "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
-    "size-report": "node scripts/report_binary_size.js"
+    "size-report": "node scripts/report_binary_size.js",
+    "api-report": "lerna run --scope @firebase/*-exp api-report",
+    "docgen:exp": "node scripts/exp/docgen.js"
   },
   "repository": {
     "type": "git",
@@ -55,7 +61,7 @@
     "@types/chai-as-promised": "7.1.2",
     "@types/long": "4.0.1",
     "@types/mocha": "7.0.2",
-    "@types/node": "8.10.59",
+    "@types/node": "12.12.34",
     "@types/sinon": "7.5.2",
     "@types/sinon-chai": "3.2.3",
     "@typescript-eslint/eslint-plugin": "2.24.0",
@@ -125,7 +131,9 @@
     "typescript": "3.8.3",
     "watch": "1.0.2",
     "webpack": "4.42.0",
-    "yargs": "15.3.1"
+    "yargs": "15.3.1",
+    "@microsoft/api-extractor": "7.7.8",
+    "@microsoft/api-documenter": "7.7.12"
   },
   "husky": {
     "hooks": {
