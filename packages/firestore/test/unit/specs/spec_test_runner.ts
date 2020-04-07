@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import {
-  ComponentProvider,
   Components,
   IndexedDbComponentProvider,
   MemoryComponentProvider
