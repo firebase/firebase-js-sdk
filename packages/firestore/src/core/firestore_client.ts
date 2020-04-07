@@ -171,28 +171,12 @@ export class FirestoreClient {
 
         logDebug(LOG_TAG, 'Initializing. user=', user.uid);
 
-        this.platform
-          .loadConnection(this.databaseInfo)
-          .then(async connection => {
-            const serializer = this.platform.newSerializer(
-              this.databaseInfo.databaseId
-            );
-            const datastore = new Datastore(
-              this.asyncQueue,
-              connection,
-              this.credentials,
-              serializer
-            );
-
-            await this.initializeComponents(
-              datastore,
-              componentProvider,
-              persistenceSettings,
-              user,
-              persistenceResult
-            );
-          })
-          .then(initializationDone.resolve, initializationDone.reject);
+        return this.initializeComponents(
+          componentProvider,
+          persistenceSettings,
+          user,
+          persistenceResult
+        ).then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
           return this.handleCredentialChange(user);
@@ -227,7 +211,6 @@ export class FirestoreClient {
    * platform can't possibly support our implementation then this method rejects
    * the persistenceResult and falls back on memory-only persistence.
    *
-   * @param datastore The Datastore component.
    * @param componentProvider The provider that provides all core componennts
    *     for IndexedDB or memory-backed persistence
    * @param persistenceSettings Settings object to configure offline persistence
@@ -241,14 +224,28 @@ export class FirestoreClient {
    *     succeeded.
    */
   private async initializeComponents(
-    datastore: Datastore,
     componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings,
     user: User,
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      const components = await componentProvider.initialize(
+      // TODO(mrschmidt): Ideally, ComponentProvider would also initialize
+      // Datastore (without duplicating the initializing logic once per
+      // provider).
+
+      const connection = await this.platform.loadConnection(this.databaseInfo);
+      const serializer = this.platform.newSerializer(
+        this.databaseInfo.databaseId
+      );
+      const datastore = new Datastore(
+        this.asyncQueue,
+        connection,
+        this.credentials,
+        serializer
+      );
+
+      await componentProvider.initialize(
         this.asyncQueue,
         this.databaseInfo,
         this.platform,
@@ -259,13 +256,13 @@ export class FirestoreClient {
         persistenceSettings
       );
 
-      this.persistence = components.persistence;
-      this.sharedClientState = components.sharedClientState;
-      this.localStore = components.localStore;
-      this.remoteStore = components.remoteStore;
-      this.syncEngine = components.syncEngine;
-      this.gcScheduler = components.gcScheduler;
-      this.eventMgr = components.eventManager;
+      this.persistence = componentProvider.persistence;
+      this.sharedClientState = componentProvider.sharedClientState;
+      this.localStore = componentProvider.localStore;
+      this.remoteStore = componentProvider.remoteStore;
+      this.syncEngine = componentProvider.syncEngine;
+      this.gcScheduler = componentProvider.gcScheduler;
+      this.eventMgr = componentProvider.eventManager;
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
@@ -289,7 +286,6 @@ export class FirestoreClient {
           error
       );
       return this.initializeComponents(
-        datastore,
         new MemoryComponentProvider(),
         { durable: false },
         user,

@@ -44,7 +44,11 @@ import {
   MemoryReferenceDelegate
 } from '../local/memory_persistence';
 
-export interface Components {
+/**
+ * Initializes and wires up all core components for Firestore. Implementations
+ * override `initialize()` to provide all components.
+ */
+export interface ComponentProvider {
   persistence: Persistence;
   sharedClientState: SharedClientState;
   localStore: LocalStore;
@@ -52,12 +56,7 @@ export interface Components {
   gcScheduler: GarbageCollectionScheduler | null;
   remoteStore: RemoteStore;
   eventManager: EventManager;
-}
 
-/**
- * Initializes and wires up all core components for Firestore.
- */
-export interface ComponentProvider {
   initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
@@ -67,7 +66,7 @@ export interface ComponentProvider {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     persistenceSettings: PersistenceSettings
-  ): Promise<Components>;
+  ): Promise<void>;
 
   clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }
@@ -76,6 +75,14 @@ export interface ComponentProvider {
  * Provides all components needed for Firestore with IndexedDB persistence.
  */
 export class IndexedDbComponentProvider implements ComponentProvider {
+  persistence!: IndexedDbPersistence;
+  sharedClientState!: SharedClientState;
+  localStore!: LocalStore;
+  syncEngine!: SyncEngine;
+  gcScheduler!: GarbageCollectionScheduler | null;
+  remoteStore!: RemoteStore;
+  eventManager!: EventManager;
+
   async initialize(
     asyncQueue: AsyncQueue,
     databaseInfo: DatabaseInfo,
@@ -85,13 +92,12 @@ export class IndexedDbComponentProvider implements ComponentProvider {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     persistenceSettings: PersistenceSettings
-  ): Promise<Components> {
+  ): Promise<void> {
     assert(
       persistenceSettings.durable,
       'IndexedDbComponentProvider can only provide durable persistence'
     );
-
-    const components: Partial<Components> = {};
+    assert(!this.sharedClientState, 'initialize() already called');
 
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo
@@ -105,7 +111,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
       );
     }
 
-    components.sharedClientState = persistenceSettings.synchronizeTabs
+    this.sharedClientState = persistenceSettings.synchronizeTabs
       ? new WebStorageSharedClientState(
           asyncQueue,
           platform,
@@ -114,73 +120,69 @@ export class IndexedDbComponentProvider implements ComponentProvider {
           initialUser
         )
       : new MemorySharedClientState();
-    components.sharedClientState.onlineStateHandler = onlineState =>
-      components.syncEngine!.applyOnlineStateChange(
+    this.sharedClientState.onlineStateHandler = onlineState =>
+      this.syncEngine!.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.SharedClientState
       );
 
-    components.persistence = await IndexedDbPersistence.createIndexedDbPersistence(
-      {
-        allowTabSynchronization: persistenceSettings.synchronizeTabs,
-        persistenceKey,
-        clientId,
-        platform,
-        queue: asyncQueue,
-        serializer,
-        lruParams: LruParams.withCacheSize(persistenceSettings.cacheSizeBytes),
-        sequenceNumberSyncer: components.sharedClientState
-      }
-    );
+    this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
+      allowTabSynchronization: persistenceSettings.synchronizeTabs,
+      persistenceKey,
+      clientId,
+      platform,
+      queue: asyncQueue,
+      serializer,
+      lruParams: LruParams.withCacheSize(persistenceSettings.cacheSizeBytes),
+      sequenceNumberSyncer: this.sharedClientState
+    });
 
-    const garbageCollector = (components.persistence as IndexedDbPersistence)
-      .referenceDelegate.garbageCollector;
+    const garbageCollector = this.persistence.referenceDelegate
+      .garbageCollector;
 
-    components.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-    components.localStore = new LocalStore(
-      components.persistence,
+    this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
+    this.localStore = new LocalStore(
+      this.persistence,
       new IndexFreeQueryEngine(),
       initialUser
     );
-    components.remoteStore = new RemoteStore(
-      components.localStore,
+    this.remoteStore = new RemoteStore(
+      this.localStore,
       datastore,
       asyncQueue,
       onlineState =>
-        components.syncEngine!.applyOnlineStateChange(
+        this.syncEngine!.applyOnlineStateChange(
           onlineState,
           OnlineStateSource.RemoteStore
         ),
       platform.newConnectivityMonitor()
     );
-    components.syncEngine = new SyncEngine(
-      components.localStore,
-      components.remoteStore,
-      components.sharedClientState,
+    this.syncEngine = new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
       initialUser,
       maxConcurrentLimboResolutions
     );
-    components.eventManager = new EventManager(components.syncEngine);
+    this.eventManager = new EventManager(this.syncEngine);
 
-    components.remoteStore.syncEngine = components.syncEngine;
-    components.sharedClientState.syncEngine = components.syncEngine;
+    this.remoteStore.syncEngine = this.syncEngine;
+    this.sharedClientState.syncEngine = this.syncEngine;
 
-    await components.sharedClientState.start();
-    await components.remoteStore.start();
-    await components.localStore.start();
+    await this.sharedClientState.start();
+    await this.remoteStore.start();
+    await this.localStore.start();
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
-    await components.persistence.setPrimaryStateListener(async isPrimary => {
-      await components.syncEngine!.applyPrimaryState(isPrimary);
-      if (isPrimary && !components.gcScheduler!.started) {
-        components.gcScheduler!.start(components.localStore!);
+    await this.persistence.setPrimaryStateListener(async isPrimary => {
+      await this.syncEngine.applyPrimaryState(isPrimary);
+      if (isPrimary && !this.gcScheduler!.started) {
+        this.gcScheduler!.start(this.localStore);
       } else if (!isPrimary) {
-        components.gcScheduler!.stop();
+        this.gcScheduler!.stop();
       }
     });
-
-    return components as Components;
   }
 
   clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
@@ -200,6 +202,14 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
  * Provides all components needed for Firestore with in-memory persistence.
  */
 export class MemoryComponentProvider implements ComponentProvider {
+  persistence!: Persistence;
+  sharedClientState!: SharedClientState;
+  localStore!: LocalStore;
+  syncEngine!: SyncEngine;
+  gcScheduler!: GarbageCollectionScheduler | null;
+  remoteStore!: RemoteStore;
+  eventManager!: EventManager;
+
   constructor(
     readonly referenceDelegateFactory: (
       p: MemoryPersistence
@@ -215,7 +225,7 @@ export class MemoryComponentProvider implements ComponentProvider {
     initialUser: User,
     maxConcurrentLimboResolutions: number,
     persistenceSettings: PersistenceSettings
-  ): Promise<Components> {
+  ): Promise<void> {
     if (persistenceSettings.durable) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -223,46 +233,42 @@ export class MemoryComponentProvider implements ComponentProvider {
       );
     }
 
-    const components: Partial<Components> = {};
-
-    components.persistence = new MemoryPersistence(
+    this.persistence = new MemoryPersistence(
       clientId,
       this.referenceDelegateFactory
     );
-    components.gcScheduler = null;
-    components.sharedClientState = new MemorySharedClientState();
-    components.localStore = new LocalStore(
-      components.persistence,
+    this.gcScheduler = null;
+    this.sharedClientState = new MemorySharedClientState();
+    this.localStore = new LocalStore(
+      this.persistence,
       new IndexFreeQueryEngine(),
       initialUser
     );
-    components.remoteStore = new RemoteStore(
-      components.localStore,
+    this.remoteStore = new RemoteStore(
+      this.localStore,
       datastore,
       asyncQueue,
       onlineState =>
-        components.syncEngine!.applyOnlineStateChange(
+        this.syncEngine!.applyOnlineStateChange(
           onlineState,
           OnlineStateSource.RemoteStore
         ),
       platform.newConnectivityMonitor()
     );
-    components.syncEngine = new SyncEngine(
-      components.localStore,
-      components.remoteStore,
-      components.sharedClientState,
+    this.syncEngine = new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
       initialUser,
       maxConcurrentLimboResolutions
     );
-    components.eventManager = new EventManager(components.syncEngine);
+    this.eventManager = new EventManager(this.syncEngine);
 
-    components.remoteStore.syncEngine = components.syncEngine;
+    this.remoteStore.syncEngine = this.syncEngine;
 
-    await components.remoteStore.start();
-    await components.remoteStore.applyPrimaryState(true);
-    await components.syncEngine.applyPrimaryState(true);
-
-    return components as Components;
+    await this.remoteStore.start();
+    await this.remoteStore.applyPrimaryState(true);
+    await this.syncEngine.applyPrimaryState(true);
   }
 
   clearPersistence(): never {
