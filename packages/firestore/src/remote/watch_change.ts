@@ -26,7 +26,7 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { softAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -329,7 +329,7 @@ export class WatchChangeAggregator {
           if (!targetState.isPending) {
             this.removeTarget(targetId);
           }
-          softAssert(
+          debugAssert(
             !targetChange.cause,
             'WatchChangeAggregator does not handle errored targets'
           );
@@ -651,7 +651,7 @@ export class WatchChangeAggregator {
    * from all documents).
    */
   private resetTarget(targetId: TargetId): void {
-    softAssert(
+    debugAssert(
       !this.targetStates.get(targetId)!.isPending,
       'Should only reset active targets'
     );

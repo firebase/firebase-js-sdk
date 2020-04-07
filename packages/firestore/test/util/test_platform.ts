@@ -19,7 +19,7 @@ import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
 import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { softAssert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
 
@@ -76,7 +76,7 @@ export class FakeWindow {
         registeredListener => listener !== registeredListener
       );
       const newCount = this.storageListeners.length;
-      softAssert(
+      debugAssert(
         newCount === oldCount - 1,
         "Listener passed to 'removeEventListener' doesn't match any registered listener."
       );
@@ -96,7 +96,7 @@ export class FakeDocument {
   }
 
   addEventListener(type: string, listener: EventListener): void {
-    softAssert(
+    debugAssert(
       type === 'visibilitychange',
       "FakeDocument only supports events of type 'visibilitychange'"
     );

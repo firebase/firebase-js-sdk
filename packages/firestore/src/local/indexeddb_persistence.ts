@@ -23,7 +23,7 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Platform, PlatformSupport } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { softAssert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
@@ -307,8 +307,8 @@ export class IndexedDbPersistence implements Persistence {
    * @return {Promise<void>} Whether persistence was enabled.
    */
   private start(): Promise<void> {
-    softAssert(!this.started, 'IndexedDbPersistence double-started!');
-    softAssert(this.window !== null, "Expected 'window' to be defined");
+    debugAssert(!this.started, 'IndexedDbPersistence double-started!');
+    debugAssert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(
       this.dbName,
@@ -720,7 +720,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getMutationQueue(user: User): MutationQueue {
-    softAssert(
+    debugAssert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
     );
@@ -733,7 +733,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getTargetCache(): IndexedDbTargetCache {
-    softAssert(
+    debugAssert(
       this.started,
       'Cannot initialize TargetCache before persistence is started.'
     );
@@ -741,7 +741,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
-    softAssert(
+    debugAssert(
       this.started,
       'Cannot initialize RemoteDocumentCache before persistence is started.'
     );
@@ -749,7 +749,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getIndexManager(): IndexedDbIndexManager {
-    softAssert(
+    debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
@@ -948,7 +948,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachVisibilityHandler(): void {
     if (this.documentVisibilityHandler) {
-      softAssert(
+      debugAssert(
         this.document !== null &&
           typeof this.document.addEventListener === 'function',
         "Expected 'document.addEventListener' to be a function"
@@ -991,7 +991,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
-      softAssert(
+      debugAssert(
         typeof this.window.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
@@ -1317,11 +1317,11 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
     initialUser: User,
     settings: PersistenceSettings
   ): Promise<void> {
-    softAssert(
+    debugAssert(
       settings.durable,
       'IndexedDbPersistenceProvider can only provide durable persistence'
     );
-    softAssert(!this.persistence, 'configure() already called');
+    debugAssert(!this.persistence, 'configure() already called');
 
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo
@@ -1366,17 +1366,17 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
   }
 
   getPersistence(): Persistence {
-    softAssert(!!this.persistence, 'initialize() not called');
+    debugAssert(!!this.persistence, 'initialize() not called');
     return this.persistence;
   }
 
   getSharedClientState(): SharedClientState {
-    softAssert(!!this.sharedClientState, 'initialize() not called');
+    debugAssert(!!this.sharedClientState, 'initialize() not called');
     return this.sharedClientState;
   }
 
   getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    softAssert(!!this.gcScheduler, 'initialize() not called');
+    debugAssert(!!this.gcScheduler, 'initialize() not called');
     return this.gcScheduler;
   }
 

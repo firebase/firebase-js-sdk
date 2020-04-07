@@ -49,7 +49,7 @@ import {
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { softAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
 import {
@@ -96,7 +96,7 @@ const OPERATORS = (() => {
 })();
 
 function assertPresent(value: unknown, description: string): asserts value {
-  softAssert(!isNullOrUndefined(value), description + ' is missing');
+  debugAssert(!isNullOrUndefined(value), description + ' is missing');
 }
 
 export interface SerializerOptions {
@@ -358,7 +358,7 @@ export class JsonProtoSerializer {
   }
 
   toDocument(document: Document): api.Document {
-    softAssert(
+    debugAssert(
       !document.hasLocalMutations,
       "Can't serialize documents with mutations."
     );
@@ -604,7 +604,7 @@ export class JsonProtoSerializer {
   }
 
   private toPrecondition(precondition: Precondition): api.Precondition {
-    softAssert(!precondition.isNone, "Can't serialize an empty precondition");
+    debugAssert(!precondition.isNone, "Can't serialize an empty precondition");
     if (precondition.updateTime !== undefined) {
       return {
         updateTime: this.toVersion(precondition.updateTime)
@@ -742,7 +742,7 @@ export class JsonProtoSerializer {
     const result: api.QueryTarget = { structuredQuery: {} };
     const path = target.path;
     if (target.collectionGroup !== null) {
-      softAssert(
+      debugAssert(
         path.length % 2 === 0,
         'Collection Group queries should be within a document path or root.'
       );
@@ -754,7 +754,7 @@ export class JsonProtoSerializer {
         }
       ];
     } else {
-      softAssert(
+      debugAssert(
         path.length % 2 !== 0,
         'Document queries with filters are not supported.'
       );

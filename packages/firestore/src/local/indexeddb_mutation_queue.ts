@@ -24,7 +24,7 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { softAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
@@ -413,11 +413,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    softAssert(
+    debugAssert(
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
-    softAssert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );

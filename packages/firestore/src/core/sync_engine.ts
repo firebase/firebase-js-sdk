@@ -32,7 +32,7 @@ import { MutationBatchResult, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
-import { softAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -195,11 +195,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
   subscribe(syncEngineListener: SyncEngineListener): void {
-    softAssert(
+    debugAssert(
       syncEngineListener !== null,
       'SyncEngine listener cannot be null'
     );
-    softAssert(
+    debugAssert(
       this.syncEngineListener === null,
       'SyncEngine already has a subscriber.'
     );
@@ -274,11 +274,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       /* updateLimboDocuments= */ this.isPrimary === true,
       synthesizedTargetChange
     );
-    softAssert(
+    debugAssert(
       viewChange.limboChanges.length === 0,
       'View returned limbo docs before target ack from the server.'
     );
-    softAssert(
+    debugAssert(
       !!viewChange.snapshot,
       'applyChanges for new view should always return a snapshot'
     );
@@ -319,7 +319,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('unlisten()');
 
     const queryView = this.queryViewsByQuery.get(query)!;
-    softAssert(!!queryView, 'Trying to unlisten on query not found:' + query);
+    debugAssert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
     // Only clean up the query view and target if this is the only query mapped
     // to the target.
@@ -473,7 +473,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const newViewSnapshots = [] as ViewSnapshot[];
       this.queryViewsByQuery.forEach((query, queryView) => {
         const viewChange = queryView.view.applyOnlineStateChange(onlineState);
-        softAssert(
+        debugAssert(
           viewChange.limboChanges.length === 0,
           'OnlineState should not affect limbo documents.'
         );
@@ -700,7 +700,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (newCallbacks) {
       const callback = newCallbacks.get(batchId);
       if (callback) {
-        softAssert(
+        debugAssert(
           batchId === newCallbacks.minKey(),
           'Mutation callbacks processed out-of-order?'
         );
@@ -721,7 +721,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): void {
     this.sharedClientState.removeLocalQueryTarget(targetId);
 
-    softAssert(
+    debugAssert(
       this.queriesByTarget.has(targetId) &&
         this.queriesByTarget.get(targetId)!.length !== 0,
       `There are no queries mapped to target id ${targetId}`
@@ -906,7 +906,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   private assertSubscribed(fnName: string): void {
-    softAssert(
+    debugAssert(
       this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
     );
@@ -1024,7 +1024,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
         for (const query of queries) {
           const queryView = this.queryViewsByQuery.get(query);
-          softAssert(!!queryView, `No query view found for ${query}`);
+          debugAssert(!!queryView, `No query view found for ${query}`);
 
           const viewChange = await this.synchronizeViewAndComputeSnapshot(
             queryView
@@ -1034,14 +1034,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           }
         }
       } else {
-        softAssert(
+        debugAssert(
           this.isPrimary === true,
           'A secondary tab should never have an active target without an active query.'
         );
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.
         const target = await this.localStore.getTarget(targetId);
-        softAssert(!!target, `Target for id ${targetId} not found`);
+        debugAssert(!!target, `Target for id ${targetId} not found`);
         targetData = await this.localStore.allocateTarget(target);
         await this.initializeViewAndComputeSnapshot(
           this.synthesizeTargetToQuery(target!),
@@ -1138,12 +1138,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
 
     for (const targetId of added) {
-      softAssert(
+      debugAssert(
         !this.queriesByTarget.has(targetId),
         'Trying to add an already active target'
       );
       const target = await this.localStore.getTarget(targetId);
-      softAssert(
+      debugAssert(
         !!target,
         `Query data for active target ${targetId} not found`
       );
@@ -1200,7 +1200,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
       for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
-        softAssert(!!queryView, `No query view found for ${query}`);
+        debugAssert(!!queryView, `No query view found for ${query}`);
         keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
       return keySet;

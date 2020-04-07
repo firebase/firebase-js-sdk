@@ -27,7 +27,7 @@ import {
   VerifyMutation
 } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
-import { fail, softAssert } from '../util/assert';
+import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
 
@@ -195,7 +195,7 @@ export class Transaction {
   }
 
   private ensureCommitNotCalled(): void {
-    softAssert(
+    debugAssert(
       !this.committed,
       'A transaction object cannot be used after its update callback has been invoked.'
     );

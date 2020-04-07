@@ -17,7 +17,7 @@
 
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { QueryTargetState } from './shared_client_state_syncer';
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { ClientId } from './shared_client_state';
 import { User } from '../auth/user';
 
@@ -30,7 +30,7 @@ export function createWebStorageClientStateKey(
   persistenceKey: string,
   clientId: ClientId
 ): string {
-  softAssert(
+  debugAssert(
     clientId.indexOf('_') === -1,
     `Client key cannot contain '_', but was '${clientId}'`
   );

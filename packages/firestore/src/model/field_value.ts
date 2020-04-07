@@ -17,7 +17,7 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
@@ -53,7 +53,7 @@ export class ObjectValue {
   static EMPTY = new ObjectValue({ mapValue: {} });
 
   constructor(public readonly proto: { mapValue: api.MapValue }) {
-    softAssert(
+    debugAssert(
       !isServerTimestamp(proto),
       'ServerTimestamps should be converted to ServerTimestampValue'
     );
@@ -162,7 +162,7 @@ export class ObjectValueBuilder {
    * @return The current Builder instance.
    */
   set(path: FieldPath, value: api.Value): ObjectValueBuilder {
-    softAssert(
+    debugAssert(
       !path.isEmpty(),
       'Cannot set field for empty path on ObjectValue'
     );
@@ -178,7 +178,7 @@ export class ObjectValueBuilder {
    * @return The current Builder instance.
    */
   delete(path: FieldPath): ObjectValueBuilder {
-    softAssert(
+    debugAssert(
       !path.isEmpty(),
       'Cannot delete field for empty path on ObjectValue'
     );

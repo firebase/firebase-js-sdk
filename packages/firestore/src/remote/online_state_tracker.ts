@@ -16,7 +16,7 @@
  */
 
 import { OnlineState } from '../core/types';
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
@@ -89,7 +89,7 @@ export class OnlineStateTracker {
     if (this.watchStreamFailures === 0) {
       this.setAndBroadcast(OnlineState.Unknown);
 
-      softAssert(
+      debugAssert(
         this.onlineStateTimer === null,
         `onlineStateTimer shouldn't be started yet`
       );
@@ -98,7 +98,7 @@ export class OnlineStateTracker {
         ONLINE_STATE_TIMEOUT_MS,
         () => {
           this.onlineStateTimer = null;
-          softAssert(
+          debugAssert(
             this.state === OnlineState.Unknown,
             'Timer should be canceled if we transitioned to a different state.'
           );
@@ -130,11 +130,11 @@ export class OnlineStateTracker {
 
       // To get to OnlineState.Online, set() must have been called which would
       // have reset our heuristics.
-      softAssert(
+      debugAssert(
         this.watchStreamFailures === 0,
         'watchStreamFailures must be 0'
       );
-      softAssert(
+      debugAssert(
         this.onlineStateTimer === null,
         'onlineStateTimer must be null'
       );

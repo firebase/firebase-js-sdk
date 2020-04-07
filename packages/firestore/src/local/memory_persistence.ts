@@ -18,7 +18,7 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { softAssert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
@@ -532,7 +532,7 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
   }
 
   getPersistence(): Persistence {
-    softAssert(!!this.clientId, 'initialize() not called');
+    debugAssert(!!this.clientId, 'initialize() not called');
     return new MemoryPersistence(
       this.clientId,
       p => new MemoryEagerDelegate(p)

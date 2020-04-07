@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { softAssert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
 export const DOCUMENT_KEY_NAME = '__name__';
@@ -90,7 +90,10 @@ abstract class BasePath<B extends BasePath<B>> {
 
   popFirst(size?: number): B {
     size = size === undefined ? 1 : size;
-    softAssert(this.length >= size, "Can't call popFirst() with less segments");
+    debugAssert(
+      this.length >= size,
+      "Can't call popFirst() with less segments"
+    );
     return this.construct(
       this.segments,
       this.offset + size,
@@ -99,12 +102,12 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   popLast(): B {
-    softAssert(!this.isEmpty(), "Can't call popLast() on empty path");
+    debugAssert(!this.isEmpty(), "Can't call popLast() on empty path");
     return this.construct(this.segments, this.offset, this.length - 1);
   }
 
   firstSegment(): string {
-    softAssert(!this.isEmpty(), "Can't call firstSegment() on empty path");
+    debugAssert(!this.isEmpty(), "Can't call firstSegment() on empty path");
     return this.segments[this.offset];
   }
 
@@ -113,7 +116,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   get(index: number): string {
-    softAssert(index < this.length, 'Index out of range');
+    debugAssert(index < this.length, 'Index out of range');
     return this.segments[this.offset + index];
   }
 

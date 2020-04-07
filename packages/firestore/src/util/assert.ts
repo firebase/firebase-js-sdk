@@ -63,7 +63,7 @@ export function fail(failure: string): never {
  * builds. Any side-effects of code within the debugAssert() invocation will not
  * happen in this case.
  */
-export function softAssert(
+export function debugAssert(
   assertion: boolean,
   message: string
 ): asserts assertion {

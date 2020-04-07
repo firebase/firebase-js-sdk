@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { softAssert, fail } from './assert';
+import { debugAssert, fail } from './assert';
 
 /*
  * Implementation of an immutable SortedMap using a Left-leaning
@@ -227,7 +227,7 @@ export class SortedMapIterator<K, V> {
   }
 
   getNext(): Entry<K, V> {
-    softAssert(
+    debugAssert(
       this.nodeStack.length > 0,
       'getNext() called on iterator when hasNext() is false.'
     );

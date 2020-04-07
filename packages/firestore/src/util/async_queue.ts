@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { softAssert, fail } from './assert';
+import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
@@ -315,7 +315,7 @@ export class AsyncQueue {
   ): CancelablePromise<T> {
     this.verifyNotFailed();
 
-    softAssert(
+    debugAssert(
       delayMs >= 0,
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
@@ -353,7 +353,7 @@ export class AsyncQueue {
    * to catch some bugs.
    */
   verifyOperationInProgress(): void {
-    softAssert(
+    debugAssert(
       this.operationInProgress,
       'verifyOpInProgress() called when no op in progress on this queue.'
     );
@@ -399,7 +399,7 @@ export class AsyncQueue {
   runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
-      softAssert(
+      debugAssert(
         lastTimerId === TimerId.All ||
           this.containsDelayedOperation(lastTimerId),
         `Attempted to drain to missing operation ${lastTimerId}`
@@ -430,7 +430,7 @@ export class AsyncQueue {
   private removeDelayedOperation(op: DelayedOperation<unknown>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
-    softAssert(index >= 0, 'Delayed operation not found.');
+    debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
   }
 }

@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { hardAssert, softAssert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   FirebaseAuthInternal,
@@ -116,14 +116,17 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   invalidateToken(): void {}
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    softAssert(!this.changeListener, 'Can only call setChangeListener() once.');
+    debugAssert(
+      !this.changeListener,
+      'Can only call setChangeListener() once.'
+    );
     this.changeListener = changeListener;
     // Fire with initial user.
     changeListener(User.UNAUTHENTICATED);
   }
 
   removeChangeListener(): void {
-    softAssert(
+    debugAssert(
       this.changeListener !== null,
       'removeChangeListener() when no listener registered'
     );
@@ -190,7 +193,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   getToken(): Promise<Token | null> {
-    softAssert(
+    debugAssert(
       this.tokenListener != null,
       'getToken cannot be called after listener removed.'
     );
@@ -234,7 +237,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   setChangeListener(changeListener: CredentialChangeListener): void {
-    softAssert(!this.changeListener, 'Can only call setChangeListener() once.');
+    debugAssert(
+      !this.changeListener,
+      'Can only call setChangeListener() once.'
+    );
     this.changeListener = changeListener;
 
     // Fire the initial event
@@ -244,11 +250,11 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   removeChangeListener(): void {
-    softAssert(
+    debugAssert(
       this.tokenListener != null,
       'removeChangeListener() called twice'
     );
-    softAssert(
+    debugAssert(
       this.changeListener !== null,
       'removeChangeListener() called when no listener registered'
     );

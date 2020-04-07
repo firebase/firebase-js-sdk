@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 
 import { ResourcePath } from './path';
 
 export class DocumentKey {
   constructor(readonly path: ResourcePath) {
-    softAssert(
+    debugAssert(
       DocumentKey.isDocumentKey(path),
       'Invalid DocumentKey with an odd number of segments: ' +
         path.toArray().join('/')

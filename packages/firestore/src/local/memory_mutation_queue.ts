@@ -22,7 +22,7 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { hardAssert, softAssert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
@@ -76,7 +76,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
     // Verify that the batch in the queue is the one to be acknowledged.
     const check = this.mutationQueue[batchIndex];
-    softAssert(
+    debugAssert(
       batchId === check.batchId,
       'Queue ordering failure: expected batch ' +
         batchId +
@@ -108,14 +108,14 @@ export class MemoryMutationQueue implements MutationQueue {
     baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
-    softAssert(mutations.length !== 0, 'Mutation batches should not be empty');
+    debugAssert(mutations.length !== 0, 'Mutation batches should not be empty');
 
     const batchId = this.nextBatchId;
     this.nextBatchId++;
 
     if (this.mutationQueue.length > 0) {
       const prior = this.mutationQueue[this.mutationQueue.length - 1];
-      softAssert(
+      debugAssert(
         prior.batchId < batchId,
         'Mutation batchIDs must be monotonically increasing order'
       );
@@ -156,7 +156,7 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
     const mutationBatch = this.findMutationBatch(batchId);
-    softAssert(mutationBatch != null, 'Failed to find local mutation batch.');
+    debugAssert(mutationBatch != null, 'Failed to find local mutation batch.');
     return PersistencePromise.resolve<DocumentKeySet | null>(
       mutationBatch.keys()
     );
@@ -197,12 +197,12 @@ export class MemoryMutationQueue implements MutationQueue {
     const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
     const result: MutationBatch[] = [];
     this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-      softAssert(
+      debugAssert(
         documentKey.isEqual(ref.key),
         "Should only iterate over a single key's batches"
       );
       const batch = this.findMutationBatch(ref.targetOrBatchId);
-      softAssert(
+      debugAssert(
         batch !== null,
         'Batches in the index must exist in the main table'
       );
@@ -222,7 +222,7 @@ export class MemoryMutationQueue implements MutationQueue {
       const start = new DocReference(documentKey, 0);
       const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
       this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-        softAssert(
+        debugAssert(
           documentKey.isEqual(ref.key),
           "For each key, should only iterate over a single key's batches"
         );
@@ -238,7 +238,7 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    softAssert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -337,7 +337,7 @@ export class MemoryMutationQueue implements MutationQueue {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
-      softAssert(
+      debugAssert(
         this.batchesByDocumentKey.isEmpty(),
         'Document leak -- detected dangling mutation references when queue is empty.'
       );
@@ -355,7 +355,7 @@ export class MemoryMutationQueue implements MutationQueue {
    */
   private indexOfExistingBatchId(batchId: BatchId, action: string): number {
     const index = this.indexOfBatchId(batchId);
-    softAssert(
+    debugAssert(
       index >= 0 && index < this.mutationQueue.length,
       'Batches must exist to be ' + action
     );
@@ -396,7 +396,7 @@ export class MemoryMutationQueue implements MutationQueue {
     }
 
     const batch = this.mutationQueue[index];
-    softAssert(batch.batchId === batchId, 'If found batch must match');
+    debugAssert(batch.batchId === batchId, 'If found batch must match');
     return batch;
   }
 }

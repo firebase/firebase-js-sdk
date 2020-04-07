@@ -18,7 +18,7 @@
 import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { JsonProtoSerializer } from '../remote/serializer';
 import {
   valueEquals,
@@ -193,7 +193,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     private readonly serializer: JsonProtoSerializer,
     readonly operand: api.Value
   ) {
-    softAssert(
+    debugAssert(
       isNumber(operand),
       'NumericIncrementTransform transform requires a NumberValue'
     );
@@ -219,7 +219,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     previousValue: api.Value | null,
     transformResult: api.Value | null
   ): api.Value {
-    softAssert(
+    debugAssert(
       transformResult !== null,
       "Didn't receive transformResult for NUMERIC_ADD transform"
     );

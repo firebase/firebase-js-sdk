@@ -31,7 +31,7 @@ import {
   typeOrder
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
-import { softAssert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
@@ -95,7 +95,7 @@ export class Query {
           ];
         }
       } else {
-        softAssert(
+        debugAssert(
           inequalityField === null ||
             (firstOrderByField !== null &&
               inequalityField.isEqual(firstOrderByField)),
@@ -128,7 +128,7 @@ export class Query {
   }
 
   addFilter(filter: Filter): Query {
-    softAssert(
+    debugAssert(
       this.getInequalityFilterField() == null ||
         !(filter instanceof FieldFilter) ||
         !filter.isInequality() ||
@@ -136,7 +136,7 @@ export class Query {
       'Query must only have one inequality field.'
     );
 
-    softAssert(
+    debugAssert(
       !this.isDocumentQuery(),
       'No filtering allowed for document query'
     );
@@ -155,7 +155,7 @@ export class Query {
   }
 
   addOrderBy(orderBy: OrderBy): Query {
-    softAssert(
+    debugAssert(
       !this.startAt && !this.endAt,
       'Bounds must be set after orderBy'
     );
@@ -290,7 +290,7 @@ export class Query {
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key
-    softAssert(
+    debugAssert(
       comparedOnKeyField,
       "orderBy used that doesn't compare on key field"
     );
@@ -455,7 +455,7 @@ export class Query {
   }
 
   private assertValidBound(bound: Bound): void {
-    softAssert(
+    debugAssert(
       bound.position.length <= this.orderBy.length,
       'Bound is longer than orderBy'
     );
@@ -527,21 +527,21 @@ export class FieldFilter extends Filter {
   static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
     if (field.isKeyField()) {
       if (op === Operator.IN) {
-        softAssert(
+        debugAssert(
           isArray(value),
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
-        softAssert(
+        debugAssert(
           (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
         return new KeyFieldInFilter(field, value);
       } else {
-        softAssert(
+        debugAssert(
           isReferenceValue(value),
           'Comparing on key, but filter value not a RefValue'
         );
-        softAssert(
+        debugAssert(
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
@@ -566,13 +566,13 @@ export class FieldFilter extends Filter {
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
     } else if (op === Operator.IN) {
-      softAssert(
+      debugAssert(
         isArray(value),
         'IN filter has invalid value: ' + value.toString()
       );
       return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
-      softAssert(
+      debugAssert(
         isArray(value),
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
@@ -657,7 +657,7 @@ export class KeyFieldFilter extends FieldFilter {
 
   constructor(field: FieldPath, op: Operator, value: api.Value) {
     super(field, op, value);
-    softAssert(
+    debugAssert(
       isReferenceValue(value),
       'KeyFieldFilter expects a ReferenceValue'
     );
@@ -676,9 +676,9 @@ export class KeyFieldInFilter extends FieldFilter {
 
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
-    softAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
+    debugAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
     this.keys = (value.arrayValue.values || []).map(v => {
-      softAssert(
+      debugAssert(
         isReferenceValue(v),
         'Comparing on key with IN, but an array value was not a ReferenceValue'
       );
@@ -707,7 +707,7 @@ export class ArrayContainsFilter extends FieldFilter {
 export class InFilter extends FieldFilter {
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
-    softAssert(isArray(value), 'InFilter expects an ArrayValue');
+    debugAssert(isArray(value), 'InFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
@@ -720,7 +720,7 @@ export class InFilter extends FieldFilter {
 export class ArrayContainsAnyFilter extends FieldFilter {
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);
-    softAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
+    debugAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
@@ -777,7 +777,7 @@ export class Bound {
    * order.
    */
   sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
-    softAssert(
+    debugAssert(
       this.position.length <= orderBy.length,
       "Bound has more components than query's orderBy"
     );
@@ -786,7 +786,7 @@ export class Bound {
       const orderByComponent = orderBy[i];
       const component = this.position[i];
       if (orderByComponent.field.isKeyField()) {
-        softAssert(
+        debugAssert(
           isReferenceValue(component),
           'Bound has a non-key value where the key path is being used.'
         );
@@ -796,7 +796,7 @@ export class Bound {
         );
       } else {
         const docValue = doc.field(orderByComponent.field);
-        softAssert(
+        debugAssert(
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );

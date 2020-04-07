@@ -31,7 +31,7 @@ import {
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
-import { softAssert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
@@ -214,7 +214,7 @@ export class SpecBuilder {
 
   // Configures Garbage Collection behavior (on or off). Default is on.
   withGCEnabled(gcEnabled: boolean): this {
-    softAssert(
+    debugAssert(
       !this.currentStep,
       'withGCEnabled() must be called before all spec steps.'
     );
@@ -776,7 +776,7 @@ export class SpecBuilder {
     if (!currentStep.expectedSnapshotEvents) {
       currentStep.expectedSnapshotEvents = [];
     }
-    softAssert(
+    debugAssert(
       !events.errorCode ||
         !(events.added || events.modified || events.removed || events.metadata),
       "Can't provide both error and events"
@@ -1019,7 +1019,7 @@ export class SpecBuilder {
       fail('Found both query and limbo doc with target ID, not supported yet');
     }
     const targetId = queryTargetId || limboTargetId;
-    softAssert(
+    debugAssert(
       !isNullOrUndefined(targetId),
       'No target ID found for query/limbo doc in spec'
     );

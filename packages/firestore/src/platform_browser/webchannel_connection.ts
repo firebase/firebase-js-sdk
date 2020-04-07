@@ -43,7 +43,7 @@ import {
   mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { softAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { Indexable } from '../util/misc';
@@ -423,7 +423,7 @@ export class WebChannelConnection implements Connection {
   // visible for testing
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
-    softAssert(
+    debugAssert(
       urlRpcName !== undefined,
       'Unknown REST mapping for: ' + rpcName
     );

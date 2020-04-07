@@ -25,7 +25,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
-import { softAssert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 
 import { Query } from './query';
 import { OnlineState } from './types';
@@ -150,7 +150,7 @@ export class View {
         const oldDoc = oldDocumentSet.get(key);
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
-          softAssert(
+          debugAssert(
             key.isEqual(newDoc.key),
             'Mismatching keys found in document changes: ' +
               key +
@@ -242,7 +242,7 @@ export class View {
       }
     }
 
-    softAssert(
+    debugAssert(
       !needsRefill || !previousChanges,
       'View was refilled using docs that themselves needed refilling.'
     );
@@ -288,7 +288,7 @@ export class View {
     updateLimboDocuments: boolean,
     targetChange?: TargetChange
   ): ViewChange {
-    softAssert(
+    debugAssert(
       !docChanges.needsRefill,
       'Cannot apply changes that need a refill'
     );
@@ -393,7 +393,7 @@ export class View {
         key => (this._syncedDocuments = this._syncedDocuments.add(key))
       );
       targetChange.modifiedDocuments.forEach(key =>
-        softAssert(
+        debugAssert(
           this._syncedDocuments.has(key),
           `Modified document ${key} not found in view.`
         )

@@ -17,7 +17,7 @@
 
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { softAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -226,7 +226,7 @@ export class LruScheduler {
   }
 
   start(localStore: LocalStore): void {
-    softAssert(
+    debugAssert(
       this.gcTask === null,
       'Cannot start an already started LruScheduler'
     );
@@ -250,7 +250,7 @@ export class LruScheduler {
   }
 
   private scheduleGC(localStore: LocalStore): void {
-    softAssert(
+    debugAssert(
       this.gcTask === null,
       'Cannot schedule GC while a task is pending'
     );
