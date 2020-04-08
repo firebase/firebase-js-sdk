@@ -1,4 +1,4 @@
-const { spawn } = require('child-process-promise');
+const { spawn, exec } = require('child-process-promise');
 const ora = require('ora');
 const { projectRoot } = require('../utils');
 const simpleGit = require('simple-git/promise');
