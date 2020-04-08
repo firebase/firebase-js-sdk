@@ -112,7 +112,7 @@ async function publishToNpm(packagePaths) {
     // const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
     const args = ['pack'];
     for (const pp of packagePaths) {
-        const { version, name } = readPackageJson(pp);
+        const { version, name } = await readPackageJson(pp);
         console.log(`Publishing ${name}@${version}`);
         await spawn('npm', args, { cwd: pp });
     }
