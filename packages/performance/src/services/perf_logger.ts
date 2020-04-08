@@ -153,13 +153,12 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
 
   // Do not log the js sdk's call to transport service domain to avoid unnecessary cycle.
   // Need to blacklist both old and new endpoints to avoid migration gap.
-  const networkRequestHostName = new URL(networkRequest.url).hostname;
+  const networkRequestHostName = extractDomain(networkRequest.url);
 
   // Blacklist old log endpoint and new transport endpoint.
   // Because Performance SDK doesn't instrument requests sent from SDK itself.
-  const logEndpointHostName = new URL(settingsService.logEndPointUrl).hostname;
-  const flEndpointHostName = new URL(settingsService.flTransportEndpointUrl)
-    .hostname;
+  const logEndpointHostName = extractDomain(settingsService.logEndPointUrl);
+  const flEndpointHostName = extractDomain(settingsService.flTransportEndpointUrl);
   if (
     networkRequestHostName === logEndpointHostName ||
     networkRequestHostName === flEndpointHostName
@@ -175,6 +174,15 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   }
 
   setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
+}
+
+function extractDomain(url: string): string {
+  const urlRegex = /(https?:\/\/)?([-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4})\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
+  let matched = urlRegex.exec(url);
+  if (matched && matched[1]) {
+    return matched[1];
+  }
+  return "";
 }
 
 function serializer(
