@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
     "build": "lerna run --scope @firebase/* --scope firebase --scope rxfire prepare",
-    "build:exp": "lerna run --scope @firebase/*-exp --scope firebase-exp prepare",
+    "build:exp": "lerna run --scope @firebase/*-exp --scope firebase-exp build",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase --scope rxfire -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
