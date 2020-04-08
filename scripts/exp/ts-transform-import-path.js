@@ -2,6 +2,9 @@ import * as ts from 'typescript';
 /**
  * remove '-exp' in import paths.
  * For example, `import {...} from '@firebase/app-exp'` becomes `import {...} from '@firebase/app'`.
+ * 
+ * Used to generate the release build for exp packages. We do this because we publish them
+ * using the existing package names under a special release tag (e.g. firebase@exp);
  */
 
 export const importPathTransformer = () => ({

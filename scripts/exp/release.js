@@ -43,8 +43,8 @@ async function publishExpPackages() {
          * 1. Bumps the pactch version of exp packages regardless if there is any update
          * since the last release. This simplifies the script and works fine for exp packages.
          * 
-         * 2. Removes -exp in package names because we are releasing them under
-         * the existing package names with a special release tag (@exp).
+         * 2. Removes -exp in package names because we will publish them using
+         * the existing package names under a special release tag (e.g. firebase@exp).
          */
         const versions = await updatePackageNamesAndVersions(packagePaths);
 
