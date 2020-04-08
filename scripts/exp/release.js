@@ -111,7 +111,7 @@ async function publishToNpm(packagePaths) {
 
     const taskArray = await Promise.all(
         packagePaths.map(async pp => {
-            const { version, name } = await readPackageJson(packagePath);
+            const { version, name } = await readPackageJson(pp);
             return {
                 title: `📦  ${name}@${version}`,
                 task: () => publishPackage(pp)
