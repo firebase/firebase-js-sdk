@@ -1,6 +1,5 @@
 const { spawn } = require('child-process-promise');
 const ora = require('ora');
-const { createPromptModule } = require('inquirer');
 const { projectRoot } = require('../utils');
 const simpleGit = require('simple-git/promise');
 const git = simpleGit(projectRoot);
@@ -14,6 +13,7 @@ const { promisify } = require('util');
 const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
 const chalk = require('chalk');
+const Listr = require('listr');
 
 
 async function publishExpPackages() {
@@ -108,14 +108,29 @@ async function updatePackageNamesAndVersions(packagePaths) {
 }
 
 async function publishToNpm(packagePaths) {
+
+    const taskArray = packagePaths.map(async pp => {
+        const { version, name } = await readPackageJson(packagePath);
+        return {
+            title: `📦  ${name}@${version}`,
+            task: () => publishPackage(pp)
+        };
+    });
+
+    const tasks = new Listr(taskArray, {
+        concurrent: false,
+        exitOnError: false,
+    });
+
+    console.log('\r\nPublishing Packages to NPM:');
+    return tasks.run();
+}
+
+async function publishPackage(packagePath) {
     // TODO: remove --dry-run
     // const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
     const args = ['pack'];
-    for (const pp of packagePaths) {
-        const { version, name } = await readPackageJson(pp);
-        console.log(`Publishing ${name}@${version}`);
-        await spawn('npm', args, { cwd: pp });
-    }
+    await spawn('npm', args, { cwd: packagePath });
 }
 
 async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
