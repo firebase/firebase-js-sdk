@@ -5,7 +5,7 @@ const prompt = createPromptModule();
 const { argv } = require('yargs');
 const { projectRoot } = require('../utils');
 const simpleGit = require('simple-git/promise');
-const git = simpleGit(root);
+const git = simpleGit(projectRoot);
 const { mapWorkspaceToPackages } = require('../release/utils/workspace');
 const { inc } = require('semver');
 const { writeFileSync } = require('fs');
@@ -29,20 +29,24 @@ async function publishExpPackages() {
          */
         await runTests();
 
+        // path to exp packages
+        const packagePaths = await mapWorkspaceToPackages([
+            `${projectRoot}/packages-exp/*`
+        ]);
         /**
          * Update the package.json dependencies throughout the SDK
          */
-        await updatePackageNamesAndVersions();
+        const versions = await updatePackageNamesAndVersions(packagePaths);
 
         /**
-         * Release new versions to NPM
+         * Release packages to NPM
          */
-        await publishToNpm();
+        await publishToNpm(packagePaths);
 
         /**
          * reset the working tree and increase patch version of all exp packages
          */
-        await resetWorkingTreeAndBumpVersion();
+        await resetWorkingTreeAndBumpVersions(packagePaths, versions);
 
         /**
          * push to master
@@ -71,24 +75,21 @@ async function publishExpPackages() {
 async function buildPackages() {
     const spinner = ora(' Building Packages').start();
     await spawn('yarn', ['build:exp'], {
-      cwd: projectRoot
+        cwd: projectRoot
     });
     spinner.stopAndPersist({
-      symbol: '✅'
+        symbol: '✅'
     });
 }
 
 async function runTests() {
     await spawn('yarn', ['test:exp'], {
-      cwd: projectRoot,
-      stdio: 'inherit'
+        cwd: projectRoot,
+        stdio: 'inherit'
     });
 }
 
-async function updatePackageNamesAndVersions() {
-    const packagePaths = await mapWorkspaceToPackages([
-        `${projectRoot}/packages-exp/*`
-    ]);
+async function updatePackageNamesAndVersions(packagePaths) {
 
     // get package name -> next version mapping
     const versions = new Map();
@@ -100,51 +101,79 @@ async function updatePackageNamesAndVersions() {
         versions.set(name, nextVersion);
     }
 
-    for (const path of packagePaths) {
-        const packageJsonPath = `${path}/package.json`;
-        const packageJson = require(packageJsonPath);
+    updatePackageJsons(packagePaths, versions, {
+        removeExpInName: true,
+        updateVersions: true,
+        makePublic: true
+    });
 
-        // update version
-        const nextVersion = versions.get(packageJson.name);
-        console.log(chalk`Updating {blue ${packageJson.name}} from {green ${packageJson.version}} to {green ${nextVersion}}`);
-        packageJson.version = nextVersion;
-
-        // remove -exp in the package name
-        const cleanName = removeExpInPackageName(packageJson.name)
-        console.log(chalk`Renaming {blue ${packageJson.name}} to {blue ${cleanName}}`);
-        packageJson.name = cleanName;
-
-        // set private to false
-        packageJson.private = false;
-
-        // update dep version and remove -exp in dep names
-        // don't care about devDependencies because they are irrelavant when using the package
-        const dependencies = packageJson.dependencies || {};
-        const newDependenciesObj = {};
-        for (const d of Object.keys(dependencies)) {
-            const dNextVersion = versions.get(d);
-            const nameWithoutExp = removeExpInPackageName(d);
-            if (!dNextVersion) {
-                newDependenciesObj[nameWithoutExp] = dependencies[d];
-            } else {
-                newDependenciesObj[nameWithoutExp] = dNextVersion;
-            }
-        }
-
-        packageJson.dependencies = newDependenciesObj;
-
-        // update package.json files
-        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
-    }
+    return versions;
 }
 
 async function publishToNpm() {
 
 }
 
-async function resetWorkingTreeAndBumpVersion() {
+async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
     await git.checkout('.');
-    
+
+    updatePackageJsons(packagePaths, versions, {
+        removeExpInName: false,
+        updateVersions: true,
+        makePublic: false
+    });
+}
+
+function updatePackageJsons(
+    packagePaths,
+    versions,
+    {
+        removeExpInName,
+        updateVersions,
+        makePublic
+    }
+) {
+    for (const path of packagePaths) {
+        const packageJsonPath = `${path}/package.json`;
+        const packageJson = require(packageJsonPath);
+
+        // update version
+        if (updateVersions) {
+            const nextVersion = versions.get(packageJson.name);
+            console.log(chalk`Updating {blue ${packageJson.name}} from {green ${packageJson.version}} to {green ${nextVersion}}`);
+            packageJson.version = nextVersion;
+        }
+
+        // remove -exp in the package name
+        if (removeExpInName) {
+            const cleanName = removeExpInPackageName(packageJson.name)
+            console.log(chalk`Renaming {blue ${packageJson.name}} to {blue ${cleanName}}`);
+            packageJson.name = cleanName;
+
+            // update dep version and remove -exp in dep names
+            // don't care about devDependencies because they are irrelavant when using the package
+            const dependencies = packageJson.dependencies || {};
+            const newDependenciesObj = {};
+            for (const d of Object.keys(dependencies)) {
+                const dNextVersion = versions.get(d);
+                const nameWithoutExp = removeExpInPackageName(d);
+                if (!dNextVersion) {
+                    newDependenciesObj[nameWithoutExp] = dependencies[d];
+                } else {
+                    newDependenciesObj[nameWithoutExp] = dNextVersion;
+                }
+            }
+            packageJson.dependencies = newDependenciesObj;
+        }
+
+        // set private to false
+        if (makePublic) {
+            packageJson.private = false;
+        }
+
+        // update package.json files
+        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
+    }
 }
 
 async function commitAndPush() {
