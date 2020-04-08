@@ -1,13 +1,15 @@
-const { exec } = require('child-process-promise');
+const { exec, spawn } = require('child-process-promise');
+const ora = require('ora');
 const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
-const { publishToNpm } = require('./utils/npm');
-const { bannerText } = require('./utils/banner');
 const { argv } = require('yargs');
 const { projectRoot } = require('../utils');
+const simpleGit = require('simple-git/promise');
+const git = simpleGit(root);
 const { mapWorkspaceToPackages } = require('../release/utils/workspace');
 const { inc } = require('semver');
 const { writeFileSync } = require('fs');
+const chalk = require('chalk');
 
 
 async function publishExpPackages() {
@@ -15,15 +17,7 @@ async function publishExpPackages() {
         /**
          * Welcome to the firebase release CLI!
          */
-        await bannerText();
-
-
-        /**
-         * Update the package.json dependencies throughout the SDK
-         */
-        await updatePackageNamesAndVersions();
-
-        return;
+        console.log('Welcome to the Firebase Exp Packages release CLI!');
 
         /**
          * build packages
@@ -33,26 +27,27 @@ async function publishExpPackages() {
         /**
          * run tests
          */
+        await runTests();
+
+        /**
+         * Update the package.json dependencies throughout the SDK
+         */
+        await updatePackageNamesAndVersions();
 
         /**
          * Release new versions to NPM
          */
-        await publishToNpm(
-            updates,
-            releaseType,
-            argv.canary ? 'canary' : 'default'
-        );
+        await publishToNpm();
 
         /**
          * reset the working tree and increase patch version of all exp packages
          */
-        if (releaseType !== 'Production') {
-            await resetWorkingTree();
-        }
+        await resetWorkingTreeAndBumpVersion();
 
         /**
          * push to master
          */
+        commitAndPush();
 
     } catch (err) {
         /**
@@ -71,6 +66,23 @@ async function publishExpPackages() {
          */
         process.exit(1);
     }
+}
+
+async function buildPackages() {
+    const spinner = ora(' Building Packages').start();
+    await spawn('yarn', ['build:exp'], {
+      cwd: projectRoot
+    });
+    spinner.stopAndPersist({
+      symbol: '✅'
+    });
+}
+
+async function runTests() {
+    await spawn('yarn', ['test:exp'], {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    });
 }
 
 async function updatePackageNamesAndVersions() {
@@ -92,20 +104,22 @@ async function updatePackageNamesAndVersions() {
         const packageJsonPath = `${path}/package.json`;
         const packageJson = require(packageJsonPath);
 
-        const nextVersion = versions.get(packageJson.name);
-
         // update version
+        const nextVersion = versions.get(packageJson.name);
+        console.log(chalk`Updating {blue ${packageJson.name}} from {green ${packageJson.version}} to {green ${nextVersion}}`);
         packageJson.version = nextVersion;
 
         // remove -exp in the package name
-        packageJson.name = removeExpInPackageName(packageJson.name);
+        const cleanName = removeExpInPackageName(packageJson.name)
+        console.log(chalk`Renaming {blue ${packageJson.name}} to {blue ${cleanName}}`);
+        packageJson.name = cleanName;
 
         // set private to false
         packageJson.private = false;
 
         // update dep version and remove -exp in dep names
         // don't care about devDependencies because they are irrelavant when using the package
-        const dependencies = pacakgeJson.dependencies;
+        const dependencies = packageJson.dependencies || {};
         const newDependenciesObj = {};
         for (const d of Object.keys(dependencies)) {
             const dNextVersion = versions.get(d);
@@ -120,8 +134,21 @@ async function updatePackageNamesAndVersions() {
         packageJson.dependencies = newDependenciesObj;
 
         // update package.json files
-        writeFileSync(packageJsonPath, pacakgeJson);
+        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
     }
+}
+
+async function publishToNpm() {
+
+}
+
+async function resetWorkingTreeAndBumpVersion() {
+    await git.checkout('.');
+    
+}
+
+async function commitAndPush() {
+
 }
 
 
