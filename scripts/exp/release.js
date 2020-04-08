@@ -8,7 +8,13 @@ const simpleGit = require('simple-git/promise');
 const git = simpleGit(projectRoot);
 const { mapWorkspaceToPackages } = require('../release/utils/workspace');
 const { inc } = require('semver');
-const { writeFileSync } = require('fs');
+const {
+    readFile: _readFile,
+    writeFile: _writeFile
+} = require('fs');
+const { promisify } = require('util');
+const readFile = promisify(_readFile);
+const writeFile = promisify(_writeFile);
 const chalk = require('chalk');
 
 
@@ -22,12 +28,12 @@ async function publishExpPackages() {
         /**
          * build packages
          */
-        await buildPackages();
+        // await buildPackages();
 
-        /**
-         * run tests
-         */
-        await runTests();
+        // /**
+        //  * run tests
+        //  */
+        // await runTests();
 
         // path to exp packages
         const packagePaths = await mapWorkspaceToPackages([
@@ -101,7 +107,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
         versions.set(name, nextVersion);
     }
 
-    updatePackageJsons(packagePaths, versions, {
+    await updatePackageJsons(packagePaths, versions, {
         removeExpInName: true,
         updateVersions: true,
         makePublic: true
@@ -110,21 +116,29 @@ async function updatePackageNamesAndVersions(packagePaths) {
     return versions;
 }
 
-async function publishToNpm() {
-
+async function publishToNpm(packagePaths) {
+    const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
+    for (const pp of packagePaths) {
+        const { version, name } = require(`${pp}/package.json`);
+        console.log(`Publishing ${name}@${version}`);
+        // spawn('npm', args, { cwd: pp });
+    }
 }
 
 async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
-    await git.checkout('.');
+    // await git.checkout('.');
+    await exec('git checkout .', {
+        cwd: projectRoot
+    });
 
-    updatePackageJsons(packagePaths, versions, {
+    await updatePackageJsons(packagePaths, versions, {
         removeExpInName: false,
         updateVersions: true,
         makePublic: false
     });
 }
 
-function updatePackageJsons(
+async function updatePackageJsons(
     packagePaths,
     versions,
     {
@@ -136,7 +150,7 @@ function updatePackageJsons(
     for (const path of packagePaths) {
         const packageJsonPath = `${path}/package.json`;
         const packageJson = require(packageJsonPath);
-
+      //  console.log(packageJson);
         // update version
         if (updateVersions) {
             const nextVersion = versions.get(packageJson.name);
@@ -172,7 +186,7 @@ function updatePackageJsons(
         }
 
         // update package.json files
-        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
+        await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
     }
 }
 
