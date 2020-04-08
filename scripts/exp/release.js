@@ -117,19 +117,20 @@ async function updatePackageNamesAndVersions(packagePaths) {
 }
 
 async function publishToNpm(packagePaths) {
-    const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
+    // const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
+    const args = ['pack'];
     for (const pp of packagePaths) {
         const { version, name } = require(`${pp}/package.json`);
         console.log(`Publishing ${name}@${version}`);
-        // spawn('npm', args, { cwd: pp });
+        await spawn('npm', args, { cwd: pp });
     }
 }
 
 async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
     // await git.checkout('.');
-    await exec('git checkout .', {
-        cwd: projectRoot
-    });
+    // await exec('git checkout .', {
+    //     cwd: projectRoot
+    // });
 
     await updatePackageJsons(packagePaths, versions, {
         removeExpInName: false,
