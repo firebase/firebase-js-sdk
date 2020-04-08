@@ -52,7 +52,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.INVALID_CUSTOM_METRIC_NAME]:
     'Custom metric name {$customMetricName} is invalid',
   [ErrorCode.INVALID_STRING_MERGER_PARAMETER]:
-    'Input for String merger is invalid'
+    'Input for String merger is invalid, contact support team to resolve.'
 };
 
 interface ErrorParams {
