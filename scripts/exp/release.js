@@ -212,7 +212,7 @@ async function commitAndPush(versions) {
     );
     currentBranch = currentBranch.trim();
 
-    await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
+    await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: projectRoot });
 }
 
 
