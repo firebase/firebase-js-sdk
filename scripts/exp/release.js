@@ -64,12 +64,6 @@ async function publishExpPackages() {
         console.error(err);
 
         /**
-         * Reset the working tree (will remove unneeded changes if they weren't
-         * committed already)
-         */
-        await resetWorkingTree();
-
-        /**
          * Exit with an error code
          */
         process.exit(1);
@@ -98,8 +92,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
     // get package name -> next version mapping
     const versions = new Map();
     for (const path of packagePaths) {
-        const packageJsonPath = `${path}/package.json`;
-        const { version, name } = await readPackageJson(packageJsonPath);
+        const { version, name } = await readPackageJson(path);
         // increase the patch version of all exp packages
         const nextVersion = inc(version, 'patch');
         versions.set(name, nextVersion);
