@@ -277,6 +277,10 @@ describe('SwController', () => {
     });
 
     it('warns if there are more action buttons than the browser limit', async () => {
+      // This doesn't exist on Firefox.
+      if (!Notification.maxActions) {
+        return;
+      }
       stub(Notification, 'maxActions').value(1);
 
       const warnStub = stub(console, 'warn');
