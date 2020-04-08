@@ -15,7 +15,6 @@ const writeFile = promisify(_writeFile);
 const chalk = require('chalk');
 const Listr = require('listr');
 
-
 async function publishExpPackages() {
     try {
         /**
@@ -37,8 +36,15 @@ async function publishExpPackages() {
         const packagePaths = await mapWorkspaceToPackages([
             `${projectRoot}/packages-exp/*`
         ]);
+
         /**
-         * Update the package.json dependencies throughout the SDK
+         * It does 2 things:
+         * 
+         * 1. Bumps the pactch version of exp packages regardless if there is any update
+         * since the last release. This simplifies the script and works fine for exp packages.
+         * 
+         * 2. Removes -exp in package names because we are releasing them under
+         * the existing package names with a special release tag (@exp).
          */
         const versions = await updatePackageNamesAndVersions(packagePaths);
 
@@ -48,14 +54,15 @@ async function publishExpPackages() {
         await publishToNpm(packagePaths);
 
         /**
-         * reset the working tree and increase patch version of all exp packages
+         * reset the working tree to recover package names with -exp in the package.json files, 
+         * then bump patch version of all exp packages
          */
         await resetWorkingTreeAndBumpVersions(packagePaths, versions);
 
         /**
-         * push to master
+         * push to github
          */
-        commitAndPush(versions);
+        await commitAndPush(versions);
 
     } catch (err) {
         /**
@@ -156,10 +163,6 @@ async function updatePackageJsons(
 ) {
     for (const path of packagePaths) {
         const packageJsonPath = `${path}/package.json`;
-        /**
-         * Can't require here because it caches the file
-         * in memory and it doesn't contain the updates that are made by e.g. git commands
-         */
         const packageJson = await readPackageJson(path);
 
         // update version
@@ -230,7 +233,7 @@ function removeExpInPackageName(name) {
 async function readPackageJson(packagePath) {
     /**
      * Can't require here because require caches the file
-     * in memory and it may not contain the updates that are made by e.g. git commands
+     * in memory, so it may not contain the updates that are made by e.g. git commands
      */
     return JSON.parse(
         await readFile(`${packagePath}/package.json`, 'utf8')
