@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
@@ -73,7 +73,7 @@ export class EventManager implements SyncEngineListener {
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.
     const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
-    assert(
+    debugAssert(
       !raisedEvent,
       "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
     );
@@ -226,7 +226,7 @@ export class QueryListener {
    * indeed raised.
    */
   onViewSnapshot(snap: ViewSnapshot): boolean {
-    assert(
+    debugAssert(
       snap.docChanges.length > 0 || snap.syncStateChanged,
       'We got a new snapshot with no changes?'
     );
@@ -288,7 +288,7 @@ export class QueryListener {
     snap: ViewSnapshot,
     onlineState: OnlineState
   ): boolean {
-    assert(
+    debugAssert(
       !this.raisedInitialEvent,
       'Determining whether to raise first event but already had first event'
     );
@@ -304,7 +304,7 @@ export class QueryListener {
     // Don't raise the event if we're online, aren't synced yet (checked
     // above) and are waiting for a sync.
     if (this.options.waitForSyncWhenOnline && maybeOnline) {
-      assert(
+      debugAssert(
         snap.fromCache,
         'Waiting for sync, but snapshot is not from cache'
       );
@@ -337,7 +337,7 @@ export class QueryListener {
   }
 
   private raiseInitialEvent(snap: ViewSnapshot): void {
-    assert(
+    debugAssert(
       !this.raisedInitialEvent,
       'Trying to raise initial events for second time'
     );

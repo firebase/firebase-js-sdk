@@ -31,7 +31,7 @@ import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
@@ -93,11 +93,11 @@ export class IndexedDbComponentProvider implements ComponentProvider {
     maxConcurrentLimboResolutions: number,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
-    assert(
+    debugAssert(
       persistenceSettings.durable,
       'IndexedDbComponentProvider can only provide durable persistence'
     );
-    assert(!this.sharedClientState, 'initialize() already called');
+    debugAssert(!this.sharedClientState, 'initialize() already called');
 
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo

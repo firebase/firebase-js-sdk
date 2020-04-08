@@ -81,7 +81,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { assert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -255,11 +255,11 @@ class MockConnection implements Connection {
         sendFn: (request: WriteRequest) => {
           ++this.writeStreamRequestCount;
           if (firstCall) {
-            assert(
+            debugAssert(
               !!request.database,
               'projectId must be set in the first message'
             );
-            assert(
+            debugAssert(
               !request.writes,
               'mutations must not be set in first request'
             );
@@ -268,11 +268,11 @@ class MockConnection implements Connection {
             return;
           }
 
-          assert(
+          debugAssert(
             !!request.streamToken,
             'streamToken must be set on all writes'
           );
-          assert(!!request.writes, 'writes must be set on all writes');
+          debugAssert(!!request.writes, 'writes must be set on all writes');
 
           const barrier = this.writeSendBarriers.shift();
           if (!barrier) {
@@ -301,7 +301,7 @@ class MockConnection implements Connection {
       // Replace 'any' with conditional types.
       return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
-      assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
+      debugAssert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
         throw new Error('Stream opened twice!');
       }
@@ -384,12 +384,12 @@ class SharedWriteTracker {
   }
 
   peek(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes[0];
   }
 
   shift(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes.shift()!;
   }
 }
@@ -643,7 +643,7 @@ abstract class TestRunner {
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
-    assert(!!eventEmitter, 'There must be a query to unlisten too!');
+    debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
     await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
@@ -756,7 +756,7 @@ abstract class TestRunner {
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
-      assert(
+      debugAssert(
         !watchEntity.doc,
         'Exactly one of `doc` or `docs` needs to be set'
       );
@@ -799,7 +799,7 @@ abstract class TestRunner {
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
-    assert(
+    debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
@@ -1004,7 +1004,7 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
-        assert(
+        debugAssert(
           this.persistence instanceof IndexedDbPersistence,
           'numActiveClients is only supported for persistence-enabled tests'
         );
@@ -1376,7 +1376,7 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
-      assert(
+      debugAssert(
         step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
         "Cannot use 'client()' to initialize a test that is not tagged with " +
           "'multi-client'. Did you mean to use 'spec()'?"

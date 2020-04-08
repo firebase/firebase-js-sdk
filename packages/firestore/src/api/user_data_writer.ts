@@ -35,7 +35,7 @@ import {
   getLocalWriteTime,
   getPreviousValue
 } from '../model/server_timestamps';
-import { assert, fail } from '../util/assert';
+import { fail, hardAssert } from '../util/assert';
 import { forEach } from '../util/obj';
 import { TypeOrder } from '../model/field_value';
 import { ResourcePath } from '../model/path';
@@ -130,7 +130,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
   private convertReference(name: string): DocumentReference<T> {
     const resourcePath = ResourcePath.fromString(name);
-    assert(
+    hardAssert(
       isValidResourceName(resourcePath),
       'ReferenceValue is not valid ' + name
     );

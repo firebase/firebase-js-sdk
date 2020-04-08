@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
+import { debugAssert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {
@@ -31,7 +31,7 @@ export class AutoId {
     for (let i = 0; i < 20; i++) {
       autoId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    debugAssert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;
   }
 }

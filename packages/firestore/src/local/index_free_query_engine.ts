@@ -27,7 +27,7 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
@@ -64,7 +64,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       this.localDocumentsView !== undefined,
       'setLocalDocumentsView() not called'
     );

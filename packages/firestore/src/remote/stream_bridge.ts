@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 
 import { Stream } from './connection';
@@ -39,17 +39,17 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   onOpen(callback: () => void): void {
-    assert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
+    debugAssert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
     this.wrappedOnOpen = callback;
   }
 
   onClose(callback: (err?: FirestoreError) => void): void {
-    assert(!this.wrappedOnClose, 'Called onClose on stream twice!');
+    debugAssert(!this.wrappedOnClose, 'Called onClose on stream twice!');
     this.wrappedOnClose = callback;
   }
 
   onMessage(callback: (msg: O) => void): void {
-    assert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
+    debugAssert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
     this.wrappedOnMessage = callback;
   }
 
@@ -62,7 +62,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   callOnOpen(): void {
-    assert(
+    debugAssert(
       this.wrappedOnOpen !== undefined,
       'Cannot call onOpen because no callback was set'
     );
@@ -70,7 +70,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   callOnClose(err?: FirestoreError): void {
-    assert(
+    debugAssert(
       this.wrappedOnClose !== undefined,
       'Cannot call onClose because no callback was set'
     );
@@ -78,7 +78,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   callOnMessage(msg: O): void {
-    assert(
+    debugAssert(
       this.wrappedOnMessage !== undefined,
       'Cannot call onMessage because no callback was set'
     );

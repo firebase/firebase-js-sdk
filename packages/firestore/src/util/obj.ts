@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
+import { debugAssert } from './assert';
 
 export interface Dict<V> {
   [stringKey: string]: V;
@@ -43,7 +43,7 @@ export function forEach<V>(
 }
 
 export function isEmpty<V>(obj: Dict<V>): boolean {
-  assert(
+  debugAssert(
     obj != null && typeof obj === 'object',
     'isEmpty() expects object parameter.'
   );
