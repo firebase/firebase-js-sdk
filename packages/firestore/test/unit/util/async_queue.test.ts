@@ -72,7 +72,7 @@ describe('AsyncQueue', () => {
 
   it('handles failures', () => {
     const queue = new AsyncQueue();
-    const expected = new Error('Firestore Test Simulated Error');
+    const expected = new Error('Firit cestore Test Simulated Error');
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();

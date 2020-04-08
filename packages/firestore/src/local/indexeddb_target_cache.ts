@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-
 import { TargetIdGenerator } from '../core/target_id_generator';
-import * as EncodedResourcePath from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
   IndexedDbPersistence,
@@ -60,15 +62,12 @@ export class IndexedDbTargetCache implements TargetCache {
   // to IndexedDb whenever we need to read metadata. We can revisit if it turns
   // out to have a meaningful performance impact.
 
-  private targetIdGenerator = TargetIdGenerator.forTargetCache();
-
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.highestTargetId = this.targetIdGenerator.after(
-        metadata.highestTargetId
-      );
+      const targetIdGenerator = new TargetIdGenerator(metadata.highestTargetId);
+      metadata.highestTargetId = targetIdGenerator.next();
       return this.saveMetadata(transaction, metadata).next(
         () => metadata.highestTargetId
       );
@@ -141,7 +140,10 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
-        assert(metadata.targetCount > 0, 'Removing from an empty target cache');
+        hardAssert(
+          metadata.targetCount > 0,
+          'Removing from an empty target cache'
+        );
         metadata.targetCount -= 1;
         return this.saveMetadata(transaction, metadata);
       });
@@ -280,7 +282,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
     keys.forEach(key => {
-      const path = EncodedResourcePath.encode(key.path);
+      const path = encodeResourcePath(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
       promises.push(this.referenceDelegate.addReference(txn, key));
     });
@@ -296,7 +298,7 @@ export class IndexedDbTargetCache implements TargetCache {
     // IndexedDb.
     const store = documentTargetStore(txn);
     return PersistencePromise.forEach(keys, (key: DocumentKey) => {
-      const path = EncodedResourcePath.encode(key.path);
+      const path = encodeResourcePath(key.path);
       return PersistencePromise.waitFor([
         store.delete([targetId, path]),
         this.referenceDelegate.removeReference(txn, key)
@@ -333,7 +335,7 @@ export class IndexedDbTargetCache implements TargetCache {
 
     return store
       .iterate({ range, keysOnly: true }, (key, _, control) => {
-        const path = EncodedResourcePath.decode(key[1]);
+        const path = decodeResourcePath(key[1]);
         const docKey = new DocumentKey(path);
         result = result.add(docKey);
       })
@@ -344,7 +346,7 @@ export class IndexedDbTargetCache implements TargetCache {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const path = EncodedResourcePath.encode(key.path);
+    const path = encodeResourcePath(key.path);
     const range = IDBKeyRange.bound(
       [path],
       [immediateSuccessor(path)],
@@ -420,7 +422,7 @@ function retrieveMetadata(
     DbTargetGlobal.store
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    assert(metadata !== null, 'Missing metadata row.');
+    hardAssert(metadata !== null, 'Missing metadata row.');
     return metadata;
   });
 }

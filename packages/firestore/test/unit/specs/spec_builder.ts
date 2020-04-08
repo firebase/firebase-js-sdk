@@ -31,10 +31,10 @@ import {
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
-import { assert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
-import * as objUtils from '../../../src/util/obj';
+import { forEach } from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
 
@@ -63,8 +63,13 @@ export interface LimboMap {
   [key: string]: TargetId;
 }
 
+export interface ActiveTargetSpec {
+  queries: SpecQuery[];
+  resumeToken: string;
+}
+
 export interface ActiveTargetMap {
-  [targetId: string]: { queries: SpecQuery[]; resumeToken: string };
+  [targetId: string]: ActiveTargetSpec;
 }
 
 /**
@@ -209,11 +214,16 @@ export class SpecBuilder {
 
   // Configures Garbage Collection behavior (on or off). Default is on.
   withGCEnabled(gcEnabled: boolean): this {
-    assert(
+    debugAssert(
       !this.currentStep,
       'withGCEnabled() must be called before all spec steps.'
     );
     this.config.useGarbageCollection = gcEnabled;
+    return this;
+  }
+
+  withMaxConcurrentLimboResolutions(value?: number): this {
+    this.config.maxConcurrentLimboResolutions = value;
     return this;
   }
 
@@ -232,7 +242,7 @@ export class SpecBuilder {
     this.addQueryToActiveTargets(targetId, query, resumeToken);
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -252,9 +262,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -274,7 +282,7 @@ export class SpecBuilder {
 
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
@@ -355,7 +363,8 @@ export class SpecBuilder {
       enableNetwork: false,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     return this;
@@ -383,7 +392,8 @@ export class SpecBuilder {
       restart: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -398,7 +408,8 @@ export class SpecBuilder {
       shutdown: true,
       expectedState: {
         activeTargets: {},
-        limboDocs: []
+        activeLimboDocs: [],
+        enqueuedLimboDocs: []
       }
     };
     // Reset our mappings / target ids since all existing listens will be
@@ -426,9 +437,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
     });
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -442,14 +451,14 @@ export class SpecBuilder {
 
     // Clear any preexisting limbo watch targets, which we'll re-create as
     // necessary from the provided keys below.
-    objUtils.forEach(this.limboMapping, (key, targetId) => {
+    forEach(this.limboMapping, (key, targetId) => {
       delete this.activeTargets[targetId];
     });
 
     keys.forEach(key => {
       const path = key.path.canonicalString();
       // Create limbo target ID mapping if it was not in limbo yet
-      if (!objUtils.contains(this.limboMapping, path)) {
+      if (!this.limboMapping[path]) {
         this.limboMapping[path] = this.limboIdGenerator.next();
       }
       // Limbo doc queries are always without resume token
@@ -461,12 +470,26 @@ export class SpecBuilder {
     });
 
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.limboDocs = keys.map(k =>
+    currentStep.expectedState.activeLimboDocs = keys.map(k =>
       SpecBuilder.keyToSpec(k)
     );
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
+    return this;
+  }
+
+  /**
+   * Expects a document to be in limbo, enqueued for limbo resolution, and
+   * therefore *without* an active targetId.
+   */
+  expectEnqueuedLimboDocs(...keys: DocumentKey[]): this {
+    this.assertStep('Limbo expectation requires previous step');
+    const currentStep = this.currentStep!;
+
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.enqueuedLimboDocs = keys.map(k =>
+      SpecBuilder.keyToSpec(k)
     );
+
     return this;
   }
 
@@ -593,7 +616,7 @@ export class SpecBuilder {
     if (cause) {
       delete this.activeTargets[this.getTargetId(query)];
       this.currentStep.expectedState = {
-        activeTargets: objUtils.shallowCopy(this.activeTargets)
+        activeTargets: { ...this.activeTargets }
       };
     }
     return this;
@@ -753,7 +776,7 @@ export class SpecBuilder {
     if (!currentStep.expectedSnapshotEvents) {
       currentStep.expectedSnapshotEvents = [];
     }
-    assert(
+    debugAssert(
       !events.errorCode ||
         !(events.added || events.modified || events.removed || events.metadata),
       "Can't provide both error and events"
@@ -783,9 +806,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -805,9 +826,7 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
-    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
-      this.activeTargets
-    );
+    currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
@@ -1000,7 +1019,7 @@ export class SpecBuilder {
       fail('Found both query and limbo doc with target ID, not supported yet');
     }
     const targetId = queryTargetId || limboTargetId;
-    assert(
+    debugAssert(
       !isNullOrUndefined(targetId),
       'No target ID found for query/limbo doc in spec'
     );

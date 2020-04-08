@@ -26,6 +26,7 @@ import {
 } from './migrate-old-database';
 import { FakePushSubscription } from '../testing/fakes/service-worker';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
+import { base64ToArray} from './array-base64-translator';
 
 describe('migrateOldDb', () => {
   it("does nothing if old DB didn't exist", async () => {
@@ -49,7 +50,7 @@ describe('migrateOldDb', () => {
       const v2TokenDetails: V2TokenDetails = {
         fcmToken: 'token-value',
         swScope: '/scope-value',
-        vapidKey: base64ToArrayBuffer('dmFwaWQta2V5LXZhbHVl'),
+        vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
         fcmPushSet: '7654321',
         auth: 'YXV0aC12YWx1ZQ',
@@ -87,7 +88,7 @@ describe('migrateOldDb', () => {
       const v2TokenDetails: V2TokenDetails = {
         fcmToken: 'token-value',
         swScope: '/scope-value',
-        vapidKey: base64ToArrayBuffer('dmFwaWQta2V5LXZhbHVl'),
+        vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
         fcmPushSet: '7654321',
         subscription: new FakePushSubscription()
@@ -105,11 +106,11 @@ describe('migrateOldDb', () => {
         createTime: 1234567890,
         fcmToken: 'token-value',
         swScope: '/scope-value',
-        vapidKey: base64ToArrayBuffer('dmFwaWQta2V5LXZhbHVl'),
+        vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
         fcmPushSet: '7654321',
-        auth: base64ToArrayBuffer('YXV0aC12YWx1ZQ'),
-        p256dh: base64ToArrayBuffer('cDI1Ni12YWx1ZQ'),
+        auth: base64ToArray('YXV0aC12YWx1ZQ'),
+        p256dh: base64ToArray('cDI1Ni12YWx1ZQ'),
         endpoint: 'https://example.org'
       };
 
@@ -143,10 +144,10 @@ describe('migrateOldDb', () => {
         createTime: 1234567890,
         fcmToken: 'token-value',
         swScope: '/scope-value',
-        vapidKey: base64ToArrayBuffer('dmFwaWQta2V5LXZhbHVl'),
+        vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
-        auth: base64ToArrayBuffer('YXV0aC12YWx1ZQ'),
-        p256dh: base64ToArrayBuffer('cDI1Ni12YWx1ZQ'),
+        auth: base64ToArray('YXV0aC12YWx1ZQ'),
+        p256dh: base64ToArray('cDI1Ni12YWx1ZQ'),
         endpoint: 'https://example.org'
       };
 
@@ -198,19 +199,4 @@ async function put(version: number, value: object): Promise<void> {
   } finally {
     db.close();
   }
-}
-
-function base64ToArrayBuffer(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
 }

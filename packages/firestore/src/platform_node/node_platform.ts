@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { randomBytes } from 'crypto';
-import * as util from 'util';
+import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
@@ -58,7 +57,7 @@ export class NodePlatform implements Platform {
 
   formatJSON(value: unknown): string {
     // util.inspect() results in much more readable output than JSON.stringify()
-    return util.inspect(value, { depth: 100 });
+    return inspect(value, { depth: 100 });
   }
 
   atob(encoded: string): string {
@@ -75,13 +74,5 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
-  }
-
-  randomBytes(nBytes: number): Uint8Array {
-    if (nBytes <= 0) {
-      return new Uint8Array();
-    }
-
-    return randomBytes(nBytes);
   }
 }

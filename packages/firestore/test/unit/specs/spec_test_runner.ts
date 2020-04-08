@@ -18,7 +18,12 @@
 import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import {
+  ComponentProvider,
+  IndexedDbComponentProvider,
+  MemoryComponentProvider
+} from '../../../src/core/component_provider';
+import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
@@ -27,17 +32,12 @@ import {
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
-import {
-  OnlineState,
-  OnlineStateSource,
-  TargetId
-} from '../../../src/core/types';
+import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -46,18 +46,17 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
-  MemoryLruDelegate,
-  MemoryPersistence
+  MemoryLruDelegate
 } from '../../../src/local/memory_persistence';
-import { Persistence } from '../../../src/local/persistence';
+import {
+  GarbageCollectionScheduler,
+  Persistence
+} from '../../../src/local/persistence';
 import {
   ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
+  SharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
@@ -65,7 +64,7 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { Platform, PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
@@ -82,14 +81,15 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { assert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
-import * as obj from '../../../src/util/obj';
+import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
@@ -100,19 +100,24 @@ import {
   patchMutation,
   path,
   setMutation,
+  stringFromBase64String,
   TestSnapshotVersion,
-  version,
-  byteStringFromString
+  version
 } from '../../util/helpers';
+import { encodeWatchChange } from '../../util/spec_test_helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
-  TEST_PERSISTENCE_PREFIX,
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
+import { SortedSet } from '../../../src/util/sorted_set';
+import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -250,11 +255,11 @@ class MockConnection implements Connection {
         sendFn: (request: WriteRequest) => {
           ++this.writeStreamRequestCount;
           if (firstCall) {
-            assert(
+            debugAssert(
               !!request.database,
               'projectId must be set in the first message'
             );
-            assert(
+            debugAssert(
               !request.writes,
               'mutations must not be set in first request'
             );
@@ -263,11 +268,11 @@ class MockConnection implements Connection {
             return;
           }
 
-          assert(
+          debugAssert(
             !!request.streamToken,
             'streamToken must be set on all writes'
           );
-          assert(!!request.writes, 'writes must be set on all writes');
+          debugAssert(!!request.writes, 'writes must be set on all writes');
 
           const barrier = this.writeSendBarriers.shift();
           if (!barrier) {
@@ -296,7 +301,7 @@ class MockConnection implements Connection {
       // Replace 'any' with conditional types.
       return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
-      assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
+      debugAssert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
         throw new Error('Stream opened twice!');
       }
@@ -379,12 +384,12 @@ class SharedWriteTracker {
   }
 
   peek(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes[0];
   }
 
   shift(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes.shift()!;
   }
 }
@@ -396,6 +401,7 @@ abstract class TestRunner {
   private connection!: MockConnection;
   private eventManager!: EventManager;
   private syncEngine!: SyncEngine;
+  private gcScheduler!: GarbageCollectionScheduler | null;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
@@ -407,10 +413,9 @@ abstract class TestRunner {
     q.canonicalId()
   );
 
-  private expectedLimboDocs: DocumentKey[];
-  private expectedActiveTargets: {
-    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
-  };
+  private expectedActiveLimboDocs: DocumentKey[];
+  private expectedEnqueuedLimboDocs: DocumentKey[];
+  private expectedActiveTargets: Map<TargetId, ActiveTargetSpec>;
 
   private networkEnabled = true;
 
@@ -423,6 +428,7 @@ abstract class TestRunner {
 
   private useGarbageCollection: boolean;
   private numClients: number;
+  private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
 
   protected user = User.UNAUTHENTICATED;
@@ -439,8 +445,8 @@ abstract class TestRunner {
   ) {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
-      new DatabaseId('project'),
-      'persistenceKey',
+      TEST_DATABASE_ID,
+      TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
       /*forceLongPolling=*/ false
@@ -456,25 +462,16 @@ abstract class TestRunner {
 
     this.useGarbageCollection = config.useGarbageCollection;
     this.numClients = config.numClients;
-
-    this.expectedLimboDocs = [];
-    this.expectedActiveTargets = {};
+    this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
+    this.expectedActiveLimboDocs = [];
+    this.expectedEnqueuedLimboDocs = [];
+    this.expectedActiveTargets = new Map<TargetId, ActiveTargetSpec>();
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
     this.snapshotsInSyncListeners = [];
   }
 
   async start(): Promise<void> {
-    this.sharedClientState = this.getSharedClientState();
-    this.persistence = await this.initPersistence(
-      this.serializer,
-      this.useGarbageCollection
-    );
-
-    const queryEngine = new IndexFreeQueryEngine();
-    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
-    await this.localStore.start();
-
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -482,49 +479,25 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.RemoteStore
-      );
-    };
-    const sharedClientStateOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.SharedClientState
-      );
-    };
-    const connectivityMonitor = this.platform.newConnectivityMonitor();
-    this.remoteStore = new RemoteStore(
-      this.localStore,
-      this.datastore,
+
+    const componentProvider = await this.initializeComponentProvider(
       this.queue,
-      remoteStoreOnlineStateChangedHandler,
-      connectivityMonitor
-    );
-    this.syncEngine = new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      this.user
+      this.databaseInfo,
+      this.platform,
+      this.datastore,
+      this.clientId,
+      this.user,
+      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      this.useGarbageCollection
     );
 
-    // Set up wiring between sync engine and other components
-    this.remoteStore.syncEngine = this.syncEngine;
-    this.sharedClientState.syncEngine = this.syncEngine;
-    this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-    this.eventManager = new EventManager(this.syncEngine);
-
-    await this.sharedClientState.start();
-    await this.remoteStore.start();
-
-    await this.persistence.setPrimaryStateListener(isPrimary =>
-      this.syncEngine.applyPrimaryState(isPrimary)
-    );
+    this.sharedClientState = componentProvider.sharedClientState;
+    this.persistence = componentProvider.persistence;
+    this.localStore = componentProvider.localStore;
+    this.remoteStore = componentProvider.remoteStore;
+    this.syncEngine = componentProvider.syncEngine;
+    this.eventManager = componentProvider.eventManager;
+    this.gcScheduler = componentProvider.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -533,12 +506,16 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initPersistence(
-    serializer: JsonProtoSerializer,
+  protected abstract initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence>;
-
-  protected abstract getSharedClientState(): SharedClientState;
+  ): Promise<ComponentProvider>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -666,7 +643,7 @@ abstract class TestRunner {
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
-    assert(!!eventEmitter, 'There must be a query to unlisten too!');
+    debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
     await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
@@ -779,7 +756,7 @@ abstract class TestRunner {
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
-      assert(
+      debugAssert(
         !watchEntity.doc,
         'Exactly one of `doc` or `docs` needs to be set'
       );
@@ -822,7 +799,7 @@ abstract class TestRunner {
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
-    assert(
+    debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
@@ -852,7 +829,7 @@ abstract class TestRunner {
   }
 
   private async doWatchEvent(watchChange: WatchChange): Promise<void> {
-    const protoJSON = this.serializer.toTestWatchChange(watchChange);
+    const protoJSON = encodeWatchChange(watchChange);
     this.connection.watchStream!.callOnMessage(protoJSON);
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
@@ -941,6 +918,10 @@ abstract class TestRunner {
   }
 
   private async doShutdown(): Promise<void> {
+    if (this.gcScheduler) {
+      this.gcScheduler.stop();
+    }
+
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
@@ -956,9 +937,7 @@ abstract class TestRunner {
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything.
-    // No local store to shutdown.
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.doShutdown();
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
@@ -1025,6 +1004,10 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
+        debugAssert(
+          this.persistence instanceof IndexedDbPersistence,
+          'numActiveClients is only supported for persistence-enabled tests'
+        );
         const activeClients = await this.persistence.getActiveClients();
         expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }
@@ -1038,11 +1021,19 @@ abstract class TestRunner {
           expectedState.watchStreamRequestCount
         );
       }
-      if ('limboDocs' in expectedState) {
-        this.expectedLimboDocs = expectedState.limboDocs!.map(key);
+      if ('activeLimboDocs' in expectedState) {
+        this.expectedActiveLimboDocs = expectedState.activeLimboDocs!.map(key);
+      }
+      if ('enqueuedLimboDocs' in expectedState) {
+        this.expectedEnqueuedLimboDocs = expectedState.enqueuedLimboDocs!.map(
+          key
+        );
       }
       if ('activeTargets' in expectedState) {
-        this.expectedActiveTargets = expectedState.activeTargets!;
+        this.expectedActiveTargets.clear();
+        forEach(expectedState.activeTargets!, (key, value) => {
+          this.expectedActiveTargets.set(Number(key), value);
+        });
       }
       if ('isPrimary' in expectedState) {
         expect(this.isPrimaryClient).to.eq(
@@ -1076,7 +1067,8 @@ abstract class TestRunner {
     if (this.started) {
       // Always validate that the expected limbo docs match the actual limbo
       // docs
-      this.validateLimboDocs();
+      this.validateActiveLimboDocs();
+      this.validateEnqueuedLimboDocs();
       // Always validate that the expected active targets match the actual
       // active targets
       await this.validateActiveTargets();
@@ -1090,19 +1082,21 @@ abstract class TestRunner {
     this.snapshotsInSyncEvents = 0;
   }
 
-  private validateLimboDocs(): void {
-    let actualLimboDocs = this.syncEngine.currentLimboDocs();
-    // Validate that each limbo doc has an expected active target
+  private validateActiveLimboDocs(): void {
+    let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
+    // Validate that each active limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
-      const targetIds: number[] = [];
-      obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
-      expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
+      const targetIds = new Array(this.expectedActiveTargets.keys()).map(
+        n => '' + n
+      );
+      expect(this.expectedActiveTargets.has(targetId)).to.equal(
         true,
-        `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
-          `expected active target IDs (${targetIds.join(', ')})`
+        `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
+          `was not in the set of expected active target IDs ` +
+          `(${targetIds.join(', ')})`
       );
     });
-    for (const expectedLimboDoc of this.expectedLimboDocs) {
+    for (const expectedLimboDoc of this.expectedActiveLimboDocs) {
       expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
         null,
         'Expected doc to be in limbo, but was not: ' +
@@ -1112,8 +1106,34 @@ abstract class TestRunner {
     }
     expect(actualLimboDocs.size).to.equal(
       0,
-      'Unexpected docs in limbo: ' + actualLimboDocs.toString()
+      'Unexpected active docs in limbo: ' + actualLimboDocs.toString()
     );
+  }
+
+  private validateEnqueuedLimboDocs(): void {
+    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
+    this.syncEngine.enqueuedLimboDocumentResolutions().forEach(key => {
+      actualLimboDocs = actualLimboDocs.add(key);
+    });
+    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
+    this.expectedEnqueuedLimboDocs.forEach(key => {
+      expectedLimboDocs = expectedLimboDocs.add(key);
+    });
+    actualLimboDocs.forEach(key => {
+      expect(expectedLimboDocs.has(key)).to.equal(
+        true,
+        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
+          `the set of expected enqueued limbo documents ` +
+          `(${expectedLimboDocs.toString()})`
+      );
+    });
+    expectedLimboDocs.forEach(key => {
+      expect(actualLimboDocs.has(key)).to.equal(
+        true,
+        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
+          `but it was not in the queue (${actualLimboDocs.toString()})`
+      );
+    });
   }
 
   private async validateActiveTargets(): Promise<void> {
@@ -1128,15 +1148,15 @@ abstract class TestRunner {
 
     // TODO(mrschmidt): Refactor so this is only executed after primary tab
     // change
-    if (!obj.isEmpty(this.expectedActiveTargets)) {
+    if (this.expectedActiveTargets.size > 0) {
       await this.connection.waitForWatchOpen();
       await this.queue.drain();
     }
 
-    const actualTargets = obj.shallowCopy(this.connection.activeTargets);
-    obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
-      expect(obj.contains(actualTargets, targetId)).to.equal(
-        true,
+    const actualTargets = { ...this.connection.activeTargets };
+    this.expectedActiveTargets.forEach((expected, targetId) => {
+      expect(actualTargets[targetId]).to.not.equal(
+        undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
       const actualTarget = actualTargets[targetId];
@@ -1158,10 +1178,16 @@ abstract class TestRunner {
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
+      expect(actualTarget.resumeToken).to.equal(
+        expectedTarget.resumeToken,
+        `ResumeToken does not match - expected:
+         ${stringFromBase64String(
+           expectedTarget.resumeToken
+         )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
+      );
       delete actualTargets[targetId];
     });
-    expect(obj.size(actualTargets)).to.equal(
+    expect(objectSize(actualTargets)).to.equal(
       0,
       'Unexpected active targets: ' + JSON.stringify(actualTargets)
     );
@@ -1234,21 +1260,32 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new MemorySharedClientState();
-  }
-
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    return Promise.resolve(
-      new MemoryPersistence(this.clientId, p =>
-        gcEnabled
-          ? new MemoryEagerDelegate(p)
-          : new MemoryLruDelegate(p, LruParams.DEFAULT)
-      )
+  ): Promise<ComponentProvider> {
+    const persistenceProvider = new MemoryComponentProvider(
+      gcEnabled
+        ? MemoryEagerDelegate.factory
+        : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
+    await persistenceProvider.initialize(
+      asyncQueue,
+      databaseInfo,
+      platform,
+      datastore,
+      clientId,
+      initialUser,
+      maxConcurrentLimboResolutions,
+      { durable: false }
+    );
+    return persistenceProvider;
   }
 }
 
@@ -1257,31 +1294,32 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new WebStorageSharedClientState(
-      this.queue,
-      this.platform,
-      TEST_PERSISTENCE_PREFIX,
-      this.clientId,
-      this.user
-    );
-  }
-
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    asyncQueue: AsyncQueue,
+    databaseInfo: DatabaseInfo,
+    platform: Platform,
+    datastore: Datastore,
+    clientId: ClientId,
+    initialUser: User,
+    maxConcurrentLimboResolutions: number,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    // TODO(gsoltis): can we or should we disable this test if gc is enabled?
-    return IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: true,
-      persistenceKey: TEST_PERSISTENCE_PREFIX,
-      clientId: this.clientId,
-      platform: this.platform,
-      queue: this.queue,
-      serializer,
-      lruParams: LruParams.DEFAULT,
-      sequenceNumberSyncer: this.sharedClientState
-    });
+  ): Promise<ComponentProvider> {
+    const persistenceProvider = new IndexedDbComponentProvider();
+    await persistenceProvider.initialize(
+      asyncQueue,
+      databaseInfo,
+      platform,
+      datastore,
+      clientId,
+      initialUser,
+      maxConcurrentLimboResolutions,
+      {
+        durable: true,
+        cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
+        synchronizeTabs: true
+      }
+    );
+    return persistenceProvider;
   }
 
   static destroyPersistence(): Promise<void> {
@@ -1338,7 +1376,7 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
-      assert(
+      debugAssert(
         step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
         "Cannot use 'client()' to initialize a test that is not tagged with " +
           "'multi-client'. Did you mean to use 'spec()'?"
@@ -1372,6 +1410,13 @@ export interface SpecConfig {
 
   /** The number of active clients for this test run. */
   numClients: number;
+
+  /**
+   * The maximum number of concurrently-active listens for limbo resolutions.
+   * This value must be strictly greater than zero, or undefined to use the
+   * default value.
+   */
+  maxConcurrentLimboResolutions?: number;
 }
 
 /**
@@ -1632,8 +1677,17 @@ export interface StateExpectation {
   writeStreamRequestCount?: number;
   /** Number of requests sent to the watch stream. */
   watchStreamRequestCount?: number;
-  /** Current documents in limbo. Verified in each step until overwritten. */
-  limboDocs?: string[];
+  /**
+   * Current documents in limbo that have an active target.
+   * Verified in each step until overwritten.
+   */
+  activeLimboDocs?: string[];
+  /**
+   * Current documents in limbo that are enqueued and therefore do not have an
+   * active target.
+   * Verified in each step until overwritten.
+   */
+  enqueuedLimboDocs?: string[];
   /**
    * Whether the instance holds the primary lease. Used in multi-client tests.
    */
@@ -1643,9 +1697,7 @@ export interface StateExpectation {
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */
-  activeTargets?: {
-    [targetId: number]: { queries: SpecQuery[]; resumeToken: string };
-  };
+  activeTargets?: ActiveTargetMap;
   /**
    * Expected set of callbacks for previously written docs.
    */

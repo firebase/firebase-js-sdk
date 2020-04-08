@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,10 @@ describe('Firebase Functions > Call', () => {
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
+    if (!('Notification' in self)) {
+      console.log('No Notification API: skipping instance id test.');
+      return;
+    }
     // mock firebase messaging
     const messagingMock: FirebaseMessaging = ({
       getToken: async () => 'iid'

@@ -15,22 +15,13 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
+import { debugAssert } from './assert';
 
 export interface Dict<V> {
   [stringKey: string]: V;
-  [numberKey: number]: V;
 }
 
-export function contains<V>(obj: Dict<V>, key: string | number): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-}
-
-export function get<V>(obj: Dict<V>, key: string | number): V | null {
-  return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : null;
-}
-
-export function size<V>(obj: object): number {
+export function objectSize<V>(obj: object): number {
   let count = 0;
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -38,37 +29,6 @@ export function size<V>(obj: object): number {
     }
   }
   return count;
-}
-
-/** Returns the given value if it's defined or the defaultValue otherwise. */
-export function defaulted<V>(value: V | undefined, defaultValue: V): V {
-  return value !== undefined ? value : defaultValue;
-}
-
-export function forEachNumber<V>(
-  obj: Dict<V>,
-  fn: (key: number, val: V) => void
-): void {
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const num = Number(key);
-      if (!isNaN(num)) {
-        fn(num, obj[key]);
-      }
-    }
-  }
-}
-
-export function values<V>(obj: Dict<V>): V[] {
-  const vs: V[] = [];
-  forEach(obj, (_, v) => vs.push(v));
-  return vs;
-}
-
-export function keys<V>(obj: Dict<V>): string[] {
-  const ks: string[] = [];
-  forEach(obj, k => ks.push(k));
-  return ks;
 }
 
 export function forEach<V>(
@@ -82,19 +42,8 @@ export function forEach<V>(
   }
 }
 
-export function lookupOrInsert<V>(
-  obj: Dict<V>,
-  key: string | number,
-  valFn: () => V
-): V {
-  if (!contains(obj, key)) {
-    obj[key] = valFn();
-  }
-  return obj[key];
-}
-
 export function isEmpty<V>(obj: Dict<V>): boolean {
-  assert(
+  debugAssert(
     obj != null && typeof obj === 'object',
     'isEmpty() expects object parameter.'
   );
@@ -104,12 +53,4 @@ export function isEmpty<V>(obj: Dict<V>): boolean {
     }
   }
   return true;
-}
-
-export function shallowCopy<V>(obj: Dict<V>): Dict<V> {
-  assert(
-    obj && typeof obj === 'object',
-    'shallowCopy() expects object parameter.'
-  );
-  return { ...obj };
 }

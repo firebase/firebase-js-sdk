@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, fail } from './assert';
+import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
@@ -289,15 +289,6 @@ export class AsyncQueue {
           const message = error.stack || error.message || '';
           logError('INTERNAL UNHANDLED ERROR: ', message);
 
-          // Escape the promise chain and throw the error globally so that
-          // e.g. any global crash reporting library detects and reports it.
-          // (but not for simulated errors in our tests since this breaks mocha)
-          if (message.indexOf('Firestore Test Simulated Error') < 0) {
-            setTimeout(() => {
-              throw error;
-            }, 0);
-          }
-
           // Re-throw the error so that this.tail becomes a rejected Promise and
           // all further attempts to chain (via .then) will just short-circuit
           // and return the rejected Promise.
@@ -324,7 +315,7 @@ export class AsyncQueue {
   ): CancelablePromise<T> {
     this.verifyNotFailed();
 
-    assert(
+    debugAssert(
       delayMs >= 0,
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
@@ -362,7 +353,7 @@ export class AsyncQueue {
    * to catch some bugs.
    */
   verifyOperationInProgress(): void {
-    assert(
+    debugAssert(
       this.operationInProgress,
       'verifyOpInProgress() called when no op in progress on this queue.'
     );
@@ -408,7 +399,7 @@ export class AsyncQueue {
   runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
-      assert(
+      debugAssert(
         lastTimerId === TimerId.All ||
           this.containsDelayedOperation(lastTimerId),
         `Attempted to drain to missing operation ${lastTimerId}`
@@ -439,7 +430,7 @@ export class AsyncQueue {
   private removeDelayedOperation(op: DelayedOperation<unknown>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
-    assert(index >= 0, 'Delayed operation not found.');
+    debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
   }
 }

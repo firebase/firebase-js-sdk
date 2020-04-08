@@ -1,6 +1,13 @@
 /**
+ * Firebase App
+ *
+ * @remarks This package coordinates the communication between the different Firebase components
+ * @packageDocumentation
+ */
+
+/**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +22,8 @@
  * limitations under the License.
  */
 
-export function arrayToBase64(array: Uint8Array | ArrayBuffer): string {
-  const uint8Array = new Uint8Array(array);
-  const base64String = btoa(String.fromCharCode(...uint8Array));
-  return base64String
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
+import { registerCoreComponents } from './registerCoreComponents';
+
+export * from './api';
+
+registerCoreComponents();

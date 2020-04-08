@@ -53,7 +53,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { assert } from '../../../src/util/assert';
+import { debugAssert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   deletedDoc,
@@ -298,7 +298,7 @@ class LocalStoreTester {
 
   toReturnChanged(...docs: MaybeDocument[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      assert(
+      debugAssert(
         this.lastChanges !== null,
         'Called toReturnChanged() without prior after()'
       );
@@ -320,7 +320,7 @@ class LocalStoreTester {
 
   toReturnRemoved(...keyStrings: string[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      assert(
+      debugAssert(
         this.lastChanges !== null,
         'Called toReturnRemoved() without prior after()'
       );

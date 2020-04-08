@@ -18,11 +18,15 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath,
+  EncodedResourcePath
+} from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
@@ -68,7 +72,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    assert(
+    hardAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
@@ -195,7 +199,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return PersistencePromise.forEach(
               dbBatches,
               (dbBatch: DbMutationBatch) => {
-                assert(
+                hardAssert(
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
@@ -233,7 +237,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         path: ResourcePath
       ): PersistencePromise<void> => {
         return documentTargetStore.put(
-          new DbTargetDocument(0, encode(path), currentSequenceNumber)
+          new DbTargetDocument(
+            0,
+            encodeResourcePath(path),
+            currentSequenceNumber
+          )
         );
       };
 
@@ -280,7 +288,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         const parentPath = collectionPath.popLast();
         return collectionParentsStore.put({
           collectionId,
-          parent: encode(parentPath)
+          parent: encodeResourcePath(parentPath)
         });
       }
     };
@@ -299,7 +307,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             DbDocumentMutation.store
           )
           .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
-            const path = decode(encodedPath);
+            const path = decodeResourcePath(encodedPath);
             return addEntry(path.popLast());
           });
       });
@@ -318,7 +326,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
-  return [0, encode(path)];
+  return [0, encodeResourcePath(path)];
 }
 
 /**
@@ -559,7 +567,7 @@ export class DbDocumentMutation {
     userId: string,
     path: ResourcePath
   ): [string, EncodedResourcePath] {
-    return [userId, encode(path)];
+    return [userId, encodeResourcePath(path)];
   }
 
   /**
@@ -571,7 +579,7 @@ export class DbDocumentMutation {
     path: ResourcePath,
     batchId: BatchId
   ): DbDocumentMutationKey {
-    return [userId, encode(path), batchId];
+    return [userId, encodeResourcePath(path), batchId];
   }
 
   /**
@@ -866,7 +874,7 @@ export class DbTargetDocument {
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
-    assert(
+    debugAssert(
       (targetId === 0) === (sequenceNumber !== undefined),
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );

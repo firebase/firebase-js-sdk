@@ -18,7 +18,10 @@
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { decode, encode } from '../../../src/local/encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbCollectionParent,
@@ -597,7 +600,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                   targetDocumentStore.put(
                     new DbTargetDocument(
                       0,
-                      encode(document.key.path),
+                      encodeResourcePath(document.key.path),
                       oldSequenceNumber
                     )
                   )
@@ -626,7 +629,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return targetDocumentStore.iterate(
           { range },
           ([_, path], targetDocument) => {
-            const decoded = decode(path);
+            const decoded = decodeResourcePath(path);
             const lastSegment = decoded.lastSegment();
             const docNum = +lastSegment.split('_')[1];
             const expected =
@@ -713,7 +716,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               parents = [];
               actualParents[collectionId] = parents;
             }
-            parents.push(decode(parent).toString());
+            parents.push(decodeResourcePath(parent).toString());
           }
 
           expect(actualParents).to.deep.equal(expectedParents);

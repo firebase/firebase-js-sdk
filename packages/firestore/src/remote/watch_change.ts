@@ -26,11 +26,10 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
@@ -263,7 +262,7 @@ export class WatchChangeAggregator {
   constructor(private metadataProvider: TargetMetadataProvider) {}
 
   /** The internal state of all tracked targets. */
-  private targetStates: { [targetId: number]: TargetState } = {};
+  private targetStates = new Map<TargetId, TargetState>();
 
   /** Keeps track of the documents to update since the last raised snapshot. */
   private pendingDocumentUpdates = maybeDocumentMap();
@@ -330,7 +329,7 @@ export class WatchChangeAggregator {
           if (!targetState.isPending) {
             this.removeTarget(targetId);
           }
-          assert(
+          debugAssert(
             !targetChange.cause,
             'WatchChangeAggregator does not handle errored targets'
           );
@@ -368,7 +367,11 @@ export class WatchChangeAggregator {
     if (targetChange.targetIds.length > 0) {
       targetChange.targetIds.forEach(fn);
     } else {
-      objUtils.forEachNumber(this.targetStates, fn);
+      this.targetStates.forEach((_, targetId) => {
+        if (this.isActiveTarget(targetId)) {
+          fn(targetId);
+        }
+      });
     }
   }
 
@@ -399,7 +402,7 @@ export class WatchChangeAggregator {
             new NoDocument(key, SnapshotVersion.forDeletedDoc())
           );
         } else {
-          assert(
+          hardAssert(
             expectedCount === 1,
             'Single document existence filter with count: ' + expectedCount
           );
@@ -421,9 +424,9 @@ export class WatchChangeAggregator {
    * provided snapshot version. Resets the accumulated changes before returning.
    */
   createRemoteEvent(snapshotVersion: SnapshotVersion): RemoteEvent {
-    const targetChanges: { [targetId: number]: TargetChange } = {};
+    const targetChanges = new Map<TargetId, TargetChange>();
 
-    objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
+    this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
         if (targetState.current && targetData.target.isDocumentQuery()) {
@@ -450,7 +453,7 @@ export class WatchChangeAggregator {
         }
 
         if (targetState.hasPendingChanges) {
-          targetChanges[targetId] = targetState.toTargetChange();
+          targetChanges.set(targetId, targetState.toTargetChange());
           targetState.clearPendingChanges();
         }
       }
@@ -567,7 +570,7 @@ export class WatchChangeAggregator {
   }
 
   removeTarget(targetId: TargetId): void {
-    delete this.targetStates[targetId];
+    this.targetStates.delete(targetId);
   }
 
   /**
@@ -596,11 +599,12 @@ export class WatchChangeAggregator {
   }
 
   private ensureTargetState(targetId: TargetId): TargetState {
-    if (!this.targetStates[targetId]) {
-      this.targetStates[targetId] = new TargetState();
+    let result = this.targetStates.get(targetId);
+    if (!result) {
+      result = new TargetState();
+      this.targetStates.set(targetId, result);
     }
-
-    return this.targetStates[targetId];
+    return result;
   }
 
   private ensureDocumentTargetMapping(key: DocumentKey): SortedSet<TargetId> {
@@ -635,7 +639,7 @@ export class WatchChangeAggregator {
    * is still interested in that has no outstanding target change requests).
    */
   protected targetDataForActiveTarget(targetId: TargetId): TargetData | null {
-    const targetState = this.targetStates[targetId];
+    const targetState = this.targetStates.get(targetId);
     return targetState && targetState.isPending
       ? null
       : this.metadataProvider.getTargetDataForTarget(targetId);
@@ -647,11 +651,11 @@ export class WatchChangeAggregator {
    * from all documents).
    */
   private resetTarget(targetId: TargetId): void {
-    assert(
-      !this.targetStates[targetId].isPending,
+    debugAssert(
+      !this.targetStates.get(targetId)!.isPending,
       'Should only reset active targets'
     );
-    this.targetStates[targetId] = new TargetState();
+    this.targetStates.set(targetId, new TargetState());
 
     // Trigger removal for any documents currently mapped to this target.
     // These removals will be part of the initial snapshot if Watch does not

@@ -82,15 +82,16 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
-import { Dict, forEach } from '../../src/util/obj';
+import { Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { Timestamp } from '../../src/api/timestamp';
 
 export type TestSnapshotVersion = number;
 
@@ -126,7 +127,9 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
 }
 
 export function version(v: TestSnapshotVersion): SnapshotVersion {
-  return SnapshotVersion.fromMicroseconds(v);
+  const seconds = Math.floor(v / 1e6);
+  const nanos = (v % 1e6) * 1e3;
+  return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
 }
 
 export function ref(
@@ -335,7 +338,7 @@ export function docAddedRemoteEvent(
   activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+  debugAssert(docs.length !== 0, 'Cannot pass empty docs array');
 
   const allTargets = activeTargets
     ? activeTargets
@@ -360,7 +363,7 @@ export function docAddedRemoteEvent(
   let version = SnapshotVersion.MIN;
 
   for (const doc of docs) {
-    assert(
+    debugAssert(
       !(doc instanceof Document) || !doc.hasLocalMutations,
       "Docs from remote updates shouldn't have local changes."
     );
@@ -383,7 +386,7 @@ export function docUpdateRemoteEvent(
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
+  debugAssert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
@@ -512,6 +515,21 @@ export function byteStringFromString(value: string): ByteString {
   return ByteString.fromBase64String(base64);
 }
 
+/**
+ * Decodes a base 64 decoded string.
+ *
+ * Note that this is typed to accept Uint8Arrays to match the types used
+ * by the spec tests. Since the spec tests only use JSON strings, this method
+ * throws if an Uint8Array is passed.
+ */
+export function stringFromBase64String(value?: string | Uint8Array): string {
+  debugAssert(
+    value === undefined || typeof value === 'string',
+    'Can only decode base64 encoded strings'
+  );
+  return PlatformSupport.getPlatform().atob(value ?? '');
+}
+
 /** Creates a resume token to match the given snapshot version. */
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
@@ -525,7 +543,7 @@ export function resumeTokenForSnapshot(
 
 export function orderBy(path: string, op?: string): OrderBy {
   op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+  debugAssert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
   const dir: Direction =
     op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
   return new OrderBy(field(path), dir);
@@ -601,7 +619,10 @@ export function documentSet(...args: unknown[]): DocumentSet {
     docSet = new DocumentSet();
   }
   for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+    debugAssert(
+      doc instanceof Document,
+      'Bad argument, expected Document: ' + doc
+    );
     docSet = docSet.add(doc);
   }
   return docSet;
@@ -794,13 +815,20 @@ export function expectEqualitySets<T>(
   }
 }
 
-/** Returns the number of keys in this object. */
-export function size(obj: JsonObject<unknown>): number {
-  let c = 0;
-  forEach(obj, () => c++);
-  return c;
-}
-
 export function expectFirestoreError(err: Error): void {
   expect(err.name).to.equal('FirebaseError');
+}
+
+export function forEachNumber<V>(
+  obj: Dict<V>,
+  fn: (key: number, val: V) => void
+): void {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const num = Number(key);
+      if (!isNaN(num)) {
+        fn(num, obj[key]);
+      }
+    }
+  }
 }
