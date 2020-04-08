@@ -109,13 +109,15 @@ async function updatePackageNamesAndVersions(packagePaths) {
 
 async function publishToNpm(packagePaths) {
 
-    const taskArray = packagePaths.map(async pp => {
-        const { version, name } = await readPackageJson(packagePath);
-        return {
-            title: `📦  ${name}@${version}`,
-            task: () => publishPackage(pp)
-        };
-    });
+    const taskArray = await Promise.all(
+        packagePaths.map(async pp => {
+            const { version, name } = await readPackageJson(packagePath);
+            return {
+                title: `📦  ${name}@${version}`,
+                task: () => publishPackage(pp)
+            };
+        })
+    );
 
     const tasks = new Listr(taskArray, {
         concurrent: false,
