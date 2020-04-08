@@ -55,7 +55,7 @@ async function publishExpPackages() {
         /**
          * push to master
          */
-        commitAndPush();
+        commitAndPush(versions);
 
     } catch (err) {
         /**
@@ -130,12 +130,12 @@ async function publishToNpm(packagePaths) {
 
 async function publishPackage(packagePath) {
     // TODO: remove --dry-run
-    // const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
-    const args = ['pack'];
+    const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
     await spawn('npm', args, { cwd: packagePath });
 }
 
 async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
+    console.log("Resetting working tree");
     await git.checkout('.');
 
     await updatePackageJsons(packagePaths, versions, {
@@ -197,12 +197,22 @@ async function updatePackageJsons(
         }
 
         // update package.json files
-        await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}`, { encoding: 'utf-8' });
+        await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, { encoding: 'utf-8' });
     }
 }
 
-async function commitAndPush() {
+async function commitAndPush(versions) {
+    await exec('git add */package.json yarn.lock');
 
+    const firebaseExpVersion = versions.get('firebase-exp');
+    await exec(`git commit -m "Publish firebase@exp ${firebaseExpVersion || ''}"`);
+
+    let { stdout: currentBranch, stderr } = await exec(
+        `git rev-parse --abbrev-ref HEAD`
+    );
+    currentBranch = currentBranch.trim();
+
+    await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
 }
 
 
