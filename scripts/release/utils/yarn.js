@@ -16,7 +16,7 @@
  */
 
 const { spawn } = require('child-process-promise');
-const { projectRoot: root } = require('./constants');
+const { projectRoot: root } = require('../../utils');
 const ora = require('ora');
 
 exports.reinstallDeps = async () => {
