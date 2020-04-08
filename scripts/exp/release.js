@@ -1,8 +1,6 @@
-const { exec, spawn } = require('child-process-promise');
+const { spawn } = require('child-process-promise');
 const ora = require('ora');
 const { createPromptModule } = require('inquirer');
-const prompt = createPromptModule();
-const { argv } = require('yargs');
 const { projectRoot } = require('../utils');
 const simpleGit = require('simple-git/promise');
 const git = simpleGit(projectRoot);
@@ -28,12 +26,12 @@ async function publishExpPackages() {
         /**
          * build packages
          */
-        // await buildPackages();
+        await buildPackages();
 
-        // /**
-        //  * run tests
-        //  */
-        // await runTests();
+        /**
+         * run tests
+         */
+        await runTests();
 
         // path to exp packages
         const packagePaths = await mapWorkspaceToPackages([
@@ -101,7 +99,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
     const versions = new Map();
     for (const path of packagePaths) {
         const packageJsonPath = `${path}/package.json`;
-        const { version, name } = require(packageJsonPath);
+        const { version, name } = await readPackageJson(packageJsonPath);
         // increase the patch version of all exp packages
         const nextVersion = inc(version, 'patch');
         versions.set(name, nextVersion);
@@ -117,20 +115,18 @@ async function updatePackageNamesAndVersions(packagePaths) {
 }
 
 async function publishToNpm(packagePaths) {
+    // TODO: remove --dry-run
     // const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
     const args = ['pack'];
     for (const pp of packagePaths) {
-        const { version, name } = require(`${pp}/package.json`);
+        const { version, name } = readPackageJson(pp);
         console.log(`Publishing ${name}@${version}`);
         await spawn('npm', args, { cwd: pp });
     }
 }
 
 async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
-    // await git.checkout('.');
-    // await exec('git checkout .', {
-    //     cwd: projectRoot
-    // });
+    await git.checkout('.');
 
     await updatePackageJsons(packagePaths, versions, {
         removeExpInName: false,
@@ -150,8 +146,12 @@ async function updatePackageJsons(
 ) {
     for (const path of packagePaths) {
         const packageJsonPath = `${path}/package.json`;
-        const packageJson = require(packageJsonPath);
-      //  console.log(packageJson);
+        /**
+         * Can't require here because it caches the file
+         * in memory and it doesn't contain the updates that are made by e.g. git commands
+         */
+        const packageJson = await readPackageJson(path);
+
         // update version
         if (updateVersions) {
             const nextVersion = versions.get(packageJson.name);
@@ -205,6 +205,16 @@ function removeExpInPackageName(name) {
     }
 
     return `${captures[1]}${captures[2]}`;
+}
+
+async function readPackageJson(packagePath) {
+    /**
+     * Can't require here because require caches the file
+     * in memory and it may not contain the updates that are made by e.g. git commands
+     */
+    return JSON.parse(
+        await readFile(`${packagePath}/package.json`, 'utf8')
+    );
 }
 
 publishExpPackages();
