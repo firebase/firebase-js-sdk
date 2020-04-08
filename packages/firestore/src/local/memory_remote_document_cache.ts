@@ -28,7 +28,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
@@ -77,7 +77,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     doc: MaybeDocument,
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
-    assert(
+    debugAssert(
       !readTime.isEqual(SnapshotVersion.MIN),
       'Cannot add a document with a read time of zero'
     );
@@ -140,7 +140,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PatchMutation } from '../model/mutation';
@@ -194,7 +194,7 @@ export class LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       query.path.isEmpty(),
       'Currently we only support collection group queries at the root.'
     );

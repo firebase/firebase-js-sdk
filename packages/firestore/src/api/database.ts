@@ -49,7 +49,7 @@ import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
 import { makeConstructorPrivate } from '../util/api';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -481,9 +481,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
-    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
+    debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
-    assert(!this._firestoreClient, 'configureClient() called multiple times');
+    debugAssert(
+      !this._firestoreClient,
+      'configureClient() called multiple times'
+    );
 
     const databaseInfo = this.makeDatabaseInfo();
 
@@ -1177,7 +1180,7 @@ export class DocumentReference<T = firestore.DocumentData>
     const asyncObserver = new AsyncObserver<ViewSnapshot>({
       next: snapshot => {
         if (observer.next) {
-          assert(
+          debugAssert(
             snapshot.docs.size <= 1,
             'Too many documents returned on a document query'
           );
@@ -1422,7 +1425,7 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   implements firestore.QueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
-    assert(
+    debugAssert(
       data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
     );
@@ -2468,11 +2471,11 @@ export function changesFromSnapshot<T>(
         snapshot.mutatedKeys.has(change.doc.key),
         converter
       );
-      assert(
+      debugAssert(
         change.type === ChangeType.Added,
         'Invalid event type for first snapshot'
       );
-      assert(
+      debugAssert(
         !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
@@ -2505,7 +2508,7 @@ export function changesFromSnapshot<T>(
         let newIndex = -1;
         if (change.type !== ChangeType.Added) {
           oldIndex = indexTracker.indexOf(change.doc.key);
-          assert(oldIndex >= 0, 'Index for document not found');
+          debugAssert(oldIndex >= 0, 'Index for document not found');
           indexTracker = indexTracker.delete(change.doc.key);
         }
         if (change.type !== ChangeType.Removed) {

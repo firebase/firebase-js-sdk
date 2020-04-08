@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
-import { assert } from '../../../src/util/assert';
+import { debugAssert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
 
@@ -139,7 +139,7 @@ describe('IndexFreeQueryEngine', () => {
     query: Query,
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
-    assert(
+    debugAssert(
       localDocuments.expectIndexFreeExecution !== undefined,
       'Encountered runQuery() call not wrapped in expectIndexFreeQuery()/expectFullCollectionQuery()'
     );

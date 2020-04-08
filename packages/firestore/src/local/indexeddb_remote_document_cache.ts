@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -243,7 +243,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -373,7 +373,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobal.key)
       .next(metadata => {
-        assert(!!metadata, 'Missing document cache metadata');
+        hardAssert(!!metadata, 'Missing document cache metadata');
         return metadata!;
       });
   }
@@ -447,12 +447,12 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
       this.changes.forEach((key, maybeDocument) => {
         const previousSize = this.documentSizes.get(key);
-        assert(
+        debugAssert(
           previousSize !== undefined,
           `Cannot modify a document that wasn't read (for ${key})`
         );
         if (maybeDocument) {
-          assert(
+          debugAssert(
             !this.readTime.isEqual(SnapshotVersion.MIN),
             'Cannot add a document with a read time of zero'
           );

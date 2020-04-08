@@ -24,7 +24,7 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
@@ -91,7 +91,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
-    assert(user.uid !== '', 'UserID must not be an empty string.');
+    hardAssert(user.uid !== '', 'UserID must not be an empty string.');
     const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(
       userId,
@@ -172,7 +172,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // We write an empty object to obtain key
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return mutationStore.add({} as any).next(batchId => {
-      assert(typeof batchId === 'number', 'Auto-generated key is not a number');
+      hardAssert(
+        typeof batchId === 'number',
+        'Auto-generated key is not a number'
+      );
 
       const batch = new MutationBatch(
         batchId,
@@ -221,7 +224,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .get(batchId)
       .next(dbBatch => {
         if (dbBatch) {
-          assert(
+          hardAssert(
             dbBatch.userId === this.userId,
             `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
           );
@@ -272,7 +275,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         { index: DbMutationBatch.userMutationsIndex, range },
         (key, dbBatch, control) => {
           if (dbBatch.userId === this.userId) {
-            assert(
+            hardAssert(
               dbBatch.batchId >= nextBatchId,
               'Should have found mutation after ' + nextBatchId
             );
@@ -359,7 +362,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
                   batchId
               );
             }
-            assert(
+            hardAssert(
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
@@ -417,11 +420,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    assert(
+    debugAssert(
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -490,7 +493,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
                   batchId
               );
             }
-            assert(
+            hardAssert(
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
@@ -564,7 +567,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           }
         })
         .next(() => {
-          assert(
+          hardAssert(
             danglingMutationReferences.length === 0,
             'Document leak -- detected dangling mutation references when queue is empty. ' +
               'Dangling keys: ' +
@@ -671,7 +674,7 @@ export function removeMutationBatch(
   );
   promises.push(
     removePromise.next(() => {
-      assert(
+      hardAssert(
         numDeleted === 1,
         'Dangling document-mutation reference found: Missing batch ' +
           batch.batchId

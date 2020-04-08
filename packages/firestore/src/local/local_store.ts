@@ -37,7 +37,7 @@ import {
   MutationBatchResult
 } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -201,7 +201,7 @@ export class LocalStore {
     private queryEngine: QueryEngine,
     initialUser: User
   ) {
-    assert(
+    debugAssert(
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
     );
@@ -407,7 +407,7 @@ export class LocalStore {
         return this.mutationQueue
           .lookupMutationBatch(txn, batchId)
           .next((batch: MutationBatch | null) => {
-            assert(batch !== null, 'Attempt to reject nonexistent batch!');
+            hardAssert(batch !== null, 'Attempt to reject nonexistent batch!');
             affectedKeys = batch.keys();
             return this.mutationQueue.removeMutationBatch(txn, batch);
           })
@@ -575,7 +575,7 @@ export class LocalStore {
                 (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
-                assert(
+                debugAssert(
                   !SnapshotVersion.MIN.isEqual(remoteVersion),
                   'Cannot add a document when the remote version is zero'
                 );
@@ -613,7 +613,7 @@ export class LocalStore {
           const updateRemoteVersion = this.targetCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
-              assert(
+              debugAssert(
                 remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
                 'Watch stream reverted to previous snapshot?? ' +
                   remoteVersion +
@@ -660,7 +660,7 @@ export class LocalStore {
     newTargetData: TargetData,
     change: TargetChange
   ): boolean {
-    assert(
+    hardAssert(
       newTargetData.resumeToken.approximateByteSize() > 0,
       'Attempted to persist target data with no resume token'
     );
@@ -709,7 +709,7 @@ export class LocalStore {
 
       if (!viewChange.fromCache) {
         const targetData = this.targetDataByTarget.get(targetId);
-        assert(
+        debugAssert(
           targetData !== null,
           `Can't set limbo-free snapshot version for unknown target: ${targetId}`
         );
@@ -855,7 +855,7 @@ export class LocalStore {
     keepPersistedTargetData: boolean
   ): Promise<void> {
     const targetData = this.targetDataByTarget.get(targetId);
-    assert(
+    debugAssert(
       targetData !== null,
       `Tried to release nonexistent target: ${targetId}`
     );
@@ -967,14 +967,14 @@ export class LocalStore {
         .next((remoteDoc: MaybeDocument | null) => {
           let doc = remoteDoc;
           const ackVersion = batchResult.docVersions.get(docKey);
-          assert(
+          hardAssert(
             ackVersion !== null,
             'ackVersions should contain every doc in the write.'
           );
           if (!doc || doc.version.compareTo(ackVersion!) < 0) {
             doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
             if (!doc) {
-              assert(
+              debugAssert(
                 !remoteDoc,
                 'Mutation batch ' +
                   batch +

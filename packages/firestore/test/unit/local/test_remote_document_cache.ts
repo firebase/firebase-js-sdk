@@ -30,7 +30,7 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { assert } from '../../../src/util/assert';
+import { debugAssert } from '../../../src/util/assert';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -132,7 +132,7 @@ export class TestRemoteDocumentCache {
       'getNewDocumentChanges',
       'readonly',
       txn => {
-        assert(
+        debugAssert(
           this.cache instanceof IndexedDbRemoteDocumentCache,
           'getNewDocumentChanges is only supported by IndexedDB'
         );

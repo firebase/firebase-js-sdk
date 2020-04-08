@@ -21,7 +21,7 @@ import { logError } from './log';
 /**
  * Unconditionally fails, throwing an Error with the given message.
  *
- * Returns any so it can be used in expressions:
+ * Returns `never` and can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
  */
@@ -42,7 +42,27 @@ export function fail(failure: string): never {
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
  */
-export function assert(assertion: boolean, message: string): asserts assertion {
+export function hardAssert(
+  assertion: boolean,
+  message: string
+): asserts assertion {
+  if (!assertion) {
+    fail(message);
+  }
+}
+
+/**
+ * Fails if the given assertion condition is false, throwing an Error with the
+ * given message if it did.
+ *
+ * The code of callsites invoking this function are stripped out in production
+ * builds. Any side-effects of code within the debugAssert() invocation will not
+ * happen in this case.
+ */
+export function debugAssert(
+  assertion: boolean,
+  message: string
+): asserts assertion {
   if (!assertion) {
     fail(message);
   }
