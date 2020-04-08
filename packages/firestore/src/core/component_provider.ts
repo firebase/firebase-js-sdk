@@ -21,8 +21,8 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore } from '../local/local_store';
-import { SyncEngine } from './sync_engine';
+import { LocalStore, MultiTabLocalStore } from '../local/local_store';
+import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
@@ -77,8 +77,8 @@ export interface ComponentProvider {
 export class IndexedDbComponentProvider implements ComponentProvider {
   persistence!: IndexedDbPersistence;
   sharedClientState!: SharedClientState;
-  localStore!: LocalStore;
-  syncEngine!: SyncEngine;
+  localStore!: MultiTabLocalStore;
+  syncEngine!: MultiTabSyncEngine;
   gcScheduler!: GarbageCollectionScheduler | null;
   remoteStore!: RemoteStore;
   eventManager!: EventManager;
@@ -141,7 +141,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
       .garbageCollector;
 
     this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-    this.localStore = new LocalStore(
+    this.localStore = new MultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       initialUser
@@ -157,7 +157,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
         ),
       platform.newConnectivityMonitor()
     );
-    this.syncEngine = new SyncEngine(
+    this.syncEngine = new MultiTabSyncEngine(
       this.localStore,
       this.remoteStore,
       this.sharedClientState,
@@ -233,10 +233,7 @@ export class MemoryComponentProvider implements ComponentProvider {
       );
     }
 
-    this.persistence = new MemoryPersistence(
-      clientId,
-      this.referenceDelegateFactory
-    );
+    this.persistence = new MemoryPersistence(this.referenceDelegateFactory);
     this.gcScheduler = null;
     this.sharedClientState = new MemorySharedClientState();
     this.localStore = new LocalStore(
@@ -268,7 +265,6 @@ export class MemoryComponentProvider implements ComponentProvider {
 
     await this.remoteStore.start();
     await this.remoteStore.applyPrimaryState(true);
-    await this.syncEngine.applyPrimaryState(true);
   }
 
   clearPersistence(): never {

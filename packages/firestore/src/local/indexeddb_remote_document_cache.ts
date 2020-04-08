@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,6 +291,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
+  /**
+   * Returns the set of documents that have changed since the specified read
+   * time.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
     transaction: PersistenceTransaction,
     sinceReadTime: SnapshotVersion
@@ -323,6 +328,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       });
   }
 
+  /**
+   * Returns the read time of the most recently read document in the cache, or
+   * SnapshotVersion.MIN if not available.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
   getLastReadTime(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {

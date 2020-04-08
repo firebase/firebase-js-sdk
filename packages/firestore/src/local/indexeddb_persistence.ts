@@ -29,8 +29,8 @@ import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  EncodedResourcePath
+  EncodedResourcePath,
+  encodeResourcePath
 } from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
@@ -61,7 +61,6 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
@@ -339,6 +338,13 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
+  /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void> {
@@ -350,6 +356,12 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
+  /**
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setDatabaseDeletedListener(
     databaseDeletedListener: () => Promise<void>
   ): void {
@@ -361,6 +373,12 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
+  /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setNetworkEnabled(networkEnabled: boolean): void {
     if (this.networkEnabled !== networkEnabled) {
       this.networkEnabled = networkEnabled;
@@ -682,6 +700,13 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
       'readonly',
@@ -710,7 +735,7 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getMutationQueue(user: User): IndexedDbMutationQueue {
     assert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'

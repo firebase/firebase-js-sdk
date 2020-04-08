@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId } from '../core/types';
-import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
@@ -149,17 +148,6 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return PersistencePromise.resolve(this.findMutationBatch(batchId));
-  }
-
-  lookupMutationKeys(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<DocumentKeySet | null> {
-    const mutationBatch = this.findMutationBatch(batchId);
-    assert(mutationBatch != null, 'Failed to find local mutation batch.');
-    return PersistencePromise.resolve<DocumentKeySet | null>(
-      mutationBatch.keys()
-    );
   }
 
   getNextMutationBatchAfterBatchId(

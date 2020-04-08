@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,10 @@ export class CountingQueryEngine implements QueryEngine {
    */
   documentsReadByKey = 0;
 
-  constructor(private readonly queryEngine: QueryEngine) {}
+  constructor(
+    private readonly queryEngine: QueryEngine,
+    readonly type: 'index-free' | 'simple'
+  ) {}
 
   resetCounts(): void {
     this.mutationsReadByQuery = 0;
@@ -114,8 +117,6 @@ export class CountingQueryEngine implements QueryEngine {
           return result;
         });
       },
-      getNewDocumentChanges: subject.getNewDocumentChanges,
-      getLastReadTime: subject.getLastReadTime,
       getSize: subject.getSize,
       newChangeBuffer: subject.newChangeBuffer
     };
@@ -164,9 +165,7 @@ export class CountingQueryEngine implements QueryEngine {
       getNextMutationBatchAfterBatchId:
         subject.getNextMutationBatchAfterBatchId,
       lookupMutationBatch: subject.lookupMutationBatch,
-      lookupMutationKeys: subject.lookupMutationKeys,
       performConsistencyCheck: subject.performConsistencyCheck,
-      removeCachedMutationKeys: subject.removeCachedMutationKeys,
       removeMutationBatch: subject.removeMutationBatch,
       setLastStreamToken: subject.setLastStreamToken
     };
