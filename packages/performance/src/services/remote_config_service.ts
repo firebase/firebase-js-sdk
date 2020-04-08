@@ -271,6 +271,9 @@ function shouldLogAfterSampling(samplingRate: number): boolean {
 /**
  * True if event should be sent to Fl transport endpoint rather than CC transport endpoint.
  * rolloutPercent is in range [0.0, 100.0].
+ * @param iid Installation ID which identifies a web app installed on client.
+ * @param rolloutPercent the possibility of this app sending events to Fl endpoint.
+ * @return true if this installation should send events to Fl endpoint.
  */
 export function isDestFl(iid: string, rolloutPercent: number): boolean {
   if (iid.length === 0) {
@@ -280,6 +283,8 @@ export function isDestFl(iid: string, rolloutPercent: number): boolean {
 }
 /**
  * Generate integer value range in [0, 99]. Implementation from String.hashCode() in Java.
+ * @param seed Same seed will generate consistent hash value using this algorithm.
+ * @return Hash value in range [0, 99], generated from seed and hash algorithm.
  */
 function getHashPercent(seed: string): number {
   let hash = 0;
