@@ -317,7 +317,7 @@ describe('Performance Monitoring > perf_logger', () => {
         entryType: 'resource',
         fetchStart: 5645.689999917522,
         initiatorType: 'fetch',
-        name: 'http://firebaselogging.googleapis.com/some/path?message=a',
+        name: 'https://firebaselogging.googleapis.com/v0cc/log?message=a',
         nextHopProtocol: 'http/2+quic/43',
         redirectEnd: 0,
         redirectStart: 0,
@@ -355,8 +355,8 @@ describe('Performance Monitoring > perf_logger', () => {
         fetchStart: 5645.689999917522,
         initiatorType: 'fetch',
         name: mergeStrings(
-          'hts/frbslgigp.ogepscmti/sapt?aa=2',
-          'tp:/ieaeogn-agolai.o/hsi//ahprm13'
+          'hts/frbslgigp.ogepscmv/ieo/eaylg',
+          'tp:/ieaeogn-agolai.o/1frlglgc/o'
         ),
         nextHopProtocol: 'http/2+quic/43',
         redirectEnd: 0,
