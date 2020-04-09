@@ -16,17 +16,17 @@
  */
 
 export interface UserInfo {
-    readonly uid: string;
+  readonly uid: string;
 }
 
 export interface UserParameters {
-    uid: string;
+  uid: string;
 }
 
 export class User implements UserInfo {
   uid: string;
-    
+
   constructor(params: UserParameters) {
-        this.uid = params.uid;
-    }
+    this.uid = params.uid;
+  }
 }

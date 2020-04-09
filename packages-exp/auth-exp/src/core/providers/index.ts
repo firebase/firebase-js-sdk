@@ -19,14 +19,13 @@
  * Supported providers
  */
 export enum ProviderId {
-    ANONYMOUS = 'anonymous',
-    CUSTOM = 'custom',
-    FACEBOOK = 'facebook.com',
-    FIREBASE = 'firebase',
-    GITHUB = 'github.com',
-    GOOGLE = 'google.com',
-    PASSWORD = 'password',
-    PHONE = 'phone',
-    TWITTER = 'twitter.com'
-  }
-  
+  ANONYMOUS = 'anonymous',
+  CUSTOM = 'custom',
+  FACEBOOK = 'facebook.com',
+  FIREBASE = 'firebase',
+  GITHUB = 'github.com',
+  GOOGLE = 'google.com',
+  PASSWORD = 'password',
+  PHONE = 'phone',
+  TWITTER = 'twitter.com'
+}
