@@ -50,10 +50,7 @@ import {
   MemoryEagerDelegate,
   MemoryLruDelegate
 } from '../../../src/local/memory_persistence';
-import {
-  GarbageCollectionScheduler,
-  Persistence
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import {
   ClientId,
   SharedClientState
@@ -401,7 +398,6 @@ abstract class TestRunner {
   private connection!: MockConnection;
   private eventManager!: EventManager;
   private syncEngine!: SyncEngine;
-  private gcScheduler!: GarbageCollectionScheduler | null;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
@@ -497,7 +493,6 @@ abstract class TestRunner {
     this.remoteStore = componentProvider.remoteStore;
     this.syncEngine = componentProvider.syncEngine;
     this.eventManager = componentProvider.eventManager;
-    this.gcScheduler = componentProvider.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -918,10 +913,6 @@ abstract class TestRunner {
   }
 
   private async doShutdown(): Promise<void> {
-    if (this.gcScheduler) {
-      this.gcScheduler.stop();
-    }
-
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
