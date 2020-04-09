@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
+  multi-tab notifications while the file system is locked.
+
+# 1.10.2
 - [fixed] Temporarily reverted the use of window.crypto to generate document
   IDs to address compatibility issues with IE 11, WebWorkers, and React Native.
 - [changed] Firestore now limits the number of concurrent document lookups it

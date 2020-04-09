@@ -755,7 +755,7 @@ export class WebStorageSharedClientState implements SharedClientState {
         return;
       }
 
-      this.queue.enqueueAndForget(async () => {
+      this.queue.enqueueRetryable(async () => {
         if (!this.started) {
           this.earlyEvents.push(event);
           return;

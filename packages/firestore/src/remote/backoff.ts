@@ -119,7 +119,7 @@ export class ExponentialBackoff {
       desiredDelayWithJitterMs - delaySoFarMs
     );
 
-    if (this.currentBaseMs > 0) {
+    if (remainingDelayMs > 0) {
       logDebug(
         LOG_TAG,
         `Backing off for ${remainingDelayMs} ms ` +
@@ -127,16 +127,20 @@ export class ExponentialBackoff {
           `delay with jitter: ${desiredDelayWithJitterMs} ms, ` +
           `last attempt: ${delaySoFarMs} ms ago)`
       );
-    }
-
-    this.timerPromise = this.queue.enqueueAfterDelay(
-      this.timerId,
-      remainingDelayMs,
-      () => {
+      this.timerPromise = this.queue.enqueueAfterDelay(
+        this.timerId,
+        remainingDelayMs,
+        () => {
+          this.lastAttemptTime = Date.now();
+          return op();
+        }
+      );
+    } else {
+      this.queue.enqueueAndForget(() => {
         this.lastAttemptTime = Date.now();
         return op();
-      }
-    );
+      });
+    }
 
     // Apply backoff factor to determine next delay and ensure it is within
     // bounds.

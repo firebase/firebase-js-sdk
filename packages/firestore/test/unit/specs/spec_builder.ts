@@ -418,6 +418,22 @@ export class SpecBuilder {
     return this;
   }
 
+  failDatabase(): this {
+    this.nextStep();
+    this.currentStep = {
+      failDatabase: true
+    };
+    return this;
+  }
+
+  recoverDatabase(): this {
+    this.nextStep();
+    this.currentStep = {
+      failDatabase: false
+    };
+    return this;
+  }
+
   expectIsShutdown(): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
@@ -716,19 +732,14 @@ export class SpecBuilder {
     return this;
   }
 
-  watchStreamCloses(error: Code, opts?: { runBackoffTimer: boolean }): this {
-    if (!opts) {
-      opts = { runBackoffTimer: true };
-    }
-
+  watchStreamCloses(error: Code): this {
     this.nextStep();
     this.currentStep = {
       watchStreamClose: {
         error: {
           code: mapRpcCodeFromCode(error),
           message: 'Simulated Backend Error'
-        },
-        runBackoffTimer: opts.runBackoffTimer
+        }
       }
     };
     return this;

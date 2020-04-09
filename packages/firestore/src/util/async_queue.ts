@@ -17,8 +17,12 @@
 
 import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { logError } from './log';
+import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
+import { ExponentialBackoff } from '../remote/backoff';
+import { PlatformSupport } from '../platform/platform';
+
+const LOG_TAG = 'AsyncQueue';
 
 // Accept any return type from setTimeout().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +70,13 @@ export const enum TimerId {
    * A timer used to retry transactions. Since there can be multiple concurrent
    * transactions, multiple of these may be in the queue at a given time.
    */
-  RetryTransaction = 'retry_transaction'
+  RetryTransaction = 'retry_transaction',
+
+  /**
+   * A timer used to retry operations scheduled via retryable AsyncQueue
+   * operations.
+   */
+  AsyncQueueRetry = 'async_queue_retry'
 }
 
 /**
@@ -213,6 +223,29 @@ export class AsyncQueue {
   // List of TimerIds to fast-forward delays for.
   private timerIdsToSkip: TimerId[] = [];
 
+  // Backoff timer used to schedule retries for retryable operations
+  private backoff = new ExponentialBackoff(this, TimerId.AsyncQueueRetry);
+
+  // If set, points to the first retryable operation. The first retryable
+  // operation is the only operation that is retried with backoff. If this
+  // operation succeeds, all other retryable operations are run right away.
+  private firstRetryableOperation?: Promise<void>;
+
+  // Visibility handler that triggers an immediate retry of all retryable
+  // operations. Meant to speed up recovery when we regain file system access
+  // after page comes into foreground.
+  private visibilityHandler = (): void => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+  };
+
+  constructor() {
+    const window = PlatformSupport.getPlatform().window;
+    if (window) {
+      window.addEventListener('visibilitychange', this.visibilityHandler);
+    }
+  }
+
   // Is this AsyncQueue being shut down? If true, this instance will not enqueue
   // any new operations, Promises from enqueue requests will not resolve.
   get isShuttingDown(): boolean {
@@ -262,6 +295,10 @@ export class AsyncQueue {
     this.verifyNotFailed();
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
+      const window = PlatformSupport.getPlatform().window;
+      if (window) {
+        window.removeEventListener('visibilitychange', this.visibilityHandler);
+      }
       await this.enqueueEvenAfterShutdown(op);
     }
   }
@@ -277,6 +314,41 @@ export class AsyncQueue {
       return new Promise<T>(resolve => {});
     }
     return this.enqueueInternal(op);
+  }
+
+  enqueueRetryable(op: () => Promise<void>): void {
+    this.verifyNotFailed();
+
+    if (this._isShuttingDown) {
+      return;
+    }
+
+    if (this.firstRetryableOperation) {
+      // If there is already a retryable operation, enqueue the current
+      // operation right after. We want to successfully run the first retryable
+      // operation before running all others.
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.firstRetryableOperation.then(() => {
+        this.enqueueRetryable(op);
+      });
+    } else {
+      const deferred = new Deferred<void>();
+      this.firstRetryableOperation = deferred.promise;
+
+      const retryingOp = async (): Promise<void> => {
+        try {
+          await op();
+          deferred.resolve();
+          this.backoff.reset();
+          this.firstRetryableOperation = undefined;
+        } catch (e) {
+          logDebug(LOG_TAG, 'Retryable operation failed: ' + e.message);
+          this.backoff.backoffAndRun(retryingOp);
+        }
+      };
+
+      this.backoff.backoffAndRun(retryingOp);
+    }
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
@@ -399,12 +471,6 @@ export class AsyncQueue {
   runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
-      debugAssert(
-        lastTimerId === TimerId.All ||
-          this.containsDelayedOperation(lastTimerId),
-        `Attempted to drain to missing operation ${lastTimerId}`
-      );
-
       // Run ops in the same order they'd run if they ran naturally.
       this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
 

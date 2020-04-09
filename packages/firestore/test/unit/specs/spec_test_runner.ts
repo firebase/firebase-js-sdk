@@ -18,13 +18,7 @@
 import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import {
-  ComponentConfiguration,
-  ComponentProvider,
-  IndexedDbComponentProvider,
-  MemoryComponentProvider,
-  MemoryLruComponentProvider
-} from '../../../src/core/component_provider';
+import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
@@ -40,7 +34,6 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
@@ -48,10 +41,6 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
-import {
-  GarbageCollectionScheduler,
-  Persistence
-} from '../../../src/local/persistence';
 import {
   ClientId,
   SharedClientState
@@ -117,6 +106,11 @@ import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistenceSettings } from '../../../src/core/firestore_client';
+import {
+  MockIndexedDbComponentProvider,
+  MockMemoryComponentProvider,
+  MockPersistence
+} from './spec_test_components';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -400,7 +394,6 @@ abstract class TestRunner {
   private connection!: MockConnection;
   private eventManager!: EventManager;
   private syncEngine!: SyncEngine;
-  private gcScheduler!: GarbageCollectionScheduler | null;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
@@ -422,7 +415,7 @@ abstract class TestRunner {
   private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
-  private persistence!: Persistence;
+  private persistence!: MockPersistence;
   protected sharedClientState!: SharedClientState;
 
   private useGarbageCollection: boolean;
@@ -456,6 +449,8 @@ abstract class TestRunner {
     // the AsyncQueue from executing any operation. We should mimic this in the
     // setup of the spec tests.
     this.queue = new AsyncQueue();
+    this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
+
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
@@ -501,7 +496,6 @@ abstract class TestRunner {
     this.remoteStore = componentProvider.remoteStore;
     this.syncEngine = componentProvider.syncEngine;
     this.eventManager = componentProvider.eventManager;
-    this.gcScheduler = componentProvider.gcScheduler;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -513,7 +507,7 @@ abstract class TestRunner {
   protected abstract initializeComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<ComponentProvider>;
+  ): Promise<MockIndexedDbComponentProvider | MockMemoryComponentProvider>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -593,6 +587,10 @@ abstract class TestRunner {
       return this.doApplyClientState(step.applyClientState!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
+    } else if ('failDatabase' in step) {
+      return step.failDatabase!
+        ? this.doFailDatabase()
+        : this.doRecoverDatabase();
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -843,10 +841,7 @@ abstract class TestRunner {
       )
     );
     // The watch stream should re-open if we have active listeners.
-    if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
-      await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnectionBackoff
-      );
+    if (!this.queryListeners.isEmpty()) {
       await this.connection.waitForWatchOpen();
     }
   }
@@ -916,10 +911,6 @@ abstract class TestRunner {
   }
 
   private async doShutdown(): Promise<void> {
-    if (this.gcScheduler) {
-      this.gcScheduler.stop();
-    }
-
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
@@ -962,6 +953,14 @@ abstract class TestRunner {
     );
   }
 
+  private async doFailDatabase(): Promise<void> {
+    this.persistence.injectFailures = true;
+  }
+
+  private async doRecoverDatabase(): Promise<void> {
+    this.persistence.injectFailures = false;
+  }
+
   private validateExpectedSnapshotEvents(
     expectedEvents: SnapshotEvent[]
   ): void {
@@ -1002,10 +1001,6 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
-        debugAssert(
-          this.persistence instanceof IndexedDbPersistence,
-          'numActiveClients is only supported for persistence-enabled tests'
-        );
         const activeClients = await this.persistence.getActiveClients();
         expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }
@@ -1278,10 +1273,8 @@ class MemoryTestRunner extends TestRunner {
   protected async initializeComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<ComponentProvider> {
-    const componentProvider = gcEnabled
-      ? new MemoryComponentProvider()
-      : new MemoryLruComponentProvider();
+  ): Promise<MockMemoryComponentProvider> {
+    const componentProvider = new MockMemoryComponentProvider(gcEnabled);
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1314,8 +1307,8 @@ class IndexedDbTestRunner extends TestRunner {
   protected async initializeComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<ComponentProvider> {
-    const componentProvider = new IndexedDbComponentProvider();
+  ): Promise<MockIndexedDbComponentProvider> {
+    const componentProvider = new MockIndexedDbComponentProvider();
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1461,6 +1454,9 @@ export interface SpecStep {
   /** Fail a write */
   failWrite?: SpecWriteFailure;
 
+  /** Fail all database transactions. */
+  failDatabase?: boolean;
+
   /**
    * Run a queued timer task (without waiting for the delay to expire). See
    * TimerId enum definition for possible values).
@@ -1554,7 +1550,6 @@ export interface SpecWatchSnapshot {
 
 export interface SpecWatchStreamClose {
   error: SpecError;
-  runBackoffTimer: boolean;
 }
 
 export interface SpecWriteAck {
