@@ -40,9 +40,25 @@ import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
-  MemoryPersistence,
-  MemoryReferenceDelegate
+  MemoryLruDelegate,
+  MemoryPersistence
 } from '../local/memory_persistence';
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
+
+export interface ComponentConfiguration {
+  asyncQueue: AsyncQueue;
+  databaseInfo: DatabaseInfo;
+  platform: Platform;
+  datastore: Datastore;
+  clientId: ClientId;
+  initialUser: User;
+  maxConcurrentLimboResolutions: number;
+  persistenceSettings: PersistenceSettings;
+}
 
 /**
  * Initializes and wires up all core components for Firestore. Implementations
@@ -57,151 +73,16 @@ export interface ComponentProvider {
   remoteStore: RemoteStore;
   eventManager: EventManager;
 
-  initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
-    persistenceSettings: PersistenceSettings
-  ): Promise<void>;
+  initialize(cfg: ComponentConfiguration): Promise<void>;
 
   clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }
 
 /**
- * Provides all components needed for Firestore with IndexedDB persistence.
- */
-export class IndexedDbComponentProvider implements ComponentProvider {
-  persistence!: IndexedDbPersistence;
-  sharedClientState!: SharedClientState;
-  localStore!: MultiTabLocalStore;
-  syncEngine!: MultiTabSyncEngine;
-  gcScheduler!: GarbageCollectionScheduler | null;
-  remoteStore!: RemoteStore;
-  eventManager!: EventManager;
-
-  async initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
-    persistenceSettings: PersistenceSettings
-  ): Promise<void> {
-    debugAssert(
-      persistenceSettings.durable,
-      'IndexedDbComponentProvider can only provide durable persistence'
-    );
-    debugAssert(!this.sharedClientState, 'initialize() already called');
-
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-
-    const serializer = platform.newSerializer(databaseInfo.databaseId);
-    if (!WebStorageSharedClientState.isAvailable(platform)) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'IndexedDB persistence is only available on platforms that support LocalStorage.'
-      );
-    }
-
-    this.sharedClientState = persistenceSettings.synchronizeTabs
-      ? new WebStorageSharedClientState(
-          asyncQueue,
-          platform,
-          persistenceKey,
-          clientId,
-          initialUser
-        )
-      : new MemorySharedClientState();
-    this.sharedClientState.onlineStateHandler = onlineState =>
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.SharedClientState
-      );
-
-    this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: persistenceSettings.synchronizeTabs,
-      persistenceKey,
-      clientId,
-      platform,
-      queue: asyncQueue,
-      serializer,
-      lruParams: LruParams.withCacheSize(persistenceSettings.cacheSizeBytes),
-      sequenceNumberSyncer: this.sharedClientState
-    });
-
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
-
-    this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-    this.localStore = new MultiTabLocalStore(
-      this.persistence,
-      new IndexFreeQueryEngine(),
-      initialUser
-    );
-    this.remoteStore = new RemoteStore(
-      this.localStore,
-      datastore,
-      asyncQueue,
-      onlineState =>
-        this.syncEngine.applyOnlineStateChange(
-          onlineState,
-          OnlineStateSource.RemoteStore
-        ),
-      platform.newConnectivityMonitor()
-    );
-    this.syncEngine = new MultiTabSyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      initialUser,
-      maxConcurrentLimboResolutions
-    );
-    this.eventManager = new EventManager(this.syncEngine);
-
-    this.remoteStore.syncEngine = this.syncEngine;
-    this.sharedClientState.syncEngine = this.syncEngine;
-
-    await this.sharedClientState.start();
-    await this.remoteStore.start();
-    await this.localStore.start();
-
-    // NOTE: This will immediately call the listener, so we make sure to
-    // set it after localStore / remoteStore are started.
-    await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await this.syncEngine.applyPrimaryState(isPrimary);
-      if (isPrimary && !this.gcScheduler!.started) {
-        this.gcScheduler!.start(this.localStore);
-      } else if (!isPrimary) {
-        this.gcScheduler!.stop();
-      }
-    });
-  }
-
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
-  }
-}
-
-const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
-
-/**
  * Provides all components needed for Firestore with in-memory persistence.
+ * Uses EagerGC garbage collection.
  */
-export class MemoryComponentProvider implements ComponentProvider {
+export class MemoryComponentProvider {
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
@@ -210,67 +91,242 @@ export class MemoryComponentProvider implements ComponentProvider {
   remoteStore!: RemoteStore;
   eventManager!: EventManager;
 
-  constructor(
-    readonly referenceDelegateFactory: (
-      p: MemoryPersistence
-    ) => MemoryReferenceDelegate = MemoryEagerDelegate.factory
-  ) {}
+  async initialize(cfg: ComponentConfiguration): Promise<void> {
+    this.sharedClientState = this.createSharedClientState(cfg);
+    this.persistence = this.createPersistence(cfg);
+    await this.persistence.start();
+    this.gcScheduler = this.createGarbageCollectionScheduler(cfg);
+    this.localStore = this.createLocalStore(cfg);
+    this.remoteStore = this.createRemoteStore(cfg);
+    this.syncEngine = this.createSyncEngine(cfg);
+    this.eventManager = this.createEventManager(cfg);
 
-  async initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
-    persistenceSettings: PersistenceSettings
-  ): Promise<void> {
-    if (persistenceSettings.durable) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    this.sharedClientState.onlineStateHandler = onlineState =>
+      this.syncEngine.applyOnlineStateChange(
+        onlineState,
+        OnlineStateSource.SharedClientState
       );
-    }
+    this.remoteStore.syncEngine = this.syncEngine;
 
-    this.persistence = new MemoryPersistence(this.referenceDelegateFactory);
-    this.gcScheduler = null;
-    this.sharedClientState = new MemorySharedClientState();
-    this.localStore = new LocalStore(
+    await this.sharedClientState.start();
+    await this.remoteStore.start();
+
+    await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
+  }
+
+  createEventManager(cfg: ComponentConfiguration): EventManager {
+    return new EventManager(this.syncEngine);
+  }
+
+  createGarbageCollectionScheduler(
+    cfg: ComponentConfiguration
+  ): GarbageCollectionScheduler | null {
+    return null;
+  }
+
+  createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    return new LocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      initialUser
+      cfg.initialUser
     );
-    this.remoteStore = new RemoteStore(
+  }
+
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      !cfg.persistenceSettings.durable,
+      'Can only start memory persistence'
+    );
+    return new MemoryPersistence(MemoryEagerDelegate.factory);
+  }
+
+  createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
+    return new RemoteStore(
       this.localStore,
-      datastore,
-      asyncQueue,
+      cfg.datastore,
+      cfg.asyncQueue,
       onlineState =>
         this.syncEngine.applyOnlineStateChange(
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      platform.newConnectivityMonitor()
+      cfg.platform.newConnectivityMonitor()
     );
-    this.syncEngine = new SyncEngine(
+  }
+
+  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
+    return new SyncEngine(
       this.localStore,
       this.remoteStore,
       this.sharedClientState,
-      initialUser,
-      maxConcurrentLimboResolutions
+      cfg.initialUser,
+      cfg.maxConcurrentLimboResolutions
     );
-    this.eventManager = new EventManager(this.syncEngine);
-
-    this.remoteStore.syncEngine = this.syncEngine;
-
-    await this.remoteStore.start();
-    await this.remoteStore.applyPrimaryState(true);
   }
 
-  clearPersistence(): never {
+  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
     );
+  }
+}
+
+/**
+ * Provides all components needed for Firestore with in-memory persistence.
+ * Uses LRU garbage collection.
+ */
+export class MemoryLruComponentProvider extends MemoryComponentProvider {
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      !cfg.persistenceSettings.durable,
+      'Can only start memory persistence'
+    );
+    return new MemoryPersistence(
+      p => new MemoryLruDelegate(p, LruParams.DEFAULT)
+    );
+  }
+}
+
+/**
+ * Provides all components needed for Firestore with IndexedDB persistence.
+ */
+export class IndexedDbComponentProvider extends MemoryComponentProvider {
+  async initialize(cfg: ComponentConfiguration): Promise<void> {
+    await super.initialize(cfg);
+
+    debugAssert(
+      this.persistence instanceof IndexedDbPersistence,
+      'IndexedDbComponentProvider should provide IndexedDbPersistence'
+    );
+    debugAssert(
+      this.localStore instanceof MultiTabLocalStore,
+      'IndexedDbComponentProvider should provide MultiTabLocalStore'
+    );
+    debugAssert(
+      this.syncEngine instanceof MultiTabSyncEngine,
+      'IndexedDbComponentProvider should provide MultiTabSyncEngine'
+    );
+
+    if (this.sharedClientState instanceof WebStorageSharedClientState) {
+      this.sharedClientState.syncEngine = this.syncEngine;
+    }
+
+    await this.localStore.start();
+
+    // NOTE: This will immediately call the listener, so we make sure to
+    // set it after localStore / remoteStore are started.
+    await this.persistence.setPrimaryStateListener(async isPrimary => {
+      await (this.syncEngine as MultiTabSyncEngine).applyPrimaryState(
+        isPrimary
+      );
+      if (this.gcScheduler) {
+        if (isPrimary && !this.gcScheduler.started) {
+          this.gcScheduler.start(this.localStore);
+        } else if (!isPrimary) {
+          this.gcScheduler.stop();
+        }
+      }
+    });
+  }
+
+  createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    debugAssert(
+      this.persistence instanceof IndexedDbPersistence,
+      'IndexedDbComponentProvider should provide IndexedDBPersistence'
+    );
+    return new MultiTabLocalStore(
+      this.persistence,
+      new IndexFreeQueryEngine(),
+      cfg.initialUser
+    );
+  }
+
+  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
+    debugAssert(
+      this.localStore instanceof MultiTabLocalStore,
+      'IndexedDbComponentProvider should provide MultiTabLocalStore'
+    );
+    return new MultiTabSyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
+      cfg.initialUser,
+      cfg.maxConcurrentLimboResolutions
+    );
+  }
+
+  createGarbageCollectionScheduler(
+    cfg: ComponentConfiguration
+  ): GarbageCollectionScheduler | null {
+    debugAssert(
+      this.persistence instanceof IndexedDbPersistence,
+      'IndexedDbComponentProvider should provide IndexedDBPersistence'
+    );
+    const garbageCollector = this.persistence.referenceDelegate
+      .garbageCollector;
+    return new LruScheduler(garbageCollector, cfg.asyncQueue);
+  }
+
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      cfg.persistenceSettings.durable,
+      'Can only start durable persistence'
+    );
+
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      cfg.databaseInfo
+    );
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    return IndexedDbPersistence.createIndexedDbPersistence({
+      allowTabSynchronization: cfg.persistenceSettings.synchronizeTabs,
+      persistenceKey,
+      clientId: cfg.clientId,
+      platform: cfg.platform,
+      queue: cfg.asyncQueue,
+      serializer,
+      lruParams: LruParams.withCacheSize(
+        cfg.persistenceSettings.cacheSizeBytes
+      ),
+      sequenceNumberSyncer: this.sharedClientState
+    });
+  }
+
+  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
+    debugAssert(
+      cfg.persistenceSettings.durable,
+      'Can only start durable persistence'
+    );
+
+    if (cfg.persistenceSettings.synchronizeTabs) {
+      if (!WebStorageSharedClientState.isAvailable(cfg.platform)) {
+        throw new FirestoreError(
+          Code.UNIMPLEMENTED,
+          'IndexedDB persistence is only available on platforms that support LocalStorage.'
+        );
+      }
+      const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+        cfg.databaseInfo
+      );
+      return new WebStorageSharedClientState(
+        cfg.asyncQueue,
+        cfg.platform,
+        persistenceKey,
+        cfg.clientId,
+        cfg.initialUser
+      );
+    }
+    return new MemorySharedClientState();
+  }
+
+  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      databaseInfo
+    );
+    return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
 }

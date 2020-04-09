@@ -169,6 +169,9 @@ export interface Persistence {
 
   readonly referenceDelegate: ReferenceDelegate;
 
+  /** Starts persistence. */
+  start(): Promise<void>;
+
   /**
    * Releases any resources held during eager shutdown.
    */

@@ -113,7 +113,7 @@ export async function testIndexedDbPersistence(
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
   const platform = PlatformSupport.getPlatform();
-  return IndexedDbPersistence.createIndexedDbPersistence({
+  const persistence = IndexedDbPersistence.createIndexedDbPersistence({
     allowTabSynchronization: !!options.synchronizeTabs,
     persistenceKey: TEST_PERSISTENCE_PREFIX,
     clientId,
@@ -123,6 +123,8 @@ export async function testIndexedDbPersistence(
     lruParams,
     sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
   });
+  await persistence.start();
+  return persistence;
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */

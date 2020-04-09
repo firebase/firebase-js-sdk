@@ -217,7 +217,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1, 2]);
   });
 
-  it('Schedules operaions with respect to shut down', async () => {
+  it('Schedules operations with respect to shut down', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<void> =>

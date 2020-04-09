@@ -188,7 +188,7 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static async createIndexedDbPersistence(options: {
+  static createIndexedDbPersistence(options: {
     allowTabSynchronization: boolean;
     persistenceKey: string;
     clientId: ClientId;
@@ -197,7 +197,7 @@ export class IndexedDbPersistence implements Persistence {
     queue: AsyncQueue;
     serializer: JsonProtoSerializer;
     sequenceNumberSyncer: SequenceNumberSyncer;
-  }): Promise<IndexedDbPersistence> {
+  }): IndexedDbPersistence {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -215,7 +215,6 @@ export class IndexedDbPersistence implements Persistence {
       options.serializer,
       options.sequenceNumberSyncer
     );
-    await persistence.start();
     return persistence;
   }
 
@@ -296,7 +295,7 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  private start(): Promise<void> {
+  start(): Promise<void> {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
