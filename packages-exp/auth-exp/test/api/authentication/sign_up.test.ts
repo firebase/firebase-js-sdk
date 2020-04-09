@@ -33,7 +33,10 @@ describe('signUp', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, { displayName: 'my-name', email: 'test@foo.com' });
+    const mock = mockEndpoint(Endpoint.SIGN_UP, {
+      displayName: 'my-name',
+      email: 'test@foo.com'
+    });
 
     const response = await signUp(mockAuth, request);
     expect(response.displayName).to.eq('my-name');
@@ -44,23 +47,29 @@ describe('signUp', () => {
   });
 
   it('should handle errors', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
-      error: {
-        code: 400,
-        message: ServerError.EMAIL_EXISTS,
-        errors: [
-          {
-            message: ServerError.EMAIL_EXISTS,
-          }
-        ]
-      }
-    }, 400);
+    const mock = mockEndpoint(
+      Endpoint.SIGN_UP,
+      {
+        error: {
+          code: 400,
+          message: ServerError.EMAIL_EXISTS,
+          errors: [
+            {
+              message: ServerError.EMAIL_EXISTS
+            }
+          ]
+        }
+      },
+      400
+    );
 
     try {
       await signUp(mockAuth, request);
     } catch (e) {
       expect(e.name).to.eq('FirebaseError');
-      expect(e.message).to.eq('Firebase: The email address is already in use by another account. (auth/email-already-in-use).');
+      expect(e.message).to.eq(
+        'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      );
       expect(mock.calls[0]).to.eql({
         request
       });
