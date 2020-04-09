@@ -51,7 +51,6 @@ export function hardAssert(
   }
 }
 
-
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
