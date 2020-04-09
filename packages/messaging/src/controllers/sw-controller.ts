@@ -340,6 +340,7 @@ function showNotification(details: NotificationDetails): Promise<void> {
 
   const { actions } = details;
   // Note: Firefox does not support the maxActions property.
+  // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
   const { maxActions } = Notification;
   if (actions && maxActions && actions.length > maxActions) {
     console.warn(

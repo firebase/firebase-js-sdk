@@ -277,7 +277,8 @@ describe('SwController', () => {
     });
 
     it('warns if there are more action buttons than the browser limit', async () => {
-      // This doesn't exist on Firefox.
+      // This doesn't exist on Firefox:
+      // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
       if (!Notification.maxActions) {
         return;
       }
