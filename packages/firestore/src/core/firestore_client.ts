@@ -245,16 +245,16 @@ export class FirestoreClient {
         serializer
       );
 
-      await componentProvider.initialize(
-        this.asyncQueue,
-        this.databaseInfo,
-        this.platform,
+      await componentProvider.initialize({
+        asyncQueue: this.asyncQueue,
+        databaseInfo: this.databaseInfo,
+        platform: this.platform,
         datastore,
-        this.clientId,
-        user,
-        MAX_CONCURRENT_LIMBO_RESOLUTIONS,
+        clientId: this.clientId,
+        initialUser: user,
+        maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
         persistenceSettings
-      );
+      });
 
       this.persistence = componentProvider.persistence;
       this.sharedClientState = componentProvider.sharedClientState;

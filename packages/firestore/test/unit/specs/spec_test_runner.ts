@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import {
+  ComponentConfiguration,
   ComponentProvider,
   IndexedDbComponentProvider,
   MemoryComponentProvider
@@ -61,7 +62,7 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { Platform, PlatformSupport } from '../../../src/platform/platform';
+import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
@@ -115,6 +116,7 @@ import { ByteString } from '../../../src/util/byte_string';
 import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistenceSettings } from '../../../src/core/firestore_client';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -436,6 +438,7 @@ abstract class TestRunner {
   constructor(
     protected readonly platform: TestPlatform,
     private sharedWrites: SharedWriteTracker,
+    private persistenceSettings: PersistenceSettings,
     clientIndex: number,
     config: SpecConfig
   ) {
@@ -477,13 +480,17 @@ abstract class TestRunner {
     );
 
     const componentProvider = await this.initializeComponentProvider(
-      this.queue,
-      this.databaseInfo,
-      this.platform,
-      this.datastore,
-      this.clientId,
-      this.user,
-      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      {
+        asyncQueue: this.queue,
+        databaseInfo: this.databaseInfo,
+        platform: this.platform,
+        datastore: this.datastore,
+        clientId: this.clientId,
+        initialUser: this.user,
+        maxConcurrentLimboResolutions:
+          this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+        persistenceSettings: this.persistenceSettings
+      },
       this.useGarbageCollection
     );
 
@@ -502,13 +509,7 @@ abstract class TestRunner {
   }
 
   protected abstract initializeComponentProvider(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
+    configuration: ComponentConfiguration,
     gcEnabled: boolean
   ): Promise<ComponentProvider>;
 
@@ -1251,14 +1252,25 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
+  constructor(
+    platform: TestPlatform,
+    sharedWrites: SharedWriteTracker,
+    clientIndex: number,
+    config: SpecConfig
+  ) {
+    super(
+      platform,
+      sharedWrites,
+      {
+        durable: false
+      },
+      clientIndex,
+      config
+    );
+  }
+
   protected async initializeComponentProvider(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
+    configuration: ComponentConfiguration,
     gcEnabled: boolean
   ): Promise<ComponentProvider> {
     const persistenceProvider = new MemoryComponentProvider(
@@ -1266,16 +1278,14 @@ class MemoryTestRunner extends TestRunner {
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
-    await persistenceProvider.initialize(
-      asyncQueue,
-      databaseInfo,
-      platform,
-      datastore,
-      clientId,
-      initialUser,
-      maxConcurrentLimboResolutions,
-      { durable: false }
-    );
+    await persistenceProvider.initialize({
+      ...configuration,
+      ...{
+        persistenceSettings: {
+          durable: false
+        }
+      }
+    });
     return persistenceProvider;
   }
 }
@@ -1285,31 +1295,31 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  protected async initializeComponentProvider(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    datastore: Datastore,
-    clientId: ClientId,
-    initialUser: User,
-    maxConcurrentLimboResolutions: number,
-    gcEnabled: boolean
-  ): Promise<ComponentProvider> {
-    const persistenceProvider = new IndexedDbComponentProvider();
-    await persistenceProvider.initialize(
-      asyncQueue,
-      databaseInfo,
+  constructor(
+    platform: TestPlatform,
+    sharedWrites: SharedWriteTracker,
+    clientIndex: number,
+    config: SpecConfig
+  ) {
+    super(
       platform,
-      datastore,
-      clientId,
-      initialUser,
-      maxConcurrentLimboResolutions,
+      sharedWrites,
       {
         durable: true,
         cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
         synchronizeTabs: true
-      }
+      },
+      clientIndex,
+      config
     );
+  }
+
+  protected async initializeComponentProvider(
+    configuration: ComponentConfiguration,
+    gcEnabled: boolean
+  ): Promise<ComponentProvider> {
+    const persistenceProvider = new IndexedDbComponentProvider();
+    await persistenceProvider.initialize(configuration);
     return persistenceProvider;
   }
 
