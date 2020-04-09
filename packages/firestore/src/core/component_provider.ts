@@ -40,9 +40,14 @@ import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
-  MemoryPersistence,
-  MemoryReferenceDelegate
+  MemoryLruDelegate,
+  MemoryPersistence
 } from '../local/memory_persistence';
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -74,19 +79,52 @@ export interface ComponentProvider {
 }
 
 /**
- * Provides all components needed for Firestore with IndexedDB persistence.
+ * Provides all components needed for Firestore with in-memory persistence.
+ * Uses EagerGC garbage collection.
  */
-export class IndexedDbComponentProvider implements ComponentProvider {
-  persistence!: IndexedDbPersistence;
+export class MemoryComponentProvider {
+  persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   syncEngine!: SyncEngine;
-  gcScheduler!: GarbageCollectionScheduler;
+  gcScheduler!: GarbageCollectionScheduler | null;
   remoteStore!: RemoteStore;
   eventManager!: EventManager;
 
-  initialize(cfg: ComponentConfiguration): Promise<void> {
-    return initializeComponentProvider(this, cfg);
+  async initialize(cfg: ComponentConfiguration): Promise<void> {
+    this.sharedClientState = this.createSharedClientState(cfg);
+    this.persistence = this.createPersistence(cfg);
+    await this.persistence.start();
+    this.gcScheduler = this.createGarbageCollectionScheduler(cfg);
+    this.localStore = this.createLocalStore(cfg);
+    this.remoteStore = this.createRemoteStore(cfg);
+    this.syncEngine = this.createSyncEngine(cfg);
+    this.eventManager = this.createEventManager(cfg);
+
+    this.sharedClientState.onlineStateHandler = onlineState =>
+      this.syncEngine.applyOnlineStateChange(
+        onlineState,
+        OnlineStateSource.SharedClientState
+      );
+    this.remoteStore.syncEngine = this.syncEngine;
+    this.sharedClientState.syncEngine = this.syncEngine;
+
+    await this.sharedClientState.start();
+    await this.remoteStore.start();
+    await this.localStore.start();
+
+    // NOTE: This will immediately call the listener, so we make sure to
+    // set it after localStore / remoteStore are started.
+    await this.persistence.setPrimaryStateListener(async isPrimary => {
+      await this.syncEngine.applyPrimaryState(isPrimary);
+      if (this.gcScheduler) {
+        if (isPrimary && !this.gcScheduler.started) {
+          this.gcScheduler.start(this.localStore);
+        } else if (!isPrimary) {
+          this.gcScheduler.stop();
+        }
+      }
+    });
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
@@ -96,9 +134,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
   ): GarbageCollectionScheduler | null {
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
-    return new LruScheduler(garbageCollector, cfg.asyncQueue);
+    return null;
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
@@ -107,6 +143,83 @@ export class IndexedDbComponentProvider implements ComponentProvider {
       new IndexFreeQueryEngine(),
       cfg.initialUser
     );
+  }
+
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      !cfg.persistenceSettings.durable,
+      'Can only start memory persistence'
+    );
+    return new MemoryPersistence(cfg.clientId, MemoryEagerDelegate.factory);
+  }
+
+  createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
+    return new RemoteStore(
+      this.localStore,
+      cfg.datastore,
+      cfg.asyncQueue,
+      onlineState =>
+        this.syncEngine.applyOnlineStateChange(
+          onlineState,
+          OnlineStateSource.RemoteStore
+        ),
+      cfg.platform.newConnectivityMonitor()
+    );
+  }
+
+  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
+    return new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
+      cfg.initialUser,
+      cfg.maxConcurrentLimboResolutions
+    );
+  }
+
+  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+}
+
+/**
+ * Provides all components needed for Firestore with in-memory persistence.
+ * Uses LRU garbage collection.
+ */
+export class MemoryLruComponentProvider extends MemoryComponentProvider {
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      !cfg.persistenceSettings.durable,
+      'Can only start memory persistence'
+    );
+    return new MemoryPersistence(
+      cfg.clientId,
+      p => new MemoryLruDelegate(p, LruParams.DEFAULT)
+    );
+  }
+}
+
+/**
+ * Provides all components needed for Firestore with IndexedDB persistence.
+ */
+export class IndexedDbComponentProvider extends MemoryComponentProvider {
+  createGarbageCollectionScheduler(
+    cfg: ComponentConfiguration
+  ): GarbageCollectionScheduler | null {
+    debugAssert(
+      this.persistence instanceof IndexedDbPersistence,
+      'IndexedDbComponentProvider should provide IndexedDBPersistence'
+    );
+    const garbageCollector = this.persistence.referenceDelegate
+      .garbageCollector;
+    return new LruScheduler(garbageCollector, cfg.asyncQueue);
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
@@ -131,20 +244,6 @@ export class IndexedDbComponentProvider implements ComponentProvider {
       ),
       sequenceNumberSyncer: this.sharedClientState
     });
-  }
-
-  createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
-    return new RemoteStore(
-      this.localStore,
-      cfg.datastore,
-      cfg.asyncQueue,
-      onlineState =>
-        this.syncEngine.applyOnlineStateChange(
-          onlineState,
-          OnlineStateSource.RemoteStore
-        ),
-      cfg.platform.newConnectivityMonitor()
-    );
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
@@ -174,148 +273,10 @@ export class IndexedDbComponentProvider implements ComponentProvider {
     return new MemorySharedClientState();
   }
 
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
-    );
-  }
-
   clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo
     );
     return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
-}
-
-const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
-
-/**
- * Provides all components needed for Firestore with in-memory persistence.
- */
-export class MemoryComponentProvider implements ComponentProvider {
-  persistence!: Persistence;
-  sharedClientState!: SharedClientState;
-  localStore!: LocalStore;
-  syncEngine!: SyncEngine;
-  gcScheduler!: null;
-  remoteStore!: RemoteStore;
-  eventManager!: EventManager;
-
-  constructor(
-    readonly referenceDelegateFactory: (
-      p: MemoryPersistence
-    ) => MemoryReferenceDelegate = MemoryEagerDelegate.factory
-  ) {}
-
-  initialize(cfg: ComponentConfiguration): Promise<void> {
-    return initializeComponentProvider(this, cfg);
-  }
-
-  createEventManager(cfg: ComponentConfiguration): EventManager {
-    return new EventManager(this.syncEngine);
-  }
-
-  createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
-    return null;
-  }
-
-  createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return new LocalStore(
-      this.persistence,
-      new IndexFreeQueryEngine(),
-      cfg.initialUser
-    );
-  }
-
-  createPersistence(cfg: ComponentConfiguration): Persistence {
-    debugAssert(
-      !cfg.persistenceSettings.durable,
-      'Can only start memory persistence'
-    );
-    return new MemoryPersistence(cfg.clientId, this.referenceDelegateFactory);
-  }
-
-  createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
-    return new RemoteStore(
-      this.localStore,
-      cfg.datastore,
-      cfg.asyncQueue,
-      onlineState =>
-        this.syncEngine.applyOnlineStateChange(
-          onlineState,
-          OnlineStateSource.RemoteStore
-        ),
-      cfg.platform.newConnectivityMonitor()
-    );
-  }
-
-  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
-    return new MemorySharedClientState();
-  }
-
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
-    );
-  }
-
-  clearPersistence(): never {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
-}
-
-async function initializeComponentProvider(
-  target: MemoryComponentProvider | IndexedDbComponentProvider,
-  cfg: ComponentConfiguration
-): Promise<void> {
-  target.sharedClientState = target.createSharedClientState(cfg);
-  target.persistence = target.createPersistence(cfg);
-  await target.persistence.start();
-  target.gcScheduler = target.createGarbageCollectionScheduler(cfg);
-  target.localStore = target.createLocalStore(cfg);
-  target.remoteStore = target.createRemoteStore(cfg);
-  target.syncEngine = target.createSyncEngine(cfg);
-  target.eventManager = target.createEventManager(cfg);
-
-  target.sharedClientState.onlineStateHandler = onlineState =>
-    target.syncEngine.applyOnlineStateChange(
-      onlineState,
-      OnlineStateSource.SharedClientState
-    );
-  target.remoteStore.syncEngine = target.syncEngine;
-  target.sharedClientState.syncEngine = target.syncEngine;
-
-  await target.sharedClientState.start();
-  await target.remoteStore.start();
-  await target.localStore.start();
-
-  // NOTE: This will immediately call the listener, so we make sure to
-  // set it after localStore / remoteStore are started.
-  await target.persistence.setPrimaryStateListener(async isPrimary => {
-    await target.syncEngine.applyPrimaryState(isPrimary);
-    if (target.gcScheduler) {
-      if (isPrimary && !target.gcScheduler.started) {
-        target.gcScheduler.start(target.localStore);
-      } else if (!isPrimary) {
-        target.gcScheduler.stop();
-      }
-    }
-  });
 }

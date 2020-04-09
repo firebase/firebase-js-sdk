@@ -22,7 +22,8 @@ import {
   ComponentConfiguration,
   ComponentProvider,
   IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryComponentProvider,
+  MemoryLruComponentProvider
 } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
@@ -47,10 +48,6 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
-import {
-  MemoryEagerDelegate,
-  MemoryLruDelegate
-} from '../../../src/local/memory_persistence';
 import {
   GarbageCollectionScheduler,
   Persistence
@@ -1282,13 +1279,11 @@ class MemoryTestRunner extends TestRunner {
     configuration: ComponentConfiguration,
     gcEnabled: boolean
   ): Promise<ComponentProvider> {
-    const persistenceProvider = new MemoryComponentProvider(
-      gcEnabled
-        ? MemoryEagerDelegate.factory
-        : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
-    );
-    await persistenceProvider.initialize(configuration);
-    return persistenceProvider;
+    const componentProvider = gcEnabled
+      ? new MemoryComponentProvider()
+      : new MemoryLruComponentProvider();
+    await componentProvider.initialize(configuration);
+    return componentProvider;
   }
 }
 
@@ -1320,9 +1315,9 @@ class IndexedDbTestRunner extends TestRunner {
     configuration: ComponentConfiguration,
     gcEnabled: boolean
   ): Promise<ComponentProvider> {
-    const persistenceProvider = new IndexedDbComponentProvider();
-    await persistenceProvider.initialize(configuration);
-    return persistenceProvider;
+    const componentProvider = new IndexedDbComponentProvider();
+    await componentProvider.initialize(configuration);
+    return componentProvider;
   }
 
   static destroyPersistence(): Promise<void> {
