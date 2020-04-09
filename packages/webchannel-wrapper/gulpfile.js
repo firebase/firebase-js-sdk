@@ -62,7 +62,7 @@ const closureDefines = [
  * @param {string} suffix suffix to the compiled code
  */
 function createBuildTask(filename, prefix, suffix) {
-  return function closureBuild () {
+  return function closureBuild() {
     return gulp
       .src(
         [
@@ -86,13 +86,11 @@ function createBuildTask(filename, prefix, suffix) {
           language_out: 'ES5',
           dependency_mode: 'PRUNE',
           define: closureDefines
-          // process_common_js_modules: true,
-          // module_resolution: 'NODE'
         })
       )
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('dist'));
-  }
+  };
 }
 
 function createRollupTask(inputPath) {
@@ -129,16 +127,13 @@ gulp.task('cjs', cjsBuild);
 // esm build
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
-const esmBuild = createBuildTask(
-  intermediateEsmFile, '', ''
-);
+const esmBuild = createBuildTask(intermediateEsmFile, '', '');
 const rollupTask = createRollupTask(intermediateEsmPath);
-gulp.task(
-  'esm',
-  gulp.series(esmBuild, rollupTask, deleteIntermediateFiles)
-);
+gulp.task('esm', gulp.series(esmBuild, rollupTask, deleteIntermediateFiles));
 
 // Deletes intermediate files.
-gulp.task('clean', done => del([resolve(__dirname, intermediateEsmFile)], done));
+gulp.task('clean', done =>
+  del([resolve(__dirname, intermediateEsmFile)], done)
+);
 
 gulp.task('default', gulp.parallel('cjs', 'esm'));
