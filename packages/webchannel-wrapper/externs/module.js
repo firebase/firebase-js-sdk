@@ -1,0 +1,2 @@
+/** @type {!Object} */
+const module = {};

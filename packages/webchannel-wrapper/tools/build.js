@@ -42,8 +42,8 @@ closureBuilder.build({
   name: 'firebase.webchannel.wrapper',
   srcs: glob([resolve(__dirname, '../src/**/*.js')]),
   externs: [resolve(__dirname, '../externs/overrides.js')],
-  out: 'dist/index.js',
-  out_source_map: 'dist/index.js.map',
+  out: 'dist/indexOLD.js',
+  out_source_map: 'dist/indexOLD.js.map',
   options: {
     closure: {
       output_wrapper:
@@ -65,7 +65,7 @@ closureBuilder.build(
     srcs: glob([resolve(__dirname, '../src/**/*.js')]),
     externs: [resolve(__dirname, '../externs/overrides.js')],
     out: filePath,
-    out_source_map: `${filePath}.map`,
+    out_source_map: `${filePath}.OLD.map`,
     options: {
       closure: {
         output_wrapper: '%output%\n//# sourceMappingURL=index.js.map',
@@ -82,7 +82,7 @@ closureBuilder.build(
     };
 
     const outputOptions = {
-      file: 'dist/index.esm.js',
+      file: 'dist/indexOLD.esm.js',
       format: 'es',
       sourcemap: true
     };

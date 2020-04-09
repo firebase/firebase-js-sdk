@@ -30,7 +30,7 @@ goog.net.WebChannel.Options.messageHeaders;
 /** @type {Object<string, string>|undefined} */
 goog.net.WebChannel.Options.initMessageHeaders;
 
-/** @type {stringboolean|undefined} */
+/** @type {string|boolean|undefined} */
 goog.net.WebChannel.Options.messageContentType;
 
 /** @type {Object<string, string>|undefined|undefined} */
