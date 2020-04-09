@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -339,6 +339,8 @@ function showNotification(details: NotificationDetails): Promise<void> {
   const title = details.title ?? '';
 
   const { actions } = details;
+  // Note: Firefox does not support the maxActions property.
+  // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
   const { maxActions } = Notification;
   if (actions && maxActions && actions.length > maxActions) {
     console.warn(
