@@ -19,8 +19,13 @@ export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
 
+export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
+export const DEFAULT_API_SCHEME = 'https';
+
 export interface Config {
   apiKey: ApiKey;
+  apiHost: string;
+  apiScheme: string;
   authDomain?: AuthDomain;
 }
 
