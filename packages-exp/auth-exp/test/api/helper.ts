@@ -15,6 +15,14 @@ export const mockAuth: Auth = {
   }
 };
 
-export function mockEndpoint(endpoint: Endpoint, response: object, status = 200): Route {
-  return mock(`${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`, response, status);
+export function mockEndpoint(
+  endpoint: Endpoint,
+  response: object,
+  status = 200
+): Route {
+  return mock(
+    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
+    response,
+    status
+  );
 }
