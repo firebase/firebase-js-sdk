@@ -23,10 +23,6 @@ export interface UserParameters {
   uid: string;
 }
 
-export class User implements UserInfo {
+export interface User extends UserInfo {
   uid: string;
-
-  constructor(params: UserParameters) {
-    this.uid = params.uid;
-  }
 }
