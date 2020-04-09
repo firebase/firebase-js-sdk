@@ -247,11 +247,11 @@ describe('AsyncQueue', () => {
         throw new Error("Let's retry");
       }
     });
-    
+
     // Verify that only one attempt has been made
     await queue.drain();
     expect(completedSteps).to.deep.equal([1]);
-    
+
     // Fast forward all operations
     await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
@@ -265,7 +265,7 @@ describe('AsyncQueue', () => {
     };
 
     const blockingPromise = new Deferred<void>();
-    
+
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length > 1) {
