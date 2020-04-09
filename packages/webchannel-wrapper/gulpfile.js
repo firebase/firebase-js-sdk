@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,6 @@ function createBuildTask(filename, prefix, suffix) {
 
 function createRollupTask(inputPath) {
   return async function rollupBuild() {
-    console.log('inputPath', inputPath);
     const inputOptions = {
       input: inputPath,
       plugins: [rollupSourcemaps(), commonjs()]
@@ -125,15 +124,13 @@ const cjsBuild = createBuildTask(
 gulp.task('cjs', cjsBuild);
 
 // esm build
+// 1) Do closure compile without any wrapping code.
+// 2) Use rollup to convert result to ESM format.
+// 3) Delete intermediate files.
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
 const esmBuild = createBuildTask(intermediateEsmFile, '', '');
 const rollupTask = createRollupTask(intermediateEsmPath);
 gulp.task('esm', gulp.series(esmBuild, rollupTask, deleteIntermediateFiles));
-
-// Deletes intermediate files.
-gulp.task('clean', done =>
-  del([resolve(__dirname, intermediateEsmFile)], done)
-);
 
 gulp.task('default', gulp.parallel('cjs', 'esm'));

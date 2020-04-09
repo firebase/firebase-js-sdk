@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "watch 'yarn build' src",
-    "build": "node tools/build.js",
+    "build": "gulp",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
