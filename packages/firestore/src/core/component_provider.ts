@@ -118,9 +118,7 @@ export class IndexedDbComponentProvider implements ComponentProvider {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       cfg.databaseInfo
     );
-    const serializer = cfg.platform.newSerializer(
-      cfg.databaseInfo.databaseId
-    );
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
     return IndexedDbPersistence.createIndexedDbPersistence({
       allowTabSynchronization: cfg.persistenceSettings.synchronizeTabs,
       persistenceKey,
