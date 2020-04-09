@@ -121,45 +121,12 @@ export abstract class ComponentProvider {
   }
 
   protected abstract createSharedClientState(): SharedClientState;
-
   protected abstract createPersistence(): Persistence;
-
   protected abstract createGarbageCollectionScheduler(): GarbageCollectionScheduler | null;
-
-  protected createLocalStore(): LocalStore {
-    return new LocalStore(
-      this.persistence,
-      new IndexFreeQueryEngine(),
-      this.initialUser
-    );
-  }
-  protected createSyncEngine(): SyncEngine {
-    return new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      this.initialUser,
-      this.maxConcurrentLimboResolutions
-    );
-  }
-
-  protected createEventManager(): EventManager {
-    return new EventManager(this.syncEngine);
-  }
-
-  protected createRemoteStore(): RemoteStore {
-    return new RemoteStore(
-      this.localStore,
-      this.datastore,
-      this.asyncQueue,
-      onlineState =>
-        this.syncEngine.applyOnlineStateChange(
-          onlineState,
-          OnlineStateSource.RemoteStore
-        ),
-      this.platform.newConnectivityMonitor()
-    );
-  }
+  protected abstract createLocalStore(): LocalStore;
+  protected abstract createRemoteStore(): RemoteStore;
+  protected abstract createSyncEngine(): SyncEngine;
+  protected abstract createEventManager(): EventManager;
 
   abstract clearPersistence(databaseId: DatabaseInfo): Promise<void>;
 }
@@ -168,6 +135,10 @@ export abstract class ComponentProvider {
  * Provides all components needed for Firestore with IndexedDB persistence.
  */
 export class IndexedDbComponentProvider extends ComponentProvider {
+  protected createEventManager(): EventManager {
+    return new EventManager(this.syncEngine);
+  }
+
   protected createGarbageCollectionScheduler(): GarbageCollectionScheduler | null {
     debugAssert(
       this.persistence instanceof IndexedDbPersistence,
@@ -176,6 +147,14 @@ export class IndexedDbComponentProvider extends ComponentProvider {
     const garbageCollector = this.persistence.referenceDelegate
       .garbageCollector;
     return new LruScheduler(garbageCollector, this.asyncQueue);
+  }
+
+  protected createLocalStore(): LocalStore {
+    return new LocalStore(
+      this.persistence,
+      new IndexFreeQueryEngine(),
+      this.initialUser
+    );
   }
 
   protected createPersistence(): Persistence {
@@ -202,6 +181,20 @@ export class IndexedDbComponentProvider extends ComponentProvider {
       ),
       sequenceNumberSyncer: this.sharedClientState
     });
+  }
+
+  protected createRemoteStore(): RemoteStore {
+    return new RemoteStore(
+      this.localStore,
+      this.datastore,
+      this.asyncQueue,
+      onlineState =>
+        this.syncEngine.applyOnlineStateChange(
+          onlineState,
+          OnlineStateSource.RemoteStore
+        ),
+      this.platform.newConnectivityMonitor()
+    );
   }
 
   protected createSharedClientState(): SharedClientState {
@@ -231,6 +224,16 @@ export class IndexedDbComponentProvider extends ComponentProvider {
     return new MemorySharedClientState();
   }
 
+  protected createSyncEngine(): SyncEngine {
+    return new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
+      this.initialUser,
+      this.maxConcurrentLimboResolutions
+    );
+  }
+
   clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       databaseInfo
@@ -256,8 +259,20 @@ export class MemoryComponentProvider extends ComponentProvider {
     super();
   }
 
+  protected createEventManager(): EventManager {
+    return new EventManager(this.syncEngine);
+  }
+
   protected createGarbageCollectionScheduler(): GarbageCollectionScheduler | null {
     return null;
+  }
+
+  protected createLocalStore(): LocalStore {
+    return new LocalStore(
+      this.persistence,
+      new IndexFreeQueryEngine(),
+      this.initialUser
+    );
   }
 
   protected createPersistence(): Persistence {
@@ -268,8 +283,32 @@ export class MemoryComponentProvider extends ComponentProvider {
     return new MemoryPersistence(this.clientId, this.referenceDelegateFactory);
   }
 
+  protected createRemoteStore(): RemoteStore {
+    return new RemoteStore(
+      this.localStore,
+      this.datastore,
+      this.asyncQueue,
+      onlineState =>
+        this.syncEngine.applyOnlineStateChange(
+          onlineState,
+          OnlineStateSource.RemoteStore
+        ),
+      this.platform.newConnectivityMonitor()
+    );
+  }
+
   protected createSharedClientState(): SharedClientState {
     return new MemorySharedClientState();
+  }
+
+  protected createSyncEngine(): SyncEngine {
+    return new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.sharedClientState,
+      this.initialUser,
+      this.maxConcurrentLimboResolutions
+    );
   }
 
   clearPersistence(): never {
