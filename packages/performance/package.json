@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.2.37",
+  "version": "0.3.0",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
