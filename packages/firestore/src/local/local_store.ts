@@ -219,6 +219,11 @@ export class LocalStore {
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
   }
 
+  /** Starts the LocalStore. */
+  start(): Promise<void> {
+    return Promise.resolve();
+  }
+
   /**
    * Tells the LocalStore that the currently authenticated user has changed.
    *

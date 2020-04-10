@@ -107,7 +107,8 @@ export class MemoryComponentProvider {
         OnlineStateSource.SharedClientState
       );
     this.remoteStore.syncEngine = this.syncEngine;
-
+    
+    await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
 
@@ -212,12 +213,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       'IndexedDbComponentProvider should provide MultiTabSyncEngine'
     );
 
-    if (this.sharedClientState instanceof WebStorageSharedClientState) {
-      this.sharedClientState.syncEngine = this.syncEngine;
-    }
-
-    await this.localStore.start();
-
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
@@ -251,13 +246,17 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       this.localStore instanceof MultiTabLocalStore,
       'IndexedDbComponentProvider should provide MultiTabLocalStore'
     );
-    return new MultiTabSyncEngine(
+    const syncEngine = new MultiTabSyncEngine(
       this.localStore,
       this.remoteStore,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions
     );
+    if (this.sharedClientState instanceof WebStorageSharedClientState) {
+      this.sharedClientState.syncEngine = syncEngine;
+    }
+    return syncEngine;
   }
 
   createGarbageCollectionScheduler(
