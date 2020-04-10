@@ -58,7 +58,9 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const {refreshToken, accessToken} = await this.stsTokenManager.getToken(forceRefresh);
+    const { refreshToken, accessToken } = await this.stsTokenManager.getToken(
+      forceRefresh
+    );
     this.refreshToken = refreshToken || '';
 
     // TODO: notify listeners at this point

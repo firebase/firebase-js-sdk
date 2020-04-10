@@ -70,10 +70,10 @@ describe('core/user/user_impl', () => {
       stsTokenManager.updateFromServerResponse({
         idToken: 'id-token-string',
         refreshToken: 'refresh-token-string',
-        expiresIn: '100000',
+        expiresIn: '100000'
       } as IdTokenResponse);
 
-      const user = new UserImpl({uid: 'uid', auth, stsTokenManager});
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const token = await user.getIdToken();
       expect(token).to.eq('id-token-string');
       expect(user.refreshToken).to.eq('refresh-token-string');

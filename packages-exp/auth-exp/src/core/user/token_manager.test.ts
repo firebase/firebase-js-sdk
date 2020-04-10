@@ -39,7 +39,7 @@ describe('core/user/token_manager', () => {
 
   describe('#isExpired', () => {
     it('is true if past expiration time', () => {
-      stsTokenManager.expirationTime = 1;  // Ancient history
+      stsTokenManager.expirationTime = 1; // Ancient history
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
@@ -60,7 +60,7 @@ describe('core/user/token_manager', () => {
       stsTokenManager.updateFromServerResponse({
         idToken: 'id-token',
         refreshToken: 'refresh-token',
-        expiresIn: '60',  // From the server this is 30s
+        expiresIn: '60' // From the server this is 30s
       } as IdTokenResponse);
 
       expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
@@ -71,12 +71,18 @@ describe('core/user/token_manager', () => {
 
   describe('#getToken', () => {
     it('throws if forceRefresh is true', async () => {
-      Object.assign(stsTokenManager, {accessToken: 'token', expirationTime: now + 100_000});
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        expirationTime: now + 100_000
+      });
       await expect(stsTokenManager.getToken(true)).to.be.rejectedWith(Error);
     });
 
     it('throws if token is expired', async () => {
-      Object.assign(stsTokenManager, {accessToken: 'token', expirationTime: now - 1});
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        expirationTime: now - 1
+      });
       await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error);
     });
 
@@ -88,7 +94,7 @@ describe('core/user/token_manager', () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now + 100_000,
+        expirationTime: now + 100_000
       });
 
       const tokens = await stsTokenManager.getToken();

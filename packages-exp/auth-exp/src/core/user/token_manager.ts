@@ -25,34 +25,41 @@ const TOKEN_REFRESH_BUFFER_MS = 30_000;
 
 export interface Tokens {
   accessToken: string;
-  refreshToken: string|null;
+  refreshToken: string | null;
 }
 
 export const DATE_GENERATOR = {
-  now: () => Date.now(),
+  now: () => Date.now()
 };
 
 export class StsTokenManager {
-  refreshToken: string|null = null;
-  accessToken: string|null = null;
-  expirationTime: number|null = null;
+  refreshToken: string | null = null;
+  accessToken: string | null = null;
+  expirationTime: number | null = null;
 
   get isExpired(): boolean {
-    return !this.expirationTime ||
-        DATE_GENERATOR.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS;
+    return (
+      !this.expirationTime ||
+      DATE_GENERATOR.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
+    );
   }
 
-  updateFromServerResponse({idToken, refreshToken, expiresIn}: IdTokenResponse): void {
+  updateFromServerResponse({
+    idToken,
+    refreshToken,
+    expiresIn
+  }: IdTokenResponse): void {
     this.refreshToken = refreshToken;
     this.accessToken = idToken;
-    this.expirationTime = DATE_GENERATOR.now() + (Number.parseInt(expiresIn, 10) * 1000);
+    this.expirationTime =
+      DATE_GENERATOR.now() + Number.parseInt(expiresIn, 10) * 1000;
   }
 
   async getToken(forceRefresh = false): Promise<Tokens> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return {
         accessToken: this.accessToken,
-        refreshToken: this.refreshToken,
+        refreshToken: this.refreshToken
       };
     }
 
