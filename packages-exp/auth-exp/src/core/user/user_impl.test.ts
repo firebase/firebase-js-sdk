@@ -15,16 +15,26 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { UserImpl } from './user_impl';
-import { mockAuth } from '../../test/mock_auth';
+import { mockAuth } from '../../../test/mock_auth';
+import { StsTokenManager } from './token_manager';
+import { IdTokenResponse } from '../../model/id_token';
 
-describe('core/user_impl', () => {
+use(chaiAsPromised);
+
+describe('core/user/user_impl', () => {
   const auth = mockAuth('foo', 'i-am-the-api-key');
+  let stsTokenManager: StsTokenManager;
+
+  beforeEach(() => {
+    stsTokenManager = new StsTokenManager();
+  });
 
   describe('constructor', () => {
     it('attaches required fields', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(user.auth).to.eq(auth);
       expect(user.uid).to.eq('uid');
     });
@@ -33,6 +43,7 @@ describe('core/user_impl', () => {
       const user = new UserImpl({
         uid: 'uid',
         auth,
+        stsTokenManager,
         displayName: 'displayName',
         email: 'email',
         phoneNumber: 'phoneNumber',
@@ -46,7 +57,7 @@ describe('core/user_impl', () => {
     });
 
     it('sets optional fields to null if not provided', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(user.displayName).to.eq(null);
       expect(user.email).to.eq(null);
       expect(user.phoneNumber).to.eq(null);
@@ -55,29 +66,42 @@ describe('core/user_impl', () => {
   });
 
   describe('#getIdToken', () => {
-    it('throws', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
-      expect(() => user.getIdToken()).to.throw();
+    it('returns the raw token if refresh tokens are in order', async () => {
+      stsTokenManager.updateFromServerResponse({
+        idToken: 'id-token-string',
+        refreshToken: 'refresh-token-string',
+        expiresIn: '100000',
+      } as IdTokenResponse);
+
+      const user = new UserImpl({uid: 'uid', auth, stsTokenManager});
+      const token = await user.getIdToken();
+      expect(token).to.eq('id-token-string');
+      expect(user.refreshToken).to.eq('refresh-token-string');
+    });
+
+    it('throws if refresh is required', async () => {
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
+      await expect(user.getIdToken()).to.be.rejectedWith(Error);
     });
   });
 
   describe('#getIdTokenResult', () => {
-    it('throws', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
-      expect(() => user.getIdTokenResult()).to.throw();
+    it('throws', async () => {
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
+      await expect(user.getIdTokenResult()).to.be.rejectedWith(Error);
     });
   });
 
   describe('#reload', () => {
     it('throws', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(() => user.reload()).to.throw();
     });
   });
 
   describe('#delete', () => {
     it('throws', () => {
-      const user = new UserImpl({ uid: 'uid', auth });
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(() => user.delete()).to.throw();
     });
   });

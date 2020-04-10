@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import { User } from '../model/user';
-import { Auth } from '../model/auth';
-import { IdTokenResult } from '../model/id_token';
-import { ProviderId } from './providers';
+import { User } from '../../model/user';
+import { Auth } from '../../model/auth';
+import { IdTokenResult } from '../../model/id_token';
+import { ProviderId } from '../providers';
+import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
   uid: string;
   auth: Auth;
+  stsTokenManager: StsTokenManager;
 
   displayName?: string;
   email?: string;
@@ -33,6 +35,8 @@ export interface UserParameters {
 export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = ProviderId.FIREBASE;
+  stsTokenManager: StsTokenManager;
+  refreshToken = '';
 
   uid: string;
   auth: Auth;
@@ -43,21 +47,28 @@ export class UserImpl implements User {
   phoneNumber: string | null;
   photoURL: string | null;
 
-  constructor({ uid, auth, ...opt }: UserParameters) {
+  constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
     this.auth = auth;
+    this.stsTokenManager = stsTokenManager;
     this.displayName = opt.displayName || null;
     this.email = opt.email || null;
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
   }
 
-  getIdToken(forceRefresh?: boolean): Promise<string> {
-    throw new Error(`Method not implemented. forceRefresh: ${forceRefresh}`);
+  async getIdToken(forceRefresh?: boolean): Promise<string> {
+    const {refreshToken, accessToken} = await this.stsTokenManager.getToken(forceRefresh);
+    this.refreshToken = refreshToken || '';
+
+    // TODO: notify listeners at this point
+    return accessToken;
   }
 
-  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
-    throw new Error(`Method not implemented. forceRefresh: ${forceRefresh}`);
+  async getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
+    await this.getIdToken(forceRefresh);
+    // TODO: Parse token
+    throw new Error('Method not implemented');
   }
 
   reload(): Promise<void> {
