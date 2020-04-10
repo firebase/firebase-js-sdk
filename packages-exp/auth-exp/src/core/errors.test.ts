@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../src/core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
 describe('AUTH_ERROR_FACTORY', () => {
   it('should create an Auth namespaced FirebaseError', () => {

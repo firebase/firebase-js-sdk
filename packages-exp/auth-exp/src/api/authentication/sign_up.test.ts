@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-import * as mockFetch from '../../mock_fetch';
-import { signUp, SignUpRequest } from '../../../src/api/authentication/sign_up';
-import { expect } from 'chai';
-import { Endpoint } from '../../../src/api';
-import { ServerError } from '../../../src/api/errors';
-import { mockEndpoint, mockAuth } from '../helper';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { signUp, SignUpRequest } from './sign_up';
+import { Endpoint } from '..';
+import { ServerError } from '../errors';
+import { FirebaseError } from '@firebase/util';
+import * as mockFetch from '../../../test/mock_fetch';
+import { mockEndpoint, mockAuth } from '../../../test/api/helper';
+
+use(chaiAsPromised);
 
 describe('signUp', () => {
   const request: SignUpRequest = {
@@ -41,9 +45,9 @@ describe('signUp', () => {
     const response = await signUp(mockAuth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0]).to.eql({
-      request
-    });
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers).to.eql({ 'Content-Type': 'application/json' });
   });
 
   it('should handle errors', async () => {
@@ -63,16 +67,9 @@ describe('signUp', () => {
       400
     );
 
-    try {
-      await signUp(mockAuth, request);
-    } catch (e) {
-      expect(e.name).to.eq('FirebaseError');
-      expect(e.message).to.eq(
-        'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
-      );
-      expect(mock.calls[0]).to.eql({
-        request
-      });
-    }
+    await expect(signUp(mockAuth, request)).to.be.rejectedWith(FirebaseError, 'Firebase: The email address is already in use by another account. (auth/email-already-in-use).');
+    expect(mock.calls[0].request).to.eql(
+      request
+    );
   });
 });
