@@ -29,6 +29,7 @@
     "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
+    "@firebase/util": "^0.2.44",
     "mocha": "^7.1.1",
     "tslib": "1.11.1"
   },
