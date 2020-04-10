@@ -47,7 +47,9 @@ describe('signUp', () => {
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({ 'Content-Type': 'application/json' });
+    expect(mock.calls[0].headers).to.eql({
+      'Content-Type': 'application/json'
+    });
   });
 
   it('should handle errors', async () => {
@@ -67,9 +69,10 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(FirebaseError, 'Firebase: The email address is already in use by another account. (auth/email-already-in-use).');
-    expect(mock.calls[0].request).to.eql(
-      request
+    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
+    expect(mock.calls[0].request).to.eql(request);
   });
 });
