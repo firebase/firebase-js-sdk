@@ -24,7 +24,7 @@ describe('core/user_impl', () => {
 
   describe('constructor', () => {
     it('attaches required fields', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(user.auth).to.eq(auth);
       expect(user.uid).to.eq('uid');
     });
@@ -36,7 +36,7 @@ describe('core/user_impl', () => {
         displayName: 'displayName',
         email: 'email',
         phoneNumber: 'phoneNumber',
-        photoURL: 'photoURL',
+        photoURL: 'photoURL'
       });
 
       expect(user.displayName).to.eq('displayName');
@@ -46,7 +46,7 @@ describe('core/user_impl', () => {
     });
 
     it('sets optional fields to null if not provided', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(user.displayName).to.eq(null);
       expect(user.email).to.eq(null);
       expect(user.phoneNumber).to.eq(null);
@@ -56,28 +56,28 @@ describe('core/user_impl', () => {
 
   describe('#getIdToken', () => {
     it('throws', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(() => user.getIdToken()).to.throw();
     });
   });
 
   describe('#getIdTokenResult', () => {
     it('throws', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(() => user.getIdTokenResult()).to.throw();
     });
   });
 
   describe('#reload', () => {
     it('throws', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(() => user.reload()).to.throw();
     });
   });
 
   describe('#delete', () => {
     it('throws', () => {
-      const user = new UserImpl({uid: 'uid', auth});
+      const user = new UserImpl({ uid: 'uid', auth });
       expect(() => user.delete()).to.throw();
     });
   });

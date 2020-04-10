@@ -23,7 +23,7 @@ import { ProviderId } from './providers';
 export interface UserParameters {
   uid: string;
   auth: Auth;
-    
+
   displayName?: string;
   email?: string;
   phoneNumber?: string;
@@ -43,7 +43,7 @@ export class UserImpl implements User {
   phoneNumber: string | null;
   photoURL: string | null;
 
-  constructor({uid, auth, ...opt}: UserParameters) {
+  constructor({ uid, auth, ...opt }: UserParameters) {
     this.uid = uid;
     this.auth = auth;
     this.displayName = opt.displayName || null;

@@ -21,7 +21,7 @@ export function mockAuth(name: AppName, apiKey: ApiKey): Auth {
   return {
     name,
     config: {
-      apiKey,
+      apiKey
     }
   };
 }
