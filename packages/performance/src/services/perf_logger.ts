@@ -176,7 +176,6 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
 }
 
-
 function serializer(
   resource: NetworkRequest | Trace,
   resourceType: ResourceType

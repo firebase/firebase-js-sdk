@@ -292,13 +292,15 @@ async function getWindowClient(url: string): Promise<WindowClient | null> {
  * resolve to true, otherwise false.
  */
 async function hasVisibleClients(clientList: WindowClient[]): Promise<boolean> {
-  const checkedClientList = await Promise.all(clientList.map(
-    async client => 
-      client.visibilityState === 'visible' &&
-      // Ignore browser extension clients as that matches the background pages
-      // of extensions, which are always considered visible for some reason.
-      !(await isBackgroundClient(client))
-  ));
+  const checkedClientList = await Promise.all(
+    clientList.map(
+      async client =>
+        client.visibilityState === 'visible' &&
+        // Ignore browser extension clients as that matches the background pages
+        // of extensions, which are always considered visible for some reason.
+        !(await isBackgroundClient(client))
+    )
+  );
 
   return checkedClientList.some(item => item);
 }

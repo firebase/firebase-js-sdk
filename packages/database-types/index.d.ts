@@ -122,7 +122,7 @@ export interface Reference extends Query {
 
 export interface ServerValue {
   TIMESTAMP: Object;
-  increment(delta: number) : Object;
+  increment(delta: number): Object;
 }
 
 export interface ThenableReference extends Reference, Promise<Reference> {}

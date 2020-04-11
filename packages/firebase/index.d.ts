@@ -6920,15 +6920,15 @@ declare namespace firebase.database.ServerValue {
    * ```
    */
   var TIMESTAMP: Object;
-  
+
   /**
-   * Returns a placeholder value that can be used to atomically increment the 
+   * Returns a placeholder value that can be used to atomically increment the
    * current database value by the provided delta.
    *
    * @param delta the amount to modify the current value atomically.
    * @return a placeholder value for modifying data atomically server-side.
    */
-  function increment(delta: number) : Object;
+  function increment(delta: number): Object;
 }
 
 /**

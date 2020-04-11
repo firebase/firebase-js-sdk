@@ -102,7 +102,9 @@ export function getBrowserExtensionRuntime(): BrowserRuntime | undefined {
       : typeof browser === 'object'
       ? browser.runtime
       : undefined;
-  return typeof runtime === 'object' && runtime.id !== undefined ? runtime : undefined;
+  return typeof runtime === 'object' && runtime.id !== undefined
+    ? runtime
+    : undefined;
 }
 
 /**
