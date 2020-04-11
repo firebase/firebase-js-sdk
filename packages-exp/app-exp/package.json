@@ -20,13 +20,17 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --opts ../../config/mocha.node.opts",
     "type-check": "tsc -p . --noEmit",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove_exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn api-report && yarn doc"
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.800.0",
-    "@firebase/util": "0.2.43",
-    "@firebase/logger": "0.2.0",
-    "@firebase/component": "0.1.8",
+    "@firebase/util": "0.2.44",
+    "@firebase/logger": "0.2.1",
+    "@firebase/component": "0.1.9",
     "tslib": "1.11.1"
   },
   "license": "Apache-2.0",

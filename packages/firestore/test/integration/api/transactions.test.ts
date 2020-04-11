@@ -167,8 +167,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       this.docRef = this.db.collection('tester-docref').doc();
       if (this.fromExistingDoc) {
         await this.docRef.set({ foo: 'bar0' });
-        const docSnap = await this.docRef.get();
-        expect(docSnap.exists).to.equal(true);
       }
     }
 

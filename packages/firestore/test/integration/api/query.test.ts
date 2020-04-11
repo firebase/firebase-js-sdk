@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -781,22 +781,6 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
-    });
-  });
-
-  it('throws custom error when using docChanges as property', () => {
-    return withTestCollection(persistence, {}, async coll => {
-      const snapshot = await coll.get();
-      const expectedError =
-        'QuerySnapshot.docChanges has been changed from a property into a method';
-      // We are testing invalid API usage.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const docChange = snapshot.docChanges as any;
-      expect(() => docChange.length).to.throw(expectedError);
-      expect(() => {
-        for (const _ of docChange) {
-        }
-      }).to.throw(expectedError);
     });
   });
 

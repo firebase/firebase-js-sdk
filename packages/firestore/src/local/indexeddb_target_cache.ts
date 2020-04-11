@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import {
@@ -140,7 +140,10 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
-        assert(metadata.targetCount > 0, 'Removing from an empty target cache');
+        hardAssert(
+          metadata.targetCount > 0,
+          'Removing from an empty target cache'
+        );
         metadata.targetCount -= 1;
         return this.saveMetadata(transaction, metadata);
       });
@@ -419,7 +422,7 @@ function retrieveMetadata(
     DbTargetGlobal.store
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    assert(metadata !== null, 'Missing metadata row.');
+    hardAssert(metadata !== null, 'Missing metadata row.');
     return metadata;
   });
 }

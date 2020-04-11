@@ -21,8 +21,6 @@ const { execSync } = require('child_process');
 const https = require('https');
 const terser = require('terser');
 
-const repoRoot = resolve(__dirname, '..');
-
 const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
 
 const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL;
@@ -70,9 +68,7 @@ function generateReportForNPMPackages() {
   ];
 
   const packageInfo = JSON.parse(
-    execSync('npx lerna ls --json --scope @firebase/*', {
-      cwd: repoRoot
-    }).toString()
+    execSync('npx lerna ls --json --scope @firebase/*').toString()
   );
 
   for (const package of packageInfo) {

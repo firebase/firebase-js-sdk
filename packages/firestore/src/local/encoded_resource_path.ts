@@ -16,7 +16,7 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { fail, hardAssert } from '../util/assert';
 
 /**
  * Helpers for dealing with resource paths stored in IndexedDB.
@@ -118,9 +118,9 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
   // Event the empty path must encode as a path of at least length 2. A path
   // with exactly 2 must be the empty path.
   const length = path.length;
-  assert(length >= 2, 'Invalid path ' + path);
+  hardAssert(length >= 2, 'Invalid path ' + path);
   if (length === 2) {
-    assert(
+    hardAssert(
       path.charAt(0) === escapeChar && path.charAt(1) === encodedSeparatorChar,
       'Non-empty path ' + path + ' had length 2'
     );

@@ -19,7 +19,7 @@ import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
 
 import {
@@ -139,7 +139,7 @@ export class Precondition {
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
   ) {
-    assert(
+    debugAssert(
       updateTime === undefined || exists === undefined,
       'Precondition can specify "exists" or "updateTime" but not both'
     );
@@ -173,7 +173,7 @@ export class Precondition {
     } else if (this.exists !== undefined) {
       return this.exists === maybeDoc instanceof Document;
     } else {
-      assert(this.isNone, 'Precondition should be empty');
+      debugAssert(this.isNone, 'Precondition should be empty');
       return true;
     }
   }
@@ -303,7 +303,7 @@ export abstract class Mutation {
 
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(this.key),
         'Can only apply a mutation to a document with the same key'
       );
@@ -348,7 +348,7 @@ export class SetMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by SetMutation.'
     );
@@ -425,7 +425,7 @@ export class PatchMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by PatchMutation.'
     );
@@ -536,7 +536,7 @@ export class TransformMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    hardAssert(
       mutationResult.transformResults != null,
       'Transform results missing for TransformMutation.'
     );
@@ -628,11 +628,11 @@ export class TransformMutation extends Mutation {
    * safe.
    */
   private requireDocument(maybeDoc: MaybeDocument | null): Document {
-    assert(
+    debugAssert(
       maybeDoc instanceof Document,
       'Unknown MaybeDocument type ' + maybeDoc
     );
-    assert(
+    debugAssert(
       maybeDoc.key.isEqual(this.key),
       'Can only transform a document with the same key'
     );
@@ -653,7 +653,7 @@ export class TransformMutation extends Mutation {
     serverTransformResults: Array<api.Value | null>
   ): api.Value[] {
     const transformResults: api.Value[] = [];
-    assert(
+    hardAssert(
       this.fieldTransforms.length === serverTransformResults.length,
       `server transform result count (${serverTransformResults.length}) ` +
         `should match field transform count (${this.fieldTransforms.length})`
@@ -721,7 +721,7 @@ export class TransformMutation extends Mutation {
     data: ObjectValue,
     transformResults: api.Value[]
   ): ObjectValue {
-    assert(
+    debugAssert(
       transformResults.length === this.fieldTransforms.length,
       'TransformResults length mismatch.'
     );
@@ -750,7 +750,7 @@ export class DeleteMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by DeleteMutation.'
     );
@@ -776,7 +776,7 @@ export class DeleteMutation extends Mutation {
     }
 
     if (maybeDoc) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(this.key),
         'Can only apply mutation to document with same key'
       );
