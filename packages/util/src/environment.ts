@@ -73,7 +73,8 @@ export function isBrowser(): boolean {
 }
 
 /**
- * Detect browser extensions (Chrome and Firefox at least).
+ * Returns browser extension runtime or undefined if it's not defined.
+ * @return browser extension runtime
  */
 interface BrowserRuntime {
   id?: unknown;
@@ -81,20 +82,6 @@ interface BrowserRuntime {
 }
 declare const chrome: { runtime?: BrowserRuntime };
 declare const browser: { runtime?: BrowserRuntime };
-export function isBrowserExtension(): boolean {
-  const runtime =
-    typeof chrome === 'object'
-      ? chrome.runtime
-      : typeof browser === 'object'
-      ? browser.runtime
-      : undefined;
-  return typeof runtime === 'object' && runtime.id !== undefined;
-}
-
-/**
- * Returns browser extension runtime or undefined if it's not defined.
- * @return browser extension runtime
- */
 export function getBrowserExtensionRuntime(): BrowserRuntime | undefined {
   const runtime =
     typeof chrome === 'object'
@@ -105,6 +92,13 @@ export function getBrowserExtensionRuntime(): BrowserRuntime | undefined {
   return typeof runtime === 'object' && runtime.id !== undefined
     ? runtime
     : undefined;
+}
+
+/**
+ * Detect browser extensions (Chrome and Firefox at least).
+ */
+export function isBrowserExtension(): boolean {
+  return !!getBrowserExtensionRuntime();
 }
 
 /**
