@@ -26,7 +26,7 @@ import {
 import { FCM_MSG, DEFAULT_VAPID_KEY } from '../util/constants';
 import { MessageType, InternalMessage } from '../interfaces/internal-message';
 import { dbGet } from '../helpers/idb-manager';
-import { Unsubscribe } from '@firebase/util';
+import { Unsubscribe, getBrowserExtensionRuntime } from '@firebase/util';
 import { sleep } from '../helpers/sleep';
 import { FirebaseApp } from '@firebase/app-types';
 import { isConsoleMessage } from '../helpers/is-console-message';
@@ -157,7 +157,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     }
 
     const clientList = await getClientList();
-    if (hasVisibleClients(clientList)) {
+    if (await hasVisibleClients(clientList)) {
       // App in foreground. Send to page.
       return sendMessageToWindowClients(clientList, payload);
     }
@@ -291,14 +291,35 @@ async function getWindowClient(url: string): Promise<WindowClient | null> {
  * @returns If there is currently a visible WindowClient, this method will
  * resolve to true, otherwise false.
  */
-function hasVisibleClients(clientList: WindowClient[]): boolean {
-  return clientList.some(
-    client =>
+async function hasVisibleClients(clientList: WindowClient[]): Promise<boolean> {
+  const checkedClientList = await Promise.all(clientList.map(
+    async client => 
       client.visibilityState === 'visible' &&
-      // Ignore chrome-extension clients as that matches the background pages
+      // Ignore browser extension clients as that matches the background pages
       // of extensions, which are always considered visible for some reason.
-      !(client.url.startsWith('chrome-extension://') && client.url.endsWith("_generated_background_page.html"))
-  );
+      !(await isBackgroundClient(client))
+  ));
+
+  return checkedClientList.some(item => item);
+}
+
+/**
+ * @returns If client is the background page of browser extension, this method will
+ * resolve to true, otherwise false.
+ */
+async function isBackgroundClient(client: WindowClient): Promise<boolean> {
+  const runtime = getBrowserExtensionRuntime();
+
+  if (runtime) {
+    try {
+      const backgroundClient = await runtime.getBackgroundClient();
+      return client === backgroundClient;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 /**

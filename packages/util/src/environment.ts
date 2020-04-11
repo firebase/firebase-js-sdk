@@ -77,6 +77,7 @@ export function isBrowser(): boolean {
  */
 interface BrowserRuntime {
   id?: unknown;
+  getBackgroundClient: Function;
 }
 declare const chrome: { runtime?: BrowserRuntime };
 declare const browser: { runtime?: BrowserRuntime };
@@ -88,6 +89,20 @@ export function isBrowserExtension(): boolean {
       ? browser.runtime
       : undefined;
   return typeof runtime === 'object' && runtime.id !== undefined;
+}
+
+/**
+ * Returns browser extension runtime or undefined if it's not defined.
+ * @return browser extension runtime
+ */
+export function getBrowserExtensionRuntime(): BrowserRuntime | undefined {
+  const runtime =
+    typeof chrome === 'object'
+      ? chrome.runtime
+      : typeof browser === 'object'
+      ? browser.runtime
+      : undefined;
+  return typeof runtime === 'object' && runtime.id !== undefined ? runtime : undefined;
 }
 
 /**

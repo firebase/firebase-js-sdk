@@ -21,6 +21,7 @@ import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependenc
 import '../testing/setup';
 import { SwController, BgMessageHandler } from './sw-controller';
 import * as tokenManagementModule from '../core/token-management';
+import * as utilModule from '@firebase/util';
 import { Stub } from '../testing/sinon-types';
 import { Writable, ValueOf, DeepPartial } from 'ts-essentials';
 import { MessagePayload } from '../interfaces/message-payload';
@@ -220,9 +221,17 @@ describe('SwController', () => {
 
     it('sends a message to chrome extension clients if a chrome extension client is visible', async () => {
       const client: Writable<WindowClient> = (await self.clients.openWindow(
-        'chrome-extension://aihpiglmnhnhijdnjghpfnlledckkhja/popup.html'
+        'chrome-extension://testExtensionId/popup.html'
+      ))!;
+      const backgroundClient: Writable<WindowClient> = (await self.clients.openWindow(
+        'chrome-extension://testExtensionId/background_page.html'
       ))!;
       client.visibilityState = 'visible';
+      stub(utilModule, 'getBrowserExtensionRuntime').returns({
+        getBackgroundClient() {
+          return backgroundClient;
+        }
+      });
       const postMessageSpy = spy(client, 'postMessage');
 
       await callEventListener(
@@ -267,9 +276,14 @@ describe('SwController', () => {
 
     it('does not send a message to chrome extension background pages if background page is visible', async () => {
       const client: Writable<WindowClient> = (await self.clients.openWindow(
-        'chrome-extension://aihpiglmnhnhijdnjghpfnlledckkhja/_generated_background_page.html'
+        'chrome-extension://testExtensionId/background_page.html'
       ))!;
       client.visibilityState = 'visible';
+      stub(utilModule, 'getBrowserExtensionRuntime').returns({
+        getBackgroundClient() {
+          return client;
+        }
+      });
       const postMessageSpy = spy(client, 'postMessage');
       const showNotificationSpy = spy(self.registration, 'showNotification');
 
