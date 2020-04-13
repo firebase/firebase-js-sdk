@@ -136,8 +136,17 @@ gulp.task('esm', gulp.series(esmBuild, rollupTask));
 // 1) Do closure compile with language set to ES2017, without any wrapping code.
 // 2) Use rollup to convert result to ESM format.
 const intermediateEsm2017File = 'temp/esm2017.js';
-const intermediateEsm2017Path = resolve(__dirname, 'dist/', intermediateEsm2017File);
-const esm2017Build = createBuildTask(intermediateEsm2017File, '', '', 'ECMASCRIPT_2017');
+const intermediateEsm2017Path = resolve(
+  __dirname,
+  'dist/',
+  intermediateEsm2017File
+);
+const esm2017Build = createBuildTask(
+  intermediateEsm2017File,
+  '',
+  '',
+  'ECMASCRIPT_2017'
+);
 const rollup2017Task = createRollupTask(intermediateEsm2017Path, 'esm2017');
 gulp.task('esm2017', gulp.series(esm2017Build, rollup2017Task));
 
