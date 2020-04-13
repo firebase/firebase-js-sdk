@@ -5,6 +5,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
