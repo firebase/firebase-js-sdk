@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-export type AppName = string;
-export type ApiKey = string;
-export type AuthDomain = string;
+import { expect } from 'chai';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
-export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
-export const DEFAULT_API_SCHEME = 'https';
-
-export interface Config {
-  apiKey: ApiKey;
-  apiHost: string;
-  apiScheme: string;
-  authDomain?: AuthDomain;
-}
-
-export interface Auth {
-  readonly name: AppName;
-  readonly config: Config;
-}
+describe('AUTH_ERROR_FACTORY', () => {
+  it('should create an Auth namespaced FirebaseError', () => {
+    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+      appName: 'my-app'
+    });
+    expect(error.code).to.eq('auth/internal-error');
+    expect(error.message).to.eq(
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
+    expect(error.name).to.eq('FirebaseError');
+  });
+});
