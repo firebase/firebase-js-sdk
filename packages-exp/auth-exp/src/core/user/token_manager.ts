@@ -21,16 +21,12 @@ import { IdTokenResponse } from '../../model/id_token';
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
  */
-const TOKEN_REFRESH_BUFFER_MS = 30_000;
+export const TOKEN_REFRESH_BUFFER_MS = 30_000;
 
 export interface Tokens {
   accessToken: string;
   refreshToken: string | null;
 }
-
-export const DATE_GENERATOR = {
-  now: () => Date.now()
-};
 
 export class StsTokenManager {
   refreshToken: string | null = null;
@@ -40,19 +36,19 @@ export class StsTokenManager {
   get isExpired(): boolean {
     return (
       !this.expirationTime ||
-      DATE_GENERATOR.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
+      Date.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
     );
   }
 
   updateFromServerResponse({
     idToken,
     refreshToken,
-    expiresIn
+    expiresIn: expiresInSec
   }: IdTokenResponse): void {
     this.refreshToken = refreshToken;
     this.accessToken = idToken;
     this.expirationTime =
-      DATE_GENERATOR.now() + Number.parseInt(expiresIn, 10) * 1000;
+      Date.now() + Number.parseInt(expiresInSec, 10) * 1000;
   }
 
   async getToken(forceRefresh = false): Promise<Tokens> {
@@ -66,5 +62,8 @@ export class StsTokenManager {
     throw new Error('StsTokenManager: token refresh not implemented');
   }
 
-  // TODO: There are a few more methods in here that need implemented
+  // TODO: There are a few more methods in here that need implemented:
+  //    # toPlainObject
+  //    # fromPlainObject
+  //    # (private) performRefresh
 }

@@ -17,7 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { StsTokenManager, DATE_GENERATOR } from './token_manager';
+import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
 import { IdTokenResponse } from '../../model/id_token';
 import { createSandbox } from 'sinon';
 
@@ -32,7 +32,7 @@ describe('core/user/token_manager', () => {
   beforeEach(() => {
     stsTokenManager = new StsTokenManager();
     now = Date.now();
-    sandbox.stub(DATE_GENERATOR, 'now').returns(now);
+    sandbox.stub(Date, 'now').returns(now);
   });
 
   afterEach(() => sandbox.restore());
@@ -44,13 +44,12 @@ describe('core/user/token_manager', () => {
     });
 
     it('is true if exp is in future but within buffer', () => {
-      // Buffer is 30_000
-      stsTokenManager.expirationTime = now + 20_000;
+      stsTokenManager.expirationTime = now + (TOKEN_REFRESH_BUFFER_MS - 10);
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
     it('is fals if exp is far enough in future', () => {
-      stsTokenManager.expirationTime = now + 40_000;
+      stsTokenManager.expirationTime = now + (TOKEN_REFRESH_BUFFER_MS + 10);
       expect(stsTokenManager.isExpired).to.eq(false);
     });
   });
@@ -75,7 +74,7 @@ describe('core/user/token_manager', () => {
         accessToken: 'token',
         expirationTime: now + 100_000
       });
-      await expect(stsTokenManager.getToken(true)).to.be.rejectedWith(Error);
+      await expect(stsTokenManager.getToken(true)).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
     });
 
     it('throws if token is expired', async () => {
@@ -83,11 +82,11 @@ describe('core/user/token_manager', () => {
         accessToken: 'token',
         expirationTime: now - 1
       });
-      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error);
+      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
     });
 
     it('throws if access token is missing', async () => {
-      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error);
+      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
     });
 
     it('returns access token if not expired, not refreshing', async () => {
