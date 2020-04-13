@@ -19,6 +19,8 @@ import { stub, SinonStub } from 'sinon';
 
 export interface Call {
   request?: object;
+  method?: string;
+  headers?: HeadersInit;
 }
 
 export interface Route {
@@ -44,7 +46,9 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   const { response, status, calls } = routes.get(input)!;
 
   calls.push({
-    request: request?.body ? JSON.parse(request.body as string) : undefined
+    request: request?.body ? JSON.parse(request.body as string) : undefined,
+    method: request?.method,
+    headers: request?.headers
   });
 
   const blob = new Blob([JSON.stringify(response)]);

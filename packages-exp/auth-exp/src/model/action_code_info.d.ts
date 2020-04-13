@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,9 @@
  * limitations under the License.
  */
 
-export type AppName = string;
-export type ApiKey = string;
-export type AuthDomain = string;
-
-export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
-export const DEFAULT_API_SCHEME = 'https';
-
-export interface Config {
-  apiKey: ApiKey;
-  apiHost: string;
-  apiScheme: string;
-  authDomain?: AuthDomain;
-}
-
-export interface Auth {
-  readonly name: AppName;
-  readonly config: Config;
+export enum Operation {
+  PASSWORD_RESET = 'PASSWORD_RESET',
+  RECOVER_EMAIL = 'RECOVER_EMAIL',
+  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
+  VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
