@@ -61,7 +61,7 @@ const closureDefines = [
  * @param {string} prefix prefix to the compiled code
  * @param {string} suffix suffix to the compiled code
  */
-function createBuildTask(filename, prefix, suffix) {
+function createBuildTask(filename, prefix, suffix, language_out = 'ES5') {
   return function closureBuild() {
     return gulp
       .src(
@@ -83,7 +83,7 @@ function createBuildTask(filename, prefix, suffix) {
             resolve(__dirname, './externs/overrides.js'),
             resolve(__dirname, './externs/module.js')
           ],
-          language_out: 'ES5',
+          language_out,
           dependency_mode: 'PRUNE',
           define: closureDefines
         })
@@ -93,7 +93,7 @@ function createBuildTask(filename, prefix, suffix) {
   };
 }
 
-function createRollupTask(inputPath) {
+function createRollupTask(inputPath, outputExtension) {
   return async function rollupBuild() {
     const inputOptions = {
       input: inputPath,
@@ -101,7 +101,7 @@ function createRollupTask(inputPath) {
     };
 
     const outputOptions = {
-      file: 'dist/index.esm.js',
+      file: `dist/index.${outputExtension}.js`,
       format: 'es',
       sourcemap: true
     };
@@ -126,11 +126,21 @@ gulp.task('cjs', cjsBuild);
 // esm build
 // 1) Do closure compile without any wrapping code.
 // 2) Use rollup to convert result to ESM format.
-// 3) Delete intermediate files.
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
 const esmBuild = createBuildTask(intermediateEsmFile, '', '');
-const rollupTask = createRollupTask(intermediateEsmPath);
-gulp.task('esm', gulp.series(esmBuild, rollupTask, deleteIntermediateFiles));
+const rollupTask = createRollupTask(intermediateEsmPath, 'esm');
+gulp.task('esm', gulp.series(esmBuild, rollupTask));
 
-gulp.task('default', gulp.parallel('cjs', 'esm'));
+// esm 2017 build
+// 1) Do closure compile with language set to ES2017, without any wrapping code.
+// 2) Use rollup to convert result to ESM format.
+const intermediateEsm2017File = 'temp/esm2017.js';
+const intermediateEsm2017Path = resolve(__dirname, 'dist/', intermediateEsm2017File);
+const esm2017Build = createBuildTask(intermediateEsm2017File, '', '', 'ECMASCRIPT_2017');
+const rollup2017Task = createRollupTask(intermediateEsm2017Path, 'esm2017');
+gulp.task('esm2017', gulp.series(esm2017Build, rollup2017Task));
+
+gulp.task('buildAll', gulp.parallel('cjs', 'esm', 'esm2017'));
+
+gulp.task('default', gulp.series('buildAll', deleteIntermediateFiles));
