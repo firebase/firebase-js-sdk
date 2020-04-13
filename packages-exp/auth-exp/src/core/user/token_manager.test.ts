@@ -74,7 +74,10 @@ describe('core/user/token_manager', () => {
         accessToken: 'token',
         expirationTime: now + 100_000
       });
-      await expect(stsTokenManager.getToken(true)).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
+      await expect(stsTokenManager.getToken(true)).to.be.rejectedWith(
+        Error,
+        'StsTokenManager: token refresh not implemented'
+      );
     });
 
     it('throws if token is expired', async () => {
@@ -82,11 +85,17 @@ describe('core/user/token_manager', () => {
         accessToken: 'token',
         expirationTime: now - 1
       });
-      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
+      await expect(stsTokenManager.getToken()).to.be.rejectedWith(
+        Error,
+        'StsTokenManager: token refresh not implemented'
+      );
     });
 
     it('throws if access token is missing', async () => {
-      await expect(stsTokenManager.getToken()).to.be.rejectedWith(Error, 'StsTokenManager: token refresh not implemented');
+      await expect(stsTokenManager.getToken()).to.be.rejectedWith(
+        Error,
+        'StsTokenManager: token refresh not implemented'
+      );
     });
 
     it('returns access token if not expired, not refreshing', async () => {
