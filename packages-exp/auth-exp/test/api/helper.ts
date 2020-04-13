@@ -15,18 +15,31 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../src/core/errors';
+import { Auth } from '../../src/model/auth';
+import { Endpoint } from '../../src/api';
+import { mock, Route } from '../mock_fetch';
 
-describe('AUTH_ERROR_FACTORY', () => {
-  it('should create an Auth namespaced FirebaseError', () => {
-    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-      appName: 'my-app'
-    });
-    expect(error.code).to.eq('auth/internal-error');
-    expect(error.message).to.eq(
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
-    );
-    expect(error.name).to.eq('FirebaseError');
-  });
-});
+const TEST_HOST = 'localhost';
+const TEST_SCHEME = 'mock';
+const TEST_KEY = 'test-api-key';
+
+export const mockAuth: Auth = {
+  name: 'test-app',
+  config: {
+    apiKey: 'test-api-key',
+    apiHost: TEST_HOST,
+    apiScheme: TEST_SCHEME
+  }
+};
+
+export function mockEndpoint(
+  endpoint: Endpoint,
+  response: object,
+  status = 200
+): Route {
+  return mock(
+    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
+    response,
+    status
+  );
+}
