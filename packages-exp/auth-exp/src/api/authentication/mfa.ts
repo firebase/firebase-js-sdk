@@ -1,7 +1,10 @@
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { HttpMethod, Endpoint, performApiRequest } from '..';
-import { SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse } from './sms';
+import {
+  SignInWithPhoneNumberRequest,
+  SignInWithPhoneNumberResponse
+} from './sms';
 import { SignInWithIdpResponse } from './idp';
 
 export interface StartPhoneMfaSignInRequest {

@@ -133,4 +133,3 @@ describe('finalizeSignInPhoneMfa', () => {
     expect(mock.calls[0].request).to.eql(request);
   });
 });
-

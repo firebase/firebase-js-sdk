@@ -1,6 +1,11 @@
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdToken } from '../../model/id_token';
-import { performSignInRequest, HttpMethod, Endpoint, performApiRequest } from '..';
+import {
+  performSignInRequest,
+  HttpMethod,
+  Endpoint,
+  performApiRequest
+} from '..';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
@@ -67,9 +72,9 @@ interface GetOobCodeResponse {
   email: string;
 }
 
-export interface VerifyEmailResponse extends GetOobCodeResponse {};
-export interface PasswordResetResponse extends GetOobCodeResponse { };
-export interface EmailSignInResponse extends GetOobCodeResponse { };
+export interface VerifyEmailResponse extends GetOobCodeResponse {}
+export interface PasswordResetResponse extends GetOobCodeResponse {}
+export interface EmailSignInResponse extends GetOobCodeResponse {}
 
 async function sendOobCode(
   auth: Auth,
@@ -83,14 +88,23 @@ async function sendOobCode(
   );
 }
 
-export async function sendEmailVerification(auth: Auth, request: VerifyEmailRequest): Promise<VerifyEmailResponse> {
+export async function sendEmailVerification(
+  auth: Auth,
+  request: VerifyEmailRequest
+): Promise<VerifyEmailResponse> {
   return sendOobCode(auth, request);
 }
 
-export async function sendPasswordResetEmail(auth: Auth, request: PasswordResetRequest): Promise<PasswordResetResponse> {
+export async function sendPasswordResetEmail(
+  auth: Auth,
+  request: PasswordResetRequest
+): Promise<PasswordResetResponse> {
   return sendOobCode(auth, request);
 }
 
-export async function sendSignInLinkToEmail(auth: Auth, request: EmailSignInRequest): Promise<EmailSignInResponse> {
+export async function sendSignInLinkToEmail(
+  auth: Auth,
+  request: EmailSignInRequest
+): Promise<EmailSignInResponse> {
   return sendOobCode(auth, request);
 }

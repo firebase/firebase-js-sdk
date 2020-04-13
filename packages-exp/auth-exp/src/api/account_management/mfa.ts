@@ -32,7 +32,7 @@ export interface PhoneMfaEnrollmentRequest {
   phoneVerificationInfo: SignInWithPhoneNumberRequest;
 }
 
-export interface PhoneMfaEnrollmentResponse extends IdTokenResponse { }
+export interface PhoneMfaEnrollmentResponse extends IdTokenResponse {}
 
 export function enrollPhoneMfa(
   auth: Auth,
@@ -49,7 +49,7 @@ export interface WithdrawMfaRequest {
   mfaEnrollmentId: string;
 }
 
-export interface WithdrawMfaResponse extends IdTokenResponse { }
+export interface WithdrawMfaResponse extends IdTokenResponse {}
 
 export function withdrawMfa(
   auth: Auth,

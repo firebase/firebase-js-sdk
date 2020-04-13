@@ -17,7 +17,12 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { sendPhoneVerificationCode, signInWithPhoneNumber, linkWithPhoneNumber, verifyPhoneNumberForExisting } from './sms';
+import {
+  sendPhoneVerificationCode,
+  signInWithPhoneNumber,
+  linkWithPhoneNumber,
+  verifyPhoneNumberForExisting
+} from './sms';
 import { Endpoint } from '..';
 import { ServerError } from '../errors';
 import { FirebaseError } from '@firebase/util';
@@ -67,7 +72,9 @@ describe('sendPhoneVerificationCode', () => {
       400
     );
 
-    await expect(sendPhoneVerificationCode(mockAuth, request)).to.be.rejectedWith(
+    await expect(
+      sendPhoneVerificationCode(mockAuth, request)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+,[country code,[subscriber number including area code,. (auth/invalid-phone-number).'
     );
@@ -99,7 +106,8 @@ describe('signInWithPhoneNumber', () => {
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234');    expect(mock.calls[0].request).to.eql(request);
+    expect(response.localId).to.eq('1234');
+    expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
       'Content-Type': 'application/json'
@@ -156,7 +164,8 @@ describe('linkWithPhoneNumber', () => {
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234'); expect(mock.calls[0].request).to.eql(request);
+    expect(response.localId).to.eq('1234');
+    expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
       'Content-Type': 'application/json'
@@ -212,7 +221,8 @@ describe('verifyPhoneNumberForExisting', () => {
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234'); expect(mock.calls[0].request).to.eql({
+    expect(response.localId).to.eq('1234');
+    expect(mock.calls[0].request).to.eql({
       ...request,
       operation: 'REAUTH'
     });
@@ -239,7 +249,9 @@ describe('verifyPhoneNumberForExisting', () => {
       400
     );
 
-    await expect(verifyPhoneNumberForExisting(mockAuth, request)).to.be.rejectedWith(
+    await expect(
+      verifyPhoneNumberForExisting(mockAuth, request)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).'
     );

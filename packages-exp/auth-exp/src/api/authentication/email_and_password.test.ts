@@ -17,7 +17,16 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { signInWithPassword, sendPasswordResetEmail, sendEmailVerification, sendSignInLinkToEmail, GetOobCodeRequestType, VerifyEmailRequest, PasswordResetRequest, EmailSignInRequest } from './email_and_password';
+import {
+  signInWithPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  sendSignInLinkToEmail,
+  GetOobCodeRequestType,
+  VerifyEmailRequest,
+  PasswordResetRequest,
+  EmailSignInRequest
+} from './email_and_password';
 import { Endpoint } from '..';
 import { ServerError } from '../errors';
 import { FirebaseError } from '@firebase/util';
@@ -166,7 +175,9 @@ describe('sendOobCode', () => {
         400
       );
 
-      await expect(sendPasswordResetEmail(mockAuth, request)).to.be.rejectedWith(
+      await expect(
+        sendPasswordResetEmail(mockAuth, request)
+      ).to.be.rejectedWith(
         FirebaseError,
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );

@@ -32,7 +32,7 @@ export interface UpdateEmailPasswordRequest {
   password?: string;
 }
 
-export interface UpdateEmailPasswordResponse extends IdTokenResponse { }
+export interface UpdateEmailPasswordResponse extends IdTokenResponse {}
 
 export async function updateEmailPassword(
   auth: Auth,
