@@ -147,8 +147,7 @@ async function publishToNpm(packagePaths) {
 }
 
 async function publishPackage(packagePath) {
-  // TODO: remove --dry-run
-  const args = ['publish', '--access', 'public', '--dry-run', '--tag', 'exp'];
+  const args = ['publish', '--access', 'public', '--tag', 'exp'];
   await spawn('npm', args, { cwd: packagePath });
 }
 
