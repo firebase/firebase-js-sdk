@@ -135,6 +135,53 @@ function testValidatePersistenceArgument_node() {
   });
 }
 
+function testValidatePersistenceArgument_worker() {
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'getEnvironment',
+      function() {
+        return fireauth.util.Env.WORKER;
+      });
+  // Simulate indexedDB supported.
+  stubs.replace(
+      fireauth.storage.IndexedDB,
+      'isAvailable',
+      function() {
+        return true;
+      });
+  var unsupportedTypeError = new fireauth.AuthError(
+      fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE);
+  // Session should throw an error.
+  fireauth.common.testHelper.assertErrorEquals(
+      unsupportedTypeError,
+      assertThrows(function() {
+        fireauth.authStorage.validatePersistenceArgument('session');
+      }));
+  // Local should not throw an error when indexedDB is supported.
+  assertNotThrows(function() {
+    fireauth.authStorage.validatePersistenceArgument('local');
+  });
+  // None should be supported.
+  assertNotThrows(function() {
+    fireauth.authStorage.validatePersistenceArgument('none');
+  });
+
+  // Simulate indexedDB not supported.
+  stubs.replace(
+      fireauth.storage.IndexedDB,
+      'isAvailable',
+      function() {
+        return false;
+      });
+  // Local should throw an error when indexedDB not supported.
+  fireauth.common.testHelper.assertErrorEquals(
+      unsupportedTypeError,
+      assertThrows(function() {
+        fireauth.authStorage.validatePersistenceArgument('local');
+      }));
+}
+
 
 function testValidatePersistenceArgument_reactNative() {
   // Simulate React-Native.
