@@ -24,7 +24,12 @@ import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ProviderId } from '../../core/providers';
 import { ServerError } from '../errors';
-import { linkWithPhoneNumber, sendPhoneVerificationCode, signInWithPhoneNumber, verifyPhoneNumberForExisting } from './sms';
+import {
+  linkWithPhoneNumber,
+  sendPhoneVerificationCode,
+  signInWithPhoneNumber,
+  verifyPhoneNumberForExisting
+} from './sms';
 
 use(chaiAsPromised);
 

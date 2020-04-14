@@ -19,7 +19,12 @@ import { FirebaseError } from '@firebase/util';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
-import { JsonError, ServerError, ServerErrorMap, SERVER_ERROR_MAP } from './errors';
+import {
+  JsonError,
+  ServerError,
+  ServerErrorMap,
+  SERVER_ERROR_MAP
+} from './errors';
 
 export enum HttpMethod {
   POST = 'POST',

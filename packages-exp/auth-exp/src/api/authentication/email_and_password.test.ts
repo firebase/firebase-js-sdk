@@ -23,7 +23,16 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { EmailSignInRequest, GetOobCodeRequestType, PasswordResetRequest, sendEmailVerification, sendPasswordResetEmail, sendSignInLinkToEmail, signInWithPassword, VerifyEmailRequest } from './email_and_password';
+import {
+  EmailSignInRequest,
+  GetOobCodeRequestType,
+  PasswordResetRequest,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  sendSignInLinkToEmail,
+  signInWithPassword,
+  VerifyEmailRequest
+} from './email_and_password';
 
 use(chaiAsPromised);
 
