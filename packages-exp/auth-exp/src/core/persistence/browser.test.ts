@@ -77,6 +77,10 @@ describe('core/persistence/browser', () => {
 
   describe('browserSessionPersistence', () => {
     const persistence = browserSessionPersistence;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3c4f7ca0... [AUTOMATED]: Prettier Code Styling
     it('should work with persistence type', async () => {
       const key = 'my-super-special-persistence-type';
       const value = PersistenceType.SESSION;
