@@ -16,8 +16,8 @@
  */
 
 import { Endpoint } from '../../src/api';
+import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
 import { mock, Route } from '../mock_fetch';
-import { TEST_SCHEME, TEST_HOST, TEST_KEY } from '../mock_auth';
 
 export function mockEndpoint(
   endpoint: Endpoint,
