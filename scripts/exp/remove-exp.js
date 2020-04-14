@@ -16,7 +16,8 @@
  */
 
 /**
- * Replace "-exp" with "" in all files within the directory
+ * Replace "-exp" with "" in all files within the directory.
+ * Used to generate reference docs without "-exp" in package names.
  */
 const { argv } = require('yargs');
 const path = require('path');
