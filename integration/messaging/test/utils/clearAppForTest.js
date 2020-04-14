@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-module.exports = async webdriver => {
-  console.log('Retrieving token....');
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test && !!window.__test.token;
+module.exports = async webDriver => {
+  console.log('Clearing received messaged and errors from the test app.');
+  await webDriver.wait(() => {
+    return webDriver.executeScript(() => {
+      return !!window.__test;
     });
   });
 
-  console.log('Found token.');
-  return webdriver.executeScript(() => {
-    return window.__test.token;
+  return webDriver.executeScript(() => {
+    return window.__test.clearInstanceForTest();
   });
 };

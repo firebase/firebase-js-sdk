@@ -1,0 +1,3 @@
+const EIGHT_DAYS_IN_MS = 8 * 86400000;
+const PUBLIC_VAPID_KEY =
+  'BAN_2QvaSnxnjz-2y1sARN1ErEpZhcb8kaSI08pLxiAtQPB4ja3wg_1T0cGBMpt-vRd_6G1LZeVcVYlQeSPlbt8';

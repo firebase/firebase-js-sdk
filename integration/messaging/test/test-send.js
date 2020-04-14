@@ -15,35 +15,22 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
-const fetch = require('node-fetch');
 const expect = require('chai').expect;
-
-const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const retrieveFCMToken = require('./utils/retrieveFCMToken');
-const makeFCMAPICall = require('./utils/makeFCMAPICall');
+const retrieveToken = require('./utils/retrieveToken');
+const seleniumAssistant = require('selenium-assistant');
+const clearAppForTest = require('./utils/clearAppForTest');
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+const sendMessage = require('./utils/sendMessage');
+const getTestConfigs = require('./utils/getTestConfigs');
 const getReceivedMessages = require('./utils/getReceivedMessages');
-const demoSetup = require('./utils/getDemoSetup');
 
-const ENDPOINT = 'https://fcm.googleapis.com';
-// const ENDPOINT = 'https://jmt17.google.com';
+const TEST_SUITE_TIMEOUT_MS = 70_000;
+const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
 
-const DEMOS = demoSetup.DEMOS;
-
-describe('Firebase Messaging Integration Tests > send messages', function() {
-  this.timeout(60 * 1000);
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
-
+describe('Starting Integration Test: Sending and Receiving ', function() {
+  this.timeout(TEST_SUITE_TIMEOUT_MS);
   let globalWebDriver;
-
-  async function cleanUp() {
-    await seleniumAssistant.killWebDriver(globalWebDriver);
-  }
 
   before(async function() {
     await testServer.start();
@@ -51,153 +38,140 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
 
   after(async function() {
     await testServer.stop();
-    await cleanUp();
   });
 
-  const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-  availableBrowsers.forEach(assistantBrowser => {
-    // Only test on Chrome and Firefox
-    if (
-      assistantBrowser.getId() !== 'chrome' &&
-      assistantBrowser.getId() !== 'firefox'
-    ) {
+  //TODO: enable testing for edge and firefox if applicable
+  seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
+    if (assistantBrowser.getId() !== 'chrome') {
       return;
     }
 
-    DEMOS.forEach(demoInfo => {
-      describe(`${assistantBrowser.getPrettyName()} : ${
-        demoInfo.name
-      }`, function() {
-        beforeEach(async function() {
-          await cleanUp();
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${
+      getTestConfigs().testName
+    }`, function() {
+      before(async function() {
+        // Use one webDriver per browser instead of one per test to speed up test.
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
+        await globalWebDriver.get(
+          `${testServer.serverAddress}/${getTestConfigs().testName}/`
+        );
+      });
 
-          assistantBrowser = setupNotificationPermission(
-            assistantBrowser,
-            testServer.serverAddress
-          );
+      after(async function() {
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+      });
 
-          globalWebDriver = await assistantBrowser.getSeleniumDriver();
-        });
+      afterEach(async function() {
+        await clearAppForTest(globalWebDriver);
+      });
 
-        it(`should send an empty messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
-
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+      it('Foreground app can receive a {} empty message in onMessage', async function() {
+        let token = await retrieveToken(globalWebDriver);
+        checkSendResponse(
+          await sendMessage({
             to: token
-          });
-          expect(response).to.exist;
-          if (response.success !== 1) {
-            // It's helpful to know the error returned by FCM
-            console.error(response);
-          }
-          expect(response.success).to.equal(1);
+          })
+        );
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId
-          });
-        });
+        await checkMessageReceived(
+          globalWebDriver,
+          /* expectedNotificationPayload= */ null,
+          /* expectedDataPayload= */ null
+        );
+      });
 
-        it(`should send a data only messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+      it('Foreground app can receive a {"notification"} message in onMessage', async function() {
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            notification: getTestNotificationPayload()
+          })
+        );
 
-          const data = { hello: 'world' };
+        await checkMessageReceived(
+          globalWebDriver,
+          /* expectedNotificationPayload= */ getTestNotificationPayload(),
+          /* expectedDataPayload= */ null
+        );
+      });
 
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            data: data
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
+      it('Foreground app can receive a {"data"} message in onMessage', async function() {
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            data: getTestDataPayload()
+          })
+        );
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            data: data
-          });
-        });
+        await checkMessageReceived(
+          globalWebDriver,
+          /* expectedNotificationPayload= */ null,
+          /* expectedDataPayload= */ getTestDataPayload()
+        );
+      });
 
-        it(`should send a notification only messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function() {
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            data: getTestDataPayload(),
+            notification: getTestNotificationPayload()
+          })
+        );
 
-          const notification = {
-            title: 'Test Title',
-            body: 'Test Body',
-            icon: '/test/icon.png',
-            click_action: '/',
-            tag: 'test-tag'
-          };
-
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            notification: notification
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
-
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            notification: notification
-          });
-        });
-
-        it(`should send a notification and data messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
-
-          const data = { hello: 'world' };
-          const notification = {
-            title: 'Test Title',
-            body: 'Test Body',
-            icon: '/test/icon.png',
-            click_action: '/',
-            tag: 'test-tag'
-          };
-
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            data: data,
-            notification: notification
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
-
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            data: data,
-            notification: notification
-          });
-        });
+        await checkMessageReceived(
+          globalWebDriver,
+          /* expectedNotificationPayload= */ getTestNotificationPayload(),
+          /* expectedDataPayload= */ getTestDataPayload()
+        );
       });
     });
   });
 });
+
+async function checkMessageReceived(
+  webDriver,
+  expectedNotificationPayload,
+  expectedDataPayload
+) {
+  let receivedMessages = await getReceivedMessages(webDriver);
+  expect(receivedMessages).to.exist;
+  expect(receivedMessages.length).to.equal(1);
+
+  const message = receivedMessages[0];
+  expect(message.from).to.equal(getTestConfigs().senderId);
+  expect(message.collapse_key).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
+
+  if (expectedNotificationPayload) {
+    expect(message.notification).to.deep.equal(getTestNotificationPayload());
+  }
+
+  if (expectedDataPayload) {
+    expect(message.data).to.deep.equal(getTestDataPayload());
+  }
+}
+
+function checkSendResponse(response) {
+  expect(response).to.exist;
+  expect(response.success).to.equal(1);
+}
+
+function getTestNotificationPayload() {
+  return {
+    title: 'test title',
+    body: 'test body',
+    icon: '/test/icon.png',
+    click_action: '/',
+    tag: 'test-tag'
+  };
+}
+
+function getTestDataPayload() {
+  return { hello: 'world' };
+}
+
+function openNewTap(webDriver) {
+  webDriver.FindElement(By.LinkText('Open new window')).Click();
+}

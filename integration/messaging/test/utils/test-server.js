@@ -56,7 +56,7 @@ class MessagingTestServer {
   }
 
   // Sometimes the server doesn't trigger the callback due to
-  // currently open sockets. So call `closethis._server
+  // currently open sockets. So call close this._server
   async stop() {
     if (this._server) {
       this._server.close();
@@ -64,4 +64,5 @@ class MessagingTestServer {
     }
   }
 }
+
 module.exports = new MessagingTestServer();

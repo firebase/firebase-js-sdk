@@ -16,7 +16,7 @@
  */
 
 module.exports = async webdriver => {
-  console.log('Waiting for received message...');
+  console.log('Waiting for received message.');
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
       return window.__test.messages.length > 0;

@@ -15,19 +15,23 @@
  * limitations under the License.
  */
 
-const config = {
-  apiKey: 'AIzaSyCaSnFca0oG_b-t-s_p9wRdr9o9aSPmolE',
-  authDomain: 'fcm-sdk-testing-vapid-key.firebaseapp.com',
-  databaseURL: 'https://fcm-sdk-testing-vapid-key.firebaseio.com',
-  projectId: 'fcm-sdk-testing-vapid-key',
-  storageBucket: '',
-  messagingSenderId: '650229866790'
-};
+const fetch = require('node-fetch');
+const getTestConfigs = require('./getTestConfigs');
 
-if (this['window']) {
-  window.firebaseConfig = config;
-} else if (this['module']) {
-  module.exports = config;
-} else {
-  self.firebaseConfig = config;
-}
+module.exports = async payload => {
+  console.log(
+    'Requesting to send an FCM message with payload: ' + JSON.stringify(payload)
+  );
+
+  const response = await fetch(getTestConfigs().sendEndpoint, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {
+      Authorization: 'key=' + getTestConfigs().projectServerKey,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  // Note that FCM Send API responses are in HTML format
+  return JSON.parse(await response.text());
+};

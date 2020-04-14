@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-importScripts('/sw-shared.js');
-importScripts('./firebaseConfig.js');
+module.exports = async webdriver => {
+  console.log('retrieving token from test app');
+  await webdriver.wait(() => {
+    return webdriver.executeScript(() => {
+      return !!window.__test && !!window.__test.token;
+    });
+  });
 
-firebase.initializeApp(self.firebaseConfig);
-
-const messaging = firebase.messaging();
-messaging.setBackgroundMessageHandler(data => {
-  const title = 'Background Notification';
-  return self.registration.showNotification(title, {});
-});
+  return webdriver.executeScript(() => {
+    return window.__test.token;
+  });
+};

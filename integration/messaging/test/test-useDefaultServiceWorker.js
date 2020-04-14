@@ -16,66 +16,33 @@
  */
 
 const seleniumAssistant = require('selenium-assistant');
-const fetch = require('node-fetch');
 const expect = require('chai').expect;
 
-const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const retrieveFCMToken = require('./utils/retrieveFCMToken');
-const makeFCMAPICall = require('./utils/makeFCMAPICall');
-const getReceivedMessages = require('./utils/getReceivedMessages');
-
-const ENDPOINT = 'https://fcm.googleapis.com';
-// const ENDPOINT = 'https://jmt17.google.com';
-
-const demoInfo = {
-  name: 'default-sw',
-  senderId: '660737059320',
-  apiKey:
-    'AAAAmdb_afg:APA91bEa0scOaRxp1G-Rg5DGML1fm34LNm97hjAIT-KETrpm33B8Q3HK5xlqheX6l2i7CPHxAMxy06WK9pQIy-jl5UGVpl66b8ZnDc_2qzs8b7jmCnBIjqr7m35-NoGXI9WvAtFgoOVA'
-};
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+const retrieveToken = require('./utils/retrieveToken');
+const TEST_DOMAIN = 'default-sw';
+const TEST_SUITE_TIMEOUT_MS = 70_000;
 
 describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' by default`, function() {
-  this.timeout(60 * 1000);
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
-
+  this.timeout(TEST_SUITE_TIMEOUT_MS);
   let globalWebDriver;
-
-  async function cleanUp() {
-    await seleniumAssistant.killWebDriver(globalWebDriver);
-  }
 
   before(async function() {
     await testServer.start();
   });
 
-  beforeEach(async function() {
-    await cleanUp();
-
-    assistantBrowser = setupNotificationPermission(
-      assistantBrowser,
-      testServer.serverAddress
-    );
-
-    globalWebDriver = await assistantBrowser.getSeleniumDriver();
-  });
-
   after(async function() {
     await testServer.stop();
-    await cleanUp();
+    await seleniumAssistant.killWebDriver(globalWebDriver);
   });
 
-  let assistantBrowser = seleniumAssistant.getLocalBrowser('chrome', 'stable');
-
   it(`should use default SW by default`, async function() {
-    await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
+    globalWebDriver = createPermittedWebDriver('chrome');
+    await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 
     // If we have a token, then we know the default SW worked.
-    const token = await retrieveFCMToken(globalWebDriver);
+    const token = await retrieveToken(globalWebDriver);
     expect(token).to.exist;
 
     const result = await globalWebDriver.executeAsyncScript(function(cb) {

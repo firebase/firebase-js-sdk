@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-const config = {
-  apiKey: 'AIzaSyAXe2HhleSP0eGM9sFPidWIBx7eHWlV4HM',
-  authDomain: 'fcm-sdk-testing-no-vapid-key.firebaseapp.com',
-  databaseURL: 'https://fcm-sdk-testing-no-vapid-key.firebaseio.com',
-  projectId: 'fcm-sdk-testing-no-vapid-key',
-  storageBucket: '',
-  messagingSenderId: '660737059320'
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyBVqFz5vuknTmaVJyRnjxSolqhc8hXx0M4',
+  authDomain: 'android-gcm-test-519bd.firebaseapp.com',
+  databaseURL: 'https://android-gcm-test-519bd.firebaseio.com',
+  projectId: 'android-gcm-test-519bd',
+  storageBucket: 'android-gcm-test-519bd.appspot.com',
+  messagingSenderId: '35006771263',
+  appId: '1:35006771263:web:18cc19582bf589e8c9c88a'
 };
 
 if (this['window']) {
-  window.firebaseConfig = config;
+  window.firebaseConfig = FIREBASE_CONFIG;
 } else if (this['module']) {
-  module.exports = config;
+  module.exports = FIREBASE_CONFIG;
 } else {
-  self.firebaseConfig = config;
+  self.firebaseConfig = FIREBASE_CONFIG;
 }

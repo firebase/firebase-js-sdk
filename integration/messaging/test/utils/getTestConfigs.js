@@ -15,21 +15,14 @@
  * limitations under the License.
  */
 
-const DEMO_LIST = [
-  {
-    name: 'valid-no-vapid-key',
-    senderId: '660737059320',
-    apiKey:
-      'AAAAmdb_afg:APA91bEa0scOaRxp1G-Rg5DGML1fm34LNm97hjAIT-KETrpm33B8Q3HK5xlqheX6l2i7CPHxAMxy06WK9pQIy-jl5UGVpl66b8ZnDc_2qzs8b7jmCnBIjqr7m35-NoGXI9WvAtFgoOVA'
-  },
-  {
-    name: 'valid-vapid-key',
-    senderId: '650229866790',
-    apiKey:
-      'AAAAl2S4YSY:APA91bGQCJMhV3G_eiSGep0z0yb9hLs7TDNx8W3ZXyztSPRSnmVys_D_yQ5FwDpRY-THKqufyUmI3PGN7XpvaXIUl-logEJpxyO8A1_5CMTF1-AR9vNt0qeWZbv8SJqte0MwMxcVebNJ'
-  }
-];
+var FIREBASE_CONFIG = {
+  testName: 'valid-vapid-key',
+  senderId: '35006771263',
+  sendEndpoint: 'https://fcm.googleapis.com/fcm/send',
+  projectServerKey:
+    'AAAACCaQ8D8:APA91bFzayKNdfHxknHc81ny3Ii9Zrj48M2Rgc67EgGQt8MAr-s_wiMznKPvs1Y0fdQa3vAsVJzA4vXUGMdPtzx7CWmGk7K6uZdXKYpc0-YkGVrglOyCszdnYaXLY-JqRUXYbTgHENPO'
+};
 
-module.exports = {
-  DEMOS: DEMO_LIST
+module.exports = () => {
+  return FIREBASE_CONFIG;
 };
