@@ -36,7 +36,6 @@ describe('core/persistence/in_memory', () => {
   it('should work with user', async () => {
     const key = 'my-super-special-user';
     const value = testUser('uid');
-
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get<User>(key)).to.eql(value);
