@@ -34,7 +34,7 @@ enum ClientFramework {
   // Firebase Auth used with FirebaseUI-web.
   // TODO: Pass this in when used in conjunction with FirebaseUI
   FIREBASEUI = 'FirebaseUI-web'
-};
+}
 
 /*
  * Determine the SDK version string
@@ -43,7 +43,7 @@ enum ClientFramework {
  */
 export function getClientVersion(clientPlatform: ClientPlatform): string {
   let reportedPlatform: string;
-  switch(clientPlatform) {
+  switch (clientPlatform) {
     case ClientPlatform.BROWSER:
       // In a browser environment, report the browser name.
       reportedPlatform = getBrowserName(getUA());

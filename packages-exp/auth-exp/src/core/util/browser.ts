@@ -19,34 +19,31 @@
  * Enums for Browser name.
  */
 export enum BrowserName {
-  ANDROID ='Android',
+  ANDROID = 'Android',
   BLACKBERRY = 'Blackberry',
   EDGE = 'Edge',
-  FIREFOX ='Firefox',
+  FIREFOX = 'Firefox',
   IE = 'IE',
-  IEMOBILE ='IEMobile',
+  IEMOBILE = 'IEMobile',
   OPERA = 'Opera',
   OTHER = 'Other',
   CHROME = 'Chrome',
   SAFARI = 'Safari',
   SILK = 'Silk',
   WEBOS = 'Webos'
-};
+}
 
 /**
  * Determine the browser for the purposes of reporting usage to the API
  */
 export function getBrowserName(userAgent: string): BrowserName | string {
   const ua = userAgent.toLowerCase();
-  if (ua.includes('opera/') ||
-    ua.includes('opr/') ||
-    ua.includes('opios/')) {
+  if (ua.includes('opera/') || ua.includes('opr/') || ua.includes('opios/')) {
     return BrowserName.OPERA;
   } else if (ua.includes('iemobile')) {
     // Windows phone IEMobile browser.
     return BrowserName.IEMOBILE;
-  } else if (ua.includes('msie') ||
-    ua.includes('trident/')) {
+  } else if (ua.includes('msie') || ua.includes('trident/')) {
     return BrowserName.IE;
   } else if (ua.includes('edge/')) {
     return BrowserName.EDGE;
@@ -60,25 +57,28 @@ export function getBrowserName(userAgent: string): BrowserName | string {
   } else if (ua.includes('webos')) {
     // WebOS default browser.
     return BrowserName.WEBOS;
-  } else if (ua.includes('safari/') &&
+  } else if (
+    ua.includes('safari/') &&
     !ua.includes('chrome/') &&
     !ua.includes('crios/') &&
-    !ua.includes('android')) {
+    !ua.includes('android')
+  ) {
     return BrowserName.SAFARI;
-  } else if ((ua.includes('chrome/') ||
-    ua.includes('crios/')) &&
-    !ua.includes('edge/')) {
+  } else if (
+    (ua.includes('chrome/') || ua.includes('crios/')) &&
+    !ua.includes('edge/')
+  ) {
     return BrowserName.CHROME;
   } else if (ua.includes('android')) {
     // Android stock browser.
     return BrowserName.ANDROID;
   } else {
     // Most modern browsers have name/version at end of user agent string.
-    const re = new RegExp('([a-zA-Z\\d\\.]+)\/[a-zA-Z\\d\\.]*$');
+    const re = new RegExp('([a-zA-Z\\d\\.]+)/[a-zA-Z\\d\\.]*$');
     const matches = userAgent.match(re);
     if (matches && matches.length === 2) {
       return matches[1];
     }
   }
   return BrowserName.OTHER;
-};
+}

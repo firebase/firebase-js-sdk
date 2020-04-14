@@ -22,19 +22,25 @@ import { ClientPlatform, getClientVersion } from './version';
 describe('getClientVersion', () => {
   context('browser', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.BROWSER)).to.eq(`Chrome/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`);
+      expect(getClientVersion(ClientPlatform.BROWSER)).to.eq(
+        `Chrome/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+      );
     });
-  }); 
+  });
 
   context('worker', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.WORKER)).to.eq(`Chrome-Worker/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`);
+      expect(getClientVersion(ClientPlatform.WORKER)).to.eq(
+        `Chrome-Worker/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+      );
     });
-  }); 
+  });
 
   context('React Native', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(`ReactNative/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`);
+      expect(getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
+        `ReactNative/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+      );
     });
-  }); 
-}); 
+  });
+});
