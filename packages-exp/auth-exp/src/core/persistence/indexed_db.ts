@@ -29,7 +29,7 @@ const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';
 
-type DBValue = {[key: string]: unknown} | string;
+type DBValue = { [key: string]: unknown } | string;
 
 interface DBObject {
   [DB_DATA_KEYPATH]: string;
@@ -56,10 +56,7 @@ class DBPromise<T> {
   }
 }
 
-function getObjectStore(
-  db: IDBDatabase,
-  isReadWrite: boolean
-): IDBObjectStore {
+function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
   return db
     .transaction([DB_OBJECTSTORE_NAME], isReadWrite ? 'readwrite' : 'readonly')
     .objectStore(DB_OBJECTSTORE_NAME);
@@ -110,9 +107,7 @@ async function putObject(
   value: PersistenceValue | string
 ): Promise<void> {
   const getRequest = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | null>(
-    getRequest
-  ).toPromise();
+  const data = await new DBPromise<DBObject | null>(getRequest).toPromise();
   if (data) {
     // Force an index signature on the user object
     data.value = value as DBValue;
@@ -132,10 +127,8 @@ async function getObject(
   key: string
 ): Promise<DBValue | null> {
   const request = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | undefined>(
-    request
-  ).toPromise();
-  return data === undefined ? null : (data.value);
+  const data = await new DBPromise<DBObject | undefined>(request).toPromise();
+  return data === undefined ? null : data.value;
 }
 
 function deleteObject(db: IDBDatabase, key: string): Promise<void> {
