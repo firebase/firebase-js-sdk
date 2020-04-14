@@ -26,6 +26,7 @@ export interface Config {
   apiKey: ApiKey;
   apiHost: string;
   apiScheme: string;
+  sdkClientVersion: string;
   authDomain?: AuthDomain;
 }
 

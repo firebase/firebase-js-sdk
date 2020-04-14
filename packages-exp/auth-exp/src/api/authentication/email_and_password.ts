@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
+import { Endpoint, HttpMethod, performApiRequest, performSignInRequest } from '..';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse, IdToken } from '../../model/id_token';
-import {
-  performSignInRequest,
-  HttpMethod,
-  Endpoint,
-  performApiRequest
-} from '..';
+import { IdToken, IdTokenResponse } from '../../model/id_token';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;

@@ -15,16 +15,11 @@
  * limitations under the License.
  */
 
+import { Endpoint, HttpMethod, performApiRequest, performSignInRequest } from '..';
+import { AuthErrorCode } from '../../core/errors';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import {
-  performSignInRequest,
-  HttpMethod,
-  Endpoint,
-  performApiRequest
-} from '..';
-import { ServerErrorMap, ServerError } from '../errors';
-import { AuthErrorCode } from '../../core/errors';
+import { ServerError, ServerErrorMap } from '../errors';
 
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;

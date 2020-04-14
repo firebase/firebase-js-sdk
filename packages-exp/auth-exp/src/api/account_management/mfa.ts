@@ -16,9 +16,9 @@
  */
 
 import { Endpoint, HttpMethod, performApiRequest } from '..';
-import { SignInWithPhoneNumberRequest } from '../authentication/sms';
-import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/auth';
+import { IdTokenResponse } from '../../model/id_token';
+import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 
 export interface StartPhoneMfaEnrollmentRequest {
   idToken: string;

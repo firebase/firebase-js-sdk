@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { Endpoint, HttpMethod, performApiRequest } from '..';
 import { Auth } from '../../model/auth';
-import { performApiRequest, HttpMethod, Endpoint } from '..';
 import { APIMFAInfo } from '../../model/id_token';
 
 export interface DeleteAccountRequest {

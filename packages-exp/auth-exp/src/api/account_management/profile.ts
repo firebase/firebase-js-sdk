@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { IdTokenResponse } from '../../model/id_token';
+import { Endpoint, HttpMethod, performApiRequest } from '..';
 import { Auth } from '../../model/auth';
-import { performApiRequest, HttpMethod, Endpoint } from '..';
+import { IdTokenResponse } from '../../model/id_token';
 
 export interface UpdateProfileRequest {
   idToken: string;

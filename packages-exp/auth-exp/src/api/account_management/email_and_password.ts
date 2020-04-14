@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { performApiRequest, Endpoint, HttpMethod } from '..';
+import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { Operation } from '../../model/action_code_info';
 
 export interface ResetPasswordRequest {
   oobCode: string;

@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
+import { Endpoint, HttpMethod, performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { HttpMethod, Endpoint, performApiRequest } from '..';
-import {
-  SignInWithPhoneNumberRequest,
-  SignInWithPhoneNumberResponse
-} from './sms';
 import { SignInWithIdpResponse } from './idp';
+import { SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse } from './sms';
 
 export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;

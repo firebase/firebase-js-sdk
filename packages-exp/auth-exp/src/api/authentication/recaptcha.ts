@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { Endpoint, HttpMethod, performApiRequest } from '..';
 import { Auth } from '../../model/auth';
-import { HttpMethod, Endpoint, performApiRequest } from '..';
 
 interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;

@@ -29,7 +29,8 @@ export const mockAuth: Auth = {
   config: {
     apiKey: TEST_KEY,
     apiHost: TEST_HOST,
-    apiScheme: TEST_SCHEME
+    apiScheme: TEST_SCHEME,
+    sdkClientVersion: 'testSDK/0.0.0'
   }
 };
 

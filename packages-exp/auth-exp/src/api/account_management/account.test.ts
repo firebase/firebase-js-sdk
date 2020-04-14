@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
 import { Endpoint } from '..';
-import { ServerError } from '../errors';
-import { FirebaseError } from '@firebase/util';
+import { mockEndpoint } from '../../../test/api/helper';
+import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
-import { mockEndpoint, mockAuth } from '../../../test/api/helper';
 import { ProviderId } from '../../core/providers';
+import { ServerError } from '../errors';
+import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
 
 use(chaiAsPromised);
 
@@ -42,7 +43,8 @@ describe('deleteAccount', () => {
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
   });
 
@@ -94,7 +96,8 @@ describe('deleteLinkedAccounts', () => {
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
   });
 
@@ -145,7 +148,8 @@ describe('getAccountInfo', () => {
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
   });
 
