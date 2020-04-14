@@ -15,24 +15,13 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from './id_token';
-import { ProviderId } from '../core/providers';
+import { AppName, ApiKey, Auth } from '../src/model/auth';
 
-export interface UserInfo {
-  readonly uid: string;
-  readonly providerId: ProviderId;
-  readonly displayName: string | null;
-  readonly email: string | null;
-  readonly phoneNumber: string | null;
-  readonly photoURL: string | null;
-}
-
-export interface User extends UserInfo {
-  providerId: ProviderId.FIREBASE;
-  refreshToken: string;
-
-  getIdToken(forceRefresh?: boolean): Promise<string>;
-  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
-  reload(): Promise<void>;
-  delete(): Promise<void>;
+export function mockAuth(name: AppName, apiKey: ApiKey): Auth {
+  return {
+    name,
+    config: {
+      apiKey
+    }
+  };
 }
