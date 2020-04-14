@@ -15,13 +15,28 @@
  * limitations under the License.
  */
 
-import { AppName, ApiKey, Auth } from '../src/model/auth';
+import { Auth } from '../src/model/auth';
+import { User } from '../src/model/user';
+import { UserImpl } from '../src/core/user/user_impl';
+import { StsTokenManager } from '../src/core/user/token_manager';
 
-export function mockAuth(name: AppName, apiKey: ApiKey): Auth {
-  return {
-    name,
-    config: {
-      apiKey
-    }
-  };
+export const TEST_HOST = 'localhost';
+export const TEST_SCHEME = 'mock';
+export const TEST_KEY = 'test-api-key';
+
+export const mockAuth: Auth = {
+  name: 'test-app',
+  config: {
+    apiKey: TEST_KEY,
+    apiHost: TEST_HOST,
+    apiScheme: TEST_SCHEME
+  }
+};
+
+export function testUser(uid: string): User {
+  return new UserImpl({
+    uid,
+    auth: mockAuth,
+    stsTokenManager: new StsTokenManager()
+  });
 }
