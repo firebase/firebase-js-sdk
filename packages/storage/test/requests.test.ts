@@ -296,7 +296,7 @@ describe('Firebase Storage > Requests', () => {
         {
           name: 'a/a',
           bucket: differentBucket
-        },
+        }
       ],
       nextPageToken: pageToken
     };
