@@ -19,6 +19,7 @@ const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const fs = require('mz/fs');
 const ora = require('ora');
+const chalk = require('chalk');
 
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
