@@ -18,7 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import {
@@ -55,7 +55,7 @@ export class MutationBatch {
     public baseMutations: Mutation[],
     public mutations: Mutation[]
   ) {
-    assert(mutations.length > 0, 'Cannot create an empty mutation batch');
+    debugAssert(mutations.length > 0, 'Cannot create an empty mutation batch');
   }
 
   /**
@@ -73,7 +73,7 @@ export class MutationBatch {
     batchResult: MutationBatchResult
   ): MaybeDocument | null {
     if (maybeDoc) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(docKey),
         `applyToRemoteDocument: key ${docKey} should match maybeDoc key
         ${maybeDoc.key}`
@@ -81,7 +81,7 @@ export class MutationBatch {
     }
 
     const mutationResults = batchResult.mutationResults;
-    assert(
+    debugAssert(
       mutationResults.length === this.mutations.length,
       `Mismatch between mutations length
       (${this.mutations.length}) and mutation results length
@@ -110,7 +110,7 @@ export class MutationBatch {
     maybeDoc: MaybeDocument | null
   ): MaybeDocument | null {
     if (maybeDoc) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(docKey),
         `applyToLocalDocument: key ${docKey} should match maybeDoc key
         ${maybeDoc.key}`
@@ -208,7 +208,7 @@ export class MutationBatchResult {
     results: MutationResult[],
     streamToken: ByteString
   ): MutationBatchResult {
-    assert(
+    hardAssert(
       batch.mutations.length === results.length,
       'Mutations sent ' +
         batch.mutations.length +

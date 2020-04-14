@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.39",
+  "version": "0.4.40",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -30,7 +30,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/messaging": "0.6.11",
+    "@firebase/messaging": "0.6.12",
     "rollup": "2.0.6",
     "rollup-plugin-typescript2": "0.26.0",
     "typescript": "3.8.3"

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
-import * as grpc from 'grpc';
+import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
 import { Component, ComponentType } from '@firebase/component';

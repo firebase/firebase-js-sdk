@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { QueryTargetState } from './shared_client_state_syncer';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { ClientId } from './shared_client_state';
 import { User } from '../auth/user';
 
@@ -30,7 +30,7 @@ export function createWebStorageClientStateKey(
   persistenceKey: string,
   clientId: ClientId
 ): string {
-  assert(
+  debugAssert(
     clientId.indexOf('_') === -1,
     `Client key cannot contain '_', but was '${clientId}'`
   );

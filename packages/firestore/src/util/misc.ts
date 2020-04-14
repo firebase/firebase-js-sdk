@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
-import { PlatformSupport } from '../platform/platform';
+import { debugAssert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {
@@ -29,19 +28,10 @@ export class AutoId {
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let autoId = '';
-    while (autoId.length < 20) {
-      const bytes = PlatformSupport.getPlatform().randomBytes(40);
-      for (const b of Array.from(bytes)) {
-        // Length of `chars` is 62. We only take bytes between 0 and 62*4-1
-        // (both inclusive). The value is then evenly mapped to indices of `char`
-        // via a modulo operation.
-        const maxValue = 62 * 4 - 1;
-        if (autoId.length < 20 && b <= maxValue) {
-          autoId += chars.charAt(b % 62);
-        }
-      }
+    for (let i = 0; i < 20; i++) {
+      autoId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    debugAssert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;
   }
 }

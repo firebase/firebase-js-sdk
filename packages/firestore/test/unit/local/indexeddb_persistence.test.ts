@@ -135,6 +135,7 @@ async function withCustomPersistence(
     sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
   });
 
+  await persistence.start();
   await fn(persistence, platform, queue);
   await persistence.shutdown();
 }

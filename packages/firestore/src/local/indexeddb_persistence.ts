@@ -17,13 +17,12 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
-import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { Platform, PlatformSupport } from '../platform/platform';
+import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
@@ -60,14 +59,11 @@ import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
-  LruParams,
-  LruScheduler
+  LruParams
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
-  GarbageCollectionScheduler,
   Persistence,
-  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG,
@@ -76,12 +72,7 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from './shared_client_state';
+import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
@@ -198,7 +189,7 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static async createIndexedDbPersistence(options: {
+  static createIndexedDbPersistence(options: {
     allowTabSynchronization: boolean;
     persistenceKey: string;
     clientId: ClientId;
@@ -207,7 +198,7 @@ export class IndexedDbPersistence implements Persistence {
     queue: AsyncQueue;
     serializer: JsonProtoSerializer;
     sequenceNumberSyncer: SequenceNumberSyncer;
-  }): Promise<IndexedDbPersistence> {
+  }): IndexedDbPersistence {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -225,7 +216,6 @@ export class IndexedDbPersistence implements Persistence {
       options.serializer,
       options.sequenceNumberSyncer
     );
-    await persistence.start();
     return persistence;
   }
 
@@ -306,9 +296,9 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  private start(): Promise<void> {
-    assert(!this.started, 'IndexedDbPersistence double-started!');
-    assert(this.window !== null, "Expected 'window' to be defined");
+  start(): Promise<void> {
+    debugAssert(!this.started, 'IndexedDbPersistence double-started!');
+    debugAssert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(
       this.dbName,
@@ -720,7 +710,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getMutationQueue(user: User): MutationQueue {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
     );
@@ -733,7 +723,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getTargetCache(): IndexedDbTargetCache {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize TargetCache before persistence is started.'
     );
@@ -741,7 +731,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize RemoteDocumentCache before persistence is started.'
     );
@@ -749,7 +739,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getIndexManager(): IndexedDbIndexManager {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
@@ -948,7 +938,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachVisibilityHandler(): void {
     if (this.documentVisibilityHandler) {
-      assert(
+      debugAssert(
         this.document !== null &&
           typeof this.document.addEventListener === 'function',
         "Expected 'document.addEventListener' to be a function"
@@ -991,7 +981,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
-      assert(
+      debugAssert(
         typeof this.window.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
@@ -1299,91 +1289,4 @@ function writeSentinelKey(
   return documentTargetStore(txn).put(
     sentinelRow(key, txn.currentSequenceNumber)
   );
-}
-
-/**
- * Provides all components needed for IndexedDb persistence.
- */
-export class IndexedDbPersistenceProvider implements PersistenceProvider {
-  private persistence?: IndexedDbPersistence;
-  private gcScheduler?: GarbageCollectionScheduler;
-  private sharedClientState?: SharedClientState;
-
-  async initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    clientId: ClientId,
-    initialUser: User,
-    settings: PersistenceSettings
-  ): Promise<void> {
-    assert(
-      settings.durable,
-      'IndexedDbPersistenceProvider can only provide durable persistence'
-    );
-    assert(!this.persistence, 'configure() already called');
-
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-
-    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
-    const serializer = new JsonProtoSerializer(databaseInfo.databaseId, {
-      useProto3Json: PlatformSupport.getPlatform().useProto3Json
-    });
-
-    if (!WebStorageSharedClientState.isAvailable(platform)) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'IndexedDB persistence is only available on platforms that support LocalStorage.'
-      );
-    }
-
-    this.sharedClientState = settings.synchronizeTabs
-      ? new WebStorageSharedClientState(
-          asyncQueue,
-          platform,
-          persistenceKey,
-          clientId,
-          initialUser
-        )
-      : new MemorySharedClientState();
-
-    this.persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: settings.synchronizeTabs,
-      persistenceKey,
-      clientId,
-      platform,
-      queue: asyncQueue,
-      serializer,
-      lruParams: LruParams.withCacheSize(settings.cacheSizeBytes),
-      sequenceNumberSyncer: this.sharedClientState
-    });
-
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
-    this.gcScheduler = new LruScheduler(garbageCollector, asyncQueue);
-  }
-
-  getPersistence(): Persistence {
-    assert(!!this.persistence, 'initialize() not called');
-    return this.persistence;
-  }
-
-  getSharedClientState(): SharedClientState {
-    assert(!!this.sharedClientState, 'initialize() not called');
-    return this.sharedClientState;
-  }
-
-  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    assert(!!this.gcScheduler, 'initialize() not called');
-    return this.gcScheduler;
-  }
-
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
-  }
 }

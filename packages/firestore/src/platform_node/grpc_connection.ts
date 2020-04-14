@@ -15,20 +15,25 @@
  * limitations under the License.
  */
 
-import * as grpc from 'grpc';
+import {
+  Metadata,
+  GrpcObject,
+  credentials as GrpcCredentials,
+  ServiceError
+} from '@grpc/grpc-js';
+import * as grpcPkgJson from '@grpc/grpc-js/package.json';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const grpcVersion = require('grpc/package.json').version;
+const grpcVersion = grpcPkgJson.version;
 
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';
 import { Connection, Stream } from '../remote/connection';
 import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { assert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
@@ -44,13 +49,13 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VER
 function createMetadata(
   databaseInfo: DatabaseInfo,
   token: Token | null
-): grpc.Metadata {
-  assert(
+): Metadata {
+  hardAssert(
     token === null || token.type === 'OAuth',
     'If provided, token must be OAuth'
   );
 
-  const metadata = new grpc.Metadata();
+  const metadata = new Metadata();
   if (token) {
     for (const header in token.authHeaders) {
       if (token.authHeaders.hasOwnProperty(header)) {
@@ -84,7 +89,7 @@ export class GrpcConnection implements Connection {
   // We cache stubs for the most-recently-used token.
   private cachedStub: GeneratedGrpcStub | null = null;
 
-  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
+  constructor(protos: GrpcObject, private databaseInfo: DatabaseInfo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
   }
@@ -93,8 +98,8 @@ export class GrpcConnection implements Connection {
     if (!this.cachedStub) {
       logDebug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = this.databaseInfo.ssl
-        ? grpc.credentials.createSsl()
-        : grpc.credentials.createInsecure();
+        ? GrpcCredentials.createSsl()
+        : GrpcCredentials.createInsecure();
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
         credentials
@@ -116,7 +121,7 @@ export class GrpcConnection implements Connection {
       return stub[rpcName](
         request,
         metadata,
-        (grpcError?: grpc.ServiceError, value?: Resp) => {
+        (grpcError?: ServiceError, value?: Resp) => {
           if (grpcError) {
             logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
             callback(
@@ -162,7 +167,7 @@ export class GrpcConnection implements Connection {
       logDebug(LOG_TAG, `RPC '${rpcName}' completed.`);
       responseDeferred.resolve(results);
     });
-    stream.on('error', (grpcError: grpc.ServiceError) => {
+    stream.on('error', (grpcError: ServiceError) => {
       logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
       const code = mapCodeFromRpcCode(grpcError.code);
       responseDeferred.reject(new FirestoreError(code, grpcError.message));
@@ -224,7 +229,7 @@ export class GrpcConnection implements Connection {
       close();
     });
 
-    grpcStream.on('error', (grpcError: grpc.ServiceError) => {
+    grpcStream.on('error', (grpcError: ServiceError) => {
       logDebug(
         LOG_TAG,
         'GRPC stream error. Code:',
