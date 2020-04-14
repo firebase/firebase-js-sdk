@@ -18,14 +18,14 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { UserImpl } from './user_impl';
-import { mockAuth } from '../../../test/mock_auth';
 import { StsTokenManager } from './token_manager';
 import { IdTokenResponse } from '../../model/id_token';
+import { mockAuth } from '../../../test/mock_auth';
 
 use(chaiAsPromised);
 
 describe('core/user/user_impl', () => {
-  const auth = mockAuth('foo', 'i-am-the-api-key');
+  const auth = mockAuth;
   let stsTokenManager: StsTokenManager;
 
   beforeEach(() => {
