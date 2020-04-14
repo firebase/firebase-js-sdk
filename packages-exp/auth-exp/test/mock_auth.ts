@@ -34,5 +34,9 @@ export const mockAuth: Auth = {
 };
 
 export function testUser(uid: string): User {
-  return new UserImpl({uid, auth: mockAuth, stsTokenManager: new StsTokenManager()});
+  return new UserImpl({
+    uid,
+    auth: mockAuth,
+    stsTokenManager: new StsTokenManager()
+  });
 }
