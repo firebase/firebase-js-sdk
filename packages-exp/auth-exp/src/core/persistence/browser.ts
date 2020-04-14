@@ -60,5 +60,9 @@ class BrowserPersistence implements Persistence {
   }
 }
 
-export const browserLocalPersistence: Persistence = new BrowserPersistence(localStorage);
-export const browserSessionPersistence: Persistence = new BrowserPersistence(sessionStorage);
+export const browserLocalPersistence: Persistence = new BrowserPersistence(
+  localStorage
+);
+export const browserSessionPersistence: Persistence = new BrowserPersistence(
+  sessionStorage
+);

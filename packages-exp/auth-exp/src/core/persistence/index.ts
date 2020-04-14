@@ -24,7 +24,7 @@ export enum PersistenceType {
 }
 
 export interface Instantiator<T> {
-  (blob: {[key: string]: unknown}): T;
+  (blob: { [key: string]: unknown }): T;
 }
 
 export type PersistenceValue = PersistenceType | User;

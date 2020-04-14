@@ -33,7 +33,7 @@ class InMemoryPersistence implements Persistence {
 
   async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const value = this.storage[key];
-    return value === undefined ? null : value as T;
+    return value === undefined ? null : (value as T);
   }
 
   async remove(key: string): Promise<void> {

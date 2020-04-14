@@ -22,8 +22,6 @@ import { User } from '../../model/user';
 import { testUser } from '../../../test/mock_auth';
 
 describe('core/persistence/in_memory', () => {
-
-
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
     const value = PersistenceType.LOCAL;
@@ -38,7 +36,7 @@ describe('core/persistence/in_memory', () => {
   it('should work with user', async () => {
     const key = 'my-super-special-user';
     const value = testUser('uid');
-    
+
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
     expect(await persistence.get<User>(key)).to.eql(value);

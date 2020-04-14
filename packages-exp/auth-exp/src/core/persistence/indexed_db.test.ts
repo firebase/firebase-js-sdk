@@ -21,8 +21,6 @@ import { indexedDBLocalPersistence as persistence } from './indexed_db';
 import { User } from '../../model/user';
 import { testUser } from '../../../test/mock_auth';
 
-
-
 describe('core/persistence/indexed_db', () => {
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
@@ -38,10 +36,12 @@ describe('core/persistence/indexed_db', () => {
   it('should call instantiator function if provided', async () => {
     const key = 'my-super-special-user';
     const value = testUser('some-uid');
-    
+
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value);
-    const out = await persistence.get<User>(key, blob => testUser(`test-${blob.uid}`));
+    const out = await persistence.get<User>(key, blob =>
+      testUser(`test-${blob.uid}`)
+    );
     expect(out?.uid).to.eql('test-some-uid');
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;
