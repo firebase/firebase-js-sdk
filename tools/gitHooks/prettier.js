@@ -90,12 +90,20 @@ async function doPrettierCommit(changedFiles) {
 
   const hasDiff = await git.diff();
 
-  if (!hasDiff) return;
+  if (!hasDiff) {
+    console.log(
+      chalk`\n{red Prettier formatting caused no changes.} Skipping commit.\n`
+    );
+    return;
+  }
 
   const gitSpinner = ora(' Creating automated style commit').start();
   await git.add(targetFiles);
 
-  await git.commit('[AUTOMATED]: Prettier Code Styling');
+  const commit = await git.commit('[AUTOMATED]: Prettier Code Styling');
+  console.log(
+    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
+  );
   gitSpinner.stopAndPersist({
     symbol: '✅'
   });
