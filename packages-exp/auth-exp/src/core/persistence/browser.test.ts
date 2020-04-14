@@ -1,6 +1,10 @@
 /**
  * @license
+<<<<<<< HEAD
  * Copyright 2019 Google LLC
+=======
+ * Copyright 2019 Google Inc.
+>>>>>>> 06bdd392... Add persistence layer: index db, in memory, and browser{local, session}
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +51,19 @@ describe('core/persistence/browser', () => {
     it('should call instantiator function if provided', async () => {
       const key = 'my-super-special-user';
       const value = testUser('some-uid');
+<<<<<<< HEAD
 
       expect(await persistence.get(key)).to.be.null;
       await persistence.set(key, value);
       const out = await persistence.get<User>(key, blob =>
         testUser(`test-${blob.uid}`)
       );
+=======
+      
+      expect(await persistence.get(key)).to.be.null;
+      await persistence.set(key, value);
+      const out = await persistence.get<User>(key, blob => testUser(`test-${blob.uid}`));
+>>>>>>> 06bdd392... Add persistence layer: index db, in memory, and browser{local, session}
       expect(out?.uid).to.eql('test-some-uid');
       await persistence.remove(key);
       expect(await persistence.get(key)).to.be.null;
@@ -78,9 +89,13 @@ describe('core/persistence/browser', () => {
   describe('browserSessionPersistence', () => {
     const persistence = browserSessionPersistence;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 3c4f7ca0... [AUTOMATED]: Prettier Code Styling
+=======
+    
+>>>>>>> 06bdd392... Add persistence layer: index db, in memory, and browser{local, session}
     it('should work with persistence type', async () => {
       const key = 'my-super-special-persistence-type';
       const value = PersistenceType.SESSION;
@@ -95,12 +110,19 @@ describe('core/persistence/browser', () => {
     it('should call instantiator function if provided', async () => {
       const key = 'my-super-special-user';
       const value = testUser('some-uid');
+<<<<<<< HEAD
 
       expect(await persistence.get(key)).to.be.null;
       await persistence.set(key, value);
       const out = await persistence.get<User>(key, blob =>
         testUser(`test-${blob.uid}`)
       );
+=======
+      
+      expect(await persistence.get(key)).to.be.null;
+      await persistence.set(key, value);
+      const out = await persistence.get<User>(key, blob => testUser(`test-${blob.uid}`));
+>>>>>>> 06bdd392... Add persistence layer: index db, in memory, and browser{local, session}
       expect(out?.uid).to.eql('test-some-uid');
       await persistence.remove(key);
       expect(await persistence.get(key)).to.be.null;
