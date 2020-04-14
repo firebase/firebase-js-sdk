@@ -22,7 +22,8 @@ import { Endpoint } from '..';
 import { ServerError } from '../errors';
 import { FirebaseError } from '@firebase/util';
 import * as mockFetch from '../../../test/mock_fetch';
-import { mockEndpoint, mockAuth } from '../../../test/api/helper';
+import { mockEndpoint } from '../../../test/api/helper';
+import { mockAuth } from '../../../test/mock_auth';
 
 use(chaiAsPromised);
 
