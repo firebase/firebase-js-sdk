@@ -54,7 +54,7 @@ async function publishExpPackages() {
     /**
      * It does 2 things:
      *
-     * 1. Bumps the pactch version of exp packages regardless if there is any update
+     * 1. Bumps the patch version of exp packages regardless if there is any update
      * since the last release. This simplifies the script and works fine for exp packages.
      *
      * 2. Removes -exp in package names because we will publish them using
