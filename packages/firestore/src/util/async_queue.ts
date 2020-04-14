@@ -205,6 +205,10 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
+  // The last retryable operation. Retryable operation are run in order and
+  // retried with backoff.
+  private retryableTail = Promise.resolve();
+
   // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.
   private _isShuttingDown: boolean = false;
@@ -225,11 +229,6 @@ export class AsyncQueue {
 
   // Backoff timer used to schedule retries for retryable operations
   private backoff = new ExponentialBackoff(this, TimerId.AsyncQueueRetry);
-
-  // If set, points to the first retryable operation. The first retryable
-  // operation is the only operation that is retried with backoff. If this
-  // operation succeeds, all other retryable operations are run right away.
-  private firstRetryableOperation?: Promise<void>;
 
   // Visibility handler that triggers an immediate retry of all retryable
   // operations. Meant to speed up recovery when we regain file system access
@@ -316,6 +315,13 @@ export class AsyncQueue {
     return this.enqueueInternal(op);
   }
 
+  /**
+   * Enqueue a retryable operation.
+   *
+   * A retryable operation is rescheduled with backoff if it fails with any
+   * exception. All retryable operations are executed in order and only run
+   * if all prior operations were retried successfully.
+   */
   enqueueRetryable(op: () => Promise<void>): void {
     this.verifyNotFailed();
 
@@ -323,32 +329,21 @@ export class AsyncQueue {
       return;
     }
 
-    if (this.firstRetryableOperation) {
-      // If there is already a retryable operation, enqueue the current
-      // operation right after. We want to successfully run the first retryable
-      // operation before running all others.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.firstRetryableOperation.then(() => {
-        this.enqueueRetryable(op);
-      });
-    } else {
+    this.retryableTail = this.retryableTail.then(() => {
       const deferred = new Deferred<void>();
-      this.firstRetryableOperation = deferred.promise;
-
       const retryingOp = async (): Promise<void> => {
         try {
           await op();
           deferred.resolve();
           this.backoff.reset();
-          this.firstRetryableOperation = undefined;
         } catch (e) {
           logDebug(LOG_TAG, 'Retryable operation failed: ' + e.message);
           this.backoff.backoffAndRun(retryingOp);
         }
       };
-
-      this.backoff.backoffAndRun(retryingOp);
-    }
+      this.enqueueAndForget(retryingOp);
+      return deferred.promise;
+    });
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {

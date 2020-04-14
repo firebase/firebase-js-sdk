@@ -127,20 +127,16 @@ export class ExponentialBackoff {
           `delay with jitter: ${desiredDelayWithJitterMs} ms, ` +
           `last attempt: ${delaySoFarMs} ms ago)`
       );
-      this.timerPromise = this.queue.enqueueAfterDelay(
-        this.timerId,
-        remainingDelayMs,
-        () => {
-          this.lastAttemptTime = Date.now();
-          return op();
-        }
-      );
-    } else {
-      this.queue.enqueueAndForget(() => {
+    }
+
+    this.timerPromise = this.queue.enqueueAfterDelay(
+      this.timerId,
+      remainingDelayMs,
+      () => {
         this.lastAttemptTime = Date.now();
         return op();
-      });
-    }
+      }
+    );
 
     // Apply backoff factor to determine next delay and ensure it is within
     // bounds.
