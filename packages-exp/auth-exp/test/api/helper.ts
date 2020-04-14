@@ -15,22 +15,9 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../src/model/auth';
 import { Endpoint } from '../../src/api';
 import { mock, Route } from '../mock_fetch';
-
-const TEST_HOST = 'localhost';
-const TEST_SCHEME = 'mock';
-const TEST_KEY = 'test-api-key';
-
-export const mockAuth: Auth = {
-  name: 'test-app',
-  config: {
-    apiKey: 'test-api-key',
-    apiHost: TEST_HOST,
-    apiScheme: TEST_SCHEME
-  }
-};
+import { TEST_SCHEME, TEST_HOST, TEST_KEY } from '../mock_auth';
 
 export function mockEndpoint(
   endpoint: Endpoint,
