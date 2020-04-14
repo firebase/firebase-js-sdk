@@ -27,10 +27,8 @@ const rollupSourcemaps = require('rollup-plugin-sourcemaps');
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
-// TODO: Add ability to pass this in as a flag.
 const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
-// For minified builds, wrap the output so we avoid leaking global variables.
 // For minified builds, wrap the output so we avoid leaking global variables.
 const CJS_WRAPPER_PREFIX = `(function() {var firebase = require('@firebase/app').default;`;
 const CJS_WRAPPER_SUFFIX =
@@ -56,7 +54,7 @@ const closureDefines = [
 ];
 
 /**
- * Builds the core Firebase-auth JS.
+ * Generates a closure compiler build of webchannel-wrapper.
  * @param {string} filename name of the generated file
  * @param {string} prefix prefix to the compiled code
  * @param {string} suffix suffix to the compiled code
