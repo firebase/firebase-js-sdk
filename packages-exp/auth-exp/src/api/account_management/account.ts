@@ -35,6 +35,15 @@ export async function deleteAccount(
   );
 }
 
+export interface ProviderUserInfo {
+  rawId?: string;
+  providerId?: string;
+  email?: string;
+  displayName?: string;
+  photoUrl?: string;
+  phoneNumber?: string;
+}
+
 export interface DeleteLinkedAccountsRequest {
   idToken: string;
   deleteProvider: string[];
@@ -67,15 +76,6 @@ export interface APIUserInfo {
   passwordHash?: string;
   providerUserInfo: ProviderUserInfo[];
   mfaInfo?: APIMFAInfo[];
-}
-
-export interface ProviderUserInfo {
-  rawId?: string;
-  providerId?: string;
-  email?: string;
-  displayName?: string;
-  photoUrl?: string;
-  phoneNumber?: string;
 }
 
 export interface GetAccountInfoRequest {

@@ -54,10 +54,6 @@ export enum GetOobCodeRequestType {
 
 interface GetOobCodeRequest {
   email?: string; // Everything except VERIFY_AND_CHANGE_EMAIL
-  // captchaResp?: string, // RESET_PASSWORD
-  // userIp?: string, // RESET_PASSWORD,
-  // newEmail?: string, // VERIFY_AND_CHANGE_EMAIL,
-  idToken?: IdToken; // VERIFY_EMAIL, VERIFY_AND_CHANGE_EMAIL
   continueUrl?: string;
   iosBundleId?: string;
   iosAppStoreId?: string;
@@ -66,8 +62,8 @@ interface GetOobCodeRequest {
   androidMinimumVersionCode?: string;
   canHandleCodeInApp?: boolean;
   dynamicLinkDomain?: string;
-  // tenantId?: string,
-  // targetProjectid?: string,
+  tenantId?: string,
+  targetProjectid?: string,
 }
 
 export interface VerifyEmailRequest extends GetOobCodeRequest {
@@ -78,6 +74,8 @@ export interface VerifyEmailRequest extends GetOobCodeRequest {
 export interface PasswordResetRequest extends GetOobCodeRequest {
   requestType: GetOobCodeRequestType.PASSWORD_RESET;
   email: string;
+  captchaResp?: string;
+  userIp?: string;
 }
 
 export interface EmailSignInRequest extends GetOobCodeRequest {
