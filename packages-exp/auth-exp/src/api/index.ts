@@ -63,7 +63,7 @@ export async function performApiRequest<T, V>(
     };
     if (request) {
       if (method === HttpMethod.GET) {
-        Object.assign(params, request);        
+        Object.assign(params, request);
       } else {
         body = {
           body: JSON.stringify(request)
@@ -71,8 +71,12 @@ export async function performApiRequest<T, V>(
       }
     }
 
-    const queryString = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
-      
+    const queryString = Object.keys(params)
+      .map(
+        key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+      )
+      .join('&');
+
     const response = await fetch(
       `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
       {

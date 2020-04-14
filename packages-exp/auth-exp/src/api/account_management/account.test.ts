@@ -67,7 +67,7 @@ describe('deleteAccount', () => {
 
     await expect(deleteAccount(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: This user\'s credential isn\'t valid for this project. This can happen if the user\'s token has been tampered with]: or if the user isn\'t for the project associated with this API key. (auth/invalid-user-token).'
+      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with]: or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
     expect(mock.calls[0].request).to.eql(request);
   });
@@ -84,10 +84,12 @@ describe('deleteLinkedAccounts', () => {
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-      providerUserInfo: [{
-        providerId: ProviderId.GOOGLE,
-        email: 'test@foo.com'
-      }]
+      providerUserInfo: [
+        {
+          providerId: ProviderId.GOOGLE,
+          email: 'test@foo.com'
+        }
+      ]
     });
 
     const response = await deleteLinkedAccounts(mockAuth, request);
@@ -136,10 +138,12 @@ describe('getAccountInfo', () => {
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{
-        displayName: 'my-name',
-        email: 'test@foo.com'
-      }]
+      users: [
+        {
+          displayName: 'my-name',
+          email: 'test@foo.com'
+        }
+      ]
     });
 
     const response = await getAccountInfo(mockAuth, request);
@@ -172,7 +176,7 @@ describe('getAccountInfo', () => {
 
     await expect(getAccountInfo(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: This user\'s credential isn\'t valid for this project. This can happen if the user\'s token has been tampered with]: or if the user isn\'t for the project associated with this API key. (auth/invalid-user-token).'
+      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with]: or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
     expect(mock.calls[0].request).to.eql(request);
   });

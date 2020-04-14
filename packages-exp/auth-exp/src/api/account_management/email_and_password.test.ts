@@ -76,7 +76,6 @@ describe('resetPassword', () => {
   });
 });
 
-
 describe('updateEmailPassword', () => {
   const request = {
     idToken: 'id-token',
@@ -127,4 +126,3 @@ describe('updateEmailPassword', () => {
     expect(mock.calls[0].request).to.eql(request);
   });
 });
-

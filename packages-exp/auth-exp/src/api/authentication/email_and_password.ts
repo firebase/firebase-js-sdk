@@ -57,8 +57,8 @@ interface GetOobCodeRequest {
   androidMinimumVersionCode?: string;
   canHandleCodeInApp?: boolean;
   dynamicLinkDomain?: string;
-  tenantId?: string,
-  targetProjectid?: string,
+  tenantId?: string;
+  targetProjectid?: string;
 }
 
 export interface VerifyEmailRequest extends GetOobCodeRequest {
