@@ -105,7 +105,7 @@ async function doPrettierCommit(changedFiles) {
     symbol: '✅'
   });
   console.log(
-    chalk`\n{green Commited ${commit.commit} to branch ${commit.branch}}`
+    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
   );
 }
 
