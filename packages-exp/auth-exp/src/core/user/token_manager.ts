@@ -47,7 +47,7 @@ export class StsTokenManager {
   }: IdTokenResponse): void {
     this.refreshToken = refreshToken;
     this.accessToken = idToken;
-    this.expirationTime = Date.now() + Number.parseInt(expiresInSec, 10) * 1000;
+    this.expirationTime = Date.now() + Number(expiresInSec) * 1000;
   }
 
   async getToken(forceRefresh = false): Promise<Tokens> {
