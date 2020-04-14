@@ -23,7 +23,8 @@ import {
   Query,
   FirestoreError,
   DocumentData,
-  FieldPath, DocumentChange,
+  FieldPath,
+  DocumentChange
 } from './rest';
 
 export {
@@ -64,7 +65,7 @@ export const CACHE_SIZE_UNLIMITED: number;
 export interface Persistence {}
 
 export interface Settings {
-  persistence: Persistence
+  persistence: Persistence;
   host?: string;
   ssl?: boolean;
   cacheSizeBytes?: number;
@@ -72,7 +73,7 @@ export interface Settings {
 }
 
 export interface PersistenceSettings {
-  fallback?: (err: FirestoreError) => Persistence|null;
+  fallback?: (err: FirestoreError) => Persistence | null;
 }
 
 export interface GetOptions {
@@ -112,7 +113,7 @@ export function multiTabIndexedDbPersistence(
 export function initializeFirestore(
   firestore: FirebaseFirestore,
   settings: Settings
-) : Promise<void>;
+): Promise<void>;
 
 export class DocumentSnapshot<T = DocumentData> {
   protected constructor();
@@ -131,7 +132,7 @@ export class DocumentSnapshot<T = DocumentData> {
 
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
-  > {
+> {
   private constructor();
 
   data(options?: SnapshotOptions): T;

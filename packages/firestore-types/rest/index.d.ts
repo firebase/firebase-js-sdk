@@ -329,9 +329,7 @@ export function addDocument<T>(
 ): Promise<DocumentSnapshot<T>>;
 
 // MARK: CollectionReference methods
-export function getDocuments<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
+export function getDocuments<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // MARK: FieldPath methods
 export function documentId(): FieldPath;
