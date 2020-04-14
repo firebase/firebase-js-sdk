@@ -23,6 +23,26 @@ import { ProviderId } from '../core/providers/index';
 export type IdToken = string;
 
 /**
+ * Raw parsed JWT
+ */
+export interface ParsedIdToken {
+  iss: string;
+  aud: string;
+  exp: number;
+  sub: string;
+  iat: number;
+  email?: string;
+  verified: boolean;
+  providerId?: string;
+  tenantId?: string;
+  anonymous: boolean;
+  federatedId?: string;
+  displayName?: string;
+  photoURL?: string;
+  toString(): string;
+}
+
+/**
  * IdToken as returned by the API
  */
 export interface IdTokenResponse {
