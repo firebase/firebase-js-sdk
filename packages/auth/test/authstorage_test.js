@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,53 @@ function testValidatePersistenceArgument_node() {
   assertNotThrows(function() {
     fireauth.authStorage.validatePersistenceArgument('none');
   });
+}
+
+function testValidatePersistenceArgument_worker() {
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'getEnvironment',
+      function() {
+        return fireauth.util.Env.WORKER;
+      });
+  // Simulate indexedDB supported.
+  stubs.replace(
+      fireauth.storage.IndexedDB,
+      'isAvailable',
+      function() {
+        return true;
+      });
+  var unsupportedTypeError = new fireauth.AuthError(
+      fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE);
+  // Session should throw an error.
+  fireauth.common.testHelper.assertErrorEquals(
+      unsupportedTypeError,
+      assertThrows(function() {
+        fireauth.authStorage.validatePersistenceArgument('session');
+      }));
+  // Local should not throw an error when indexedDB is supported.
+  assertNotThrows(function() {
+    fireauth.authStorage.validatePersistenceArgument('local');
+  });
+  // None should be supported.
+  assertNotThrows(function() {
+    fireauth.authStorage.validatePersistenceArgument('none');
+  });
+
+  // Simulate indexedDB not supported.
+  stubs.replace(
+      fireauth.storage.IndexedDB,
+      'isAvailable',
+      function() {
+        return false;
+      });
+  // Local should throw an error when indexedDB not supported.
+  fireauth.common.testHelper.assertErrorEquals(
+      unsupportedTypeError,
+      assertThrows(function() {
+        fireauth.authStorage.validatePersistenceArgument('local');
+      }));
 }
 
 
