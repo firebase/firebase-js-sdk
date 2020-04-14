@@ -100,7 +100,7 @@ async function doPrettierCommit(changedFiles) {
   const gitSpinner = ora(' Creating automated style commit').start();
   await git.add(targetFiles);
 
-  const commit = await git.commit('[AUTOMATED]: Prettier Code Styling');
+  const commit =  await git.commit('[AUTOMATED]: Prettier Code Styling');
   console.log(
     chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
   );
