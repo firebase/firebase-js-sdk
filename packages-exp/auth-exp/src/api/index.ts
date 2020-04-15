@@ -53,6 +53,8 @@ export enum Endpoint {
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw'
 }
 
+export const DEFAULT_API_TIMEOUT = 30_000;
+
 export async function performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
@@ -63,7 +65,7 @@ export async function performApiRequest<T, V>(
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     let body = {};
-    const params: { [key: string]: string } = {
+    const params: { [key: string]: string; } = {
       key: auth.config.apiKey
     };
     if (request) {
@@ -82,18 +84,21 @@ export async function performApiRequest<T, V>(
       })
       .join('&');
 
-    const response = await fetch(
-      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
-      {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Version': auth.config.sdkClientVersion
-        },
-        referrerPolicy: 'no-referrer',
-        ...body
-      }
-    );
+    const response: Response = await Promise.race<Promise<Response>>([
+      fetch(
+        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
+        {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Client-Version': auth.config.sdkClientVersion
+          },
+          referrerPolicy: 'no-referrer',
+          ...body
+        }
+      ), new Promise((_, reject) =>
+        setTimeout(() => reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, { appName: auth.name })), DEFAULT_API_TIMEOUT)
+      )]);
     if (response.ok) {
       return response.json();
     } else {
@@ -104,7 +109,8 @@ export async function performApiRequest<T, V>(
       } else {
         // TODO probably should handle improperly formatted errors as well
         // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
-        throw new Error(`Unexpected API error: ${json.error.message}`);
+        console.error(`Unexpected API error: ${json.error.message}`);
+        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
       }
     }
   } catch (e) {
