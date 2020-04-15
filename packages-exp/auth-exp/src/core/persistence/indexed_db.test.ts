@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
 import { PersistenceType } from '.';
 import { expect } from 'chai';
 import { indexedDBLocalPersistence as persistence } from './indexed_db';
@@ -22,6 +23,8 @@ import { User } from '../../model/user';
 import { testUser } from '../../../test/mock_auth';
 
 describe('core/persistence/indexed_db', () => {
+  afterEach(sinon.restore);
+
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
     const value = PersistenceType.LOCAL;
@@ -46,4 +49,24 @@ describe('core/persistence/indexed_db', () => {
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;
   });
+
+  describe('#isAvaliable', () => {
+    it('should return true if db is available', async () => {
+      expect(await persistence.isAvailable()).to.be.true;
+    });
+
+    it('should return false if db creation errors', async () => {
+      sinon.stub(indexedDB, 'open').returns({
+        addEventListener(evt: string, cb: () => void) {
+          if (evt === 'error') {
+            cb();
+          }
+        },
+        error: new DOMException('yes there was an error'),
+      } as any);
+
+      expect(await persistence.isAvailable()).to.be.false;
+    });
+  });
 });
+
