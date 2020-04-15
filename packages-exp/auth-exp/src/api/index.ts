@@ -63,7 +63,7 @@ export async function performApiRequest<T, V>(
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     let body = {};
-    const params: { [key: string]: string } = {
+    const params: { [key: string]: string; } = {
       key: auth.config.apiKey
     };
     if (request) {
@@ -77,10 +77,9 @@ export async function performApiRequest<T, V>(
     }
 
     const queryString = Object.keys(params)
-      .map(
-        key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
-      )
-      .join('&');
+      .map(key => {
+        return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+      }).join('&');
 
     const response = await fetch(
       `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
