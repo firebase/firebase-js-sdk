@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import { SDK_VERSION } from '@firebase/app-exp';
 import { expect } from 'chai';
 import { ClientPlatform, getClientVersion } from './version';
 
@@ -23,7 +23,7 @@ describe('getClientVersion', () => {
   context('browser', () => {
     it('should set the correct version', () => {
       expect(getClientVersion(ClientPlatform.BROWSER)).to.eq(
-        `Chrome/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+        `Chrome/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });
   });
@@ -31,7 +31,7 @@ describe('getClientVersion', () => {
   context('worker', () => {
     it('should set the correct version', () => {
       expect(getClientVersion(ClientPlatform.WORKER)).to.eq(
-        `Chrome-Worker/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+        `Chrome-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });
   });
@@ -39,7 +39,7 @@ describe('getClientVersion', () => {
   context('React Native', () => {
     it('should set the correct version', () => {
       expect(getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
-        `ReactNative/JsCore/${firebase.SDK_VERSION}/FirebaseCore-web`
+        `ReactNative/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });
   });

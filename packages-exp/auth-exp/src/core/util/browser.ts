@@ -74,9 +74,9 @@ export function getBrowserName(userAgent: string): BrowserName | string {
     return BrowserName.ANDROID;
   } else {
     // Most modern browsers have name/version at end of user agent string.
-    const re = new RegExp('([a-zA-Z\\d\\.]+)/[a-zA-Z\\d\\.]*$');
+    const re = /([a-zA-Z\d\.]+)\/[a-zA-Z\d\.]*$/;
     const matches = userAgent.match(re);
-    if (matches && matches.length === 2) {
+    if (matches?.length === 2) {
       return matches[1];
     }
   }

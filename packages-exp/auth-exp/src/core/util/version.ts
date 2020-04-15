@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import { SDK_VERSION } from '@firebase/app-exp';
 import { getBrowserName } from './browser';
 import { getUA } from '@firebase/util';
 
@@ -57,5 +57,5 @@ export function getClientVersion(clientPlatform: ClientPlatform): string {
     default:
       reportedPlatform = clientPlatform;
   }
-  return `${reportedPlatform}/${CLIENT_IMPLEMENTATION}/${firebase.SDK_VERSION}/${ClientFramework.DEFAULT}`;
+  return `${reportedPlatform}/${CLIENT_IMPLEMENTATION}/${SDK_VERSION}/${ClientFramework.DEFAULT}`;
 }
