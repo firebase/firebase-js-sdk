@@ -23,29 +23,26 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { createAuthUri } from './create_auth_uri';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('createAuthUri', () => {
   const request = {
-    returnSecureToken: true,
-    email: 'test@foo.com',
-    password: 'my-password'
+    identifier: 'my-id',
+    continueUri: 'example.com/redirectUri'
   };
 
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
-      displayName: 'my-name',
-      email: 'test@foo.com'
+    const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
+      signinMethods: ['email']
     });
 
-    const response = await signUp(mockAuth, request);
-    expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
+    const response = await createAuthUri(mockAuth, request);
+    expect(response.signinMethods).to.include('email');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -56,14 +53,14 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.CREATE_AUTH_URI,
       {
         error: {
           code: 400,
-          message: ServerError.EMAIL_EXISTS,
+          message: ServerError.INVALID_PROVIDER_ID,
           errors: [
             {
-              message: ServerError.EMAIL_EXISTS
+              message: ServerError.INVALID_PROVIDER_ID
             }
           ]
         }
@@ -71,9 +68,9 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(createAuthUri(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });

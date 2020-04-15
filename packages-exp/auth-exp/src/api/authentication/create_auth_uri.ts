@@ -15,18 +15,26 @@
  * limitations under the License.
  */
 
-import { Endpoint } from '../../src/api';
-import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
-import { mock, Route } from '../mock_fetch';
+import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Auth } from '../../model/auth';
 
-export function mockEndpoint(
-  endpoint: Endpoint,
-  response: object,
-  status = 200
-): Route {
-  return mock(
-    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
-    response,
-    status
+export interface CreateAuthUriRequest {
+  identifier: string;
+  continueUri: string;
+}
+
+export interface CreateAuthUriResponse {
+  signinMethods: string[];
+}
+
+export async function createAuthUri(
+  auth: Auth,
+  request: CreateAuthUriRequest
+): Promise<CreateAuthUriResponse> {
+  return performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.CREATE_AUTH_URI,
+    request
   );
 }

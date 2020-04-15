@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
 import { Auth } from '../model/auth';
+import { IdTokenResponse } from '../model/id_token';
 import {
   JsonError,
-  SERVER_ERROR_MAP,
+  ServerError,
   ServerErrorMap,
-  ServerError
+  SERVER_ERROR_MAP
 } from './errors';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
-import { FirebaseError } from '@firebase/util';
-import { IdTokenResponse } from '../model/id_token';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -62,17 +62,33 @@ export async function performApiRequest<T, V>(
 ): Promise<V> {
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
-    const body = request
-      ? {
+    let body = {};
+    const params: { [key: string]: string } = {
+      key: auth.config.apiKey
+    };
+    if (request) {
+      if (method === HttpMethod.GET) {
+        Object.assign(params, request);
+      } else {
+        body = {
           body: JSON.stringify(request)
-        }
-      : {};
+        };
+      }
+    }
+
+    const queryString = Object.keys(params)
+      .map(key => {
+        return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+      })
+      .join('&');
+
     const response = await fetch(
-      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?key=${auth.config.apiKey}`,
+      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
       {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Client-Version': auth.config.sdkClientVersion
         },
         referrerPolicy: 'no-referrer',
         ...body

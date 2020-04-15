@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import { StsTokenManager } from '../src/core/user/token_manager';
+import { UserImpl } from '../src/core/user/user_impl';
 import { Auth } from '../src/model/auth';
 import { User } from '../src/model/user';
-import { UserImpl } from '../src/core/user/user_impl';
-import { StsTokenManager } from '../src/core/user/token_manager';
 
 export const TEST_HOST = 'localhost';
 export const TEST_SCHEME = 'mock';
@@ -29,7 +29,8 @@ export const mockAuth: Auth = {
   config: {
     apiKey: TEST_KEY,
     apiHost: TEST_HOST,
-    apiScheme: TEST_SCHEME
+    apiScheme: TEST_SCHEME,
+    sdkClientVersion: 'testSDK/0.0.0'
   }
 };
 

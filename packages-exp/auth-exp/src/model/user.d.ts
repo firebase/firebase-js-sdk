@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from './id_token';
 import { ProviderId } from '../core/providers';
+import { IdTokenResult } from './id_token';
 
 export interface UserInfo {
   readonly uid: string;
