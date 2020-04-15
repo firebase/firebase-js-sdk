@@ -40,7 +40,7 @@ describeSpec(
             .writeAcks('collection/a', 1, { expectUserCallback: false })
             .client(1)
             // Client 1 has received the WebStorage notification that the write
-            // has been acknowledged, but failed to process the change. Hence, 
+            // has been acknowledged, but failed to process the change. Hence,
             // we did not get a user callback. We schedule the first retry and
             // make sure that it cannot be processed until `recoverDatabase`
             // is called.
