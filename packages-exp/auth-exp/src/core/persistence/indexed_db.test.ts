@@ -62,11 +62,10 @@ describe('core/persistence/indexed_db', () => {
             cb();
           }
         },
-        error: new DOMException('yes there was an error'),
+        error: new DOMException('yes there was an error')
       } as any);
 
       expect(await persistence.isAvailable()).to.be.false;
     });
   });
 });
-
