@@ -4,7 +4,7 @@
   "dependencies": {
     "cors": "2.8.5",
     "firebase-admin": "8.10.0",
-    "firebase-functions": "3.3.0"
+    "firebase-functions": "3.6.0"
   },
   "private": true,
   "engines": {
