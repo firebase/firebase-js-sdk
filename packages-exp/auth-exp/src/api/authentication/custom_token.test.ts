@@ -22,30 +22,33 @@ import { Endpoint } from '..';
 import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { ProviderId } from '../../core/providers';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { signInWithCustomToken } from './custom_token';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('signInWithCustomToken', () => {
   const request = {
-    returnSecureToken: true,
-    email: 'test@foo.com',
-    password: 'my-password'
+    token: 'my-token'
   };
 
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
-      displayName: 'my-name',
-      email: 'test@foo.com'
+    const mock = mockEndpoint(Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, {
+      providerId: ProviderId.CUSTOM,
+      idToken: 'id-token',
+      expiresIn: '1000',
+      localId: '1234'
     });
 
-    const response = await signUp(mockAuth, request);
-    expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
+    const response = await signInWithCustomToken(mockAuth, request);
+    expect(response.providerId).to.eq(ProviderId.CUSTOM);
+    expect(response.idToken).to.eq('id-token');
+    expect(response.expiresIn).to.eq('1000');
+    expect(response.localId).to.eq('1234');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -56,14 +59,14 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
       {
         error: {
           code: 400,
-          message: ServerError.EMAIL_EXISTS,
+          message: ServerError.INVALID_CUSTOM_TOKEN,
           errors: [
             {
-              message: ServerError.EMAIL_EXISTS
+              message: ServerError.INVALID_CUSTOM_TOKEN
             }
           ]
         }
@@ -71,9 +74,9 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithCustomToken(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      'Firebase: The custom token format is incorrect. Please check the documentation. (auth/invalid-custom-token).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });

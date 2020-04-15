@@ -23,29 +23,29 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { signInWithIdp } from './idp';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('signInWithIdp', () => {
   const request = {
     returnSecureToken: true,
-    email: 'test@foo.com',
-    password: 'my-password'
+    requestUri: 'request-uri',
+    postBody: null
   };
 
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
+    const mock = mockEndpoint(Endpoint.SIGN_IN_WITH_IDP, {
       displayName: 'my-name',
-      email: 'test@foo.com'
+      idToken: 'id-token'
     });
 
-    const response = await signUp(mockAuth, request);
+    const response = await signInWithIdp(mockAuth, request);
     expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
+    expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -56,14 +56,14 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.SIGN_IN_WITH_IDP,
       {
         error: {
           code: 400,
-          message: ServerError.EMAIL_EXISTS,
+          message: ServerError.INVALID_IDP_RESPONSE,
           errors: [
             {
-              message: ServerError.EMAIL_EXISTS
+              message: ServerError.INVALID_IDP_RESPONSE
             }
           ]
         }
@@ -71,9 +71,9 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithIdp(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      'Firebase: The supplied auth credential is malformed or has expired. (auth/invalid-credential).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
