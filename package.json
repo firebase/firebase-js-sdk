@@ -86,7 +86,7 @@
     "glob": "7.1.6",
     "http-server": "0.12.1",
     "husky": "4.2.3",
-    "indexeddbshim": "5.0.0",
+    "indexeddbshim": "6.1.0",
     "inquirer": "7.1.0",
     "istanbul-instrumenter-loader": "3.0.1",
     "js-yaml": "3.13.1",
