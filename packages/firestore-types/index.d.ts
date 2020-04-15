@@ -102,6 +102,7 @@ export interface FirestoreDataConverter<T> {
 }
 
 // MARK: Initialization methods
+export function defaultPersistence(); Persistence;
 export function memoryPersistence(): Persistence;
 export function indexedDbPersistence(
   settings?: PersistenceSettings
