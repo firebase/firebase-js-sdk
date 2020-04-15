@@ -15,29 +15,29 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performSignInRequest } from '..';
+import { Endpoint, HttpMethod, performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
-export interface SignUpRequest {
-  returnSecureToken?: boolean;
-  email?: string;
-  password?: string;
+export interface UpdateProfileRequest {
+  idToken: string;
+  displayName?: string | null;
+  photoUrl?: string | null;
 }
 
-export interface SignUpResponse extends IdTokenResponse {
-  displayName?: string;
-  email?: string;
+export interface UpdateProfileResponse extends IdTokenResponse {
+  displayName?: string | null;
+  photoUrl?: string | null;
 }
 
-export async function signUp(
+export async function updateProfile(
   auth: Auth,
-  request: SignUpRequest
-): Promise<SignUpResponse> {
-  return performSignInRequest<SignUpRequest, SignUpResponse>(
+  request: UpdateProfileRequest
+): Promise<UpdateProfileResponse> {
+  return performApiRequest<UpdateProfileRequest, UpdateProfileResponse>(
     auth,
     HttpMethod.POST,
-    Endpoint.SIGN_UP,
+    Endpoint.SET_ACCOUNT_INFO,
     request
   );
 }
