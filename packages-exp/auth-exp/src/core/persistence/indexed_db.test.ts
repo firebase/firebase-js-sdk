@@ -69,4 +69,3 @@ describe('core/persistence/indexed_db', () => {
     });
   });
 });
-
