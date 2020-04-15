@@ -119,7 +119,7 @@ export class ExponentialBackoff {
       desiredDelayWithJitterMs - delaySoFarMs
     );
 
-    if (this.currentBaseMs > 0) {
+    if (remainingDelayMs > 0) {
       logDebug(
         LOG_TAG,
         `Backing off for ${remainingDelayMs} ms ` +
