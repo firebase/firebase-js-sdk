@@ -418,6 +418,7 @@ export class SpecBuilder {
     return this;
   }
 
+  /** Fails all database operations until `recoverDatabase()` is called. */
   failDatabase(): this {
     this.nextStep();
     this.currentStep = {
@@ -426,6 +427,7 @@ export class SpecBuilder {
     return this;
   }
 
+  /** Stops failing database operations. */
   recoverDatabase(): this {
     this.nextStep();
     this.currentStep = {

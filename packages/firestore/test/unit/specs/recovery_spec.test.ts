@@ -29,20 +29,28 @@ describeSpec(
       'Write is acknowledged by primary client (with recovery)',
       ['multi-client'],
       () => {
-        return client(0)
-          .expectPrimaryState(true)
-          .client(1)
-          .expectPrimaryState(false)
-          .userSets('collection/a', { v: 1 })
-          .failDatabase()
-          .client(0)
-          .writeAcks('collection/a', 1, { expectUserCallback: false })
-          .client(1)
-          .recoverDatabase()
-          .runTimer(TimerId.AsyncQueueRetry)
-          .expectUserCallbacks({
-            acknowledged: ['collection/a']
-          });
+        return (
+          client(0)
+            .expectPrimaryState(true)
+            .client(1)
+            .expectPrimaryState(false)
+            .userSets('collection/a', { v: 1 })
+            .failDatabase()
+            .client(0)
+            .writeAcks('collection/a', 1, { expectUserCallback: false })
+            .client(1)
+            // Client 1 has received the WebStorage notification that the write
+            // has been acknowledged, but failed to process the change. Hence, 
+            // we did not get a user callback. We schedule the first retry and
+            // make sure that it cannot be processed until `recoverDatabase`
+            // is called.
+            .runTimer(TimerId.AsyncQueueRetry)
+            .recoverDatabase()
+            .runTimer(TimerId.AsyncQueueRetry)
+            .expectUserCallbacks({
+              acknowledged: ['collection/a']
+            })
+        );
       }
     );
 

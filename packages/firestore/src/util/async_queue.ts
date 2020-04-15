@@ -70,7 +70,7 @@ export const enum TimerId {
    * A timer used to retry transactions. Since there can be multiple concurrent
    * transactions, multiple of these may be in the queue at a given time.
    */
-  RetryTransaction = 'retry_transaction',
+  TransactionRetry = 'transaction_retry',
 
   /**
    * A timer used to retry operations scheduled via retryable AsyncQueue
@@ -207,7 +207,7 @@ export class AsyncQueue {
 
   // The last retryable operation. Retryable operation are run in order and
   // retried with backoff.
-  private retryableTail = Promise.resolve();
+  private retryableTail: Promise<void> = Promise.resolve();
 
   // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.

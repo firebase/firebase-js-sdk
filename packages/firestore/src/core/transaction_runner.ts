@@ -42,7 +42,7 @@ export class TransactionRunner<T> {
   ) {
     this.backoff = new ExponentialBackoff(
       this.asyncQueue,
-      TimerId.RetryTransaction
+      TimerId.TransactionRetry
     );
   }
 

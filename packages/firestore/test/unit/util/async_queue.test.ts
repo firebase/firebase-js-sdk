@@ -212,7 +212,7 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new Error("Let's retry");
+        throw new Error('Simulated retryable error');
       }
     });
     await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
@@ -244,7 +244,7 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new Error("Let's retry");
+        throw new Error('Simulated retryable error');
       }
     });
 
@@ -270,7 +270,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length > 1) {
       } else {
-        throw new Error("Let's retry");
+        throw new Error('Simulated retryable error');
       }
     });
     queue.enqueueRetryable(async () => {
