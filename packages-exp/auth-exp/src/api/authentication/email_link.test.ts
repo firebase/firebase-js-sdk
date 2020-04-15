@@ -23,27 +23,26 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { signInWithEmailLink } from './email_link';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('signInWithEmailLink', () => {
   const request = {
-    returnSecureToken: true,
-    email: 'test@foo.com',
-    password: 'my-password'
+    email: 'foo@bar.com',
+    oobCode: 'my-code'
   };
 
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
+    const mock = mockEndpoint(Endpoint.SIGN_IN_WITH_EMAIL_LINK, {
       displayName: 'my-name',
       email: 'test@foo.com'
     });
 
-    const response = await signUp(mockAuth, request);
+    const response = await signInWithEmailLink(mockAuth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -56,14 +55,14 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.SIGN_IN_WITH_EMAIL_LINK,
       {
         error: {
           code: 400,
-          message: ServerError.EMAIL_EXISTS,
+          message: ServerError.INVALID_EMAIL,
           errors: [
             {
-              message: ServerError.EMAIL_EXISTS
+              message: ServerError.INVALID_EMAIL
             }
           ]
         }
@@ -71,9 +70,9 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithEmailLink(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });

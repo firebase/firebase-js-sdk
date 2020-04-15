@@ -17,27 +17,35 @@
 
 import { Endpoint, HttpMethod, performSignInRequest } from '..';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdToken, IdTokenResponse } from '../../model/id_token';
 
-export interface SignUpRequest {
-  returnSecureToken?: boolean;
-  email?: string;
-  password?: string;
+export interface SignInWithIdpRequest {
+  requestUri: string;
+  postBody: string | null;
+  sessionId?: string;
+  tenantId?: string;
+  returnSecureToken: boolean;
+  idToken?: IdToken;
+  autoCreate?: boolean;
+  pendingToken?: string;
 }
 
-export interface SignUpResponse extends IdTokenResponse {
-  displayName?: string;
-  email?: string;
+export interface SignInWithIdpResponse extends IdTokenResponse {
+  oauthAccessToken?: string;
+  oauthTokenSecret?: string;
+  nonce?: string;
+  oauthIdToken?: string;
+  pendingToken?: string;
 }
 
-export async function signUp(
+export async function signInWithIdp(
   auth: Auth,
-  request: SignUpRequest
-): Promise<SignUpResponse> {
-  return performSignInRequest<SignUpRequest, SignUpResponse>(
+  request: SignInWithIdpRequest
+): Promise<SignInWithIdpResponse> {
+  return performSignInRequest<SignInWithIdpRequest, SignInWithIdpResponse>(
     auth,
     HttpMethod.POST,
-    Endpoint.SIGN_UP,
+    Endpoint.SIGN_IN_WITH_IDP,
     request
   );
 }

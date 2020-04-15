@@ -23,13 +23,13 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { updateProfile } from './profile';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('updateProfile', () => {
   const request = {
-    returnSecureToken: true,
+    idToken: 'my-token',
     email: 'test@foo.com',
     password: 'my-password'
   };
@@ -38,14 +38,13 @@ describe('signUp', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
+    const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
       displayName: 'my-name',
       email: 'test@foo.com'
     });
 
-    const response = await signUp(mockAuth, request);
+    const response = await updateProfile(mockAuth, request);
     expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -56,7 +55,7 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.SET_ACCOUNT_INFO,
       {
         error: {
           code: 400,
@@ -71,7 +70,7 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(updateProfile(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
