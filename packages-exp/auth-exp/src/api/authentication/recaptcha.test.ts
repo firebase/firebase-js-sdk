@@ -23,31 +23,23 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
-import { signUp } from './sign_up';
+import { getRecaptchaParams } from './recaptcha';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
-  const request = {
-    returnSecureToken: true,
-    email: 'test@foo.com',
-    password: 'my-password'
-  };
-
+describe('getRecaptchaParams', () => {
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
-  it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.SIGN_UP, {
-      displayName: 'my-name',
-      email: 'test@foo.com'
+  it('should GET to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.GET_RECAPTCHA_PARAM, {
+      recaptchaSiteKey: 'site-key'
     });
 
-    const response = await signUp(mockAuth, request);
-    expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
+    const response = await getRecaptchaParams(mockAuth);
+    expect(response).to.eq('site-key');
+    expect(mock.calls[0].request).to.be.undefined;
+    expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers).to.eql({
       'Content-Type': 'application/json',
       'X-Client-Version': 'testSDK/0.0.0'
@@ -56,14 +48,14 @@ describe('signUp', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.SIGN_UP,
+      Endpoint.GET_RECAPTCHA_PARAM,
       {
         error: {
           code: 400,
-          message: ServerError.EMAIL_EXISTS,
+          message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER,
           errors: [
             {
-              message: ServerError.EMAIL_EXISTS
+              message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER
             }
           ]
         }
@@ -71,10 +63,10 @@ describe('signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(getRecaptchaParams(mockAuth)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+      'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.be.undefined;
   });
 });

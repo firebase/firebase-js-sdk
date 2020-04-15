@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-import { Endpoint } from '../../src/api';
-import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
-import { mock, Route } from '../mock_fetch';
+import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Auth } from '../../model/auth';
 
-export function mockEndpoint(
-  endpoint: Endpoint,
-  response: object,
-  status = 200
-): Route {
-  return mock(
-    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
-    response,
-    status
+interface GetRecaptchaParamResponse {
+  recaptchaSiteKey?: string;
+}
+
+export async function getRecaptchaParams(auth: Auth): Promise<string> {
+  return (
+    (
+      await performApiRequest<void, GetRecaptchaParamResponse>(
+        auth,
+        HttpMethod.GET,
+        Endpoint.GET_RECAPTCHA_PARAM
+      )
+    ).recaptchaSiteKey || ''
   );
 }

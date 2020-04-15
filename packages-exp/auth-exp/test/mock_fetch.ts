@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { stub, SinonStub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 
 export interface Call {
   request?: object;
