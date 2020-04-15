@@ -19,7 +19,7 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
-import { DEFAULT_API_TIMEOUT, Endpoint, HttpMethod, performApiRequest } from '.';
+import { DEFAULT_API_TIMEOUT_MS, Endpoint, HttpMethod, performApiRequest } from '.';
 import { mockEndpoint } from '../../test/api/helper';
 import { mockAuth } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
@@ -43,13 +43,19 @@ describe('performApiRequest', () => {
 
     it('should set the correct request, method and HTTP Headers', async () => {
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
-      const response = await performApiRequest<typeof request, typeof serverResponse>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      const response = await performApiRequest<typeof request, typeof serverResponse>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
       expect(response).to.eql(serverResponse);
       expect(mock.calls.length).to.eq(1);
       expect(mock.calls[0].method).to.eq(HttpMethod.POST);
       expect(mock.calls[0].request).to.eql(request);
       expect(mock.calls[0].headers).to.eql({
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Client-Version': 'testSDK/0.0.0'
       });
     });
 
@@ -69,7 +75,12 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      const promise = performApiRequest<typeof request, typeof serverResponse>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
         'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
@@ -93,7 +104,12 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      const promise = performApiRequest<typeof request, typeof serverResponse>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
@@ -117,7 +133,14 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request, { [ServerError.EMAIL_EXISTS]: AuthErrorCode.ARGUMENT_ERROR });
+      const promise = performApiRequest<typeof request, typeof serverResponse>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request,
+        {
+          [ServerError.EMAIL_EXISTS]: AuthErrorCode.ARGUMENT_ERROR
+        });
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
         'Firebase: Error (auth/argument-error).'
@@ -142,8 +165,13 @@ describe('performApiRequest', () => {
       fetchStub.callsFake(() => {
         return new Promise<never>(() => null);
       });
-      const promise = performApiRequest<typeof request, never>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      clock.tick(DEFAULT_API_TIMEOUT + 1);
+      const promise = performApiRequest<typeof request, never>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      clock.tick(DEFAULT_API_TIMEOUT_MS + 1);
       await expect(promise).to.be.rejectedWith(FirebaseError, 'Firebase: The operation has timed out. (auth/timeout).');
       clock.restore();
     });
@@ -152,7 +180,12 @@ describe('performApiRequest', () => {
       fetchStub.callsFake(() => {
         return new Promise<never>((_, reject) => reject(new Error('network error')));
       });
-      const promise = performApiRequest<typeof request, never>(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      const promise = performApiRequest<typeof request, never>(
+        mockAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
       await expect(promise).to.be.rejectedWith(FirebaseError, 'Firebase: A network AuthError (such as timeout]: interrupted connection or unreachable host) has occurred. (auth/network-request-failed).');
     });
   });

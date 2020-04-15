@@ -53,7 +53,7 @@ export enum Endpoint {
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw'
 }
 
-export const DEFAULT_API_TIMEOUT = 30_000;
+export const DEFAULT_API_TIMEOUT_MS = 30_000;
 
 export async function performApiRequest<T, V>(
   auth: Auth,
@@ -97,7 +97,9 @@ export async function performApiRequest<T, V>(
           ...body
         }
       ), new Promise((_, reject) =>
-        setTimeout(() => reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, { appName: auth.name })), DEFAULT_API_TIMEOUT)
+        setTimeout(() => {
+          return reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, { appName: auth.name }));
+        }, DEFAULT_API_TIMEOUT_MS)
       )]);
     if (response.ok) {
       return response.json();
