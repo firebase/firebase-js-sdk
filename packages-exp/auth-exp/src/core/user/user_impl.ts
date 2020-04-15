@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { User } from '../../model/user';
 import { Auth } from '../../model/auth';
 import { IdTokenResult } from '../../model/id_token';
+import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { StsTokenManager } from './token_manager';
 

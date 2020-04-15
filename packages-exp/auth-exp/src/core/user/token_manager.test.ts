@@ -17,9 +17,9 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
-import { IdTokenResponse } from '../../model/id_token';
 import { createSandbox } from 'sinon';
+import { IdTokenResponse } from '../../model/id_token';
+import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
 
 use(chaiAsPromised);
 

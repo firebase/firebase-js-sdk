@@ -19,25 +19,22 @@ import { Endpoint, HttpMethod, performSignInRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
-export interface SignUpRequest {
-  returnSecureToken?: boolean;
-  email?: string;
-  password?: string;
+export interface SignInWithEmailLinkRequest {
+  email: string;
+  oobCode: string;
 }
 
-export interface SignUpResponse extends IdTokenResponse {
-  displayName?: string;
-  email?: string;
+export interface SignInWithEmailLinkResponse extends IdTokenResponse {
+  email: string;
+  isNewUser: boolean;
 }
 
-export async function signUp(
+export async function signInWithEmailLink(
   auth: Auth,
-  request: SignUpRequest
-): Promise<SignUpResponse> {
-  return performSignInRequest<SignUpRequest, SignUpResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.SIGN_UP,
-    request
-  );
+  request: SignInWithEmailLinkRequest
+): Promise<SignInWithEmailLinkResponse> {
+  return performSignInRequest<
+    SignInWithEmailLinkRequest,
+    SignInWithEmailLinkResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
 }
