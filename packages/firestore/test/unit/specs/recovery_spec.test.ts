@@ -42,7 +42,7 @@ describeSpec(
             // Client 1 has received the WebStorage notification that the write
             // has been acknowledged, but failed to process the change. Hence,
             // we did not get a user callback. We schedule the first retry and
-            // make sure that it also does not get processed until 
+            // make sure that it also does not get processed until
             // `recoverDatabase` is called.
             .runTimer(TimerId.AsyncQueueRetry)
             .recoverDatabase()
@@ -55,7 +55,7 @@ describeSpec(
     );
 
     specTest(
-      'Query raises events in secondary client  (with recovery)',
+      'Query raises events in secondary client (with recovery)',
       ['multi-client'],
       () => {
         const query = Query.atPath(path('collection'));
@@ -73,6 +73,39 @@ describeSpec(
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectEvents(query, {});
+      }
+    );
+
+    specTest(
+      'Query is listened to by primary (with recovery)',
+      ['multi-client'],
+      () => {
+        const query = Query.atPath(path('collection'));
+
+        return (
+          client(0)
+            .expectPrimaryState(true)
+            .failDatabase()
+            .client(1)
+            .userListens(query)
+            .client(0)
+            // The primary client 0 receives a WebStorage notification about the
+            // new query, but it cannot load the target from IndexedDB. The
+            // query will only be listened to once we recover the database.
+            .recoverDatabase()
+            .runTimer(TimerId.AsyncQueueRetry)
+            .expectListen(query)
+            .failDatabase()
+            .client(1)
+            .userUnlistens(query)
+            .client(0)
+            // The primary client 0 receives a notification that the query can
+            // be released, but it can only process the change after we recover
+            // the database.
+            .recoverDatabase()
+            .runTimer(TimerId.AsyncQueueRetry)
+            .expectActiveTargets()
+        );
       }
     );
   }

@@ -1138,10 +1138,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
 
     for (const targetId of added) {
-      debugAssert(
-        !this.queriesByTarget.has(targetId),
-        'Trying to add an already active target'
-      );
+      if (this.queriesByTarget.has(targetId)) {
+        // A target might have been added in a previous attempt
+        logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
+        continue;
+      }
+
       const target = await this.localStore.getTarget(targetId);
       debugAssert(
         !!target,

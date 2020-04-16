@@ -879,10 +879,11 @@ export class LocalStore {
     keepPersistedTargetData: boolean
   ): Promise<void> {
     const targetData = this.targetDataByTarget.get(targetId);
-    debugAssert(
-      targetData !== null,
-      `Tried to release nonexistent target: ${targetId}`
-    );
+
+    if (targetData === null) {
+      logDebug(`Ignoring release of nonexistent target: ${targetId}`);
+      return Promise.resolve();
+    }
 
     const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
     return this.persistence
