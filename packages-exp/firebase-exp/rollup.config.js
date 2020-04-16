@@ -1,0 +1,133 @@
+import { resolve } from 'path';
+import resolveModule from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
+import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
+import json from 'rollup-plugin-json';
+import pkg from './package.json';
+
+import appPkg from './app/package.json';
+
+function createUmdOutputConfig(output) {
+  return {
+    file: output,
+    format: 'umd',
+    sourcemap: true,
+    extend: true,
+    name: GLOBAL_NAME,
+    globals: {
+      '@firebase/app': GLOBAL_NAME
+    },
+
+    /**
+     * use iife to avoid below error in the old Safari browser
+     * SyntaxError: Functions cannot be declared in a nested block in strict mode
+     * https://github.com/firebase/firebase-js-sdk/issues/1228
+     *
+     */
+    intro: `
+          try {
+            (function() {`,
+    outro: `
+          }).apply(this, arguments);
+        } catch(err) {
+            console.error(err);
+            throw new Error(
+              'Cannot instantiate ${output} - ' +
+              'be sure to load firebase-app.js first.'
+            );
+          }`
+  };
+}
+
+const plugins = [
+  sourcemaps(),
+  resolveModule(),
+  typescriptPlugin({
+    typescript,
+    // Workaround for typescript plugins that use async functions.
+    // In this case, `rollup-plugin-sourcemaps`.
+    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+    objectHashIgnoreUnknownHack: true,
+    // For safety, given hack above (see link).
+    clean: true
+  }),
+  json(),
+  commonjs()
+];
+
+const external = Object.keys(pkg.dependencies || {});
+
+/**
+ * Global UMD Build
+ */
+const GLOBAL_NAME = 'firebase';
+
+/**
+ * Individual Component Builds
+ */
+const appBuilds = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: [
+      { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
+      { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
+    ],
+    plugins,
+    external
+  },
+  /**
+   * App UMD Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: {
+      file: 'firebase-app.js',
+      sourcemap: true,
+      format: 'umd',
+      name: `${GLOBAL_NAME}.app`
+    },
+    plugins: [...plugins]
+  }
+];
+
+// const componentBuilds = pkg.components
+//   // The "app" component is treated differently because it doesn't depend on itself.
+//   .filter(component => component !== 'app')
+//   .map(component => {
+//     const pkg = require(`./${component}/package.json`);
+//     return [
+//       {
+//         input: `${component}/index.ts`,
+//         output: [
+//           {
+//             file: resolve(component, pkg.main),
+//             format: 'cjs',
+//             sourcemap: true
+//           },
+//           {
+//             file: resolve(component, pkg.module),
+//             format: 'es',
+//             sourcemap: true
+//           }
+//         ],
+//         plugins,
+//         external
+//       },
+//       {
+//         input: `${component}/index.ts`,
+//         output: createUmdOutputConfig(`firebase-${component}.js`),
+//         plugins: [...plugins, uglify()],
+//         external: ['@firebase/app']
+//       }
+//     ];
+//   })
+//   .reduce((a, b) => a.concat(b), []);
+
+export default [...appBuilds];
