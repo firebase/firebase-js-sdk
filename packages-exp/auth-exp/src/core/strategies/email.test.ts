@@ -123,21 +123,21 @@ describe('sendEmailVerification', () => {
     });
 
     await sendEmailVerification(mockAuth, user);
-    
+
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
       requestType: GetOobCodeRequestType.VERIFY_EMAIL,
       idToken
     });
   });
-    
+
   it('should reload the user if the API returns a different email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email: 'other@email.com'
     });
-    
+
     await sendEmailVerification(mockAuth, user);
-    
+
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
       requestType: GetOobCodeRequestType.VERIFY_EMAIL,
@@ -146,14 +146,10 @@ describe('sendEmailVerification', () => {
   });
 
   context('on iOS', () => {
-    it('should pass action code parameters', () => {
-
-    });
+    it('should pass action code parameters', () => {});
   });
 
   context('on Android', () => {
-    it('should pass action code parameters', () => {
-
-    });
+    it('should pass action code parameters', () => {});
   });
 });
