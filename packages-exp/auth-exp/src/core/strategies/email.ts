@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
+import {
+  createAuthUri,
+  CreateAuthUriRequest
+} from '../../api/authentication/create_auth_uri';
 import { Auth } from '../../model/auth';
 import { getCurrentUrl, isHttpOrHttps } from '../util/location';
 

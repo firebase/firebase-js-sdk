@@ -75,13 +75,22 @@ describe('fetchSignInMethodsForEmail', () => {
   });
 
   it('should surface errors', async () => {
-    const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
-      error: {
-        code: 400,
-        message: ServerError.INVALID_EMAIL
-      }
-    }, 400);
-    await expect(fetchSignInMethodsForEmail(mockAuth, email)).to.be.rejectedWith(FirebaseError, 'Firebase: The email address is badly formatted. (auth/invalid-email).');
+    const mock = mockEndpoint(
+      Endpoint.CREATE_AUTH_URI,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL
+        }
+      },
+      400
+    );
+    await expect(
+      fetchSignInMethodsForEmail(mockAuth, email)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
+    );
     expect(mock.calls.length).to.eq(1);
   });
 });
