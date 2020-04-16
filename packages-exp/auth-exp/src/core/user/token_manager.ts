@@ -16,6 +16,7 @@
  */
 
 import { IdTokenResponse } from '../../model/id_token';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -59,6 +60,38 @@ export class StsTokenManager {
     }
 
     throw new Error('StsTokenManager: token refresh not implemented');
+  }
+
+  toPlainObject(): object {
+    return {
+      refreshToken: this.refreshToken,
+      accessToken: this.accessToken,
+      expirationTime: this.expirationTime
+    };
+  }
+
+  static fromPlainObject(
+    appName: string,
+    object: { [key: string]: unknown }
+  ): StsTokenManager {
+    const { refreshToken, accessToken, expirationTime } = object;
+    const internalError = AUTH_ERROR_FACTORY.create(
+      AuthErrorCode.INTERNAL_ERROR,
+      { appName }
+    );
+    if (refreshToken && typeof refreshToken !== 'string') {
+      throw internalError;
+    }
+    if (accessToken && typeof accessToken !== 'string') {
+      throw internalError;
+    }
+    if (expirationTime && typeof expirationTime !== 'number') {
+      throw internalError;
+    }
+
+    const manager = new StsTokenManager();
+    Object.assign(manager, { refreshToken, accessToken, expirationTime });
+    return manager;
   }
 
   // TODO: There are a few more methods in here that need implemented:

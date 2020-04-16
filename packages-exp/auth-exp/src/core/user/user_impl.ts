@@ -20,6 +20,7 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { StsTokenManager } from './token_manager';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export interface UserParameters {
   uid: string;
@@ -79,5 +80,46 @@ export class UserImpl implements User {
 
   delete(): Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  static fromPlainObject(auth: Auth, object: { [key: string]: unknown }): User {
+    const {
+      uid,
+      stsTokenManager: plainObjectTokenManager,
+      displayName,
+      email,
+      phoneNumber,
+      photoURL
+    } = object;
+
+    const internalError = AUTH_ERROR_FACTORY.create(
+      AuthErrorCode.INTERNAL_ERROR,
+      { appName: auth.name }
+    );
+    function assertStringIfExists(value: unknown): string | undefined {
+      if (typeof value !== 'string' && typeof value !== 'undefined') {
+        throw internalError;
+      }
+      return value;
+    }
+
+    if (typeof uid !== 'string' || !plainObjectTokenManager) {
+      throw internalError;
+    }
+
+    const stsTokenManager = StsTokenManager.fromPlainObject(
+      auth.name,
+      plainObjectTokenManager as { [key: string]: unknown },
+    );
+
+    return new UserImpl({
+      uid,
+      auth,
+      stsTokenManager,
+      displayName: assertStringIfExists(displayName),
+      email: assertStringIfExists(email),
+      phoneNumber: assertStringIfExists(phoneNumber),
+      photoURL: assertStringIfExists(photoURL)
+    });
   }
 }
