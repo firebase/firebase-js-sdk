@@ -69,15 +69,23 @@ describe('core/persistence/persistence_user_manager', () => {
     });
 
     it('uses default user key if none provided', async () => {
-      const {stub, persistence} = makePersistence();
+      const { stub, persistence } = makePersistence();
       await PersistenceUserManager.create(mockAuth, [persistence]);
-      expect(stub.get).to.have.been.calledWith('firebase:authUser:test-api-key:test-app');
+      expect(stub.get).to.have.been.calledWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
     });
 
     it('uses user key if provided', async () => {
-      const {stub, persistence} = makePersistence();
-      await PersistenceUserManager.create(mockAuth, [persistence], 'redirectUser');
-      expect(stub.get).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app');
+      const { stub, persistence } = makePersistence();
+      await PersistenceUserManager.create(
+        mockAuth,
+        [persistence],
+        'redirectUser'
+      );
+      expect(stub.get).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app'
+      );
     });
 
     it('returns zeroth persistence if all else fails', async () => {
@@ -98,7 +106,7 @@ describe('core/persistence/persistence_user_manager', () => {
     let manager: PersistenceUserManager;
 
     beforeEach(async () => {
-      const {persistence, stub} = makePersistence(PersistenceType.SESSION);
+      const { persistence, stub } = makePersistence(PersistenceType.SESSION);
       persistenceStub = stub;
       manager = await PersistenceUserManager.create(mockAuth, [persistence]);
     });
@@ -115,15 +123,18 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#removeCurrentUser calls underlying persistence', async () => {
       await manager.removeCurrentUser();
       expect(persistenceStub.remove).to.have.been.calledWith(
-        'firebase:authUser:test-api-key:test-app');
+        'firebase:authUser:test-api-key:test-app'
+      );
     });
 
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
       const userImplStub = sinon.stub(UserImpl, 'fromPlainObject');
-      persistenceStub.get.callsFake((_: string, cb?: (o: { [key: string]: unknown }) => any) => {
-        return cb!(rawObject);
-      });
+      persistenceStub.get.callsFake(
+        (_: string, cb?: (o: { [key: string]: unknown }) => any) => {
+          return cb!(rawObject);
+        }
+      );
 
       await manager.getCurrentUser();
       expect(userImplStub).to.have.been.calledWith(mockAuth, rawObject);
@@ -135,13 +146,15 @@ describe('core/persistence/persistence_user_manager', () => {
       await manager.savePersistenceForRedirect();
       expect(persistenceStub.set).to.have.been.calledWith(
         'firebase:persistence:test-api-key:test-app',
-        'SESSION',
+        'SESSION'
       );
     });
-    
+
     describe('#setPersistence', () => {
       it('returns immediately if types match', async () => {
-        const {persistence: nextPersistence} = makePersistence(PersistenceType.SESSION);
+        const { persistence: nextPersistence } = makePersistence(
+          PersistenceType.SESSION
+        );
         const spy = sinon.spy(manager, 'getCurrentUser');
         await manager.setPersistence(nextPersistence);
         expect(spy).not.to.have.been.called;
@@ -149,7 +162,10 @@ describe('core/persistence/persistence_user_manager', () => {
       });
 
       it('removes current user & sets it in the new persistene', async () => {
-        const {persistence: nextPersistence, stub: nextStub} = makePersistence();
+        const {
+          persistence: nextPersistence,
+          stub: nextStub
+        } = makePersistence();
         const user = testUser('uid');
         persistenceStub.get.returns(Promise.resolve(user));
 

@@ -113,26 +113,35 @@ describe('core/user/token_manager', () => {
   });
 
   describe('fromPlainObject', () => {
-    const fpo = (obj: {[key: string]: unknown}) => StsTokenManager.fromPlainObject('app', obj);
-    const errorString = 'Firebase: An internal AuthError has occurred. (auth/internal-error).';
+    const fpo = (obj: { [key: string]: unknown }) =>
+      StsTokenManager.fromPlainObject('app', obj);
+    const errorString =
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws if refresh token is not a string', () => {
-        expect(() => fpo({refreshToken: 45, accessToken: 't', expirationTime: 3}))
-        .to.throw(FirebaseError, errorString);
+      expect(() =>
+        fpo({ refreshToken: 45, accessToken: 't', expirationTime: 3 })
+      ).to.throw(FirebaseError, errorString);
     });
 
     it('throws if access token is not a string', () => {
-      expect(() => fpo({refreshToken: 't', accessToken: 45, expirationTime: 3}))
-      .to.throw(FirebaseError, errorString);
+      expect(() =>
+        fpo({ refreshToken: 't', accessToken: 45, expirationTime: 3 })
+      ).to.throw(FirebaseError, errorString);
     });
 
     it('throws if expiration time is not a number', () => {
-      expect(() => fpo({refreshToken: 't', accessToken: 't', expirationTime: 'lol'}))
-      .to.throw(FirebaseError, errorString);
+      expect(() =>
+        fpo({ refreshToken: 't', accessToken: 't', expirationTime: 'lol' })
+      ).to.throw(FirebaseError, errorString);
     });
 
     it('builds an object correctly', () => {
-      const manager = fpo({refreshToken: 'r', accessToken: 'a', expirationTime: 45});
+      const manager = fpo({
+        refreshToken: 'r',
+        accessToken: 'a',
+        expirationTime: 45
+      });
       expect(manager.accessToken).to.eq('a');
       expect(manager.refreshToken).to.eq('r');
       expect(manager.expirationTime).to.eq(45);

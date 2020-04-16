@@ -109,14 +109,21 @@ describe('core/user/user_impl', () => {
 
   describe('fromPlainObject', () => {
     const fpo = UserImpl.fromPlainObject;
-    const errorString = 'Firebase: An internal AuthError has occurred. (auth/internal-error).';
+    const errorString =
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws an error if uid is not present', () => {
-      expect(() => fpo(mockAuth, {name: 'foo'})).to.throw(FirebaseError, errorString);
+      expect(() => fpo(mockAuth, { name: 'foo' })).to.throw(
+        FirebaseError,
+        errorString
+      );
     });
 
     it('throws if a key is not undefined or string', () => {
-      expect(() => fpo(mockAuth, {uid: 'foo', displayName: 3})).to.throw(FirebaseError, errorString);
+      expect(() => fpo(mockAuth, { uid: 'foo', displayName: 3 })).to.throw(
+        FirebaseError,
+        errorString
+      );
     });
 
     it('fills out a user object properly', () => {
@@ -125,12 +132,12 @@ describe('core/user/user_impl', () => {
         stsTokenManager: {
           accessToken: 'access-token',
           refreshToken: 'refresh-token',
-          expirationTime: 3,
+          expirationTime: 3
         },
         displayName: 'name',
         email: 'email',
         phoneNumber: 'number',
-        photoURL: 'photo',
+        photoURL: 'photo'
       };
 
       const user = fpo(mockAuth, params);

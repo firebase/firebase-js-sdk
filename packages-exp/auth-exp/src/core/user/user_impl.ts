@@ -109,7 +109,7 @@ export class UserImpl implements User {
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
       auth.name,
-      plainObjectTokenManager as { [key: string]: unknown },
+      plainObjectTokenManager as { [key: string]: unknown }
     );
 
     return new UserImpl({
