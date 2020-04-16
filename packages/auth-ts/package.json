@@ -8,6 +8,7 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
+  "react-native": "dist/index.rn.cjs.js",
   "files": [
     "dist"
   ],
@@ -66,6 +67,7 @@
   },
   "dependencies": {
     "@firebase/util": "^0.2.36",
+    "@react-native-community/async-storage": "1.9.0",
     "@types/grecaptcha": "^3.0.0",
     "tslib": "^1.10.0"
   }

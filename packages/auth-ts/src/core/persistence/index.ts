@@ -39,5 +39,3 @@ export interface Persistence {
   ): Promise<T | null>;
   remove(key: string): Promise<void>;
 }
-
-// export const reactNativeLocalPersistence: Persistence = { type: PersistenceType.LOCAL };
