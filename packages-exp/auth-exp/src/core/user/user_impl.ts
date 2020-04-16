@@ -20,8 +20,8 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { StsTokenManager } from './token_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
+import { assert, assertType } from '../util/assert';
 
 export interface UserParameters {
   uid: string;
@@ -93,28 +93,20 @@ export class UserImpl implements User {
       photoURL
     } = object;
 
-    const internalError = AUTH_ERROR_FACTORY.create(
-      AuthErrorCode.INTERNAL_ERROR,
-      { appName: auth.name }
-    );
     function assertStringIfExists(value: unknown): string | undefined {
-      if (typeof value !== 'string' && typeof value !== 'undefined') {
-        throw internalError;
-      }
-      return value;
+      assert(typeof value === 'string' || typeof value === 'undefined', auth.name);
+      return value as string | undefined;
     }
 
-    if (typeof uid !== 'string' || !plainObjectTokenManager) {
-      throw internalError;
-    }
+    assert(uid && plainObjectTokenManager, auth.name);
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
       auth.name,
-      plainObjectTokenManager as { [key: string]: unknown }
+      plainObjectTokenManager as PersistedBlob,
     );
 
     return new UserImpl({
-      uid,
+      uid: assertType(uid, 'string', auth.name),
       auth,
       stsTokenManager,
       displayName: assertStringIfExists(displayName),
