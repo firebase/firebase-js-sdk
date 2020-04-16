@@ -17,7 +17,7 @@
 
 import firebase from '@firebase/app';
 import { isMobileCordova } from '@firebase/util';
-import {Auth, Dependencies} from './model/auth';
+import { Auth, Dependencies } from './model/auth';
 import { signInAnonymously } from './core/strategies/anonymous';
 import {
   createUserWithEmailAndPassword,
@@ -211,7 +211,12 @@ export function createPolyfill(deps?: Dependencies): () => FirebaseAuth {
             number: string,
             appVerifier: ApplicationVerifier
           ): Promise<ConfirmationResult> {
-            return reauthenticateWithPhoneNumber(auth, user, number, appVerifier);
+            return reauthenticateWithPhoneNumber(
+              auth,
+              user,
+              number,
+              appVerifier
+            );
           },
           reauthenticateWithRedirect(provider: OAuthProvider): Promise<never> {
             const resolver = isMobileCordova()
@@ -256,7 +261,9 @@ export function createPolyfill(deps?: Dependencies): () => FirebaseAuth {
           updatePassword(newPassword: string): Promise<void> {
             return updatePassword(auth, user, newPassword);
           },
-          updatePhoneNumber(phoneCredential: PhoneAuthCredential): Promise<void> {
+          updatePhoneNumber(
+            phoneCredential: PhoneAuthCredential
+          ): Promise<void> {
             return updatePhoneNumber(auth, user, phoneCredential);
           },
           linkWithRedirect(provider: OAuthProvider): Promise<never> {
@@ -318,7 +325,9 @@ export function createPolyfill(deps?: Dependencies): () => FirebaseAuth {
           ? cordovaPopupRedirectResolver
           : browserPopupRedirectResolver;
 
-        const result = await catchMfaErr(() => resolver.getRedirectResult(auth));
+        const result = await catchMfaErr(() =>
+          resolver.getRedirectResult(auth)
+        );
         if (!result) {
           return {
             user: null,
@@ -417,7 +426,9 @@ export function createPolyfill(deps?: Dependencies): () => FirebaseAuth {
       setPersistence(persistence: Persistence): Promise<void> {
         switch (persistence) {
           case Persistence.LOCAL:
-            return originalSetPersistence.apply(auth, [browserLocalPersistence]);
+            return originalSetPersistence.apply(auth, [
+              browserLocalPersistence
+            ]);
           case Persistence.SESSION:
             return originalSetPersistence.apply(auth, [
               browserSessionPersistence

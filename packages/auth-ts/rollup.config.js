@@ -59,10 +59,13 @@ const es5Builds = [
    */
   {
     input: 'src/legacy_polyfill.rn.ts',
-      // async storage from 'react-native' is deprecated. Using this instead:
-      output: { file: pkg['react-native'], format: 'cjs', sourcemap: true },
+    // async storage from 'react-native' is deprecated. Using this instead:
+    output: { file: pkg['react-native'], format: 'cjs', sourcemap: true },
     plugins: es5BuildPlugins,
-      external: id => [...deps, '@react-native-community/async-storage'].some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      [...deps, '@react-native-community/async-storage'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   }
 ];
 
