@@ -16,7 +16,6 @@ const external = Object.keys(pkg.dependencies || {});
  */
 const GLOBAL_NAME = 'firebase';
 
-
 function createUmdOutputConfig(output, componentName) {
   return {
     file: output,
@@ -49,12 +48,7 @@ function createUmdOutputConfig(output, componentName) {
   };
 }
 
-const plugins = [
-  sourcemaps(),
-  resolveModule(),
-  json(),
-  commonjs()
-];
+const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
 
 const typescriptPlugin = rollupTypescriptPlugin({
   typescript,
@@ -79,7 +73,7 @@ const typescriptPluginNoDeclaration = rollupTypescriptPlugin({
       declaration: false
     }
   }
-})
+});
 
 /**
  * Individual Component Builds
