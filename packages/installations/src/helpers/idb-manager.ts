@@ -43,6 +43,23 @@ function getDbPromise(): Promise<DB> {
   return dbPromise;
 }
 
+let rawDbPromise: Promise<IDBDatabase> | null = null;
+function getRawDbPromise(): Promise<IDBDatabase> {
+  if (!rawDbPromise) {
+    rawDbPromise = new Promise((resolve, reject) => {
+      const request = window.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+      request.onerror = function() {
+        reject(request.error);
+      };
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
+
+    });
+  }
+  return rawDbPromise;
+}
+
 /** Gets record(s) from the objectStore that match the given key. */
 export async function get(
   appConfig: AppConfig
@@ -61,18 +78,37 @@ export async function set<ValueType extends InstallationEntry>(
   value: ValueType
 ): Promise<ValueType> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
+  // const db = await getDbPromise();
+  // const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  // const objectStore = tx.objectStore(OBJECT_STORE_NAME);
+  // const oldValue = await objectStore.get(key);
+  // await objectStore.put(value, key);
+  // await tx.complete;
+  const db = await getRawDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  const objectStore = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue = await objectStore.get(key);
-  await objectStore.put(value, key);
-  await tx.complete;
+  const store = tx.objectStore(OBJECT_STORE_NAME);
 
-  if (!oldValue || oldValue.fid !== value.fid) {
-    fidChanged(appConfig, value.fid);
-  }
+  const getAndPut = new Promise<ValueType>((resolve, reject) => {
+    const getRequest = store.get(key);
+    getRequest.onerror = () => reject(getRequest.error);
+    getRequest.onsuccess = function() {
+      const oldValue: InstallationEntry | undefined = getRequest.result;
+      const putRequest = store.put(value, key);
+      putRequest.onerror = () => reject(putRequest.error);
+      putRequest.onsuccess = function() {
+        if (!oldValue || oldValue.fid !== value.fid) {
+          fidChanged(appConfig, value.fid);
+        }
+        resolve(value);
+      };
+    };
 
-  return value;
+  });
+  const result = await getAndPut;
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve(result);
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 /** Removes record(s) from the objectStore that match the given key. */
@@ -95,24 +131,42 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   updateFn: (previousValue: InstallationEntry | undefined) => ValueType
 ): Promise<ValueType> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
+  // const db = await getDbPromise();
+  // const getTx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  // const oldValue: InstallationEntry | undefined = await getTx.objectStore(OBJECT_STORE_NAME).get(key);
+  // const newValue = updateFn(oldValue);
+  
+  const db = await getRawDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue: InstallationEntry | undefined = await store.get(key);
-  const newValue = updateFn(oldValue);
 
-  if (newValue === undefined) {
-    await store.delete(key);
-  } else {
-    await store.put(newValue, key);
-  }
-  await tx.complete;
-
-  if (newValue && (!oldValue || oldValue.fid !== newValue.fid)) {
-    fidChanged(appConfig, newValue.fid);
-  }
-
-  return newValue;
+  const getAndDeleteOrPut = new Promise<ValueType>((resolve, reject) => {
+    const getRequest = store.get(key);
+    getRequest.onerror = () => reject(getRequest.error);
+    getRequest.onsuccess = function() {
+      const oldValue:InstallationEntry | undefined = getRequest.result;
+      const newValue = updateFn(oldValue);
+      if (newValue === undefined) {
+        const deleteRequest = store.delete(key);
+        deleteRequest.onerror = () => reject(deleteRequest.error);
+        deleteRequest.onsuccess = () => resolve(newValue);
+      } else {
+        const putRequest = store.put(newValue, key);
+        putRequest.onerror = () => reject(putRequest.error);
+        putRequest.onsuccess = () => {
+          if (newValue && (!oldValue || oldValue.fid !== newValue.fid)) {
+            fidChanged(appConfig, newValue.fid);
+          }
+          resolve(newValue);
+        };
+      }
+    };
+  });
+  const result = await getAndDeleteOrPut;
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve(result);
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 export async function clear(): Promise<void> {

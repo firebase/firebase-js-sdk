@@ -39,6 +39,7 @@ export async function deleteInstallation(
       // Can't delete while trying to register.
       throw ERROR_FACTORY.create(ErrorCode.DELETE_PENDING_REGISTRATION);
     } else if (entry.registrationStatus === RequestStatus.COMPLETED) {
+      console.log(navigator.onLine);
       if (!navigator.onLine) {
         throw ERROR_FACTORY.create(ErrorCode.APP_OFFLINE);
       } else {
