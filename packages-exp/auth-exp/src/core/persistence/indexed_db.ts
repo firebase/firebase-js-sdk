@@ -19,7 +19,8 @@ import {
   Persistence,
   PersistenceType,
   PersistenceValue,
-  Instantiator
+  Instantiator,
+  PersistedBlob
 } from '.';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
@@ -29,7 +30,7 @@ const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';
 
-type DBValue = { [key: string]: unknown } | string;
+type DBValue = PersistedBlob | string;
 
 interface DBObject {
   [DB_DATA_KEYPATH]: string;

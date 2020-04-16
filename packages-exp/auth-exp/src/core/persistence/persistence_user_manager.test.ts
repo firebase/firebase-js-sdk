@@ -18,7 +18,7 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import { inMemoryPersistence } from './in_memory';
-import { PersistenceType, Persistence } from '.';
+import { PersistenceType, Persistence, Instantiator } from '.';
 import { expect } from 'chai';
 import { testUser, mockAuth } from '../../../test/mock_auth';
 import { PersistenceUserManager } from './persistence_user_manager';
@@ -131,7 +131,9 @@ describe('core/persistence/persistence_user_manager', () => {
       const rawObject = {};
       const userImplStub = sinon.stub(UserImpl, 'fromPlainObject');
       persistenceStub.get.callsFake(
-        (_: string, cb?: (o: { [key: string]: unknown }) => any) => {
+        (_: string, cb?: Instantiator<any>) => {
+          // Call through to the callback, to exercise the instantiator
+          // provided in PersistenceUserManager
           return cb!(rawObject);
         }
       );

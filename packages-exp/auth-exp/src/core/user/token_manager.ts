@@ -17,6 +17,7 @@
 
 import { IdTokenResponse } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { PersistedBlob } from '../persistence';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -72,7 +73,7 @@ export class StsTokenManager {
 
   static fromPlainObject(
     appName: string,
-    object: { [key: string]: unknown }
+    object: PersistedBlob,
   ): StsTokenManager {
     const { refreshToken, accessToken, expirationTime } = object;
     const internalError = AUTH_ERROR_FACTORY.create(

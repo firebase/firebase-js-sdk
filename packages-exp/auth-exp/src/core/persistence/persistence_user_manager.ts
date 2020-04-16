@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../persistence';
+import { Persistence, PersistedBlob } from '../persistence';
 import { User } from '../../model/user';
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { inMemoryPersistence } from './in_memory';
@@ -34,35 +34,37 @@ export function persistenceKeyName_(
 }
 
 export class PersistenceUserManager {
+  private readonly fullUserKey: string;
+  private readonly fullPersistenceKey: string;
   private constructor(
     public persistence: Persistence,
     private readonly auth: Auth,
     private readonly userKey: string
-  ) {}
-
-  fullKeyName_(key: string): string {
-    const { config, name } = this.auth;
-    return persistenceKeyName_(key, config.apiKey, name);
+  ) {
+    const {config, name} = this.auth;
+    this.fullUserKey = persistenceKeyName_(this.userKey, config.apiKey, name);
+    this.fullPersistenceKey = persistenceKeyName_(PERSISTENCE_KEY_NAME_, config.apiKey, name);
   }
 
+
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullKeyName_(this.userKey), user);
+    return this.persistence.set(this.fullUserKey, user);
   }
 
   getCurrentUser(): Promise<User | null> {
     return this.persistence.get<User>(
-      this.fullKeyName_(this.userKey),
-      (o: { [key: string]: unknown }) => UserImpl.fromPlainObject(this.auth, o)
+      this.fullUserKey,
+      (blob: PersistedBlob) => UserImpl.fromPlainObject(this.auth, blob)
     );
   }
 
   removeCurrentUser(): Promise<void> {
-    return this.persistence.remove(this.fullKeyName_(this.userKey));
+    return this.persistence.remove(this.fullUserKey);
   }
 
   savePersistenceForRedirect(): Promise<void> {
     return this.persistence.set(
-      this.fullKeyName_(PERSISTENCE_KEY_NAME_),
+      this.fullPersistenceKey,
       this.persistence.type
     );
   }

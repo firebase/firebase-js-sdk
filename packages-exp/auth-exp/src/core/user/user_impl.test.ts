@@ -108,19 +108,18 @@ describe('core/user/user_impl', () => {
   });
 
   describe('fromPlainObject', () => {
-    const fpo = UserImpl.fromPlainObject;
     const errorString =
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws an error if uid is not present', () => {
-      expect(() => fpo(mockAuth, { name: 'foo' })).to.throw(
+      expect(() => UserImpl.fromPlainObject(mockAuth, { name: 'foo' })).to.throw(
         FirebaseError,
         errorString
       );
     });
 
     it('throws if a key is not undefined or string', () => {
-      expect(() => fpo(mockAuth, { uid: 'foo', displayName: 3 })).to.throw(
+      expect(() => UserImpl.fromPlainObject(mockAuth, { uid: 'foo', displayName: 3 })).to.throw(
         FirebaseError,
         errorString
       );
@@ -140,7 +139,7 @@ describe('core/user/user_impl', () => {
         photoURL: 'photo'
       };
 
-      const user = fpo(mockAuth, params);
+      const user = UserImpl.fromPlainObject(mockAuth, params);
       expect(user.uid).to.eq(params.uid);
       expect(user.displayName).to.eq(params.displayName);
       expect(user.email).to.eq(params.email);

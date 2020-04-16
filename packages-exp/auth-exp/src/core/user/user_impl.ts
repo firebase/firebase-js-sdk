@@ -21,6 +21,7 @@ import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { StsTokenManager } from './token_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { PersistedBlob } from '../persistence';
 
 export interface UserParameters {
   uid: string;
@@ -82,7 +83,7 @@ export class UserImpl implements User {
     throw new Error('Method not implemented.');
   }
 
-  static fromPlainObject(auth: Auth, object: { [key: string]: unknown }): User {
+  static fromPlainObject(auth: Auth, object: PersistedBlob): User {
     const {
       uid,
       stsTokenManager: plainObjectTokenManager,
