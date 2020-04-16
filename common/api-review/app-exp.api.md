@@ -4,9 +4,9 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseAppConfig } from '@firebase/app-types';
-import { FirebaseOptions } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseAppConfig } from '@firebase/app-types-exp';
+import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevel } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
