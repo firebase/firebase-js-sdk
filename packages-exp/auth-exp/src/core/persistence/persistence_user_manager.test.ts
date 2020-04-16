@@ -130,13 +130,11 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
       const userImplStub = sinon.stub(UserImpl, 'fromPlainObject');
-      persistenceStub.get.callsFake(
-        (_: string, cb?: Instantiator<any>) => {
-          // Call through to the callback, to exercise the instantiator
-          // provided in PersistenceUserManager
-          return cb!(rawObject);
-        }
-      );
+      persistenceStub.get.callsFake((_: string, cb?: Instantiator<any>) => {
+        // Call through to the callback, to exercise the instantiator
+        // provided in PersistenceUserManager
+        return cb!(rawObject);
+      });
 
       await manager.getCurrentUser();
       expect(userImplStub).to.have.been.calledWith(mockAuth, rawObject);

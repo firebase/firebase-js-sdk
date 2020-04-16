@@ -73,7 +73,7 @@ export class StsTokenManager {
 
   static fromPlainObject(
     appName: string,
-    object: PersistedBlob,
+    object: PersistedBlob
   ): StsTokenManager {
     const { refreshToken, accessToken, expirationTime } = object;
     const internalError = AUTH_ERROR_FACTORY.create(

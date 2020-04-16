@@ -41,20 +41,22 @@ export class PersistenceUserManager {
     private readonly auth: Auth,
     private readonly userKey: string
   ) {
-    const {config, name} = this.auth;
+    const { config, name } = this.auth;
     this.fullUserKey = persistenceKeyName_(this.userKey, config.apiKey, name);
-    this.fullPersistenceKey = persistenceKeyName_(PERSISTENCE_KEY_NAME_, config.apiKey, name);
+    this.fullPersistenceKey = persistenceKeyName_(
+      PERSISTENCE_KEY_NAME_,
+      config.apiKey,
+      name
+    );
   }
-
 
   setCurrentUser(user: User): Promise<void> {
     return this.persistence.set(this.fullUserKey, user);
   }
 
   getCurrentUser(): Promise<User | null> {
-    return this.persistence.get<User>(
-      this.fullUserKey,
-      (blob: PersistedBlob) => UserImpl.fromPlainObject(this.auth, blob)
+    return this.persistence.get<User>(this.fullUserKey, (blob: PersistedBlob) =>
+      UserImpl.fromPlainObject(this.auth, blob)
     );
   }
 
@@ -63,10 +65,7 @@ export class PersistenceUserManager {
   }
 
   savePersistenceForRedirect(): Promise<void> {
-    return this.persistence.set(
-      this.fullPersistenceKey,
-      this.persistence.type
-    );
+    return this.persistence.set(this.fullPersistenceKey, this.persistence.type);
   }
 
   async setPersistence(newPersistence: Persistence): Promise<void> {

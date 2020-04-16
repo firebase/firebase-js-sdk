@@ -118,19 +118,31 @@ describe('core/user/token_manager', () => {
 
     it('throws if refresh token is not a string', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', { refreshToken: 45, accessToken: 't', expirationTime: 3 })
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 45,
+          accessToken: 't',
+          expirationTime: 3
+        })
       ).to.throw(FirebaseError, errorString);
     });
 
     it('throws if access token is not a string', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', { refreshToken: 't', accessToken: 45, expirationTime: 3 })
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 't',
+          accessToken: 45,
+          expirationTime: 3
+        })
       ).to.throw(FirebaseError, errorString);
     });
 
     it('throws if expiration time is not a number', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', { refreshToken: 't', accessToken: 't', expirationTime: 'lol' })
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 'lol'
+        })
       ).to.throw(FirebaseError, errorString);
     });
 
