@@ -54,7 +54,6 @@ function getRawDbPromise(): Promise<IDBDatabase> {
       request.onsuccess = function() {
         resolve(request.result);
       };
-
     });
   }
   return rawDbPromise;
@@ -102,7 +101,6 @@ export async function set<ValueType extends InstallationEntry>(
         resolve(value);
       };
     };
-
   });
   const result = await getAndPut;
   return new Promise((resolve, reject) => {
@@ -135,7 +133,7 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   // const getTx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   // const oldValue: InstallationEntry | undefined = await getTx.objectStore(OBJECT_STORE_NAME).get(key);
   // const newValue = updateFn(oldValue);
-  
+
   const db = await getRawDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
@@ -144,7 +142,7 @@ export async function update<ValueType extends InstallationEntry | undefined>(
     const getRequest = store.get(key);
     getRequest.onerror = () => reject(getRequest.error);
     getRequest.onsuccess = function() {
-      const oldValue:InstallationEntry | undefined = getRequest.result;
+      const oldValue: InstallationEntry | undefined = getRequest.result;
       const newValue = updateFn(oldValue);
       if (newValue === undefined) {
         const deleteRequest = store.delete(key);
