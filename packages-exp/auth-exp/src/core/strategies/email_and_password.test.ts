@@ -27,7 +27,12 @@ import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
 // import * as location from '../util/location';
-import { checkActionCode, confirmPasswordReset, sendPasswordResetEmail, verifyPasswordResetCode } from './email_and_password';
+import {
+  checkActionCode,
+  confirmPasswordReset,
+  sendPasswordResetEmail,
+  verifyPasswordResetCode
+} from './email_and_password';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -60,9 +65,7 @@ describe('sendPasswordResetEmail', () => {
       },
       400
     );
-    await expect(
-      sendPasswordResetEmail(mockAuth, email)
-    ).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(mockAuth, email)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -93,23 +96,23 @@ describe('sendPasswordResetEmail', () => {
         iosBundleId: 'my-bundle',
         iosAppStoreId: 'my-appstore-id'
       });
-     });
+    });
   });
 
   context('on Android', () => {
-    it('should pass action code parameters', async () => { 
+    it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
       await sendPasswordResetEmail(mockAuth, email, {
-          handleCodeInApp: true,
-          android: {
-            installApp: false,
-            minimumVersion: 'my-version',
-            packageName: 'my-package'
-          },
-          url: 'my-url',
-          dynamicLinkDomain: 'fdl-domain'
+        handleCodeInApp: true,
+        android: {
+          installApp: false,
+          minimumVersion: 'my-version',
+          packageName: 'my-package'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
         requestType: Operation.PASSWORD_RESET,
@@ -124,7 +127,6 @@ describe('sendPasswordResetEmail', () => {
     });
   });
 });
-
 
 describe('confirmPasswordReset', () => {
   const oobCode = 'oob-code';
@@ -185,7 +187,7 @@ describe('checkActionCode', () => {
         email,
         fromEmail: null
       },
-      operation: Operation.PASSWORD_RESET  
+      operation: Operation.PASSWORD_RESET
     });
     expect(mock.calls[0].request).to.eql({
       oobCode
@@ -215,9 +217,7 @@ describe('checkActionCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(
-      checkActionCode(mockAuth, oobCode)
-    ).to.be.rejectedWith(
+    await expect(checkActionCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
@@ -235,9 +235,7 @@ describe('checkActionCode', () => {
       },
       400
     );
-    await expect(
-      checkActionCode(mockAuth, oobCode)
-    ).to.be.rejectedWith(
+    await expect(checkActionCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed]: expired]: or has already been used. (auth/invalid-action-code).'
     );
@@ -268,9 +266,7 @@ describe('verifyPasswordResetCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(
-      verifyPasswordResetCode(mockAuth, oobCode)
-    ).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
@@ -288,13 +284,10 @@ describe('verifyPasswordResetCode', () => {
       },
       400
     );
-    await expect(
-      verifyPasswordResetCode(mockAuth, oobCode)
-    ).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed]: expired]: or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
   });
 });
-

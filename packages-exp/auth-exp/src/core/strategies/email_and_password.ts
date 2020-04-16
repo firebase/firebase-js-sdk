@@ -18,7 +18,10 @@
 import { resetPassword } from '../../api/account_management/email_and_password';
 import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeInfo, Operation } from '../../model/action_code_info';
-import { ActionCodeSettings, setActionCodeSettingsOnRequest } from '../../model/action_code_settings';
+import {
+  ActionCodeSettings,
+  setActionCodeSettingsOnRequest
+} from '../../model/action_code_settings';
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 
