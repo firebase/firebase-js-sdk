@@ -304,10 +304,7 @@ export class FirestoreClient {
         error.code === Code.FAILED_PRECONDITION ||
         error.code === Code.UNIMPLEMENTED
       );
-    } else if (
-      typeof DOMException !== 'undefined' &&
-      error instanceof DOMException
-    ) {
+    } else if (error.name === 'DOMException') {
       // There are a few known circumstances where we can open IndexedDb but
       // trying to read/write will fail (e.g. quota exceeded). For
       // well-understood cases, we attempt to detect these and then gracefully
