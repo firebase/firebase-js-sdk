@@ -65,7 +65,7 @@ export async function performApiRequest<T, V>(
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     let body = {};
-    const params: { [key: string]: string; } = {
+    const params: { [key: string]: string } = {
       key: auth.config.apiKey
     };
     if (request) {
@@ -96,11 +96,17 @@ export async function performApiRequest<T, V>(
           referrerPolicy: 'no-referrer',
           ...body
         }
-      ), new Promise((_, reject) =>
+      ),
+      new Promise((_, reject) =>
         setTimeout(() => {
-          return reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, { appName: auth.name }));
+          return reject(
+            AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
+              appName: auth.name
+            })
+          );
         }, DEFAULT_API_TIMEOUT_MS)
-      )]);
+      )
+    ]);
     if (response.ok) {
       return response.json();
     } else {
@@ -112,7 +118,9 @@ export async function performApiRequest<T, V>(
         // TODO probably should handle improperly formatted errors as well
         // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
         console.error(`Unexpected API error: ${json.error.message}`);
-        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+          appName: auth.name
+        });
       }
     }
   } catch (e) {
