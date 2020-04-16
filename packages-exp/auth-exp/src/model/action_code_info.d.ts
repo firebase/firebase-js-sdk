@@ -21,3 +21,11 @@ export enum Operation {
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
   VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
+
+export interface ActionCodeInfo {
+  data: {
+    email: string | null;
+    fromEmail: string | null;
+  };
+  operation: string;
+}

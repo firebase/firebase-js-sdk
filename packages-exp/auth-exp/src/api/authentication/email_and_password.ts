@@ -52,7 +52,7 @@ export enum GetOobCodeRequestType {
   VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL'
 }
 
-interface GetOobCodeRequest {
+export interface GetOobCodeRequest {
   email?: string; // Everything except VERIFY_AND_CHANGE_EMAIL
   continueUrl?: string;
   iosBundleId?: string;
