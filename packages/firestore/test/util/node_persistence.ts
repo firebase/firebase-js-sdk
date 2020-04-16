@@ -58,3 +58,11 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
 
   globalAny.Event = Event;
 }
+
+if (typeof DOMException === 'undefined') {
+  // Define DOMException as it is used in tests
+  class DOMException {
+    constructor(readonly message: string) {}
+  }
+  globalAny.DOMException = DOMException;
+}

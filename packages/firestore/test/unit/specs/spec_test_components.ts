@@ -113,7 +113,7 @@ export class MockPersistence implements Persistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     if (this.injectFailures) {
-      return Promise.reject(new Error('Injected Failure'));
+      return Promise.reject(new DOMException('Simulated retryable error'));
     } else {
       return this.delegate.runTransaction(action, mode, transactionOperation);
     }

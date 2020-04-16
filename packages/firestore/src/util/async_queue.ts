@@ -318,9 +318,10 @@ export class AsyncQueue {
   /**
    * Enqueue a retryable operation.
    *
-   * A retryable operation is rescheduled with backoff if it fails with any
-   * exception. All retryable operations are executed in order and only run
-   * if all prior operations were retried successfully.
+   * A retryable operation is rescheduled with backoff if it fails with a
+   * DOMException or a DOMError (the error types used by IndexedDB). All
+   * retryable operations are executed in order and only run if all prior
+   * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
     this.verifyNotFailed();
@@ -337,8 +338,19 @@ export class AsyncQueue {
           deferred.resolve();
           this.backoff.reset();
         } catch (e) {
-          logDebug(LOG_TAG, 'Retryable operation failed: ' + e.message);
-          this.backoff.backoffAndRun(retryingOp);
+          // We only retry errors that match the ones thrown by IndexedDB (see
+          // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/error)
+          if (
+            (typeof DOMException !== 'undefined' &&
+              e instanceof DOMException) ||
+            (typeof DOMError !== 'undefined' && e instanceof DOMError)
+          ) {
+            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+            this.backoff.backoffAndRun(retryingOp);
+          } else {
+            deferred.resolve();
+            throw e; // Failure will be handled by AsyncQueue
+          }
         }
       };
       this.enqueueAndForget(retryingOp);
