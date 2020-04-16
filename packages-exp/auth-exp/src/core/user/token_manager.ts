@@ -78,10 +78,10 @@ export class StsTokenManager {
     const { refreshToken, accessToken, expirationTime } = object;
 
     const manager = new StsTokenManager();
-    Object.assign<StsTokenManager, Partial<StsTokenManager>>(manager, { 
+    Object.assign<StsTokenManager, Partial<StsTokenManager>>(manager, {
       refreshToken: assertType(refreshToken, 'string', appName),
       accessToken: assertType(accessToken, 'string', appName),
-      expirationTime: assertType(expirationTime, 'number', appName),
+      expirationTime: assertType(expirationTime, 'number', appName)
     });
     return manager;
   }

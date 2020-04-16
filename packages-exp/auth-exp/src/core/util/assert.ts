@@ -15,17 +15,24 @@
  * limitations under the License.
  */
 
-import {AUTH_ERROR_FACTORY, AuthErrorCode} from '../errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
-export function assert<T>(expression: T|null|undefined, appName: string): T {
+export function assert<T>(
+  expression: T | null | undefined,
+  appName: string
+): T {
   if (!expression) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {appName});
+    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName });
   }
 
   return expression;
 }
 
-export function assertType<T>(expression: unknown, expected: string, appName: string): T {
+export function assertType<T>(
+  expression: unknown,
+  expected: string,
+  appName: string
+): T {
   assert(typeof expression === expected, appName);
   return expression as T;
 }

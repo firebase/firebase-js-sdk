@@ -94,7 +94,10 @@ export class UserImpl implements User {
     } = object;
 
     function assertStringIfExists(value: unknown): string | undefined {
-      assert(typeof value === 'string' || typeof value === 'undefined', auth.name);
+      assert(
+        typeof value === 'string' || typeof value === 'undefined',
+        auth.name
+      );
       return value as string | undefined;
     }
 
@@ -102,7 +105,7 @@ export class UserImpl implements User {
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
       auth.name,
-      plainObjectTokenManager as PersistedBlob,
+      plainObjectTokenManager as PersistedBlob
     );
 
     return new UserImpl({
