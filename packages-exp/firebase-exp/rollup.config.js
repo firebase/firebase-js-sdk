@@ -2,24 +2,30 @@ import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import typescriptPlugin from 'rollup-plugin-typescript2';
+import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
-import { terser } from 'rollup-plugin-terser';
 import json from 'rollup-plugin-json';
 import pkg from './package.json';
-
 import appPkg from './app/package.json';
 
-function createUmdOutputConfig(output) {
+const external = Object.keys(pkg.dependencies || {});
+
+/**
+ * Global UMD Build
+ */
+const GLOBAL_NAME = 'firebase';
+
+
+function createUmdOutputConfig(output, componentName) {
   return {
     file: output,
     format: 'umd',
     sourcemap: true,
     extend: true,
-    name: GLOBAL_NAME,
+    name: `${GLOBAL_NAME}.${componentName}`,
     globals: {
-      '@firebase/app': GLOBAL_NAME
+      '@firebase/app-exp': `${GLOBAL_NAME}.app`
     },
 
     /**
@@ -46,25 +52,34 @@ function createUmdOutputConfig(output) {
 const plugins = [
   sourcemaps(),
   resolveModule(),
-  typescriptPlugin({
-    typescript,
-    // Workaround for typescript plugins that use async functions.
-    // In this case, `rollup-plugin-sourcemaps`.
-    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-    objectHashIgnoreUnknownHack: true,
-    // For safety, given hack above (see link).
-    clean: true
-  }),
   json(),
   commonjs()
 ];
 
-const external = Object.keys(pkg.dependencies || {});
+const typescriptPlugin = rollupTypescriptPlugin({
+  typescript,
+  // Workaround for typescript plugins that use async functions.
+  // In this case, `rollup-plugin-sourcemaps`.
+  // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+  objectHashIgnoreUnknownHack: true,
+  // For safety, given hack above (see link).
+  clean: true
+});
 
-/**
- * Global UMD Build
- */
-const GLOBAL_NAME = 'firebase';
+const typescriptPluginNoDeclaration = rollupTypescriptPlugin({
+  typescript,
+  // Workaround for typescript plugins that use async functions.
+  // In this case, `rollup-plugin-sourcemaps`.
+  // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
+  objectHashIgnoreUnknownHack: true,
+  // For safety, given hack above (see link).
+  clean: true,
+  tsconfigOverride: {
+    compilerOptions: {
+      declaration: false
+    }
+  }
+})
 
 /**
  * Individual Component Builds
@@ -79,7 +94,7 @@ const appBuilds = [
       { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
       { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
     ],
-    plugins,
+    plugins: [...plugins, typescriptPlugin],
     external
   },
   /**
@@ -93,41 +108,41 @@ const appBuilds = [
       format: 'umd',
       name: `${GLOBAL_NAME}.app`
     },
-    plugins: [...plugins]
+    plugins: [...plugins, typescriptPluginNoDeclaration, uglify()]
   }
 ];
 
-// const componentBuilds = pkg.components
-//   // The "app" component is treated differently because it doesn't depend on itself.
-//   .filter(component => component !== 'app')
-//   .map(component => {
-//     const pkg = require(`./${component}/package.json`);
-//     return [
-//       {
-//         input: `${component}/index.ts`,
-//         output: [
-//           {
-//             file: resolve(component, pkg.main),
-//             format: 'cjs',
-//             sourcemap: true
-//           },
-//           {
-//             file: resolve(component, pkg.module),
-//             format: 'es',
-//             sourcemap: true
-//           }
-//         ],
-//         plugins,
-//         external
-//       },
-//       {
-//         input: `${component}/index.ts`,
-//         output: createUmdOutputConfig(`firebase-${component}.js`),
-//         plugins: [...plugins, uglify()],
-//         external: ['@firebase/app']
-//       }
-//     ];
-//   })
-//   .reduce((a, b) => a.concat(b), []);
+const componentBuilds = pkg.components
+  // The "app" component is treated differently because it doesn't depend on itself.
+  .filter(component => component !== 'app')
+  .map(component => {
+    const pkg = require(`./${component}/package.json`);
+    return [
+      {
+        input: `${component}/index.ts`,
+        output: [
+          {
+            file: resolve(component, pkg.main),
+            format: 'cjs',
+            sourcemap: true
+          },
+          {
+            file: resolve(component, pkg.module),
+            format: 'es',
+            sourcemap: true
+          }
+        ],
+        plugins,
+        external
+      },
+      {
+        input: `${component}/index.ts`,
+        output: createUmdOutputConfig(`firebase-${component}.js`, component),
+        plugins: [...plugins, typescriptPluginNoDeclaration, uglify()],
+        external: ['@firebase/app-exp']
+      }
+    ];
+  })
+  .reduce((a, b) => a.concat(b), []);
 
-export default [...appBuilds];
+export default [...appBuilds, ...componentBuilds];
