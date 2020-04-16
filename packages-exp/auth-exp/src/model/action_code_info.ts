@@ -30,3 +30,11 @@ export interface ActionCodeInfo {
   };
   operation: string;
 }
+
+export interface ActionCodeInfo {
+  data: {
+    email: string | null;
+    fromEmail: string | null;
+  };
+  operation: string;
+}
