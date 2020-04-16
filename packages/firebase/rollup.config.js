@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2018 Google Inc.
@@ -73,55 +74,55 @@ const appBuilds = [
       name: GLOBAL_NAME
     },
     plugins: [...plugins, uglify()]
-  }
+}
 ];
 
 const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
-  .map(component => {
-    const pkg = require(`./${component}/package.json`);
-    return [
+.map(component => {
+  const pkg = require(`./${component}/package.json`);
+return [
+  {
+    input: `${component}/index.ts`,
+    output: [
       {
-        input: `${component}/index.ts`,
-        output: [
-          {
-            file: resolve(component, pkg.main),
-            format: 'cjs',
-            sourcemap: true
-          },
-          {
-            file: resolve(component, pkg.module),
-            format: 'es',
-            sourcemap: true
-          }
-        ],
-        plugins,
-        external
+        file: resolve(component, pkg.main),
+        format: 'cjs',
+        sourcemap: true
       },
       {
-        input: `${component}/index.ts`,
-        output: {
-          file: `firebase-${component}.js`,
-          format: 'umd',
-          sourcemap: true,
-          extend: true,
-          name: GLOBAL_NAME,
-          globals: {
-            '@firebase/app': GLOBAL_NAME
-          },
+        file: resolve(component, pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `${component}/index.ts`,
+    output: {
+      file: `firebase-${component}.js`,
+      format: 'umd',
+      sourcemap: true,
+      extend: true,
+      name: GLOBAL_NAME,
+      globals: {
+        '@firebase/app': GLOBAL_NAME
+      },
 
-          /**
-           * use iife to avoid below error in the old Safari browser
-           * SyntaxError: Functions cannot be declared in a nested block in strict mode
-           * https://github.com/firebase/firebase-js-sdk/issues/1228
-           *
-           */
+      /**
+       * use iife to avoid below error in the old Safari browser
+       * SyntaxError: Functions cannot be declared in a nested block in strict mode
+       * https://github.com/firebase/firebase-js-sdk/issues/1228
+       *
+       */
 
-          intro: `
+      intro: `
             try {
               (function() {`,
-          outro: `
+      outro: `
             }).apply(this, arguments);
           } catch(err) {
               console.error(err);
@@ -130,13 +131,13 @@ const componentBuilds = pkg.components
                 'be sure to load firebase-app.js first.'
               );
             }`
-        },
-        plugins: [...plugins, uglify()],
-        external: ['@firebase/app']
-      }
-    ];
-  })
-  .reduce((a, b) => a.concat(b), []);
+    },
+    plugins: [...plugins, uglify()],
+  external: ['@firebase/app']
+}
+];
+})
+.reduce((a, b) => a.concat(b), []);
 
 /**
  * Complete Package Builds
@@ -163,80 +164,80 @@ const completeBuilds = [
       name: GLOBAL_NAME
     },
     plugins: [...plugins, uglify()]
-  },
-  /**
-   * App Node.js Builds
-   */
-  {
-    input: 'src/index.node.ts',
+},
+/**
+ * App Node.js Builds
+ */
+{
+  input: 'src/index.node.ts',
     output: { file: pkg.main, format: 'cjs', sourcemap: true },
-    plugins,
+  plugins,
     external
-  },
-  /**
-   * App React Native Builds
-   */
-  {
-    input: 'src/index.rn.ts',
+},
+/**
+ * App React Native Builds
+ */
+{
+  input: 'src/index.rn.ts',
     output: { file: pkg['react-native'], format: 'cjs', sourcemap: true },
-    plugins,
+  plugins,
     external
-  },
-  /**
-   * Performance script Build
-   */
-  {
-    input: 'src/index.perf.ts',
+},
+/**
+ * Performance script Build
+ */
+{
+  input: 'src/index.perf.ts',
     output: {
-      file: 'firebase-performance-standalone.js',
-      format: 'umd',
-      sourcemap: true,
-      name: GLOBAL_NAME
-    },
-    plugins: [
-      sourcemaps(),
-      resolveModule({
-        mainFields: ['lite', 'module', 'main']
-      }),
-      typescriptPlugin({
-        typescript
-      }),
-      json(),
-      commonjs(),
-      uglify()
-    ]
-  },
-  /**
-   * Performance script Build in ES2017
-   */
-  {
-    input: 'src/index.perf.ts',
+  file: 'firebase-performance-standalone.js',
+    format: 'umd',
+    sourcemap: true,
+    name: GLOBAL_NAME
+},
+  plugins: [
+    sourcemaps(),
+    resolveModule({
+      mainFields: ['lite', 'module', 'main']
+    }),
+    typescriptPlugin({
+      typescript
+    }),
+    json(),
+    commonjs(),
+    uglify()
+  ]
+},
+/**
+ * Performance script Build in ES2017
+ */
+{
+  input: 'src/index.perf.ts',
     output: {
-      file: 'firebase-performance-standalone.es2017.js',
-      format: 'umd',
-      sourcemap: true,
-      name: GLOBAL_NAME
-    },
-    plugins: [
-      sourcemaps(),
-      resolveModule({
-        mainFields: ['lite-esm2017', 'esm2017', 'module', 'main']
-      }),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
+  file: 'firebase-performance-standalone.es2017.js',
+    format: 'umd',
+    sourcemap: true,
+    name: GLOBAL_NAME
+},
+  plugins: [
+    sourcemaps(),
+    resolveModule({
+      mainFields: ['lite-esm2017', 'esm2017', 'module', 'main']
+    }),
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
         }
-      }),
-      json({
-        preferConst: true
-      }),
-      commonjs(),
-      terser()
-    ]
-  }
+      }
+    }),
+    json({
+      preferConst: true
+    }),
+    commonjs(),
+    terser()
+  ]
+}
 ];
 
-export default [...appBuilds, ...componentBuilds, ...completeBuilds];
+export default [...appBuilds, ...componentBuilds, /* ...completeBuilds */];

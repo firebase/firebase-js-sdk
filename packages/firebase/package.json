@@ -66,16 +66,7 @@
   },
   "typings": "index.d.ts",
   "components": [
-    "analytics",
     "app",
-    "auth",
-    "database",
-    "firestore",
-    "functions",
-    "installations",
-    "messaging",
-    "storage",
-    "performance",
-    "remote-config"
+    "auth"
   ]
 }

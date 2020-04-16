@@ -67,7 +67,6 @@
   },
   "dependencies": {
     "@firebase/util": "^0.2.36",
-    "@react-native-community/async-storage": "1.9.0",
     "@types/grecaptcha": "^3.0.0",
     "tslib": "^1.10.0"
   }
