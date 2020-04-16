@@ -226,9 +226,9 @@ describe('AsyncQueue', () => {
 
   it("Doesn't retry internal exceptions", async () => {
     const queue = new AsyncQueue();
-    // We use a Deferred Promise as retryable operations are scheduled only
+    // We use a deferred Promise as retryable operations are scheduled only
     // when Promise chains are resolved, which can happen after the
-    // `queue.enqueue` call below.
+    // `queue.enqueue()` call below.
     const deferred = new Deferred<void>();
     queue.enqueueRetryable(async () => {
       deferred.resolve();
