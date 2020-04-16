@@ -35,7 +35,7 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const response = await createAuthUri(auth, request);
+  const { signinMethods } = await createAuthUri(auth, request);
 
-  return response.signinMethods || [];
+  return signinMethods || [];
 }

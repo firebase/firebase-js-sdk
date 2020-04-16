@@ -16,7 +16,7 @@
  */
 
 export function getCurrentUrl(): string {
-  return window?.location?.href || self?.location?.href || '';
+  return self?.location?.href || '';
 }
 
 export function isHttpOrHttps(): boolean {
@@ -24,5 +24,5 @@ export function isHttpOrHttps(): boolean {
 }
 
 export function getCurrentScheme(): string | null {
-  return location?.protocol || null;
+  return self?.location?.protocol || null;
 }
