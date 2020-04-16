@@ -119,6 +119,7 @@ describe('sendEmailVerification', () => {
 
   it('should send the email verification', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
       email
     });
 
@@ -133,6 +134,7 @@ describe('sendEmailVerification', () => {
 
   it('should reload the user if the API returns a different email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
       email: 'other@email.com'
     });
 
@@ -146,10 +148,59 @@ describe('sendEmailVerification', () => {
   });
 
   context('on iOS', () => {
-    it('should pass action code parameters', () => {});
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        email
+      });
+      await sendEmailVerification(mockAuth, user, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: 'my-bundle',
+          appStoreId: 'my-appstore-id'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+
+      expect(mock.calls[0].request).to.eql({
+        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        idToken,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        iosBundleId: 'my-bundle',
+        iosAppStoreId: 'my-appstore-id'
+      });
+    });
   });
 
   context('on Android', () => {
-    it('should pass action code parameters', () => {});
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        email
+      });
+      await sendEmailVerification(mockAuth, user, {
+        handleCodeInApp: true,
+        android: {
+          installApp: false,
+          minimumVersion: 'my-version',
+          packageName: 'my-package'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+      expect(mock.calls[0].request).to.eql({
+        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        idToken,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        androidInstallApp: false,
+        androidMinimumVersionCode: 'my-version',
+        androidPackageName: 'my-package'
+      });
+    });
   });
 });
