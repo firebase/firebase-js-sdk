@@ -102,6 +102,7 @@ import {
   AdditionalUserInfo,
   getAdditionalUserInfo
 } from './core/account_management/additional_user_info';
+import {reactNativeLocalPersistence} from './core/persistence/react_local';
 
 interface FirebaseAuth extends Auth {}
 interface LegacyUserCredential {
@@ -168,7 +169,8 @@ firebaseApp.auth = function() {
     persistence: [
       browserSessionPersistence,
       indexedDBLocalPersistence,
-      browserLocalPersistence
+      browserLocalPersistence,
+      reactNativeLocalPersistence
     ]
   });
 
