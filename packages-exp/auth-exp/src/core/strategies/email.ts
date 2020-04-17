@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
+import {
+  createAuthUri,
+  CreateAuthUriRequest
+} from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import {
