@@ -25,7 +25,7 @@ export const _AUTH_USER_KEY_NAME = 'authUser';
 export const _PERSISTENCE_KEY_NAME = 'persistence';
 const _PERSISTENCE_NAMESPACE = 'firebase';
 
-export function persistenceKeyName_(
+function _persistenceKeyName(
   key: string,
   apiKey: ApiKey,
   appName: AppName
@@ -42,8 +42,8 @@ export class PersistenceUserManager {
     private readonly userKey: string
   ) {
     const { config, name } = this.auth;
-    this.fullUserKey = persistenceKeyName_(this.userKey, config.apiKey, name);
-    this.fullPersistenceKey = persistenceKeyName_(
+    this.fullUserKey = _persistenceKeyName(this.userKey, config.apiKey, name);
+    this.fullPersistenceKey = _persistenceKeyName(
       _PERSISTENCE_KEY_NAME,
       config.apiKey,
       name
@@ -91,7 +91,7 @@ export class PersistenceUserManager {
       return new PersistenceUserManager(inMemoryPersistence, auth, userKey);
     }
 
-    const key = persistenceKeyName_(userKey, auth.config.apiKey, auth.name);
+    const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
     for (const persistence of persistenceHierarchy) {
       if (await persistence.get(key)) {
         return new PersistenceUserManager(persistence, auth, userKey);
