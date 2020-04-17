@@ -21,7 +21,7 @@ import {
   PersistenceValue,
   Instantiator
 } from '../persistence';
-import {isReactNative} from '@firebase/util';
+import { isReactNative } from '@firebase/util';
 
 let firebase: {
   INTERNAL: {
