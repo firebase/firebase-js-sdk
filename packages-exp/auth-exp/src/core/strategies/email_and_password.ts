@@ -80,5 +80,6 @@ export async function verifyPasswordResetCode(
   code: string
 ): Promise<string> {
   const { data } = await checkActionCode(auth, code);
+  // Email should always be present since a code was sent to it
   return data.email!;
 }
