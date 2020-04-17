@@ -75,15 +75,16 @@ async function publishExpPackages() {
      */
     const firebaseExpVersion = new Map();
     firebaseExpVersion.set(
-      FIREBASE_UMBRELLA_PACKGE_NAME, 
+      FIREBASE_UMBRELLA_PACKGE_NAME,
       versions.get(FIREBASE_UMBRELLA_PACKGE_NAME)
     );
-    await resetWorkingTreeAndBumpVersions(packagePaths, firebaseExpVersion);
+    const firebaseExpPath = packagePaths.filter(p => p.include(FIREBASE_UMBRELLA_PACKGE_NAME));
+    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
      * push to github
      */
-    await commitAndPush(versions);
+    //   await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
@@ -125,7 +126,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
     if (name === FIREBASE_UMBRELLA_PACKGE_NAME) {
       const nextVersion = inc(version, 'patch');
       versions.set(name, nextVersion);
-    } else { 
+    } else {
       // create individual packages version
       // we can't use minor version for them because most of them 
       // are still in the pre-major version officially.
@@ -165,7 +166,8 @@ async function publishToNpm(packagePaths) {
 }
 
 async function publishPackage(packagePath) {
-  const args = ['publish', '--access', 'public', '--tag', 'exp', '--dry-run'];
+  // const args = ['publish', '--access', 'public', '--tag', 'exp', '--dry-run'];
+  const args = ['pack'];
   await spawn('npm', args, { cwd: packagePath });
 }
 
