@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { PersistedBlob } from '../core/persistence';
 import { ProviderId } from '../core/providers';
 import { IdTokenResult } from './id_token';
 
@@ -35,4 +36,5 @@ export interface User extends UserInfo {
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
+  toPlainObject(): PersistedBlob;
 }

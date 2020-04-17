@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistedBlob } from '../persistence';
-import { User } from '../../model/user';
 import { ApiKey, AppName, Auth } from '../../model/auth';
-import { inMemoryPersistence } from './in_memory';
+import { User } from '../../model/user';
+import { PersistedBlob, Persistence } from '../persistence';
 import { UserImpl } from '../user/user_impl';
+import { inMemoryPersistence } from './in_memory';
 
 export const AUTH_USER_KEY_NAME_ = 'authUser';
 export const PERSISTENCE_KEY_NAME_ = 'persistence';
@@ -51,13 +51,12 @@ export class PersistenceUserManager {
   }
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullUserKey, user);
+    return this.persistence.set(this.fullUserKey, user.toPlainObject());
   }
 
-  getCurrentUser(): Promise<User | null> {
-    return this.persistence.get<User>(this.fullUserKey, (blob: PersistedBlob) =>
-      UserImpl.fromPlainObject(this.auth, blob)
-    );
+  async getCurrentUser(): Promise<User | null> {
+    const blob = await this.persistence.get<PersistedBlob>(this.fullUserKey);
+    return blob ? UserImpl.fromPlainObject(this.auth, blob) : null;
   }
 
   removeCurrentUser(): Promise<void> {
@@ -94,7 +93,7 @@ export class PersistenceUserManager {
 
     const key = persistenceKeyName_(userKey, auth.config.apiKey, auth.name);
     for (const persistence of persistenceHierarchy) {
-      if (await persistence.get<User>(key)) {
+      if (await persistence.get(key)) {
         return new PersistenceUserManager(persistence, auth, userKey);
       }
     }

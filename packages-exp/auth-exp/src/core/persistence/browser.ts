@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  Instantiator
-} from '.';
+import { Persistence, PersistenceType, PersistenceValue } from './';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -48,11 +43,9 @@ class BrowserPersistence implements Persistence {
 
   async get<T extends PersistenceValue>(
     key: string,
-    instantiator?: Instantiator<T>
   ): Promise<T | null> {
     const json = this.storage.getItem(key);
-    const obj = json ? JSON.parse(json) : null;
-    return instantiator && obj ? instantiator(obj) : obj;
+    return json ? JSON.parse(json) : null;
   }
 
   async remove(key: string): Promise<void> {

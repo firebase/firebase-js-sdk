@@ -87,10 +87,10 @@ export class UserImpl implements User {
     return {
       uid: this.uid,
       stsTokenManager: this.stsTokenManager.toPlainObject(),
-      displayName: this.displayName,
-      email: this.email,
-      phoneNumber: this.phoneNumber,
-      photoURL: this.phoneNumber,
+      displayName: this.displayName || undefined,
+      email: this.email || undefined,
+      phoneNumber: this.phoneNumber || undefined,
+      photoURL: this.phoneNumber || undefined,
     };
   }
 

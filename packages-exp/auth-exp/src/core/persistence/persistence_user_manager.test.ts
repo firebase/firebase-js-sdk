@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
 import * as chai from 'chai';
-import { inMemoryPersistence } from './in_memory';
-import { PersistenceType, Persistence, Instantiator } from '.';
 import { expect } from 'chai';
-import { testUser, mockAuth } from '../../../test/mock_auth';
-import { PersistenceUserManager } from './persistence_user_manager';
+import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import { mockAuth, testUser } from '../../../test/mock_auth';
 import { UserImpl } from '../user/user_impl';
+import { Persistence, PersistenceType } from './';
+import { inMemoryPersistence } from './in_memory';
+import { PersistenceUserManager } from './persistence_user_manager';
 
 chai.use(sinonChai);
 
@@ -59,7 +60,7 @@ describe('core/persistence/persistence_user_manager', () => {
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
-      b.stub.get.returns(Promise.resolve(testUser('uid')));
+      b.stub.get.returns(Promise.resolve(testUser('uid').toPlainObject()));
 
       const out = await PersistenceUserManager.create(mockAuth, search);
       expect(out.persistence).to.eq(b.persistence);
@@ -116,7 +117,7 @@ describe('core/persistence/persistence_user_manager', () => {
       await manager.setCurrentUser(user);
       expect(persistenceStub.set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
-        user
+        user.toPlainObject(),
       );
     });
 
@@ -130,11 +131,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
       const userImplStub = sinon.stub(UserImpl, 'fromPlainObject');
-      persistenceStub.get.callsFake((_: string, cb?: Instantiator<any>) => {
-        // Call through to the callback, to exercise the instantiator
-        // provided in PersistenceUserManager
-        return cb!(rawObject);
-      });
+      persistenceStub.get.returns(Promise.resolve(rawObject));
 
       await manager.getCurrentUser();
       expect(userImplStub).to.have.been.calledWith(mockAuth, rawObject);
@@ -167,14 +164,14 @@ describe('core/persistence/persistence_user_manager', () => {
           stub: nextStub
         } = makePersistence();
         const user = testUser('uid');
-        persistenceStub.get.returns(Promise.resolve(user));
+        persistenceStub.get.returns(Promise.resolve(user.toPlainObject()));
 
         await manager.setPersistence(nextPersistence);
         expect(persistenceStub.get).to.have.been.called;
         expect(persistenceStub.remove).to.have.been.called;
         expect(nextStub.set).to.have.been.calledWith(
           'firebase:authUser:test-api-key:test-app',
-          user
+          user.toPlainObject(),
         );
       });
     });

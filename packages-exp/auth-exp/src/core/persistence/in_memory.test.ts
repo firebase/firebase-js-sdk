@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { inMemoryPersistence as persistence } from './in_memory';
-import { PersistenceType } from '.';
 import { expect } from 'chai';
-import { User } from '../../model/user';
+
 import { testUser } from '../../../test/mock_auth';
+import { PersistenceType } from './';
+import { inMemoryPersistence as persistence } from './in_memory';
 
 describe('core/persistence/in_memory', () => {
   it('should work with persistence type', async () => {
@@ -38,8 +38,8 @@ describe('core/persistence/in_memory', () => {
     const value = testUser('uid');
 
     expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value);
-    expect(await persistence.get<User>(key)).to.eql(value);
+    await persistence.set(key, value.toPlainObject());
+    expect(await persistence.get(key)).to.eql(value.toPlainObject());
     expect(await persistence.get('other-key')).to.be.null;
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;
