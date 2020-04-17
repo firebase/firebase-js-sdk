@@ -33,7 +33,7 @@
     "prepare": "yarn build:release"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.800.0"
+    "@firebase/app-exp": "0.0.800"
   },
   "devDependencies": {
     "rollup": "1.28.0",

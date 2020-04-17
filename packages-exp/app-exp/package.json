@@ -29,7 +29,7 @@
     "build:doc": "yarn build && yarn doc"
   },
   "dependencies": {
-    "@firebase/app-types-exp": "0.800.0",
+    "@firebase/app-types-exp": "0.0.800",
     "@firebase/util": "0.2.44",
     "@firebase/logger": "0.2.1",
     "@firebase/component": "0.1.9",
