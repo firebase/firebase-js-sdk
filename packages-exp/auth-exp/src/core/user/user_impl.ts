@@ -18,10 +18,10 @@
 import { Auth } from '../../model/auth';
 import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
-import { StsTokenManager } from './token_manager';
 import { PersistedBlob } from '../persistence';
+import { ProviderId } from '../providers';
 import { assert, assertType } from '../util/assert';
+import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
   uid: string;
@@ -81,6 +81,17 @@ export class UserImpl implements User {
 
   delete(): Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  toPlainObject(): PersistedBlob {
+    return {
+      uid: this.uid,
+      stsTokenManager: this.stsTokenManager.toPlainObject(),
+      displayName: this.displayName,
+      email: this.email,
+      phoneNumber: this.phoneNumber,
+      photoURL: this.phoneNumber,
+    };
   }
 
   static fromPlainObject(auth: Auth, object: PersistedBlob): User {
