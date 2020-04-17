@@ -90,7 +90,7 @@ export class UserImpl implements User {
       displayName: this.displayName || undefined,
       email: this.email || undefined,
       phoneNumber: this.phoneNumber || undefined,
-      photoURL: this.phoneNumber || undefined,
+      photoURL: this.phoneNumber || undefined
     };
   }
 

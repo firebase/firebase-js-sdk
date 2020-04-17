@@ -117,7 +117,7 @@ describe('core/persistence/persistence_user_manager', () => {
       await manager.setCurrentUser(user);
       expect(persistenceStub.set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
-        user.toPlainObject(),
+        user.toPlainObject()
       );
     });
 
@@ -171,7 +171,7 @@ describe('core/persistence/persistence_user_manager', () => {
         expect(persistenceStub.remove).to.have.been.called;
         expect(nextStub.set).to.have.been.calledWith(
           'firebase:authUser:test-api-key:test-app',
-          user.toPlainObject(),
+          user.toPlainObject()
         );
       });
     });

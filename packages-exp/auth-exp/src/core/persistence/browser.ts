@@ -41,9 +41,7 @@ class BrowserPersistence implements Persistence {
     this.storage.setItem(key, JSON.stringify(value));
   }
 
-  async get<T extends PersistenceValue>(
-    key: string,
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const json = this.storage.getItem(key);
     return json ? JSON.parse(json) : null;
   }

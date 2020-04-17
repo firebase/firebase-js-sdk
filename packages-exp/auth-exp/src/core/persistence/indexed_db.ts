@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { PersistedBlob, Persistence, PersistenceType, PersistenceValue } from './';
+import {
+  PersistedBlob,
+  Persistence,
+  PersistenceType,
+  PersistenceValue
+} from './';
 
 const STORAGE_AVAILABLE_KEY_ = '__sak';
 
@@ -161,9 +166,7 @@ class IndexedDBLocalPersistence implements Persistence {
     return putObject(db, key, value);
   }
 
-  async get<T extends PersistenceValue>(
-    key: string,
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
     const obj = await getObject(db, key);
     return obj as T;
