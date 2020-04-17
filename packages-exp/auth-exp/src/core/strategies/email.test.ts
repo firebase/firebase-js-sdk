@@ -24,11 +24,11 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { GetOobCodeRequestType } from '../../api/authentication/email_and_password';
 import { ServerError } from '../../api/errors';
 import { ProviderId } from '../providers';
 import * as location from '../util/location';
 import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
+import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -119,7 +119,7 @@ describe('sendEmailVerification', () => {
 
   it('should send the email verification', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+      requestType: Operation.VERIFY_EMAIL,
       email
     });
 
@@ -127,14 +127,14 @@ describe('sendEmailVerification', () => {
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
-      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+      requestType: Operation.VERIFY_EMAIL,
       idToken
     });
   });
 
   it('should reload the user if the API returns a different email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+      requestType: Operation.VERIFY_EMAIL,
       email: 'other@email.com'
     });
 
@@ -142,7 +142,7 @@ describe('sendEmailVerification', () => {
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
-      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+      requestType: Operation.VERIFY_EMAIL,
       idToken
     });
   });
@@ -150,7 +150,7 @@ describe('sendEmailVerification', () => {
   context('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        requestType: Operation.VERIFY_EMAIL,
         email
       });
       await sendEmailVerification(mockAuth, user, {
@@ -164,7 +164,7 @@ describe('sendEmailVerification', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        requestType: Operation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -178,7 +178,7 @@ describe('sendEmailVerification', () => {
   context('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        requestType: Operation.VERIFY_EMAIL,
         email
       });
       await sendEmailVerification(mockAuth, user, {
@@ -192,7 +192,7 @@ describe('sendEmailVerification', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+        requestType: Operation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
