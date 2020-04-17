@@ -23,10 +23,14 @@ import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import json from 'rollup-plugin-json';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import pkg from './package.json';
 import appPkg from './app/package.json';
 
-const external = Object.keys(pkg.dependencies || {});
+// remove -exp from dependencies name
+const external = Object.keys(pkg.dependencies || {}).map(
+  name => name.replace('-exp', '')
+);
 
 /**
  * Global UMD Build
@@ -41,7 +45,7 @@ function createUmdOutputConfig(output, componentName) {
     extend: true,
     name: `${GLOBAL_NAME}.${componentName}`,
     globals: {
-      '@firebase/app-exp': `${GLOBAL_NAME}.app`
+      '@firebase/app': `${GLOBAL_NAME}.app`
     },
 
     /**
@@ -74,7 +78,8 @@ const typescriptPlugin = rollupTypescriptPlugin({
   // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
   objectHashIgnoreUnknownHack: true,
   // For safety, given hack above (see link).
-  clean: true
+  clean: true,
+  transformers: [importPathTransformer]
 });
 
 const typescriptPluginUMD = rollupTypescriptPlugin({
@@ -149,8 +154,8 @@ const componentBuilds = pkg.components
       {
         input: `${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}.js`, component),
-        plugins: [...plugins, typescriptPluginUMD, uglify()],
-        external: ['@firebase/app-exp']
+        plugins: [...plugins, typescriptPluginUMD],
+        external: ['@firebase/app']
       }
     ];
   })

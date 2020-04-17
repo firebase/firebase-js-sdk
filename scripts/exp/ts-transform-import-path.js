@@ -46,7 +46,7 @@ function visitNodeAndChildren(node, context) {
 
 function visitNode(node) {
   let importPath;
-  if (ts.isImportDeclaration(node)) {
+  if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
     const importPathWithQuotes = node.moduleSpecifier.getText();
     importPath = importPathWithQuotes.substr(
       1,

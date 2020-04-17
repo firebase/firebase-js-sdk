@@ -27,6 +27,7 @@
   },
   "scripts": {
     "build": "rollup -c && gulp firebase-js",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
     "dev": "rollup -c -w",
     "prepare": "yarn build"
   },
