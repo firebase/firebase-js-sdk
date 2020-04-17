@@ -20,7 +20,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 export function assert<T>(
   expression: T | null | undefined,
   appName: string,
-  code = AuthErrorCode.INTERNAL_ERROR,
+  code = AuthErrorCode.INTERNAL_ERROR
 ): T {
   if (!expression) {
     throw AUTH_ERROR_FACTORY.create(code, { appName });

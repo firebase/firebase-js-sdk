@@ -29,7 +29,11 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
+import {
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  initializeAuth
+} from './auth_impl';
 
 use(sinonChai);
 
@@ -37,10 +41,10 @@ const FAKE_APP: FirebaseApp = {
   name: 'test-app',
   options: {
     apiKey: 'api-key',
-    authDomain: 'auth-domain',
+    authDomain: 'auth-domain'
   },
   automaticDataCollectionEnabled: false,
-  async delete() {},
+  async delete() {}
 };
 
 describe('AuthImpl', () => {
@@ -49,7 +53,7 @@ describe('AuthImpl', () => {
 
   beforeEach(() => {
     persistenceStub = sinon.stub(inMemoryPersistence);
-    auth = initializeAuth(FAKE_APP, {persistence: inMemoryPersistence});
+    auth = initializeAuth(FAKE_APP, { persistence: inMemoryPersistence });
   });
 
   afterEach(sinon.restore);
@@ -77,7 +81,7 @@ describe('AuthImpl', () => {
       for (let i = 0; i < 10; i++) {
         expect(persistenceStub.set.getCall(i)).to.have.been.calledWith(
           sinon.match.any,
-          users[i].toPlainObject(),
+          users[i].toPlainObject()
         );
       }
     });
@@ -101,14 +105,16 @@ describe('AuthImpl', () => {
     it('swaps underlying persistence', async () => {
       const newPersistence = browserLocalPersistence;
       const newStub = sinon.stub(newPersistence);
-      persistenceStub.get.returns(Promise.resolve(testUser('test').toPlainObject()));
+      persistenceStub.get.returns(
+        Promise.resolve(testUser('test').toPlainObject())
+      );
 
       await auth.setPersistence(newPersistence);
       expect(persistenceStub.get).to.have.been.called;
       expect(persistenceStub.remove).to.have.been.called;
       expect(newStub.set).to.have.been.calledWith(
         sinon.match.any,
-        testUser('test').toPlainObject(),
+        testUser('test').toPlainObject()
       );
     });
   });
@@ -118,10 +124,15 @@ describe('initializeAuth', () => {
   afterEach(sinon.restore);
 
   it('throws an API error if key not provided', () => {
-    expect(() => initializeAuth({
-      ...FAKE_APP,
-      options: {},  // apiKey is missing
-    })).to.throw(FirebaseError, 'Firebase: Your API key is invalid]: please check you have copied it correctly. (auth/invalid-api-key).');
+    expect(() =>
+      initializeAuth({
+        ...FAKE_APP,
+        options: {} // apiKey is missing
+      })
+    ).to.throw(
+      FirebaseError,
+      'Firebase: Your API key is invalid]: please check you have copied it correctly. (auth/invalid-api-key).'
+    );
   });
 
   describe('persistence manager creation', () => {
@@ -130,8 +141,10 @@ describe('initializeAuth', () => {
       createManagerStub = sinon.spy(PersistenceUserManager, 'create');
     });
 
-    async function initAndWait(persistence: Persistence|Persistence[]): Promise<Auth> {
-      const auth = initializeAuth(FAKE_APP, {persistence});
+    async function initAndWait(
+      persistence: Persistence | Persistence[]
+    ): Promise<Auth> {
+      const auth = initializeAuth(FAKE_APP, { persistence });
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.
       await auth.setPersistence(inMemoryPersistence);
@@ -140,20 +153,28 @@ describe('initializeAuth', () => {
 
     it('converts single persistence to array', async () => {
       const auth = await initAndWait(inMemoryPersistence);
-      expect(createManagerStub).to.have.been.calledWith(auth, [inMemoryPersistence]);
+      expect(createManagerStub).to.have.been.calledWith(auth, [
+        inMemoryPersistence
+      ]);
     });
 
     it('pulls the user from storage', async () => {
-      sinon.stub(inMemoryPersistence, 'get').returns(
-        Promise.resolve(testUser('uid').toPlainObject())
-      );
+      sinon
+        .stub(inMemoryPersistence, 'get')
+        .returns(Promise.resolve(testUser('uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
     });
 
     it('calls create with the persistence in order', async () => {
-      const auth = await initAndWait([inMemoryPersistence, browserLocalPersistence]);
-      expect(createManagerStub).to.have.been.calledWith(auth, [inMemoryPersistence, browserLocalPersistence]);
+      const auth = await initAndWait([
+        inMemoryPersistence,
+        browserLocalPersistence
+      ]);
+      expect(createManagerStub).to.have.been.calledWith(auth, [
+        inMemoryPersistence,
+        browserLocalPersistence
+      ]);
     });
 
     it('sets auth name and config', async () => {
@@ -164,7 +185,7 @@ describe('initializeAuth', () => {
         authDomain: FAKE_APP.options.authDomain,
         apiHost: DEFAULT_API_HOST,
         apiScheme: DEFAULT_API_SCHEME,
-        sdkClientVersion: getClientVersion(ClientPlatform.BROWSER),
+        sdkClientVersion: getClientVersion(ClientPlatform.BROWSER)
       });
     });
   });

@@ -34,14 +34,15 @@ export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
 class AuthImpl implements Auth {
-  currentUser: User|null = null;
+  currentUser: User | null = null;
   private operations: Promise<void>;
   private persistenceManager?: PersistenceUserManager;
 
   constructor(
-      public readonly name: string,
-      public readonly config: Config,
-      persistenceHierarchy: Persistence[]) {
+    public readonly name: string,
+    public readonly config: Config,
+    persistenceHierarchy: Persistence[]
+  ) {
     this.operations = Promise.resolve();
 
     // This promise is intended to float; auth initialization happens in the
@@ -50,7 +51,7 @@ class AuthImpl implements Auth {
     this.queue(async () => {
       this.persistenceManager = await PersistenceUserManager.create(
         this,
-        persistenceHierarchy,
+        persistenceHierarchy
       );
 
       const storedUser = await this.persistenceManager.getCurrentUser();
@@ -104,11 +105,11 @@ class AuthImpl implements Auth {
 
 export function initializeAuth(
   app: FirebaseApp = getApp(),
-  deps?: Dependencies,
+  deps?: Dependencies
 ): Auth {
   const persistence = deps?.persistence || [];
   const hierarchy = Array.isArray(persistence) ? persistence : [persistence];
-  const {apiKey, authDomain} = app.options;
+  const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
   const config: Config = {
@@ -116,8 +117,8 @@ export function initializeAuth(
     authDomain,
     apiHost: DEFAULT_API_HOST,
     apiScheme: DEFAULT_API_SCHEME,
-    sdkClientVersion: getClientVersion(ClientPlatform.BROWSER),
+    sdkClientVersion: getClientVersion(ClientPlatform.BROWSER)
   };
-  
+
   return new AuthImpl(app.name, config, hierarchy);
 }
