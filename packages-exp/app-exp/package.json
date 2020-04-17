@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-exp",
-  "version": "0.0.800",
+  "version": "0.0.800-exp.c435dda77",
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
