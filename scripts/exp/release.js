@@ -78,7 +78,9 @@ async function publishExpPackages() {
       FIREBASE_UMBRELLA_PACKGE_NAME,
       versions.get(FIREBASE_UMBRELLA_PACKGE_NAME)
     );
-    const firebaseExpPath = packagePaths.filter(p => p.includes(FIREBASE_UMBRELLA_PACKGE_NAME));
+    const firebaseExpPath = packagePaths.filter(p =>
+      p.includes(FIREBASE_UMBRELLA_PACKGE_NAME)
+    );
     await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
@@ -119,7 +121,6 @@ async function updatePackageNamesAndVersions(packagePaths) {
   // get package name -> next version mapping
   const versions = new Map();
   for (const path of packagePaths) {
-
     const { version, name } = await readPackageJson(path);
 
     // increment firebase-exp's patch version
@@ -128,12 +129,11 @@ async function updatePackageNamesAndVersions(packagePaths) {
       versions.set(name, nextVersion);
     } else {
       // create individual packages version
-      // we can't use minor version for them because most of them 
+      // we can't use minor version for them because most of them
       // are still in the pre-major version officially.
       const nextVersion = `${version}-exp.${await getCurrentSha()}`;
       versions.set(name, nextVersion);
     }
-
   }
 
   await updatePackageJsons(packagePaths, versions, {
@@ -277,6 +277,6 @@ async function readPackageJson(packagePath) {
 
 async function getCurrentSha() {
   return (await git.revparse(['--short', 'HEAD'])).trim();
-};
+}
 
 publishExpPackages();
