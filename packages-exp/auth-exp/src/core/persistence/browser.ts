@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue } from './';
-
-const _STORAGE_AVAILABLE_KEY = '__sak';
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 class BrowserPersistence implements Persistence {
   type: PersistenceType = PersistenceType.LOCAL;
@@ -29,8 +27,8 @@ class BrowserPersistence implements Persistence {
       if (!this.storage) {
         return false;
       }
-      this.storage.setItem(_STORAGE_AVAILABLE_KEY, '1');
-      this.storage.removeItem(_STORAGE_AVAILABLE_KEY);
+      this.storage.setItem(STORAGE_AVAILABLE_KEY, '1');
+      this.storage.removeItem(STORAGE_AVAILABLE_KEY);
       return true;
     } catch {
       return false;

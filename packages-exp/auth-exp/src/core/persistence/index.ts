@@ -31,6 +31,8 @@ export interface Instantiator<T> {
 
 export type PersistenceValue = PersistedBlob | string;
 
+export const STORAGE_AVAILABLE_KEY = '__sak';
+
 export interface Persistence {
   type: PersistenceType;
   isAvailable(): Promise<boolean>;
