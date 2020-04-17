@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { PersistedBlob, Persistence, PersistenceType, PersistenceValue } from './';
+import {
+  PersistedBlob,
+  Persistence,
+  PersistenceType,
+  PersistenceValue
+} from './';
 
 const _STORAGE_AVAILABLE_KEY = '__sak';
 
