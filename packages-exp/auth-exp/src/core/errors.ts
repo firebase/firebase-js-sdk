@@ -112,7 +112,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'This operation is restricted to administrators only.',
   [AuthErrorCode.ARGUMENT_ERROR]: '',
   [AuthErrorCode.APP_NOT_AUTHORIZED]:
-    'This app, identified by the domain where it\'s hosted, is not ' +
+    "This app, identified by the domain where it's hosted, is not " +
     'authorized to use Firebase Authentication with the provided API key. ' +
     'Review your key configuration in the Google API console.',
   [AuthErrorCode.APP_NOT_INSTALLED]:
@@ -150,8 +150,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.INVALID_APP_ID]:
     'The mobile app identifier is not registed for the current project.',
   [AuthErrorCode.INVALID_AUTH]:
-    'This user\'s credential isn\'t valid for this project. This can happen ' +
-    'if the user\'s token has been tampered with, or if the user isn\'t for ' +
+    "This user's credential isn't valid for this project. This can happen " +
+    "if the user's token has been tampered with, or if the user isn't for " +
     'the project associated with this API key.',
   [AuthErrorCode.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
   [AuthErrorCode.INVALID_CODE]:
@@ -265,7 +265,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.PROVIDER_ALREADY_LINKED]:
     'User can only be linked to one identity for the given provider.',
   [AuthErrorCode.QUOTA_EXCEEDED]:
-    'The project\'s quota for this operation has been exceeded.',
+    "The project's quota for this operation has been exceeded.",
   [AuthErrorCode.REDIRECT_CANCELLED_BY_USER]:
     'The redirect operation has been cancelled by the user before finalizing.',
   [AuthErrorCode.REDIRECT_OPERATION_PENDING]:
