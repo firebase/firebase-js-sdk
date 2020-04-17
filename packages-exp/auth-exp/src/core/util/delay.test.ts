@@ -24,7 +24,7 @@ import * as navigator from './navigator';
 describe('Delay.get()', () => {
   const SHORT_DELAY = 30_000;
   const LONG_DELAY = 60_000;
-  
+
   afterEach(restore);
 
   it('should return the short delay in browser environments', () => {
