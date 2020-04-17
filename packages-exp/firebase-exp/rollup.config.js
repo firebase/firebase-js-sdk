@@ -112,7 +112,7 @@ const appBuilds = [
    * App UMD Builds
    */
   {
-    input: 'app/index.ts',
+    input: 'app/index.cdn.ts',
     output: {
       file: 'firebase-app.js',
       sourcemap: true,
