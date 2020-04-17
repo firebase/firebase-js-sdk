@@ -78,7 +78,7 @@ async function publishExpPackages() {
       FIREBASE_UMBRELLA_PACKGE_NAME,
       versions.get(FIREBASE_UMBRELLA_PACKGE_NAME)
     );
-    const firebaseExpPath = packagePaths.filter(p => p.include(FIREBASE_UMBRELLA_PACKGE_NAME));
+    const firebaseExpPath = packagePaths.filter(p => p.includes(FIREBASE_UMBRELLA_PACKGE_NAME));
     await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
