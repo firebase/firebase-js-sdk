@@ -30,7 +30,7 @@ export function assert<T>(
 
 export function assertType<T>(
   expression: unknown,
-  expected: string|string[],
+  expected: string | string[],
   appName: string
 ): T {
   if (typeof expected === 'string') {
