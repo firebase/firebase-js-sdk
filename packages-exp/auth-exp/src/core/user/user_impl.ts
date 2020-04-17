@@ -93,14 +93,6 @@ export class UserImpl implements User {
       photoURL
     } = object;
 
-    function assertStringIfExists(value: unknown): string | undefined {
-      assert(
-        typeof value === 'string' || typeof value === 'undefined',
-        auth.name
-      );
-      return value as string | undefined;
-    }
-
     assert(uid && plainObjectTokenManager, auth.name);
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
@@ -108,14 +100,16 @@ export class UserImpl implements User {
       plainObjectTokenManager as PersistedBlob
     );
 
+    const stringOrUndef = ['string', 'undefined'];
+
     return new UserImpl({
       uid: assertType(uid, 'string', auth.name),
       auth,
       stsTokenManager,
-      displayName: assertStringIfExists(displayName),
-      email: assertStringIfExists(email),
-      phoneNumber: assertStringIfExists(phoneNumber),
-      photoURL: assertStringIfExists(photoURL)
+      displayName: assertType(displayName, stringOrUndef, auth.name),
+      email: assertType(email, stringOrUndef, auth.name),
+      phoneNumber: assertType(phoneNumber, stringOrUndef, auth.name),
+      photoURL: assertType(photoURL, stringOrUndef, auth.name)
     });
   }
 }
