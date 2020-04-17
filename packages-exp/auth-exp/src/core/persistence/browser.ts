@@ -17,7 +17,7 @@
 
 import { Persistence, PersistenceType, PersistenceValue } from './';
 
-const STORAGE_AVAILABLE_KEY_ = '__sak';
+const _STORAGE_AVAILABLE_KEY = '__sak';
 
 class BrowserPersistence implements Persistence {
   type: PersistenceType = PersistenceType.LOCAL;
@@ -29,8 +29,8 @@ class BrowserPersistence implements Persistence {
       if (!this.storage) {
         return false;
       }
-      this.storage.setItem(STORAGE_AVAILABLE_KEY_, '1');
-      this.storage.removeItem(STORAGE_AVAILABLE_KEY_);
+      this.storage.setItem(_STORAGE_AVAILABLE_KEY, '1');
+      this.storage.removeItem(_STORAGE_AVAILABLE_KEY);
       return true;
     } catch {
       return false;

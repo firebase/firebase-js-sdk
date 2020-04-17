@@ -21,16 +21,16 @@ import { PersistedBlob, Persistence } from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { inMemoryPersistence } from './in_memory';
 
-export const AUTH_USER_KEY_NAME_ = 'authUser';
-export const PERSISTENCE_KEY_NAME_ = 'persistence';
-const PERSISTENCE_NAMESPACE_ = 'firebase';
+export const _AUTH_USER_KEY_NAME = 'authUser';
+export const _PERSISTENCE_KEY_NAME = 'persistence';
+const _PERSISTENCE_NAMESPACE = 'firebase';
 
 export function persistenceKeyName_(
   key: string,
   apiKey: ApiKey,
   appName: AppName
 ): string {
-  return `${PERSISTENCE_NAMESPACE_}:${key}:${apiKey}:${appName}`;
+  return `${_PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
 }
 
 export class PersistenceUserManager {
@@ -44,7 +44,7 @@ export class PersistenceUserManager {
     const { config, name } = this.auth;
     this.fullUserKey = persistenceKeyName_(this.userKey, config.apiKey, name);
     this.fullPersistenceKey = persistenceKeyName_(
-      PERSISTENCE_KEY_NAME_,
+      _PERSISTENCE_KEY_NAME,
       config.apiKey,
       name
     );
@@ -85,7 +85,7 @@ export class PersistenceUserManager {
   static async create(
     auth: Auth,
     persistenceHierarchy: Persistence[],
-    userKey = AUTH_USER_KEY_NAME_
+    userKey = _AUTH_USER_KEY_NAME
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {
       return new PersistenceUserManager(inMemoryPersistence, auth, userKey);

@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  PersistedBlob,
-  Persistence,
-  PersistenceType,
-  PersistenceValue
-} from './';
+import { PersistedBlob, Persistence, PersistenceType, PersistenceValue } from './';
 
-const STORAGE_AVAILABLE_KEY_ = '__sak';
+const _STORAGE_AVAILABLE_KEY = '__sak';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
@@ -154,8 +149,8 @@ class IndexedDBLocalPersistence implements Persistence {
         return false;
       }
       const db = await openDatabase();
-      await putObject(db, STORAGE_AVAILABLE_KEY_, '1');
-      await deleteObject(db, STORAGE_AVAILABLE_KEY_);
+      await putObject(db, _STORAGE_AVAILABLE_KEY, '1');
+      await deleteObject(db, _STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
     return false;
