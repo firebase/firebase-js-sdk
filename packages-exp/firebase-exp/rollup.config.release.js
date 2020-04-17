@@ -28,8 +28,8 @@ import pkg from './package.json';
 import appPkg from './app/package.json';
 
 // remove -exp from dependencies name
-const external = Object.keys(pkg.dependencies || {}).map(
-  name => name.replace('-exp', '')
+const external = Object.keys(pkg.dependencies || {}).map(name =>
+  name.replace('-exp', '')
 );
 
 /**
