@@ -71,14 +71,14 @@ async function publishExpPackages() {
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
-     * then bump patch version of firebase-exp only
+     * then bump patch version of firebase-exp (the umbrella package) only
      */
     const firebaseExpVersion = new Map();
     firebaseExpVersion.set(
       FIREBASE_UMBRELLA_PACKGE_NAME, 
       versions.get(FIREBASE_UMBRELLA_PACKGE_NAME)
     );
-    await resetWorkingTreeAndBumpVersions(packagePaths, versions);
+    await resetWorkingTreeAndBumpVersions(packagePaths, firebaseExpVersion);
 
     /**
      * push to github
@@ -129,7 +129,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
       // create individual packages version
       // we can't use minor version for them because most of them 
       // are still in the pre-major version officially.
-      const nextVersion = `${version}-exp.${getCurrentSha()}`;
+      const nextVersion = `${version}-exp.${await getCurrentSha()}`;
       versions.set(name, nextVersion);
     }
 
@@ -255,7 +255,7 @@ async function commitAndPush(versions) {
 }
 
 function removeExpInPackageName(name) {
-  const regex = /^(@firebase.*)-exp(.*)$/g;
+  const regex = /^(.*firebase.*)-exp(.*)$/g;
 
   const captures = regex.exec(name);
   if (!captures) {
