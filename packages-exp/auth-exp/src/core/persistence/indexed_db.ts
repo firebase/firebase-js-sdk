@@ -16,7 +16,11 @@
  */
 
 import {
-    PersistedBlob, Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
+  PersistedBlob,
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
 } from './';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
