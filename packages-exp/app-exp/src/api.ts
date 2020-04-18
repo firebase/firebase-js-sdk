@@ -31,7 +31,7 @@ import {
 } from '@firebase/component';
 import { version } from '../../../packages/firebase/package.json';
 import { FirebaseAppImpl } from './firebaseApp';
-import { apps, components, registerComponent } from './internal';
+import { _apps, _components, _registerComponent } from './internal';
 import { logger } from './logger';
 import {
   LogLevel,
@@ -130,18 +130,18 @@ export function initializeApp(
     });
   }
 
-  if (apps.has(name)) {
+  if (_apps.has(name)) {
     throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
   }
 
   const container = new ComponentContainer(name);
-  for (const component of components.values()) {
+  for (const component of _components.values()) {
     container.addComponent(component);
   }
 
   const newApp = new FirebaseAppImpl(options, config, container);
 
-  apps.set(name, newApp);
+  _apps.set(name, newApp);
 
   return newApp;
 }
@@ -176,7 +176,7 @@ export function initializeApp(
  * @public
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
-  const app = apps.get(name);
+  const app = _apps.get(name);
   if (!app) {
     throw ERROR_FACTORY.create(AppError.NO_APP, { appName: name });
   }
@@ -189,7 +189,7 @@ export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
  * @public
  */
 export function getApps(): FirebaseApp[] {
-  return Array.from(apps.values());
+  return Array.from(_apps.values());
 }
 
 /**
@@ -211,8 +211,8 @@ export function getApps(): FirebaseApp[] {
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
   const name = app.name;
-  if (apps.has(name)) {
-    apps.delete(name);
+  if (_apps.has(name)) {
+    _apps.delete(name);
     await (app as _FirebaseAppInternal).container
       .getProviders()
       .map(provider => provider.delete());
@@ -261,7 +261,7 @@ export function registerVersion(
     logger.warn(warning.join(' '));
     return;
   }
-  registerComponent(
+  _registerComponent(
     new Component(
       `${library}-version` as Name,
       () => ({ library, version }),

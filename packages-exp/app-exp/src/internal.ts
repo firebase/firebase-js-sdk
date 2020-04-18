@@ -22,7 +22,7 @@ import { logger } from './logger';
 /**
  * @internal
  */
-export const apps = new Map<string, FirebaseApp>();
+export const _apps = new Map<string, FirebaseApp>();
 
 /**
  * Registered components.
@@ -30,14 +30,14 @@ export const apps = new Map<string, FirebaseApp>();
  * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const components = new Map<string, Component<any>>();
+export const _components = new Map<string, Component<any>>();
 
 /**
  * @param component - the component being added to this app's container
  * 
  * @internal
  */
-export function addComponent(app: FirebaseApp, component: Component): void {
+export function _addComponent(app: FirebaseApp, component: Component): void {
   try {
     (app as _FirebaseAppInternal).container.addComponent(component);
   } catch (e) {
@@ -52,7 +52,7 @@ export function addComponent(app: FirebaseApp, component: Component): void {
  * 
  * @internal
  */
-export function addOrOverwriteComponent(
+export function _addOrOverwriteComponent(
   app: FirebaseApp,
   component: Component
 ): void {
@@ -66,9 +66,9 @@ export function addOrOverwriteComponent(
  * 
  * @internal
  */
-export function registerComponent(component: Component): boolean {
+export function _registerComponent(component: Component): boolean {
   const componentName = component.name;
-  if (components.has(componentName)) {
+  if (_components.has(componentName)) {
     logger.debug(
       `There were multiple attempts to register component ${componentName}.`
     );
@@ -76,11 +76,11 @@ export function registerComponent(component: Component): boolean {
     return false;
   }
 
-  components.set(componentName, component);
+  _components.set(componentName, component);
 
   // add the component to existing app instances
-  for (const app of apps.values()) {
-    addComponent(app as _FirebaseAppInternal, component);
+  for (const app of _apps.values()) {
+    _addComponent(app as _FirebaseAppInternal, component);
   }
 
   return true;
@@ -95,7 +95,7 @@ export function registerComponent(component: Component): boolean {
  * 
  * @internal
  */
-export function getProvider<T extends Name>(
+export function _getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
 ): Provider<T> {
@@ -107,6 +107,6 @@ export function getProvider<T extends Name>(
  * 
  * @internal
  */
-export function clearComponents(): void {
-  components.clear();
+export function _clearComponents(): void {
+  _components.clear();
 }

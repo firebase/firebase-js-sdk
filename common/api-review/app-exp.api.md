@@ -5,39 +5,29 @@
 ```ts
 
 import { Component } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseAppConfig } from '@firebase/app-types';
-import { FirebaseOptions } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseAppConfig } from '@firebase/app-types-exp';
+import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevel } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
 import { Name } from '@firebase/component';
 import { Provider } from '@firebase/component';
 
-// Warning: (ae-internal-missing-underscore) The name "addComponent" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export function addComponent(app: FirebaseApp, component: Component): void;
+export function _addComponent(app: FirebaseApp, component: Component): void;
 
-// Warning: (ae-internal-missing-underscore) The name "addOrOverwriteComponent" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export function addOrOverwriteComponent(app: FirebaseApp, component: Component): void;
+export function _addOrOverwriteComponent(app: FirebaseApp, component: Component): void;
 
-// Warning: (ae-internal-missing-underscore) The name "apps" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export const apps: Map<string, FirebaseApp>;
+export const _apps: Map<string, FirebaseApp>;
 
-// Warning: (ae-internal-missing-underscore) The name "clearComponents" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export function clearComponents(): void;
+export function _clearComponents(): void;
 
-// Warning: (ae-internal-missing-underscore) The name "components" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export const components: Map<string, Component<any>>;
+export const _components: Map<string, Component<any>>;
 
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
@@ -48,10 +38,8 @@ export function getApp(name?: string): FirebaseApp;
 // @public
 export function getApps(): FirebaseApp[];
 
-// Warning: (ae-internal-missing-underscore) The name "getProvider" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export function getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
+export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
 
 // @public
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
@@ -64,10 +52,8 @@ export { LogLevel }
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 
-// Warning: (ae-internal-missing-underscore) The name "registerComponent" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export function registerComponent(component: Component): boolean;
+export function _registerComponent(component: Component): boolean;
 
 // @public
 export function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void;
