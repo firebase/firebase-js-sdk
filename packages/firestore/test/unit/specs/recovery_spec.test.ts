@@ -16,10 +16,10 @@
  */
 
 import { describeSpec, specTest } from './describe_spec';
-import { client } from './spec_builder';
+import {client, spec} from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
-import { path } from '../../util/helpers';
+import {doc, path} from '../../util/helpers';
 
 describeSpec(
   'Persistence Recovery',
@@ -75,5 +75,61 @@ describeSpec(
           .expectEvents(query, {});
       }
     );
+
+    specTest('Recovers when write cannot be persisted', [], () => {
+      return spec()
+        .userSets('collection/key1', { foo: 'a' })
+        .expectNumOutstandingWrites(1)
+        .failDatabase()
+        .userSets('collection/key2', { bar: 'b' })
+        .expectUserCallbacks({ rejected: ['collection/key2'] })
+        .recoverDatabase()
+        .expectNumOutstandingWrites(1)
+        .userSets('collection/key3', { baz: 'c' })
+        .expectNumOutstandingWrites(2)
+        .writeAcks('collection/key1', 1)
+        .writeAcks('collection/key3', 2)
+        .expectNumOutstandingWrites(0);
+    });
+
+    specTest('Does not surface non-persisted writes', [], () => {
+      const query = Query.atPath(path('collection'));
+      const doc1Local = doc(
+        'collection/key1',
+        0,
+        { foo: 'a' },
+        { hasLocalMutations: true }
+      );
+      const doc1 = doc('collection/key1', 1, { foo: 'a' });
+      const doc3Local = doc(
+        'collection/key3',
+        0,
+        { foo: 'c' },
+        { hasLocalMutations: true }
+      );
+      const doc3 = doc('collection/key3', 2, { foo: 'c' });
+      return spec()
+        .userListens(query)
+        .userSets('collection/key1', { foo: 'a' })
+        .expectEvents(query, {
+          added: [doc1Local],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .failDatabase()
+        .userSets('collection/key2', { foo: 'b' })
+        .expectUserCallbacks({rejected: ['collection/key2']})
+        .recoverDatabase()
+        .userSets('collection/key3', { foo: 'c' })
+        .expectEvents(query, {
+          added: [doc3Local],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .writeAcks('collection/key1', 1)
+        .writeAcks('collection/key3', 2)
+        .watchAcksFull(query, 2, doc1, doc3)
+        .expectEvents(query, { metadata: [doc1, doc3] });
+    });
   }
 );

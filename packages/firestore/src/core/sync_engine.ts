@@ -16,7 +16,11 @@
  */
 
 import { User } from '../auth/user';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import {
+  ignoreIfPrimaryLeaseLoss,
+  LocalStore,
+  LocalWriteResult
+} from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -34,7 +38,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import {logDebug, logError} from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -373,7 +377,21 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
-    const result = await this.localStore.localWrite(batch);
+
+    let result: LocalWriteResult;
+    try {
+      result = await this.localStore.localWrite(batch);
+    } catch (e) {
+      // If we can't persist the mutation, we reject the user callback and don't
+      // send the mutation. The user can then retry the write. We currently do
+      // not use `enqueueRetryable()` for writes since this would require us to
+      // move all view computation logic to `enqueueRetryable()`. Otherwise,
+      // this write should be surfaced in all subsequent operations.
+      logError(LOG_TAG, "Failed to persist write: " + e);
+      userCallback.reject(e);
+      return;
+    }
+    
     this.sharedClientState.addPendingMutation(result.batchId);
     this.addMutationCallback(result.batchId, userCallback);
     await this.emitNewSnapsAndNotifyLocalStore(result.changes);
