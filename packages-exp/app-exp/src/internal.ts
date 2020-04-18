@@ -26,7 +26,7 @@ export const _apps = new Map<string, FirebaseApp>();
 
 /**
  * Registered components.
- * 
+ *
  * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +34,7 @@ export const _components = new Map<string, Component<any>>();
 
 /**
  * @param component - the component being added to this app's container
- * 
+ *
  * @internal
  */
 export function _addComponent(app: FirebaseApp, component: Component): void {
@@ -49,7 +49,7 @@ export function _addComponent(app: FirebaseApp, component: Component): void {
 }
 
 /**
- * 
+ *
  * @internal
  */
 export function _addOrOverwriteComponent(
@@ -63,7 +63,7 @@ export function _addOrOverwriteComponent(
  *
  * @param component - the component to register
  * @returns whether or not the component is registered successfully
- * 
+ *
  * @internal
  */
 export function _registerComponent(component: Component): boolean {
@@ -87,12 +87,12 @@ export function _registerComponent(component: Component): boolean {
 }
 
 /**
- * 
+ *
  * @param app - FirebaseApp instance
  * @param name - service name
- * 
+ *
  * @returns the provider for the service with the matching name
- * 
+ *
  * @internal
  */
 export function _getProvider<T extends Name>(
@@ -104,7 +104,7 @@ export function _getProvider<T extends Name>(
 
 /**
  * Test only
- * 
+ *
  * @internal
  */
 export function _clearComponents(): void {

@@ -111,7 +111,9 @@ describe('API tests', () => {
 
       const app = initializeApp({}) as _FirebaseAppInternal;
       // -1 here to not count the FirebaseApp provider that's added during initializeApp
-      expect(app.container.getProviders().length - 1).to.equal(_components.size);
+      expect(app.container.getProviders().length - 1).to.equal(
+        _components.size
+      );
     });
   });
 
