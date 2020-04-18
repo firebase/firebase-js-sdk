@@ -16,10 +16,10 @@
  */
 
 import { describeSpec, specTest } from './describe_spec';
-import {client, spec} from './spec_builder';
+import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
-import {doc, path} from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 
 describeSpec(
   'Persistence Recovery',
@@ -42,7 +42,7 @@ describeSpec(
             // Client 1 has received the WebStorage notification that the write
             // has been acknowledged, but failed to process the change. Hence,
             // we did not get a user callback. We schedule the first retry and
-            // make sure that it also does not get processed until 
+            // make sure that it also does not get processed until
             // `recoverDatabase` is called.
             .runTimer(TimerId.AsyncQueueRetry)
             .recoverDatabase()
@@ -118,7 +118,7 @@ describeSpec(
         })
         .failDatabase()
         .userSets('collection/key2', { foo: 'b' })
-        .expectUserCallbacks({rejected: ['collection/key2']})
+        .expectUserCallbacks({ rejected: ['collection/key2'] })
         .recoverDatabase()
         .userSets('collection/key3', { foo: 'c' })
         .expectEvents(query, {
