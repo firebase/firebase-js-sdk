@@ -289,7 +289,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    persistenceProvider: ComponentProvider = new MemoryComponentProvider()
+    componentProvider: ComponentProvider = new MemoryComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -314,7 +314,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._componentProvider = persistenceProvider;
+    this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
     this._dataReader = this.createDataReader(this._databaseId);
   }
