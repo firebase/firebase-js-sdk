@@ -88,16 +88,18 @@ const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
 /**
- * Runs the serializer test with an optional ProtobufJS verification step 
+ * Runs the serializer test with an optional ProtobufJS verification step
  * (only provided in Node).
- * 
- * These tests are initialized in 'serializer.browser.test.ts' and 
+ *
+ * These tests are initialized in 'serializer.browser.test.ts' and
  * 'serializer.node.test.ts'.
  */
-export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => void = () => {}) {
+export function serializerTest(
+  protobufJsVerifier: (jsonValue: api.Value) => void = () => {}
+) {
   describe('Serializer', () => {
     const partition = new DatabaseId('p', 'd');
-    const s = new JsonProtoSerializer(partition, {useProto3Json: false});
+    const s = new JsonProtoSerializer(partition, { useProto3Json: false });
 
     /**
      * Wraps the given target in TargetData. This is useful because the APIs we're
@@ -132,7 +134,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
          */
         useProto3Json?: boolean;
       }): void {
-        let {value, valueType, jsonValue, protoJsValue} = opts;
+        let { value, valueType, jsonValue, protoJsValue } = opts;
         protoJsValue = protoJsValue ?? jsonValue;
 
         // Convert value to JSON and verify.
@@ -140,7 +142,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           'verifyFieldValueRoundTrip',
           value
         );
-        expect(actualJsonProto).to.deep.equal({[valueType]: jsonValue});
+        expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
         const actualReturnFieldValue = userDataWriter.convertValue(
           actualJsonProto
         );
@@ -151,7 +153,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           'verifyFieldValueRoundTrip',
           value
         );
-        expect(actualProtoJsProto).to.deep.equal({[valueType]: protoJsValue});
+        expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
         const actualProtoJsReturnFieldValue = userDataWriter.convertValue(
           actualProtoJsProto
         );
@@ -275,8 +277,8 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         ];
 
         const expectedProtoJs = [
-          {seconds: '1451730050', nanos: 850000000},
-          {seconds: '1466160615', nanos: 0}
+          { seconds: '1451730050', nanos: 850000000 },
+          { seconds: '1466160615', nanos: 0 }
         ];
 
         for (let i = 0; i < examples.length; i++) {
@@ -321,28 +323,28 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
             'timestampConversion',
             new Timestamp(1488872578, 916123000)
           )
-        ).to.deep.equal({timestampValue: '2017-03-07T07:42:58.916123000Z'});
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
 
         expect(
           protobufJsonReader.parseQueryValue(
             'timestampConversion',
             new Timestamp(1488872578, 916000000)
           )
-        ).to.deep.equal({timestampValue: '2017-03-07T07:42:58.916000000Z'});
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
 
         expect(
           protobufJsonReader.parseQueryValue(
             'timestampConversion',
             new Timestamp(1488872578, 916000)
           )
-        ).to.deep.equal({timestampValue: '2017-03-07T07:42:58.000916000Z'});
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
 
         expect(
           protobufJsonReader.parseQueryValue(
             'timestampConversion',
             new Timestamp(1488872578, 0)
           )
-        ).to.deep.equal({timestampValue: '2017-03-07T07:42:58.000000000Z'});
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
       });
 
       it('converts GeoPointValue', () => {
@@ -373,7 +375,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       it('converts ArrayValue', () => {
         const value = [true, 'foo'];
         const jsonValue = {
-          values: [{booleanValue: true}, {stringValue: 'foo'}]
+          values: [{ booleanValue: true }, { stringValue: 'foo' }]
         };
         verifyFieldValueRoundTrip({
           value,
@@ -386,7 +388,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         verifyFieldValueRoundTrip({
           value: [],
           valueType: 'arrayValue',
-          jsonValue: {values: []}
+          jsonValue: { values: [] }
         });
       });
 
@@ -394,7 +396,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         verifyFieldValueRoundTrip({
           value: {},
           valueType: 'mapValue',
-          jsonValue: {fields: {}}
+          jsonValue: { fields: {} }
         });
       });
 
@@ -404,7 +406,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           d: Number.MAX_VALUE,
           i: 1,
           n: null,
-          a: [1, 'foo', {b: false}],
+          a: [1, 'foo', { b: false }],
           o: {
             a: 100,
             b: 'bar',
@@ -420,19 +422,19 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const expectedJson: api.Value = {
           mapValue: {
             fields: {
-              b: {booleanValue: true},
-              d: {doubleValue: Number.MAX_VALUE},
-              i: {integerValue: '1'},
-              n: {nullValue: 'NULL_VALUE'},
+              b: { booleanValue: true },
+              d: { doubleValue: Number.MAX_VALUE },
+              i: { integerValue: '1' },
+              n: { nullValue: 'NULL_VALUE' },
               a: {
                 arrayValue: {
                   values: [
-                    {integerValue: '1'},
-                    {stringValue: 'foo'},
+                    { integerValue: '1' },
+                    { stringValue: 'foo' },
                     {
                       mapValue: {
                         fields: {
-                          b: {booleanValue: false}
+                          b: { booleanValue: false }
                         }
                       }
                     }
@@ -442,19 +444,19 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
               o: {
                 mapValue: {
                   fields: {
-                    a: {integerValue: '100'},
-                    b: {stringValue: 'bar'},
+                    a: { integerValue: '100' },
+                    b: { stringValue: 'bar' },
                     o: {
                       mapValue: {
                         fields: {
-                          c: {integerValue: '3'}
+                          c: { integerValue: '3' }
                         }
                       }
                     }
                   }
                 }
               },
-              s: {stringValue: 'foo'}
+              s: { stringValue: 'foo' }
             }
           }
         };
@@ -502,8 +504,8 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         );
         expect(actual).to.deep.equal(
           'projects/p/databases/d/documents/users/' +
-          Number.MAX_SAFE_INTEGER.toString() +
-          '/profiles/primary'
+            Number.MAX_SAFE_INTEGER.toString() +
+            '/profiles/primary'
         );
       });
     });
@@ -536,7 +538,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       //TODO(b/34988481): Implement correct escaping
       // eslint-disable-next-line no-restricted-properties
       it.skip('converts a weird path', () => {
-        const expected: api.DocumentMask = {fieldPaths: ['foo.`bar.baz\\qux`']};
+        const expected: api.DocumentMask = {
+          fieldPaths: ['foo.`bar.baz\\qux`']
+        };
         const mask = FieldMask.fromArray([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
@@ -554,7 +558,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const expected = FieldMask.fromArray([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
-        const proto: api.DocumentMask = {fieldPaths: ['foo.`bar.baz\\qux`']};
+        const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
         const actual = s.fromDocumentMask(proto);
         expect(actual).to.deep.equal(expected);
       });
@@ -580,7 +584,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       }
 
       it('SetMutation', () => {
-        const mutation = setMutation('foo/bar', {a: 'b', num: 1});
+        const mutation = setMutation('foo/bar', { a: 'b', num: 1 });
         const proto = {
           update: s.toMutationDocument(mutation.key, mutation.value)
         };
@@ -596,7 +600,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const proto = {
           update: s.toMutationDocument(mutation.key, mutation.data),
           updateMask: s.toDocumentMask(mutation.fieldMask),
-          currentDocument: {exists: true}
+          currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
       });
@@ -604,7 +608,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       it('PatchMutation without precondition', () => {
         const mutation = patchMutation(
           'bar/baz',
-          {a: 'b', num: 1, 'some.deep.thing': 2},
+          { a: 'b', num: 1, 'some.deep.thing': 2 },
           Precondition.NONE
         );
         const proto = {
@@ -616,7 +620,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
 
       it('DeleteMutation', () => {
         const mutation = deleteMutation('baz/quux');
-        const proto = {delete: s.toName(mutation.key)};
+        const proto = { delete: s.toName(mutation.key) };
         verifyMutation(mutation, proto);
       });
 
@@ -629,11 +633,11 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           transform: {
             document: s.toName(mutation.key),
             fieldTransforms: [
-              {fieldPath: 'a', setToServerValue: 'REQUEST_TIME'},
-              {fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME'}
+              { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
+              { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
             ]
           },
-          currentDocument: {exists: true}
+          currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
       });
@@ -647,11 +651,11 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           transform: {
             document: s.toName(mutation.key),
             fieldTransforms: [
-              {fieldPath: 'integer', increment: {integerValue: '42'}},
-              {fieldPath: 'double', increment: {doubleValue: 13.37}}
+              { fieldPath: 'integer', increment: { integerValue: '42' } },
+              { fieldPath: 'double', increment: { doubleValue: 13.37 } }
             ]
           },
-          currentDocument: {exists: true}
+          currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
       });
@@ -659,7 +663,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       it('TransformMutation (Array transforms)', () => {
         const mutation = transformMutation('docs/1', {
           a: FieldValue.arrayUnion('a', 2),
-          'bar.baz': FieldValue.arrayRemove({x: 1})
+          'bar.baz': FieldValue.arrayRemove({ x: 1 })
         });
         const proto: api.Write = {
           transform: {
@@ -673,11 +677,11 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
               },
               {
                 fieldPath: 'bar.baz',
-                removeAllFromArray: {values: [wrap({x: 1})]}
+                removeAllFromArray: { values: [wrap({ x: 1 })] }
               }
             ]
           },
-          currentDocument: {exists: true}
+          currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
       });
@@ -685,13 +689,13 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       it('SetMutation with precondition', () => {
         const mutation = new SetMutation(
           key('foo/bar'),
-          wrapObject({a: 'b', num: 1}),
+          wrapObject({ a: 'b', num: 1 }),
           Precondition.updateTime(version(4))
         );
         const proto = {
           update: s.toMutationDocument(mutation.key, mutation.value),
           currentDocument: {
-            updateTime: {seconds: '0', nanos: 4000}
+            updateTime: { seconds: '0', nanos: 4000 }
           }
         };
         verifyMutation(mutation, proto);
@@ -705,7 +709,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const proto = {
           verify: s.toName(mutation.key),
           currentDocument: {
-            updateTime: {seconds: '0', nanos: 4000}
+            updateTime: { seconds: '0', nanos: 4000 }
           }
         };
         verifyMutation(mutation, proto);
@@ -713,7 +717,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
     });
 
     it('toDocument() / fromDocument', () => {
-      const d = doc('foo/bar', 42, {a: 5, b: 'b'});
+      const d = doc('foo/bar', 42, { a: 5, b: 'b' });
       const proto = {
         name: s.toName(d.key),
         fields: d.toProto().mapValue.fields,
@@ -733,9 +737,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'item.part.top'},
+            field: { fieldPath: 'item.part.top' },
             op: 'EQUAL',
-            value: {stringValue: 'food'}
+            value: { stringValue: 'food' }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -748,9 +752,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'LESS_THAN',
-            value: {integerValue: '42'}
+            value: { integerValue: '42' }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -763,9 +767,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'LESS_THAN_OR_EQUAL',
-            value: {stringValue: 'food'}
+            value: { stringValue: 'food' }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -778,9 +782,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'GREATER_THAN',
-            value: {booleanValue: false}
+            value: { booleanValue: false }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -793,9 +797,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'GREATER_THAN_OR_EQUAL',
-            value: {doubleValue: 1e100}
+            value: { doubleValue: 1e100 }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -812,7 +816,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: '__name__'},
+            field: { fieldPath: '__name__' },
             op: 'EQUAL',
             value: {
               referenceValue:
@@ -830,9 +834,9 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'ARRAY_CONTAINS',
-            value: {integerValue: '42'}
+            value: { integerValue: '42' }
           }
         });
         const roundtripped = s.fromFieldFilter(actual);
@@ -845,7 +849,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'IN',
             value: {
               arrayValue: {
@@ -868,7 +872,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'ARRAY_CONTAINS_ANY',
             value: {
               arrayValue: {
@@ -895,7 +899,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'IS_NULL'
           }
         });
@@ -907,7 +911,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
-            field: {fieldPath: 'field'},
+            field: { fieldPath: 'field' },
             op: 'IS_NAN'
           }
         });
@@ -924,7 +928,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
 
       targetData = new TargetData(target, 2, TargetPurpose.LimboResolution, 3);
       result = s.toListenRequestLabels(targetData);
-      expect(result).to.deep.equal({'goog-listen-tags': 'limbo-document'});
+      expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
       targetData = new TargetData(
         target,
@@ -945,7 +949,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const q = Query.atPath(path('docs/1')).toTarget();
         const result = s.toTarget(wrapTargetData(q));
         expect(result).to.deep.equal({
-          documents: {documents: ['projects/p/databases/d/documents/docs/1']},
+          documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
           targetId: 1
         });
         expect(s.fromDocumentsTarget(s.toDocumentsTarget(q))).to.deep.equal(q);
@@ -958,10 +962,10 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'messages'}],
+              from: [{ collectionId: 'messages' }],
               orderBy: [
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -981,10 +985,10 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
             structuredQuery: {
-              from: [{collectionId: 'attachments'}],
+              from: [{ collectionId: 'attachments' }],
               orderBy: [
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1005,21 +1009,21 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               where: {
                 fieldFilter: {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   op: 'LESS_THAN',
-                  value: {integerValue: '42'}
+                  value: { integerValue: '42' }
                 }
               },
               orderBy: [
                 {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   direction: 'ASCENDING'
                 },
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1044,42 +1048,42 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               where: {
                 compositeFilter: {
                   op: 'AND',
                   filters: [
                     {
                       fieldFilter: {
-                        field: {fieldPath: 'prop'},
+                        field: { fieldPath: 'prop' },
                         op: 'LESS_THAN',
-                        value: {integerValue: '42'}
+                        value: { integerValue: '42' }
                       }
                     },
                     {
                       fieldFilter: {
-                        field: {fieldPath: 'name'},
+                        field: { fieldPath: 'name' },
                         op: 'EQUAL',
-                        value: {stringValue: 'dimond'}
+                        value: { stringValue: 'dimond' }
                       }
                     },
                     {
                       unaryFilter: {
-                        field: {fieldPath: 'nan'},
+                        field: { fieldPath: 'nan' },
                         op: 'IS_NAN'
                       }
                     },
                     {
                       unaryFilter: {
-                        field: {fieldPath: 'null'},
+                        field: { fieldPath: 'null' },
                         op: 'IS_NULL'
                       }
                     },
                     {
                       fieldFilter: {
-                        field: {fieldPath: 'tags'},
+                        field: { fieldPath: 'tags' },
                         op: 'ARRAY_CONTAINS',
-                        value: {stringValue: 'pending'}
+                        value: { stringValue: 'pending' }
                       }
                     }
                   ]
@@ -1087,11 +1091,11 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
               },
               orderBy: [
                 {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   direction: 'ASCENDING'
                 },
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1112,21 +1116,21 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
             structuredQuery: {
-              from: [{collectionId: 'attachments'}],
+              from: [{ collectionId: 'attachments' }],
               where: {
                 fieldFilter: {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   op: 'LESS_THAN',
-                  value: {integerValue: '42'}
+                  value: { integerValue: '42' }
                 }
               },
               orderBy: [
                 {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   direction: 'ASCENDING'
                 },
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1147,14 +1151,14 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               orderBy: [
                 {
-                  field: {fieldPath: 'prop'},
+                  field: { fieldPath: 'prop' },
                   direction: 'ASCENDING'
                 },
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1175,14 +1179,14 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               orderBy: [
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ],
-              limit: {value: 26}
+              limit: { value: 26 }
             }
           },
           targetId: 1
@@ -1211,22 +1215,22 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               orderBy: [
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ],
               startAt: {
                 values: [
-                  {referenceValue: 'projects/p/databases/d/documents/foo/bar'}
+                  { referenceValue: 'projects/p/databases/d/documents/foo/bar' }
                 ],
                 before: true
               },
               endAt: {
                 values: [
-                  {referenceValue: 'projects/p/databases/d/documents/foo/bar'}
+                  { referenceValue: 'projects/p/databases/d/documents/foo/bar' }
                 ],
                 before: false
               }
@@ -1255,10 +1259,10 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
-              from: [{collectionId: 'docs'}],
+              from: [{ collectionId: 'docs' }],
               orderBy: [
                 {
-                  field: {fieldPath: DOCUMENT_KEY_NAME},
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
                   direction: 'ASCENDING'
                 }
               ]
@@ -1306,7 +1310,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const orderBy = new OrderBy(field('a.b'), Direction.ASCENDING);
         const actual = s.toPropertyOrder(orderBy);
         const expected = {
-          field: {fieldPath: 'a.b'},
+          field: { fieldPath: 'a.b' },
           direction: 'ASCENDING'
         };
         expect(actual).to.deep.equal(expected);
@@ -1317,7 +1321,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
         const orderBy = new OrderBy(field('a.b.c'), Direction.DESCENDING);
         const actual = s.toPropertyOrder(orderBy);
         const expected = {
-          field: {fieldPath: 'a.b.c'},
+          field: { fieldPath: 'a.b.c' },
           direction: 'DESCENDING'
         };
         expect(actual).to.deep.equal(expected);
@@ -1337,7 +1341,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           4
         ]);
         const actual = s.fromWatchChange({
-          targetChange: {targetChangeType: 'ADD', targetIds: [1, 4]}
+          targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });
         expect(actual).to.deep.equal(expected);
       });
@@ -1354,17 +1358,17 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
             targetChangeType: 'REMOVE',
             targetIds: [1, 4],
             resumeToken: s.toBytes(byteStringFromString('token')),
-            cause: {code: 1, message: 'message'}
+            cause: { code: 1, message: 'message' }
           }
         });
         expect(actual).to.deep.equal(expected);
       });
 
       it('converts target change with no_change', () => {
-        const expected = new WatchTargetChange(WatchTargetChangeState.NoChange, [
-          1,
-          4
-        ]);
+        const expected = new WatchTargetChange(
+          WatchTargetChangeState.NoChange,
+          [1, 4]
+        );
         const actual = s.fromWatchChange({
           targetChange: {
             targetChangeType: 'NO_CHANGE',
@@ -1375,10 +1379,10 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       });
 
       it('converts target change with no_change (omitted in JSON)', () => {
-        const expected = new WatchTargetChange(WatchTargetChangeState.NoChange, [
-          1,
-          4
-        ]);
+        const expected = new WatchTargetChange(
+          WatchTargetChangeState.NoChange,
+          [1, 4]
+        );
         const actual = s.fromWatchChange({
           targetChange: {
             targetIds: [1, 4]
@@ -1399,7 +1403,7 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
             targetChangeType: 'REMOVE',
             targetIds: [1, 4],
             resumeToken: s.toBytes(byteStringFromString('resume')),
-            cause: {code: 1, message: 'message'}
+            cause: { code: 1, message: 'message' }
           }
         });
         expect(actual).to.deep.equal(expected);
@@ -1410,13 +1414,13 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           [1, 2],
           [],
           key('coll/1'),
-          doc('coll/1', 5, {foo: 'bar'})
+          doc('coll/1', 5, { foo: 'bar' })
         );
         const actual = s.fromWatchChange({
           documentChange: {
             document: {
               name: s.toName(key('coll/1')),
-              fields: wrap({foo: 'bar'}).mapValue!.fields,
+              fields: wrap({ foo: 'bar' }).mapValue!.fields,
               updateTime: s.toVersion(version(5))
             },
             targetIds: [1, 2]
@@ -1430,13 +1434,13 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
           [2],
           [1],
           key('coll/1'),
-          doc('coll/1', 5, {foo: 'bar'})
+          doc('coll/1', 5, { foo: 'bar' })
         );
         const actual = s.fromWatchChange({
           documentChange: {
             document: {
               name: s.toName(key('coll/1')),
-              fields: wrap({foo: 'bar'}).mapValue!.fields,
+              fields: wrap({ foo: 'bar' }).mapValue!.fields,
               updateTime: s.toVersion(version(5))
             },
             targetIds: [2],
@@ -1464,7 +1468,12 @@ export function serializerTest(protobufJsVerifier: (jsonValue: api.Value) => voi
       });
 
       it('converts document removes', () => {
-        const expected = new DocumentWatchChange([], [1, 2], key('coll/1'), null);
+        const expected = new DocumentWatchChange(
+          [],
+          [1, 2],
+          key('coll/1'),
+          null
+        );
         const actual = s.fromWatchChange({
           documentRemove: {
             document: s.toName(key('coll/1')),

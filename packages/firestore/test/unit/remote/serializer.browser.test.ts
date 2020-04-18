@@ -1,3 +1,3 @@
-import {serializerTest} from "./serializer.helper";
+import { serializerTest } from './serializer.helper';
 
 serializerTest();
