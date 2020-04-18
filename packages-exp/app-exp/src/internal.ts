@@ -19,15 +19,23 @@ import { _FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 
+/**
+ * @internal
+ */
 export const apps = new Map<string, FirebaseApp>();
 
-// Registered components. Private Components only. Public components are not needed any more because
-// the public APIs are directly exported from the respective packages.
+/**
+ * Registered components.
+ * 
+ * @internal
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const components = new Map<string, Component<any>>();
 
 /**
- * @param component the component being added to this app's container
+ * @param component - the component being added to this app's container
+ * 
+ * @internal
  */
 export function addComponent(app: FirebaseApp, component: Component): void {
   try {
@@ -40,6 +48,10 @@ export function addComponent(app: FirebaseApp, component: Component): void {
   }
 }
 
+/**
+ * 
+ * @internal
+ */
 export function addOrOverwriteComponent(
   app: FirebaseApp,
   component: Component
@@ -49,8 +61,10 @@ export function addOrOverwriteComponent(
 
 /**
  *
- * @param component
+ * @param component - the component to register
  * @returns whether or not the component is registered successfully
+ * 
+ * @internal
  */
 export function registerComponent(component: Component): boolean {
   const componentName = component.name;
@@ -72,6 +86,15 @@ export function registerComponent(component: Component): boolean {
   return true;
 }
 
+/**
+ * 
+ * @param app - FirebaseApp instance
+ * @param name - service name
+ * 
+ * @returns the provider for the service with the matching name
+ * 
+ * @internal
+ */
 export function getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
@@ -81,6 +104,8 @@ export function getProvider<T extends Name>(
 
 /**
  * Test only
+ * 
+ * @internal
  */
 export function clearComponents(): void {
   components.clear();

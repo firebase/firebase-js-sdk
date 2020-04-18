@@ -4,18 +4,18 @@
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/cjs/index.js",
-  "browser": "dist/esm5/index.js",
-  "module": "dist/esm5/index.js",
-  "esm2017": "dist/esm2017/index.js",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm5.js",
+  "module": "dist/index.esm5.js",
+  "esm2017": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build": "rollup -c && yarn api-report",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && ./use_public_typings.js",
     "build:deps": "lerna run --scope @firebase/app-exp --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
@@ -26,7 +26,7 @@
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn api-report && yarn doc"
+    "build:doc": "yarn build && yarn doc"
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.800.0",
@@ -51,7 +51,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm5/packages-exp/app-exp/src/index.d.ts",
+  "typings": "./dist/app-exp.d.ts",
   "nyc": {
     "extension": [
       ".ts"

@@ -1,8 +1,0 @@
-{
-    "name": "@firebase/app-exp/internal",
-    "main": "../dist/cjs/internal.js",
-    "browser": "../dist/esm5/internal.js",
-    "module": "../dist/esm5/internal.js",
-    "esm2017": "../dist/esm2017/internal.js",
-    "typings": "../dist/esm5/packages-exp/app-exp/src/internal.d.ts"
-}

@@ -25,5 +25,6 @@
 import { registerCoreComponents } from './registerCoreComponents';
 
 export * from './api';
+export * from './internal';
 
 registerCoreComponents();
