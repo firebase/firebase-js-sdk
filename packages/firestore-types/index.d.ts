@@ -25,7 +25,7 @@ import {
   DocumentData,
   FieldPath,
   DocumentChange
-} from './rest';
+} from './lite';
 
 export {
   DocumentData,
@@ -58,7 +58,7 @@ export {
   updateDocument,
   setDocument,
   addDocument
-} from './rest';
+} from './lite';
 
 export const CACHE_SIZE_UNLIMITED: number;
 
@@ -102,8 +102,6 @@ export interface FirestoreDataConverter<T> {
 }
 
 // MARK: Initialization methods
-export function defaultPersistence();
-Persistence;
 export function memoryPersistence(): Persistence;
 export function indexedDbPersistence(
   settings?: PersistenceSettings
