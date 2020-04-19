@@ -387,7 +387,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // not use `enqueueRetryable()` for writes since this would require us to
       // move all view computation logic to `enqueueRetryable()`. Otherwise,
       // this write should be surfaced in all subsequent operations.
-      logError(LOG_TAG, 'Failed to persist write: ' + e);
+      logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
       userCallback.reject(e);
       return;
     }
