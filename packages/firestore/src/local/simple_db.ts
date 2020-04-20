@@ -411,10 +411,7 @@ export class IndexedDbTransactionError extends FirestoreError {
   name = 'IndexedDbTransactionError';
 
   constructor(cause: Error) {
-    super(
-      Code.UNAVAILABLE,
-      'IndexedDB transaction failed: ' + cause
-    );
+    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
   }
 }
 
