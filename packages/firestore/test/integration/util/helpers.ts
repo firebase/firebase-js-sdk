@@ -17,6 +17,9 @@
 
 import * as firestore from '@firebase/firestore-types';
 import firebase from './firebase_export';
+
+/* eslint-disable no-restricted-globals */
+
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.

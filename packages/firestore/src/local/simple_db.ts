@@ -23,6 +23,9 @@ import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
 
+// References to `window` are guarded by SimpleDb.isAvailable()
+/* eslint-disable no-restricted-globals */
+
 const LOG_TAG = 'SimpleDb';
 
 /**
@@ -406,6 +409,15 @@ export interface IterateOptions {
   reverse?: boolean;
 }
 
+/** An error that wraps exceptions that thrown during IndexedDB execution. */
+export class IndexedDbTransactionError extends FirestoreError {
+  name = 'IndexedDbTransactionError';
+
+  constructor(cause: Error) {
+    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
+  }
+}
+
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.
@@ -432,7 +444,9 @@ export class SimpleDbTransaction {
     };
     this.transaction.onabort = () => {
       if (transaction.error) {
-        this.completionDeferred.reject(transaction.error);
+        this.completionDeferred.reject(
+          new IndexedDbTransactionError(transaction.error)
+        );
       } else {
         this.completionDeferred.resolve();
       }
@@ -441,7 +455,7 @@ export class SimpleDbTransaction {
       const error = checkForAndReportiOSError(
         (event.target as IDBRequest).error!
       );
-      this.completionDeferred.reject(error);
+      this.completionDeferred.reject(new IndexedDbTransactionError(error));
     };
   }
 

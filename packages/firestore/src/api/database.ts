@@ -44,7 +44,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
@@ -518,9 +517,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         return value;
       }
     };
-    const serializer = new JsonProtoSerializer(databaseId, {
-      useProto3Json: PlatformSupport.getPlatform().useProto3Json
-    });
+    const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
     return new UserDataReader(serializer, preConverter);
   }
 

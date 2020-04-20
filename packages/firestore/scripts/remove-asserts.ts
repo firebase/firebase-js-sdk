@@ -30,7 +30,10 @@ export function removeAsserts(
   };
 }
 
-/** Transformer that removes all "debugAssert" statements from the SDK. */
+/**
+ * Transformer that removes all "debugAssert" statements from the SDK and
+ * removes the custom message for fail() and hardAssert().
+ */
 class RemoveAsserts {
   constructor(private readonly typeChecker: ts.TypeChecker) {}
 
@@ -61,6 +64,14 @@ class RemoveAsserts {
           const method = declaration.name!.text;
           if (method === 'debugAssert') {
             return ts.createEmptyStatement();
+          } else if (method === 'hardAssert') {
+            // Remove the log message but keep the assertion
+            return ts.createCall(declaration.name!, /*typeArgs*/ undefined, [
+              node.arguments[0]
+            ]);
+          } else if (method === 'fail') {
+            // Remove the log message
+            return ts.createCall(declaration.name!, /*typeArgs*/ undefined, []);
           }
         }
       }

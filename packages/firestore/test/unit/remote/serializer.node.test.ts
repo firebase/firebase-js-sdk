@@ -17,13 +17,16 @@
 
 import { expect } from 'chai';
 
+import * as api from '../../../src/protos/firestore_proto_api';
+
+import { serializerTest } from './serializer.helper';
 import {
   loadRawProtos,
   protoLoaderOptions
-} from '../../src/platform_node/load_protos';
-import * as api from '../../src/protos/firestore_proto_api';
+} from '../../../src/platform_node/load_protos';
 
 const protos = loadRawProtos();
+
 // tslint:disable-next-line:variable-name
 const ValueMessage = protos.lookupType('google.firestore.v1.Value');
 
@@ -38,3 +41,5 @@ export function verifyProtobufJsRoundTrip(jsonValue: api.Value): void {
   );
   expect(protobufJsDecodedProto).to.deep.equal(jsonValue);
 }
+
+serializerTest(verifyProtobufJsRoundTrip);

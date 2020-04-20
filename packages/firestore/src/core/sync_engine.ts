@@ -278,10 +278,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       /* updateLimboDocuments= */ this.isPrimary === true,
       synthesizedTargetChange
     );
-    debugAssert(
-      viewChange.limboChanges.length === 0,
-      'View returned limbo docs before target ack from the server.'
-    );
+    this.updateTrackedLimbos(targetId, viewChange.limboChanges);
+
     debugAssert(
       !!viewChange.snapshot,
       'applyChanges for new view should always return a snapshot'
