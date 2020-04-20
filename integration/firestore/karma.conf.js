@@ -20,8 +20,8 @@ const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
 const files = [
-  `${path.dirname(require.resolve('firebase'))}/firebase.js`,
-  `${path.dirname(require.resolve('firebase'))}/firebase-firestore.js`,
+  // `${path.dirname(require.resolve('firebase'))}/firebase.js`,
+  // `${path.dirname(require.resolve('firebase'))}/firebase-firestore.js`,
   './dist/test-harness.js'
 ];
 
