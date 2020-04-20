@@ -108,9 +108,11 @@ import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   MockIndexedDbComponentProvider,
+  MockIndexedDbPersistence,
   MockMemoryComponentProvider,
-  MockPersistence
+  MockMemoryPersistence
 } from './spec_test_components';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -415,7 +417,7 @@ abstract class TestRunner {
   private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
-  private persistence!: MockPersistence;
+  private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
   protected sharedClientState!: SharedClientState;
 
   private useGarbageCollection: boolean;
@@ -1004,6 +1006,10 @@ abstract class TestRunner {
         );
       }
       if ('numActiveClients' in expectedState) {
+        debugAssert(
+          this.persistence instanceof IndexedDbPersistence,
+          'numActiveClients() requires IndexedDbPersistence'
+        );
         const activeClients = await this.persistence.getActiveClients();
         expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }

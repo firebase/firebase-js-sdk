@@ -113,16 +113,16 @@ export async function testIndexedDbPersistence(
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
   const platform = PlatformSupport.getPlatform();
-  const persistence = IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: !!options.synchronizeTabs,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new IndexedDbPersistence(
+    !!options.synchronizeTabs,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
-    queue,
-    serializer: JSON_SERIALIZER,
     lruParams,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    queue,
+    JSON_SERIALIZER,
+    MOCK_SEQUENCE_NUMBER_SYNCER
+  );
   await persistence.start();
   return persistence;
 }

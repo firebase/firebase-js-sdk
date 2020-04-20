@@ -188,36 +188,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static createIndexedDbPersistence(options: {
-    allowTabSynchronization: boolean;
-    persistenceKey: string;
-    clientId: ClientId;
-    platform: Platform;
-    lruParams: LruParams;
-    queue: AsyncQueue;
-    serializer: JsonProtoSerializer;
-    sequenceNumberSyncer: SequenceNumberSyncer;
-  }): IndexedDbPersistence {
-    if (!IndexedDbPersistence.isAvailable()) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-    }
-
-    const persistence = new IndexedDbPersistence(
-      options.allowTabSynchronization,
-      options.persistenceKey,
-      options.clientId,
-      options.platform,
-      options.lruParams,
-      options.queue,
-      options.serializer,
-      options.sequenceNumberSyncer
-    );
-    return persistence;
-  }
-
   private readonly document: Document | null;
   private readonly window: Window;
 
@@ -256,7 +226,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly webStorage: Storage;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
-  private constructor(
+  constructor(
     private readonly allowTabSynchronization: boolean,
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
@@ -266,6 +236,13 @@ export class IndexedDbPersistence implements Persistence {
     serializer: JsonProtoSerializer,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer
   ) {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
+
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);

@@ -134,7 +134,7 @@ export class TestRemoteDocumentCache {
       txn => {
         debugAssert(
           this.cache instanceof IndexedDbRemoteDocumentCache,
-          'getNewDocumentChanges is only supported by IndexedDB'
+          'getNewDocumentChanges() requires IndexedDB'
         );
         return this.cache.getNewDocumentChanges(txn, sinceReadTime);
       }

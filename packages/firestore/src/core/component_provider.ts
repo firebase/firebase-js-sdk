@@ -180,6 +180,8 @@ export class MemoryComponentProvider implements ComponentProvider {
  * Provides all components needed for Firestore with IndexedDB persistence.
  */
 export class IndexedDbComponentProvider extends MemoryComponentProvider {
+  persistence!: IndexedDbPersistence;
+
   // TODO(tree-shaking): Create an IndexedDbComponentProvider and a
   // MultiTabComponentProvider. The IndexedDbComponentProvider should depend
   // on LocalStore and SyncEngine.
@@ -188,11 +190,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
-
-    debugAssert(
-      this.persistence instanceof IndexedDbPersistence,
-      'IndexedDbComponentProvider should provide IndexedDBPersistence'
-    );
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
@@ -211,10 +208,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    debugAssert(
-      this.persistence instanceof IndexedDbPersistence,
-      'IndexedDbComponentProvider should provide IndexedDBPersistence'
-    );
     return new MultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
@@ -239,10 +232,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
   ): GarbageCollectionScheduler | null {
-    debugAssert(
-      this.persistence instanceof IndexedDbPersistence,
-      'IndexedDbComponentProvider should provide IndexedDBPersistence'
-    );
     const garbageCollector = this.persistence.referenceDelegate
       .garbageCollector;
     return new LruScheduler(garbageCollector, cfg.asyncQueue);
@@ -258,18 +247,16 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       cfg.databaseInfo
     );
     const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
-    return IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: cfg.persistenceSettings.synchronizeTabs,
+    return new IndexedDbPersistence(
+      cfg.persistenceSettings.synchronizeTabs,
       persistenceKey,
-      clientId: cfg.clientId,
-      platform: cfg.platform,
-      queue: cfg.asyncQueue,
+      cfg.clientId,
+      cfg.platform,
+      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
+      cfg.asyncQueue,
       serializer,
-      lruParams: LruParams.withCacheSize(
-        cfg.persistenceSettings.cacheSizeBytes
-      ),
-      sequenceNumberSyncer: this.sharedClientState
-    });
+      this.sharedClientState
+    );
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
