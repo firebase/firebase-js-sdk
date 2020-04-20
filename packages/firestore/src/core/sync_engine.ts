@@ -442,34 +442,21 @@ export class SyncEngine implements RemoteSyncer {
     onlineState: OnlineState,
     source: OnlineStateSource
   ): void {
-    // If we are the secondary client, we explicitly ignore the remote store's
-    // online state (the local client may go offline, even though the primary
-    // tab remains online) and only apply the primary tab's online state from
-    // SharedClientState.
-    if (
-      (this.isPrimaryClient && source === OnlineStateSource.RemoteStore) ||
-      (!this.isPrimaryClient && source === OnlineStateSource.SharedClientState)
-    ) {
-      this.assertSubscribed('applyOnlineStateChange()');
-      const newViewSnapshots = [] as ViewSnapshot[];
-      this.queryViewsByQuery.forEach((query, queryView) => {
-        const viewChange = queryView.view.applyOnlineStateChange(onlineState);
-        debugAssert(
-          viewChange.limboChanges.length === 0,
-          'OnlineState should not affect limbo documents.'
-        );
-        if (viewChange.snapshot) {
-          newViewSnapshots.push(viewChange.snapshot);
-        }
-      });
-      this.syncEngineListener!.onOnlineStateChange(onlineState);
-      this.syncEngineListener!.onWatchChange(newViewSnapshots);
-
-      this.onlineState = onlineState;
-      if (this.isPrimaryClient) {
-        this.sharedClientState.setOnlineState(onlineState);
+    this.assertSubscribed('applyOnlineStateChange()');
+    const newViewSnapshots = [] as ViewSnapshot[];
+    this.queryViewsByQuery.forEach((query, queryView) => {
+      const viewChange = queryView.view.applyOnlineStateChange(onlineState);
+      debugAssert(
+        viewChange.limboChanges.length === 0,
+        'OnlineState should not affect limbo documents.'
+      );
+      if (viewChange.snapshot) {
+        newViewSnapshots.push(viewChange.snapshot);
       }
-    }
+    });
+    this.syncEngineListener!.onOnlineStateChange(onlineState);
+    this.syncEngineListener!.onWatchChange(newViewSnapshots);
+    this.onlineState = onlineState;
   }
 
   async rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
@@ -966,6 +953,29 @@ export class MultiTabSyncEngine extends SyncEngine
       this.updateTrackedLimbos(queryView.targetId, viewSnapshot.limboChanges);
     }
     return viewSnapshot;
+  }
+
+  applyOnlineStateChange(
+    onlineState: OnlineState,
+    source: OnlineStateSource
+  ): void {
+    // If we are the primary client, the online state of all clients only
+    // depends on the online state of the local RemoteStore.
+    if (this.isPrimaryClient && source === OnlineStateSource.RemoteStore) {
+      super.applyOnlineStateChange(onlineState, source);
+      this.sharedClientState.setOnlineState(onlineState);
+    }
+
+    // If we are the secondary client, we explicitly ignore the remote store's
+    // online state (the local client may go offline, even though the primary
+    // tab remains online) and only apply the primary tab's online state from
+    // SharedClientState.
+    if (
+      !this.isPrimaryClient &&
+      source === OnlineStateSource.SharedClientState
+    ) {
+      super.applyOnlineStateChange(onlineState, source);
+    }
   }
 
   async applyBatchState(

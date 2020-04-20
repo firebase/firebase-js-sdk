@@ -82,7 +82,7 @@ export interface ComponentProvider {
  * Provides all components needed for Firestore with in-memory persistence.
  * Uses EagerGC garbage collection.
  */
-export class MemoryComponentProvider {
+export class MemoryComponentProvider implements ComponentProvider {
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
