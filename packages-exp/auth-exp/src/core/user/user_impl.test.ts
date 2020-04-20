@@ -21,6 +21,7 @@ import { mockAuth } from '../../../test/mock_auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
+import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -103,6 +104,45 @@ describe('core/user/user_impl', () => {
     it('throws', () => {
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(() => user.delete()).to.throw();
+    });
+  });
+
+  describe('fromPlainObject', () => {
+    const errorString =
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).';
+
+    it('throws an error if uid is not present', () => {
+      expect(() =>
+        UserImpl.fromPlainObject(mockAuth, { name: 'foo' })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('throws if a key is not undefined or string', () => {
+      expect(() =>
+        UserImpl.fromPlainObject(mockAuth, { uid: 'foo', displayName: 3 })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('fills out a user object properly', () => {
+      const params = {
+        uid: 'uid',
+        stsTokenManager: {
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          expirationTime: 3
+        },
+        displayName: 'name',
+        email: 'email',
+        phoneNumber: 'number',
+        photoURL: 'photo'
+      };
+
+      const user = UserImpl.fromPlainObject(mockAuth, params);
+      expect(user.uid).to.eq(params.uid);
+      expect(user.displayName).to.eq(params.displayName);
+      expect(user.email).to.eq(params.email);
+      expect(user.phoneNumber).to.eq(params.phoneNumber);
+      expect(user.photoURL).to.eq(params.photoURL);
     });
   });
 });

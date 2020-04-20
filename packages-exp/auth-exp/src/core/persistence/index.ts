@@ -15,27 +15,28 @@
  * limitations under the License.
  */
 
-import { User } from '../../model/user';
-
 export enum PersistenceType {
   SESSION = 'SESSION',
   LOCAL = 'LOCAL',
   NONE = 'NONE'
 }
 
-export interface Instantiator<T> {
-  (blob: { [key: string]: unknown }): T;
+export interface PersistedBlob {
+  [key: string]: unknown;
 }
 
-export type PersistenceValue = PersistenceType | User;
+export interface Instantiator<T> {
+  (blob: PersistedBlob): T;
+}
+
+export type PersistenceValue = PersistedBlob | string;
+
+export const STORAGE_AVAILABLE_KEY = '__sak';
 
 export interface Persistence {
   type: PersistenceType;
   isAvailable(): Promise<boolean>;
   set(key: string, value: PersistenceValue): Promise<void>;
-  get<T extends PersistenceValue>(
-    key: string,
-    instantiator?: Instantiator<T>
-  ): Promise<T | null>;
+  get<T extends PersistenceValue>(key: string): Promise<T | null>;
   remove(key: string): Promise<void>;
 }
