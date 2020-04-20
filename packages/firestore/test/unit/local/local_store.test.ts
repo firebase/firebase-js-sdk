@@ -1538,7 +1538,7 @@ function genericLocalStoreTests(
   });
 
   it('uses target mapping to execute queries', () => {
-    if (queryEngine.type !== 'index-free' || gcIsEager) {
+    if (queryEngine.type !== QueryEngineType.IndexFree || gcIsEager) {
       return;
     }
 
