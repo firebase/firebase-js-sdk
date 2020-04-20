@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
-import { PersistenceType } from '.';
 import { expect } from 'chai';
-import { indexedDBLocalPersistence as persistence } from './indexed_db';
-import { User } from '../../model/user';
+import * as sinon from 'sinon';
+
 import { testUser } from '../../../test/mock_auth';
+import { PersistenceType } from './';
+import { indexedDBLocalPersistence as persistence } from './indexed_db';
 
 describe('core/persistence/indexed_db', () => {
   afterEach(sinon.restore);
@@ -36,16 +36,14 @@ describe('core/persistence/indexed_db', () => {
     expect(await persistence.get(key)).to.be.null;
   });
 
-  it('should call instantiator function if provided', async () => {
+  it('should return blobified user value', async () => {
     const key = 'my-super-special-user';
     const value = testUser('some-uid');
 
     expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value);
-    const out = await persistence.get<User>(key, blob =>
-      testUser(`test-${blob.uid}`)
-    );
-    expect(out?.uid).to.eql('test-some-uid');
+    await persistence.set(key, value.toPlainObject());
+    const out = await persistence.get(key);
+    expect(out).to.eql(value.toPlainObject());
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;
   });

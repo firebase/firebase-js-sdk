@@ -19,10 +19,8 @@ import {
   Persistence,
   PersistenceType,
   PersistenceValue,
-  Instantiator
-} from '.';
-
-const STORAGE_AVAILABLE_KEY_ = '__sak';
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 class BrowserPersistence implements Persistence {
   type: PersistenceType = PersistenceType.LOCAL;
@@ -34,8 +32,8 @@ class BrowserPersistence implements Persistence {
       if (!this.storage) {
         return false;
       }
-      this.storage.setItem(STORAGE_AVAILABLE_KEY_, '1');
-      this.storage.removeItem(STORAGE_AVAILABLE_KEY_);
+      this.storage.setItem(STORAGE_AVAILABLE_KEY, '1');
+      this.storage.removeItem(STORAGE_AVAILABLE_KEY);
       return true;
     } catch {
       return false;
@@ -46,13 +44,9 @@ class BrowserPersistence implements Persistence {
     this.storage.setItem(key, JSON.stringify(value));
   }
 
-  async get<T extends PersistenceValue>(
-    key: string,
-    instantiator?: Instantiator<T>
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const json = this.storage.getItem(key);
-    const obj = json ? JSON.parse(json) : null;
-    return instantiator && obj ? instantiator(obj) : obj;
+    return json ? JSON.parse(json) : null;
   }
 
   async remove(key: string): Promise<void> {
