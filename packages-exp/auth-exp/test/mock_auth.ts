@@ -34,10 +34,11 @@ export const mockAuth: Auth = {
   }
 };
 
-export function testUser(uid: string): User {
+export function testUser(uid: string, email?: string): User {
   return new UserImpl({
     uid,
     auth: mockAuth,
-    stsTokenManager: new StsTokenManager()
+    stsTokenManager: new StsTokenManager(),
+    email
   });
 }

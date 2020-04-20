@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import {
-  createAuthUri,
-  CreateAuthUriRequest
-} from '../../api/authentication/create_auth_uri';
+import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
+import * as api from '../../api/authentication/email_and_password';
+import { Operation } from '../../model/action_code_info';
+import { ActionCodeSettings, setActionCodeSettingsOnRequest } from '../../model/action_code_settings';
 import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import { getCurrentUrl, isHttpOrHttps } from '../util/location';
 
 export async function fetchSignInMethodsForEmail(
@@ -38,4 +39,25 @@ export async function fetchSignInMethodsForEmail(
   const { signinMethods } = await createAuthUri(auth, request);
 
   return signinMethods || [];
+}
+
+export async function sendEmailVerification(
+  auth: Auth,
+  user: User,
+  actionCodeSettings?: ActionCodeSettings
+): Promise<void> {
+  const idToken = await user.getIdToken();
+  const request: api.VerifyEmailRequest = {
+    requestType: Operation.VERIFY_EMAIL,
+    idToken
+  };
+  if (actionCodeSettings) {
+    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+  }
+
+  const { email } = await api.sendEmailVerification(auth, request);
+
+  if (email !== user.email) {
+    await user.reload();
+  }
 }
