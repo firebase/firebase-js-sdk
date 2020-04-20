@@ -25,11 +25,10 @@ import { mockAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { Operation } from '../../model/action_code_info';
+import { Operation  } from '../../model/action_code_info';
 import { ProviderId } from '../providers';
 import * as location from '../util/location';
 import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
-import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 use(sinonChai);

@@ -198,7 +198,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.INVALID_PHONE_NUMBER]:
     'The format of the phone number provided is incorrect. Please enter the ' +
     'phone number in a format that can be parsed into E.164 format. E.164 ' +
-    'phone numbers are written in the format [+],[country code],[subscriber ' +
+    'phone numbers are written in the format [+][country code][subscriber ' +
     'number including area code].',
   [AuthErrorCode.INVALID_PROVIDER_ID]: 'The specified provider ID is invalid.',
   [AuthErrorCode.INVALID_RECIPIENT_EMAIL]:

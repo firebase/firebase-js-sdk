@@ -28,7 +28,7 @@ import {
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { getCurrentUrl, isHttpOrHttps } from '../util/location';
-import { Operation } from '../../model/action_code_info';
+
 
 export async function fetchSignInMethodsForEmail(
   auth: Auth,

@@ -160,7 +160,7 @@ describe('confirmPasswordReset', () => {
       confirmPasswordReset(mockAuth, oobCode, newPassword)
     ).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The action code is invalid. This can happen if the code is malformed]: expired]: or has already been used. (auth/invalid-action-code).'
+      'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
   });
@@ -235,7 +235,7 @@ describe('checkActionCode', () => {
     );
     await expect(checkActionCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The action code is invalid. This can happen if the code is malformed]: expired]: or has already been used. (auth/invalid-action-code).'
+      'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
   });
@@ -284,7 +284,7 @@ describe('verifyPasswordResetCode', () => {
     );
     await expect(verifyPasswordResetCode(mockAuth, oobCode)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The action code is invalid. This can happen if the code is malformed]: expired]: or has already been used. (auth/invalid-action-code).'
+      'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
   });
