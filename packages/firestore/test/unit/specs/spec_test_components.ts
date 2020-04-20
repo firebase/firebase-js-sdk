@@ -35,6 +35,7 @@ import { TargetCache } from '../../../src/local/target_cache';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { IndexManager } from '../../../src/local/index_manager';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { debugAssert } from '../../../src/util/assert';
 import {
   MemoryEagerDelegate,
@@ -113,7 +114,9 @@ export class MockPersistence implements Persistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     if (this.injectFailures) {
-      return Promise.reject(new Error('Injected Failure'));
+      return Promise.reject(
+        new IndexedDbTransactionError(new Error('Simulated retryable error'))
+      );
     } else {
       return this.delegate.runTransaction(action, mode, transactionOperation);
     }
