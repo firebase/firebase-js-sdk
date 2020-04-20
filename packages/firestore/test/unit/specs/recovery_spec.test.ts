@@ -102,6 +102,7 @@ describeSpec(
             // The primary client 0 receives a notification that the query can
             // be released, but it can only process the change after we recover
             // the database.
+            .expectActiveTargets({ query})
             .recoverDatabase()
             .runTimer(TimerId.AsyncQueueRetry)
             .expectActiveTargets()
