@@ -20,12 +20,13 @@ import { logError } from './log';
 
 /**
  * Unconditionally fails, throwing an Error with the given message.
+ * Messages are stripped in production builds.
  *
  * Returns `never` and can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
  */
-export function fail(failure: string): never {
+export function fail(failure: string = 'Unexpected state'): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
   const message =
@@ -41,10 +42,12 @@ export function fail(failure: string): never {
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
+ *
+ * Messages are stripped in production builds.
  */
 export function hardAssert(
   assertion: boolean,
-  message: string
+  message?: string
 ): asserts assertion {
   if (!assertion) {
     fail(message);
