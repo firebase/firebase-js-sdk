@@ -40,7 +40,6 @@ import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
-  MemoryLruDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
 
@@ -173,22 +172,6 @@ export class MemoryComponentProvider implements ComponentProvider {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
-}
-
-/**
- * Provides all components needed for Firestore with in-memory persistence.
- * Uses LRU garbage collection.
- */
-export class MemoryLruComponentProvider extends MemoryComponentProvider {
-  createPersistence(cfg: ComponentConfiguration): Persistence {
-    debugAssert(
-      !cfg.persistenceSettings.durable,
-      'Can only start memory persistence'
-    );
-    return new MemoryPersistence(
-      p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
   }
 }

@@ -19,6 +19,7 @@ const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const fs = require('mz/fs');
 const ora = require('ora');
+const chalk = require('chalk');
 
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
@@ -116,16 +117,24 @@ async function doLicenseCommit(changedFiles) {
 
   const hasDiff = await git.diff();
 
-  if (!hasDiff) return;
+  if (!hasDiff) {
+    console.log(
+      chalk`\n{red License pass caused no changes.} Skipping commit.\n`
+    );
+    return;
+  }
 
   const gitSpinner = ora(' Creating automated license commit').start();
   await git.add('.');
 
-  await git.commit('[AUTOMATED]: License Headers');
+  const commit = await git.commit('[AUTOMATED]: License Headers');
 
   gitSpinner.stopAndPersist({
     symbol: '✅'
   });
+  console.log(
+    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
+  );
 }
 
 module.exports = {

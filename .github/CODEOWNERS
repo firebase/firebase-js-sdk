@@ -50,9 +50,9 @@ packages/storage  @schmidt-sebastian @firebase/jssdk-global-approvers
 packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @firebase/jssdk-global-approvers
-packages/messaging-types  @firebase/jssdk-global-approvers
-integration/messaging  @firebase/jssdk-global-approvers
+packages/messaging  @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
+integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @bojeil-google @wti806 @firebase/jssdk-global-approvers

@@ -62,7 +62,9 @@ export class FakeWindow {
         this.storageListeners.push(listener);
         break;
       case 'unload':
-        // The spec tests currently do not rely on 'unload' listeners.
+      case 'visibilitychange':
+        // The spec tests currently do not rely on `unload`/`visibilitychange`
+        // listeners.
         break;
       default:
         fail(`MockWindow doesn't support events of type '${type}'`);

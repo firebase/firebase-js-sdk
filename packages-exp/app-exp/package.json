@@ -15,14 +15,16 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
+    "build:release": "rollup -c rollup.config.release.js",
+    "build:deps": "lerna run --scope @firebase/app-exp --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --opts ../../config/mocha.node.opts",
     "type-check": "tsc -p . --noEmit",
-    "prepare": "yarn build",
+    "prepare": "yarn build:release",
     "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove_exp.js temp",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn api-report && yarn doc"
   },
@@ -38,7 +40,7 @@
     "rollup": "1.32.1",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.26.0",
+    "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.8.3"
   },
   "repository": {

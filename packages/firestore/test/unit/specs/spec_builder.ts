@@ -418,6 +418,24 @@ export class SpecBuilder {
     return this;
   }
 
+  /** Fails all database operations until `recoverDatabase()` is called. */
+  failDatabase(): this {
+    this.nextStep();
+    this.currentStep = {
+      failDatabase: true
+    };
+    return this;
+  }
+
+  /** Stops failing database operations. */
+  recoverDatabase(): this {
+    this.nextStep();
+    this.currentStep = {
+      failDatabase: false
+    };
+    return this;
+  }
+
   expectIsShutdown(): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
