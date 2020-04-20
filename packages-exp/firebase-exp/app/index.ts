@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from '../package.json';
 
-import { expect } from 'chai';
-import { testFxn } from '../src';
-
-describe('Simple test', () => {
-  it('Should skip this test');
-  it('Should test this fxn', () => {
-    expect(testFxn()).to.equal(42);
-  });
-  it('Should test this async thing', async () => {
-    // Do some async assertions, you can use `await` syntax if it helps
-    const val = await Promise.resolve(42);
-    expect(val).to.equal(42);
-  });
-});
+registerVersion(name, version, 'app');
+export * from '@firebase/app-exp';

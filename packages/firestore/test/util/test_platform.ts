@@ -19,7 +19,7 @@ import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
 import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
 
@@ -62,7 +62,9 @@ export class FakeWindow {
         this.storageListeners.push(listener);
         break;
       case 'unload':
-        // The spec tests currently do not rely on 'unload' listeners.
+      case 'visibilitychange':
+        // The spec tests currently do not rely on `unload`/`visibilitychange`
+        // listeners.
         break;
       default:
         fail(`MockWindow doesn't support events of type '${type}'`);
@@ -76,7 +78,7 @@ export class FakeWindow {
         registeredListener => listener !== registeredListener
       );
       const newCount = this.storageListeners.length;
-      assert(
+      debugAssert(
         newCount === oldCount - 1,
         "Listener passed to 'removeEventListener' doesn't match any registered listener."
       );
@@ -96,7 +98,7 @@ export class FakeDocument {
   }
 
   addEventListener(type: string, listener: EventListener): void {
-    assert(
+    debugAssert(
       type === 'visibilitychange',
       "FakeDocument only supports events of type 'visibilitychange'"
     );
@@ -261,10 +263,6 @@ export class TestPlatform implements Platform {
 
   btoa(raw: string): string {
     return this.basePlatform.btoa(raw);
-  }
-
-  randomBytes(nBytes: number): Uint8Array {
-    return this.basePlatform.randomBytes(nBytes);
   }
 }
 

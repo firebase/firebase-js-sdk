@@ -27,7 +27,7 @@ import {
   components,
   clearComponents
 } from './internal';
-import { FirebaseAppInternal } from '@firebase/app-types-exp';
+import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -44,7 +44,7 @@ describe('Internal API tests', () => {
 
   describe('addComponent', () => {
     it('registers component with App', () => {
-      const app = initializeApp({}) as FirebaseAppInternal;
+      const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
       addComponent(app, testComp);
@@ -55,7 +55,7 @@ describe('Internal API tests', () => {
     });
 
     it('does NOT throw registering duplicate components', () => {
-      const app = initializeApp({}) as FirebaseAppInternal;
+      const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
       addComponent(app, testComp);
@@ -69,7 +69,7 @@ describe('Internal API tests', () => {
 
   describe('addOrOverwriteComponent', () => {
     it('registers component with App', () => {
-      const app = initializeApp({}) as FirebaseAppInternal;
+      const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
       addOrOverwriteComponent(app, testComp);
@@ -80,7 +80,7 @@ describe('Internal API tests', () => {
     });
 
     it('overwrites an existing component with the same name', () => {
-      const app = initializeApp({}) as FirebaseAppInternal;
+      const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp1 = createTestComponent('test');
       const testComp2 = createTestComponent('test');
 
@@ -99,8 +99,8 @@ describe('Internal API tests', () => {
     });
 
     it('caches a component and registers it with all Apps', () => {
-      const app1 = initializeApp({}) as FirebaseAppInternal;
-      const app2 = initializeApp({}, 'app2') as FirebaseAppInternal;
+      const app1 = initializeApp({}) as _FirebaseAppInternal;
+      const app2 = initializeApp({}, 'app2') as _FirebaseAppInternal;
 
       const stub1 = stub(app1.container, 'addComponent').callThrough();
       const stub2 = stub(app2.container, 'addComponent').callThrough();

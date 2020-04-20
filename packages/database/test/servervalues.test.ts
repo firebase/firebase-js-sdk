@@ -47,7 +47,7 @@ describe('ServerValue tests', () => {
     // node (i.e. ChildrenNode.EMPTY_NODE) because there is not yet any synced
     // data.
     const node = getRandomNode() as Reference;
-    await node.set(Database.ServerValue._increment(1));
+    await node.set(Database.ServerValue.increment(1));
   });
 
   describe('handles increments', () => {
@@ -64,7 +64,7 @@ describe('ServerValue tests', () => {
           node.database.goOffline();
         }
 
-        const addOne = Database.ServerValue._increment(1);
+        const addOne = Database.ServerValue.increment(1);
 
         const values: any = [];
         const expected: any = [];
@@ -110,7 +110,7 @@ describe('ServerValue tests', () => {
     });
 
     await node.update({
-      'child/increment': Database.ServerValue._increment(1),
+      'child/increment': Database.ServerValue.increment(1),
       'literal': 5
     });
     expect(value).to.deep.equal({
@@ -121,7 +121,7 @@ describe('ServerValue tests', () => {
     });
 
     await node.update({
-      'child/increment': Database.ServerValue._increment(41)
+      'child/increment': Database.ServerValue.increment(41)
     });
     expect(value).to.deep.equal({
       'literal': 5,
@@ -141,7 +141,7 @@ describe('ServerValue tests', () => {
     const racers = 100;
 
     for (let i = 0; i < racers; i++) {
-      all.push(node.set(Database.ServerValue._increment(1)));
+      all.push(node.set(Database.ServerValue.increment(1)));
     }
     await Promise.all(all);
 

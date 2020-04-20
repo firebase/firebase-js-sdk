@@ -18,7 +18,8 @@
 import { expect } from 'chai';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { ComponentConfiguration } from '../../../src/core/component_provider';
+import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
@@ -27,18 +28,12 @@ import {
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
-import {
-  OnlineState,
-  OnlineStateSource,
-  TargetId
-} from '../../../src/core/types';
+import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
@@ -46,18 +41,9 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import {
-  MemoryEagerDelegate,
-  MemoryLruDelegate,
-  MemoryPersistence
-} from '../../../src/local/memory_persistence';
-import { Persistence } from '../../../src/local/persistence';
 import {
   ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
+  SharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
@@ -82,7 +68,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { assert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -90,6 +76,7 @@ import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
@@ -100,23 +87,30 @@ import {
   patchMutation,
   path,
   setMutation,
+  stringFromBase64String,
   TestSnapshotVersion,
-  version,
-  byteStringFromString,
-  stringFromBase64String
+  version
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
-  TEST_PERSISTENCE_PREFIX,
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
 import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistenceSettings } from '../../../src/core/firestore_client';
+import {
+  MockIndexedDbComponentProvider,
+  MockMemoryComponentProvider,
+  MockPersistence
+} from './spec_test_components';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -254,11 +248,11 @@ class MockConnection implements Connection {
         sendFn: (request: WriteRequest) => {
           ++this.writeStreamRequestCount;
           if (firstCall) {
-            assert(
+            debugAssert(
               !!request.database,
               'projectId must be set in the first message'
             );
-            assert(
+            debugAssert(
               !request.writes,
               'mutations must not be set in first request'
             );
@@ -267,11 +261,11 @@ class MockConnection implements Connection {
             return;
           }
 
-          assert(
+          debugAssert(
             !!request.streamToken,
             'streamToken must be set on all writes'
           );
-          assert(!!request.writes, 'writes must be set on all writes');
+          debugAssert(!!request.writes, 'writes must be set on all writes');
 
           const barrier = this.writeSendBarriers.shift();
           if (!barrier) {
@@ -300,7 +294,7 @@ class MockConnection implements Connection {
       // Replace 'any' with conditional types.
       return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
-      assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
+      debugAssert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
         throw new Error('Stream opened twice!');
       }
@@ -383,12 +377,12 @@ class SharedWriteTracker {
   }
 
   peek(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes[0];
   }
 
   shift(): Mutation[] {
-    assert(this.writes.length > 0, 'No pending mutations');
+    debugAssert(this.writes.length > 0, 'No pending mutations');
     return this.writes.shift()!;
   }
 }
@@ -421,7 +415,7 @@ abstract class TestRunner {
   private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
-  private persistence!: Persistence;
+  private persistence!: MockPersistence;
   protected sharedClientState!: SharedClientState;
 
   private useGarbageCollection: boolean;
@@ -438,13 +432,14 @@ abstract class TestRunner {
   constructor(
     protected readonly platform: TestPlatform,
     private sharedWrites: SharedWriteTracker,
+    private persistenceSettings: PersistenceSettings,
     clientIndex: number,
     config: SpecConfig
   ) {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
-      new DatabaseId('project'),
-      'persistenceKey',
+      TEST_DATABASE_ID,
+      TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
       /*forceLongPolling=*/ false
@@ -454,6 +449,8 @@ abstract class TestRunner {
     // the AsyncQueue from executing any operation. We should mimic this in the
     // setup of the spec tests.
     this.queue = new AsyncQueue();
+    this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
+
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
@@ -470,16 +467,6 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.sharedClientState = this.getSharedClientState();
-    this.persistence = await this.initPersistence(
-      this.serializer,
-      this.useGarbageCollection
-    );
-
-    const queryEngine = new IndexFreeQueryEngine();
-    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
-    await this.localStore.start();
-
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -487,50 +474,28 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.RemoteStore
-      );
-    };
-    const sharedClientStateOnlineStateChangedHandler = (
-      onlineState: OnlineState
-    ): void => {
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.SharedClientState
-      );
-    };
-    const connectivityMonitor = this.platform.newConnectivityMonitor();
-    this.remoteStore = new RemoteStore(
-      this.localStore,
-      this.datastore,
-      this.queue,
-      remoteStoreOnlineStateChangedHandler,
-      connectivityMonitor
-    );
-    this.syncEngine = new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.sharedClientState,
-      this.user,
-      this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
+
+    const componentProvider = await this.initializeComponentProvider(
+      {
+        asyncQueue: this.queue,
+        databaseInfo: this.databaseInfo,
+        platform: this.platform,
+        datastore: this.datastore,
+        clientId: this.clientId,
+        initialUser: this.user,
+        maxConcurrentLimboResolutions:
+          this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+        persistenceSettings: this.persistenceSettings
+      },
+      this.useGarbageCollection
     );
 
-    // Set up wiring between sync engine and other components
-    this.remoteStore.syncEngine = this.syncEngine;
-    this.sharedClientState.syncEngine = this.syncEngine;
-    this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-    this.eventManager = new EventManager(this.syncEngine);
-
-    await this.sharedClientState.start();
-    await this.remoteStore.start();
-
-    await this.persistence.setPrimaryStateListener(isPrimary =>
-      this.syncEngine.applyPrimaryState(isPrimary)
-    );
+    this.sharedClientState = componentProvider.sharedClientState;
+    this.persistence = componentProvider.persistence;
+    this.localStore = componentProvider.localStore;
+    this.remoteStore = componentProvider.remoteStore;
+    this.syncEngine = componentProvider.syncEngine;
+    this.eventManager = componentProvider.eventManager;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -539,12 +504,10 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initPersistence(
-    serializer: JsonProtoSerializer,
+  protected abstract initializeComponentProvider(
+    configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<Persistence>;
-
-  protected abstract getSharedClientState(): SharedClientState;
+  ): Promise<MockIndexedDbComponentProvider | MockMemoryComponentProvider>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -624,6 +587,10 @@ abstract class TestRunner {
       return this.doApplyClientState(step.applyClientState!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
+    } else if ('failDatabase' in step) {
+      return step.failDatabase!
+        ? this.doFailDatabase()
+        : this.doRecoverDatabase();
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -672,7 +639,7 @@ abstract class TestRunner {
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
-    assert(!!eventEmitter, 'There must be a query to unlisten too!');
+    debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
     await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
@@ -785,7 +752,7 @@ abstract class TestRunner {
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
-      assert(
+      debugAssert(
         !watchEntity.doc,
         'Exactly one of `doc` or `docs` needs to be set'
       );
@@ -828,7 +795,7 @@ abstract class TestRunner {
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
-    assert(
+    debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
@@ -962,9 +929,7 @@ abstract class TestRunner {
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything.
-    // No local store to shutdown.
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.doShutdown();
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
@@ -989,6 +954,14 @@ abstract class TestRunner {
     return this.queue.enqueue(() =>
       this.syncEngine.handleCredentialChange(this.user)
     );
+  }
+
+  private async doFailDatabase(): Promise<void> {
+    this.persistence.injectFailures = true;
+  }
+
+  private async doRecoverDatabase(): Promise<void> {
+    this.persistence.injectFailures = false;
   }
 
   private validateExpectedSnapshotEvents(
@@ -1206,7 +1179,7 @@ abstract class TestRunner {
         `ResumeToken does not match - expected:
          ${stringFromBase64String(
            expectedTarget.resumeToken
-         )}, actual: ${stringFromBase64String(expectedTarget.resumeToken)}`
+         )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
       delete actualTargets[targetId];
     });
@@ -1283,21 +1256,30 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new MemorySharedClientState();
+  constructor(
+    platform: TestPlatform,
+    sharedWrites: SharedWriteTracker,
+    clientIndex: number,
+    config: SpecConfig
+  ) {
+    super(
+      platform,
+      sharedWrites,
+      {
+        durable: false
+      },
+      clientIndex,
+      config
+    );
   }
 
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    return Promise.resolve(
-      new MemoryPersistence(this.clientId, p =>
-        gcEnabled
-          ? new MemoryEagerDelegate(p)
-          : new MemoryLruDelegate(p, LruParams.DEFAULT)
-      )
-    );
+  ): Promise<MockMemoryComponentProvider> {
+    const componentProvider = new MockMemoryComponentProvider(gcEnabled);
+    await componentProvider.initialize(configuration);
+    return componentProvider;
   }
 }
 
@@ -1306,31 +1288,32 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  protected getSharedClientState(): SharedClientState {
-    return new WebStorageSharedClientState(
-      this.queue,
-      this.platform,
-      TEST_PERSISTENCE_PREFIX,
-      this.clientId,
-      this.user
+  constructor(
+    platform: TestPlatform,
+    sharedWrites: SharedWriteTracker,
+    clientIndex: number,
+    config: SpecConfig
+  ) {
+    super(
+      platform,
+      sharedWrites,
+      {
+        durable: true,
+        cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
+        synchronizeTabs: true
+      },
+      clientIndex,
+      config
     );
   }
 
-  protected initPersistence(
-    serializer: JsonProtoSerializer,
+  protected async initializeComponentProvider(
+    configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<Persistence> {
-    // TODO(gsoltis): can we or should we disable this test if gc is enabled?
-    return IndexedDbPersistence.createIndexedDbPersistence({
-      allowTabSynchronization: true,
-      persistenceKey: TEST_PERSISTENCE_PREFIX,
-      clientId: this.clientId,
-      platform: this.platform,
-      queue: this.queue,
-      serializer,
-      lruParams: LruParams.DEFAULT,
-      sequenceNumberSyncer: this.sharedClientState
-    });
+  ): Promise<MockIndexedDbComponentProvider> {
+    const componentProvider = new MockIndexedDbComponentProvider();
+    await componentProvider.initialize(configuration);
+    return componentProvider;
   }
 
   static destroyPersistence(): Promise<void> {
@@ -1387,7 +1370,7 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
-      assert(
+      debugAssert(
         step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
         "Cannot use 'client()' to initialize a test that is not tagged with " +
           "'multi-client'. Did you mean to use 'spec()'?"
@@ -1473,6 +1456,9 @@ export interface SpecStep {
   writeAck?: SpecWriteAck;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
+
+  /** Fail all database transactions. */
+  failDatabase?: boolean;
 
   /**
    * Run a queued timer task (without waiting for the delay to expire). See

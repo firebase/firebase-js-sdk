@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,8 @@
  * limitations under the License.
  */
 
-const { dirname, resolve } = require('path');
-exports.projectRoot = dirname(resolve(__dirname, '../../../package.json'));
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from '../package.json';
+
+registerVersion(name, version, 'cdn');
+export * from '@firebase/app-exp';

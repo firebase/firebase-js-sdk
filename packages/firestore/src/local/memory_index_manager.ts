@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
 import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
@@ -58,7 +58,7 @@ export class MemoryCollectionParentIndex {
 
   // Returns false if the entry already existed.
   add(collectionPath: ResourcePath): boolean {
-    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
+    debugAssert(collectionPath.length % 2 === 1, 'Expected a collection path.');
     const collectionId = collectionPath.lastSegment();
     const parentPath = collectionPath.popLast();
     const existingParents =

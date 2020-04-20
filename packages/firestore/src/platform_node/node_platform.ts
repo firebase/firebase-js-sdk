@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -74,13 +73,5 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
-  }
-
-  randomBytes(nBytes: number): Uint8Array {
-    if (nBytes <= 0) {
-      return new Uint8Array();
-    }
-
-    return randomBytes(nBytes);
   }
 }

@@ -23,6 +23,10 @@ import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
+import {
+  ComponentProvider,
+  MemoryComponentProvider
+} from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
@@ -36,8 +40,6 @@ import {
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { LruParams } from '../local/lru_garbage_collector';
-import { MemoryPersistenceProvider } from '../local/memory_persistence';
-import { PersistenceProvider } from '../local/persistence';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
@@ -46,7 +48,7 @@ import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
 import { makeConstructorPrivate } from '../util/api';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -193,32 +195,15 @@ class FirestoreSettings {
     // Nobody should set timestampsInSnapshots anymore, but the error depends on
     // whether they set it to true or false...
     if (settings.timestampsInSnapshots === true) {
-      logError(`
-  The timestampsInSnapshots setting now defaults to true and you no
-  longer need to explicitly set it. In a future release, the setting
-  will be removed entirely and so it is recommended that you remove it
-  from your firestore.settings() call now.`);
+      logError(
+        "The setting 'timestampsInSnapshots: true' is no longer required " +
+          'and should be removed.'
+      );
     } else if (settings.timestampsInSnapshots === false) {
-      logError(`
-  The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
-  YOUR CODE.
-
-  To hide this warning, stop using the timestampsInSnapshots setting in your
-  firestore.settings({ ... }) call.
-
-  Once you remove the setting, Timestamps stored in Cloud Firestore will be
-  read back as Firebase Timestamp objects instead of as system Date objects.
-  So you will also need to update code expecting a Date to instead expect a
-  Timestamp. For example:
-
-  // Old:
-  const date = snapshot.get('created_at');
-  // New:
-  const timestamp = snapshot.get('created_at'); const date =
-  timestamp.toDate();
-
-  Please audit all existing usages of Date when you enable the new
-  behavior.`);
+      logError(
+        "Support for 'timestampsInSnapshots: false' will be removed soon. " +
+          'You must update your code to handle Timestamp objects.'
+      );
     }
     this.timestampsInSnapshots =
       settings.timestampsInSnapshots ?? DEFAULT_TIMESTAMPS_IN_SNAPSHOTS;
@@ -278,7 +263,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   private readonly _persistenceKey: string;
-  private readonly _persistenceProvider: PersistenceProvider;
+  private readonly _componentProvider: ComponentProvider;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
@@ -297,13 +282,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   readonly _dataReader: UserDataReader;
 
-  // Note: We are using `MemoryPersistenceProvider` as a default
-  // PersistenceProvider to ensure backwards compatibility with the format
+  // Note: We are using `MemoryComponentProvider` as a default
+  // ComponentProvider to ensure backwards compatibility with the format
   // expected by the console build.
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    persistenceProvider: PersistenceProvider = new MemoryPersistenceProvider()
+    persistenceProvider: ComponentProvider = new MemoryComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -328,7 +313,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._persistenceProvider = persistenceProvider;
+    this._componentProvider = persistenceProvider;
     this._settings = new FirestoreSettings({});
     this._dataReader = this.createDataReader(this._databaseId);
   }
@@ -336,14 +321,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   settings(settingsLiteral: firestore.Settings): void {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
-
-    if (contains(settingsLiteral, 'persistence')) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"persistence" is now specified with a separate call to ' +
-          'firestore.enablePersistence().'
-      );
-    }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
     if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
@@ -386,10 +363,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
         logError(
-          "The 'experimentalTabSynchronization' setting has been renamed to " +
-            "'synchronizeTabs'. In a future release, the setting will be removed " +
-            'and it is recommended that you update your ' +
-            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+          "The 'experimentalTabSynchronization' setting will be removed. Use 'synchronizeTabs' instead."
         );
       }
       synchronizeTabs =
@@ -398,7 +372,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         DEFAULT_SYNCHRONIZE_TABS;
     }
 
-    return this.configureClient(this._persistenceProvider, {
+    return this.configureClient(this._componentProvider, {
       durable: true,
       cacheSizeBytes: this._settings.cacheSizeBytes,
       synchronizeTabs
@@ -420,7 +394,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         const databaseInfo = this.makeDatabaseInfo();
-        await this._persistenceProvider.clearPersistence(databaseInfo);
+        await this._componentProvider.clearPersistence(databaseInfo);
         deferred.resolve();
       } catch (e) {
         deferred.reject(e);
@@ -485,7 +459,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryPersistenceProvider(), {
+      this.configureClient(new MemoryComponentProvider(), {
         durable: false
       });
     }
@@ -503,12 +477,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private configureClient(
-    persistenceProvider: PersistenceProvider,
+    componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
-    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
+    debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
-    assert(!this._firestoreClient, 'configureClient() called multiple times');
+    debugAssert(
+      !this._firestoreClient,
+      'configureClient() called multiple times'
+    );
 
     const databaseInfo = this.makeDatabaseInfo();
 
@@ -519,10 +496,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    return this._firestoreClient.start(
-      persistenceProvider,
-      persistenceSettings
-    );
+    return this._firestoreClient.start(componentProvider, persistenceSettings);
   }
 
   private createDataReader(databaseId: DatabaseId): UserDataReader {
@@ -1203,7 +1177,7 @@ export class DocumentReference<T = firestore.DocumentData>
     const asyncObserver = new AsyncObserver<ViewSnapshot>({
       next: snapshot => {
         if (observer.next) {
-          assert(
+          debugAssert(
             snapshot.docs.size <= 1,
             'Too many documents returned on a document query'
           );
@@ -1448,7 +1422,7 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   implements firestore.QueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
-    assert(
+    debugAssert(
       data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
     );
@@ -2302,42 +2276,6 @@ export class QuerySnapshot<T = firestore.DocumentData>
   }
 }
 
-// TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
-// into a method. Because this is a runtime breaking change and somewhat subtle
-// (both Array and Function have a .length, etc.), we'll replace commonly-used
-// properties (including Symbol.iterator) to throw a custom error message. In
-// ~6 months we can delete the custom error as most folks will have hopefully
-// migrated.
-function throwDocChangesMethodError(): never {
-  throw new FirestoreError(
-    Code.INVALID_ARGUMENT,
-    'QuerySnapshot.docChanges has been changed from a property into a ' +
-      'method, so usages like "querySnapshot.docChanges" should become ' +
-      '"querySnapshot.docChanges()"'
-  );
-}
-
-const docChangesPropertiesToOverride = [
-  'length',
-  'forEach',
-  'map',
-  ...(typeof Symbol !== 'undefined' ? [Symbol.iterator] : [])
-];
-docChangesPropertiesToOverride.forEach(property => {
-  /**
-   * We are (re-)defining properties on QuerySnapshot.prototype.docChanges which
-   * is a Function. This could fail, in particular in the case of 'length' which
-   * already exists on Function.prototype and on IE11 is improperly defined with
-   * `{ configurable: false }`. So we wrap this in a try/catch to ensure that we
-   * still have a functional SDK.
-   */
-  try {
-    Object.defineProperty(QuerySnapshot.prototype.docChanges, property, {
-      get: () => throwDocChangesMethodError()
-    });
-  } catch (err) {} // Ignore this failure intentionally
-});
-
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
   constructor(
@@ -2530,11 +2468,11 @@ export function changesFromSnapshot<T>(
         snapshot.mutatedKeys.has(change.doc.key),
         converter
       );
-      assert(
+      debugAssert(
         change.type === ChangeType.Added,
         'Invalid event type for first snapshot'
       );
-      assert(
+      debugAssert(
         !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
@@ -2567,7 +2505,7 @@ export function changesFromSnapshot<T>(
         let newIndex = -1;
         if (change.type !== ChangeType.Added) {
           oldIndex = indexTracker.indexOf(change.doc.key);
-          assert(oldIndex >= 0, 'Index for document not found');
+          debugAssert(oldIndex >= 0, 'Index for document not found');
           indexTracker = indexTracker.delete(change.doc.key);
         }
         if (change.type !== ChangeType.Removed) {

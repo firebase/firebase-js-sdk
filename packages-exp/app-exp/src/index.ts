@@ -1,7 +1,7 @@
 /**
  * Firebase App
  *
- * @remark This package coordinates the communication between the different Firebase components
+ * @remarks This package coordinates the communication between the different Firebase components
  * @packageDocumentation
  */
 

@@ -150,8 +150,19 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
   if (!settingsService.instrumentationEnabled) {
     return;
   }
-  // Do not log the js sdk's call to cc service to avoid unnecessary cycle.
-  if (networkRequest.url === settingsService.logEndPointUrl.split('?')[0]) {
+
+  // Do not log the js sdk's call to transport service domain to avoid unnecessary cycle.
+  // Need to blacklist both old and new endpoints to avoid migration gap.
+  const networkRequestUrl = networkRequest.url;
+
+  // Blacklist old log endpoint and new transport endpoint.
+  // Because Performance SDK doesn't instrument requests sent from SDK itself.
+  const logEndpointUrl = settingsService.logEndPointUrl.split('?')[0];
+  const flEndpointUrl = settingsService.flTransportEndpointUrl.split('?')[0];
+  if (
+    networkRequestUrl === logEndpointUrl ||
+    networkRequestUrl === flEndpointUrl
+  ) {
     return;
   }
 
@@ -164,6 +175,7 @@ export function logNetworkRequest(networkRequest: NetworkRequest): void {
 
   setTimeout(() => sendLog(networkRequest, ResourceType.NetworkRequest), 0);
 }
+
 
 function serializer(
   resource: NetworkRequest | Trace,

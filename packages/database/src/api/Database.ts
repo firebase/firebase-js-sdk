@@ -40,10 +40,10 @@ export class Database implements FirebaseService {
     TIMESTAMP: {
       '.sv': 'timestamp'
     },
-    _increment: (x: number) => {
+    increment: (delta: number) => {
       return {
         '.sv': {
-          'increment': x
+          'increment': delta
         }
       };
     }

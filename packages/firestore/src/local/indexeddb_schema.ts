@@ -18,7 +18,7 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
@@ -72,7 +72,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    assert(
+    hardAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
@@ -199,7 +199,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return PersistencePromise.forEach(
               dbBatches,
               (dbBatch: DbMutationBatch) => {
-                assert(
+                hardAssert(
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
@@ -874,7 +874,7 @@ export class DbTargetDocument {
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
-    assert(
+    debugAssert(
       (targetId === 0) === (sequenceNumber !== undefined),
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );
