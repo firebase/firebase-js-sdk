@@ -18,7 +18,9 @@
 import { Auth } from '../../model/auth';
 import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
+import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
+import { assert, assertType } from '../util/assert';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -79,5 +81,46 @@ export class UserImpl implements User {
 
   delete(): Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  toPlainObject(): PersistedBlob {
+    return {
+      uid: this.uid,
+      stsTokenManager: this.stsTokenManager.toPlainObject(),
+      displayName: this.displayName || undefined,
+      email: this.email || undefined,
+      phoneNumber: this.phoneNumber || undefined,
+      photoURL: this.phoneNumber || undefined
+    };
+  }
+
+  static fromPlainObject(auth: Auth, object: PersistedBlob): User {
+    const {
+      uid,
+      stsTokenManager: plainObjectTokenManager,
+      displayName,
+      email,
+      phoneNumber,
+      photoURL
+    } = object;
+
+    assert(uid && plainObjectTokenManager, auth.name);
+
+    const stsTokenManager = StsTokenManager.fromPlainObject(
+      auth.name,
+      plainObjectTokenManager as PersistedBlob
+    );
+
+    const stringOrUndef = ['string', 'undefined'];
+
+    return new UserImpl({
+      uid: assertType(uid, 'string', auth.name),
+      auth,
+      stsTokenManager,
+      displayName: assertType(displayName, stringOrUndef, auth.name),
+      email: assertType(email, stringOrUndef, auth.name),
+      phoneNumber: assertType(phoneNumber, stringOrUndef, auth.name),
+      photoURL: assertType(photoURL, stringOrUndef, auth.name)
+    });
   }
 }
