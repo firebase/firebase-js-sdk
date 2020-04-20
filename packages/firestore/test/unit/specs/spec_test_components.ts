@@ -34,6 +34,7 @@ import { MutationQueue } from '../../../src/local/mutation_queue';
 import { TargetCache } from '../../../src/local/target_cache';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { IndexManager } from '../../../src/local/index_manager';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { debugAssert } from '../../../src/util/assert';
 import {
@@ -69,23 +70,17 @@ export class MockPersistence implements Persistence {
     return this.delegate.shutdown();
   }
 
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void> {
-    return this.delegate.setPrimaryStateListener(primaryStateListener);
-  }
-
   setDatabaseDeletedListener(
     databaseDeletedListener: () => Promise<void>
   ): void {
     this.delegate.setDatabaseDeletedListener(databaseDeletedListener);
   }
 
-  setNetworkEnabled(networkEnabled: boolean): void {
-    this.delegate.setNetworkEnabled(networkEnabled);
-  }
-
   getActiveClients(): Promise<ClientId[]> {
+    debugAssert(
+      this.delegate instanceof IndexedDbPersistence,
+      `getActiveClients() requires IndexedDbPersistence`
+    );
     return this.delegate.getActiveClients();
   }
 
@@ -153,7 +148,6 @@ export class MockMemoryComponentProvider extends MemoryComponentProvider {
       'Can only start memory persistence'
     );
     const persistence = new MemoryPersistence(
-      cfg.clientId,
       this.gcEnabled
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
