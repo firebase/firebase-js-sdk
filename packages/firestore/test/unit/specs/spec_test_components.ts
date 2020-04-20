@@ -37,7 +37,7 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 /**
- * A test-only MemoryPersistence implementation that is able to inject 
+ * A test-only MemoryPersistence implementation that is able to inject
  * transaction failures.
  */
 export class MockMemoryPersistence extends MemoryPersistence {
