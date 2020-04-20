@@ -23,6 +23,7 @@ import {
 } from '..';
 import { Auth } from '../../model/auth';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
+import { Operation } from '../../model/action_code_info';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
@@ -45,14 +46,7 @@ export async function signInWithPassword(
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
 }
 
-export enum GetOobCodeRequestType {
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-  VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL'
-}
-
-interface GetOobCodeRequest {
+export interface GetOobCodeRequest {
   email?: string; // Everything except VERIFY_AND_CHANGE_EMAIL
   continueUrl?: string;
   iosBundleId?: string;
@@ -67,19 +61,19 @@ interface GetOobCodeRequest {
 }
 
 export interface VerifyEmailRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.VERIFY_EMAIL;
+  requestType: Operation.VERIFY_EMAIL;
   idToken: IdToken;
 }
 
 export interface PasswordResetRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.PASSWORD_RESET;
+  requestType: Operation.PASSWORD_RESET;
   email: string;
   captchaResp?: string;
   userIp?: string;
 }
 
 export interface EmailSignInRequest extends GetOobCodeRequest {
-  requestType: GetOobCodeRequestType.EMAIL_SIGNIN;
+  requestType: Operation.EMAIL_SIGNIN;
   email: string;
 }
 
