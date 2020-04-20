@@ -31,6 +31,7 @@ export interface UserInfo {
 export interface User extends UserInfo {
   providerId: ProviderId.FIREBASE;
   refreshToken: string;
+  emailVerified: boolean;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;

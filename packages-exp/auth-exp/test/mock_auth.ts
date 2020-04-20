@@ -35,7 +35,9 @@ export const mockAuth: Auth = {
   currentUser: null,
   async setPersistence() {},
   async updateCurrentUser() {},
-  async signOut() {}
+  async signOut() {},
+  onAuthStateChanged() {return () => {}},
+  onIdTokenChange() { return () => {}},
 };
 
 export function testUser(uid: string, email?: string): User {

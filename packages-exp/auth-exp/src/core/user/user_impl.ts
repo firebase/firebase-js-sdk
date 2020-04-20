@@ -52,6 +52,7 @@ export class UserImpl implements User {
 
   uid: string;
   auth: Auth;
+  emailVerified = false;
 
   // Optional fields from UserInfo
   displayName: string | null;
