@@ -1,13 +1,6 @@
 /**
- * Firebase App
- *
- * @remarks This package coordinates the communication between the different Firebase components
- * @packageDocumentation
- */
-
-/**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +15,17 @@
  * limitations under the License.
  */
 
-import { registerCoreComponents } from './registerCoreComponents';
+const { writeFileSync } = require('fs');
 
-export * from './api';
-export * from './internal';
+// point typings field to the public d.ts file in package.json
+const PUBLIC_TYPINGS_PATH = './dist/app-exp-public.d.ts';
+console.log(
+  `Updating the typings field to the public d.ts file ${PUBLIC_TYPINGS_PATH}`
+);
 
-registerCoreComponents();
+const packageJson = require('./package.json');
+packageJson.typings = PUBLIC_TYPINGS_PATH;
+
+writeFileSync('./package.json', `${JSON.stringify(packageJson, null, 2)}\n`, {
+  encoding: 'utf-8'
+});
