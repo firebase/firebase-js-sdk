@@ -23,6 +23,7 @@ import { Code } from '../../../src/util/error';
 import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 
 use(chaiAsPromised);
 
@@ -217,7 +218,9 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new DOMException('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
     await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
@@ -265,7 +268,9 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new DOMException('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
 
@@ -291,7 +296,9 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length > 1) {
       } else {
-        throw new DOMException('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
     queue.enqueueRetryable(async () => {

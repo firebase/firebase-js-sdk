@@ -21,6 +21,7 @@ import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { PlatformSupport } from '../platform/platform';
+import { IndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -319,7 +320,7 @@ export class AsyncQueue {
    * Enqueue a retryable operation.
    *
    * A retryable operation is rescheduled with backoff if it fails with a
-   * DOMException or a DOMError (the error types used by IndexedDB). All
+   * SimpleDbTransactionError (the error type used by SimpleDb). All
    * retryable operations are executed in order and only run if all prior
    * operations were retried successfully.
    */
@@ -338,13 +339,7 @@ export class AsyncQueue {
           deferred.resolve();
           this.backoff.reset();
         } catch (e) {
-          // We only retry errors that match the ones thrown by IndexedDB (see
-          // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/error)
-          if (
-            (typeof DOMException !== 'undefined' &&
-              e instanceof DOMException) ||
-            (typeof DOMError !== 'undefined' && e instanceof DOMError)
-          ) {
+          if (e.name === 'IndexedDbTransactionError') {
             logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
             this.backoff.backoffAndRun(retryingOp);
           } else {
