@@ -16,24 +16,21 @@
  */
 
 import {
+  PersistedBlob,
   Persistence,
   PersistenceType,
   PersistenceValue,
-  Instantiator
-} from '.';
-
-const STORAGE_AVAILABLE_KEY_ = '__sak';
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';
 
-type DBValue = { [key: string]: unknown } | string;
-
 interface DBObject {
   [DB_DATA_KEYPATH]: string;
-  value: DBValue;
+  value: PersistedBlob;
 }
 
 /**
@@ -110,7 +107,7 @@ async function putObject(
   const data = await new DBPromise<DBObject | null>(getRequest).toPromise();
   if (data) {
     // Force an index signature on the user object
-    data.value = value as DBValue;
+    data.value = value as PersistedBlob;
     const request = getObjectStore(db, true).put(data);
     return new DBPromise<void>(request).toPromise();
   } else {
@@ -125,7 +122,7 @@ async function putObject(
 async function getObject(
   db: IDBDatabase,
   key: string
-): Promise<DBValue | null> {
+): Promise<PersistedBlob | null> {
   const request = getObjectStore(db, false).get(key);
   const data = await new DBPromise<DBObject | undefined>(request).toPromise();
   return data === undefined ? null : data.value;
@@ -154,8 +151,8 @@ class IndexedDBLocalPersistence implements Persistence {
         return false;
       }
       const db = await openDatabase();
-      await putObject(db, STORAGE_AVAILABLE_KEY_, '1');
-      await deleteObject(db, STORAGE_AVAILABLE_KEY_);
+      await putObject(db, STORAGE_AVAILABLE_KEY, '1');
+      await deleteObject(db, STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
     return false;
@@ -166,15 +163,9 @@ class IndexedDBLocalPersistence implements Persistence {
     return putObject(db, key, value);
   }
 
-  async get<T extends PersistenceValue>(
-    key: string,
-    instantiator?: Instantiator<T>
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
     const obj = await getObject(db, key);
-    if (instantiator && obj && typeof obj !== 'string') {
-      return instantiator(obj);
-    }
     return obj as T;
   }
 

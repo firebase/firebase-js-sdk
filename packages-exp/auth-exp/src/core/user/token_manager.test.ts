@@ -20,6 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { createSandbox } from 'sinon';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
+import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -108,6 +109,52 @@ describe('core/user/token_manager', () => {
       const tokens = await stsTokenManager.getToken();
       expect(tokens.accessToken).to.eq('token');
       expect(tokens.refreshToken).to.eq('refresh');
+    });
+  });
+
+  describe('fromPlainObject', () => {
+    const errorString =
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).';
+
+    it('throws if refresh token is not a string', () => {
+      expect(() =>
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 45,
+          accessToken: 't',
+          expirationTime: 3
+        })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('throws if access token is not a string', () => {
+      expect(() =>
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 't',
+          accessToken: 45,
+          expirationTime: 3
+        })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('throws if expiration time is not a number', () => {
+      expect(() =>
+        StsTokenManager.fromPlainObject('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 'lol'
+        })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('builds an object correctly', () => {
+      const manager = StsTokenManager.fromPlainObject('app', {
+        refreshToken: 'r',
+        accessToken: 'a',
+        expirationTime: 45
+      });
+      expect(manager.accessToken).to.eq('a');
+      expect(manager.refreshToken).to.eq('r');
+      expect(manager.expirationTime).to.eq(45);
     });
   });
 });
