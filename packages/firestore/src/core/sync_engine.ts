@@ -387,7 +387,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         userCallback.reject(
           new FirestoreError(
             Code.UNAVAILABLE,
-            'Failed to access IndexedDb: ' + e
+            'Failed to persist write: ' + e
           )
         );
         return;
