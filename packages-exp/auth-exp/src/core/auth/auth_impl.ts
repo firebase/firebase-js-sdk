@@ -35,7 +35,7 @@ export const DEFAULT_API_SCHEME = 'https';
 
 class AuthImpl implements Auth {
   currentUser: User | null = null;
-  private operations: Promise<void>;
+  private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
 
   constructor(
@@ -43,8 +43,6 @@ class AuthImpl implements Auth {
     public readonly config: Config,
     persistenceHierarchy: Persistence[]
   ) {
-    this.operations = Promise.resolve();
-
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
