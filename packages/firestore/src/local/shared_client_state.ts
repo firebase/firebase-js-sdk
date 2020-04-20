@@ -29,9 +29,10 @@ import { Platform } from '../platform/platform';
 import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { forEach } from '../util/obj';
 import { logError, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
+import { SortedMap } from '../util/sorted_map';
+import { primitiveComparator } from '../util/misc';
 import { isSafeInteger } from '../util/types';
 import {
   QueryTargetState,
@@ -475,12 +476,14 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
   private readonly sequenceNumberKey: string;
-  private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleWebStorageEvent.bind(this);
   private readonly onlineStateKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
+  private activeClients = new SortedMap<string, ClientState>(
+    primitiveComparator
+  );
   private started = false;
   private currentUser: User;
 
@@ -519,7 +522,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.sequenceNumberKey = createWebStorageSequenceNumberKey(
       this.persistenceKey
     );
-    this.activeClients[this.localClientId] = new LocalClientState();
+    this.activeClients = this.activeClients.insert(
+      this.localClientId,
+      new LocalClientState()
+    );
 
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
@@ -576,7 +582,10 @@ export class WebStorageSharedClientState implements SharedClientState {
           storageItem
         );
         if (clientState) {
-          this.activeClients[clientState.clientId] = clientState;
+          this.activeClients = this.activeClients.insert(
+            clientState.clientId,
+            clientState
+          );
         }
       }
     }
@@ -611,24 +620,17 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
-    let activeTargets = targetIdSet();
-    forEach(this.activeClients, (key, value) => {
-      activeTargets = activeTargets.unionWith(value.activeTargetIds);
-    });
-    return activeTargets;
+    return this.extractActiveQueryTargets(this.activeClients);
   }
 
   isActiveQueryTarget(targetId: TargetId): boolean {
-    // This is not using `obj.forEach` since `forEach` doesn't support early
-    // return.
-    for (const clientId in this.activeClients) {
-      if (this.activeClients.hasOwnProperty(clientId)) {
-        if (this.activeClients[clientId].activeTargetIds.has(targetId)) {
-          return true;
-        }
+    let found = false;
+    this.activeClients.forEach((key, value) => {
+      if (value.activeTargetIds.has(targetId)) {
+        found = true;
       }
-    }
-    return false;
+    });
+    return found;
   }
 
   addPendingMutation(batchId: BatchId): void {
@@ -823,7 +825,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private get localClientState(): LocalClientState {
-    return this.activeClients[this.localClientId] as LocalClientState;
+    return this.activeClients.get(this.localClientId) as LocalClientState;
   }
 
   private persistClientState(): void {
@@ -979,26 +981,23 @@ export class WebStorageSharedClientState implements SharedClientState {
     clientId: ClientId,
     clientState: RemoteClientState | null
   ): Promise<void> {
-    const existingTargets = this.getAllActiveQueryTargets();
+    const updatedClients = clientState
+      ? this.activeClients.insert(clientId, clientState)
+      : this.activeClients.remove(clientId);
 
-    if (clientState) {
-      this.activeClients[clientId] = clientState;
-    } else {
-      delete this.activeClients[clientId];
-    }
-
-    const newTargets = this.getAllActiveQueryTargets();
+    const existingTargets = this.extractActiveQueryTargets(this.activeClients);
+    const newTargets = this.extractActiveQueryTargets(updatedClients);
 
     const addedTargets: TargetId[] = [];
     const removedTargets: TargetId[] = [];
 
-    newTargets.forEach(async targetId => {
+    newTargets.forEach(targetId => {
       if (!existingTargets.has(targetId)) {
         addedTargets.push(targetId);
       }
     });
 
-    existingTargets.forEach(async targetId => {
+    existingTargets.forEach(targetId => {
       if (!newTargets.has(targetId)) {
         removedTargets.push(targetId);
       }
@@ -1007,7 +1006,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     return this.syncEngine!.applyActiveTargetsChange(
       addedTargets,
       removedTargets
-    );
+    ).then(() => {
+      this.activeClients = updatedClients;
+    });
   }
 
   private handleOnlineStateEvent(onlineState: SharedOnlineState): void {
@@ -1016,9 +1017,19 @@ export class WebStorageSharedClientState implements SharedClientState {
     // IndexedDb. If a client does not update their IndexedDb client state
     // within 5 seconds, it is considered inactive and we don't emit an online
     // state event.
-    if (this.activeClients[onlineState.clientId]) {
+    if (this.activeClients.get(onlineState.clientId)) {
       this.onlineStateHandler!(onlineState.onlineState);
     }
+  }
+
+  private extractActiveQueryTargets(
+    clients: SortedMap<string, ClientState>
+  ): SortedSet<TargetId> {
+    let activeTargets = targetIdSet();
+    clients.forEach((kev, value) => {
+      activeTargets = activeTargets.unionWith(value.activeTargetIds);
+    });
+    return activeTargets;
   }
 }
 
