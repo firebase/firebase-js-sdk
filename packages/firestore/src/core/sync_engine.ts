@@ -388,7 +388,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // move all view computation logic to `enqueueRetryable()`. Otherwise,
       // this write should be surfaced in all subsequent operations.
       logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
-      userCallback.reject(e);
+      userCallback.reject(
+        new FirestoreError(
+          Code.UNKNOWN,
+          'Query allocation failed with environment error: ' + e
+        )
+      );
       return;
     }
 
