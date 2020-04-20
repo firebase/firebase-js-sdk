@@ -42,11 +42,8 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: {
-      index: 'src/index.ts',
-      internal: 'src/internal.ts'
-    },
-    output: [{ dir: 'dist/esm5', format: 'es', sourcemap: true }],
+    input: 'src/index.ts',
+    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
@@ -57,13 +54,13 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: {
-      index: 'src/index.ts',
-      internal: 'src/internal.ts'
-    },
-    output: [{ dir: 'dist/cjs', format: 'cjs', sourcemap: true }],
+    input: 'src/index.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
@@ -91,17 +88,17 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: {
-      index: 'src/index.ts',
-      internal: 'src/internal.ts'
-    },
+    input: 'src/index.ts',
     output: {
-      dir: 'dist/esm2017',
+      file: pkg.esm2017,
       format: 'es',
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 

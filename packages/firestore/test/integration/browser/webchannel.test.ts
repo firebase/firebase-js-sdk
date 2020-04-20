@@ -22,6 +22,8 @@ import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/helpers';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 
+/* eslint-disable no-restricted-globals */
+
 // We need to check both `window` and `window.navigator` to make sure we are
 // not running in Node with IndexedDBShim.
 const describeFn =

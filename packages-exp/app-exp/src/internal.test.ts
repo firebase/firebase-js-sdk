@@ -21,11 +21,11 @@ import '../test/setup';
 import { createTestComponent, TestService } from '../test/util';
 import { initializeApp, getApps, deleteApp } from './api';
 import {
-  addComponent,
-  addOrOverwriteComponent,
-  registerComponent,
-  components,
-  clearComponents
+  _addComponent,
+  _addOrOverwriteComponent,
+  _registerComponent,
+  _components,
+  _clearComponents
 } from './internal';
 import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 
@@ -47,7 +47,7 @@ describe('Internal API tests', () => {
       const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
-      addComponent(app, testComp);
+      _addComponent(app, testComp);
 
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
@@ -58,9 +58,9 @@ describe('Internal API tests', () => {
       const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
-      addComponent(app, testComp);
+      _addComponent(app, testComp);
 
-      expect(() => addComponent(app, testComp)).to.not.throw();
+      expect(() => _addComponent(app, testComp)).to.not.throw();
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
       );
@@ -72,7 +72,7 @@ describe('Internal API tests', () => {
       const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
 
-      addOrOverwriteComponent(app, testComp);
+      _addOrOverwriteComponent(app, testComp);
 
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
@@ -84,8 +84,8 @@ describe('Internal API tests', () => {
       const testComp1 = createTestComponent('test');
       const testComp2 = createTestComponent('test');
 
-      addOrOverwriteComponent(app, testComp1);
-      addOrOverwriteComponent(app, testComp2);
+      _addOrOverwriteComponent(app, testComp1);
+      _addOrOverwriteComponent(app, testComp2);
 
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp2
@@ -95,7 +95,7 @@ describe('Internal API tests', () => {
 
   describe('registerComponent', () => {
     afterEach(() => {
-      clearComponents();
+      _clearComponents();
     });
 
     it('caches a component and registers it with all Apps', () => {
@@ -106,28 +106,28 @@ describe('Internal API tests', () => {
       const stub2 = stub(app2.container, 'addComponent').callThrough();
 
       const testComp = createTestComponent('test');
-      registerComponent(testComp);
+      _registerComponent(testComp);
 
-      expect(components.get('test')).to.equal(testComp);
+      expect(_components.get('test')).to.equal(testComp);
       expect(stub1).to.have.been.calledWith(testComp);
       expect(stub2).to.have.been.calledWith(testComp);
     });
 
     it('returns true if registration is successful', () => {
       const testComp = createTestComponent('test');
-      expect(components.size).to.equal(0);
-      expect(registerComponent(testComp)).to.be.true;
-      expect(components.get('test')).to.equal(testComp);
+      expect(_components.size).to.equal(0);
+      expect(_registerComponent(testComp)).to.be.true;
+      expect(_components.get('test')).to.equal(testComp);
     });
 
     it('does NOT throw when registering duplicate components and returns false', () => {
       const testComp1 = createTestComponent('test');
       const testComp2 = createTestComponent('test');
-      expect(components.size).to.equal(0);
-      expect(registerComponent(testComp1)).to.be.true;
-      expect(components.get('test')).to.equal(testComp1);
-      expect(registerComponent(testComp2)).to.be.false;
-      expect(components.get('test')).to.equal(testComp1);
+      expect(_components.size).to.equal(0);
+      expect(_registerComponent(testComp1)).to.be.true;
+      expect(_components.get('test')).to.equal(testComp1);
+      expect(_registerComponent(testComp2)).to.be.false;
+      expect(_components.get('test')).to.equal(testComp1);
     });
   });
 });

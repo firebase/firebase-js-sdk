@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
+import { fail } from '../../../src/util/assert';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+
+use(chaiAsPromised);
 
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
@@ -212,11 +218,29 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new Error('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
     await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
+  });
+
+  it("Doesn't retry internal exceptions", async () => {
+    const queue = new AsyncQueue();
+    // We use a deferred Promise as retryable operations are scheduled only
+    // when Promise chains are resolved, which can happen after the
+    // `queue.enqueue()` call below.
+    const deferred = new Deferred<void>();
+    queue.enqueueRetryable(async () => {
+      deferred.resolve();
+      throw fail('Simulated test failure');
+    });
+    await deferred.promise;
+    await expect(
+      queue.enqueue(() => Promise.resolve())
+    ).to.eventually.be.rejectedWith('Simulated test failure');
   });
 
   it('Schedules first retryable attempt with no delay', async () => {
@@ -244,7 +268,9 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
       if (completedSteps.length === 1) {
-        throw new Error('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
 
@@ -270,7 +296,9 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length > 1) {
       } else {
-        throw new Error('Simulated retryable error');
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
       }
     });
     queue.enqueueRetryable(async () => {

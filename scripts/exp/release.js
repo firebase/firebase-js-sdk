@@ -29,6 +29,8 @@ const writeFile = promisify(_writeFile);
 const chalk = require('chalk');
 const Listr = require('listr');
 
+const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
+
 async function publishExpPackages() {
   try {
     /**
@@ -54,7 +56,7 @@ async function publishExpPackages() {
     /**
      * It does 2 things:
      *
-     * 1. Bumps the patch version of exp packages regardless if there is any update
+     * 1. Bumps the patch version of firebase-exp package regardless if there is any update
      * since the last release. This simplifies the script and works fine for exp packages.
      *
      * 2. Removes -exp in package names because we will publish them using
@@ -69,9 +71,17 @@ async function publishExpPackages() {
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
-     * then bump patch version of all exp packages
+     * then bump patch version of firebase-exp (the umbrella package) only
      */
-    await resetWorkingTreeAndBumpVersions(packagePaths, versions);
+    const firebaseExpVersion = new Map();
+    firebaseExpVersion.set(
+      FIREBASE_UMBRELLA_PACKAGE_NAME,
+      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    const firebaseExpPath = packagePaths.filter(p =>
+      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
      * push to github
@@ -112,9 +122,18 @@ async function updatePackageNamesAndVersions(packagePaths) {
   const versions = new Map();
   for (const path of packagePaths) {
     const { version, name } = await readPackageJson(path);
-    // increase the patch version of all exp packages
-    const nextVersion = inc(version, 'patch');
-    versions.set(name, nextVersion);
+
+    // increment firebase-exp's patch version
+    if (name === FIREBASE_UMBRELLA_PACKAGE_NAME) {
+      const nextVersion = inc(version, 'patch');
+      versions.set(name, nextVersion);
+    } else {
+      // create individual packages version
+      // we can't use minor version for them because most of them
+      // are still in the pre-major version officially.
+      const nextVersion = `${version}-exp.${await getCurrentSha()}`;
+      versions.set(name, nextVersion);
+    }
   }
 
   await updatePackageJsons(packagePaths, versions, {
@@ -221,7 +240,7 @@ async function updatePackageJsons(
 async function commitAndPush(versions) {
   await exec('git add */package.json yarn.lock');
 
-  const firebaseExpVersion = versions.get('firebase-exp');
+  const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
   await exec(
     `git commit -m "Publish firebase@exp ${firebaseExpVersion || ''}"`
   );
@@ -237,7 +256,7 @@ async function commitAndPush(versions) {
 }
 
 function removeExpInPackageName(name) {
-  const regex = /^(@firebase.*)-exp(.*)$/g;
+  const regex = /^(.*firebase.*)-exp(.*)$/g;
 
   const captures = regex.exec(name);
   if (!captures) {
@@ -253,6 +272,10 @@ async function readPackageJson(packagePath) {
    * in memory, so it may not contain the updates that are made by e.g. git commands
    */
   return JSON.parse(await readFile(`${packagePath}/package.json`, 'utf8'));
+}
+
+async function getCurrentSha() {
+  return (await git.revparse(['--short', 'HEAD'])).trim();
 }
 
 publishExpPackages();

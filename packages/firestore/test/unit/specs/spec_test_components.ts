@@ -28,6 +28,7 @@ import {
 } from '../../../src/local/persistence';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { debugAssert } from '../../../src/util/assert';
 import {
   MemoryEagerDelegate,
@@ -73,7 +74,9 @@ export class MockIndexedDbPersistence extends IndexedDbPersistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     if (this.injectFailures) {
-      return Promise.reject(new Error('Injected Failure'));
+      return Promise.reject(
+        new IndexedDbTransactionError(new Error('Simulated retryable error'))
+      );
     } else {
       return super.runTransaction(action, mode, transactionOperation);
     }

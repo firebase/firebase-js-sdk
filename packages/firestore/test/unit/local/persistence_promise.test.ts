@@ -20,6 +20,8 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 import * as chaiAsPromised from 'chai-as-promised';
 
+/* eslint-disable no-restricted-globals */
+
 use(chaiAsPromised);
 
 describe('PersistencePromise', () => {

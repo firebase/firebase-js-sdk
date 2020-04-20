@@ -44,8 +44,8 @@ const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
 /**
- * Transformers that remove all debugAsserts and appends a __PRIVATE_ prefix to
- * all internal symbols.
+ * Transformers that remove calls to `debugAssert`, messages for 'fail` and
+ * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
 export const firestoreTransformers = [
   service => ({

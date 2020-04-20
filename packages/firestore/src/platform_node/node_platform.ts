@@ -29,13 +29,13 @@ import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
 export class NodePlatform implements Platform {
-  readonly useProto3Json = false;
   readonly base64Available = true;
 
   readonly document = null;
 
   get window(): Window | null {
     if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      // eslint-disable-next-line no-restricted-globals
       return window;
     }
 

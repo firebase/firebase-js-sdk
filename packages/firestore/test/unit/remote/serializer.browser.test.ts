@@ -1,13 +1,6 @@
 /**
- * Firebase App
- *
- * @remarks This package coordinates the communication between the different Firebase components
- * @packageDocumentation
- */
-
-/**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +15,6 @@
  * limitations under the License.
  */
 
-import { registerCoreComponents } from './registerCoreComponents';
+import { serializerTest } from './serializer.helper';
 
-export * from './api';
-export * from './internal';
-
-registerCoreComponents();
+serializerTest();
