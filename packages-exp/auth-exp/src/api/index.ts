@@ -76,14 +76,16 @@ export async function performApiRequest<T, V>(
       }
     }
 
+    const query = querystring(
+      {
+        key: auth.config.apiKey,
+        ...params
+      }
+    ).slice(1)
+
     const response: Response = await Promise.race<Promise<Response>>([
       fetch(
-        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${querystring(
-          {
-            key: auth.config.apiKey,
-            ...params
-          }
-        ).slice(1)}`,
+        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
         {
           method,
           headers: {
