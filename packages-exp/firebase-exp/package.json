@@ -1,6 +1,7 @@
 {
   "name": "firebase-exp",
   "version": "0.800.0",
+  "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -29,10 +30,10 @@
     "build": "rollup -c && gulp firebase-js",
     "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
     "dev": "rollup -c -w",
-    "prepare": "yarn build"
+    "prepare": "yarn build:release"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.800.0"
+    "@firebase/app-exp": "0.0.800"
   },
   "devDependencies": {
     "rollup": "1.28.0",
