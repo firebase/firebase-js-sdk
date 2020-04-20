@@ -96,7 +96,7 @@ const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
  */
 export function serializerTest(
   protobufJsVerifier: (jsonValue: api.Value) => void = () => {}
-) : void {
+): void {
   describe('Serializer', () => {
     const partition = new DatabaseId('p', 'd');
     const s = new JsonProtoSerializer(partition, { useProto3Json: false });

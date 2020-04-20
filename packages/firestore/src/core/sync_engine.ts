@@ -380,19 +380,20 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     try {
       result = await this.localStore.localWrite(batch);
     } catch (e) {
-      // If we can't persist the mutation, we reject the user callback and don't
-      // send the mutation. The user can then retry the write. We currently do
-      // not use `enqueueRetryable()` for writes since this would require us to
-      // move all view computation logic to `enqueueRetryable()`. Otherwise,
-      // this write should be surfaced in all subsequent operations.
-      logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
-      userCallback.reject(
-        new FirestoreError(
-          Code.UNKNOWN,
-          'Query allocation failed with environment error: ' + e
-        )
-      );
-      return;
+      if (e.name === 'IndexedDbTransactionError') {
+        // If we can't persist the mutation, we reject the user callback and
+        // don't send the mutation. The user can then retry the write.
+        logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
+        userCallback.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to access IndexedDb: ' + e
+          )
+        );
+        return;
+      } else {
+        throw e;
+      }
     }
 
     this.sharedClientState.addPendingMutation(result.batchId);
