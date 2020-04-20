@@ -25,7 +25,6 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { ServerError } from '../errors';
 import {
   EmailSignInRequest,
-  GetOobCodeRequestType,
   PasswordResetRequest,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -33,6 +32,7 @@ import {
   signInWithPassword,
   VerifyEmailRequest
 } from './email_and_password';
+import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 
@@ -91,7 +91,7 @@ describe('signInWithPassword', () => {
 describe('sendOobCode', () => {
   context('VERIFY_EMAIL', () => {
     const request: VerifyEmailRequest = {
-      requestType: GetOobCodeRequestType.VERIFY_EMAIL,
+      requestType: Operation.VERIFY_EMAIL,
       idToken: 'my-token'
     };
 
@@ -140,7 +140,7 @@ describe('sendOobCode', () => {
 
   context('PASSWORD_RESET', () => {
     const request: PasswordResetRequest = {
-      requestType: GetOobCodeRequestType.PASSWORD_RESET,
+      requestType: Operation.PASSWORD_RESET,
       email: 'test@foo.com'
     };
 
@@ -191,7 +191,7 @@ describe('sendOobCode', () => {
 
   context('EMAIL_SIGNIN', () => {
     const request: EmailSignInRequest = {
-      requestType: GetOobCodeRequestType.EMAIL_SIGNIN,
+      requestType: Operation.EMAIL_SIGNIN,
       email: 'test@foo.com'
     };
 
