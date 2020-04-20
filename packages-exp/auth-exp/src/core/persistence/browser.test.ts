@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
-import { PersistenceType } from '.';
 import { expect } from 'chai';
-import { browserLocalPersistence, browserSessionPersistence } from './browser';
-import { User } from '../../model/user';
+import * as sinon from 'sinon';
+
 import { testUser } from '../../../test/mock_auth';
+import { PersistedBlob, PersistenceType } from './';
+import { browserLocalPersistence, browserSessionPersistence } from './browser';
 
 describe('core/persistence/browser', () => {
   beforeEach(() => {
@@ -44,16 +44,14 @@ describe('core/persistence/browser', () => {
       expect(await persistence.get(key)).to.be.null;
     });
 
-    it('should call instantiator function if provided', async () => {
+    it('should return persistedblob from user', async () => {
       const key = 'my-super-special-user';
       const value = testUser('some-uid');
 
       expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value);
-      const out = await persistence.get<User>(key, blob =>
-        testUser(`test-${blob.uid}`)
-      );
-      expect(out?.uid).to.eql('test-some-uid');
+      await persistence.set(key, value.toPlainObject());
+      const out = await persistence.get<PersistedBlob>(key);
+      expect(out!['uid']).to.eql(value.uid);
       await persistence.remove(key);
       expect(await persistence.get(key)).to.be.null;
     });
@@ -89,16 +87,14 @@ describe('core/persistence/browser', () => {
       expect(await persistence.get(key)).to.be.null;
     });
 
-    it('should call instantiator function if provided', async () => {
+    it('should emit blobified persisted user', async () => {
       const key = 'my-super-special-user';
       const value = testUser('some-uid');
 
       expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value);
-      const out = await persistence.get<User>(key, blob =>
-        testUser(`test-${blob.uid}`)
-      );
-      expect(out?.uid).to.eql('test-some-uid');
+      await persistence.set(key, value.toPlainObject());
+      const out = await persistence.get<PersistedBlob>(key);
+      expect(out!['uid']).to.eql(value.uid);
       await persistence.remove(key);
       expect(await persistence.get(key)).to.be.null;
     });
