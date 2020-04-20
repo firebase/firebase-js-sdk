@@ -20,11 +20,12 @@ import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
-
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
+// Implements the Platform API for browsers and some browser-like environments
+// (including ReactNative).
 export class BrowserPlatform implements Platform {
   readonly useProto3Json = true;
   readonly base64Available: boolean;
@@ -34,10 +35,14 @@ export class BrowserPlatform implements Platform {
   }
 
   get document(): Document | null {
+    // `document` is not always available, e.g. in ReactNative and WebWorkers.
+    // eslint-disable-next-line no-restricted-globals
     return typeof document !== 'undefined' ? document : null;
   }
 
   get window(): Window | null {
+    // `window` is not always available, e.g. in ReactNative and WebWorkers.
+    // eslint-disable-next-line no-restricted-globals
     return typeof window !== 'undefined' ? window : null;
   }
 

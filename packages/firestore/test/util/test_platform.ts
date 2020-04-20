@@ -23,6 +23,8 @@ import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
 
+/* eslint-disable no-restricted-globals */
+
 /**
  * `Window` fake that implements the event and storage API that is used by
  * Firestore.
