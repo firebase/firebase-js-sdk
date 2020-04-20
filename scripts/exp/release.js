@@ -86,7 +86,7 @@ async function publishExpPackages() {
     /**
      * push to github
      */
-    //   await commitAndPush(versions);
+    await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
@@ -166,8 +166,7 @@ async function publishToNpm(packagePaths) {
 }
 
 async function publishPackage(packagePath) {
-  // const args = ['publish', '--access', 'public', '--tag', 'exp', '--dry-run'];
-  const args = ['pack'];
+  const args = ['publish', '--access', 'public', '--tag', 'exp'];
   await spawn('npm', args, { cwd: packagePath });
 }
 
