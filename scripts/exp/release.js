@@ -29,7 +29,7 @@ const writeFile = promisify(_writeFile);
 const chalk = require('chalk');
 const Listr = require('listr');
 
-const FIREBASE_UMBRELLA_PACKGE_NAME = 'firebase-exp';
+const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
 
 async function publishExpPackages() {
   try {
@@ -75,11 +75,11 @@ async function publishExpPackages() {
      */
     const firebaseExpVersion = new Map();
     firebaseExpVersion.set(
-      FIREBASE_UMBRELLA_PACKGE_NAME,
-      versions.get(FIREBASE_UMBRELLA_PACKGE_NAME)
+      FIREBASE_UMBRELLA_PACKAGE_NAME,
+      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
     );
     const firebaseExpPath = packagePaths.filter(p =>
-      p.includes(FIREBASE_UMBRELLA_PACKGE_NAME)
+      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
     );
     await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
@@ -124,7 +124,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
     const { version, name } = await readPackageJson(path);
 
     // increment firebase-exp's patch version
-    if (name === FIREBASE_UMBRELLA_PACKGE_NAME) {
+    if (name === FIREBASE_UMBRELLA_PACKAGE_NAME) {
       const nextVersion = inc(version, 'patch');
       versions.set(name, nextVersion);
     } else {
@@ -241,7 +241,7 @@ async function updatePackageJsons(
 async function commitAndPush(versions) {
   await exec('git add */package.json yarn.lock');
 
-  const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKGE_NAME);
+  const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
   await exec(
     `git commit -m "Publish firebase@exp ${firebaseExpVersion || ''}"`
   );
