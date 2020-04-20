@@ -18,17 +18,20 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { SinonStub, stub } from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import { SinonStub, stub, restore } from 'sinon';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { mockAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { ProviderId } from '../providers';
 import * as location from '../util/location';
-import { fetchSignInMethodsForEmail } from './email';
+import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
+import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
+use(sinonChai);
 
 describe('fetchSignInMethodsForEmail', () => {
   const email = 'foo@bar.com';
@@ -92,5 +95,112 @@ describe('fetchSignInMethodsForEmail', () => {
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
     expect(mock.calls.length).to.eq(1);
+  });
+});
+
+describe('sendEmailVerification', () => {
+  const email = 'foo@bar.com';
+  const user = testUser('my-user-uid', email);
+  const idToken = 'id-token';
+  let idTokenStub: SinonStub;
+  let reloadStub: SinonStub;
+
+  beforeEach(() => {
+    mockFetch.setUp();
+    idTokenStub = stub(user, 'getIdToken');
+    idTokenStub.callsFake(async () => idToken);
+    reloadStub = stub(user, 'reload');
+  });
+
+  afterEach(() => {
+    mockFetch.tearDown();
+    restore();
+  });
+
+  it('should send the email verification', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: Operation.VERIFY_EMAIL,
+      email
+    });
+
+    await sendEmailVerification(mockAuth, user);
+
+    expect(reloadStub).to.not.have.been.called;
+    expect(mock.calls[0].request).to.eql({
+      requestType: Operation.VERIFY_EMAIL,
+      idToken
+    });
+  });
+
+  it('should reload the user if the API returns a different email', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: Operation.VERIFY_EMAIL,
+      email: 'other@email.com'
+    });
+
+    await sendEmailVerification(mockAuth, user);
+
+    expect(reloadStub).to.have.been.calledOnce;
+    expect(mock.calls[0].request).to.eql({
+      requestType: Operation.VERIFY_EMAIL,
+      idToken
+    });
+  });
+
+  context('on iOS', () => {
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: Operation.VERIFY_EMAIL,
+        email
+      });
+      await sendEmailVerification(mockAuth, user, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: 'my-bundle',
+          appStoreId: 'my-appstore-id'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+
+      expect(mock.calls[0].request).to.eql({
+        requestType: Operation.VERIFY_EMAIL,
+        idToken,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        iosBundleId: 'my-bundle',
+        iosAppStoreId: 'my-appstore-id'
+      });
+    });
+  });
+
+  context('on Android', () => {
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: Operation.VERIFY_EMAIL,
+        email
+      });
+      await sendEmailVerification(mockAuth, user, {
+        handleCodeInApp: true,
+        android: {
+          installApp: false,
+          minimumVersion: 'my-version',
+          packageName: 'my-package'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+      expect(mock.calls[0].request).to.eql({
+        requestType: Operation.VERIFY_EMAIL,
+        idToken,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        androidInstallApp: false,
+        androidMinimumVersionCode: 'my-version',
+        androidPackageName: 'my-package'
+      });
+    });
   });
 });
