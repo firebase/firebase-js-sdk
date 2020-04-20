@@ -125,7 +125,7 @@ async function withCustomPersistence(
     new SharedFakeWebStorage()
   );
   const persistence = new IndexedDbPersistence(
-    /* allowTabSynchronization= */ multiClient,
+    multiClient,
     TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,

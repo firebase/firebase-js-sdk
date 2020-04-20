@@ -80,7 +80,7 @@ import {
   byteStringFromString
 } from '../../util/helpers';
 
-import { CountingQueryEngine } from './counting_query_engine';
+import {CountingQueryEngine, QueryEngineType} from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
 
@@ -398,7 +398,7 @@ describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine(
       new SimpleQueryEngine(),
-      'simple'
+      QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
     const localStore = new LocalStore(
@@ -416,7 +416,7 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine(
       new IndexFreeQueryEngine(),
-      'index-free'
+      QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
     const localStore = new LocalStore(
@@ -469,7 +469,7 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine(
       new IndexFreeQueryEngine(),
-      'index-free'
+      QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
     const localStore = new MultiTabLocalStore(

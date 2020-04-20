@@ -25,6 +25,10 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
+export enum QueryEngineType {
+  IndexFree, Simple
+}
+
 /**
  * A test-only query engine that forwards all API calls and exposes the number
  * of documents and mutations read.
@@ -59,7 +63,7 @@ export class CountingQueryEngine implements QueryEngine {
 
   constructor(
     private readonly queryEngine: QueryEngine,
-    readonly type: 'index-free' | 'simple'
+    readonly type: QueryEngineType
   ) {}
 
   resetCounts(): void {
