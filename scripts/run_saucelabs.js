@@ -39,13 +39,12 @@ const testFiles = configFiles.length
   : glob
       .sync(`{packages,integration}/*/karma.conf.js`)
       // Automated tests in integration/firestore are currently disabled.
-      .filter(name => !name.includes('integration/firestore'));
+      // .filter(name => !name.includes('integration/firestore'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
   process.env.TRAVIS_BUILD_NUMBER ||
-  // GitHub Actions does not have a build number, but the feature has been requested.
-  process.env.GITHUB_SHA ||
+  process.env.GITHUB_RUN_ID ||
   `local_${process.env.USER}_${new Date().getTime()}`;
 
 /**
@@ -67,25 +66,35 @@ async function runTest(testFile) {
       });
     }
   }
+  if (testFile.includes('integration/firestore')) {
+    let exitCode = 0;
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], { stdio: 'inherit' });
+    await runKarma(testFile);
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:persistence'], { stdio: 'inherit' });
+    return runKarma(testFile);
+  }
+  return runKarma(testFile);
+}
 
-  const promise = spawn('yarn', [
-    'test:saucelabs:single',
+async function runKarma(testFile) {
+  const karmaArgs = [
+    'karma',
+    'start',
+    'config/karma.saucelabs.js',
+    '--single-run',
     '--testConfigFile',
     testFile,
     '--buildNumber',
     buildNumber
-  ]);
+  ];
+
+  if (testFile.includes('packages/firestore')) {
+    // Firestore requires this flag to run unit tests only.
+    karmaArgs.push('--unit');
+  }
+  const promise = spawn('npx', karmaArgs, { stdio: 'inherit' });
   const childProcess = promise.childProcess;
   let exitCode = 0;
-
-  childProcess.stdout.on('data', data => {
-    console.log(`[${testFile}]:`, data.toString());
-  });
-
-  // Lerna's normal output goes to stderr for some reason.
-  childProcess.stderr.on('data', data => {
-    console.log(`[${testFile}]:`, data.toString());
-  });
 
   // Capture exit code of this single package test run
   childProcess.on('exit', code => {
