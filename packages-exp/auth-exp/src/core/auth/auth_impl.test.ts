@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/mock_auth';
@@ -29,11 +29,7 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
-} from './auth_impl';
+import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
 
 use(sinonChai);
 
@@ -44,7 +40,6 @@ const FAKE_APP: FirebaseApp = {
     authDomain: 'auth-domain'
   },
   automaticDataCollectionEnabled: false,
-  async delete() {}
 };
 
 describe('AuthImpl', () => {
