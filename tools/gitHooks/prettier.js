@@ -66,7 +66,9 @@ async function doPrettierCommit(changedFiles) {
 
   // Only run on .js or .ts files.
   const targetFiles = changedFiles.filter(line => line.match(/(js|ts)$/));
-  if (targetFiles.length === 0) return;
+  if (targetFiles.length === 0) {
+    console.log('No files changed.');
+  }
 
   const stylingSpinner = ora(
     ` Formatting ${targetFiles.length} files with prettier`
@@ -88,15 +90,23 @@ async function doPrettierCommit(changedFiles) {
 
   const hasDiff = await git.diff();
 
-  if (!hasDiff) return;
+  if (!hasDiff) {
+    console.log(
+      chalk`\n{red Prettier formatting caused no changes.} Skipping commit.\n`
+    );
+    return;
+  }
 
   const gitSpinner = ora(' Creating automated style commit').start();
   await git.add(targetFiles);
 
-  await git.commit('[AUTOMATED]: Prettier Code Styling');
+  const commit = await git.commit('[AUTOMATED]: Prettier Code Styling');
   gitSpinner.stopAndPersist({
     symbol: '✅'
   });
+  console.log(
+    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
+  );
 }
 
 module.exports = {
