@@ -16,6 +16,8 @@
  */
 
 import { IdTokenResponse } from '../../model/id_token';
+import { PersistedBlob } from '../persistence';
+import { assertType } from '../util/assert';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -59,6 +61,33 @@ export class StsTokenManager {
     }
 
     throw new Error('StsTokenManager: token refresh not implemented');
+  }
+
+  toPlainObject(): object {
+    return {
+      refreshToken: this.refreshToken,
+      accessToken: this.accessToken,
+      expirationTime: this.expirationTime
+    };
+  }
+
+  static fromPlainObject(
+    appName: string,
+    object: PersistedBlob
+  ): StsTokenManager {
+    const { refreshToken, accessToken, expirationTime } = object;
+
+    const manager = new StsTokenManager();
+    if (refreshToken) {
+      manager.refreshToken = assertType(refreshToken, 'string', appName);
+    }
+    if (accessToken) {
+      manager.accessToken = assertType(accessToken, 'string', appName);
+    }
+    if (expirationTime) {
+      manager.expirationTime = assertType(expirationTime, 'number', appName);
+    }
+    return manager;
   }
 
   // TODO: There are a few more methods in here that need implemented:
