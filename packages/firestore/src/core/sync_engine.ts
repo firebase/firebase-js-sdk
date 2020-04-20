@@ -385,10 +385,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         // don't send the mutation. The user can then retry the write.
         logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
         userCallback.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to persist write: ' + e
-          )
+          new FirestoreError(Code.UNAVAILABLE, 'Failed to persist write: ' + e)
         );
         return;
       } else {
