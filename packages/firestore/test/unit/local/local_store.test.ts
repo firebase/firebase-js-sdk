@@ -17,48 +17,46 @@
 
 import * as api from '../../../src/protos/firestore_proto_api';
 
-import { expect } from 'chai';
-import { PublicFieldValue } from '../../../src/api/field_value';
-import { Timestamp } from '../../../src/api/timestamp';
-import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
-import { Target } from '../../../src/core/target';
-import { TargetId, BatchId } from '../../../src/core/types';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {expect} from 'chai';
+import {PublicFieldValue} from '../../../src/api/field_value';
+import {Timestamp} from '../../../src/api/timestamp';
+import {User} from '../../../src/auth/user';
+import {Query} from '../../../src/core/query';
+import {Target} from '../../../src/core/target';
+import {BatchId, TargetId} from '../../../src/core/types';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import {IndexFreeQueryEngine} from '../../../src/local/index_free_query_engine';
+import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
 import {
   LocalStore,
   LocalWriteResult,
   MultiTabLocalStore
 } from '../../../src/local/local_store';
-import { LocalViewChanges } from '../../../src/local/local_view_changes';
-import { Persistence } from '../../../src/local/persistence';
-import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
-import {
-  documentKeySet,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
-import { MaybeDocument, NoDocument } from '../../../src/model/document';
+import {LocalViewChanges} from '../../../src/local/local_view_changes';
+import {Persistence} from '../../../src/local/persistence';
+import {SimpleQueryEngine} from '../../../src/local/simple_query_engine';
+import {documentKeySet, MaybeDocumentMap} from '../../../src/model/collections';
+import {MaybeDocument, NoDocument} from '../../../src/model/document';
 import {
   Mutation,
   MutationResult,
   Precondition
 } from '../../../src/model/mutation';
 import {
+  BATCHID_UNKNOWN,
   MutationBatch,
-  MutationBatchResult,
-  BATCHID_UNKNOWN
+  MutationBatchResult
 } from '../../../src/model/mutation_batch';
-import { RemoteEvent } from '../../../src/remote/remote_event';
+import {RemoteEvent} from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { debugAssert } from '../../../src/util/assert';
-import { addEqualityMatcher } from '../../util/equality_matcher';
+import {debugAssert} from '../../../src/util/assert';
+import {addEqualityMatcher} from '../../util/equality_matcher';
 import {
+  byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
@@ -76,13 +74,12 @@ import {
   TestSnapshotVersion,
   transformMutation,
   unknownDoc,
-  version,
-  byteStringFromString
+  version
 } from '../../util/helpers';
 
 import {CountingQueryEngine, QueryEngineType} from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { ByteString } from '../../../src/util/byte_string';
+import {ByteString} from '../../../src/util/byte_string';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -442,7 +439,7 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine(
       new SimpleQueryEngine(),
-      'simple'
+      QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
     const localStore = new MultiTabLocalStore(

@@ -26,7 +26,8 @@ import { MutationQueue } from '../../../src/local/mutation_queue';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
 export enum QueryEngineType {
-  IndexFree, Simple
+  IndexFree,
+  Simple
 }
 
 /**
