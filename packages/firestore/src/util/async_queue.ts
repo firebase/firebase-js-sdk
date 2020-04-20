@@ -21,7 +21,6 @@ import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { PlatformSupport } from '../platform/platform';
-import { IndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -320,7 +319,7 @@ export class AsyncQueue {
    * Enqueue a retryable operation.
    *
    * A retryable operation is rescheduled with backoff if it fails with a
-   * SimpleDbTransactionError (the error type used by SimpleDb). All
+   * IndexedDbTransactionError (the error type used by SimpleDb). All
    * retryable operations are executed in order and only run if all prior
    * operations were retried successfully.
    */
