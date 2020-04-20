@@ -26,8 +26,8 @@ import '../../index';
 
 // 'context()' definition requires additional dependency on webpack-env package.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const testsContext = (require as any).context('.', true, /.test$/);
+const testsContext = (require as any).context('.', true, /^((?!node).)*\.test$/);
 const browserTests = testsContext
   .keys()
-  .filter((file: string) => file.indexOf('/node/') < 0);
+  .filter((file: string) => !file.match(/([\/.])node([\/.])/));
 browserTests.forEach(testsContext);
