@@ -30,11 +30,7 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
-} from './auth_impl';
+import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
 
 use(sinonChai);
 
@@ -163,54 +159,90 @@ describe('AuthImpl', () => {
       });
 
       it('onAuthStateChange triggers on log in', async () => {
-        await auth.updateCurrentUser(null);
         auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(null);
+        callback.resetHistory();
         await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledTwice;
+        expect(callback).to.have.been.calledWith(user);
       });
 
       it('onAuthStateChange triggers on log out', async () => {
-        await auth.updateCurrentUser(user);
         auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(user);
+        callback.resetHistory();
         await auth.updateCurrentUser(null);
-        expect(callback).to.have.been.calledTwice;
+        expect(callback).to.have.been.calledWith(null);
       });
 
       it('onIdTokenChange triggers on log in', async () => {
-        await auth.updateCurrentUser(null);
         auth.onIdTokenChange(callback);
+        await auth.updateCurrentUser(null);
+        callback.resetHistory();
         await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledTwice;
+        expect(callback).to.have.been.calledWith(user);
       });
 
       it('onIdTokenChange triggers on log out', async () => {
-        await auth.updateCurrentUser(user);
         auth.onIdTokenChange(callback);
+        await auth.updateCurrentUser(user);
+        callback.resetHistory();
         await auth.updateCurrentUser(null);
-        expect(callback).to.have.been.calledTwice;
+        expect(callback).to.have.been.calledWith(null);
       });
 
       it('onAuthStateChange does not trigger for user props change', async () => {
-        await auth.updateCurrentUser(user);
         auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(user);
+        callback.resetHistory();
         user.refreshToken = 'hey look I changed';
         await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledOnce;
+        expect(callback).not.to.have.been.called;
       });
 
       it('onIdTokenChange triggers for user props change', async () => {
-        await auth.updateCurrentUser(user);
         auth.onIdTokenChange(callback);
+        await auth.updateCurrentUser(user);
+        callback.resetHistory();
         user.refreshToken = 'hey look I changed';
         await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledTwice;
+        expect(callback).to.have.been.calledWith(user);
       });
 
       it('onAuthStateChange triggers if uid changes', async () => {
-        await auth.updateCurrentUser(user);
         auth.onAuthStateChanged(callback);
-        await auth.updateCurrentUser(testUser('different-uid'));
-        expect(callback).to.have.been.calledTwice;
+        await auth.updateCurrentUser(user);
+        callback.resetHistory();
+        const newUser = testUser('different-uid');
+        await auth.updateCurrentUser(newUser);
+        expect(callback).to.have.been.calledWith(newUser);
+      });
+
+      it('onAuthStateChange works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.onAuthStateChanged(cb1);
+        auth.onAuthStateChanged(cb2);
+        await auth.updateCurrentUser(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth.updateCurrentUser(user);
+        expect(cb1).to.have.been.calledWith(user);
+        expect(cb2).to.have.been.calledWith(user);
+      });
+
+      it('onIdTokenChange works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.onIdTokenChange(cb1);
+        auth.onIdTokenChange(cb2);
+        await auth.updateCurrentUser(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth.updateCurrentUser(user);
+        expect(cb1).to.have.been.calledWith(user);
+        expect(cb2).to.have.been.calledWith(user);
       });
     });
   });

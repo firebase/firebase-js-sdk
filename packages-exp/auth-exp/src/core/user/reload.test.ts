@@ -20,14 +20,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import {
-  APIUserInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { UserInfo } from '../../model/user';
 import { ProviderId } from '../providers';
 import { _reloadWithoutSaving, reload } from './reload';
@@ -143,6 +142,27 @@ describe('reload()', () => {
         uid: 'new-uid'
       }
     ]);
+  });
+
+  it('throws an error if the providerData providerId is invalid', async () => {
+    const user = testUser('abc', '', true);
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [
+        {
+          providerUserInfo: [
+            {
+              ...BASIC_USER_INFO,
+              providerId: 'naaaah',
+            }
+          ]
+        }
+      ]
+    });
+
+    await expect(_reloadWithoutSaving(user)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('reload calls auth.updateCurrentUser after completion', async () => {

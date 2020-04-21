@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  getAccountInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { User, UserInfo } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
@@ -32,7 +29,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 
   const coreAccount = response.users[0];
   const newProviderData = coreAccount.providerUserInfo?.length
-    ? extractProviderData(coreAccount.providerUserInfo)
+    ? extractProviderData(coreAccount.providerUserInfo, auth.name)
     : [];
   const updates: Partial<User> = {
     uid: coreAccount.localId,
@@ -71,13 +68,16 @@ function mergeProviderData(
   return [...deduped, ...newData];
 }
 
-function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {
-  return providers.map(provider => ({
-    uid: provider.rawId || '',
-    displayName: provider.displayName || null,
-    email: provider.email || null,
-    phoneNumber: provider.phoneNumber || null,
-    providerId: provider.providerId as ProviderId,
-    photoURL: provider.photoUrl || null
-  }));
+function extractProviderData(providers: ProviderUserInfo[], appName: string): UserInfo[] {
+  return providers.map(({providerId, ...provider}) => {
+    assert(providerId && Object.values<string>(ProviderId).includes(providerId), appName);
+    return {
+      uid: provider.rawId || '',
+      displayName: provider.displayName || null,
+      email: provider.email || null,
+      phoneNumber: provider.phoneNumber || null,
+      providerId: providerId as ProviderId,
+      photoURL: provider.photoUrl || null
+    };
+  });
 }
