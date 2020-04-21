@@ -687,7 +687,9 @@ abstract class TestRunner {
       () => this.rejectedDocs.push(...documentKeys)
     );
 
-    this.sharedWrites.push(mutations);
+    if (!this.persistence.injectFailures) {
+      this.sharedWrites.push(mutations);
+    }
 
     return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, syncEngineCallback);

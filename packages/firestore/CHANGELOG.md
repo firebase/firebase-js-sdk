@@ -1,4 +1,6 @@
 # Unreleased
+- [fixed] Firestore now rejects write operations if they cannot be persisted
+  in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
   multi-tab notifications while the file system is locked.
 
