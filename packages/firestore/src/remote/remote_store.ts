@@ -136,7 +136,6 @@ export class RemoteStore implements TargetMetadataProvider {
     this.connectivityMonitor.addCallback((status: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
         if (this.canUseNetwork()) {
-          ;
           await this.restartNetwork();
         }
       });
@@ -211,7 +210,6 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
-      ;
       this.writePipeline = [];
     }
 
@@ -219,7 +217,6 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   async shutdown(): Promise<void> {
-    ;
     this.networkEnabled = false;
     await this.disableNetworkInternal();
     this.connectivityMonitor.shutdown();
@@ -655,7 +652,6 @@ export class RemoteStore implements TargetMetadataProvider {
     // no longer valid. Note that the handshake does not count as a write: see
     // comments on isPermanentWriteError for details.
     if (isPermanentError(error.code)) {
-      ;
       this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
 
       return this.localStore
@@ -708,7 +704,6 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      ;
       await this.restartNetwork();
     }
   }

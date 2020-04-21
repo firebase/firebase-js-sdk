@@ -419,7 +419,6 @@ export class IndexedDbPersistence implements Persistence {
           throw e;
         }
 
-        ;
         return /* isPrimary= */ false;
       })
       .then(isPrimary => {
@@ -622,7 +621,6 @@ export class IndexedDbPersistence implements Persistence {
       })
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
-          ;
         }
         return canActAsPrimary;
       });
@@ -743,8 +741,6 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    ;
-
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
 
     let persistenceTransaction: PersistenceTransaction;
@@ -773,7 +769,6 @@ export class IndexedDbPersistence implements Persistence {
             })
             .next(holdsPrimaryLease => {
               if (!holdsPrimaryLease) {
-                ;
                 this.isPrimary = false;
                 this.queue.enqueueAndForget(() =>
                   this.primaryStateListener(false)
@@ -878,7 +873,6 @@ export class IndexedDbPersistence implements Persistence {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
-        ;
         return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
@@ -894,7 +888,6 @@ export class IndexedDbPersistence implements Persistence {
     if (updateTimeMs < minAcceptable) {
       return false;
     } else if (updateTimeMs > maxAcceptable) {
-      ;
       return false;
     }
 
@@ -986,7 +979,6 @@ export class IndexedDbPersistence implements Persistence {
       const isZombied =
         this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
         null;
-      ;
       return isZombied;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't working.
@@ -1006,7 +998,6 @@ export class IndexedDbPersistence implements Persistence {
       );
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      ;
     }
   }
 

@@ -606,7 +606,6 @@ export class LocalStore {
                 documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
-                ;
               }
 
               if (remoteEvent.resolvedLimboDocuments.has(key)) {
@@ -1107,7 +1106,6 @@ export async function ignoreIfPrimaryLeaseLoss(
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
-    ;
   } else {
     throw err;
   }

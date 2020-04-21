@@ -130,7 +130,6 @@ export function mapCodeFromRpcCode(code: number | undefined): Code {
   if (code === undefined) {
     // This shouldn't normally happen, but in certain error cases (like trying
     // to send invalid proto messages) we may get an error with no GRPC code.
-    ;
     return Code.UNKNOWN;
   }
 

@@ -629,7 +629,6 @@ export class WatchChangeAggregator {
   protected isActiveTarget(targetId: TargetId): boolean {
     const targetActive = this.targetDataForActiveTarget(targetId) !== null;
     if (!targetActive) {
-      ;
     }
     return targetActive;
   }

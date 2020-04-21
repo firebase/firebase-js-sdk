@@ -338,7 +338,6 @@ export class AsyncQueue {
           this.backoff.reset();
         } catch (e) {
           if (e.name === 'IndexedDbTransactionError') {
-            ;
             this.backoff.backoffAndRun(retryingOp);
           } else {
             deferred.resolve();
@@ -359,8 +358,6 @@ export class AsyncQueue {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';
-          ;
-
           // Re-throw the error so that this.tail becomes a rejected Promise and
           // all further attempts to chain (via .then) will just short-circuit
           // and return the rejected Promise.

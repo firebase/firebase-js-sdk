@@ -70,7 +70,6 @@ export class SimpleDb {
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
-    ;
     return new PersistencePromise<SimpleDb>((resolve, reject) => {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -113,7 +112,6 @@ export class SimpleDb {
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        ;
         const db = (event.target as IDBOpenDBRequest).result;
         schemaConverter
           .createOrUpgrade(
@@ -122,16 +120,13 @@ export class SimpleDb {
             event.oldVersion,
             SCHEMA_VERSION
           )
-          .next(() => {
-            ;
-          });
+          .next(() => {});
       };
     }).toPromise();
   }
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
-    ;
     return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
@@ -245,7 +240,6 @@ export class SimpleDb {
     // whatever reason it's much harder to hit after 12.2 so we only proactively
     // log on 12.2.
     if (iOSVersion === 12.2) {
-      ;
     }
   }
 
@@ -305,8 +299,6 @@ export class SimpleDb {
         const retryable =
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        ;
-
         if (!retryable) {
           return Promise.reject(error);
         }
@@ -451,7 +443,6 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      ;
       this.aborted = true;
       this.transaction.abort();
     }
@@ -506,10 +497,8 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      ;
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      ;
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -523,7 +512,6 @@ export class SimpleDbStore<
    * @return The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    ;
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -544,13 +532,11 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      ;
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    ;
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -562,7 +548,6 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    ;
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -590,7 +575,6 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    ;
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);

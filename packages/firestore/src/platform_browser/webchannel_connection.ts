@@ -114,18 +114,15 @@ export class WebChannelConnection implements Connection {
           switch (xhr.getLastErrorCode()) {
             case ErrorCode.NO_ERROR:
               const json = xhr.getResponseJson() as Resp;
-              ;
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              ;
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
               break;
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
-              ;
               if (status > 0) {
                 const responseError = (xhr.getResponseJson() as WebChannelError)
                   .error;
@@ -154,7 +151,6 @@ export class WebChannelConnection implements Connection {
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
-                ;
                 reject(
                   new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                 );
@@ -173,7 +169,6 @@ export class WebChannelConnection implements Connection {
               );
           }
         } finally {
-          ;
         }
       });
 
@@ -184,7 +179,6 @@ export class WebChannelConnection implements Connection {
       delete jsonObj.database;
 
       const requestString = JSON.stringify(jsonObj);
-      ;
       // Content-Type: text/plain will avoid preflight requests which might
       // mess with CORS and redirects by proxies. If we add custom headers
       // we will need to change this code to potentially use the
@@ -276,7 +270,6 @@ export class WebChannelConnection implements Connection {
     }
 
     const url = urlParts.join('');
-    ;
     const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -295,14 +288,11 @@ export class WebChannelConnection implements Connection {
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
-            ;
             channel.open();
             opened = true;
           }
-          ;
           channel.send(msg);
         } else {
-          ;
         }
       },
       closeFn: () => channel.close()
@@ -331,14 +321,12 @@ export class WebChannelConnection implements Connection {
 
     unguardedEventListen(WebChannel.EventType.OPEN, () => {
       if (!closed) {
-        ;
       }
     });
 
     unguardedEventListen(WebChannel.EventType.CLOSE, () => {
       if (!closed) {
         closed = true;
-        ;
         streamBridge.callOnClose();
       }
     });
@@ -346,7 +334,6 @@ export class WebChannelConnection implements Connection {
     unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        ;
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
@@ -379,7 +366,6 @@ export class WebChannelConnection implements Connection {
             msgDataOrError.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
-            ;
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
@@ -397,7 +383,6 @@ export class WebChannelConnection implements Connection {
             streamBridge.callOnClose(new FirestoreError(code, message));
             channel.close();
           } else {
-            ;
             streamBridge.callOnMessage(msgData);
           }
         }

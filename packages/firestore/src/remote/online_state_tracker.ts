@@ -187,10 +187,8 @@ export class OnlineStateTracker {
       `Internet connection at the moment. The client will operate in offline ` +
       `mode until it is able to successfully connect to the backend.`;
     if (this.shouldWarnClientIsOffline) {
-      ;
       this.shouldWarnClientIsOffline = false;
     } else {
-      ;
     }
   }
 

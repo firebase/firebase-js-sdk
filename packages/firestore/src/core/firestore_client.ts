@@ -169,8 +169,6 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        ;
-
         return this.initializeComponents(
           componentProvider,
           persistenceSettings,
@@ -346,7 +344,6 @@ export class FirestoreClient {
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    ;
     return this.syncEngine.handleCredentialChange(user);
   }
 

@@ -120,7 +120,6 @@ export class ExponentialBackoff {
     );
 
     if (remainingDelayMs > 0) {
-      ;
     }
 
     this.timerPromise = this.queue.enqueueAfterDelay(

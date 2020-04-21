@@ -234,7 +234,6 @@ export class MutationMetadata {
         firestoreError
       );
     } else {
-      ;
       return null;
     }
   }
@@ -311,7 +310,6 @@ export class QueryTargetMetadata {
         firestoreError
       );
     } else {
-      ;
       return null;
     }
   }
@@ -378,7 +376,6 @@ class RemoteClientState implements ClientState {
     if (validData) {
       return new RemoteClientState(clientId, activeTargetIdsSet);
     } else {
-      ;
       return null;
     }
   }
@@ -411,7 +408,6 @@ export class SharedOnlineState {
         onlineState.onlineState as OnlineState
       );
     } else {
-      ;
       return null;
     }
   }
@@ -722,26 +718,20 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private getItem(key: string): string | null {
     const value = this.storage.getItem(key);
-    ;
     return value;
   }
 
   private setItem(key: string, value: string): void {
-    ;
     this.storage.setItem(key, value);
   }
 
   private removeItem(key: string): void {
-    ;
     this.storage.removeItem(key);
   }
 
   private handleWebStorageEvent(event: StorageEvent): void {
     if (event.storageArea === this.storage) {
-      ;
-
       if (event.key === this.localClientStorageKey) {
-        ;
         return;
       }
 
@@ -941,7 +931,6 @@ export class WebStorageSharedClientState implements SharedClientState {
     mutationBatch: MutationMetadata
   ): Promise<void> {
     if (mutationBatch.user.uid !== this.currentUser.uid) {
-      ;
       return;
     }
 
@@ -1030,9 +1019,7 @@ function fromWebStorageSequenceNumber(
         'Found non-numeric sequence number'
       );
       sequenceNumber = parsed;
-    } catch (e) {
-      ;
-    }
+    } catch (e) {}
   }
   return sequenceNumber;
 }

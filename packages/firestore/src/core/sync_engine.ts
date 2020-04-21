@@ -382,7 +382,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (e.name === 'IndexedDbTransactionError') {
         // If we can't persist the mutation, we reject the user callback and
         // don't send the mutation. The user can then retry the write.
-        ;
         userCallback.reject(
           new FirestoreError(Code.UNAVAILABLE, 'Failed to persist write: ' + e)
         );
@@ -574,7 +573,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // had, we would have cached the affected documents), and so we will just
       // see any resulting document changes via normal remote document updates
       // as applicable.
-      ;
       return;
     }
 
@@ -650,7 +648,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
-      ;
     }
 
     const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
@@ -787,7 +784,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
         this.trackLimboChange(limboChange);
       } else if (limboChange instanceof RemovedLimboDocument) {
-        ;
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
         const isReferenced = this.limboDocumentRefs.containsKey(
           limboChange.key
@@ -805,7 +801,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
     if (!this.activeLimboTargetsByKey.get(key)) {
-      ;
       this.enqueuedLimboResolutions.push(key);
       this.pumpEnqueuedLimboResolutions();
     }
@@ -1109,7 +1104,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
-      ;
       return;
     }
 
@@ -1154,7 +1148,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     for (const targetId of added) {
       if (this.queriesByTarget.has(targetId)) {
         // A target might have been added in a previous attempt
-        ;
         continue;
       }
 

@@ -99,7 +99,6 @@ export class IndexFreeQueryEngine implements QueryEngine {
         }
 
         if (getLogLevel() <= LogLevel.DEBUG) {
-          ;
         }
 
         // Retrieve all results for documents that were updated since the last
@@ -189,7 +188,6 @@ export class IndexFreeQueryEngine implements QueryEngine {
     query: Query
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
-      ;
     }
 
     return this.localDocumentsView!.getDocumentsMatchingQuery(

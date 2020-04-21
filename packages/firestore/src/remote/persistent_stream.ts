@@ -25,7 +25,6 @@ import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 
-
 import { CancelablePromise } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
@@ -334,8 +333,6 @@ export abstract class PersistentStream<
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
       // Log the error. (Probably either 'quota exceeded' or 'max queue length reached'.)
-      ;
-      ;
       this.backoff.resetToMax();
     } else if (error && error.code === Code.UNAUTHENTICATED) {
       // "unauthenticated" error means the token was rejected. Try force refreshing it in case it
@@ -473,8 +470,6 @@ export abstract class PersistentStream<
       this.isStarted(),
       "Can't handle server close on non-started stream"
     );
-    ;
-
     this.stream = null;
 
     // In theory the stream could close cleanly, however, in our current model
@@ -498,7 +493,6 @@ export abstract class PersistentStream<
         if (this.closeCount === startCloseCount) {
           return fn();
         } else {
-          ;
           return Promise.resolve();
         }
       });

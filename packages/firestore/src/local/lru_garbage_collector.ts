@@ -258,7 +258,6 @@ export class LruScheduler implements GarbageCollectionScheduler {
       'Cannot schedule GC while a task is pending'
     );
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
-    ;
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
@@ -342,13 +341,11 @@ export class LruGarbageCollector {
     if (
       this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED
     ) {
-      ;
       return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }
 
     return this.getCacheSize(txn).next(cacheSize => {
       if (cacheSize < this.params.cacheSizeCollectionThreshold) {
-        ;
         return GC_DID_NOT_RUN;
       } else {
         return this.runGarbageCollection(txn, activeTargetIds);
@@ -376,7 +373,6 @@ export class LruGarbageCollector {
       .next(sequenceNumbers => {
         // Cap at the configured max
         if (sequenceNumbers > this.params.maximumSequenceNumbersToCollect) {
-          ;
           sequenceNumbersToCollect = this.params
             .maximumSequenceNumbersToCollect;
         } else {
@@ -416,7 +412,6 @@ export class LruGarbageCollector {
             `\tRemoved ${documentsRemoved} documents in ` +
             `${removedDocumentsTs - removedTargetsTs}ms\n` +
             `Total Duration: ${removedDocumentsTs - startTs}ms`;
-          ;
         }
 
         return PersistencePromise.resolve<LruResults>({

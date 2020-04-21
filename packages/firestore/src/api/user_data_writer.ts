@@ -138,7 +138,6 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
     if (!databaseId.isEqual(this.firestore._databaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
-      ;
     }
 
     return new DocumentReference(key, this.firestore, this.converter);

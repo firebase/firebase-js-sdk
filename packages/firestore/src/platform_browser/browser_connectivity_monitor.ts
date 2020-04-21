@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import {
   ConnectivityMonitor,
   ConnectivityMonitorCallback,
@@ -56,14 +55,12 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   }
 
   private onNetworkAvailable(): void {
-    ;
     for (const callback of this.callbacks) {
       callback(NetworkStatus.AVAILABLE);
     }
   }
 
   private onNetworkUnavailable(): void {
-    ;
     for (const callback of this.callbacks) {
       callback(NetworkStatus.UNAVAILABLE);
     }

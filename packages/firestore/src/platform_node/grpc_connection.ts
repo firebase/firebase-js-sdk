@@ -96,7 +96,6 @@ export class GrpcConnection implements Connection {
 
   private ensureActiveStub(): GeneratedGrpcStub {
     if (!this.cachedStub) {
-      ;
       const credentials = this.databaseInfo.ssl
         ? GrpcCredentials.createSsl()
         : GrpcCredentials.createInsecure();
@@ -117,13 +116,11 @@ export class GrpcConnection implements Connection {
     const metadata = createMetadata(this.databaseInfo, token);
 
     return nodePromise((callback: NodeCallback<Resp>) => {
-      ;
       return stub[rpcName](
         request,
         metadata,
         (grpcError?: ServiceError, value?: Resp) => {
           if (grpcError) {
-            ;
             callback(
               new FirestoreError(
                 mapCodeFromRpcCode(grpcError.code),
@@ -131,7 +128,6 @@ export class GrpcConnection implements Connection {
               )
             );
           } else {
-            ;
             callback(undefined, value);
           }
         }
@@ -147,20 +143,16 @@ export class GrpcConnection implements Connection {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
 
-    ;
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(this.databaseInfo, token);
     const stream = stub[rpcName](request, metadata);
     stream.on('data', (response: Resp) => {
-      ;
       results.push(response);
     });
     stream.on('end', () => {
-      ;
       responseDeferred.resolve(results);
     });
     stream.on('error', (grpcError: ServiceError) => {
-      ;
       const code = mapCodeFromRpcCode(grpcError.code);
       responseDeferred.reject(new FirestoreError(code, grpcError.message));
     });
@@ -189,45 +181,36 @@ export class GrpcConnection implements Connection {
     const stream = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
-          ;
           try {
             grpcStream.write(msg);
           } catch (e) {
             // This probably means we didn't conform to the proto.  Make sure to
             // log the message we sent.
-            ;
-            ;
             throw e;
           }
         } else {
-          ;
         }
       },
       closeFn: () => {
-        ;
         close();
       }
     });
 
     grpcStream.on('data', (msg: Resp) => {
       if (!closed) {
-        ;
         stream.callOnMessage(msg);
       }
     });
 
     grpcStream.on('end', () => {
-      ;
       close();
     });
 
     grpcStream.on('error', (grpcError: ServiceError) => {
-      ;
       const code = mapCodeFromRpcCode(grpcError.code);
       close(new FirestoreError(code, grpcError.message));
     });
 
-    ;
     // TODO(dimond): Since grpc has no explicit open status (or does it?) we
     // simulate an onOpen in the next loop after the stream had it's listeners
     // registered
