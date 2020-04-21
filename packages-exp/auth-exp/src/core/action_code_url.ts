@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
-import { Operation } from './action_code_info';
-import { Auth } from './auth';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import { Operation } from '../model/action_code_info';
+import { Auth } from '../model/auth';
 
 /**
  * Enums for fields in URL query string.
@@ -35,7 +35,7 @@ enum QueryField {
 /**
  * Map from mode string in action code URL to Action Code Info operation.
  */
-const ModeToOperationMap: { [key: string]: Operation } = {
+const MODE_TO_OPERATION_MAP: { [key: string]: Operation } = {
   'recoverEmail': Operation.RECOVER_EMAIL,
   'resetPassword': Operation.PASSWORD_RESET,
   'signIn': Operation.EMAIL_SIGNIN,
@@ -48,7 +48,7 @@ const ModeToOperationMap: { [key: string]: Operation } = {
  * Maps the mode string in action code URL to Action Code Info operation.
  */
 function parseMode(mode: string | null): Operation | null {
-  return mode ? ModeToOperationMap[mode] || null : null;
+  return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
 }
 
 function parseDeepLink(url: string): string {

@@ -21,7 +21,7 @@ import {
   ActionCodeSettings,
   setActionCodeSettingsOnRequest
 } from '../../model/action_code_settings';
-import { ActionCodeURL } from '../../model/action_code_url';
+import { ActionCodeURL } from '../action_code_url';
 import { Auth } from '../../model/auth';
 
 export async function sendSignInLinkToEmail(

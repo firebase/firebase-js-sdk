@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { ActionCodeURL } from './action_code_url';
 import { mockAuth } from '../../test/mock_auth';
-import { Operation } from './action_code_info';
+import { Operation } from '../model/action_code_info';
 
 describe('ActionCodeURL', () => {
   describe('_fromLink', () => {
