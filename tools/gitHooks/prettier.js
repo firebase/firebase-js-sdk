@@ -68,6 +68,7 @@ async function doPrettierCommit(changedFiles) {
   const targetFiles = changedFiles.filter(line => line.match(/(js|ts)$/));
   if (targetFiles.length === 0) {
     console.log('No files changed.');
+    return;
   }
 
   const stylingSpinner = ora(
