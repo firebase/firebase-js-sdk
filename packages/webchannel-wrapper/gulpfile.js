@@ -24,6 +24,9 @@ const sourcemaps = require('gulp-sourcemaps');
 const { resolve } = require('path');
 const commonjs = require('rollup-plugin-commonjs');
 const rollupSourcemaps = require('rollup-plugin-sourcemaps');
+const { terser } = require('rollup-plugin-terser');
+const typescriptPlugin = require('rollup-plugin-typescript2');
+const typescript = require('typescript');
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
@@ -95,7 +98,16 @@ function createRollupTask(inputPath, outputExtension) {
   return async function rollupBuild() {
     const inputOptions = {
       input: inputPath,
-      plugins: [rollupSourcemaps(), commonjs()]
+      plugins: [
+        rollupSourcemaps(),
+        commonjs(),
+        typescriptPlugin({
+          typescript,
+          compilerOptions: { allowJs: true, include: [inputPath], target: "ES5" },
+          input: inputPath
+        }),
+        terser()
+      ]
     };
 
     const outputOptions = {
@@ -126,7 +138,7 @@ gulp.task('cjs', cjsBuild);
 // 2) Use rollup to convert result to ESM format.
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
-const esmBuild = createBuildTask(intermediateEsmFile, '', '');
+const esmBuild = createBuildTask(intermediateEsmFile, '', '', 'ECMASCRIPT_2017');
 const rollupTask = createRollupTask(intermediateEsmPath, 'esm');
 gulp.task('esm', gulp.series(esmBuild, rollupTask));
 
