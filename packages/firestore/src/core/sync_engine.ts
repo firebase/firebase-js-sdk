@@ -19,6 +19,7 @@ import { User } from '../auth/user';
 import {
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
+  LocalWriteResult,
   MultiTabLocalStore
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
@@ -38,7 +39,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -352,7 +353,24 @@ export class SyncEngine implements RemoteSyncer {
    */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
-    const result = await this.localStore.localWrite(batch);
+
+    let result: LocalWriteResult;
+    try {
+      result = await this.localStore.localWrite(batch);
+    } catch (e) {
+      if (e.name === 'IndexedDbTransactionError') {
+        // If we can't persist the mutation, we reject the user callback and
+        // don't send the mutation. The user can then retry the write.
+        logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
+        userCallback.reject(
+          new FirestoreError(Code.UNAVAILABLE, 'Failed to persist write: ' + e)
+        );
+        return;
+      } else {
+        throw e;
+      }
+    }
+
     this.sharedClientState.addPendingMutation(result.batchId);
     this.addMutationCallback(result.batchId, userCallback);
     await this.emitNewSnapsAndNotifyLocalStore(result.changes);
@@ -1209,10 +1227,12 @@ export class MultiTabSyncEngine extends SyncEngine
     }
 
     for (const targetId of added) {
-      debugAssert(
-        !this.queriesByTarget.has(targetId),
-        'Trying to add an already active target'
-      );
+      if (this.queriesByTarget.has(targetId)) {
+        // A target might have been added in a previous attempt
+        logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
+        continue;
+      }
+
       const target = await this.localStore.getTarget(targetId);
       debugAssert(
         !!target,

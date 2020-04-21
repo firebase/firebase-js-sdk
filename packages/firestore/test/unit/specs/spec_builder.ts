@@ -446,7 +446,7 @@ export class SpecBuilder {
 
   /** Overrides the currently expected set of active targets. */
   expectActiveTargets(
-    ...targets: Array<{ query: Query; resumeToken: string }>
+    ...targets: Array<{ query: Query; resumeToken?: string }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
