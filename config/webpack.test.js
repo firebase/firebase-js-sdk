@@ -54,7 +54,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        include: [/node_modules\/chai-as-promised/],
+        include: [/node_modules\/chai-as-promised/, /webchannel-wrapper/],
         use: {
           loader: 'babel-loader',
           options: {
