@@ -21,21 +21,19 @@ import { logError } from './log';
 
 /**
  * Unconditionally fails, throwing a developer facing INTERNAL_ERROR
- * 
+ *
  * @param appName App name for tagging the error
  * @throws FirebaseError
  */
-export function fail(
-  appName: string
-): never {
+export function fail(appName: string): never {
   throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName });
 }
 
 /**
  * Verifies the given condition and fails if false, throwing a developer facing error
- * 
+ *
  * @param assertion
- * @param appName 
+ * @param appName
  */
 export function assert(assertion: boolean, appName: string): asserts assertion {
   if (!assertion) {
@@ -43,8 +41,14 @@ export function assert(assertion: boolean, appName: string): asserts assertion {
   }
 }
 
-export function assertStringOrUndefined(assertion: unknown, appName: string): asserts assertion is string | undefined {
-  assert(typeof assertion === 'string' || typeof assertion === 'undefined', appName);
+export function assertStringOrUndefined(
+  assertion: unknown,
+  appName: string
+): asserts assertion is string | undefined {
+  assert(
+    typeof assertion === 'string' || typeof assertion === 'undefined',
+    appName
+  );
 }
 
 /**
@@ -56,8 +60,7 @@ export function assertStringOrUndefined(assertion: unknown, appName: string): as
 export function debugFail(failure: string): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  const message =
-    `AUTH (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  const message = `AUTH (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
   logError(message);
 
   // NOTE: We don't use FirestoreError here because these are internal failures
@@ -69,11 +72,14 @@ export function debugFail(failure: string): never {
 /**
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
- * 
+ *
  * @param assertion
  * @param message
  */
-export function debugAssert(assertion: boolean, message: string): asserts assertion {
+export function debugAssert(
+  assertion: boolean,
+  message: string
+): asserts assertion {
   if (!assertion) {
     debugFail(message);
   }

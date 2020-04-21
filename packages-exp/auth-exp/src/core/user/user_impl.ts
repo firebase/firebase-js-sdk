@@ -20,7 +20,7 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
-import { assert, assertStringOrUndefined} from '../util/assert';
+import { assert, assertStringOrUndefined } from '../util/assert';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
