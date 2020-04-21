@@ -35,6 +35,10 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
+import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from "../../../src/remote/datastore";
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -125,9 +129,11 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 
 describe('Watch Stream', () => {
   let streamListener: StreamStatusListener;
+  let queue: AsyncQueue;
 
   beforeEach(() => {
     streamListener = new StreamStatusListener();
+    queue = new AsyncQueue();
   });
 
   afterEach(() => {
@@ -142,7 +148,7 @@ describe('Watch Stream', () => {
     let watchStream: PersistentListenStream;
 
     return withTestDatastore(ds => {
-      watchStream = ds.newPersistentWatchStream(streamListener);
+      watchStream = newPersistentWatchStream(ds, queue, streamListener);
       watchStream.start();
 
       return streamListener.awaitCallback('open').then(async () => {
@@ -174,8 +180,10 @@ class MockCredentialsProvider extends EmptyCredentialsProvider {
 
 describe('Write Stream', () => {
   let streamListener: StreamStatusListener;
+  let queue: AsyncQueue;
 
   beforeEach(() => {
+     queue = new AsyncQueue();
     streamListener = new StreamStatusListener();
   });
 
@@ -191,7 +199,7 @@ describe('Write Stream', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream = newPersistentWriteStream(ds,queue, streamListener);
       writeStream.start();
       return streamListener.awaitCallback('open');
     }).then(async () => {
@@ -205,7 +213,7 @@ describe('Write Stream', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream = newPersistentWriteStream(ds, queue, streamListener);
       writeStream.start();
       return streamListener.awaitCallback('open');
     })
@@ -233,7 +241,7 @@ describe('Write Stream', () => {
     const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream(streamListener);
+      const writeStream = newPersistentWriteStream(ds, queue, streamListener);
       writeStream.start();
       return streamListener
         .awaitCallback('open')
@@ -253,14 +261,14 @@ describe('Write Stream', () => {
         .then(() => {
           expect(writeStream.isOpen()).to.be.false;
         });
-    }, queue);
+    });
   });
 
   it('cancels idle on write', () => {
     const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream(streamListener);
+      const writeStream = newPersistentWriteStream(ds, queue, streamListener);
       writeStream.start();
       return streamListener
         .awaitCallback('open')
@@ -280,16 +288,15 @@ describe('Write Stream', () => {
         .then(() => {
           expect(writeStream.isOpen()).to.be.true;
         });
-    }, queue);
+    });
   });
 
   it('force refreshes auth token on receiving unauthenticated error', () => {
-    const queue = new AsyncQueue();
     const credentials = new MockCredentialsProvider();
 
     return withTestDatastore(
       ds => {
-        const writeStream = ds.newPersistentWriteStream(streamListener);
+        const writeStream = newPersistentWriteStream(ds, queue, streamListener);
         writeStream.start();
         return streamListener
           .awaitCallback('open')
@@ -329,7 +336,6 @@ describe('Write Stream', () => {
             ]);
           });
       },
-      queue,
       credentials
     );
   });

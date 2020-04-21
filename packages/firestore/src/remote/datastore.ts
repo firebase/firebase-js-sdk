@@ -51,35 +51,10 @@ interface CommitRequest extends api.CommitRequest {
  */
 export class Datastore {
   constructor(
-    private queue: AsyncQueue,
-    private connection: Connection,
-    private credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer
+    public connection: Connection,
+    public credentials: CredentialsProvider,
+    public serializer: JsonProtoSerializer
   ) {}
-
-  newPersistentWriteStream(
-    listener: WriteStreamListener
-  ): PersistentWriteStream {
-    return new PersistentWriteStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
-
-  newPersistentWatchStream(
-    listener: WatchStreamListener
-  ): PersistentListenStream {
-    return new PersistentListenStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
 
   commit(mutations: Mutation[]): Promise<MutationResult[]> {
     const params: CommitRequest = {
@@ -157,4 +132,33 @@ export class Datastore {
         throw error;
       });
   }
+}
+
+
+export function newPersistentWriteStream(
+  datastore: Datastore,
+  queue: AsyncQueue,
+  listener: WriteStreamListener
+): PersistentWriteStream {
+  return new PersistentWriteStream(
+    queue,
+    datastore.connection,
+    datastore.credentials,
+    datastore.serializer,
+    listener
+  );
+}
+
+export function newPersistentWatchStream(
+  datastore: Datastore,
+  queue: AsyncQueue,
+  listener: WatchStreamListener
+): PersistentListenStream {
+  return new PersistentListenStream(
+    queue,
+    datastore.connection,
+    datastore.credentials,
+    datastore.serializer,
+    listener
+  );
 }

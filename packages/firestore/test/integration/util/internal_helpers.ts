@@ -52,7 +52,6 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  queue?: AsyncQueue,
   credentialsProvider?: CredentialsProvider
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
@@ -63,7 +62,6 @@ export function withTestDatastore(
         databaseInfo.databaseId
       );
       const datastore = new Datastore(
-        queue || new AsyncQueue(),
         conn,
         credentialsProvider || new EmptyCredentialsProvider(),
         serializer

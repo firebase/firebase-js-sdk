@@ -15,14 +15,20 @@
  * limitations under the License.
  */
 
-import { DocumentReference, FirebaseFirestore } from './database';
+import {DocumentReference, FirebaseFirestore, Transaction} from './database';
 import { DocumentSnapshot } from '../../../src/api/database';
 
 export function initializeFirestore(
-  firestore: FirebaseFirestore,
-  settings: Settings
-): Promise<void>;
+  firestore: FirebaseFirestore
+): void {
+  
+}
 
 export function getDocument(
   reference: DocumentReference
-): Promise<DocumentSnapshot> {}
+): Promise<DocumentSnapshot> {
+  reference.firestore.
+  return reference.firestore.runTransaction(t => {
+   return t.get(reference);
+  })
+}
