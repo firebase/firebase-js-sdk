@@ -30,7 +30,11 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
+import {
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  initializeAuth
+} from './auth_impl';
 
 use(sinonChai);
 
@@ -119,7 +123,7 @@ describe('AuthImpl', () => {
     // // Helpers to convert auth state change results to promise
     // function onAuthStateChange(callback: NextFn<User|null>)
 
-    it('immediately calls authStateChange if initialization finished', (done) => {
+    it('immediately calls authStateChange if initialization finished', done => {
       const user = testUser('uid');
       auth.currentUser = user;
       auth._isInitialized = true;
@@ -128,8 +132,8 @@ describe('AuthImpl', () => {
         done();
       });
     });
-  
-    it('immediately calls idTokenChange if initialization finished', (done) => {
+
+    it('immediately calls idTokenChange if initialization finished', done => {
       const user = testUser('uid');
       auth.currentUser = user;
       auth._isInitialized = true;

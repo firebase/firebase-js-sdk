@@ -18,7 +18,13 @@
 import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
@@ -43,10 +49,10 @@ class AuthImpl implements Auth {
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
   _isInitialized = false;
-  
+
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks
-  private lastNotifiedUid: string|undefined = undefined;
+  private lastNotifiedUid: string | undefined = undefined;
 
   constructor(
     public readonly name: string,
@@ -87,16 +93,30 @@ class AuthImpl implements Auth {
     });
   }
 
-  onAuthStateChanged(nextOrObserver: NextOrObserver<User>,
+  onAuthStateChanged(
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
-    completed?: CompleteFn): Unsubscribe {
-    return this.registerStateListener(this.authStateSubscription, nextOrObserver, error, completed);
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.authStateSubscription,
+      nextOrObserver,
+      error,
+      completed
+    );
   }
 
-  onIdTokenChange(nextOrObserver: NextOrObserver<User>,
+  onIdTokenChange(
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
-    completed?: CompleteFn): Unsubscribe {
-    return this.registerStateListener(this.idTokenSubscription, nextOrObserver, error, completed);
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.idTokenSubscription,
+      nextOrObserver,
+      error,
+      completed
+    );
   }
 
   _notifyStateListeners(): void {
@@ -112,16 +132,22 @@ class AuthImpl implements Auth {
     }
   }
 
-  private registerStateListener(subscription: Subscription<User>, nextOrObserver: NextOrObserver<User>,
+  private registerStateListener(
+    subscription: Subscription<User>,
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
-    completed?: CompleteFn): Unsubscribe {
+    completed?: CompleteFn
+  ): Unsubscribe {
     if (this._isInitialized) {
-      const cb = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
-      // The callback needs to be called asynchronously per the spec. 
+      const cb =
+        typeof nextOrObserver === 'function'
+          ? nextOrObserver
+          : nextOrObserver.next;
+      // The callback needs to be called asynchronously per the spec.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       Promise.resolve().then(() => cb(this.currentUser));
     }
-    
+
     if (typeof nextOrObserver === 'function') {
       return subscription.addObserver(nextOrObserver, error, completed);
     } else {
@@ -182,14 +208,14 @@ export function initializeAuth(
 
 /** Helper class to wrap subscriber logic */
 class Subscription<T> {
-  private observer: Observer<T|null> | null = null;
-  readonly addObserver: Subscribe<T|null> = createSubscribe(
-    observer => this.observer = observer,
+  private observer: Observer<T | null> | null = null;
+  readonly addObserver: Subscribe<T | null> = createSubscribe(
+    observer => (this.observer = observer)
   );
 
   constructor(readonly auth: Auth) {}
 
-  get next(): NextFn<T|null> {
+  get next(): NextFn<T | null> {
     const observer = assert(this.observer, this.auth.name);
     return observer.next.bind(observer);
   }

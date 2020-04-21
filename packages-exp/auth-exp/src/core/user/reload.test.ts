@@ -24,7 +24,10 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  APIUserInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { UserInfo } from '../../model/user';
 import { ProviderId } from '../providers';
 import { _reloadWithoutSaving, reload } from './reload';
@@ -38,7 +41,7 @@ const BASIC_USER_INFO: UserInfo = {
   email: 'email',
   displayName: 'displayName',
   phoneNumber: 'phoneNumber',
-  photoURL: 'photoURL',
+  photoURL: 'photoURL'
 };
 
 const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
@@ -47,7 +50,7 @@ const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
   email: 'email',
   displayName: 'displayName',
   phoneNumber: 'phoneNumber',
-  photoUrl: 'photoURL',
+  photoUrl: 'photoURL'
 };
 
 describe('reload()', () => {
@@ -64,11 +67,11 @@ describe('reload()', () => {
       phoneNumber: 'phoneNumber',
       tenantId: 'tenantId',
       createdAt: 123,
-      lastLoginAt: 456,
+      lastLoginAt: 456
     };
 
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [serverUser],
+      users: [serverUser]
     });
 
     const user = testUser('abc', '', true);
@@ -82,22 +85,26 @@ describe('reload()', () => {
     expect(user.tenantId).to.eq('tenantId');
     expect(user.metadata).to.eql({
       creationTime: '123',
-      lastSignInTime: '456',
+      lastSignInTime: '456'
     });
   });
 
   it('adds missing provider data', async () => {
     const user = testUser('abc', '', true);
-    user.providerData = [{...BASIC_USER_INFO}];
+    user.providerData = [{ ...BASIC_USER_INFO }];
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{
-        providerUserInfo: [{...BASIC_PROVIDER_USER_INFO, providerId: ProviderId.FACEBOOK}],
-      }],
+      users: [
+        {
+          providerUserInfo: [
+            { ...BASIC_PROVIDER_USER_INFO, providerId: ProviderId.FACEBOOK }
+          ]
+        }
+      ]
     });
     await _reloadWithoutSaving(user);
     expect(user.providerData).to.eql([
-      {...BASIC_USER_INFO},
-      {...BASIC_USER_INFO, providerId: ProviderId.FACEBOOK},
+      { ...BASIC_USER_INFO },
+      { ...BASIC_USER_INFO, providerId: ProviderId.FACEBOOK }
     ]);
   });
 
@@ -107,32 +114,40 @@ describe('reload()', () => {
       {
         ...BASIC_USER_INFO,
         providerId: ProviderId.GITHUB,
-        uid: 'i-will-be-overwritten',
+        uid: 'i-will-be-overwritten'
       },
       {
         ...BASIC_USER_INFO
       }
     ];
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{
-        providerUserInfo: [{...BASIC_PROVIDER_USER_INFO, providerId: ProviderId.GITHUB, rawId: 'new-uid'}],
-      }],
+      users: [
+        {
+          providerUserInfo: [
+            {
+              ...BASIC_PROVIDER_USER_INFO,
+              providerId: ProviderId.GITHUB,
+              rawId: 'new-uid'
+            }
+          ]
+        }
+      ]
     });
     await _reloadWithoutSaving(user);
     console.warn(user.providerData);
     expect(user.providerData).to.eql([
-      {...BASIC_USER_INFO},
+      { ...BASIC_USER_INFO },
       {
         ...BASIC_USER_INFO,
         providerId: ProviderId.GITHUB,
-        uid: 'new-uid',
-      },
+        uid: 'new-uid'
+      }
     ]);
   });
 
   it('reload calls auth.updateCurrentUser after completion', async () => {
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{}],
+      users: [{}]
     });
 
     const user = testUser('user', '', true);

@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  getAccountInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { User, UserInfo } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 
-export async function _reloadWithoutSaving(
-  user: User
-): Promise<void> {
+export async function _reloadWithoutSaving(user: User): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
