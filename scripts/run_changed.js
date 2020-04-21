@@ -147,11 +147,26 @@ async function getChangedPackages() {
 async function runTests(pathList) {
   if (!pathList) return;
   for (const testPath of pathList) {
+    var stdio = '';
+    var stderr = '';
+    
     try {
-      await spawn('yarn', ['--cwd', testPath, 'test'], {
-        stdio: 'inherit'
+      var testProcess = spawn('yarn', ['--cwd', testPath, 'test']);
+
+      testProcess.stdout.on('data', function (data) {
+        stdio += data.toString();
       });
+      testProcess.stderr.on('data', function (data) {
+        stderr += data.toString();
+      });
+      
+      await testProcess;
+      
+      console.log('Success: ' + testPath);
     } catch (e) {
+      console.error('Failure: '+ testPath);
+      console.log(stdio);
+      console.log(stderr);
       throw new Error(`Error running tests in ${testPath}.`);
     }
   }
