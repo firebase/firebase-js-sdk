@@ -65,15 +65,10 @@ export const CACHE_SIZE_UNLIMITED: number;
 export interface Persistence {}
 
 export interface Settings {
-  persistence: Persistence;
   host?: string;
   ssl?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
-}
-
-export interface PersistenceSettings {
-  fallback?: (err: FirestoreError) => Persistence | null;
 }
 
 export interface GetOptions {
@@ -102,17 +97,14 @@ export interface FirestoreDataConverter<T> {
 }
 
 // MARK: Initialization methods
-export function memoryPersistence(): Persistence;
-export function indexedDbPersistence(
-  settings?: PersistenceSettings
-): Persistence;
-export function multiTabIndexedDbPersistence(
-  settings?: PersistenceSettings
-): Persistence;
+export function memoryPersistence(): Promise<Persistence>;
+export function indexedDbPersistence(): Promise<Persistence>;
+export function multiTabIndexedDbPersistence(): Promise<Persistence>;
 
 export function initializeFirestore(
   firestore: FirebaseFirestore,
-  settings: Settings
+  persistence: Promise<Persistence>,
+  settings?: Settings
 ): Promise<void>;
 
 export class DocumentSnapshot<T = DocumentData> {
