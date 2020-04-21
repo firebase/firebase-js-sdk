@@ -21,3 +21,17 @@ export function makeJWT(claims: object): string {
   const payload = base64Encode(JSON.stringify(claims));
   return `algorithm.${payload}.signature`;
 }
+
+/**
+ * Supported sign in methods
+ */
+export enum SignInMethod {
+  ANONYMOUS = 'anonymous',
+  EMAIL_LINK = 'emailLink',
+  EMAIL_PASSWORD = 'password',
+  FACEBOOK = 'facebook.com',
+  GITHUB = 'github.com',
+  GOOGLE = 'google.com',
+  PHONE = 'phone',
+  TWITTER = 'twitter.com'
+}
