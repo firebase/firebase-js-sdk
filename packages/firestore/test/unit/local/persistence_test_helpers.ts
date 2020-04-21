@@ -115,32 +115,29 @@ export async function testIndexedDbPersistence(
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
   const platform = PlatformSupport.getPlatform();
-  const persistence = IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: !!options.synchronizeTabs,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new IndexedDbPersistence(
+    !!options.synchronizeTabs,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
-    queue,
-    serializer: JSON_SERIALIZER,
     lruParams,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    queue,
+    JSON_SERIALIZER,
+    MOCK_SEQUENCE_NUMBER_SYNCER
+  );
   await persistence.start();
   return persistence;
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return new MemoryPersistence(AutoId.newId(), MemoryEagerDelegate.factory);
+  return new MemoryPersistence(MemoryEagerDelegate.factory);
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return new MemoryPersistence(
-    AutoId.newId(),
-    p => new MemoryLruDelegate(p, params)
-  );
+  return new MemoryPersistence(p => new MemoryLruDelegate(p, params));
 }
 
 /** Clears the persistence in tests */

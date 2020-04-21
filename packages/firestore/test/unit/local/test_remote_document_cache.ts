@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
   DocumentKeySet,
@@ -29,6 +30,7 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { debugAssert } from '../../../src/util/assert';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -130,6 +132,10 @@ export class TestRemoteDocumentCache {
       'getNewDocumentChanges',
       'readonly',
       txn => {
+        debugAssert(
+          this.cache instanceof IndexedDbRemoteDocumentCache,
+          'getNewDocumentChanges() requires IndexedDB'
+        );
         return this.cache.getNewDocumentChanges(txn, sinceReadTime);
       }
     );
