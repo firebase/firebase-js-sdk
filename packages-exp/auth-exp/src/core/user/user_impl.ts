@@ -20,7 +20,7 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
-import { assert, assertType } from '../util/assert';
+import { assert, assertStringOrUndefined} from '../util/assert';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -104,23 +104,26 @@ export class UserImpl implements User {
       photoURL
     } = object;
 
-    assert(uid && plainObjectTokenManager, auth.name);
+    assert(uid && !!plainObjectTokenManager, auth.name);
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
       auth.name,
       plainObjectTokenManager as PersistedBlob
     );
 
-    const stringOrUndef = ['string', 'undefined'];
-
+    assert(typeof uid === 'string', auth.name);
+    assertStringOrUndefined(displayName, auth.name);
+    assertStringOrUndefined(email, auth.name);
+    assertStringOrUndefined(phoneNumber, auth.name);
+    assertStringOrUndefined(photoURL, auth.name);
     return new UserImpl({
-      uid: assertType(uid, 'string', auth.name),
+      uid,
       auth,
       stsTokenManager,
-      displayName: assertType(displayName, stringOrUndef, auth.name),
-      email: assertType(email, stringOrUndef, auth.name),
-      phoneNumber: assertType(phoneNumber, stringOrUndef, auth.name),
-      photoURL: assertType(photoURL, stringOrUndef, auth.name)
+      displayName,
+      email,
+      phoneNumber,
+      photoURL
     });
   }
 }

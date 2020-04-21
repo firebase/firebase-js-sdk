@@ -15,29 +15,66 @@
  * limitations under the License.
  */
 
+import { SDK_VERSION } from '@firebase/app-exp';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { logError } from './log';
 
-export function assert<T>(
-  expression: T | null | undefined,
-  appName: string,
-  code = AuthErrorCode.INTERNAL_ERROR
-): T {
-  if (!expression) {
-    throw AUTH_ERROR_FACTORY.create(code, { appName });
-  }
-
-  return expression;
+/**
+ * Unconditionally fails, throwing a developer facing INTERNAL_ERROR
+ * 
+ * @param appName App name for tagging the error
+ * @throws FirebaseError
+ */
+export function fail(
+  appName: string
+): never {
+  throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName });
 }
 
-export function assertType<T>(
-  expression: unknown,
-  expected: string | string[],
-  appName: string
-): T {
-  if (typeof expected === 'string') {
-    expected = [expected];
+/**
+ * Verifies the given condition and fails if false, throwing a developer facing error
+ * 
+ * @param assertion
+ * @param appName 
+ */
+export function assert(assertion: boolean, appName: string): asserts assertion {
+  if (!assertion) {
+    fail(appName);
   }
+}
 
-  assert(expected.includes(typeof expression), appName);
-  return expression as T;
+export function assertStringOrUndefined(assertion: unknown, appName: string): asserts assertion is string | undefined {
+  assert(typeof assertion === 'string' || typeof assertion === 'undefined', appName);
+}
+
+/**
+ * Unconditionally fails, throwing an internal error with the given message.
+ *
+ * @param failure type of failure encountered
+ * @throws Error
+ */
+export function debugFail(failure: string): never {
+  // Log the failure in addition to throw an exception, just in case the
+  // exception is swallowed.
+  const message =
+    `AUTH (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  logError(message);
+
+  // NOTE: We don't use FirestoreError here because these are internal failures
+  // that cannot be handled by the user. (Also it would create a circular
+  // dependency between the error and assert modules which doesn't work.)
+  throw new Error(message);
+}
+
+/**
+ * Fails if the given assertion condition is false, throwing an Error with the
+ * given message if it did.
+ * 
+ * @param assertion
+ * @param message
+ */
+export function debugAssert(assertion: boolean, message: string): asserts assertion {
+  if (!assertion) {
+    debugFail(message);
+  }
 }
