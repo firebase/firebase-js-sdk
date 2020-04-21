@@ -35,7 +35,7 @@ enum QueryField {
 /**
  * Map from mode string in action code URL to Action Code Info operation.
  */
-const _ModeToOperationMap: { [key: string]: Operation } = {
+const ModeToOperationMap: { [key: string]: Operation } = {
   'recoverEmail': Operation.RECOVER_EMAIL,
   'resetPassword': Operation.PASSWORD_RESET,
   'signIn': Operation.EMAIL_SIGNIN,
@@ -47,11 +47,11 @@ const _ModeToOperationMap: { [key: string]: Operation } = {
 /**
  * Maps the mode string in action code URL to Action Code Info operation.
  */
-function _parseMode(mode: string | null): Operation | null {
-  return mode ? _ModeToOperationMap[mode] || null : null;
+function parseMode(mode: string | null): Operation | null {
+  return mode ? ModeToOperationMap[mode] || null : null;
 }
 
-function _parseDeepLink(url: string): string {
+function parseDeepLink(url: string): string {
   const uri = new URL(url);
   const link = uri.searchParams.get('link');
   // Double link case (automatic redirect).
@@ -76,7 +76,7 @@ export class ActionCodeURL {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);
-    const operation = _parseMode(uri.searchParams.get(QueryField.MODE));
+    const operation = parseMode(uri.searchParams.get(QueryField.MODE));
     // Validate API key, code and mode.
     if (!apiKey || !code || !operation) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
@@ -89,14 +89,13 @@ export class ActionCodeURL {
     this.continueUrl = uri.searchParams.get(QueryField.CONTINUE_URL);
     this.languageCode = uri.searchParams.get(QueryField.LANGUAGE_CODE);
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
-    return this;
   }
 
   static _fromLink(auth: Auth, link: string): ActionCodeURL | null {
-    const actionLink = _parseDeepLink(link);
+    const actionLink = parseDeepLink(link);
     try {
       return new ActionCodeURL(auth, actionLink);
-    } catch (e) {
+    } catch {
       return null;
     }
   }
