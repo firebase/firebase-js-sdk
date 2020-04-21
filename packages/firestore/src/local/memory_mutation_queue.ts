@@ -18,11 +18,10 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId } from '../core/types';
-import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
@@ -149,17 +148,6 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return PersistencePromise.resolve(this.findMutationBatch(batchId));
-  }
-
-  lookupMutationKeys(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<DocumentKeySet | null> {
-    const mutationBatch = this.findMutationBatch(batchId);
-    debugAssert(mutationBatch != null, 'Failed to find local mutation batch.');
-    return PersistencePromise.resolve<DocumentKeySet | null>(
-      mutationBatch.keys()
-    );
   }
 
   getNextMutationBatchAfterBatchId(

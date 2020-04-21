@@ -24,16 +24,9 @@ import {
   GarbageCollectionScheduler,
   Persistence,
   PersistenceTransaction,
-  PersistenceTransactionMode,
-  PrimaryStateListener,
-  ReferenceDelegate
+  PersistenceTransactionMode
 } from '../../../src/local/persistence';
-import { ClientId } from '../../../src/local/shared_client_state';
-import { User } from '../../../src/auth/user';
-import { MutationQueue } from '../../../src/local/mutation_queue';
-import { TargetCache } from '../../../src/local/target_cache';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { IndexManager } from '../../../src/local/index_manager';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { debugAssert } from '../../../src/util/assert';
@@ -45,66 +38,35 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 /**
- * A test-only persistence implementation that delegates all calls to the
- * underlying IndexedDB or Memory-based persistence implementations and is able
- * to inject transaction failures.
+ * A test-only MemoryPersistence implementation that is able to inject
+ * transaction failures.
  */
-export class MockPersistence implements Persistence {
+export class MockMemoryPersistence extends MemoryPersistence {
   injectFailures = false;
 
-  constructor(private readonly delegate: Persistence) {}
-
-  start(): Promise<void> {
-    return this.delegate.start();
+  runTransaction<T>(
+    action: string,
+    mode: PersistenceTransactionMode,
+    transactionOperation: (
+      transaction: PersistenceTransaction
+    ) => PersistencePromise<T>
+  ): Promise<T> {
+    if (this.injectFailures) { 
+      return Promise.reject(
+        new IndexedDbTransactionError(new Error('Simulated retryable error'))
+      );
+    } else {
+      return super.runTransaction(action, mode, transactionOperation);
+    }
   }
+}
 
-  get started(): boolean {
-    return this.delegate.started;
-  }
-
-  get referenceDelegate(): ReferenceDelegate {
-    return this.delegate.referenceDelegate;
-  }
-
-  shutdown(): Promise<void> {
-    return this.delegate.shutdown();
-  }
-
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void> {
-    return this.delegate.setPrimaryStateListener(primaryStateListener);
-  }
-
-  setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
-  ): void {
-    this.delegate.setDatabaseDeletedListener(databaseDeletedListener);
-  }
-
-  setNetworkEnabled(networkEnabled: boolean): void {
-    this.delegate.setNetworkEnabled(networkEnabled);
-  }
-
-  getActiveClients(): Promise<ClientId[]> {
-    return this.delegate.getActiveClients();
-  }
-
-  getMutationQueue(user: User): MutationQueue {
-    return this.delegate.getMutationQueue(user);
-  }
-
-  getTargetCache(): TargetCache {
-    return this.delegate.getTargetCache();
-  }
-
-  getRemoteDocumentCache(): RemoteDocumentCache {
-    return this.delegate.getRemoteDocumentCache();
-  }
-
-  getIndexManager(): IndexManager {
-    return this.delegate.getIndexManager();
-  }
+/**
+ * A test-only IndexedDbPersistence implementation that is able to inject
+ * transaction failures.
+ */
+export class MockIndexedDbPersistence extends IndexedDbPersistence {
+  injectFailures = false;
 
   runTransaction<T>(
     action: string,
@@ -118,13 +80,13 @@ export class MockPersistence implements Persistence {
         new IndexedDbTransactionError(new Error('Simulated retryable error'))
       );
     } else {
-      return this.delegate.runTransaction(action, mode, transactionOperation);
+      return super.runTransaction(action, mode, transactionOperation);
     }
   }
 }
 
 export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
-  persistence!: MockPersistence;
+  persistence!: MockIndexedDbPersistence;
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
@@ -132,13 +94,32 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
     return null;
   }
 
-  createPersistence(cfg: ComponentConfiguration): Persistence {
-    return new MockPersistence(super.createPersistence(cfg));
+  createPersistence(cfg: ComponentConfiguration): MockIndexedDbPersistence {
+    debugAssert(
+      cfg.persistenceSettings.durable,
+      'Can only start durable persistence'
+    );
+
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      cfg.databaseInfo
+    );
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+
+    return new MockIndexedDbPersistence(
+      /* allowTabSynchronization= */ true,
+      persistenceKey,
+      cfg.clientId,
+      cfg.platform,
+      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
+      cfg.asyncQueue,
+      serializer,
+      this.sharedClientState
+    );
   }
 }
 
 export class MockMemoryComponentProvider extends MemoryComponentProvider {
-  persistence!: MockPersistence;
+  persistence!: MockMemoryPersistence;
 
   constructor(private readonly gcEnabled: boolean) {
     super();
@@ -155,12 +136,10 @@ export class MockMemoryComponentProvider extends MemoryComponentProvider {
       !cfg.persistenceSettings.durable,
       'Can only start memory persistence'
     );
-    const persistence = new MemoryPersistence(
-      cfg.clientId,
+    return new MockMemoryPersistence(
       this.gcEnabled
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
     );
-    return new MockPersistence(persistence);
   }
 }
