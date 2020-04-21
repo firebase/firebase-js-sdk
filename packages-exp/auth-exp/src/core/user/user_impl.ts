@@ -20,7 +20,12 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
+<<<<<<< HEAD
 import { assert } from '../util/assert';
+=======
+import { assert, assertType } from '../util/assert';
+import { reload } from './reload';
+>>>>>>> e1eb57d5... Implement user.reload()
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -53,6 +58,9 @@ export class UserImpl implements User {
   uid: string;
   auth: Auth;
   emailVerified = false;
+  tenantId = null;
+  metadata = {};
+  providerData = [];
 
   // Optional fields from UserInfo
   displayName: string | null;
@@ -87,7 +95,7 @@ export class UserImpl implements User {
   }
 
   reload(): Promise<void> {
-    throw new Error('Method not implemented.');
+    return reload(this);
   }
 
   delete(): Promise<void> {

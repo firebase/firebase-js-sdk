@@ -42,11 +42,21 @@ export const mockAuth: Auth = {
   _notifyStateListeners() {},
 };
 
-export function testUser(uid: string, email?: string): User {
+export function testUser(uid: string, email?: string, fakeTokens = false): User {
+  // Create a token manager that's valid off the bat to avoid refresh calls
+  const stsTokenManager = new StsTokenManager();
+  if (fakeTokens) {
+    Object.assign<StsTokenManager, Partial<StsTokenManager>>(stsTokenManager, {
+      expirationTime: Date.now() + 100_000,
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    });
+  }
+
   return new UserImpl({
     uid,
     auth: mockAuth,
-    stsTokenManager: new StsTokenManager(),
+    stsTokenManager,
     email
   });
 }
