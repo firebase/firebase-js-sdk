@@ -67,7 +67,7 @@ describe('deleteAccount', () => {
 
     await expect(deleteAccount(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with]: or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
+      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
     expect(mock.calls[0].request).to.eql(request);
   });
@@ -176,7 +176,7 @@ describe('getAccountInfo', () => {
 
     await expect(getAccountInfo(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
-      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with]: or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
+      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
     expect(mock.calls[0].request).to.eql(request);
   });
