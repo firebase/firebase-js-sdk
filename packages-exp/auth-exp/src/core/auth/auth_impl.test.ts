@@ -29,11 +29,7 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
-} from './auth_impl';
+import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
 
 use(sinonChai);
 
@@ -130,7 +126,7 @@ describe('initializeAuth', () => {
       })
     ).to.throw(
       FirebaseError,
-      'Firebase: Your API key is invalid]: please check you have copied it correctly. (auth/invalid-api-key).'
+      'Firebase: Your API key is invalid, please check you have copied it correctly. (auth/invalid-api-key).'
     );
   });
 
