@@ -112,7 +112,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'This operation is restricted to administrators only.',
   [AuthErrorCode.ARGUMENT_ERROR]: '',
   [AuthErrorCode.APP_NOT_AUTHORIZED]:
-    "This app]: identified by the domain where it's hosted]: is not " +
+    "This app, identified by the domain where it's hosted, is not " +
     'authorized to use Firebase Authentication with the provided API key. ' +
     'Review your key configuration in the Google API console.',
   [AuthErrorCode.APP_NOT_INSTALLED]:
@@ -120,7 +120,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'Android package name or iOS bundle ID) provided is not installed on ' +
     'this device.',
   [AuthErrorCode.CAPTCHA_CHECK_FAILED]:
-    'The reCAPTCHA response token provided is either invalid]: expired]: ' +
+    'The reCAPTCHA response token provided is either invalid, expired, ' +
     'already used or the domain associated with it does not match the list ' +
     'of whitelisted domains.',
   [AuthErrorCode.CODE_EXPIRED]:
@@ -136,15 +136,13 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'This operation is sensitive and requires recent authentication. Log in ' +
     'again before retrying this request.',
   [AuthErrorCode.DYNAMIC_LINK_NOT_ACTIVATED]:
-    'Please activate ' +
-    'Dynamic Links in the Firebase Console and agree to the terms and ' +
+    'Please activate Dynamic Links in the Firebase Console and agree to the terms and ' +
     'conditions.',
   [AuthErrorCode.EMAIL_EXISTS]:
     'The email address is already in use by another account.',
-  [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired. ',
+  [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired.',
   [AuthErrorCode.EXPIRED_POPUP_REQUEST]:
-    'This operation has been cancelled due to another conflicting popup ' +
-    'being opened.',
+    'This operation has been cancelled due to another conflicting popup being opened.',
   [AuthErrorCode.INTERNAL_ERROR]: 'An internal AuthError has occurred.',
   [AuthErrorCode.INVALID_APP_CREDENTIAL]:
     'The phone verification request contains an invalid application verifier.' +
@@ -153,7 +151,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'The mobile app identifier is not registed for the current project.',
   [AuthErrorCode.INVALID_AUTH]:
     "This user's credential isn't valid for this project. This can happen " +
-    "if the user's token has been tampered with]: or if the user isn't for " +
+    "if the user's token has been tampered with, or if the user isn't for " +
     'the project associated with this API key.',
   [AuthErrorCode.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
   [AuthErrorCode.INVALID_CODE]:
@@ -163,28 +161,24 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.INVALID_CONTINUE_URI]:
     'The continue URL provided in the request is invalid.',
   [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]:
-    'The following' +
-    ' Cordova plugins must be installed to enable OAuth sign-in= ' +
-    'cordova-plugin-buildinfo]: cordova-universal-links-plugin]: ' +
-    'cordova-plugin-browsertab]: cordova-plugin-inappbrowser and ' +
+    'The following Cordova plugins must be installed to enable OAuth sign-in: ' +
+    'cordova-plugin-buildinfo, cordova-universal-links-plugin, ' +
+    'cordova-plugin-browsertab, cordova-plugin-inappbrowser and ' +
     'cordova-plugin-customurlscheme.',
   [AuthErrorCode.INVALID_CUSTOM_TOKEN]:
     'The custom token format is incorrect. Please check the documentation.',
   [AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN]:
-    'The provided ' +
-    'dynamic link domain is not configured or authorized for the current ' +
-    'project.',
+    'The provided dynamic link domain is not configured or authorized for the current project.',
   [AuthErrorCode.INVALID_EMAIL]: 'The email address is badly formatted.',
   [AuthErrorCode.INVALID_API_KEY]:
-    'Your API key is invalid]: please check you have copied it correctly.',
+    'Your API key is invalid, please check you have copied it correctly.',
   [AuthErrorCode.INVALID_CERT_HASH]:
     'The SHA-1 certificate hash provided is invalid.',
   [AuthErrorCode.INVALID_IDP_RESPONSE]:
     'The supplied auth credential is malformed or has expired.',
   [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
-    'The email template corresponding to this action contains invalid charac' +
-    'ters in its message. Please fix by going to the Auth email templates se' +
-    'ction in the Firebase Console.',
+    'The email template corresponding to this action contains invalid characters in its message. ' +
+    'Please fix by going to the Auth email templates section in the Firebase Console.',
   [AuthErrorCode.INVALID_OAUTH_PROVIDER]:
     'EmailAuthProvider is not supported for this operation. This operation ' +
     'only supports OAuth providers.',
@@ -195,43 +189,38 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'This domain is not authorized for OAuth operations for your Firebase ' +
     'project. Edit the list of authorized domains from the Firebase console.',
   [AuthErrorCode.INVALID_OOB_CODE]:
-    'The action code is invalid. This can happen if the code is malformed]: ' +
-    'expired]: or has already been used.',
+    'The action code is invalid. This can happen if the code is malformed, ' +
+    'expired, or has already been used.',
   [AuthErrorCode.INVALID_PASSWORD]:
     'The password is invalid or the user does not have a password.',
   [AuthErrorCode.INVALID_PERSISTENCE]:
-    'The specified persistence type is invalid. It can only be local]: ' +
-    'session or none.',
+    'The specified persistence type is invalid. It can only be local, session or none.',
   [AuthErrorCode.INVALID_PHONE_NUMBER]:
     'The format of the phone number provided is incorrect. Please enter the ' +
     'phone number in a format that can be parsed into E.164 format. E.164 ' +
-    'phone numbers are written in the format [+,[country code,[subscriber ' +
-    'number including area code,.',
+    'phone numbers are written in the format [+][country code][subscriber ' +
+    'number including area code].',
   [AuthErrorCode.INVALID_PROVIDER_ID]: 'The specified provider ID is invalid.',
   [AuthErrorCode.INVALID_RECIPIENT_EMAIL]:
     'The email corresponding to this action failed to send as the provided ' +
     'recipient email address is invalid.',
   [AuthErrorCode.INVALID_SENDER]:
-    'The email template corresponding to this action contains an invalid sen' +
-    'der email or name. Please fix by going to the Auth email templates sect' +
-    'ion in the Firebase Console.',
+    'The email template corresponding to this action contains an invalid sender email or name. ' +
+    'Please fix by going to the Auth email templates section in the Firebase Console.',
   [AuthErrorCode.INVALID_SESSION_INFO]:
     'The verification ID used to create the phone auth credential is invalid.',
   [AuthErrorCode.INVALID_TENANT_ID]:
     "The Auth instance's tenant ID is invalid.",
   [AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME]:
-    'An Android ' +
-    'Package Name must be provided if the Android App is required to be ' +
-    'installed.',
+    'An Android Package Name must be provided if the Android App is required to be installed.',
   [AuthErrorCode.MISSING_AUTH_DOMAIN]:
-    'Be sure to include authDomain when calling firebase.initializeApp()]: ' +
+    'Be sure to include authDomain when calling firebase.initializeApp(), ' +
     'by following the instructions in the Firebase console.',
   [AuthErrorCode.MISSING_APP_CREDENTIAL]:
     'The phone verification request is missing an application verifier ' +
     'assertion. A reCAPTCHA response token needs to be provided.',
   [AuthErrorCode.MISSING_CODE]:
-    'The phone auth credential was created with an empty SMS verification ' +
-    'code.',
+    'The phone auth credential was created with an empty SMS verification code.',
   [AuthErrorCode.MISSING_CONTINUE_URI]:
     'A continue URL must be provided in the request.',
   [AuthErrorCode.MISSING_IFRAME_START]: 'An internal AuthError has occurred.',
@@ -242,7 +231,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
     'in the ID token payload.',
   [AuthErrorCode.MISSING_PHONE_NUMBER]:
-    'To send verification codes]: provide a phone number for the recipient.',
+    'To send verification codes, provide a phone number for the recipient.',
   [AuthErrorCode.MISSING_SESSION_INFO]:
     'The phone auth credential was created with an empty verification ID.',
   [AuthErrorCode.MODULE_DESTROYED]:
@@ -254,8 +243,7 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'sign-in credentials. Sign in using a provider associated with this ' +
     'email address.',
   [AuthErrorCode.NETWORK_REQUEST_FAILED]:
-    'A network AuthError (such as timeout]: interrupted connection or ' +
-    'unreachable host) has occurred.',
+    'A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred.',
   [AuthErrorCode.NO_AUTH_EVENT]: 'An internal AuthError has occurred.',
   [AuthErrorCode.NO_SUCH_PROVIDER]:
     'User was not linked to an account with the given provider.',
@@ -264,15 +252,14 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'requires a non-null user object.',
   [AuthErrorCode.OPERATION_NOT_ALLOWED]:
     'The given sign-in provider is disabled for this Firebase project. ' +
-    'Enable it in the Firebase console]: under the sign-in method tab of the ' +
+    'Enable it in the Firebase console, under the sign-in method tab of the ' +
     'Auth section.',
   [AuthErrorCode.OPERATION_NOT_SUPPORTED]:
     'This operation is not supported in the environment this application is ' +
-    'running on. "location.protocol" must be http]: https or chrome-extension' +
+    'running on. "location.protocol" must be http, https or chrome-extension' +
     ' and web storage must be enabled.',
   [AuthErrorCode.POPUP_BLOCKED]:
-    'Unable to establish a connection with the popup. It may have been ' +
-    'blocked by the browser.',
+    'Unable to establish a connection with the popup. It may have been blocked by the browser.',
   [AuthErrorCode.POPUP_CLOSED_BY_USER]:
     'The popup has been closed by the user before finalizing the operation.',
   [AuthErrorCode.PROVIDER_ALREADY_LINKED]:
@@ -308,14 +295,12 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.USER_DISABLED]:
     'The user account has been disabled by an administrator.',
   [AuthErrorCode.USER_MISMATCH]:
-    'The supplied credentials do not correspond to the previously signed in ' +
-    'user.',
+    'The supplied credentials do not correspond to the previously signed in user.',
   [AuthErrorCode.USER_SIGNED_OUT]: '',
   [AuthErrorCode.WEAK_PASSWORD]:
     'The password must be 6 characters long or more.',
   [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
-    'This browser is not supported or 3rd party cookies and data may be ' +
-    'disabled.'
+    'This browser is not supported or 3rd party cookies and data may be disabled.'
 };
 
 type AuthErrorParams = {

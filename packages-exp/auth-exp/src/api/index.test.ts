@@ -197,7 +197,7 @@ describe('performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: A network AuthError (such as timeout]: interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+        'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
       );
     });
   });

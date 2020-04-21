@@ -78,7 +78,7 @@ describe('sendPhoneVerificationCode', () => {
       sendPhoneVerificationCode(mockAuth, request)
     ).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+,[country code,[subscriber number including area code,. (auth/invalid-phone-number).'
+      'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. (auth/invalid-phone-number).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
