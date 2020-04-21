@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,4 +15,20 @@
  * limitations under the License.
  */
 
-export {getDocument} from './src/api/crud';
+import { expect } from 'chai';
+import {withTestDoc} from "./helpers";
+import {getDocument} from "../src/api/crud";
+
+
+// tslint:disable:no-floating-promises
+
+
+describe('Database', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async (docRef) => {
+      const docSnap = await getDocument(docRef);
+      expect(docSnap.exists).to.be.false;
+    });
+  });
+
+});

@@ -18,20 +18,18 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-
-import * as api from '../protos/firestore_proto_api';
+import * as api from '../api'
 
 import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
-import { debugAssert} from '../../../src/util/assert';
 import { Code, FirestoreError } from '../../../src/util/error';
 import {
+  validateArgType,
+  validateBetweenNumberOfArgs, validateExactNumberOfArgs,
   validateNamedOptionalType,
   validateNamedType,
   validateOptionNames,
@@ -43,10 +41,16 @@ import {
   EmptyCredentialsProvider,
   FirebaseCredentialsProvider,
 } from '../../../src/api/credentials';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import {Datastore} from "../../../src/remote/datastore";
+import {ResourcePath} from "../../../src/model/path";
+import {Query as InternalQuery} from "../../../src/core/query";
+import {AutoId} from "../../../src/util/misc";
+import {Query} from "../../../src/api/database";
+import {DocumentData, Settings} from "./crud";
+import { FirebaseService } from '@firebase/app-types/private';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -132,7 +136,7 @@ class FirestoreSettings {
 /**
  * The root reference to the database.
  */
-export class Firestore {
+export class Firestore implements api.FirebaseFirestore, FirebaseService {
   // The objects that are a part of this API are exposed to third-parties as
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
@@ -147,7 +151,7 @@ export class Firestore {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  private _datastore: Datastore | undefined;
+  _datastore: Datastore | undefined;
 
   // Note: We are using `MemoryComponentProvider` as a default
   // ComponentProvider to ensure backwards compatibility with the format
@@ -179,21 +183,37 @@ export class Firestore {
     this._settings = new FirestoreSettings({});
   }
 
-  async ensureClientConfigured() : Promise<void> {
+  get app(): FirebaseApp {
+    if (!this._firebaseApp) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        "Firestore was not initialized using the Firebase SDK. 'app' is " +
+        'not available'
+      );
+    }
+    return this._firebaseApp;
+  }
+  
+  _configureClient(settings: Settings): void {
+    if (this._datastore) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, 'Firestore has already been started');
+    }
+    this._settings = new FirestoreSettings(settings);
+  }
+
+  async _ensureClientConfigured() : Promise<void> {
     if (!this._datastore) {
-      const databaseInfo = this.makeDatabaseInfo();
+      const databaseInfo = this._makeDatabaseInfo();
 
       const conenction = await PlatformSupport.getPlatform().loadConnection(databaseInfo);
-      const serializer = PlatformSupport.getPlatform().newSerializer(databaseInfo);
+      const serializer = PlatformSupport.getPlatform().newSerializer(databaseInfo.databaseId);
       this._datastore = new Datastore(conenction,
         this._credentials,serializer
       );
-
     }
-    return this._datastore as Datastore;
   }
 
-  private makeDatabaseInfo(): DatabaseInfo {
+  private _makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       /* persistenceKey= */ 'invalid',
@@ -220,40 +240,96 @@ export class Firestore {
     }
     return new DatabaseId(projectId);
   }
+
+  collection(pathString: string): api.CollectionReference {
+    return new CollectionReference(ResourcePath.fromString(pathString), this);
+  }
+  
+  doc(pathString: string): api.DocumentReference {
+    return new DocumentReference(new DocumentKey(ResourcePath.fromString(pathString)), this);
+  }
 }
 
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = firestore.DocumentData> {
-  private _firestoreClient: FirestoreClient;
-
+export class DocumentReference<T = firestore.DocumentData> implements api.DocumentReference<T> {
   constructor(
     public _key: DocumentKey,
-    readonly firestore: Firestore
+    readonly firestore: api.FirebaseFirestore
   ) {
-    this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 }
 
 export class DocumentSnapshot<T = firestore.DocumentData> {
   constructor(
-    private _firestore: Firestore,
+    private _firestore: api.FirebaseFirestore,
     private _key: DocumentKey,
     public _document: Document | null
   ) {}
-
+  
+  get exists(): boolean {
+    return this._document !== null;
+  }
+  
   data(): T | undefined {
     if (!this._document) {
       return undefined;
     } else {
-        const userDataWriter = new UserDataWriter(
-          this._firestore,
-          /* timestampsInSnapshots= */ false,
-          /* timestampsInSnapshots= */ 'default',
-          /* converter= */ undefined
-        );
+        const userDataWriter = new UserDataWriter(this._firestore);
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
     }
+}
+
+
+export class CollectionReference<T = firestore.DocumentData> implements  api.CollectionReference<T> {
+  constructor(
+    readonly _path: ResourcePath,
+    readonly firestore: api.FirebaseFirestore,
+    _converter?: firestore.FirestoreDataConverter<T>
+  ) {
+    if (_path.length % 2 !== 1) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid collection reference. Collection ' +
+        'references must have an odd number of segments, but ' +
+        `${_path.canonicalString()} has ${_path.length}`
+      );
+    }
+  }
+
+  get id(): string {
+    return this._path.lastSegment();
+  }
+
+  get parent(): api.DocumentReference<DocumentData> | null {
+    const parentPath = this._path.popLast();
+    if (parentPath.isEmpty()) {
+      return null;
+    } else {
+      return new DocumentReference<firestore.DocumentData>(
+        new DocumentKey(parentPath),
+        this.firestore
+      );
+    }
+  }
+
+  get path(): string {
+    return this._path.canonicalString();
+  }
+
+  doc(pathString?: string): api.DocumentReference<T> {
+    if (pathString === '') {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Document path must be a non-empty string'
+      );
+    }
+    const path = ResourcePath.fromString(pathString || AutoId.newId());
+    return new DocumentReference<T>(
+      new DocumentKey(this._path.child(path)),
+      this.firestore
+    );
+  }
 }

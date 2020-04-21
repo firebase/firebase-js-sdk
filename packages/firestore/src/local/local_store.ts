@@ -62,6 +62,7 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { ByteString } from '../util/byte_string';
+import {extractFieldMask} from "../model/field_value";
 
 const LOG_TAG = 'LocalStore';
 
@@ -335,7 +336,7 @@ export class LocalStore {
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  baseValue.fieldMask(),
+                  extractFieldMask(baseValue.proto.mapValue!),
                   Precondition.exists(true)
                 )
               );

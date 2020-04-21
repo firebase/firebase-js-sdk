@@ -155,7 +155,7 @@ export class RemoteStore implements TargetMetadataProvider {
     );
 
     // Create streams (but note they're not started yet).
-    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue,{
+    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
       onOpen: this.onWatchStreamOpen.bind(this),
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)

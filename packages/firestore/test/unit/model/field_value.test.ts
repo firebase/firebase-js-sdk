@@ -17,10 +17,15 @@
 
 import * as api from '../../../src/protos/firestore_proto_api';
 
-import { expect } from 'chai';
-import { ObjectValue, TypeOrder } from '../../../src/model/field_value';
-import { typeOrder } from '../../../src/model/values';
-import { wrap, wrapObject, field, mask } from '../../util/helpers';
+import {expect} from 'chai';
+import {
+  extractFieldMask,
+  ObjectValue,
+  ObjectValueBuilder,
+  TypeOrder
+} from '../../../src/model/field_value';
+import {typeOrder} from '../../../src/model/values';
+import {field, mask, wrap, wrapObject} from '../../util/helpers';
 
 describe('FieldValue', () => {
   it('can extract fields', () => {
@@ -80,12 +85,10 @@ describe('FieldValue', () => {
 
   it('can add multiple new fields', () => {
     let objValue = ObjectValue.EMPTY;
-    objValue = objValue
-      .toBuilder()
+    objValue = new ObjectValueBuilder(objValue)
       .set(field('a'), wrap('a'))
       .build();
-    objValue = objValue
-      .toBuilder()
+    objValue = new ObjectValueBuilder(objValue)
       .set(field('b'), wrap('b'))
       .set(field('c'), wrap('c'))
       .build();
@@ -154,8 +157,7 @@ describe('FieldValue', () => {
   it('can delete added keys', () => {
     let objValue = wrapObject({});
 
-    objValue = objValue
-      .toBuilder()
+    objValue = new ObjectValueBuilder(objValue)
       .set(field('a'), wrap('a'))
       .delete(field('a'))
       .build();
@@ -189,12 +191,10 @@ describe('FieldValue', () => {
   it('can delete multiple fields', () => {
     let objValue = wrapObject({ a: 'a', b: 'a', c: 'c' });
 
-    objValue = objValue
-      .toBuilder()
+    objValue = new ObjectValueBuilder(objValue)
       .delete(field('a'))
       .build();
-    objValue = objValue
-      .toBuilder()
+    objValue = new ObjectValueBuilder(objValue)
       .delete(field('b'))
       .delete(field('c'))
       .build();
@@ -216,7 +216,7 @@ describe('FieldValue', () => {
       'map.nested.d',
       'emptymap'
     );
-    const actualMask = objValue.fieldMask();
+    const actualMask = extractFieldMask(objValue.proto.mapValue!);
     expect(actualMask.isEqual(expectedMask)).to.be.true;
   });
 
@@ -225,8 +225,7 @@ describe('FieldValue', () => {
     fieldPath: string,
     value: api.Value
   ): ObjectValue {
-    return objectValue
-      .toBuilder()
+    return new ObjectValueBuilder(objectValue)
       .set(field(fieldPath), value)
       .build();
   }
@@ -235,8 +234,7 @@ describe('FieldValue', () => {
     objectValue: ObjectValue,
     fieldPath: string
   ): ObjectValue {
-    return objectValue
-      .toBuilder()
+    return new ObjectValueBuilder(objectValue)
       .delete(field(fieldPath))
       .build();
   }

@@ -81,14 +81,14 @@ export class Datastore {
       BatchGetDocumentsRequest,
       api.BatchGetDocumentsResponse
     >('BatchGetDocuments', params).then(response => {
-      let docs = maybeDocumentMap();
+      let docs = new Map<string, MaybeDocument>();
       response.forEach(proto => {
         const doc = this.serializer.fromMaybeDocument(proto);
-        docs = docs.insert(doc.key, doc);
+        docs.set(doc.key.toString(), doc);
       });
       const result: MaybeDocument[] = [];
       keys.forEach(key => {
-        const doc = docs.get(key);
+        const doc = docs.get(key.toString());
         hardAssert(!!doc, 'Missing entity in write response for ' + key);
         result.push(doc);
       });
@@ -133,7 +133,6 @@ export class Datastore {
       });
   }
 }
-
 
 export function newPersistentWriteStream(
   datastore: Datastore,

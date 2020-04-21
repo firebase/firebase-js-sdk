@@ -17,22 +17,17 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { Timestamp } from '../api/timestamp';
-import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, fail, hardAssert } from '../util/assert';
-import { SortedSet } from '../util/sorted_set';
+import {Timestamp} from '../api/timestamp';
+import {SnapshotVersion} from '../core/snapshot_version';
+import {debugAssert, fail, hardAssert} from '../util/assert';
+import {SortedSet} from '../util/sorted_set';
 
-import {
-  Document,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
-} from './document';
-import { DocumentKey } from './document_key';
-import { ObjectValue, ObjectValueBuilder } from './field_value';
-import { FieldPath } from './path';
-import { TransformOperation } from './transform_operation';
-import { arrayEquals } from '../util/misc';
+import {Document, MaybeDocument, NoDocument, UnknownDocument} from './document';
+import {DocumentKey} from './document_key';
+import {ObjectValue, ObjectValueBuilder} from './field_value';
+import {FieldPath} from './path';
+import {TransformOperation} from './transform_operation';
+import {arrayEquals} from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -491,7 +486,7 @@ export class PatchMutation extends Mutation {
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
@@ -598,7 +593,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.newBuilder().set(
+          baseObject = new ObjectValueBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -726,7 +721,7 @@ export class TransformMutation extends Mutation {
       'TransformResults length mismatch.'
     );
 
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;

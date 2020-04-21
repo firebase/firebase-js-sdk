@@ -42,7 +42,7 @@ describeSpec(
             // Client 1 has received the WebStorage notification that the write
             // has been acknowledged, but failed to process the change. Hence,
             // we did not get a user callback. We schedule the first retry and
-            // make sure that it also does not get processed until 
+            // make sure that it also does not get processed until
             // `recoverDatabase` is called.
             .runTimer(TimerId.AsyncQueueRetry)
             .recoverDatabase()
