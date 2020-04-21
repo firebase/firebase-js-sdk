@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, querystring } from '@firebase/util';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
@@ -65,12 +65,10 @@ export async function performApiRequest<T, V>(
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     let body = {};
-    const params: { [key: string]: string } = {
-      key: auth.config.apiKey
-    };
+    let params = {};
     if (request) {
       if (method === HttpMethod.GET) {
-        Object.assign(params, request);
+        params = request;
       } else {
         body = {
           body: JSON.stringify(request)
@@ -78,15 +76,14 @@ export async function performApiRequest<T, V>(
       }
     }
 
-    const queryString = Object.keys(params)
-      .map(key => {
-        return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
-      })
-      .join('&');
+    const query = querystring({
+      key: auth.config.apiKey,
+      ...params
+    }).slice(1);
 
     const response: Response = await Promise.race<Promise<Response>>([
       fetch(
-        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${queryString}`,
+        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
         {
           method,
           headers: {
