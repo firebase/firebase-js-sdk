@@ -18,17 +18,17 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { SinonStub, stub, restore } from 'sinon';
 import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
+import { Operation } from '../../model/action_code_info';
 import { ProviderId } from '../providers';
 import * as location from '../util/location';
 import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
-import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 use(sinonChai);
