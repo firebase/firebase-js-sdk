@@ -72,7 +72,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .expectEvents(query, {});
     }
   );
-  
+
   specTest(
     'Query is listened to by primary (with recovery)',
     ['multi-client'],
