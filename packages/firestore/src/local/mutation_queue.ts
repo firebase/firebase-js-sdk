@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId } from '../core/types';
-import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
@@ -77,18 +76,6 @@ export interface MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
-
-  /**
-   * Returns the document keys for the mutation batch with the given batchId.
-   * For primary clients, this method returns `null` after
-   * `removeMutationBatches()` has been called. Secondary clients return a
-   * cached result until `removeCachedMutationKeys()` is invoked.
-   */
-  // PORTING NOTE: Multi-tab only.
-  lookupMutationKeys(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Gets the first unacknowledged mutation batch after the passed in batchId
@@ -192,17 +179,6 @@ export interface MutationQueue {
     transaction: PersistenceTransaction,
     batch: MutationBatch
   ): PersistencePromise<void>;
-
-  /**
-   * Clears the cached keys for a mutation batch. This method should be
-   * called by secondary clients after they process mutation updates.
-   *
-   * Note that this method does not have to be called from primary clients as
-   * the corresponding cache entries are cleared when an acknowledged or
-   * rejected batch is removed from the mutation queue.
-   */
-  // PORTING NOTE: Multi-tab only
-  removeCachedMutationKeys(batchId: BatchId): void;
 
   /**
    * Performs a consistency check, examining the mutation queue for any

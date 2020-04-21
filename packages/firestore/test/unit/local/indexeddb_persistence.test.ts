@@ -126,16 +126,16 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: multiClient,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new IndexedDbPersistence(
+    multiClient,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
+    LruParams.DEFAULT,
     queue,
     serializer,
-    lruParams: LruParams.DEFAULT,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    MOCK_SEQUENCE_NUMBER_SYNCER
+  );
 
   await persistence.start();
   await fn(persistence, platform, queue);

@@ -234,6 +234,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
       });
   }
 
+  /**
+   * Returns the document keys for the mutation batch with the given batchId.
+   * For primary clients, this method returns `null` after
+   * `removeMutationBatches()` has been called. Secondary clients return a
+   * cached result until `removeCachedMutationKeys()` is invoked.
+   */
+  // PORTING NOTE: Multi-tab only.
   lookupMutationKeys(
     transaction: PersistenceTransaction,
     batchId: BatchId
@@ -521,6 +528,15 @@ export class IndexedDbMutationQueue implements MutationQueue {
     });
   }
 
+  /**
+   * Clears the cached keys for a mutation batch. This method should be
+   * called by secondary clients after they process mutation updates.
+   *
+   * Note that this method does not have to be called from primary clients as
+   * the corresponding cache entries are cleared when an acknowledged or
+   * rejected batch is removed from the mutation queue.
+   */
+  // PORTING NOTE: Multi-tab only
   removeCachedMutationKeys(batchId: BatchId): void {
     delete this.documentKeysByBatchId[batchId];
   }

@@ -40,12 +40,10 @@ import {
   Persistence,
   PersistenceTransaction,
   PersistenceTransactionMode,
-  PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
@@ -78,7 +76,6 @@ export class MemoryPersistence implements Persistence {
    * checked or asserted on every access.
    */
   constructor(
-    private readonly clientId: ClientId,
     referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
   ) {
     this._started = true;
@@ -107,22 +104,7 @@ export class MemoryPersistence implements Persistence {
     return this._started;
   }
 
-  async getActiveClients(): Promise<ClientId[]> {
-    return [this.clientId];
-  }
-
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void> {
-    // All clients using memory persistence act as primary.
-    return primaryStateListener(true);
-  }
-
   setDatabaseDeletedListener(): void {
-    // No op.
-  }
-
-  setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }
 
