@@ -19,7 +19,7 @@ import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
-import { getLogLevel, logDebug, LogLevel } from '../util/log';
+import { getLogLevel, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -258,10 +258,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
       'Cannot schedule GC while a task is pending'
     );
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
-    logDebug(
-      'LruGarbageCollector',
-      `Garbage collection scheduled in ${delay}ms`
-    );
+    ;
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
@@ -345,17 +342,13 @@ export class LruGarbageCollector {
     if (
       this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED
     ) {
-      logDebug('LruGarbageCollector', 'Garbage collection skipped; disabled');
+      ;
       return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }
 
     return this.getCacheSize(txn).next(cacheSize => {
       if (cacheSize < this.params.cacheSizeCollectionThreshold) {
-        logDebug(
-          'LruGarbageCollector',
-          `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
-        );
+        ;
         return GC_DID_NOT_RUN;
       } else {
         return this.runGarbageCollection(txn, activeTargetIds);
@@ -383,12 +376,7 @@ export class LruGarbageCollector {
       .next(sequenceNumbers => {
         // Cap at the configured max
         if (sequenceNumbers > this.params.maximumSequenceNumbersToCollect) {
-          logDebug(
-            'LruGarbageCollector',
-            'Capping sequence numbers to collect down ' +
-              `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
-              `from ${sequenceNumbers}`
-          );
+          ;
           sequenceNumbersToCollect = this.params
             .maximumSequenceNumbersToCollect;
         } else {
@@ -428,7 +416,7 @@ export class LruGarbageCollector {
             `\tRemoved ${documentsRemoved} documents in ` +
             `${removedDocumentsTs - removedTargetsTs}ms\n` +
             `Total Duration: ${removedDocumentsTs - startTs}ms`;
-          logDebug('LruGarbageCollector', desc);
+          ;
         }
 
         return PersistencePromise.resolve<LruResults>({

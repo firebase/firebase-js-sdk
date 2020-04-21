@@ -38,7 +38,6 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -383,7 +382,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (e.name === 'IndexedDbTransactionError') {
         // If we can't persist the mutation, we reject the user callback and
         // don't send the mutation. The user can then retry the write.
-        logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
+        ;
         userCallback.reject(
           new FirestoreError(Code.UNAVAILABLE, 'Failed to persist write: ' + e)
         );
@@ -575,7 +574,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // had, we would have cached the affected documents), and so we will just
       // see any resulting document changes via normal remote document updates
       // as applicable.
-      logDebug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      ;
       return;
     }
 
@@ -651,11 +650,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
-      logDebug(
-        LOG_TAG,
-        'The network is disabled. The task returned by ' +
-          "'awaitPendingWrites()' will not complete until the network is enabled."
-      );
+      ;
     }
 
     const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
@@ -792,7 +787,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
         this.trackLimboChange(limboChange);
       } else if (limboChange instanceof RemovedLimboDocument) {
-        logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
+        ;
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
         const isReferenced = this.limboDocumentRefs.containsKey(
           limboChange.key
@@ -810,7 +805,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
     if (!this.activeLimboTargetsByKey.get(key)) {
-      logDebug(LOG_TAG, 'New document in limbo: ' + key);
+      ;
       this.enqueuedLimboResolutions.push(key);
       this.pumpEnqueuedLimboResolutions();
     }
@@ -1114,7 +1109,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
-      logDebug(LOG_TAG, 'Ignoring unexpected query state notification.');
+      ;
       return;
     }
 
@@ -1159,7 +1154,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     for (const targetId of added) {
       if (this.queriesByTarget.has(targetId)) {
         // A target might have been added in a previous attempt
-        logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
+        ;
         continue;
       }
 

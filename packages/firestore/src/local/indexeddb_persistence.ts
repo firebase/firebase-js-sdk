@@ -25,7 +25,6 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
 import {
   decodeResourcePath,
@@ -420,11 +419,7 @@ export class IndexedDbPersistence implements Persistence {
           throw e;
         }
 
-        logDebug(
-          LOG_TAG,
-          'Releasing owner lease after error during lease refresh',
-          e
-        );
+        ;
         return /* isPrimary= */ false;
       })
       .then(isPrimary => {
@@ -627,12 +622,7 @@ export class IndexedDbPersistence implements Persistence {
       })
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
-          logDebug(
-            LOG_TAG,
-            `Client ${
-              canActAsPrimary ? 'is' : 'is not'
-            } eligible for a primary lease.`
-          );
+          ;
         }
         return canActAsPrimary;
       });
@@ -753,7 +743,7 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    logDebug(LOG_TAG, 'Starting transaction:', action);
+    ;
 
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
 
@@ -783,9 +773,7 @@ export class IndexedDbPersistence implements Persistence {
             })
             .next(holdsPrimaryLease => {
               if (!holdsPrimaryLease) {
-                logError(
-                  `Failed to obtain primary lease for action '${action}'.`
-                );
+                ;
                 this.isPrimary = false;
                 this.queue.enqueueAndForget(() =>
                   this.primaryStateListener(false)
@@ -890,7 +878,7 @@ export class IndexedDbPersistence implements Persistence {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
-        logDebug(LOG_TAG, 'Releasing primary lease.');
+        ;
         return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
@@ -906,9 +894,7 @@ export class IndexedDbPersistence implements Persistence {
     if (updateTimeMs < minAcceptable) {
       return false;
     } else if (updateTimeMs > maxAcceptable) {
-      logError(
-        `Detected an update time that is in the future: ${updateTimeMs} > ${maxAcceptable}`
-      );
+      ;
       return false;
     }
 
@@ -1000,16 +986,10 @@ export class IndexedDbPersistence implements Persistence {
       const isZombied =
         this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
         null;
-      logDebug(
-        LOG_TAG,
-        `Client '${clientId}' ${
-          isZombied ? 'is' : 'is not'
-        } zombied in LocalStorage`
-      );
+      ;
       return isZombied;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't working.
-      logError(LOG_TAG, 'Failed to get zombied client id.', e);
       return false;
     }
   }
@@ -1026,7 +1006,7 @@ export class IndexedDbPersistence implements Persistence {
       );
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      logError('Failed to set zombie client id.', e);
+      ;
     }
   }
 

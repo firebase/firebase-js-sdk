@@ -45,7 +45,7 @@ import {
 import { StreamBridge } from '../remote/stream_bridge';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+
 import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
@@ -114,24 +114,18 @@ export class WebChannelConnection implements Connection {
           switch (xhr.getLastErrorCode()) {
             case ErrorCode.NO_ERROR:
               const json = xhr.getResponseJson() as Resp;
-              logDebug(LOG_TAG, 'XHR received:', JSON.stringify(json));
+              ;
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              logDebug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+              ;
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
               break;
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
-              logDebug(
-                LOG_TAG,
-                'RPC "' + rpcName + '" failed with status:',
-                status,
-                'response text:',
-                xhr.getResponseText()
-              );
+              ;
               if (status > 0) {
                 const responseError = (xhr.getResponseJson() as WebChannelError)
                   .error;
@@ -160,7 +154,7 @@ export class WebChannelConnection implements Connection {
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
-                logDebug(LOG_TAG, 'RPC "' + rpcName + '" failed');
+                ;
                 reject(
                   new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                 );
@@ -179,7 +173,7 @@ export class WebChannelConnection implements Connection {
               );
           }
         } finally {
-          logDebug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
+          ;
         }
       });
 
@@ -190,7 +184,7 @@ export class WebChannelConnection implements Connection {
       delete jsonObj.database;
 
       const requestString = JSON.stringify(jsonObj);
-      logDebug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
+      ;
       // Content-Type: text/plain will avoid preflight requests which might
       // mess with CORS and redirects by proxies. If we add custom headers
       // we will need to change this code to potentially use the
@@ -282,7 +276,7 @@ export class WebChannelConnection implements Connection {
     }
 
     const url = urlParts.join('');
-    logDebug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
+    ;
     const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -301,14 +295,14 @@ export class WebChannelConnection implements Connection {
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
-            logDebug(LOG_TAG, 'Opening WebChannel transport.');
+            ;
             channel.open();
             opened = true;
           }
-          logDebug(LOG_TAG, 'WebChannel sending:', msg);
+          ;
           channel.send(msg);
         } else {
-          logDebug(LOG_TAG, 'Not sending because WebChannel is closed:', msg);
+          ;
         }
       },
       closeFn: () => channel.close()
@@ -337,14 +331,14 @@ export class WebChannelConnection implements Connection {
 
     unguardedEventListen(WebChannel.EventType.OPEN, () => {
       if (!closed) {
-        logDebug(LOG_TAG, 'WebChannel transport opened.');
+        ;
       }
     });
 
     unguardedEventListen(WebChannel.EventType.CLOSE, () => {
       if (!closed) {
         closed = true;
-        logDebug(LOG_TAG, 'WebChannel transport closed');
+        ;
         streamBridge.callOnClose();
       }
     });
@@ -352,7 +346,7 @@ export class WebChannelConnection implements Connection {
     unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        logDebug(LOG_TAG, 'WebChannel transport errored:', err);
+        ;
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
@@ -385,7 +379,7 @@ export class WebChannelConnection implements Connection {
             msgDataOrError.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
-            logDebug(LOG_TAG, 'WebChannel received error:', error);
+            ;
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
@@ -403,7 +397,7 @@ export class WebChannelConnection implements Connection {
             streamBridge.callOnClose(new FirestoreError(code, message));
             channel.close();
           } else {
-            logDebug(LOG_TAG, 'WebChannel received:', msgData);
+            ;
             streamBridge.callOnMessage(msgData);
           }
         }

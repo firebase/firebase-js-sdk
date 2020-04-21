@@ -40,7 +40,6 @@ import { forEach } from '../util/obj';
 import { TypeOrder } from '../model/field_value';
 import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
-import { logError } from '../util/log';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -139,14 +138,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
 
     if (!databaseId.isEqual(this.firestore._databaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
-      logError(
-        `Document ${key} contains a document ` +
-          `reference within a different database (` +
-          `${databaseId.projectId}/${databaseId.database}) which is not ` +
-          `supported. It will be treated as a reference in the current ` +
-          `database (${this.firestore._databaseId.projectId}/${this.firestore._databaseId.database}) ` +
-          `instead.`
-      );
+      ;
     }
 
     return new DocumentReference(key, this.firestore, this.converter);

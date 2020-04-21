@@ -28,7 +28,7 @@ import {
 } from '../model/mutation_batch';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
@@ -136,10 +136,7 @@ export class RemoteStore implements TargetMetadataProvider {
     this.connectivityMonitor.addCallback((status: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
         if (this.canUseNetwork()) {
-          logDebug(
-            LOG_TAG,
-            'Restarting streams for network reachability change.'
-          );
+          ;
           await this.restartNetwork();
         }
       });
@@ -214,10 +211,7 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
-      logDebug(
-        LOG_TAG,
-        `Stopping write stream with ${this.writePipeline.length} pending writes`
-      );
+      ;
       this.writePipeline = [];
     }
 
@@ -225,7 +219,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   async shutdown(): Promise<void> {
-    logDebug(LOG_TAG, 'RemoteStore shutting down.');
+    ;
     this.networkEnabled = false;
     await this.disableNetworkInternal();
     this.connectivityMonitor.shutdown();
@@ -661,11 +655,7 @@ export class RemoteStore implements TargetMetadataProvider {
     // no longer valid. Note that the handshake does not count as a write: see
     // comments on isPermanentWriteError for details.
     if (isPermanentError(error.code)) {
-      logDebug(
-        LOG_TAG,
-        'RemoteStore error before completed handshake; resetting stream token: ',
-        this.writeStream.lastStreamToken
-      );
+      ;
       this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
 
       return this.localStore
@@ -718,7 +708,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      logDebug(LOG_TAG, 'RemoteStore restarting streams for new credential');
+      ;
       await this.restartNetwork();
     }
   }

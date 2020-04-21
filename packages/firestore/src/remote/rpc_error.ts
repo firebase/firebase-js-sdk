@@ -17,7 +17,6 @@
 
 import { fail } from '../util/assert';
 import { Code } from '../util/error';
-import { logError } from '../util/log';
 
 /**
  * Error Codes describing the different ways GRPC can fail. These are copied
@@ -131,7 +130,7 @@ export function mapCodeFromRpcCode(code: number | undefined): Code {
   if (code === undefined) {
     // This shouldn't normally happen, but in certain error cases (like trying
     // to send invalid proto messages) we may get an error with no GRPC code.
-    logError('GRPC error has no .code');
+    ;
     return Code.UNKNOWN;
   }
 

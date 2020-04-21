@@ -29,7 +29,7 @@ import { Platform } from '../platform/platform';
 import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+
 import { SortedSet } from '../util/sorted_set';
 import { SortedMap } from '../util/sorted_map';
 import { primitiveComparator } from '../util/misc';
@@ -234,10 +234,7 @@ export class MutationMetadata {
         firestoreError
       );
     } else {
-      logError(
-        LOG_TAG,
-        `Failed to parse mutation state for ID '${batchId}': ${value}`
-      );
+      ;
       return null;
     }
   }
@@ -314,10 +311,7 @@ export class QueryTargetMetadata {
         firestoreError
       );
     } else {
-      logError(
-        LOG_TAG,
-        `Failed to parse target state for ID '${targetId}': ${value}`
-      );
+      ;
       return null;
     }
   }
@@ -384,10 +378,7 @@ class RemoteClientState implements ClientState {
     if (validData) {
       return new RemoteClientState(clientId, activeTargetIdsSet);
     } else {
-      logError(
-        LOG_TAG,
-        `Failed to parse client data for instance '${clientId}': ${value}`
-      );
+      ;
       return null;
     }
   }
@@ -420,7 +411,7 @@ export class SharedOnlineState {
         onlineState.onlineState as OnlineState
       );
     } else {
-      logError(LOG_TAG, `Failed to parse online state: ${value}`);
+      ;
       return null;
     }
   }
@@ -731,29 +722,26 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private getItem(key: string): string | null {
     const value = this.storage.getItem(key);
-    logDebug(LOG_TAG, 'READ', key, value);
+    ;
     return value;
   }
 
   private setItem(key: string, value: string): void {
-    logDebug(LOG_TAG, 'SET', key, value);
+    ;
     this.storage.setItem(key, value);
   }
 
   private removeItem(key: string): void {
-    logDebug(LOG_TAG, 'REMOVE', key);
+    ;
     this.storage.removeItem(key);
   }
 
   private handleWebStorageEvent(event: StorageEvent): void {
     if (event.storageArea === this.storage) {
-      logDebug(LOG_TAG, 'EVENT', event.key, event.newValue);
+      ;
 
       if (event.key === this.localClientStorageKey) {
-        logError(
-          'Received WebStorage notification for local change. Another client might have ' +
-            'garbage-collected our state'
-        );
+        ;
         return;
       }
 
@@ -953,10 +941,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     mutationBatch: MutationMetadata
   ): Promise<void> {
     if (mutationBatch.user.uid !== this.currentUser.uid) {
-      logDebug(
-        LOG_TAG,
-        `Ignoring mutation for non-active user ${mutationBatch.user.uid}`
-      );
+      ;
       return;
     }
 
@@ -1046,7 +1031,7 @@ function fromWebStorageSequenceNumber(
       );
       sequenceNumber = parsed;
     } catch (e) {
-      logError(LOG_TAG, 'Failed to read sequence number from WebStorage', e);
+      ;
     }
   }
   return sequenceNumber;

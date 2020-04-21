@@ -18,7 +18,6 @@
 import { getUA } from '@firebase/util';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -71,7 +70,7 @@ export class SimpleDb {
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
-    logDebug(LOG_TAG, 'Opening database:', name);
+    ;
     return new PersistencePromise<SimpleDb>((resolve, reject) => {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -114,11 +113,7 @@ export class SimpleDb {
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        logDebug(
-          LOG_TAG,
-          'Database "' + name + '" requires upgrade from version:',
-          event.oldVersion
-        );
+        ;
         const db = (event.target as IDBOpenDBRequest).result;
         schemaConverter
           .createOrUpgrade(
@@ -128,10 +123,7 @@ export class SimpleDb {
             SCHEMA_VERSION
           )
           .next(() => {
-            logDebug(
-              LOG_TAG,
-              'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
-            );
+            ;
           });
       };
     }).toPromise();
@@ -139,7 +131,7 @@ export class SimpleDb {
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
-    logDebug(LOG_TAG, 'Removing database:', name);
+    ;
     return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
@@ -253,12 +245,7 @@ export class SimpleDb {
     // whatever reason it's much harder to hit after 12.2 so we only proactively
     // log on 12.2.
     if (iOSVersion === 12.2) {
-      logError(
-        'Firestore persistence suffers from a bug in iOS 12.2 ' +
-          'Safari that may cause your app to stop working. See ' +
-          'https://stackoverflow.com/q/56496296/110915 for details ' +
-          'and a potential workaround.'
-      );
+      ;
     }
   }
 
@@ -318,12 +305,7 @@ export class SimpleDb {
         const retryable =
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        logDebug(
-          LOG_TAG,
-          'Transaction failed with error: %s. Retrying: %s.',
-          error.message,
-          retryable
-        );
+        ;
 
         if (!retryable) {
           return Promise.reject(error);
@@ -469,11 +451,7 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      logDebug(
-        LOG_TAG,
-        'Aborting transaction:',
-        error ? error.message : 'Client-initiated abort'
-      );
+      ;
       this.aborted = true;
       this.transaction.abort();
     }
@@ -528,10 +506,10 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      logDebug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
+      ;
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      logDebug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
+      ;
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -545,7 +523,7 @@ export class SimpleDbStore<
    * @return The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
+    ;
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -566,13 +544,13 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      logDebug(LOG_TAG, 'GET', this.store.name, key, result);
+      ;
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE', this.store.name, key);
+    ;
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -584,7 +562,7 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    logDebug(LOG_TAG, 'COUNT', this.store.name);
+    ;
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -612,7 +590,7 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE ALL', this.store.name);
+    ;
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);

@@ -28,7 +28,7 @@ import {
 } from '../model/collections';
 import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
-import { getLogLevel, LogLevel, logDebug } from '../util/log';
+import { getLogLevel, LogLevel } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
 // TOOD(b/140938512): Drop SimpleQueryEngine and rename IndexFreeQueryEngine.
@@ -99,12 +99,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
         }
 
         if (getLogLevel() <= LogLevel.DEBUG) {
-          logDebug(
-            'IndexFreeQueryEngine',
-            'Re-using previous result from %s to execute query: %s',
-            lastLimboFreeSnapshotVersion.toString(),
-            query.toString()
-          );
+          ;
         }
 
         // Retrieve all results for documents that were updated since the last
@@ -194,11 +189,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     query: Query
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
-      logDebug(
-        'IndexFreeQueryEngine',
-        'Using full collection scan to execute query: %s',
-        query.toString()
-      );
+      ;
     }
 
     return this.localDocumentsView!.getDocumentsMatchingQuery(

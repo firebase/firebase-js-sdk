@@ -69,7 +69,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
+import { setLogLevel, LogLevel, getLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -195,15 +195,9 @@ class FirestoreSettings {
     // Nobody should set timestampsInSnapshots anymore, but the error depends on
     // whether they set it to true or false...
     if (settings.timestampsInSnapshots === true) {
-      logError(
-        "The setting 'timestampsInSnapshots: true' is no longer required " +
-          'and should be removed.'
-      );
+      ;
     } else if (settings.timestampsInSnapshots === false) {
-      logError(
-        "Support for 'timestampsInSnapshots: false' will be removed soon. " +
-          'You must update your code to handle Timestamp objects.'
-      );
+      ;
     }
     this.timestampsInSnapshots =
       settings.timestampsInSnapshots ?? DEFAULT_TIMESTAMPS_IN_SNAPSHOTS;
@@ -362,9 +356,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
-        logError(
-          "The 'experimentalTabSynchronization' setting will be removed. Use 'synchronizeTabs' instead."
-        );
+        ;
       }
       synchronizeTabs =
         settings.synchronizeTabs ??

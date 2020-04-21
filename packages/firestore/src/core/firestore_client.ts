@@ -27,7 +27,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -169,7 +169,7 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        logDebug(LOG_TAG, 'Initializing. user=', user.uid);
+        ;
 
         return this.initializeComponents(
           componentProvider,
@@ -346,7 +346,7 @@ export class FirestoreClient {
   private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
+    ;
     return this.syncEngine.handleCredentialChange(user);
   }
 

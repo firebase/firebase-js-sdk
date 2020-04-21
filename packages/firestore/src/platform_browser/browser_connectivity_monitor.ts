@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { logDebug } from '../util/log';
+
 import {
   ConnectivityMonitor,
   ConnectivityMonitorCallback,
@@ -56,14 +56,14 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   }
 
   private onNetworkAvailable(): void {
-    logDebug(LOG_TAG, 'Network connectivity changed: AVAILABLE');
+    ;
     for (const callback of this.callbacks) {
       callback(NetworkStatus.AVAILABLE);
     }
   }
 
   private onNetworkUnavailable(): void {
-    logDebug(LOG_TAG, 'Network connectivity changed: UNAVAILABLE');
+    ;
     for (const callback of this.callbacks) {
       callback(NetworkStatus.UNAVAILABLE);
     }

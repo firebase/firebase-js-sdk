@@ -19,7 +19,7 @@ import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
-import { logDebug } from '../util/log';
+
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';
 import {
@@ -157,7 +157,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    logDebug(LOG_TAG, 'Starting transaction:', action);
+    ;
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)

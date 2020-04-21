@@ -31,34 +31,3 @@ export function getLogLevel(): LogLevel {
 export function setLogLevel(newLevel: LogLevel): void {
   logClient.logLevel = newLevel;
 }
-
-export function logDebug(msg: string, ...obj: unknown[]): void {
-  if (logClient.logLevel <= LogLevel.DEBUG) {
-    const args = obj.map(argToString);
-    logClient.debug(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
-  }
-}
-
-export function logError(msg: string, ...obj: unknown[]): void {
-  if (logClient.logLevel <= LogLevel.ERROR) {
-    const args = obj.map(argToString);
-    logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
-  }
-}
-
-/**
- * Converts an additional log parameter to a string representation.
- */
-function argToString(obj: unknown): string | unknown {
-  if (typeof obj === 'string') {
-    return obj;
-  } else {
-    const platform = PlatformSupport.getPlatform();
-    try {
-      return platform.formatJSON(obj);
-    } catch (e) {
-      // Converting to JSON failed, just log the object directly
-      return obj;
-    }
-  }
-}

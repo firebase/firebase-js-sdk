@@ -39,7 +39,7 @@ import {
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { hardAssert, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -606,15 +606,7 @@ export class LocalStore {
                 documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
-                logDebug(
-                  LOG_TAG,
-                  'Ignoring outdated watch update for ',
-                  key,
-                  '. Current version:',
-                  existingDoc.version,
-                  ' Watch version:',
-                  doc.version
-                );
+                ;
               }
 
               if (remoteEvent.resolvedLimboDocuments.has(key)) {
@@ -1115,7 +1107,7 @@ export async function ignoreIfPrimaryLeaseLoss(
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   ) {
-    logDebug(LOG_TAG, 'Unexpectedly lost primary lease');
+    ;
   } else {
     throw err;
   }

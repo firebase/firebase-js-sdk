@@ -17,7 +17,6 @@
 
 import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { PlatformSupport } from '../platform/platform';
@@ -339,7 +338,7 @@ export class AsyncQueue {
           this.backoff.reset();
         } catch (e) {
           if (e.name === 'IndexedDbTransactionError') {
-            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+            ;
             this.backoff.backoffAndRun(retryingOp);
           } else {
             deferred.resolve();
@@ -360,7 +359,7 @@ export class AsyncQueue {
           this.failure = error;
           this.operationInProgress = false;
           const message = error.stack || error.message || '';
-          logError('INTERNAL UNHANDLED ERROR: ', message);
+          ;
 
           // Re-throw the error so that this.tail becomes a rejected Promise and
           // all further attempts to chain (via .then) will just short-circuit
