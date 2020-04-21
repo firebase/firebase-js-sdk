@@ -58,13 +58,13 @@ export class UserImpl implements User {
   tenantId = null;
   metadata = {};
   providerData = [];
+  isAnonymous = false;
 
   // Optional fields from UserInfo
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
-  isAnonymous = false;
 
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
