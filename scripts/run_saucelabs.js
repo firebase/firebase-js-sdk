@@ -66,6 +66,18 @@ async function runTest(testFile) {
       });
     }
   }
+  if (testFile.includes('integration/firestore')) {
+    console.log('Generating memory build.');
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], { stdio: 'inherit' });
+    console.log('Running tests on memory build.');
+    const exitCode1 = await runKarma(testFile);
+    // console.log('Generating persistence build.');
+    // await spawn('yarn', ['--cwd', 'integration/firestore', 'build:persistence'], { stdio: 'inherit' });
+    // console.log('Running tests on persistence build.');
+    // const exitCode2 = await runKarma(testFile);
+    // return Math.max(exitCode1, exitCode2);
+    return exitCode1;
+  }
   return runKarma(testFile);
 }
 
