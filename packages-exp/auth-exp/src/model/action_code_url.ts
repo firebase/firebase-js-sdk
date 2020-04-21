@@ -35,7 +35,7 @@ enum QueryField {
 /**
  * Map from mode string in action code URL to Action Code Info operation.
  */
-const _ModeToOperationMap: { [key: string]: Operation; } = {
+const _ModeToOperationMap: { [key: string]: Operation } = {
   'recoverEmail': Operation.RECOVER_EMAIL,
   'resetPassword': Operation.PASSWORD_RESET,
   'signIn': Operation.EMAIL_SIGNIN,
@@ -92,10 +92,7 @@ export class ActionCodeURL {
     return this;
   }
 
-  static _fromLink(
-    auth: Auth,
-    link: string
-  ): ActionCodeURL | null {
+  static _fromLink(auth: Auth, link: string): ActionCodeURL | null {
     const actionLink = _parseDeepLink(link);
     try {
       return new ActionCodeURL(auth, actionLink);

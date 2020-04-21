@@ -25,10 +25,7 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
-import {
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink
-} from './email_link';
+import { sendSignInLinkToEmail, isSignInWithEmailLink } from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -127,12 +124,14 @@ describe('sendSignInLinkToEmail', () => {
 describe('isSignInWithEmailLink', () => {
   context('simple links', () => {
     it('should recognize sign in links', () => {
-      const link = 'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
+      const link =
+        'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
     });
 
     it('should not recognize other email links', () => {
-      const link = 'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
+      const link =
+        'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
     });
 
@@ -144,26 +143,37 @@ describe('isSignInWithEmailLink', () => {
 
   context('deep links', () => {
     it('should recognize valid links', () => {
-      const deepLink = 'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
-      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(deepLink)}`;
+      const deepLink =
+        'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
+      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
+        deepLink
+      )}`;
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
     });
 
     it('should recognize valid links with deep_link_id', () => {
-      const deepLink = 'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
-      const link = `somexampleiosurl://google/link?deep_link_id=${encodeURIComponent(deepLink)}`;
+      const deepLink =
+        'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
+      const link = `somexampleiosurl://google/link?deep_link_id=${encodeURIComponent(
+        deepLink
+      )}`;
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
     });
 
     it('should reject other email links', () => {
-      const deepLink = 'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
-      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(deepLink)}`;
+      const deepLink =
+        'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
+      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
+        deepLink
+      )}`;
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
     });
 
     it('should reject invalid links', () => {
       const deepLink = 'https://www.example.com/action?mode=signIn';
-      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(deepLink)}`;
+      const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
+        deepLink
+      )}`;
       expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
     });
   });

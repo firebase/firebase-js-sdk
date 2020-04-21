@@ -17,7 +17,10 @@
 
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
-import { ActionCodeSettings, setActionCodeSettingsOnRequest } from '../../model/action_code_settings';
+import {
+  ActionCodeSettings,
+  setActionCodeSettingsOnRequest
+} from '../../model/action_code_settings';
 import { ActionCodeURL } from '../../model/action_code_url';
 import { Auth } from '../../model/auth';
 
