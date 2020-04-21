@@ -15,31 +15,21 @@
  * limitations under the License.
  */
 
-/**
- * Supported providers
- */
-export enum ProviderId {
-  ANONYMOUS = 'anonymous',
-  CUSTOM = 'custom',
-  FACEBOOK = 'facebook.com',
-  FIREBASE = 'firebase',
-  GITHUB = 'github.com',
-  GOOGLE = 'google.com',
-  PASSWORD = 'password',
-  PHONE = 'phone',
-  TWITTER = 'twitter.com'
-}
+import { Auth } from '../../model/auth';
+import { AuthCredential } from '../../model/auth_credential';
+import { OperationType, UserCredential } from '../../model/user_credential';
+import { UserCredentialImpl } from '../user/user_credential_impl';
 
-/**
- * Supported sign in methods
- */
-export enum SignInMethod {
-  ANONYMOUS = 'anonymous',
-  EMAIL_LINK = 'emailLink',
-  EMAIL_PASSWORD = 'password',
-  FACEBOOK = 'facebook.com',
-  GITHUB = 'github.com',
-  GOOGLE = 'google.com',
-  PHONE = 'phone',
-  TWITTER = 'twitter.com'
+export async function signInWithCredential(
+  auth: Auth,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  // TODO: handle mfa by wrapping with callApiWithMfaContext
+  const response = await credential._getIdTokenResponse(auth);
+  return UserCredentialImpl._fromIdTokenResponse(
+    auth,
+    credential,
+    OperationType.SIGN_IN,
+    response
+  );
 }

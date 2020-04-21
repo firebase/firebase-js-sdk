@@ -185,4 +185,28 @@ describe('core/user/user_impl', () => {
       expect(user.photoURL).to.eq(params.photoURL);
     });
   });
+
+  describe('fromIdTokenResponse', () => {
+    const idTokenResponse: IdTokenResponse = {
+      idToken: 'my-id-token',
+      refreshToken: 'my-refresh-token',
+      expiresIn: '1234',
+      localId: 'my-uid',
+      kind: 'my-kind'
+    };
+
+    it('should initialize a user', async () => {
+      const user = await UserImpl._fromIdTokenResponse(
+        mockAuth,
+        idTokenResponse
+      );
+      expect(user.uid).to.eq(idTokenResponse.localId);
+      expect(user.refreshToken).to.eq('my-refresh-token');
+      expect(await user.getIdToken()).to.eq('my-id-token');
+    });
+
+    it('should reload the user', () => {
+      // TODO: need to wait for https://github.com/firebase/firebase-js-sdk/pull/2961
+    });
+  });
 });

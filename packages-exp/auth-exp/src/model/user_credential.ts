@@ -15,31 +15,17 @@
  * limitations under the License.
  */
 
-/**
- * Supported providers
- */
-export enum ProviderId {
-  ANONYMOUS = 'anonymous',
-  CUSTOM = 'custom',
-  FACEBOOK = 'facebook.com',
-  FIREBASE = 'firebase',
-  GITHUB = 'github.com',
-  GOOGLE = 'google.com',
-  PASSWORD = 'password',
-  PHONE = 'phone',
-  TWITTER = 'twitter.com'
+import { AuthCredential } from './auth_credential';
+import { User } from './user';
+
+export enum OperationType {
+  LINK = 'link',
+  REAUTHENTICATE = 'reauthenticate',
+  SIGN_IN = 'signIn'
 }
 
-/**
- * Supported sign in methods
- */
-export enum SignInMethod {
-  ANONYMOUS = 'anonymous',
-  EMAIL_LINK = 'emailLink',
-  EMAIL_PASSWORD = 'password',
-  FACEBOOK = 'facebook.com',
-  GITHUB = 'github.com',
-  GOOGLE = 'google.com',
-  PHONE = 'phone',
-  TWITTER = 'twitter.com'
+export interface UserCredential {
+  user: User,
+  credential: AuthCredential | null,
+  operationType: OperationType;
 }
