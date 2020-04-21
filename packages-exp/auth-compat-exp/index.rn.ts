@@ -23,5 +23,9 @@
  */
 
 import { testFxn } from './src';
+import { AsyncStorage } from 'react-native';
+import { ReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react';
+
+const _reactNativeLocalPersistence = new ReactNativePersistence(AsyncStorage);
 
 testFxn();
