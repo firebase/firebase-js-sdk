@@ -22,10 +22,7 @@
  * just use index.ts
  */
 
-import { testFxn } from './src';
 import { AsyncStorage } from 'react-native';
-import { ReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react';
+import { ReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react_native';
 
 const _reactNativeLocalPersistence = new ReactNativePersistence(AsyncStorage);
-
-testFxn();
