@@ -16,11 +16,11 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import * as api from '../src/api'
-import {DocumentReference, Firestore} from "../src/api/database";
+import * as api from '../src/api';
+import { DocumentReference, Firestore } from '../src/api/database';
 import firebase from '../../test/integration/util/firebase_export';
 import { Provider, ComponentContainer } from '@firebase/component';
-import {initializeFirestore} from "../src/api/crud";
+import { initializeFirestore } from '../src/api/crud';
 
 /* eslint-disable no-restricted-globals */
 
@@ -67,15 +67,10 @@ export const DEFAULT_PROJECT_ID = USE_EMULATOR
   ? EMULATOR_PROJECT_ID
   : PROJECT_CONFIG.projectId;
 
-
 export function withTestDb(
   fn: (db: api.FirebaseFirestore) => Promise<void>
 ): Promise<void> {
-  return withTestDbSettings(
-    DEFAULT_PROJECT_ID,
-    DEFAULT_SETTINGS,
-    fn
-  );
+  return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
 
 let appCount = 0;
@@ -85,22 +80,23 @@ export async function withTestDbSettings(
   settings: firestore.Settings,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
-    const app = firebase.initializeApp(
-      { apiKey: 'fake-api-key', projectId },
-      'test-app-' + appCount++
-    );
+  const app = firebase.initializeApp(
+    { apiKey: 'fake-api-key', projectId },
+    'test-app-' + appCount++
+  );
 
-    const firestore = new Firestore(app, new Provider('auth-internal', new ComponentContainer('default')));
-    initializeFirestore(firestore, settings);
-    return fn(firestore);
+  const firestore = new Firestore(
+    app,
+    new Provider('auth-internal', new ComponentContainer('default'))
+  );
+  initializeFirestore(firestore, settings);
+  return fn(firestore);
 }
 
 export function withTestDoc(
   fn: (doc: api.DocumentReference) => Promise<void>
 ): Promise<void> {
-  return withTestDb( db => {
+  return withTestDb(db => {
     return fn(db.collection('test-collection').doc());
   });
 }
-
-

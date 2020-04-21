@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
-import {field, wrap, wrapObject} from '../../util/helpers';
-import {ObjectValue, ObjectValueBuilder} from '../../../src/model/field_value';
+import { field, wrap, wrapObject } from '../../util/helpers';
+import {
+  ObjectValue,
+  ObjectValueBuilder
+} from '../../../src/model/field_value';
 
 describe('ObjectValueBuilder', () => {
   it('supports empty builders', () => {
@@ -126,23 +129,25 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('sets single field in existing object', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: 'foo'}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: 'foo' }));
     builder.set(field('b'), wrap('foo'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: 'foo', b: 'foo' }))).to.be.true;
   });
 
   it('overwrites field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: 'foo'}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: 'foo' }));
     builder.set(field('a'), wrap('bar'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: 'bar' }))).to.be.true;
   });
 
   it('overwrites nested field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({
-      a: {b: 'foo', c: {'d': 'foo'}}
-    }));
+    const builder = new ObjectValueBuilder(
+      wrapObject({
+        a: { b: 'foo', c: { 'd': 'foo' } }
+      })
+    );
     builder.set(field('a.b'), wrap('bar'));
     builder.set(field('a.c.d'), wrap('bar'));
     const object = builder.build();
@@ -151,14 +156,14 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('overwrites deeply nested field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: {b: 'foo'}}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: { b: 'foo' } }));
     builder.set(field('a.b.c'), wrap('bar'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { b: { c: 'bar' } } }))).to.be.true;
   });
 
   it('merges existing object', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: {b: 'foo'}}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: { b: 'foo' } }));
     builder.set(field('a.c'), wrap('foo'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { b: 'foo', c: 'foo' } }))).to.be
@@ -166,9 +171,11 @@ describe('ObjectValueBuilder', () => {
   });
 
   it('overwrites nested object', () => {
-    const builder = new ObjectValueBuilder(wrapObject({
-      a: {b: {c: 'foo', d: 'foo'}}
-    }));
+    const builder = new ObjectValueBuilder(
+      wrapObject({
+        a: { b: { c: 'foo', d: 'foo' } }
+      })
+    );
     builder.set(field('a.b'), wrap('bar'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { b: 'bar' } }))).to.be.true;
@@ -176,37 +183,39 @@ describe('ObjectValueBuilder', () => {
 
   it('replaces nested object', () => {
     const singleValueObject = wrap({ c: 'bar' });
-    const builder = new ObjectValueBuilder(wrapObject({a: {b: 'foo'}}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: { b: 'foo' } }));
     builder.set(field('a'), singleValueObject);
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { c: 'bar' } }))).to.be.true;
   });
 
   it('deletes single field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: 'foo', b: 'foo'}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: 'foo', b: 'foo' }));
     builder.delete(field('a'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ b: 'foo' }))).to.be.true;
   });
 
   it('deletes nested object', () => {
-    const builder = new ObjectValueBuilder(wrapObject({
-      a: {b: {c: 'foo', d: 'foo'}, f: 'foo'}
-    }));
+    const builder = new ObjectValueBuilder(
+      wrapObject({
+        a: { b: { c: 'foo', d: 'foo' }, f: 'foo' }
+      })
+    );
     builder.delete(field('a.b'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { f: 'foo' } }))).to.be.true;
   });
 
   it('deletes non-existing field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: 'foo'}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: 'foo' }));
     builder.delete(field('b'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: 'foo' }))).to.be.true;
   });
 
   it('deletes non-existing nested field', () => {
-    const builder = new ObjectValueBuilder(wrapObject({a: {b: 'foo'}}));
+    const builder = new ObjectValueBuilder(wrapObject({ a: { b: 'foo' } }));
     builder.delete(field('a.b.c'));
     const object = builder.build();
     expect(object.isEqual(wrapObject({ a: { b: 'foo' } }))).to.be.true;

@@ -16,19 +16,16 @@
  */
 
 import { expect } from 'chai';
-import {withTestDoc} from "./helpers";
-import {getDocument} from "../src/api/crud";
-
+import { withTestDoc } from './helpers';
+import { getDocument } from '../src/api/crud';
 
 // tslint:disable:no-floating-promises
 
-
 describe('Database', () => {
   it('can get a non-existing document', () => {
-    return withTestDoc(async (docRef) => {
+    return withTestDoc(async docRef => {
       const docSnap = await getDocument(docRef);
       expect(docSnap.exists).to.be.false;
     });
   });
-
 });

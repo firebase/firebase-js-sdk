@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-
 import * as firestore from '@firebase/firestore-types';
 
-import * as api from '../api'
+import * as api from '../api';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
@@ -29,27 +28,28 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import { Code, FirestoreError } from '../../../src/util/error';
 import {
   validateArgType,
-  validateBetweenNumberOfArgs, validateExactNumberOfArgs,
+  validateBetweenNumberOfArgs,
+  validateExactNumberOfArgs,
   validateNamedOptionalType,
   validateNamedType,
-  validateOptionNames,
+  validateOptionNames
 } from '../../../src/util/input_validation';
 
 import {
   CredentialsProvider,
   CredentialsSettings,
   EmptyCredentialsProvider,
-  FirebaseCredentialsProvider,
+  FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import {Datastore} from "../../../src/remote/datastore";
-import {ResourcePath} from "../../../src/model/path";
-import {Query as InternalQuery} from "../../../src/core/query";
-import {AutoId} from "../../../src/util/misc";
-import {Query} from "../../../src/api/database";
-import {DocumentData, Settings} from "./crud";
+import { Datastore } from '../../../src/remote/datastore';
+import { ResourcePath } from '../../../src/model/path';
+import { Query as InternalQuery } from '../../../src/core/query';
+import { AutoId } from '../../../src/util/misc';
+import { Query } from '../../../src/api/database';
+import { DocumentData, Settings } from './crud';
 import { FirebaseService } from '@firebase/app-types/private';
 
 // settings() defaults:
@@ -188,27 +188,36 @@ export class Firestore implements api.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         "Firestore was not initialized using the Firebase SDK. 'app' is " +
-        'not available'
+          'not available'
       );
     }
     return this._firebaseApp;
   }
-  
+
   _configureClient(settings: Settings): void {
     if (this._datastore) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, 'Firestore has already been started');
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Firestore has already been started'
+      );
     }
     this._settings = new FirestoreSettings(settings);
   }
 
-  async _ensureClientConfigured() : Promise<void> {
+  async _ensureClientConfigured(): Promise<void> {
     if (!this._datastore) {
       const databaseInfo = this._makeDatabaseInfo();
 
-      const conenction = await PlatformSupport.getPlatform().loadConnection(databaseInfo);
-      const serializer = PlatformSupport.getPlatform().newSerializer(databaseInfo.databaseId);
-      this._datastore = new Datastore(conenction,
-        this._credentials,serializer
+      const conenction = await PlatformSupport.getPlatform().loadConnection(
+        databaseInfo
+      );
+      const serializer = PlatformSupport.getPlatform().newSerializer(
+        databaseInfo.databaseId
+      );
+      this._datastore = new Datastore(
+        conenction,
+        this._credentials,
+        serializer
       );
     }
   }
@@ -219,12 +228,12 @@ export class Firestore implements api.FirebaseFirestore, FirebaseService {
       /* persistenceKey= */ 'invalid',
       this._settings.host,
       this._settings.ssl,
-        /* forceLongPolling= */ false
+      /* forceLongPolling= */ false
     );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
-    if (!Object.prototype.hasOwnProperty.apply(app.options,['projectId'])) {
+    if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
@@ -244,21 +253,24 @@ export class Firestore implements api.FirebaseFirestore, FirebaseService {
   collection(pathString: string): api.CollectionReference {
     return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
-  
+
   doc(pathString: string): api.DocumentReference {
-    return new DocumentReference(new DocumentKey(ResourcePath.fromString(pathString)), this);
+    return new DocumentReference(
+      new DocumentKey(ResourcePath.fromString(pathString)),
+      this
+    );
   }
 }
 
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = firestore.DocumentData> implements api.DocumentReference<T> {
+export class DocumentReference<T = firestore.DocumentData>
+  implements api.DocumentReference<T> {
   constructor(
     public _key: DocumentKey,
     readonly firestore: api.FirebaseFirestore
-  ) {
-  }
+  ) {}
 }
 
 export class DocumentSnapshot<T = firestore.DocumentData> {
@@ -267,23 +279,23 @@ export class DocumentSnapshot<T = firestore.DocumentData> {
     private _key: DocumentKey,
     public _document: Document | null
   ) {}
-  
+
   get exists(): boolean {
     return this._document !== null;
   }
-  
+
   data(): T | undefined {
     if (!this._document) {
       return undefined;
     } else {
-        const userDataWriter = new UserDataWriter(this._firestore);
-        return userDataWriter.convertValue(this._document.toProto()) as T;
-      }
+      const userDataWriter = new UserDataWriter(this._firestore);
+      return userDataWriter.convertValue(this._document.toProto()) as T;
     }
+  }
 }
 
-
-export class CollectionReference<T = firestore.DocumentData> implements  api.CollectionReference<T> {
+export class CollectionReference<T = firestore.DocumentData>
+  implements api.CollectionReference<T> {
   constructor(
     readonly _path: ResourcePath,
     readonly firestore: api.FirebaseFirestore,
@@ -293,8 +305,8 @@ export class CollectionReference<T = firestore.DocumentData> implements  api.Col
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid collection reference. Collection ' +
-        'references must have an odd number of segments, but ' +
-        `${_path.canonicalString()} has ${_path.length}`
+          'references must have an odd number of segments, but ' +
+          `${_path.canonicalString()} has ${_path.length}`
       );
     }
   }

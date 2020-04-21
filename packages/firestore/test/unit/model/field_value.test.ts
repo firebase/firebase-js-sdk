@@ -17,15 +17,15 @@
 
 import * as api from '../../../src/protos/firestore_proto_api';
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 import {
   extractFieldMask,
   ObjectValue,
   ObjectValueBuilder,
   TypeOrder
 } from '../../../src/model/field_value';
-import {typeOrder} from '../../../src/model/values';
-import {field, mask, wrap, wrapObject} from '../../util/helpers';
+import { typeOrder } from '../../../src/model/values';
+import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('FieldValue', () => {
   it('can extract fields', () => {
@@ -191,9 +191,7 @@ describe('FieldValue', () => {
   it('can delete multiple fields', () => {
     let objValue = wrapObject({ a: 'a', b: 'a', c: 'c' });
 
-    objValue = new ObjectValueBuilder(objValue)
-      .delete(field('a'))
-      .build();
+    objValue = new ObjectValueBuilder(objValue).delete(field('a')).build();
     objValue = new ObjectValueBuilder(objValue)
       .delete(field('b'))
       .delete(field('c'))
@@ -234,9 +232,7 @@ describe('FieldValue', () => {
     objectValue: ObjectValue,
     fieldPath: string
   ): ObjectValue {
-    return new ObjectValueBuilder(objectValue)
-      .delete(field(fieldPath))
-      .build();
+    return new ObjectValueBuilder(objectValue).delete(field(fieldPath)).build();
   }
 
   function assertObjectEquals(

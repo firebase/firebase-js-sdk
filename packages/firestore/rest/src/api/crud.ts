@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {debugAssert, hardAssert} from "../../../src/util/assert";
+import { debugAssert, hardAssert } from '../../../src/util/assert';
 
-export type DocumentData = { [key:string] : any };
+export type DocumentData = { [key: string]: any };
 
 import * as api from '../api';
 
-import {DocumentReference, DocumentSnapshot, Firestore} from './database';
+import { DocumentReference, DocumentSnapshot, Firestore } from './database';
 import { Document } from '../../../src/model/document';
 
 export interface Settings {
@@ -32,16 +32,25 @@ export function initializeFirestore(firstore: Firestore, settings?: Settings) {
   firstore._configureClient(settings ?? {});
 }
 
-export async function  getDocument<T>(
+export async function getDocument<T>(
   reference: api.DocumentReference<T>
 ): Promise<DocumentSnapshot> {
-  hardAssert(reference instanceof DocumentReference, 'Expected internal DocumentReference instance');
+  hardAssert(
+    reference instanceof DocumentReference,
+    'Expected internal DocumentReference instance'
+  );
   const firestore = reference.firestore;
-  debugAssert(firestore instanceof Firestore, 'Expected internal Firestore instance');
+  debugAssert(
+    firestore instanceof Firestore,
+    'Expected internal Firestore instance'
+  );
   await firestore._ensureClientConfigured();
   const result = await firestore._datastore!.lookup([reference._key]);
   hardAssert(result.length == 1, 'Expected a single document result');
-  const maybeDocument =  result[0];
-  return new DocumentSnapshot<DocumentData>(firestore, 
-    reference._key, maybeDocument instanceof Document ? maybeDocument : null);
+  const maybeDocument = result[0];
+  return new DocumentSnapshot<DocumentData>(
+    firestore,
+    reference._key,
+    maybeDocument instanceof Document ? maybeDocument : null
+  );
 }

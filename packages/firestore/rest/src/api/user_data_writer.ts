@@ -31,13 +31,13 @@ import {
   normalizeTimestamp,
   typeOrder
 } from '../../../src/model/values';
-import {debugAssert, fail, hardAssert} from '../../../src/util/assert';
+import { debugAssert, fail, hardAssert } from '../../../src/util/assert';
 import { forEach } from '../../../src/util/obj';
 import { TypeOrder } from '../../../src/model/field_value';
 import { ResourcePath } from '../../../src/model/path';
 import { isValidResourceName } from '../../../src/remote/serializer';
 import { logError } from '../../../src/util/log';
-import {FirebaseFirestore} from "../api";
+import { FirebaseFirestore } from '../api';
 
 /**
  * Converts Firestore's internal types to the JavaScript types that we expose
@@ -96,7 +96,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
       normalizedValue.seconds,
       normalizedValue.nanos
     );
-      return timestamp;
+    return timestamp;
   }
 
   private convertReference(name: string): DocumentReference<T> {
@@ -108,8 +108,11 @@ export class UserDataWriter<T = firestore.DocumentData> {
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
 
-    debugAssert(this.firestore instanceof Firestore, 'Expected internal instance');
-    
+    debugAssert(
+      this.firestore instanceof Firestore,
+      'Expected internal instance'
+    );
+
     if (!databaseId.isEqual(this.firestore._databaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
       logError(

@@ -17,17 +17,22 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import {Timestamp} from '../api/timestamp';
-import {SnapshotVersion} from '../core/snapshot_version';
-import {debugAssert, fail, hardAssert} from '../util/assert';
-import {SortedSet} from '../util/sorted_set';
+import { Timestamp } from '../api/timestamp';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { debugAssert, fail, hardAssert } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 
-import {Document, MaybeDocument, NoDocument, UnknownDocument} from './document';
-import {DocumentKey} from './document_key';
-import {ObjectValue, ObjectValueBuilder} from './field_value';
-import {FieldPath} from './path';
-import {TransformOperation} from './transform_operation';
-import {arrayEquals} from '../util/misc';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from './document';
+import { DocumentKey } from './document_key';
+import { ObjectValue, ObjectValueBuilder } from './field_value';
+import { FieldPath } from './path';
+import { TransformOperation } from './transform_operation';
+import { arrayEquals } from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.

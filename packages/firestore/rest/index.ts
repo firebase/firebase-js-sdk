@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export {getDocument} from './src/api/crud';
+export { getDocument } from './src/api/crud';

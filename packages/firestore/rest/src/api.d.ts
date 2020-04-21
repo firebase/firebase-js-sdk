@@ -162,9 +162,8 @@ export interface DocumentSnapshot<T = DocumentData> {
   // isEqual(other: DocumentSnapshot<T>): boolean;
 }
 
-export class QueryDocumentSnapshot<T = DocumentData> implements DocumentSnapshot<
-  T
-  > {
+export class QueryDocumentSnapshot<T = DocumentData>
+  implements DocumentSnapshot<T> {
   private constructor();
 
   data(): T;
@@ -248,9 +247,9 @@ export interface CollectionReference<T = DocumentData> extends Query<T> {
   // readonly id: string;
   // readonly parent: DocumentReference<DocumentData> | null;
   // readonly path: string;
-  
+
   doc(documentPath?: string): DocumentReference<T>;
-  
+
   // add(data: T): Promise<DocumentReference<T>>;
   //
   // isEqual(other: CollectionReference<T>): boolean;
@@ -355,4 +354,3 @@ export interface FirestoreError {
   name: string;
   stack?: string;
 }
-

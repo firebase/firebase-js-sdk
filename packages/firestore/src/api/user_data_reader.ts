@@ -19,9 +19,9 @@ import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
 
-import {Timestamp} from './timestamp';
-import {DatabaseId} from '../core/database_info';
-import {DocumentKey} from '../model/document_key';
+import { Timestamp } from './timestamp';
+import { DatabaseId } from '../core/database_info';
+import { DocumentKey } from '../model/document_key';
 import {
   FieldMask,
   FieldTransform,
@@ -31,21 +31,21 @@ import {
   SetMutation,
   TransformMutation
 } from '../model/mutation';
-import {FieldPath} from '../model/path';
-import {debugAssert, fail} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {isPlainObject, valueDescription} from '../util/input_validation';
-import {Dict, forEach, isEmpty} from '../util/obj';
-import {ObjectValue, ObjectValueBuilder} from '../model/field_value';
+import { FieldPath } from '../model/path';
+import { debugAssert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { isPlainObject, valueDescription } from '../util/input_validation';
+import { Dict, forEach, isEmpty } from '../util/obj';
+import { ObjectValue, ObjectValueBuilder } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
-import {JsonProtoSerializer} from '../remote/serializer';
-import {SortedSet} from '../util/sorted_set';
-import {Blob} from './blob';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { SortedSet } from '../util/sorted_set';
+import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
   fromDotSeparatedString
@@ -58,7 +58,7 @@ import {
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './field_value';
-import {GeoPoint} from './geo_point';
+import { GeoPoint } from './geo_point';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

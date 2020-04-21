@@ -58,7 +58,7 @@ export class ObjectValue {
       'ServerTimestamps should be converted to ServerTimestampValue'
     );
   }
-  
+
   /**
    * Returns the value at the given path or null.
    *
