@@ -149,22 +149,22 @@ async function runTests(pathList) {
   for (const testPath of pathList) {
     var stdio = '';
     var stderr = '';
-    
+
     try {
       var testProcess = spawn('yarn', ['--cwd', testPath, 'test']);
 
-      testProcess.stdout.on('data', function (data) {
+      testProcess.stdout.on('data', data => {
         stdio += data.toString();
       });
-      testProcess.stderr.on('data', function (data) {
+      testProcess.stderr.on('data', data =>  {
         stderr += data.toString();
       });
-      
+
       await testProcess;
-      
+
       console.log('Success: ' + testPath);
     } catch (e) {
-      console.error('Failure: '+ testPath);
+      console.error('Failure: ' + testPath);
       console.log(stdio);
       console.log(stderr);
       throw new Error(`Error running tests in ${testPath}.`);
