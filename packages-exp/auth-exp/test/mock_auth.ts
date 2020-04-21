@@ -32,12 +32,14 @@ export const mockAuth: Auth = {
     apiScheme: TEST_SCHEME,
     sdkClientVersion: 'testSDK/0.0.0'
   },
+  _isInitialized: true,
   currentUser: null,
   async setPersistence() {},
   async updateCurrentUser() {},
   async signOut() {},
-  onAuthStateChanged() {return () => {}},
-  onIdTokenChange() { return () => {}},
+  onAuthStateChanged() {return () => {};},
+  onIdTokenChange() { return () => {};},
+  _notifyStateListeners() {},
 };
 
 export function testUser(uid: string, email?: string): User {

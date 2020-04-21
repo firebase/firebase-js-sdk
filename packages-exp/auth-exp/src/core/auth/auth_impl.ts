@@ -42,7 +42,7 @@ class AuthImpl implements Auth {
   private persistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
-  private isInitialized = false;
+  _isInitialized = false;
   
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks
@@ -68,7 +68,7 @@ class AuthImpl implements Auth {
         await this.directlySetCurrentUser(storedUser);
       }
 
-      this.isInitialized = true;
+      this._isInitialized = true;
       this._notifyStateListeners();
     });
   }
@@ -100,7 +100,7 @@ class AuthImpl implements Auth {
   }
 
   _notifyStateListeners(): void {
-    if (!this.isInitialized) {
+    if (!this._isInitialized) {
       return;
     }
 
@@ -115,9 +115,10 @@ class AuthImpl implements Auth {
   private registerStateListener(subscription: Subscription<User>, nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn): Unsubscribe {
-    if (this.isInitialized) {
+    if (this._isInitialized) {
       const cb = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
-      // The callback needs to be called asynchronously per the spec
+      // The callback needs to be called asynchronously per the spec. 
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       Promise.resolve().then(() => cb(this.currentUser));
     }
     
@@ -189,6 +190,7 @@ class Subscription<T> {
   constructor(readonly auth: Auth) {}
 
   get next(): NextFn<T|null> {
-    return assert(this.observer, this.auth.name).next;
+    const observer = assert(this.observer, this.auth.name);
+    return observer.next.bind(observer);
   }
 }

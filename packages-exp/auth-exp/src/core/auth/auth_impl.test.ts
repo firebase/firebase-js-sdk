@@ -24,16 +24,13 @@ import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import { Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
-} from './auth_impl';
+import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
 
 use(sinonChai);
 
@@ -115,6 +112,102 @@ describe('AuthImpl', () => {
         sinon.match.any,
         testUser('test').toPlainObject()
       );
+    });
+  });
+
+  describe('change listeners', () => {
+    // // Helpers to convert auth state change results to promise
+    // function onAuthStateChange(callback: NextFn<User|null>)
+
+    it('immediately calls authStateChange if initialization finished', (done) => {
+      const user = testUser('uid');
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth.onAuthStateChanged(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+  
+    it('immediately calls idTokenChange if initialization finished', (done) => {
+      const user = testUser('uid');
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth.onIdTokenChange(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+
+    it('immediate callback is done async', () => {
+      auth._isInitialized = true;
+      let callbackCalled = false;
+      auth.onIdTokenChange(() => {
+        callbackCalled = true;
+      });
+
+      expect(callbackCalled).to.be.false;
+    });
+
+    describe('user logs in/out, tokens refresh', () => {
+      let user: User;
+      let callback: sinon.SinonSpy;
+
+      beforeEach(() => {
+        user = testUser('uid');
+        callback = sinon.spy();
+      });
+
+      it('onAuthStateChange triggers on log in', async () => {
+        await auth.updateCurrentUser(null);
+        auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(user);
+        expect(callback).to.have.been.calledTwice;
+      });
+
+      it('onAuthStateChange triggers on log out', async () => {
+        await auth.updateCurrentUser(user);
+        auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(null);
+        expect(callback).to.have.been.calledTwice;
+      });
+
+      it('onIdTokenChange triggers on log in', async () => {
+        await auth.updateCurrentUser(null);
+        auth.onIdTokenChange(callback);
+        await auth.updateCurrentUser(user);
+        expect(callback).to.have.been.calledTwice;
+      });
+
+      it('onIdTokenChange triggers on log out', async () => {
+        await auth.updateCurrentUser(user);
+        auth.onIdTokenChange(callback);
+        await auth.updateCurrentUser(null);
+        expect(callback).to.have.been.calledTwice;
+      });
+
+      it('onAuthStateChange does not trigger for user props change', async () => {
+        await auth.updateCurrentUser(user);
+        auth.onAuthStateChanged(callback);
+        user.refreshToken = 'hey look I changed';
+        await auth.updateCurrentUser(user);
+        expect(callback).to.have.been.calledOnce;
+      });
+
+      it('onIdTokenChange triggers for user props change', async () => {
+        await auth.updateCurrentUser(user);
+        auth.onIdTokenChange(callback);
+        user.refreshToken = 'hey look I changed';
+        await auth.updateCurrentUser(user);
+        expect(callback).to.have.been.calledTwice;
+      });
+
+      it('onAuthStateChange triggers if uid changes', async () => {
+        await auth.updateCurrentUser(user);
+        auth.onAuthStateChanged(callback);
+        await auth.updateCurrentUser(testUser('different-uid'));
+        expect(callback).to.have.been.calledTwice;
+      });
     });
   });
 });

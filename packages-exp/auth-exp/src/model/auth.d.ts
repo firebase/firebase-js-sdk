@@ -37,12 +37,14 @@ export interface Auth {
   currentUser: User | null;
   readonly name: AppName;
   readonly config: Config;
+  _isInitialized: boolean;
 
   setPersistence(persistence: Persistence): Promise<void>;
   updateCurrentUser(user: User | null): Promise<void>;
   signOut(): Promise<void>;
   onAuthStateChanged(nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
   onIdTokenChange(nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+  _notifyStateListeners(): void;
 }
 
 export interface Dependencies {
