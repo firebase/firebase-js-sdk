@@ -22,13 +22,12 @@ import { User } from '../../model/user';
 import { OperationType, UserCredential } from '../../model/user_credential';
 import { UserImpl } from './user_impl';
 
-
 export class UserCredentialImpl implements UserCredential {
   constructor(
     public readonly user: User,
     public readonly credential: AuthCredential | null,
     public readonly operationType: OperationType
-  ) { }
+  ) {}
 
   static async _fromIdTokenResponse(
     auth: Auth,

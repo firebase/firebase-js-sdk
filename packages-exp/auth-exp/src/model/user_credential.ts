@@ -25,7 +25,7 @@ export enum OperationType {
 }
 
 export interface UserCredential {
-  user: User,
-  credential: AuthCredential | null,
+  user: User;
+  credential: AuthCredential | null;
   operationType: OperationType;
 }

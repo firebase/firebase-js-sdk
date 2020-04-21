@@ -28,7 +28,7 @@ import { UserCredentialImpl } from './user_credential_impl';
 use(chaiAsPromised);
 
 describe('core/user/user_credential_impl', () => {
-  describe("fromIdTokenResponse", () => {
+  describe('fromIdTokenResponse', () => {
     const idTokenResponse: IdTokenResponse = {
       idToken: 'my-id-token',
       refreshToken: 'my-refresh-token',
@@ -43,10 +43,15 @@ describe('core/user/user_credential_impl', () => {
     );
 
     it('should initialize a UserCredential', async () => {
-      const userCredential = await UserCredentialImpl._fromIdTokenResponse(mockAuth, credential, OperationType.SIGN_IN, idTokenResponse);
+      const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+        mockAuth,
+        credential,
+        OperationType.SIGN_IN,
+        idTokenResponse
+      );
       expect(userCredential.credential).to.eq(credential);
       expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
       expect(userCredential.user.uid).to.eq('my-uid');
-     });
+    });
   });
 });

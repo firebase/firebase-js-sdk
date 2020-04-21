@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { AuthCredential } from '../../model/auth_credential';
 import { ProviderId, SignInMethod } from '.';
 import { IdTokenResponse } from '../../model/id_token';
@@ -25,22 +24,22 @@ import { Auth } from '../../model/auth';
 export class AuthCredentialImpl implements AuthCredential {
   constructor(
     readonly providerId: ProviderId,
-    readonly signInMethod: SignInMethod,
+    readonly signInMethod: SignInMethod
   ) {}
 
   toJSON(): object {
     throw new Error('Method not implemented.');
-  };
-  
+  }
+
   _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
     throw new Error('Method not implemented.');
-  };;
-  
+  }
+
   _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {
     throw new Error('Method not implemented.');
-  };;
-  
+  }
+
   _matchIdTokenWithUid(_auth: Auth, _uid: string): Promise<IdTokenResponse> {
     throw new Error('Method not implemented.');
-  };;
+  }
 }
