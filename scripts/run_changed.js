@@ -156,17 +156,16 @@ async function runTests(pathList) {
       testProcess.stdout.on('data', data => {
         stdio += data.toString();
       });
-      testProcess.stderr.on('data', data =>  {
+      testProcess.stderr.on('data', data => {
         stderr += data.toString();
       });
 
       await testProcess;
-
       console.log('Success: ' + testPath);
     } catch (e) {
       console.error('Failure: ' + testPath);
       console.log(stdio);
-      console.log(stderr);
+      console.error(stderr);
       throw new Error(`Error running tests in ${testPath}.`);
     }
   }
