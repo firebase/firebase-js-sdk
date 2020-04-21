@@ -21,14 +21,18 @@ import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
-import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
+import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import { logError } from '../util/log';
+import { Code, FirestoreError } from '../util/error';
+
+const LOG_TAG = 'EventManager';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
  * tracked by EventManager.
  */
 class QueryListenersInfo {
-  viewSnap: ViewSnapshot | null = null;
+  viewSnap: ViewSnapshot | undefined = undefined;
   targetId: TargetId = 0;
   listeners: QueryListener[] = [];
 }
@@ -59,7 +63,7 @@ export class EventManager implements SyncEngineListener {
     this.syncEngine.subscribe(this);
   }
 
-  listen(listener: QueryListener): Promise<TargetId> {
+  async listen(listener: QueryListener): Promise<void> {
     const query = listener.query;
     let firstListen = false;
 
@@ -67,8 +71,29 @@ export class EventManager implements SyncEngineListener {
     if (!queryInfo) {
       firstListen = true;
       queryInfo = new QueryListenersInfo();
-      this.queries.set(query, queryInfo);
     }
+
+    if (firstListen) {
+      try {
+        const { targetId, snapshot } = await this.syncEngine.listen(query);
+        queryInfo.targetId = targetId;
+        queryInfo.viewSnap = snapshot;
+      } catch (e) {
+        if (e.name === 'IndexedDbTransactionError') {
+          logError(LOG_TAG, `Failed to register query: ${e}`);
+          listener.onError(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              `Failed to register query: ${e}`
+            )
+          );
+          return;
+        }
+        throw e;
+      }
+    }
+
+    this.queries.set(query, queryInfo!);
     queryInfo.listeners.push(listener);
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.
@@ -83,15 +108,6 @@ export class EventManager implements SyncEngineListener {
       if (raisedEvent) {
         this.raiseSnapshotsInSyncEvent();
       }
-    }
-
-    if (firstListen) {
-      return this.syncEngine.listen(query).then(targetId => {
-        queryInfo!.targetId = targetId;
-        return targetId;
-      });
-    } else {
-      return Promise.resolve(queryInfo.targetId);
     }
   }
 

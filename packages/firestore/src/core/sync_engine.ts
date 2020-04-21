@@ -102,6 +102,12 @@ class QueryView {
   ) {}
 }
 
+/** Result type returned during initial query registration. */
+export interface QueryRegistration {
+  targetId: TargetId;
+  snapshot?: ViewSnapshot;
+}
+
 /** Tracks a limbo resolution. */
 class LimboResolution {
   constructor(public key: DocumentKey) {}
@@ -216,7 +222,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the targetId of the query.
    */
-  async listen(query: Query): Promise<TargetId> {
+  async listen(query: Query): Promise<QueryRegistration> {
     this.assertSubscribed('listen()');
 
     let targetId;
@@ -250,8 +256,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     }
 
-    this.syncEngineListener!.onWatchChange([viewSnapshot]);
-    return targetId;
+    return { targetId, snapshot: viewSnapshot };
   }
 
   /**

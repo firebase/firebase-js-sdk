@@ -597,7 +597,6 @@ abstract class TestRunner {
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
-    const expectedTargetId = listenSpec[0];
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
     const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
@@ -609,13 +608,14 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(async () => {
-      const targetId = await this.eventManager.listen(queryListener);
-      expect(targetId).to.equal(
-        expectedTargetId,
-        'targetId assigned to listen'
-      );
+    await this.queue.enqueue(() => {
+      return this.eventManager.listen(queryListener);
     });
+
+    if (this.persistence.injectFailures) {
+      // The Watch stream won't open if we are injecting failures.
+      return;
+    }
 
     // Skip the backoff that may have been triggered by a previous call to
     // `watchStreamCloses()`.

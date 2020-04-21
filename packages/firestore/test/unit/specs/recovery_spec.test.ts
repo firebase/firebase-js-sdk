@@ -19,6 +19,7 @@ import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
+import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
 describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
@@ -161,5 +162,38 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .writeAcks('collection/key3', 2)
       .watchAcksFull(query, 2, doc1, doc3)
       .expectEvents(query, { metadata: [doc1, doc3] });
+  });
+
+  specTest('Fails targets that cannot be allocated', [], () => {
+    const query1 = Query.atPath(path('collection1'));
+    const query2 = Query.atPath(path('collection2'));
+    const query3 = Query.atPath(path('collection3'));
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1)
+      .expectEvents(query1, {})
+      .failDatabase()
+      .userListens(query2)
+      .expectEvents(query2, { errorCode: Code.UNKNOWN })
+      .recoverDatabase()
+      .userListens(query3)
+      .watchAcksFull(query3, 1)
+      .expectEvents(query3, {});
+  });
+
+  specTest('Can re-add failed target', [], () => {
+    const query1 = Query.atPath(path('collection1'));
+    const query2 = Query.atPath(path('collection2'));
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1)
+      .expectEvents(query1, {})
+      .failDatabase()
+      .userListens(query2)
+      .expectEvents(query2, { errorCode: Code.UNKNOWN })
+      .recoverDatabase()
+      .userListens(query2)
+      .watchAcksFull(query2, 1)
+      .expectEvents(query2, {});
   });
 });
