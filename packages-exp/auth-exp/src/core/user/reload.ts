@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  getAccountInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { User, UserInfo } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
@@ -68,9 +71,15 @@ function mergeProviderData(
   return [...deduped, ...newData];
 }
 
-function extractProviderData(providers: ProviderUserInfo[], appName: string): UserInfo[] {
-  return providers.map(({providerId, ...provider}) => {
-    assert(providerId && Object.values<string>(ProviderId).includes(providerId), appName);
+function extractProviderData(
+  providers: ProviderUserInfo[],
+  appName: string
+): UserInfo[] {
+  return providers.map(({ providerId, ...provider }) => {
+    assert(
+      providerId && Object.values<string>(ProviderId).includes(providerId),
+      appName
+    );
     return {
       uid: provider.rawId || '',
       displayName: provider.displayName || null,
