@@ -31,13 +31,13 @@ const commonPlugins = [
   strip({
     functions: ['debugAssert.*']
   })
-]
+];
 
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [
-  ...commonPlugins, 
+  ...commonPlugins,
   typescriptPlugin({
     typescript
   })

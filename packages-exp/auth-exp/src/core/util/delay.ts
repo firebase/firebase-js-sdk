@@ -35,7 +35,10 @@ export class Delay {
     private readonly longDelay: number
   ) {
     // Internal error when improperly initialized.
-    debugAssert(shortDelay > longDelay, 'Short delay should be less than long delay!');
+    debugAssert(
+      shortDelay > longDelay,
+      'Short delay should be less than long delay!'
+    );
     this.isMobile = isMobileCordova() || isReactNative();
   }
 
