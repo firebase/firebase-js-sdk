@@ -486,7 +486,7 @@ export class PatchMutation extends Mutation {
     if (maybeDoc instanceof Document) {
       data = maybeDoc.data();
     } else {
-      data = ObjectValue.EMPTY;
+      data = ObjectValue.empty();
     }
     return this.patchObject(data);
   }

@@ -17,13 +17,13 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { debugAssert } from '../util/assert';
-import { FieldMask } from './mutation';
-import { FieldPath } from './path';
-import { isServerTimestamp } from './server_timestamps';
-import { valueEquals, isMapValue, typeOrder } from './values';
-import { forEach } from '../util/obj';
-import { SortedSet } from '../util/sorted_set';
+import {debugAssert} from '../util/assert';
+import {FieldMask} from './mutation';
+import {FieldPath} from './path';
+import {isServerTimestamp} from './server_timestamps';
+import {isMapValue, typeOrder, valueEquals} from './values';
+import {forEach} from '../util/obj';
+import {SortedSet} from '../util/sorted_set';
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -50,8 +50,6 @@ export const enum TypeOrder {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  static EMPTY = new ObjectValue({ mapValue: {} });
-
   constructor(public readonly proto: { mapValue: api.MapValue }) {
     debugAssert(
       !isServerTimestamp(proto),
@@ -59,6 +57,10 @@ export class ObjectValue {
     );
   }
 
+  static empty() : ObjectValue {
+    return   new ObjectValue({ mapValue: {} });
+  }
+  
   /**
    * Returns the value at the given path or null.
    *
@@ -108,7 +110,7 @@ export class ObjectValueBuilder {
   /**
    * @param baseObject The object to mutate.
    */
-  constructor(private readonly baseObject: ObjectValue = ObjectValue.EMPTY) {}
+  constructor(private readonly baseObject: ObjectValue = ObjectValue.empty()) {}
 
   /**
    * Sets the field to the provided value.

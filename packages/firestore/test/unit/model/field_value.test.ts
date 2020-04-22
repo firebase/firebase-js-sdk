@@ -85,7 +85,7 @@ describe('FieldValue', () => {
   });
 
   it('can add multiple new fields', () => {
-    let objValue = ObjectValue.EMPTY;
+    let objValue = ObjectValue.empty();
     objValue = new ObjectValueBuilder(objValue)
       .set(field('a'), wrap('a'))
       .build();

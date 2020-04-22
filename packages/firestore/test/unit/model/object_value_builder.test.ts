@@ -28,7 +28,7 @@ describe('ObjectValueBuilder', () => {
   it('supports empty builders', () => {
     const builder = new ObjectValueBuilder();
     const object = builder.build();
-    expect(objectValueEquals(object, ObjectValue.EMPTY)).to.be.true;
+    expect(objectValueEquals(object, ObjectValue.empty())).to.be.true;
   });
 
   it('sets single field', () => {
@@ -119,7 +119,7 @@ describe('ObjectValueBuilder', () => {
     builder.set(field('foo'), wrap('foo'));
     builder.delete(field('foo'));
     const object = builder.build();
-    expect(objectValueEquals(object, ObjectValue.EMPTY)).to.be.true;
+    expect(objectValueEquals(object, ObjectValue.empty())).to.be.true;
   });
 
   it('sets and deletes nested field', () => {
