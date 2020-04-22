@@ -99,6 +99,8 @@ export class Document extends MaybeDocument {
 export function compareByField(field: FieldPath, d1: Document, d2: Document): number {
   const v1 = d1.field(field);
   const v2 = d2.field(field);
+
+  debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
     return valueCompare(v1, v2);
 }
 // TODO(mrschmidt): I think this is only ever called with documents

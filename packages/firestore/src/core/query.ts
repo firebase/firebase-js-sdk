@@ -855,9 +855,17 @@ export class Bound {
   }
 
   compare(d1: Document, d2: Document): number {
-    const comparison = this.isKeyOrderBy
-      ? Document.compareByKey(d1, d2)
-      : compareByField(this.field, d1, d2);
+    let comparison : number;
+    
+    if (this.isKeyOrderBy) {
+      comparison = Document.compareByKey(d1, d2);
+    } else {
+      const v1 = d1.field(this.field);
+      const v2 = d2.field(this.field);
+      debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
+      comparison =  valueCompare(v1, v2);
+    }
+    
     switch (this.dir) {
       case Direction.ASCENDING:
         return comparison;
@@ -881,3 +889,4 @@ export class Bound {
     return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
+

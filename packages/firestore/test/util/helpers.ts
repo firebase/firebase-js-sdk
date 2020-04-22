@@ -55,7 +55,6 @@ import {
   maybeDocumentMap
 } from '../../src/model/collections';
 import {
-  compareByField,
   Document,
   DocumentOptions,
   MaybeDocument,
@@ -97,6 +96,7 @@ import {ByteString} from '../../src/util/byte_string';
 import {PlatformSupport} from '../../src/platform/platform';
 import {JsonProtoSerializer} from '../../src/remote/serializer';
 import {Timestamp} from '../../src/api/timestamp';
+import {valueCompare} from "../../src/model/values";
 
 /* eslint-disable no-restricted-globals */
 
@@ -658,7 +658,12 @@ export function documentSetAsArray(docs: DocumentSet): Document[] {
 export class DocComparator {
   static byField(...fields: string[]): DocumentComparator {
     const path = new FieldPath(fields);
-    return compareByField.bind(this, path);
+    return (d1: Document, d2: Document) => {
+      const v1 = d1.field(path);
+      const v2 = d2.field(path);
+      debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
+      return valueCompare(v1, v2);
+    };
   }
 }
 
