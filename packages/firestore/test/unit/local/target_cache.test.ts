@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {Query} from '../../../src/core/query';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
-import {TargetId} from '../../../src/core/types';
-import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
-import {Persistence} from '../../../src/local/persistence';
-import {ReferenceSet} from '../../../src/local/reference_set';
-import {TargetData, TargetPurpose} from '../../../src/local/target_data';
-import {addEqualityMatcher} from '../../util/equality_matcher';
+import { expect } from 'chai';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { TargetId } from '../../../src/core/types';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { Persistence } from '../../../src/local/persistence';
+import { ReferenceSet } from '../../../src/local/reference_set';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
   key,
@@ -32,10 +32,10 @@ import {
   version
 } from '../../util/helpers';
 
-import {Timestamp} from '../../../src/api/timestamp';
+import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
-import {TestTargetCache} from './test_target_cache';
-import {Target} from '../../../src/core/target';
+import { TestTargetCache } from './test_target_cache';
+import { Target } from '../../../src/core/target';
 
 describe('MemoryTargetCache', () => {
   genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);

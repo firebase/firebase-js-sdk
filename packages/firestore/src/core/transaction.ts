@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import {ParsedSetData, ParsedUpdateData} from '../api/user_data_reader';
-import {documentVersionMap} from '../model/collections';
-import {Document, MaybeDocument, NoDocument} from '../model/document';
+import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
+import { documentVersionMap } from '../model/collections';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 
-import {DocumentKey} from '../model/document_key';
+import { DocumentKey } from '../model/document_key';
 import {
   DeleteMutation,
   Mutation,
   Precondition,
   VerifyMutation
 } from '../model/mutation';
-import {Datastore} from '../remote/datastore';
-import {debugAssert, fail} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {SnapshotVersion} from './snapshot_version';
+import { Datastore } from '../remote/datastore';
+import { debugAssert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to

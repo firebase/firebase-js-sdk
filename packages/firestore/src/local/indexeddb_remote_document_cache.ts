@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Query} from '../core/query';
+import { Query } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -27,30 +27,30 @@ import {
   nullableMaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../model/collections';
-import {Document, MaybeDocument, NoDocument} from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {ResourcePath} from '../model/path';
-import {primitiveComparator} from '../util/misc';
-import {SortedMap} from '../util/sorted_map';
-import {SortedSet} from '../util/sorted_set';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
+import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 
-import {SnapshotVersion} from '../core/snapshot_version';
-import {debugAssert, fail, hardAssert} from '../util/assert';
-import {IndexManager} from './index_manager';
-import {IndexedDbPersistence} from './indexeddb_persistence';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { debugAssert, fail, hardAssert } from '../util/assert';
+import { IndexManager } from './index_manager';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
 } from './indexeddb_schema';
-import {LocalSerializer} from './local_serializer';
-import {PersistenceTransaction} from './persistence';
-import {PersistencePromise} from './persistence_promise';
-import {RemoteDocumentCache} from './remote_document_cache';
-import {RemoteDocumentChangeBuffer} from './remote_document_change_buffer';
-import {IterateOptions, SimpleDbStore} from './simple_db';
-import {ObjectMap} from '../util/obj_map';
+import { LocalSerializer } from './local_serializer';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { RemoteDocumentCache } from './remote_document_cache';
+import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { IterateOptions, SimpleDbStore } from './simple_db';
+import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**

@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import {Timestamp} from '../api/timestamp';
-import {SnapshotVersion} from '../core/snapshot_version';
+import { Timestamp } from '../api/timestamp';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   Document,
   MaybeDocument,
   NoDocument,
   UnknownDocument
 } from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {MutationBatch} from '../model/mutation_batch';
+import { DocumentKey } from '../model/document_key';
+import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
-import {JsonProtoSerializer} from '../remote/serializer';
-import {debugAssert, fail} from '../util/assert';
-import {ByteString} from '../util/byte_string';
-import {Target} from '../core/target';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
+import { Target } from '../core/target';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -40,7 +40,7 @@ import {
   DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
-import {TargetData, TargetPurpose} from './target_data';
+import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

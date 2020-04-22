@@ -114,14 +114,10 @@ describe.only('Dependencies', () => {
    "ordinal",
    "primitiveComparator",
    "tryGetCustomObjectType",
-   "typeAssert",
    "typeOrder",
    "uint8ArrayFromBinaryString",
    "validateArgType",
    "validateExactNumberOfArgs",
-   "validateNamedOptionalType",
-   "validateNamedType",
-   "validateOptionNames",
    "validateType",
    "valueDescription"]);
   });

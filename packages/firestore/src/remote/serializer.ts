@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import {Blob} from '../api/blob';
-import {Timestamp} from '../api/timestamp';
-import {DatabaseId} from '../core/database_info';
+import { Blob } from '../api/blob';
+import { Timestamp } from '../api/timestamp';
+import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   Direction,
@@ -28,13 +28,13 @@ import {
   OrderBy,
   Query
 } from '../core/query';
-import {SnapshotVersion} from '../core/snapshot_version';
-import {Target} from '../core/target';
-import {TargetId} from '../core/types';
-import {TargetData, TargetPurpose} from '../local/target_data';
-import {Document, MaybeDocument, NoDocument} from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {ObjectValue} from '../model/field_value';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
+import { TargetId } from '../core/types';
+import { TargetData, TargetPurpose } from '../local/target_data';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { ObjectValue } from '../model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -47,12 +47,16 @@ import {
   TransformMutation,
   VerifyMutation
 } from '../model/mutation';
-import {FieldPath, ResourcePath} from '../model/path';
+import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import {debugAssert, fail, hardAssert} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {ByteString} from '../util/byte_string';
-import {isNegativeZero, isNullOrUndefined, isSafeInteger} from '../util/types';
+import { debugAssert, fail, hardAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { ByteString } from '../util/byte_string';
+import {
+  isNegativeZero,
+  isNullOrUndefined,
+  isSafeInteger
+} from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -60,8 +64,8 @@ import {
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
-import {ExistenceFilter} from './existence_filter';
-import {mapCodeFromRpcCode} from './rpc_error';
+import { ExistenceFilter } from './existence_filter';
+import { mapCodeFromRpcCode } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -69,7 +73,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import {isNanValue, isNullValue, normalizeTimestamp} from '../model/values';
+import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};

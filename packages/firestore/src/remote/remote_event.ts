@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import {SnapshotVersion} from '../core/snapshot_version';
-import {TargetId} from '../core/types';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -24,8 +24,8 @@ import {
   MaybeDocumentMap,
   targetIdSet
 } from '../model/collections';
-import {SortedSet} from '../util/sorted_set';
-import {ByteString} from '../util/byte_string';
+import { SortedSet } from '../util/sorted_set';
+import { ByteString } from '../util/byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the

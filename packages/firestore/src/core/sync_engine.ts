@@ -15,43 +15,43 @@
  * limitations under the License.
  */
 
-import {User} from '../auth/user';
-import {ignoreIfPrimaryLeaseLoss, LocalStore} from '../local/local_store';
-import {LocalViewChanges} from '../local/local_view_changes';
-import {ReferenceSet} from '../local/reference_set';
-import {TargetData, TargetPurpose} from '../local/target_data';
+import { User } from '../auth/user';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import { LocalViewChanges } from '../local/local_view_changes';
+import { ReferenceSet } from '../local/reference_set';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import {MaybeDocument, NoDocument} from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {Mutation} from '../model/mutation';
-import {BATCHID_UNKNOWN, MutationBatchResult} from '../model/mutation_batch';
-import {RemoteEvent, TargetChange} from '../remote/remote_event';
-import {RemoteStore} from '../remote/remote_store';
-import {RemoteSyncer} from '../remote/remote_syncer';
-import {debugAssert, fail, hardAssert} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {logDebug} from '../util/log';
-import {primitiveComparator} from '../util/misc';
-import {ObjectMap} from '../util/obj_map';
-import {Deferred} from '../util/promise';
-import {SortedMap} from '../util/sorted_map';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
+import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
+import { RemoteEvent, TargetChange } from '../remote/remote_event';
+import { RemoteStore } from '../remote/remote_store';
+import { RemoteSyncer } from '../remote/remote_syncer';
+import { debugAssert, fail, hardAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
+import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
+import { Deferred } from '../util/promise';
+import { SortedMap } from '../util/sorted_map';
 
-import {ClientId, SharedClientState} from '../local/shared_client_state';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,
   SharedClientStateSyncer
 } from '../local/shared_client_state_syncer';
-import {SortedSet} from '../util/sorted_set';
-import {ListenSequence} from './listen_sequence';
-import {LimitType, Query} from './query';
-import {SnapshotVersion} from './snapshot_version';
-import {Target} from './target';
-import {TargetIdGenerator} from './target_id_generator';
-import {Transaction} from './transaction';
+import { SortedSet } from '../util/sorted_set';
+import { ListenSequence } from './listen_sequence';
+import { LimitType, Query } from './query';
+import { SnapshotVersion } from './snapshot_version';
+import { Target } from './target';
+import { TargetIdGenerator } from './target_id_generator';
+import { Transaction } from './transaction';
 import {
   BatchId,
   MutationBatchState,
@@ -67,9 +67,9 @@ import {
   ViewChange,
   ViewDocumentChanges
 } from './view';
-import {ViewSnapshot} from './view_snapshot';
-import {AsyncQueue} from '../util/async_queue';
-import {TransactionRunner} from './transaction_runner';
+import { ViewSnapshot } from './view_snapshot';
+import { AsyncQueue } from '../util/async_queue';
+import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 import {
   doc,
   expectEqual,
@@ -23,7 +23,7 @@ import {
   field,
   wrap
 } from '../../util/helpers';
-import {maybeDocumentEquals} from "../../../src/model/document";
+import { maybeDocumentEquals } from '../../../src/model/document';
 
 describe('Document', () => {
   it('can be constructed', () => {

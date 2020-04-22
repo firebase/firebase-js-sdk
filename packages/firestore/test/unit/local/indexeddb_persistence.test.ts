@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {Query} from '../../../src/core/query';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import { expect } from 'chai';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   decodeResourcePath,
   encodeResourcePath
 } from '../../../src/local/encoded_resource_path';
-import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbCollectionParent,
   DbCollectionParentKey,
@@ -53,18 +53,18 @@ import {
   V6_STORES,
   V8_STORES
 } from '../../../src/local/indexeddb_schema';
-import {LruParams} from '../../../src/local/lru_garbage_collector';
-import {PersistencePromise} from '../../../src/local/persistence_promise';
-import {ClientId} from '../../../src/local/shared_client_state';
-import {SimpleDb, SimpleDbTransaction} from '../../../src/local/simple_db';
-import {TargetData, TargetPurpose} from '../../../src/local/target_data';
-import {PlatformSupport} from '../../../src/platform/platform';
-import {firestoreV1ApiClientInterfaces} from '../../../src/protos/firestore_proto_api';
-import {JsonProtoSerializer} from '../../../src/remote/serializer';
-import {AsyncQueue} from '../../../src/util/async_queue';
-import {FirestoreError} from '../../../src/util/error';
-import {doc, filter, path, version} from '../../util/helpers';
-import {SharedFakeWebStorage, TestPlatform} from '../../util/test_platform';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { ClientId } from '../../../src/local/shared_client_state';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { doc, filter, path, version } from '../../util/helpers';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   MOCK_SEQUENCE_NUMBER_SYNCER,

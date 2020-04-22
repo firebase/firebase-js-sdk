@@ -17,8 +17,8 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import {Document} from '../model/document';
-import {DocumentKey} from '../model/document_key';
+import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import {
   arrayValueContains,
   canonicalId,
@@ -30,11 +30,11 @@ import {
   valueCompare,
   valueEquals
 } from '../model/values';
-import {FieldPath, ResourcePath} from '../model/path';
-import {debugAssert, fail} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {isNullOrUndefined} from '../util/types';
-import {Target} from './target';
+import { FieldPath, ResourcePath } from '../model/path';
+import { debugAssert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { isNullOrUndefined } from '../util/types';
+import { Target } from './target';
 
 export const enum LimitType {
   First = 'F',
@@ -87,11 +87,13 @@ export class Query {
         // inequality filter field for it to be a valid query.
         // Note that the default inequality field and key ordering is ascending.
         if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [(new OrderBy(FieldPath.keyField(), Direction.ASCENDING))];
+          this.memoizedOrderBy = [
+            new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+          ];
         } else {
           this.memoizedOrderBy = [
             new OrderBy(inequalityField),
-            (new OrderBy(FieldPath.keyField(), Direction.ASCENDING))
+            new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
           ];
         }
       } else {
@@ -119,10 +121,7 @@ export class Query {
           this.memoizedOrderBy.push(
             lastDirection === Direction.ASCENDING
               ? new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-              : new OrderBy(
-              FieldPath.keyField(),
-              Direction.DESCENDING
-              )
+              : new OrderBy(FieldPath.keyField(), Direction.DESCENDING)
           );
         }
       }
@@ -471,15 +470,14 @@ export abstract class Filter {
   abstract isEqual(filter: Filter): boolean;
 }
 export const enum Operator {
-   LESS_THAN = '<',
- LESS_THAN_OR_EQUAL = '<=',
- EQUAL = '==',
- GREATER_THAN = '>',
- GREATER_THAN_OR_EQUAL = '>=',
- ARRAY_CONTAINS = 'array-contains',
- IN = 'in',
- ARRAY_CONTAINS_ANY = 'array-contains-any',
-
+  LESS_THAN = '<',
+  LESS_THAN_OR_EQUAL = '<=',
+  EQUAL = '==',
+  GREATER_THAN = '>',
+  GREATER_THAN_OR_EQUAL = '>=',
+  ARRAY_CONTAINS = 'array-contains',
+  IN = 'in',
+  ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
 export class FieldFilter extends Filter {
@@ -813,17 +811,20 @@ export class OrderBy {
   }
 
   compare(d1: Document, d2: Document): number {
-    let comparison : number;
-    
+    let comparison: number;
+
     if (this.isKeyOrderBy) {
       comparison = Document.compareByKey(d1, d2);
     } else {
       const v1 = d1.field(this.field);
       const v2 = d2.field(this.field);
-      debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
-      comparison =  valueCompare(v1, v2);
+      debugAssert(
+        v1 !== null && v2 !== null,
+        'Field is missing from one document'
+      );
+      comparison = valueCompare(v1, v2);
     }
-    
+
     switch (this.dir) {
       case Direction.ASCENDING:
         return comparison;
@@ -847,4 +848,3 @@ export class OrderBy {
     return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
-

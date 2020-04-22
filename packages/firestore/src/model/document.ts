@@ -17,13 +17,13 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import {SnapshotVersion} from '../core/snapshot_version';
-import {debugAssert, fail, hardAssert} from '../util/assert';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 
-import {DocumentKey} from './document_key';
-import {ObjectValue, objectValueEquals} from './field_value';
-import {FieldPath} from './path';
-import {valueCompare} from './values';
+import { DocumentKey } from './document_key';
+import { ObjectValue, objectValueEquals } from './field_value';
+import { FieldPath } from './path';
+import { valueCompare } from './values';
 
 export interface DocumentOptions {
   hasLocalMutations?: boolean;
@@ -80,7 +80,7 @@ export class Document extends MaybeDocument {
   toProto(): { mapValue: api.MapValue } {
     return this.objectValue.proto;
   }
-  
+
   toString(): string {
     return (
       `Document(${this.key}, ${
@@ -96,41 +96,48 @@ export class Document extends MaybeDocument {
   }
 }
 
-export function compareByField(field: FieldPath, d1: Document, d2: Document): number {
+export function compareByField(
+  field: FieldPath,
+  d1: Document,
+  d2: Document
+): number {
   const v1 = d1.field(field);
   const v2 = d2.field(field);
 
   debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
-    return valueCompare(v1, v2);
+  return valueCompare(v1, v2);
 }
 
 // TODO(mrschmidt): I think this is only ever called with documents
-export function maybeDocumentEquals(left: MaybeDocument| null | undefined , right: MaybeDocument | null | undefined) : boolean {
+export function maybeDocumentEquals(
+  left: MaybeDocument | null | undefined,
+  right: MaybeDocument | null | undefined
+): boolean {
   if (left === right) {
     return true;
   }
-  if (left instanceof Document &&
-    right instanceof Document) {
-    return left.key.isEqual(right.key) &&
+  if (left instanceof Document && right instanceof Document) {
+    return (
+      left.key.isEqual(right.key) &&
       left.version.isEqual(right.version) &&
       left.hasLocalMutations === right.hasLocalMutations &&
       left.hasCommittedMutations === right.hasCommittedMutations &&
-      objectValueEquals(left.data(), right.data());
+      objectValueEquals(left.data(), right.data())
+    );
   }
 
-  if (left instanceof NoDocument &&
-    right instanceof NoDocument) {
-    return left.key.isEqual(right.key) &&
+  if (left instanceof NoDocument && right instanceof NoDocument) {
+    return (
+      left.key.isEqual(right.key) &&
       left.version.isEqual(right.version) &&
-      left.hasCommittedMutations === right.hasCommittedMutations;
+      left.hasCommittedMutations === right.hasCommittedMutations
+    );
   }
 
-  if (left instanceof UnknownDocument &&
-    right instanceof UnknownDocument) {
-    return left.key.isEqual(right.key) &&
-      left.version.isEqual(right.version);
+  if (left instanceof UnknownDocument && right instanceof UnknownDocument) {
+    return left.key.isEqual(right.key) && left.version.isEqual(right.version);
   }
-  
+
   return false;
 }
 

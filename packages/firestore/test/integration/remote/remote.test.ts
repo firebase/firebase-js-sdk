@@ -15,13 +15,17 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
-import {Document, MaybeDocument, NoDocument} from '../../../src/model/document';
-import {MutationResult} from '../../../src/model/mutation';
-import {addEqualityMatcher} from '../../util/equality_matcher';
-import {key, setMutation} from '../../util/helpers';
-import {withTestDatastore} from '../util/internal_helpers';
+import { expect } from 'chai';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument
+} from '../../../src/model/document';
+import { MutationResult } from '../../../src/model/mutation';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+import { key, setMutation } from '../../util/helpers';
+import { withTestDatastore } from '../util/internal_helpers';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
@@ -74,7 +78,9 @@ describe('Remote Storage', () => {
         expect(doc).to.be.an.instanceof(NoDocument);
         if (doc instanceof NoDocument) {
           expect(doc.key).to.deep.equal(k);
-          expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(0);
+          expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(
+            0
+          );
         }
       });
     });

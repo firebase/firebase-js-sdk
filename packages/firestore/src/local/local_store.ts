@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import {Timestamp} from '../api/timestamp';
-import {User} from '../auth/user';
-import {Query} from '../core/query';
-import {SnapshotVersion} from '../core/snapshot_version';
-import {Target} from '../core/target';
-import {BatchId, TargetId} from '../core/types';
+import { Timestamp } from '../api/timestamp';
+import { User } from '../auth/user';
+import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
+import { BatchId, TargetId } from '../core/types';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -28,41 +28,41 @@ import {
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import {MaybeDocument, NoDocument} from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {Mutation, PatchMutation, Precondition} from '../model/mutation';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import {RemoteEvent, TargetChange} from '../remote/remote_event';
-import {debugAssert, hardAssert} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {logDebug} from '../util/log';
-import {primitiveComparator} from '../util/misc';
-import {ObjectMap} from '../util/obj_map';
-import {SortedMap} from '../util/sorted_map';
+import { RemoteEvent, TargetChange } from '../remote/remote_event';
+import { debugAssert, hardAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
+import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
+import { SortedMap } from '../util/sorted_map';
 
-import {LocalDocumentsView} from './local_documents_view';
-import {LocalViewChanges} from './local_view_changes';
-import {LruGarbageCollector, LruResults} from './lru_garbage_collector';
-import {MutationQueue} from './mutation_queue';
+import { LocalDocumentsView } from './local_documents_view';
+import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
+import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
   PRIMARY_LEASE_LOST_ERROR_MSG
 } from './persistence';
-import {PersistencePromise} from './persistence_promise';
-import {TargetCache} from './target_cache';
-import {QueryEngine} from './query_engine';
-import {ReferenceSet} from './reference_set';
-import {RemoteDocumentCache} from './remote_document_cache';
-import {RemoteDocumentChangeBuffer} from './remote_document_change_buffer';
-import {ClientId} from './shared_client_state';
-import {TargetData, TargetPurpose} from './target_data';
-import {ByteString} from '../util/byte_string';
-import {extractFieldMask} from '../model/field_value';
+import { PersistencePromise } from './persistence_promise';
+import { TargetCache } from './target_cache';
+import { QueryEngine } from './query_engine';
+import { ReferenceSet } from './reference_set';
+import { RemoteDocumentCache } from './remote_document_cache';
+import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { ClientId } from './shared_client_state';
+import { TargetData, TargetPurpose } from './target_data';
+import { ByteString } from '../util/byte_string';
+import { extractFieldMask } from '../model/field_value';
 
 const LOG_TAG = 'LocalStore';
 

@@ -17,7 +17,7 @@
 
 import * as api from '../../../src/protos/firestore_proto_api';
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 import {
   extractFieldMask,
   ObjectValue,
@@ -25,8 +25,8 @@ import {
   objectValueEquals,
   TypeOrder
 } from '../../../src/model/field_value';
-import {typeOrder} from '../../../src/model/values';
-import {field, mask, wrap, wrapObject} from '../../util/helpers';
+import { typeOrder } from '../../../src/model/values';
+import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('FieldValue', () => {
   it('can extract fields', () => {

@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import {Timestamp} from '../api/timestamp';
+import { Timestamp } from '../api/timestamp';
 
 /**
  * A version of a document in Firestore. This corresponds to the version
  * timestamp, such as update_time or read_time.
  */
 export class SnapshotVersion {
-  static min() : SnapshotVersion {
-    return  new SnapshotVersion(new Timestamp(0, 0));
+  static min(): SnapshotVersion {
+    return new SnapshotVersion(new Timestamp(0, 0));
   }
   static fromTimestamp(value: Timestamp): SnapshotVersion {
     return new SnapshotVersion(value);

@@ -68,7 +68,7 @@ export const DEFAULT_PROJECT_ID = USE_EMULATOR
   : PROJECT_CONFIG.projectId;
 
 export function withTestDb(
-  fn: (db: api.FirebaseFirestore) => Promise<void>
+  fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
@@ -94,7 +94,7 @@ export async function withTestDbSettings(
 }
 
 export function withTestDoc(
-  fn: (doc: api.DocumentReference) => Promise<void>
+  fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
   return withTestDb(db => {
     return fn(db.collection('test-collection').doc());

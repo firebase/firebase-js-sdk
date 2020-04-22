@@ -17,13 +17,13 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import {debugAssert} from '../util/assert';
-import {FieldMask} from './mutation';
-import {FieldPath} from './path';
-import {isServerTimestamp} from './server_timestamps';
-import {isMapValue, typeOrder, valueEquals} from './values';
-import {forEach} from '../util/obj';
-import {SortedSet} from '../util/sorted_set';
+import { debugAssert } from '../util/assert';
+import { FieldMask } from './mutation';
+import { FieldPath } from './path';
+import { isServerTimestamp } from './server_timestamps';
+import { isMapValue, typeOrder, valueEquals } from './values';
+import { forEach } from '../util/obj';
+import { SortedSet } from '../util/sorted_set';
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -57,10 +57,10 @@ export class ObjectValue {
     );
   }
 
-  static empty() : ObjectValue {
-    return   new ObjectValue({ mapValue: {} });
+  static empty(): ObjectValue {
+    return new ObjectValue({ mapValue: {} });
   }
-  
+
   /**
    * Returns the value at the given path or null.
    *

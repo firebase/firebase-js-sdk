@@ -51,19 +51,11 @@ import { AutoId } from '../../../src/util/misc';
 import { Query } from '../../../src/api/database';
 import { DocumentData, Settings } from './crud';
 import { FirebaseService } from '@firebase/app-types/private';
+import {FirebaseFirestore} from "../api";
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-/**
- * Constant used to indicate the LRU garbage collection should be disabled.
- * Set this value as the `cacheSizeBytes` on the settings passed to the
- * `Firestore` instance.
- */
-export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
-
-// enablePersistence() defaults:
-const DEFAULT_SYNCHRONIZE_TABS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -107,20 +99,9 @@ class FirestoreSettings {
       this.host = DEFAULT_HOST;
       this.ssl = DEFAULT_SSL;
     } else {
-      validateNamedType('settings', 'non-empty string', 'host', settings.host);
       this.host = settings.host;
-
-      validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
       this.ssl = settings.ssl ?? DEFAULT_SSL;
     }
-    validateOptionNames('settings', settings, ['host', 'ssl', 'credentials']);
-
-    validateNamedOptionalType(
-      'settings',
-      'object',
-      'credentials',
-      settings.credentials
-    );
     this.credentials = settings.credentials;
   }
 
@@ -250,11 +231,11 @@ export class Firestore implements api.FirebaseFirestore, FirebaseService {
     return new DatabaseId(projectId);
   }
 
-  collection(pathString: string): api.CollectionReference {
+  collection(pathString: string): CollectionReference {
     return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
 
-  doc(pathString: string): api.DocumentReference {
+  doc(pathString: string): DocumentReference {
     return new DocumentReference(
       new DocumentKey(ResourcePath.fromString(pathString)),
       this
@@ -269,13 +250,13 @@ export class DocumentReference<T = firestore.DocumentData>
   implements api.DocumentReference<T> {
   constructor(
     public _key: DocumentKey,
-    readonly firestore: api.FirebaseFirestore
+    readonly firestore: Firestore
   ) {}
 }
 
 export class DocumentSnapshot<T = firestore.DocumentData> {
   constructor(
-    private _firestore: api.FirebaseFirestore,
+    private _firestore: Firestore,
     private _key: DocumentKey,
     public _document: Document | null
   ) {}
@@ -298,7 +279,7 @@ export class CollectionReference<T = firestore.DocumentData>
   implements api.CollectionReference<T> {
   constructor(
     readonly _path: ResourcePath,
-    readonly firestore: api.FirebaseFirestore,
+    readonly firestore: Firestore,
     _converter?: firestore.FirestoreDataConverter<T>
   ) {
     if (_path.length % 2 !== 1) {
@@ -315,7 +296,7 @@ export class CollectionReference<T = firestore.DocumentData>
     return this._path.lastSegment();
   }
 
-  get parent(): api.DocumentReference<DocumentData> | null {
+  get parent(): DocumentReference<DocumentData> | null {
     const parentPath = this._path.popLast();
     if (parentPath.isEmpty()) {
       return null;
@@ -331,7 +312,7 @@ export class CollectionReference<T = firestore.DocumentData>
     return this._path.canonicalString();
   }
 
-  doc(pathString?: string): api.DocumentReference<T> {
+  doc(pathString?: string): DocumentReference<T> {
     if (pathString === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import {SnapshotVersion} from '../core/snapshot_version';
-import {Target} from '../core/target';
-import {ListenSequenceNumber, TargetId} from '../core/types';
-import {ByteString} from '../util/byte_string';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { ByteString } from '../util/byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
 export const enum TargetPurpose {

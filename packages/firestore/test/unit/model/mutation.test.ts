@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {PublicFieldValue as FieldValue} from '../../../src/api/field_value';
-import {Timestamp} from '../../../src/api/timestamp';
-import {Document, MaybeDocument} from '../../../src/model/document';
-import {serverTimestamp} from '../../../src/model/server_timestamps';
+import { expect } from 'chai';
+import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { Timestamp } from '../../../src/api/timestamp';
+import { Document, MaybeDocument } from '../../../src/model/document';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   Mutation,
   MutationResult,
@@ -29,8 +29,8 @@ import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation
 } from '../../../src/model/transform_operation';
-import {Dict} from '../../../src/util/obj';
-import {addEqualityMatcher} from '../../util/equality_matcher';
+import { Dict } from '../../../src/util/obj';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   DELETE_SENTINEL,
   deletedDoc,

@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-import {BatchId, ListenSequenceNumber, TargetId} from '../core/types';
-import {ResourcePath} from '../model/path';
+import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
+import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import {debugAssert, hardAssert} from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 
-import {SnapshotVersion} from '../core/snapshot_version';
-import {BATCHID_UNKNOWN} from '../model/mutation_batch';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import {removeMutationBatch} from './indexeddb_mutation_queue';
-import {getHighestListenSequenceNumber} from './indexeddb_target_cache';
-import {dbDocumentSize} from './indexeddb_remote_document_cache';
-import {LocalSerializer} from './local_serializer';
-import {MemoryCollectionParentIndex} from './memory_index_manager';
-import {PersistencePromise} from './persistence_promise';
-import {SimpleDbSchemaConverter, SimpleDbTransaction} from './simple_db';
+import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
+import { dbDocumentSize } from './indexeddb_remote_document_cache';
+import { LocalSerializer } from './local_serializer';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { PersistencePromise } from './persistence_promise';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /**
  * Schema Version for the Web client:

@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {EmptyCredentialsProvider, Token} from '../../../src/api/credentials';
-import {User} from '../../../src/auth/user';
-import {ComponentConfiguration} from '../../../src/core/component_provider';
-import {DatabaseInfo} from '../../../src/core/database_info';
+import { expect } from 'chai';
+import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
+import { User } from '../../../src/auth/user';
+import { ComponentConfiguration } from '../../../src/core/component_provider';
+import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
-import {Query} from '../../../src/core/query';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
-import {SyncEngine} from '../../../src/core/sync_engine';
-import {TargetId} from '../../../src/core/types';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { SyncEngine } from '../../../src/core/sync_engine';
+import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange,
@@ -40,27 +40,27 @@ import {
   SCHEMA_VERSION,
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
-import {LocalStore} from '../../../src/local/local_store';
+import { LocalStore } from '../../../src/local/local_store';
 import {
   ClientId,
   SharedClientState
 } from '../../../src/local/shared_client_state';
-import {SimpleDb} from '../../../src/local/simple_db';
-import {TargetData, TargetPurpose} from '../../../src/local/target_data';
-import {DocumentOptions} from '../../../src/model/document';
-import {DocumentKey} from '../../../src/model/document_key';
-import {JsonObject} from '../../../src/model/field_value';
-import {Mutation} from '../../../src/model/mutation';
-import {PlatformSupport} from '../../../src/platform/platform';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { DocumentOptions } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { JsonObject } from '../../../src/model/field_value';
+import { Mutation } from '../../../src/model/mutation';
+import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
-import {Connection, Stream} from '../../../src/remote/connection';
-import {Datastore} from '../../../src/remote/datastore';
-import {ExistenceFilter} from '../../../src/remote/existence_filter';
-import {WriteRequest} from '../../../src/remote/persistent_stream';
-import {RemoteStore} from '../../../src/remote/remote_store';
-import {mapCodeFromRpcCode} from '../../../src/remote/rpc_error';
-import {JsonProtoSerializer} from '../../../src/remote/serializer';
-import {StreamBridge} from '../../../src/remote/stream_bridge';
+import { Connection, Stream } from '../../../src/remote/connection';
+import { Datastore } from '../../../src/remote/datastore';
+import { ExistenceFilter } from '../../../src/remote/existence_filter';
+import { WriteRequest } from '../../../src/remote/persistent_stream';
+import { RemoteStore } from '../../../src/remote/remote_store';
+import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { StreamBridge } from '../../../src/remote/stream_bridge';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -68,13 +68,13 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import {debugAssert, fail} from '../../../src/util/assert';
-import {AsyncQueue, TimerId} from '../../../src/util/async_queue';
-import {FirestoreError} from '../../../src/util/error';
-import {primitiveComparator} from '../../../src/util/misc';
-import {forEach, objectSize} from '../../../src/util/obj';
-import {ObjectMap} from '../../../src/util/obj_map';
-import {Deferred, sequence} from '../../../src/util/promise';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { primitiveComparator } from '../../../src/util/misc';
+import { forEach, objectSize } from '../../../src/util/obj';
+import { ObjectMap } from '../../../src/util/obj_map';
+import { Deferred, sequence } from '../../../src/util/promise';
 import {
   byteStringFromString,
   deletedDoc,
@@ -91,8 +91,8 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import {encodeWatchChange} from '../../util/spec_test_helpers';
-import {SharedFakeWebStorage, TestPlatform} from '../../util/test_platform';
+import { encodeWatchChange } from '../../util/spec_test_helpers';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -100,12 +100,12 @@ import {
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
-import {MULTI_CLIENT_TAG} from './describe_spec';
-import {ByteString} from '../../../src/util/byte_string';
-import {SortedSet} from '../../../src/util/sorted_set';
-import {ActiveTargetMap, ActiveTargetSpec} from './spec_builder';
-import {LruParams} from '../../../src/local/lru_garbage_collector';
-import {PersistenceSettings} from '../../../src/core/firestore_client';
+import { MULTI_CLIENT_TAG } from './describe_spec';
+import { ByteString } from '../../../src/util/byte_string';
+import { SortedSet } from '../../../src/util/sorted_set';
+import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   MockIndexedDbComponentProvider,
   MockMemoryComponentProvider,

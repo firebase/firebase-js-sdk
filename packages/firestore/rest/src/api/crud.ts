@@ -33,11 +33,9 @@ export function initializeFirestore(firstore: Firestore, settings?: Settings) {
 }
 
 export async function getDocument<T>(
-  reference: api.DocumentReference<T>
+  reference: DocumentReference<T>
 ): Promise<DocumentSnapshot> {
-  typeAssert(reference instanceof DocumentReference);
   const firestore = reference.firestore;
-  typeAssert(firestore instanceof Firestore);
   await firestore._ensureClientConfigured();
   const result = await firestore._datastore!.lookup([reference._key]);
   hardAssert(result.length == 1, 'Expected a single document result');
@@ -47,8 +45,4 @@ export async function getDocument<T>(
     reference._key,
     maybeDocument instanceof Document ? maybeDocument : null
   );
-}
-
-function typeAssert(exp: boolean) : asserts exp {
-  debugAssert(exp, 'Instance is not of the expected internal type');
 }

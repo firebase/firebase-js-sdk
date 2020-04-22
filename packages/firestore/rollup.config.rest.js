@@ -19,7 +19,7 @@ import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
-import * as replace  from 'rollup-plugin-replace';
+import * as replace from 'rollup-plugin-replace';
 
 import { firestoreTransformers, resolveBrowserExterns } from './rollup.shared';
 
@@ -33,7 +33,7 @@ const defaultPlugins = [
     },
     clean: true
   }),
-  json({ preferConst: true }),
+  json({ preferConst: true })
 ];
 
 const mangledPlugins = [
@@ -75,16 +75,16 @@ const browserBuilds = [
       tryCatchDeoptimization: false
     }
   },
-  // {
-  //   input: './rest/index.ts',
-  //   output: {
-  //     file: './rest/dist/index.esm2017.min.js',
-  //     format: 'es',
-  //     sourcemap: true
-  //   },
-  //   plugins: mangledPlugins,
-  //   external: resolveBrowserExterns
-  // }
+  {
+    input: './rest/index.ts',
+    output: {
+      file: './rest/dist/index.esm2017.min.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: mangledPlugins,
+    external: resolveBrowserExterns
+  }
 ];
 
 // MARK: Node builds

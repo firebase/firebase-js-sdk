@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
-import {Blob} from '../../../src/api/blob';
-import {PublicFieldValue as FieldValue} from '../../../src/api/field_value';
-import {GeoPoint} from '../../../src/api/geo_point';
-import {Timestamp} from '../../../src/api/timestamp';
-import {DocumentKeyReference} from '../../../src/api/user_data_reader';
-import {DocumentReference} from '../../../src/api/database';
-import {DatabaseId} from '../../../src/core/database_info';
+import { Blob } from '../../../src/api/blob';
+import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
+import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import { DocumentReference } from '../../../src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
@@ -35,9 +35,9 @@ import {
   OrderBy,
   Query
 } from '../../../src/core/query';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
-import {Target} from '../../../src/core/target';
-import {TargetData, TargetPurpose} from '../../../src/local/target_data';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import {
   DeleteMutation,
   FieldMask,
@@ -46,18 +46,18 @@ import {
   SetMutation,
   VerifyMutation
 } from '../../../src/model/mutation';
-import {DOCUMENT_KEY_NAME, FieldPath} from '../../../src/model/path';
-import {refValue} from '../../../src/model/values';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
+import { refValue } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
-import {JsonProtoSerializer} from '../../../src/remote/serializer';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import {Code, FirestoreError} from '../../../src/util/error';
-import {forEach} from '../../../src/util/obj';
-import {addEqualityMatcher} from '../../util/equality_matcher';
+import { Code, FirestoreError } from '../../../src/util/error';
+import { forEach } from '../../../src/util/obj';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
   byteStringFromString,
@@ -81,9 +81,9 @@ import {
   wrapObject
 } from '../../util/helpers';
 
-import {ByteString} from '../../../src/util/byte_string';
-import {isNode} from '../../util/test_platform';
-import {maybeDocumentEquals} from "../../../src/model/document";
+import { ByteString } from '../../../src/util/byte_string';
+import { isNode } from '../../util/test_platform';
+import { maybeDocumentEquals } from '../../../src/model/document';
 
 const userDataWriter = testUserDataWriter();
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);

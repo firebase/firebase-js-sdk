@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
-import {Query} from '../../../src/core/query';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
-import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
-import {MaybeDocument} from '../../../src/model/document';
+import { expect } from 'chai';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { MaybeDocument } from '../../../src/model/document';
 import {
   deletedDoc,
   doc,
@@ -29,9 +29,12 @@ import {
   removedDoc,
   version
 } from '../../util/helpers';
-import {documentKeySet, MaybeDocumentMap} from '../../../src/model/collections';
+import {
+  documentKeySet,
+  MaybeDocumentMap
+} from '../../../src/model/collections';
 import * as persistenceHelpers from './persistence_test_helpers';
-import {TestRemoteDocumentCache} from './test_remote_document_cache';
+import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';

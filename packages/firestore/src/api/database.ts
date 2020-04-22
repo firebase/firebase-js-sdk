@@ -19,15 +19,15 @@ import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
 
-import {FirebaseApp} from '@firebase/app-types';
-import {_FirebaseApp, FirebaseService} from '@firebase/app-types/private';
-import {DatabaseId, DatabaseInfo} from '../core/database_info';
-import {ListenOptions} from '../core/event_manager';
+import { FirebaseApp } from '@firebase/app-types';
+import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
+import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import { ListenOptions } from '../core/event_manager';
 import {
   ComponentProvider,
   MemoryComponentProvider
 } from '../core/component_provider';
-import {FirestoreClient, PersistenceSettings} from '../core/firestore_client';
+import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -37,26 +37,26 @@ import {
   OrderBy,
   Query as InternalQuery
 } from '../core/query';
-import {Transaction as InternalTransaction} from '../core/transaction';
-import {ChangeType, ViewSnapshot} from '../core/view_snapshot';
-import {LruParams} from '../local/lru_garbage_collector';
+import { Transaction as InternalTransaction } from '../core/transaction';
+import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { LruParams } from '../local/lru_garbage_collector';
 import {
   Document,
   MaybeDocument,
   maybeDocumentEquals,
   NoDocument
 } from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {DeleteMutation, Mutation, Precondition} from '../model/mutation';
-import {FieldPath, ResourcePath} from '../model/path';
-import {isServerTimestamp} from '../model/server_timestamps';
-import {refValue} from '../model/values';
-import {PlatformSupport} from '../platform/platform';
-import {makeConstructorPrivate} from '../util/api';
-import {debugAssert, fail} from '../util/assert';
-import {AsyncObserver} from '../util/async_observer';
-import {AsyncQueue} from '../util/async_queue';
-import {Code, FirestoreError} from '../util/error';
+import { DocumentKey } from '../model/document_key';
+import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
+import { FieldPath, ResourcePath } from '../model/path';
+import { isServerTimestamp } from '../model/server_timestamps';
+import { refValue } from '../model/values';
+import { PlatformSupport } from '../platform/platform';
+import { makeConstructorPrivate } from '../util/api';
+import { debugAssert, fail } from '../util/assert';
+import { AsyncObserver } from '../util/async_observer';
+import { AsyncQueue } from '../util/async_queue';
+import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
   validateArgType,
@@ -74,10 +74,10 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import {getLogLevel, logError, LogLevel, setLogLevel} from '../util/log';
-import {AutoId} from '../util/misc';
-import {Deferred, Rejecter, Resolver} from '../util/promise';
-import {FieldPath as ExternalFieldPath} from './field_path';
+import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import { AutoId } from '../util/misc';
+import { Deferred, Rejecter, Resolver } from '../util/promise';
+import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
   CredentialsProvider,
@@ -99,9 +99,9 @@ import {
   fieldPathFromArgument,
   UserDataReader
 } from './user_data_reader';
-import {UserDataWriter} from './user_data_writer';
-import {FirebaseAuthInternalName} from '@firebase/auth-interop-types';
-import {Provider} from '@firebase/component';
+import { UserDataWriter } from './user_data_writer';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
