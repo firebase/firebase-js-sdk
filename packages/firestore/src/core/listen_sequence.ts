@@ -37,7 +37,7 @@ export interface SequenceNumberSyncer {
  * `SequenceNumberSyncer`, it will additionally bump its next value when told of a new value, as
  * well as write out sequence numbers that it produces via `next()`.
  */
-export class ListenSequence {
+/*@__PURE__*/ export class ListenSequence {
   static readonly INVALID: ListenSequenceNumber = -1;
 
   private writeNewSequenceNumber?: (

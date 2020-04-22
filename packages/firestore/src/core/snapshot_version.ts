@@ -21,7 +21,7 @@ import { Timestamp } from '../api/timestamp';
  * A version of a document in Firestore. This corresponds to the version
  * timestamp, such as update_time or read_time.
  */
-export class SnapshotVersion {
+/*@__PURE__*/ export class SnapshotVersion {
   static readonly MIN = new SnapshotVersion(new Timestamp(0, 0));
 
   static fromTimestamp(value: Timestamp): SnapshotVersion {

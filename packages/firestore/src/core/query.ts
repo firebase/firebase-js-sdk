@@ -87,11 +87,11 @@ export class Query {
         // inequality filter field for it to be a valid query.
         // Note that the default inequality field and key ordering is ascending.
         if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [KEY_ORDERING_ASC];
+          this.memoizedOrderBy = [OrderBy.KEY_ORDERING_ASC];
         } else {
           this.memoizedOrderBy = [
             new OrderBy(inequalityField),
-            KEY_ORDERING_ASC
+            OrderBy.KEY_ORDERING_ASC
           ];
         }
       } else {
@@ -118,8 +118,8 @@ export class Query {
               : Direction.ASCENDING;
           this.memoizedOrderBy.push(
             lastDirection === Direction.ASCENDING
-              ? KEY_ORDERING_ASC
-              : KEY_ORDERING_DESC
+              ? OrderBy.KEY_ORDERING_ASC
+              : OrderBy.KEY_ORDERING_DESC
           );
         }
       }
@@ -468,7 +468,7 @@ export abstract class Filter {
   abstract isEqual(filter: Filter): boolean;
 }
 
-export class Operator {
+/*@__PURE__*/ export class Operator {
   static LESS_THAN = new Operator('<');
   static LESS_THAN_OR_EQUAL = new Operator('<=');
   static EQUAL = new Operator('==');
@@ -737,7 +737,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
 /**
  * The direction of sorting in an order by.
  */
-export class Direction {
+/*@__PURE__*/ export class Direction {
   static ASCENDING = new Direction('asc');
   static DESCENDING = new Direction('desc');
 
@@ -836,7 +836,13 @@ export class Bound {
 /**
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
-export class OrderBy {
+/*@__PURE__*/ export class OrderBy {
+  static KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
+  static KEY_ORDERING_DESC = new OrderBy(
+    FieldPath.keyField(),
+    Direction.DESCENDING
+  );
+  
   readonly dir: Direction;
   private readonly isKeyOrderBy: boolean;
 
@@ -875,9 +881,3 @@ export class OrderBy {
     return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
-
-const KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
-const KEY_ORDERING_DESC = new OrderBy(
-  FieldPath.keyField(),
-  Direction.DESCENDING
-);

@@ -14,9 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as json from 'rollup-plugin-json';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import * as typescript from 'typescript';
+
 import { getDocument } from '..';
 import * as rollup from 'rollup';
 import * as tmp from 'tmp';
@@ -76,7 +74,6 @@ describe.only('Dependencies', () => {
    "DatabaseId",
    "DatabaseInfo",
    "Datastore",
-   "Direction",
    "Document",
    "DocumentKey",
    "DocumentReference",
@@ -91,12 +88,8 @@ describe.only('Dependencies', () => {
    "MaybeDocument",
    "OAuthToken",
    "ObjectValue",
-   "Operator",
-   "OrderBy",
    "PlatformSupport",
-   "Precondition",
    "ResourcePath",
-   "SnapshotVersion",
    "Timestamp",
    "User",
    "UserDataWriter",

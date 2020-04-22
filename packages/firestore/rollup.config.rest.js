@@ -70,18 +70,21 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: defaultPlugins,
-    external: resolveBrowserExterns
+    external: resolveBrowserExterns,
+    treeshake: {
+      tryCatchDeoptimization: false
+    }
   },
-  {
-    input: './rest/index.ts',
-    output: {
-      file: './rest/dist/index.esm2017.min.js',
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: mangledPlugins,
-    external: resolveBrowserExterns
-  }
+  // {
+  //   input: './rest/index.ts',
+  //   output: {
+  //     file: './rest/dist/index.esm2017.min.js',
+  //     format: 'es',
+  //     sourcemap: true
+  //   },
+  //   plugins: mangledPlugins,
+  //   external: resolveBrowserExterns
+  // }
 ];
 
 // MARK: Node builds
