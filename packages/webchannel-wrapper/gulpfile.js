@@ -62,7 +62,7 @@ const closureDefines = [
  * @param {string} prefix prefix to the compiled code
  * @param {string} suffix suffix to the compiled code
  */
-function createBuildTask(filename, prefix, suffix, language_out = 'ES5') {
+function createBuildTask(filename, prefix, suffix) {
   return function closureBuild() {
     return gulp
       .src(
@@ -84,7 +84,7 @@ function createBuildTask(filename, prefix, suffix, language_out = 'ES5') {
             resolve(__dirname, './externs/overrides.js'),
             resolve(__dirname, './externs/module.js')
           ],
-          language_out,
+          language_out: 'ECMASCRIPT_2017',
           dependency_mode: 'PRUNE',
           define: closureDefines
         })
@@ -94,26 +94,38 @@ function createBuildTask(filename, prefix, suffix, language_out = 'ES5') {
   };
 }
 
-function createRollupTask(inputPath, outputExtension) {
+function createRollupTask({
+  inputPath,
+  outputExtension,
+  compileToES5 = false,
+  format = 'es'
+}) {
   return async function rollupBuild() {
-    const inputOptions = {
-      input: inputPath,
-      plugins: [
-        rollupSourcemaps(),
-        commonjs(),
+    const plugins = [rollupSourcemaps(), commonjs()];
+    if (compileToES5) {
+      plugins.push(
         typescriptPlugin({
           typescript,
-          compilerOptions: { allowJs: true, include: [inputPath], target: "ES5" },
-          input: inputPath
-        }),
-        terser()
-      ]
+          // Uncomment for development only. Prevents caching between builds.
+          // clean: true,
+          compilerOptions: { allowJs: true },
+          include: ['dist/**/*.js']
+        })
+      );
+    }
+    // Typescript step unminifies minified Closure output.
+    plugins.push(terser());
+    const inputOptions = {
+      input: inputPath,
+      plugins,
+      external: ['@firebase/app']
     };
 
     const outputOptions = {
-      file: `dist/index.${outputExtension}.js`,
-      format: 'es',
-      sourcemap: true
+      file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
+      format,
+      sourcemap: true,
+      exports: 'named'
     };
 
     const bundle = await rollup.rollup(inputOptions);
@@ -125,41 +137,52 @@ async function deleteIntermediateFiles() {
   await del('dist/temp');
 }
 
-// commonjs build
+// Closure-generated ES2017 intermediate file (CJS format)
+const intermediateCjsFile = 'temp/cjs.js';
+const intermediateCjsPath = resolve(__dirname, 'dist/', intermediateCjsFile);
 const cjsBuild = createBuildTask(
-  'index.js',
+  intermediateCjsFile,
   CJS_WRAPPER_PREFIX,
   CJS_WRAPPER_SUFFIX
 );
-gulp.task('cjs', cjsBuild);
 
-// esm build
-// 1) Do closure compile without any wrapping code.
-// 2) Use rollup to convert result to ESM format.
+// Closure-generated ES2017 intermediate file (no wrapper text)
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
-const esmBuild = createBuildTask(intermediateEsmFile, '', '', 'ECMASCRIPT_2017');
-const rollupTask = createRollupTask(intermediateEsmPath, 'esm');
-gulp.task('esm', gulp.series(esmBuild, rollupTask));
+const esmBuild = createBuildTask(intermediateEsmFile, '', '');
 
-// esm 2017 build
-// 1) Do closure compile with language set to ES2017, without any wrapping code.
-// 2) Use rollup to convert result to ESM format.
-const intermediateEsm2017File = 'temp/esm2017.js';
-const intermediateEsm2017Path = resolve(
-  __dirname,
-  'dist/',
-  intermediateEsm2017File
-);
-const esm2017Build = createBuildTask(
-  intermediateEsm2017File,
-  '',
-  '',
-  'ECMASCRIPT_2017'
-);
-const rollup2017Task = createRollupTask(intermediateEsm2017Path, 'esm2017');
-gulp.task('esm2017', gulp.series(esm2017Build, rollup2017Task));
+// cjs output
+const rollupCjsTask = createRollupTask({
+  inputPath: intermediateCjsPath,
+  outputExtension: '',
+  compileToES5: true,
+  format: 'cjs'
+});
+gulp.task('cjs', gulp.series(cjsBuild, rollupCjsTask));
 
-gulp.task('buildAll', gulp.parallel('cjs', 'esm', 'esm2017'));
+// esm intermediateEsmPath
+const rollupEsmTask = createRollupTask({
+  inputPath: intermediateEsmPath,
+  outputExtension: 'esm',
+  compileToES5: true,
+  format: 'es'
+});
+gulp.task('esm', gulp.series(esmBuild, rollupEsmTask));
+
+// esm2017 output
+const rollup2017Task = createRollupTask({
+  inputPath: intermediateEsmPath,
+  outputExtension: 'esm2017',
+  compileToES5: false,
+  format: 'es'
+});
+gulp.task('esm2017', gulp.series(esmBuild, rollup2017Task));
+
+gulp.task(
+  'allEsm',
+  gulp.series(esmBuild, gulp.parallel(rollupEsmTask, rollup2017Task))
+);
+
+gulp.task('buildAll', gulp.parallel('cjs', 'allEsm'));
 
 gulp.task('default', gulp.series('buildAll', deleteIntermediateFiles));
