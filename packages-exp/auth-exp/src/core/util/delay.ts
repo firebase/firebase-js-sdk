@@ -17,6 +17,7 @@
 
 import { isMobileCordova, isReactNative } from '@firebase/util';
 import { isOnline } from './navigator';
+import { debugAssert } from './assert';
 
 export const _OFFLINE_DELAY_MS = 5000;
 
@@ -34,9 +35,7 @@ export class Delay {
     private readonly longDelay: number
   ) {
     // Internal error when improperly initialized.
-    if (shortDelay > longDelay) {
-      throw new Error('Short delay should be less than long delay!');
-    }
+    debugAssert(shortDelay > longDelay, 'Short delay should be less than long delay!');
     this.isMobile = isMobileCordova() || isReactNative();
   }
 
