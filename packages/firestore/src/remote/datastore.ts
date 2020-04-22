@@ -16,21 +16,13 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { maybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { hardAssert } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import {
-  WatchStreamListener,
-  WriteStreamListener,
-  PersistentListenStream,
-  PersistentWriteStream
-} from './persistent_stream';
 
 import { JsonProtoSerializer } from './serializer';
 
@@ -51,35 +43,10 @@ interface CommitRequest extends api.CommitRequest {
  */
 export class Datastore {
   constructor(
-    private queue: AsyncQueue,
     private connection: Connection,
     private credentials: CredentialsProvider,
     private serializer: JsonProtoSerializer
   ) {}
-
-  newPersistentWriteStream(
-    listener: WriteStreamListener
-  ): PersistentWriteStream {
-    return new PersistentWriteStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
-
-  newPersistentWatchStream(
-    listener: WatchStreamListener
-  ): PersistentListenStream {
-    return new PersistentListenStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
 
   commit(mutations: Mutation[]): Promise<MutationResult[]> {
     const params: CommitRequest = {
@@ -106,14 +73,14 @@ export class Datastore {
       BatchGetDocumentsRequest,
       api.BatchGetDocumentsResponse
     >('BatchGetDocuments', params).then(response => {
-      let docs = maybeDocumentMap();
+      const docs = new Map<string, MaybeDocument>();
       response.forEach(proto => {
         const doc = this.serializer.fromMaybeDocument(proto);
-        docs = docs.insert(doc.key, doc);
+        docs.set(doc.key.toString(), doc);
       });
       const result: MaybeDocument[] = [];
       keys.forEach(key => {
-        const doc = docs.get(key);
+        const doc = docs.get(key.toString());
         hardAssert(!!doc, 'Missing entity in write response for ' + key);
         result.push(doc);
       });

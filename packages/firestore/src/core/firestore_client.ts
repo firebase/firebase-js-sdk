@@ -23,7 +23,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
-import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -238,18 +237,14 @@ export class FirestoreClient {
       const serializer = this.platform.newSerializer(
         this.databaseInfo.databaseId
       );
-      const datastore = new Datastore(
-        this.asyncQueue,
-        connection,
-        this.credentials,
-        serializer
-      );
 
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
         platform: this.platform,
-        datastore,
+        connection,
+        credentials: this.credentials,
+        serializer,
         clientId: this.clientId,
         initialUser: user,
         maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,

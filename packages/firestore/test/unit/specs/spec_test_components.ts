@@ -51,7 +51,7 @@ export class MockMemoryPersistence extends MemoryPersistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    if (this.injectFailures) { 
+    if (this.injectFailures) {
       return Promise.reject(
         new IndexedDbTransactionError(new Error('Simulated retryable error'))
       );
