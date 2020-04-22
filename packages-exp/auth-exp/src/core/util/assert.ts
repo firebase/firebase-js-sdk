@@ -37,7 +37,7 @@ export function fail(appName: string, errorCode: AuthErrorCode): never {
 export function assert(
   assertion: unknown,
   appName: string,
-  errorCode: AuthErrorCode = AuthErrorCode.INTERNAL_ERROR
+  errorCode = AuthErrorCode.INTERNAL_ERROR
 ): asserts assertion {
   if (!assertion) {
     fail(appName, errorCode);
