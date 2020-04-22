@@ -1465,7 +1465,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     let fieldValue: api.Value;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const operator = Operator.fromString(opStr);
+    const operator = opStr as Operator;
     if (fieldPath.isKeyField()) {
       if (
         operator === Operator.ARRAY_CONTAINS ||
@@ -1497,7 +1497,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         'Query.where',
         value,
         // We only allow nested arrays for IN queries.
-        /** allowArrays = */ operator === Operator.IN ? true : false
+        /** allowArrays = */ operator === Operator.IN
       );
     }
     const filter = FieldFilter.create(fieldPath, operator, fieldValue);
