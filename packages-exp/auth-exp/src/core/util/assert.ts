@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { SDK_VERSION } from '@firebase/app-exp';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { logError } from './log';
 
 /**
@@ -25,8 +24,8 @@ import { logError } from './log';
  * @param appName App name for tagging the error
  * @throws FirebaseError
  */
-export function fail(appName: string): never {
-  throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, { appName });
+export function fail(appName: string, errorCode: AuthErrorCode): never {
+  throw AUTH_ERROR_FACTORY.create(errorCode, { appName });
 }
 
 /**
@@ -35,20 +34,10 @@ export function fail(appName: string): never {
  * @param assertion
  * @param appName
  */
-export function assert(assertion: boolean, appName: string): asserts assertion {
+export function assert(assertion: unknown, appName: string, errorCode: AuthErrorCode = AuthErrorCode.INTERNAL_ERROR): asserts assertion {
   if (!assertion) {
-    fail(appName);
+    fail(appName, errorCode);
   }
-}
-
-export function assertStringOrUndefined(
-  assertion: unknown,
-  appName: string
-): asserts assertion is string | undefined {
-  assert(
-    typeof assertion === 'string' || typeof assertion === 'undefined',
-    appName
-  );
 }
 
 /**
@@ -60,10 +49,10 @@ export function assertStringOrUndefined(
 export function debugFail(failure: string): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  const message = `AUTH (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  const message = `INTERNAL ASSERTION FAILED: ` + failure;
   logError(message);
 
-  // NOTE: We don't use FirestoreError here because these are internal failures
+  // NOTE: We don't use FirebaseError here because these are internal failures
   // that cannot be handled by the user. (Also it would create a circular
   // dependency between the error and assert modules which doesn't work.)
   throw new Error(message);

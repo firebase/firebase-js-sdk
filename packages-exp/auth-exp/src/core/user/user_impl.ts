@@ -20,7 +20,7 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
-import { assert, assertStringOrUndefined } from '../util/assert';
+import { assert } from '../util/assert';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -32,6 +32,17 @@ export interface UserParameters {
   email?: string;
   phoneNumber?: string;
   photoURL?: string;
+}
+
+
+function assertStringOrUndefined(
+  assertion: unknown,
+  appName: string
+): asserts assertion is string | undefined {
+  assert(
+    typeof assertion === 'string' || typeof assertion === 'undefined',
+    appName
+  );
 }
 
 export class UserImpl implements User {
