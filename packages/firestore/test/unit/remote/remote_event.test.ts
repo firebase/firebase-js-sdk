@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { TargetId } from '../../../src/core/types';
-import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
-import { ExistenceFilter } from '../../../src/remote/existence_filter';
-import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
+import {expect} from 'chai';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import {TargetId} from '../../../src/core/types';
+import {TargetData, TargetPurpose} from '../../../src/local/target_data';
+import {DocumentKeySet, documentKeySet} from '../../../src/model/collections';
+import {ExistenceFilter} from '../../../src/remote/existence_filter';
+import {RemoteEvent, TargetChange} from '../../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -33,15 +33,15 @@ import {
   deletedDoc,
   doc,
   expectEqual,
-  keys,
-  targetData,
-  resumeTokenForSnapshot,
-  updateMapping,
-  version,
+  forEachNumber,
   key,
-  forEachNumber
+  keys,
+  resumeTokenForSnapshot,
+  targetData,
+  updateMapping,
+  version
 } from '../../util/helpers';
-import { ByteString } from '../../../src/util/byte_string';
+import {ByteString} from '../../../src/util/byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -459,7 +459,7 @@ describe('RemoteEvent', () => {
     expect(event.targetMismatches.size).to.equal(1);
     expect(event.targetChanges.size).to.equal(1);
 
-    const expected = updateMapping(SnapshotVersion.MIN, [], [], [doc1], false);
+    const expected = updateMapping(SnapshotVersion.min(), [], [], [doc1], false);
     expectTargetChangeEquals(event.targetChanges.get(1)!, expected);
   });
 

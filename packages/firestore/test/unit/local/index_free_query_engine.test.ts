@@ -15,29 +15,29 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { View } from '../../../src/core/view';
+import {expect} from 'chai';
+import {User} from '../../../src/auth/user';
+import {Query} from '../../../src/core/query';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import {RemoteDocumentCache} from '../../../src/local/remote_document_cache';
+import {View} from '../../../src/core/view';
 import {
   Persistence,
   PersistenceTransaction
 } from '../../../src/local/persistence';
-import { TargetCache } from '../../../src/local/target_cache';
-import { QueryEngine } from '../../../src/local/query_engine';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
-import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { documentKeySet, DocumentMap } from '../../../src/model/collections';
-import { MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
-import { DocumentSet } from '../../../src/model/document_set';
-import { debugAssert } from '../../../src/util/assert';
-import { testMemoryEagerPersistence } from './persistence_test_helpers';
-import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+import {TargetCache} from '../../../src/local/target_cache';
+import {QueryEngine} from '../../../src/local/query_engine';
+import {IndexFreeQueryEngine} from '../../../src/local/index_free_query_engine';
+import {LocalDocumentsView} from '../../../src/local/local_documents_view';
+import {MemoryIndexManager} from '../../../src/local/memory_index_manager';
+import {PersistencePromise} from '../../../src/local/persistence_promise';
+import {documentKeySet, DocumentMap} from '../../../src/model/collections';
+import {MaybeDocument} from '../../../src/model/document';
+import {DocumentKey} from '../../../src/model/document_key';
+import {DocumentSet} from '../../../src/model/document_set';
+import {debugAssert} from '../../../src/util/assert';
+import {testMemoryEagerPersistence} from './persistence_test_helpers';
+import {doc, filter, key, orderBy, path, version} from '../../util/helpers';
 
 const TEST_TARGET_ID = 1;
 
@@ -60,7 +60,7 @@ const MATCHING_DOC_B = doc('coll/b', 1, { matches: true, order: 2 });
 const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
 
 const LAST_LIMBO_FREE_SNAPSHOT = version(10);
-const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.MIN;
+const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
 
 /**
  * A LocalDocumentsView wrapper that inspects the arguments to
@@ -74,7 +74,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
+    const indexFreeExecution = !SnapshotVersion.min().isEqual(sinceReadTime);
 
     expect(indexFreeExecution).to.eq(
       this.expectIndexFreeExecution,

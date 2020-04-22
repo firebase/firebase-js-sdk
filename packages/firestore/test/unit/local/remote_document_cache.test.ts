@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { MaybeDocument } from '../../../src/model/document';
+import {expect} from 'chai';
+import {Query} from '../../../src/core/query';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
+import {MaybeDocument} from '../../../src/model/document';
 import {
   deletedDoc,
   doc,
@@ -29,12 +29,9 @@ import {
   removedDoc,
   version
 } from '../../util/helpers';
-import {
-  documentKeySet,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
+import {documentKeySet, MaybeDocumentMap} from '../../../src/model/collections';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import {TestRemoteDocumentCache} from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';
@@ -125,7 +122,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
 
     let { changedDocs, readTime } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches(
       [
@@ -143,7 +140,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   it('can get empty changes', async () => {
     const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches([], changedDocs);
   });
@@ -160,7 +157,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     await cache.removeEntry(key('a/2'), version(4));
 
     const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches(
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
@@ -378,7 +375,7 @@ function genericRemoteDocumentCacheTests(
     const query = new Query(path('b'));
     const matchingDocs = await cache.getDocumentsMatchingQuery(
       query,
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
 
     assertMatches(

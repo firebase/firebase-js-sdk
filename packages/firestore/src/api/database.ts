@@ -841,7 +841,7 @@ export class WriteBatch implements firestore.WriteBatch {
             convertedValue
           );
     this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.NONE)
+      parsed.toMutations(ref._key, Precondition.none())
     );
     return this;
   }
@@ -911,7 +911,7 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.NONE)
+      new DeleteMutation(ref._key, Precondition.none())
     );
     return this;
   }
@@ -1036,7 +1036,7 @@ export class DocumentReference<T = firestore.DocumentData>
           )
         : this.firestore._dataReader.parseSetData(functionName, convertedValue);
     return this._firestoreClient.write(
-      parsed.toMutations(this._key, Precondition.NONE)
+      parsed.toMutations(this._key, Precondition.none())
     );
   }
 
@@ -1080,7 +1080,7 @@ export class DocumentReference<T = firestore.DocumentData>
   delete(): Promise<void> {
     validateExactNumberOfArgs('DocumentReference.delete', arguments, 0);
     return this._firestoreClient.write([
-      new DeleteMutation(this._key, Precondition.NONE)
+      new DeleteMutation(this._key, Precondition.none())
     ]);
   }
 

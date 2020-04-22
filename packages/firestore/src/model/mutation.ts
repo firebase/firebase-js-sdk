@@ -132,8 +132,6 @@ export const enum MutationType {
  * (meaning no precondition).
  */
 export class Precondition {
-  static readonly NONE = new Precondition();
-
   private constructor(
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
@@ -144,6 +142,10 @@ export class Precondition {
     );
   }
 
+  static none() : Precondition {
+    return new Precondition();
+  }
+  
   /** Creates a new Precondition with an exists flag. */
   static exists(exists: boolean): Precondition {
     return new Precondition(undefined, exists);
@@ -321,7 +323,7 @@ export abstract class Mutation {
     if (maybeDoc instanceof Document) {
       return maybeDoc.version;
     } else {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
   }
 }

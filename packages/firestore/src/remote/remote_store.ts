@@ -15,35 +15,35 @@
  * limitations under the License.
  */
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { Transaction } from '../core/transaction';
-import { OnlineState, TargetId } from '../core/types';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
-import { TargetData, TargetPurpose } from '../local/target_data';
-import { MutationResult } from '../model/mutation';
+import {SnapshotVersion} from '../core/snapshot_version';
+import {Transaction} from '../core/transaction';
+import {OnlineState, TargetId} from '../core/types';
+import {ignoreIfPrimaryLeaseLoss, LocalStore} from '../local/local_store';
+import {TargetData, TargetPurpose} from '../local/target_data';
+import {MutationResult} from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import { debugAssert } from '../util/assert';
-import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
-import { DocumentKeySet } from '../model/collections';
-import { AsyncQueue } from '../util/async_queue';
-import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
+import {debugAssert} from '../util/assert';
+import {FirestoreError} from '../util/error';
+import {logDebug} from '../util/log';
+import {DocumentKeySet} from '../model/collections';
+import {AsyncQueue} from '../util/async_queue';
+import {ConnectivityMonitor, NetworkStatus} from './connectivity_monitor';
 import {
   Datastore,
   newPersistentWatchStream,
   newPersistentWriteStream
 } from './datastore';
-import { OnlineStateTracker } from './online_state_tracker';
+import {OnlineStateTracker} from './online_state_tracker';
 import {
   PersistentListenStream,
   PersistentWriteStream
 } from './persistent_stream';
-import { RemoteSyncer } from './remote_syncer';
-import { isPermanentError, isPermanentWriteError } from './rpc_error';
+import {RemoteSyncer} from './remote_syncer';
+import {isPermanentError, isPermanentWriteError} from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -53,7 +53,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ByteString } from '../util/byte_string';
+import {ByteString} from '../util/byte_string';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -406,7 +406,7 @@ export class RemoteStore implements TargetMetadataProvider {
       this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
-    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+    if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
       const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
       if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
         // We have received a target change with a global snapshot if the snapshot
@@ -423,7 +423,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     debugAssert(
-      !snapshotVersion.isEqual(SnapshotVersion.MIN),
+      !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
     );
     const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(

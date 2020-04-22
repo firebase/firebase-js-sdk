@@ -566,7 +566,7 @@ describe('Serializer', () => {
 
   describe('toMutation', () => {
     it('converts DeleteMutation', () => {
-      const mutation = new DeleteMutation(key('docs/1'), Precondition.NONE);
+      const mutation = new DeleteMutation(key('docs/1'), Precondition.none());
       const result = s.toMutation(mutation);
       expect(result).to.deep.equal({
         delete: 'projects/p/databases/d/documents/docs/1'
@@ -609,7 +609,7 @@ describe('Serializer', () => {
       const mutation = patchMutation(
         'bar/baz',
         { a: 'b', num: 1, 'some.deep.thing': 2 },
-        Precondition.NONE
+        Precondition.none()
       );
       const proto = {
         update: s.toMutationDocument(mutation.key, mutation.data),
@@ -1250,8 +1250,8 @@ describe('Serializer', () => {
           1,
           TargetPurpose.Listen,
           4,
-          SnapshotVersion.MIN,
-          SnapshotVersion.MIN,
+          SnapshotVersion.min(),
+          SnapshotVersion.min(),
           ByteString.fromUint8Array(new Uint8Array([1, 2, 3]))
         )
       );

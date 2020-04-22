@@ -740,15 +740,9 @@ export class ArrayContainsAnyFilter extends FieldFilter {
 /**
  * The direction of sorting in an order by.
  */
-export class Direction {
-  static ASCENDING = new Direction('asc');
-  static DESCENDING = new Direction('desc');
-
-  private constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
+export const enum Direction {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc'
 }
 
 /**

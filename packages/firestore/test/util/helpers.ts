@@ -243,7 +243,7 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
+  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
 }
 
 export function patchMutation(
@@ -265,7 +265,7 @@ export function patchMutation(
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
-  return new DeleteMutation(key(keyStr), Precondition.NONE);
+  return new DeleteMutation(key(keyStr), Precondition.none());
 }
 
 /**
@@ -367,7 +367,7 @@ export function docAddedRemoteEvent(
     }
   });
 
-  let version = SnapshotVersion.MIN;
+  let version = SnapshotVersion.min();
 
   for (const doc of docs) {
     debugAssert(
@@ -454,7 +454,7 @@ export function addTargetMapping(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -466,7 +466,7 @@ export function ackTarget(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -541,7 +541,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ByteString {
-  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+  if (snapshotVersion.isEqual(SnapshotVersion.min())) {
     return ByteString.EMPTY_BYTE_STRING;
   } else {
     return byteStringFromString(snapshotVersion.toString());

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import {Query} from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -25,17 +25,17 @@ import {
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
+import {Document, MaybeDocument} from '../model/document';
+import {DocumentKey} from '../model/document_key';
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert } from '../util/assert';
-import { SortedMap } from '../util/sorted_map';
-import { IndexManager } from './index_manager';
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
-import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import {SnapshotVersion} from '../core/snapshot_version';
+import {debugAssert} from '../util/assert';
+import {SortedMap} from '../util/sorted_map';
+import {IndexManager} from './index_manager';
+import {PersistenceTransaction} from './persistence';
+import {PersistencePromise} from './persistence_promise';
+import {RemoteDocumentCache} from './remote_document_cache';
+import {RemoteDocumentChangeBuffer} from './remote_document_change_buffer';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 
@@ -79,7 +79,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
     debugAssert(
-      !readTime.isEqual(SnapshotVersion.MIN),
+      !readTime.isEqual(SnapshotVersion.min()),
       'Cannot add a document with a read time of zero'
     );
 
@@ -191,7 +191,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   getLastReadTime(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
-    return PersistencePromise.resolve(SnapshotVersion.MIN);
+    return PersistencePromise.resolve(SnapshotVersion.min());
   }
 
   newChangeBuffer(options?: {

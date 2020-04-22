@@ -99,7 +99,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -120,7 +120,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);

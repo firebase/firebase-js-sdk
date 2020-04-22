@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import {Query} from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -27,30 +27,30 @@ import {
   nullableMaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
-import { ResourcePath } from '../model/path';
-import { primitiveComparator } from '../util/misc';
-import { SortedMap } from '../util/sorted_map';
-import { SortedSet } from '../util/sorted_set';
+import {Document, MaybeDocument, NoDocument} from '../model/document';
+import {DocumentKey} from '../model/document_key';
+import {ResourcePath} from '../model/path';
+import {primitiveComparator} from '../util/misc';
+import {SortedMap} from '../util/sorted_map';
+import {SortedSet} from '../util/sorted_set';
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, fail, hardAssert } from '../util/assert';
-import { IndexManager } from './index_manager';
-import { IndexedDbPersistence } from './indexeddb_persistence';
+import {SnapshotVersion} from '../core/snapshot_version';
+import {debugAssert, fail, hardAssert} from '../util/assert';
+import {IndexManager} from './index_manager';
+import {IndexedDbPersistence} from './indexeddb_persistence';
 import {
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
-import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { IterateOptions, SimpleDbStore } from './simple_db';
-import { ObjectMap } from '../util/obj_map';
+import {LocalSerializer} from './local_serializer';
+import {PersistenceTransaction} from './persistence';
+import {PersistencePromise} from './persistence_promise';
+import {RemoteDocumentCache} from './remote_document_cache';
+import {RemoteDocumentChangeBuffer} from './remote_document_change_buffer';
+import {IterateOptions, SimpleDbStore} from './simple_db';
+import {ObjectMap} from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
@@ -252,7 +252,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const immediateChildrenPathLength = query.path.length + 1;
 
     const iterationOptions: IterateOptions = {};
-    if (sinceReadTime.isEqual(SnapshotVersion.MIN)) {
+    if (sinceReadTime.isEqual(SnapshotVersion.min())) {
       // Documents are ordered by key, so we can use a prefix scan to narrow
       // down the documents we need to match the query against.
       const startKey = query.path.toArray();
@@ -329,7 +329,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const documentsStore = remoteDocumentsStore(transaction);
 
     // If there are no existing entries, we return SnapshotVersion.MIN.
-    let readTime = SnapshotVersion.MIN;
+    let readTime = SnapshotVersion.min();
 
     return documentsStore
       .iterate(
@@ -443,7 +443,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         );
         if (maybeDocument) {
           debugAssert(
-            !this.readTime.isEqual(SnapshotVersion.MIN),
+            !this.readTime.isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
