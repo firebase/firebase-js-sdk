@@ -16,16 +16,12 @@
  */
 
 import { FirebaseError, querystring } from '@firebase/util';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
+
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
-import {
-  JsonError,
-  ServerError,
-  ServerErrorMap,
-  SERVER_ERROR_MAP
-} from './errors';
-import { Delay } from '../core/util/delay';
+import { JsonError, SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -61,10 +57,9 @@ export async function _performApiRequest<T, V>(
   method: HttpMethod,
   path: Endpoint,
   request?: T,
-  customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {},
 ): Promise<V> {
-  const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
-  try {
+  return performFetchWithErrorHandling(auth, customErrorMap, () => {
     let body = {};
     let params = {};
     if (request) {
@@ -82,8 +77,7 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
-    const response: Response = await Promise.race<Promise<Response>>([
-      fetch(
+   return fetch(
         `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
         {
           method,
@@ -94,16 +88,20 @@ export async function _performApiRequest<T, V>(
           referrerPolicy: 'no-referrer',
           ...body
         }
-      ),
-      new Promise((_, reject) =>
-        setTimeout(() => {
-          return reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-              appName: auth.name
-            })
-          );
-        }, DEFAULT_API_TIMEOUT_MS.get())
-      )
+      );
+      });
+}
+
+export async function performFetchWithErrorHandling<V>(
+  auth: Auth,
+  customErrorMap: Partial<ServerErrorMap<ServerError>>,
+  fetchFn: () => Promise<Response>,
+): Promise<V> {
+  const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
+  try {
+    const response: Response = await Promise.race<Promise<Response>>([
+      fetchFn(),
+      makeNetworkTimeout(auth.name),
     ]);
     if (response.ok) {
       return response.json();
@@ -153,4 +151,16 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   }
 
   return serverResponse;
+}
+
+function makeNetworkTimeout<T>(appName: string): Promise<T> {
+  return new Promise((_, reject) =>
+  setTimeout(() => {
+    return reject(
+      AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
+        appName,
+      })
+    );
+  }, DEFAULT_API_TIMEOUT_MS.get())
+)
 }
