@@ -30,11 +30,7 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
-} from './auth_impl';
+import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
 
 use(sinonChai);
 
@@ -155,70 +151,71 @@ describe('AuthImpl', () => {
 
     describe('user logs in/out, tokens refresh', () => {
       let user: User;
-      let callback: sinon.SinonSpy;
+      let authStateCallback: sinon.SinonSpy;
+      let idTokenCallback: sinon.SinonSpy;
 
       beforeEach(() => {
         user = testUser('uid');
-        callback = sinon.spy();
+        authStateCallback = sinon.spy();
+        idTokenCallback = sinon.spy();
       });
 
-      it('onAuthStateChange triggers on log in', async () => {
-        auth.onAuthStateChanged(callback);
-        await auth.updateCurrentUser(null);
-        callback.resetHistory();
-        await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledWith(user);
+      context('initially currentUser is null', () => {
+        beforeEach(async () => {
+          auth.onAuthStateChanged(authStateCallback);
+          auth.onIdTokenChange(idTokenCallback);
+          await auth.updateCurrentUser(null);
+          authStateCallback.resetHistory();
+          idTokenCallback.resetHistory();
+        });
+
+        it('onAuthStateChange triggers on log in', async () => {
+          await auth.updateCurrentUser(user);
+          expect(authStateCallback).to.have.been.calledWith(user);
+        });
+
+        it('onIdTokenChange triggers on log in', async () => {
+          await auth.updateCurrentUser(user);
+          expect(idTokenCallback).to.have.been.calledWith(user);
+        });
       });
 
-      it('onAuthStateChange triggers on log out', async () => {
-        auth.onAuthStateChanged(callback);
-        await auth.updateCurrentUser(user);
-        callback.resetHistory();
-        await auth.updateCurrentUser(null);
-        expect(callback).to.have.been.calledWith(null);
-      });
+      context('initially currentUser is user', () => {
+        beforeEach(async () => {
+          auth.onAuthStateChanged(authStateCallback);
+          auth.onIdTokenChange(idTokenCallback);
+          await auth.updateCurrentUser(user);
+          authStateCallback.resetHistory();
+          idTokenCallback.resetHistory();
+        });
 
-      it('onIdTokenChange triggers on log in', async () => {
-        auth.onIdTokenChange(callback);
-        await auth.updateCurrentUser(null);
-        callback.resetHistory();
-        await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledWith(user);
-      });
-
-      it('onIdTokenChange triggers on log out', async () => {
-        auth.onIdTokenChange(callback);
-        await auth.updateCurrentUser(user);
-        callback.resetHistory();
-        await auth.updateCurrentUser(null);
-        expect(callback).to.have.been.calledWith(null);
-      });
-
-      it('onAuthStateChange does not trigger for user props change', async () => {
-        auth.onAuthStateChanged(callback);
-        await auth.updateCurrentUser(user);
-        callback.resetHistory();
-        user.refreshToken = 'hey look I changed';
-        await auth.updateCurrentUser(user);
-        expect(callback).not.to.have.been.called;
-      });
-
-      it('onIdTokenChange triggers for user props change', async () => {
-        auth.onIdTokenChange(callback);
-        await auth.updateCurrentUser(user);
-        callback.resetHistory();
-        user.refreshToken = 'hey look I changed';
-        await auth.updateCurrentUser(user);
-        expect(callback).to.have.been.calledWith(user);
-      });
-
-      it('onAuthStateChange triggers if uid changes', async () => {
-        auth.onAuthStateChanged(callback);
-        await auth.updateCurrentUser(user);
-        callback.resetHistory();
-        const newUser = testUser('different-uid');
-        await auth.updateCurrentUser(newUser);
-        expect(callback).to.have.been.calledWith(newUser);
+        it('onAuthStateChange triggers on log out', async () => {
+          await auth.updateCurrentUser(null);
+          expect(authStateCallback).to.have.been.calledWith(null);
+        });
+  
+        it('onIdTokenChange triggers on log out', async () => {
+          await auth.updateCurrentUser(null);
+          expect(idTokenCallback).to.have.been.calledWith(null);
+        });
+  
+        it('onAuthStateChange does not trigger for user props change', async () => {
+          user.refreshToken = 'hey look I changed';
+          await auth.updateCurrentUser(user);
+          expect(authStateCallback).not.to.have.been.called;
+        });
+  
+        it('onIdTokenChange triggers for user props change', async () => {
+          user.refreshToken = 'hey look I changed';
+          await auth.updateCurrentUser(user);
+          expect(idTokenCallback).to.have.been.calledWith(user);
+        });
+  
+        it('onAuthStateChange triggers if uid changes', async () => {
+          const newUser = testUser('different-uid');
+          await auth.updateCurrentUser(newUser);
+          expect(authStateCallback).to.have.been.calledWith(newUser);
+        });
       });
 
       it('onAuthStateChange works for multiple listeners', async () => {
