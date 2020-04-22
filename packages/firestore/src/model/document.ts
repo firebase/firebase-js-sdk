@@ -103,6 +103,7 @@ export function compareByField(field: FieldPath, d1: Document, d2: Document): nu
   debugAssert(v1 !== null && v2 !== null, 'Field is missing from one document');
     return valueCompare(v1, v2);
 }
+
 // TODO(mrschmidt): I think this is only ever called with documents
 export function maybeDocumentEquals(left: MaybeDocument| null | undefined , right: MaybeDocument | null | undefined) : boolean {
   if (left === right) {

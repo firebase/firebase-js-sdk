@@ -56,7 +56,7 @@ describe.only('Dependencies', () => {
    const identifierRe = /^(?:async )?(?:function|class) ?([\w]*)/;
    
    
-   const match = line.match(identifierRe);
+   const match = line.replace("/*@__PURE__*/ ","").match(identifierRe);
    
    if (match) {
      publicIdentifiers.push(match[1]);
@@ -96,13 +96,6 @@ describe.only('Dependencies', () => {
    "assertBase64Available",
    "assertUint8ArrayAvailable",
    "binaryStringFromUint8Array",
-   "compareArrays",
-   "compareBlobs",
-   "compareGeoPoints",
-   "compareMaps",
-   "compareNumbers",
-   "compareReferences",
-   "compareTimestamps",
    "debugAssert",
    "fail",
    "forEach",
@@ -111,20 +104,15 @@ describe.only('Dependencies', () => {
    "getLocalWriteTime",
    "hardAssert",
    "invalidClassError",
-   "isMapValue",
    "isPlainObject",
    "isServerTimestamp",
    "isValidResourceName",
    "logError",
    "makeConstructorPrivate",
-   "normalizeByteString",
-   "normalizeNumber",
-   "normalizeTimestamp",
    "ordinal",
    "primitiveComparator",
    "tryGetCustomObjectType",
    "typeAssert",
-   "typeOrder",
    "uint8ArrayFromBinaryString",
    "validateArgType",
    "validateExactNumberOfArgs",
@@ -132,7 +120,6 @@ describe.only('Dependencies', () => {
    "validateNamedType",
    "validateOptionNames",
    "validateType",
-   "valueCompare",
    "valueDescription"]);
   });
 });

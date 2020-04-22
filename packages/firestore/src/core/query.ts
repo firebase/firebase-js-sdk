@@ -836,7 +836,7 @@ export class Bound {
 /**
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
-/*@__PURE__*/ export class OrderBy {
+export class OrderBy {
   static KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
   static KEY_ORDERING_DESC = new OrderBy(
     FieldPath.keyField(),
