@@ -31,6 +31,7 @@ export const TOKEN_REFRESH_BUFFER_MS = 30_000;
 export interface Tokens {
   accessToken: string;
   refreshToken: string | null;
+  wasRefreshed: boolean;
 }
 
 export class StsTokenManager {
@@ -50,14 +51,16 @@ export class StsTokenManager {
     refreshToken,
     expiresIn: expiresInSec
   }: IdTokenResponse): void {
-    this.refreshToken = refreshToken;
-    this.accessToken = idToken;
-    this.expirationTime = Date.now() + Number(expiresInSec) * 1000;
+    this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec);
   }
 
   async getToken(auth: Auth, forceRefresh = false): Promise<Tokens|null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
-      return this.tokens;
+      return {
+        accessToken: this.accessToken,
+        refreshToken: this.refreshToken,
+        wasRefreshed: false,
+      };
     }
 
     if (this.accessToken && !this.refreshToken) {
@@ -71,7 +74,11 @@ export class StsTokenManager {
     }
 
     await this.refresh(auth, this.refreshToken);
-    return this.tokens;
+    return {
+      accessToken: this.accessToken!,
+      refreshToken: this.refreshToken,
+      wasRefreshed: true,
+    };
   }
 
   toPlainObject(): object {
@@ -82,19 +89,15 @@ export class StsTokenManager {
     };
   }
 
-  private get tokens(): Tokens {
-    return {
-      accessToken: this.accessToken!,
-      refreshToken: this.refreshToken,
-    };
-  }
-
   private async refresh(auth: Auth, refreshToken: string) {
     const {access_token, refresh_token, expires_in} = await requestStsToken(auth, refreshToken);
-    
-    this.accessToken = access_token || null;
-    this.refreshToken = refresh_token || null;
-    this.expirationTime = expires_in ? Date.now() + Number(expires_in) * 1000 : null;
+    this.updateTokensAndExpiration(access_token, refresh_token, expires_in);
+  }
+
+  private updateTokensAndExpiration(accessToken: string|undefined, refreshToken: string|undefined, expiresInSec: string|undefined) {
+    this.refreshToken = refreshToken || null;
+    this.accessToken = accessToken || null;
+    this.expirationTime = expiresInSec ? Date.now() + Number(expiresInSec) * 1000 : null;
   }
 
   static fromPlainObject(
