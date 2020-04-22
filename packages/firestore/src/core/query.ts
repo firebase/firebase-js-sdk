@@ -17,24 +17,24 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import {compareByField, Document} from '../model/document';
-import { DocumentKey } from '../model/document_key';
+import {Document} from '../model/document';
+import {DocumentKey} from '../model/document_key';
 import {
-  canonicalId,
-  valueCompare,
   arrayValueContains,
-  valueEquals,
+  canonicalId,
   isArray,
   isNanValue,
   isNullValue,
   isReferenceValue,
-  typeOrder
+  typeOrder,
+  valueCompare,
+  valueEquals
 } from '../model/values';
-import { FieldPath, ResourcePath } from '../model/path';
-import { debugAssert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { isNullOrUndefined } from '../util/types';
-import { Target } from './target';
+import {FieldPath, ResourcePath} from '../model/path';
+import {debugAssert, fail} from '../util/assert';
+import {Code, FirestoreError} from '../util/error';
+import {isNullOrUndefined} from '../util/types';
+import {Target} from './target';
 
 export const enum LimitType {
   First = 'F',
@@ -87,11 +87,11 @@ export class Query {
         // inequality filter field for it to be a valid query.
         // Note that the default inequality field and key ordering is ascending.
         if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [OrderBy.KEY_ORDERING_ASC];
+          this.memoizedOrderBy = [(new OrderBy(FieldPath.keyField(), Direction.ASCENDING))];
         } else {
           this.memoizedOrderBy = [
             new OrderBy(inequalityField),
-            OrderBy.KEY_ORDERING_ASC
+            (new OrderBy(FieldPath.keyField(), Direction.ASCENDING))
           ];
         }
       } else {
@@ -118,8 +118,11 @@ export class Query {
               : Direction.ASCENDING;
           this.memoizedOrderBy.push(
             lastDirection === Direction.ASCENDING
-              ? OrderBy.KEY_ORDERING_ASC
-              : OrderBy.KEY_ORDERING_DESC
+              ? new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+              : new OrderBy(
+              FieldPath.keyField(),
+              Direction.DESCENDING
+              )
           );
         }
       }
@@ -468,7 +471,7 @@ export abstract class Filter {
   abstract isEqual(filter: Filter): boolean;
 }
 
-/*@__PURE__*/ export class Operator {
+export class Operator {
   static LESS_THAN = new Operator('<');
   static LESS_THAN_OR_EQUAL = new Operator('<=');
   static EQUAL = new Operator('==');
@@ -737,7 +740,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
 /**
  * The direction of sorting in an order by.
  */
-/*@__PURE__*/ export class Direction {
+export class Direction {
   static ASCENDING = new Direction('asc');
   static DESCENDING = new Direction('desc');
 
@@ -837,12 +840,6 @@ export class Bound {
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
 export class OrderBy {
-  static KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
-  static KEY_ORDERING_DESC = new OrderBy(
-    FieldPath.keyField(),
-    Direction.DESCENDING
-  );
-  
   readonly dir: Direction;
   private readonly isKeyOrderBy: boolean;
 

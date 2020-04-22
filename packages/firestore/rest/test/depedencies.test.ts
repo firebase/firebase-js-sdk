@@ -56,7 +56,7 @@ describe.only('Dependencies', () => {
    const identifierRe = /^(?:async )?(?:function|class) ?([\w]*)/;
    
    
-   const match = line.replace("/*@__PURE__*/ ","").match(identifierRe);
+   const match = line.replace("","").match(identifierRe);
    
    if (match) {
      publicIdentifiers.push(match[1]);

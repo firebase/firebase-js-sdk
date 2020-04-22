@@ -37,7 +37,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 );
 
 /** Extracts the backend's type order for the provided value. */
-/*@__PURE__*/ export function typeOrder(value: api.Value): TypeOrder {
+export function typeOrder(value: api.Value): TypeOrder {
   if ('nullValue' in value) {
     return TypeOrder.NullValue;
   } else if ('booleanValue' in value) {
@@ -67,7 +67,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 }
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
-/*@__PURE__*/ export function valueEquals(left: api.Value, right: api.Value): boolean {
+export function valueEquals(left: api.Value, right: api.Value): boolean {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
   if (leftType !== rightType) {
@@ -106,7 +106,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   }
 }
 
-/*@__PURE__*/ function timestampEquals(left: api.Value, right: api.Value): boolean {
+function timestampEquals(left: api.Value, right: api.Value): boolean {
   if (
     typeof left.timestampValue === 'string' &&
     typeof right.timestampValue === 'string' &&
@@ -124,7 +124,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   );
 }
 
-/*@__PURE__*/ function geoPointEquals(left: api.Value, right: api.Value): boolean {
+function geoPointEquals(left: api.Value, right: api.Value): boolean {
   return (
     normalizeNumber(left.geoPointValue!.latitude) ===
       normalizeNumber(right.geoPointValue!.latitude) &&
@@ -133,13 +133,13 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   );
 }
 
-/*@__PURE__*/ function blobEquals(left: api.Value, right: api.Value): boolean {
+function blobEquals(left: api.Value, right: api.Value): boolean {
   return normalizeByteString(left.bytesValue!).isEqual(
     normalizeByteString(right.bytesValue!)
   );
 }
 
-/*@__PURE__*/ export function numberEquals(left: api.Value, right: api.Value): boolean {
+export function numberEquals(left: api.Value, right: api.Value): boolean {
   if ('integerValue' in left && 'integerValue' in right) {
     return (
       normalizeNumber(left.integerValue) === normalizeNumber(right.integerValue)
@@ -158,7 +158,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return false;
 }
 
-/*@__PURE__*/ function objectEquals(left: api.Value, right: api.Value): boolean {
+function objectEquals(left: api.Value, right: api.Value): boolean {
   const leftMap = left.mapValue!.fields || {};
   const rightMap = right.mapValue!.fields || {};
 
@@ -180,7 +180,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 }
 
 /** Returns true if the ArrayValue contains the specified element. */
-/*@__PURE__*/ export function arrayValueContains(
+export function arrayValueContains(
   haystack: api.ArrayValue,
   needle: api.Value
 ): boolean {
@@ -189,7 +189,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   );
 }
 
-/*@__PURE__*/ export function valueCompare(left: api.Value, right: api.Value): number {
+export function valueCompare(left: api.Value, right: api.Value): number {
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
 
@@ -228,7 +228,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   }
 }
 
-/*@__PURE__*/ function compareNumbers(left: api.Value, right: api.Value): number {
+function compareNumbers(left: api.Value, right: api.Value): number {
   const leftNumber = normalizeNumber(left.integerValue || left.doubleValue);
   const rightNumber = normalizeNumber(right.integerValue || right.doubleValue);
 
@@ -248,7 +248,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   }
 }
 
-/*@__PURE__*/ function compareTimestamps(left: api.Timestamp, right: api.Timestamp): number {
+function compareTimestamps(left: api.Timestamp, right: api.Timestamp): number {
   if (
     typeof left === 'string' &&
     typeof right === 'string' &&
@@ -270,7 +270,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return primitiveComparator(leftTimestamp.nanos, rightTimestamp.nanos);
 }
 
-/*@__PURE__*/ function compareReferences(leftPath: string, rightPath: string): number {
+function compareReferences(leftPath: string, rightPath: string): number {
   const leftSegments = leftPath.split('/');
   const rightSegments = rightPath.split('/');
   for (let i = 0; i < leftSegments.length && i < rightSegments.length; i++) {
@@ -282,7 +282,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return primitiveComparator(leftSegments.length, rightSegments.length);
 }
 
-/*@__PURE__*/ function compareGeoPoints(left: api.LatLng, right: api.LatLng): number {
+function compareGeoPoints(left: api.LatLng, right: api.LatLng): number {
   const comparison = primitiveComparator(
     normalizeNumber(left.latitude),
     normalizeNumber(right.latitude)
@@ -296,7 +296,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   );
 }
 
-/*@__PURE__*/ function compareBlobs(
+function compareBlobs(
   left: string | Uint8Array,
   right: string | Uint8Array
 ): number {
@@ -305,7 +305,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return leftBytes.compareTo(rightBytes);
 }
 
-/*@__PURE__*/ function compareArrays(left: api.ArrayValue, right: api.ArrayValue): number {
+function compareArrays(left: api.ArrayValue, right: api.ArrayValue): number {
   const leftArray = left.values || [];
   const rightArray = right.values || [];
 
@@ -318,7 +318,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return primitiveComparator(leftArray.length, rightArray.length);
 }
 
-/*@__PURE__*/ function compareMaps(left: api.MapValue, right: api.MapValue): number {
+function compareMaps(left: api.MapValue, right: api.MapValue): number {
   const leftMap = left.fields || {};
   const leftKeys = Object.keys(leftMap);
   const rightMap = right.fields || {};
@@ -349,11 +349,11 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
  * Generates the canonical ID for the provided field value (as used in Target
  * serialization).
  */
-/*@__PURE__*/ export function canonicalId(value: api.Value): string {
+export function canonicalId(value: api.Value): string {
   return canonifyValue(value);
 }
 
-/*@__PURE__*/ function canonifyValue(value: api.Value): string {
+function canonifyValue(value: api.Value): string {
   if ('nullValue' in value) {
     return 'null';
   } else if ('booleanValue' in value) {
@@ -381,24 +381,24 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   }
 }
 
-/*@__PURE__*/ function canonifyByteString(byteString: string | Uint8Array): string {
+function canonifyByteString(byteString: string | Uint8Array): string {
   return normalizeByteString(byteString).toBase64();
 }
 
-/*@__PURE__*/ function canonifyTimestamp(timestamp: api.Timestamp): string {
+function canonifyTimestamp(timestamp: api.Timestamp): string {
   const normalizedTimestamp = normalizeTimestamp(timestamp);
   return `time(${normalizedTimestamp.seconds},${normalizedTimestamp.nanos})`;
 }
 
-/*@__PURE__*/ function canonifyGeoPoint(geoPoint: api.LatLng): string {
+function canonifyGeoPoint(geoPoint: api.LatLng): string {
   return `geo(${geoPoint.latitude},${geoPoint.longitude})`;
 }
 
-/*@__PURE__*/ function canonifyReference(referenceValue: string): string {
+function canonifyReference(referenceValue: string): string {
   return DocumentKey.fromName(referenceValue).toString();
 }
 
-/*@__PURE__*/ function canonifyMap(mapValue: api.MapValue): string {
+function canonifyMap(mapValue: api.MapValue): string {
   // Iteration order in JavaScript is not guaranteed. To ensure that we generate
   // matching canonical IDs for identical maps, we need to sort the keys.
   const sortedKeys = Object.keys(mapValue.fields || {}).sort();
@@ -416,7 +416,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return result + '}';
 }
 
-/*@__PURE__*/ function canonifyArray(arrayValue: api.ArrayValue): string {
+function canonifyArray(arrayValue: api.ArrayValue): string {
   let result = '[';
   let first = true;
   for (const value of arrayValue.values || []) {
@@ -437,7 +437,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
  * The memory size takes into account only the actual user data as it resides
  * in memory and ignores object overhead.
  */
-/*@__PURE__*/ export function estimateByteSize(value: api.Value): number {
+export function estimateByteSize(value: api.Value): number {
   switch (typeOrder(value)) {
     case TypeOrder.NullValue:
       return 4;
@@ -472,7 +472,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   }
 }
 
-/*@__PURE__*/ function estimateMapByteSize(mapValue: api.MapValue): number {
+function estimateMapByteSize(mapValue: api.MapValue): number {
   let size = 0;
   forEach(mapValue.fields || {}, (key, val) => {
     size += key.length + estimateByteSize(val);
@@ -480,7 +480,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
   return size;
 }
 
-/*@__PURE__*/ function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
+function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
   return (arrayValue.values || []).reduce(
     (previousSize, value) => previousSize + estimateByteSize(value),
     0
@@ -491,7 +491,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
  * Converts the possible Proto values for a timestamp value into a "seconds and
  * nanos" representation.
  */
-/*@__PURE__*/ export function normalizeTimestamp(
+export function normalizeTimestamp(
   date: api.Timestamp
 ): { seconds: number; nanos: number } {
   hardAssert(!!date, 'Cannot normalize null or undefined timestamp.');
@@ -533,7 +533,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
  * Converts the possible Proto types for numbers into a JavaScript number.
  * Returns 0 if the value is not numeric.
  */
-/*@__PURE__*/ export function normalizeNumber(value: number | string | undefined): number {
+export function normalizeNumber(value: number | string | undefined): number {
   // TODO(bjornick): Handle int64 greater than 53 bits.
   if (typeof value === 'number') {
     return value;
@@ -545,7 +545,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 }
 
 /** Converts the possible Proto types for Blobs into a ByteString. */
-/*@__PURE__*/ export function normalizeByteString(blob: string | Uint8Array): ByteString {
+export function normalizeByteString(blob: string | Uint8Array): ByteString {
   if (typeof blob === 'string') {
     return ByteString.fromBase64String(blob);
   } else {
@@ -554,7 +554,7 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 }
 
 /** Returns a reference value for the provided database and key. */
-/*@__PURE__*/ export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
+export function refValue(databaseId: DatabaseId, key: DocumentKey): api.Value {
   return {
     referenceValue: `projects/${databaseId.projectId}/databases/${
       databaseId.database
@@ -563,54 +563,54 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
 }
 
 /** Returns true if `value` is an IntegerValue . */
-/*@__PURE__*/ export function isInteger(
+export function isInteger(
   value?: api.Value | null
 ): value is { integerValue: string | number } {
   return !!value && 'integerValue' in value;
 }
 
 /** Returns true if `value` is a DoubleValue. */
-/*@__PURE__*/ export function isDouble(
+export function isDouble(
   value?: api.Value | null
 ): value is { doubleValue: string | number } {
   return !!value && 'doubleValue' in value;
 }
 
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
-/*@__PURE__*/ export function isNumber(value?: api.Value | null): boolean {
+export function isNumber(value?: api.Value | null): boolean {
   return isInteger(value) || isDouble(value);
 }
 
 /** Returns true if `value` is an ArrayValue. */
-/*@__PURE__*/ export function isArray(
+export function isArray(
   value?: api.Value | null
 ): value is { arrayValue: api.ArrayValue } {
   return !!value && 'arrayValue' in value;
 }
 
 /** Returns true if `value` is a ReferenceValue. */
-/*@__PURE__*/ export function isReferenceValue(
+export function isReferenceValue(
   value?: api.Value | null
 ): value is { referenceValue: string } {
   return !!value && 'referenceValue' in value;
 }
 
 /** Returns true if `value` is a NullValue. */
-/*@__PURE__*/ export function isNullValue(
+export function isNullValue(
   value?: api.Value | null
 ): value is { nullValue: 'NULL_VALUE' } {
   return !!value && 'nullValue' in value;
 }
 
 /** Returns true if `value` is NaN. */
-/*@__PURE__*/ export function isNanValue(
+export function isNanValue(
   value?: api.Value | null
 ): value is { doubleValue: 'NaN' | number } {
   return !!value && 'doubleValue' in value && isNaN(Number(value.doubleValue));
 }
 
 /** Returns true if `value` is a MapValue. */
-/*@__PURE__*/ export function isMapValue(
+export function isMapValue(
   value?: api.Value | null
 ): value is { mapValue: api.MapValue } {
   return !!value && 'mapValue' in value;

@@ -49,7 +49,7 @@ export const enum TypeOrder {
  * An ObjectValue represents a MapValue in the Firestore Proto and offers the
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
-/*@__PURE__*/ export class ObjectValue {
+export class ObjectValue {
   static EMPTY = new ObjectValue({ mapValue: {} });
 
   constructor(public readonly proto: { mapValue: api.MapValue }) {

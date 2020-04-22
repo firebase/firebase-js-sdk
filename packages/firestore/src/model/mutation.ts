@@ -131,7 +131,7 @@ export const enum MutationType {
  * backend accepts with the special case of an explicit "empty" precondition
  * (meaning no precondition).
  */
-/*@__PURE__*/ export class Precondition {
+export class Precondition {
   static readonly NONE = new Precondition();
 
   private constructor(

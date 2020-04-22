@@ -24,14 +24,6 @@ import * as replace  from 'rollup-plugin-replace';
 import { firestoreTransformers, resolveBrowserExterns } from './rollup.shared';
 
 const defaultPlugins = [
-  replace({
-    '\n  static ': '\n  /*@__PURE__*/ static ',
-    '\nclass ': '\n/*@__PURE__*/ class ',
-    '\nexport class ': '\n/*@__PURE__*/ export class ',
-    '\nfunction ': '\n/*@__PURE__*/ function ',
-    '\nexport function ': '\n/*@__PURE__*/ export function ',
-    delimiters: ['', '']
-  }),
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
