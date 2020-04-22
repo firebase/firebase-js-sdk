@@ -49,7 +49,7 @@ async function extractDependencies(exportName: string): Promise<string[]> {
 
   const dependencies: string[] = [];
   for (const line of afterContent.split('\n')) {
-    const identifierRe = /^(?:async )?(?:function|class) ?([\w]*)/;
+    const identifierRe = /^(?:async )?(?:function|class) ([\w]*)/;
     const match = line.match(identifierRe);
     if (match) {
       dependencies.push(match[1]);
