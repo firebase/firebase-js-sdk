@@ -80,14 +80,14 @@ const DIRECTIONS = (() => {
 
 const OPERATORS = (() => {
   const ops: { [op: string]: api.FieldFilterOp } = {};
-  ops[Operator.LESS_THAN.name] = 'LESS_THAN';
-  ops[Operator.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
-  ops[Operator.GREATER_THAN.name] = 'GREATER_THAN';
-  ops[Operator.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
-  ops[Operator.EQUAL.name] = 'EQUAL';
-  ops[Operator.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
-  ops[Operator.IN.name] = 'IN';
-  ops[Operator.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
+  ops[Operator.LESS_THAN] = 'LESS_THAN';
+  ops[Operator.LESS_THAN_OR_EQUAL] = 'LESS_THAN_OR_EQUAL';
+  ops[Operator.GREATER_THAN] = 'GREATER_THAN';
+  ops[Operator.GREATER_THAN_OR_EQUAL] = 'GREATER_THAN_OR_EQUAL';
+  ops[Operator.EQUAL] = 'EQUAL';
+  ops[Operator.ARRAY_CONTAINS] = 'ARRAY_CONTAINS';
+  ops[Operator.IN] = 'IN';
+  ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
 
@@ -960,7 +960,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toOperatorName(op: Operator): api.FieldFilterOp {
-    return OPERATORS[op.name];
+    return OPERATORS[op];
   }
 
   fromOperatorName(op: api.FieldFilterOp): Operator {

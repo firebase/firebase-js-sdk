@@ -470,49 +470,16 @@ export abstract class Filter {
   abstract canonicalId(): string;
   abstract isEqual(filter: Filter): boolean;
 }
+export const enum Operator {
+   LESS_THAN = '<',
+ LESS_THAN_OR_EQUAL = '<=',
+ EQUAL = '==',
+ GREATER_THAN = '>',
+ GREATER_THAN_OR_EQUAL = '>=',
+ ARRAY_CONTAINS = 'array-contains',
+ IN = 'in',
+ ARRAY_CONTAINS_ANY = 'array-contains-any',
 
-export class Operator {
-  static LESS_THAN = new Operator('<');
-  static LESS_THAN_OR_EQUAL = new Operator('<=');
-  static EQUAL = new Operator('==');
-  static GREATER_THAN = new Operator('>');
-  static GREATER_THAN_OR_EQUAL = new Operator('>=');
-  static ARRAY_CONTAINS = new Operator('array-contains');
-  static IN = new Operator('in');
-  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
-
-  static fromString(op: string): Operator {
-    switch (op) {
-      case '<':
-        return Operator.LESS_THAN;
-      case '<=':
-        return Operator.LESS_THAN_OR_EQUAL;
-      case '==':
-        return Operator.EQUAL;
-      case '>=':
-        return Operator.GREATER_THAN_OR_EQUAL;
-      case '>':
-        return Operator.GREATER_THAN;
-      case 'array-contains':
-        return Operator.ARRAY_CONTAINS;
-      case 'in':
-        return Operator.IN;
-      case 'array-contains-any':
-        return Operator.ARRAY_CONTAINS_ANY;
-      default:
-        return fail('Unknown FieldFilter operator: ' + op);
-    }
-  }
-
-  constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
-
-  isEqual(other: Operator): boolean {
-    return this.name === other.name;
-  }
 }
 
 export class FieldFilter extends Filter {
@@ -638,7 +605,7 @@ export class FieldFilter extends Filter {
   isEqual(other: Filter): boolean {
     if (other instanceof FieldFilter) {
       return (
-        this.op.isEqual(other.op) &&
+        this.op === other.op &&
         this.field.isEqual(other.field) &&
         valueEquals(this.value, other.value)
       );
