@@ -11,11 +11,12 @@
     "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",
+    "build:lite": "rollup -c rollup.config.lite.js",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.ts' '*.js' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier --write '*.ts' '*.js' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts' 'lite/**/*.ts'",
     "test": "run-s lint test:all",
     "test:all": "run-p test:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
@@ -26,6 +27,8 @@
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
+    "pretest:lite": "yarn build:lite",
+    "test:lite": "FIRESTORE_EMULATOR_PORT=8080 FIRESTORE_EMULATOR_PROJECT_ID=test-emulator TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.node.ts --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
@@ -54,6 +57,7 @@
   },
   "devDependencies": {
     "@types/json-stable-stringify": "1.0.32",
+    "@types/tmp": "0.1.0",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.8.9",
     "rollup": "2.6.1",
@@ -64,6 +68,7 @@
     "rollup-plugin-sourcemaps": "0.5.0",
     "rollup-plugin-terser": "5.3.0",
     "rollup-plugin-typescript2": "0.27.0",
+    "tmp": "0.1.0",
     "ts-node": "8.8.2",
     "typescript": "3.8.3"
   },
