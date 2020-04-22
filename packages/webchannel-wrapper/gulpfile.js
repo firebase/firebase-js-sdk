@@ -123,7 +123,7 @@ function createRollupTask({
     const outputOptions = {
       file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
       format,
-      sourcemap: true,
+      sourcemap: true
       // exports: 'named'
     };
 
