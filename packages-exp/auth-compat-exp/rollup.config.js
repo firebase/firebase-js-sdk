@@ -59,10 +59,13 @@ const es5Builds = [
    */
   {
     input: 'index.rn.ts',
-      output: [{ file: pkg['react-native'], format: 'cjs', sourcemap: true }],
+    output: [{ file: pkg['react-native'], format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
-      external: id => [...deps, 'react-native'].some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
+    external: id =>
+      [...deps, 'react-native'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
+  }
 ];
 
 /**
