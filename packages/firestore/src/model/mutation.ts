@@ -485,13 +485,13 @@ export class PatchMutation extends Mutation {
     if (maybeDoc instanceof Document) {
       data = maybeDoc.data();
     } else {
-      data = ObjectValue.EMPTY;
+      data = ObjectValue.empty();
     }
     return this.patchObject(data);
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
@@ -598,7 +598,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.newBuilder().set(
+          baseObject = new ObjectValueBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -726,7 +726,7 @@ export class TransformMutation extends Mutation {
       'TransformResults length mismatch.'
     );
 
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;

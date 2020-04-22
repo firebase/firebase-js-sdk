@@ -66,6 +66,7 @@ import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
+import { extractFieldMask } from '../model/field_value';
 
 const LOG_TAG = 'LocalStore';
 
@@ -339,7 +340,7 @@ export class LocalStore {
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  baseValue.fieldMask(),
+                  extractFieldMask(baseValue.proto.mapValue!),
                   Precondition.exists(true)
                 )
               );
