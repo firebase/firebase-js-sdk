@@ -31,7 +31,11 @@ export const mockAuth: Auth = {
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
     sdkClientVersion: 'testSDK/0.0.0'
-  }
+  },
+  currentUser: null,
+  async setPersistence() {},
+  async updateCurrentUser() {},
+  async signOut() {}
 };
 
 export function testUser(uid: string, email?: string): User {

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
+import { Persistence } from '../core/persistence';
+import { User } from './user';
+
 export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
-
-export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
-export const DEFAULT_API_SCHEME = 'https';
 
 export interface Config {
   apiKey: ApiKey;
@@ -31,6 +31,15 @@ export interface Config {
 }
 
 export interface Auth {
+  currentUser: User | null;
   readonly name: AppName;
   readonly config: Config;
+
+  setPersistence(persistence: Persistence): Promise<void>;
+  updateCurrentUser(user: User | null): Promise<void>;
+  signOut(): Promise<void>;
+}
+
+export interface Dependencies {
+  persistence?: Persistence | Persistence[];
 }
