@@ -30,7 +30,11 @@ import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { ClientPlatform, getClientVersion } from '../util/version';
-import { DEFAULT_API_HOST, DEFAULT_API_SCHEME, initializeAuth } from './auth_impl';
+import {
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  initializeAuth
+} from './auth_impl';
 
 use(sinonChai);
 
@@ -193,24 +197,24 @@ describe('AuthImpl', () => {
           await auth.updateCurrentUser(null);
           expect(authStateCallback).to.have.been.calledWith(null);
         });
-  
+
         it('onIdTokenChange triggers on log out', async () => {
           await auth.updateCurrentUser(null);
           expect(idTokenCallback).to.have.been.calledWith(null);
         });
-  
+
         it('onAuthStateChange does not trigger for user props change', async () => {
           user.refreshToken = 'hey look I changed';
           await auth.updateCurrentUser(user);
           expect(authStateCallback).not.to.have.been.called;
         });
-  
+
         it('onIdTokenChange triggers for user props change', async () => {
           user.refreshToken = 'hey look I changed';
           await auth.updateCurrentUser(user);
           expect(idTokenCallback).to.have.been.calledWith(user);
         });
-  
+
         it('onAuthStateChange triggers if uid changes', async () => {
           const newUser = testUser('different-uid');
           await auth.updateCurrentUser(newUser);
