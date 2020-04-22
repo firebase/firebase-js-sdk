@@ -177,7 +177,7 @@ export class LocalSerializer {
     const lastLimboFreeSnapshotVersion =
       dbTarget.lastLimboFreeSnapshotVersion !== undefined
         ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
-        : SnapshotVersion.MIN;
+        : SnapshotVersion.min();
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {

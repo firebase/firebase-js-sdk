@@ -923,7 +923,7 @@ export class SpecBuilder {
           // TODO(dimond): Support non-JSON primitive values?
           return [
             filter.field.canonicalString(),
-            filter.op.name,
+            filter.op,
             userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
@@ -935,7 +935,7 @@ export class SpecBuilder {
       spec.orderBys = query.explicitOrderBy.map(orderBy => {
         return [
           orderBy.field.canonicalString(),
-          orderBy.dir.name
+          orderBy.dir
         ] as SpecQueryOrderBy;
       });
     }

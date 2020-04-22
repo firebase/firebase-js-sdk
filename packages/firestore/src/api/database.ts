@@ -836,7 +836,7 @@ export class WriteBatch implements firestore.WriteBatch {
             convertedValue
           );
     this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.NONE)
+      parsed.toMutations(ref._key, Precondition.none())
     );
     return this;
   }
@@ -906,7 +906,7 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.NONE)
+      new DeleteMutation(ref._key, Precondition.none())
     );
     return this;
   }
@@ -1031,7 +1031,7 @@ export class DocumentReference<T = firestore.DocumentData>
           )
         : this.firestore._dataReader.parseSetData(functionName, convertedValue);
     return this._firestoreClient.write(
-      parsed.toMutations(this._key, Precondition.NONE)
+      parsed.toMutations(this._key, Precondition.none())
     );
   }
 
@@ -1075,7 +1075,7 @@ export class DocumentReference<T = firestore.DocumentData>
   delete(): Promise<void> {
     validateExactNumberOfArgs('DocumentReference.delete', arguments, 0);
     return this._firestoreClient.write([
-      new DeleteMutation(this._key, Precondition.NONE)
+      new DeleteMutation(this._key, Precondition.none())
     ]);
   }
 
@@ -1460,7 +1460,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     let fieldValue: api.Value;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const operator = Operator.fromString(opStr);
+    const operator = opStr as Operator;
     if (fieldPath.isKeyField()) {
       if (
         operator === Operator.ARRAY_CONTAINS ||
@@ -1492,7 +1492,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         'Query.where',
         value,
         // We only allow nested arrays for IN queries.
-        /** allowArrays = */ operator === Operator.IN ? true : false
+        /** allowArrays = */ operator === Operator.IN
       );
     }
     const filter = FieldFilter.create(fieldPath, operator, fieldValue);

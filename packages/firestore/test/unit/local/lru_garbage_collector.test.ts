@@ -276,7 +276,7 @@ function genericLruGarbageCollectorTests(
     return new SetMutation(
       key,
       wrapObject({ baz: 'hello', world: 2 }),
-      Precondition.NONE
+      Precondition.none()
     );
   }
 

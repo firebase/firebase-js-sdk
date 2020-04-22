@@ -1174,8 +1174,8 @@ abstract class TestRunner {
           targetId,
           TargetPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
-          SnapshotVersion.MIN,
-          SnapshotVersion.MIN,
+          SnapshotVersion.min(),
+          SnapshotVersion.min(),
           byteStringFromString(expected.resumeToken)
         )
       );

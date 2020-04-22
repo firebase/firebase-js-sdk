@@ -1457,7 +1457,7 @@ function genericLocalStoreTests(
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
       .afterMutations([
-        patchMutation('foo/bar', {}, Precondition.NONE),
+        patchMutation('foo/bar', {}, Precondition.none()),
         transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
       ])
       .toReturnChanged(
@@ -1620,7 +1620,7 @@ function genericLocalStoreTests(
     );
     expect(
       cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(
-        SnapshotVersion.MIN
+        SnapshotVersion.min()
       )
     ).to.be.true;
 
