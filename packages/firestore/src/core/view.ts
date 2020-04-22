@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-import { QueryResult } from '../local/local_store';
+import {QueryResult} from '../local/local_store';
 import {
   documentKeySet,
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
-import { DocumentSet } from '../model/document_set';
-import { TargetChange } from '../remote/remote_event';
-import { debugAssert, fail } from '../util/assert';
+import {Document, MaybeDocument} from '../model/document';
+import {DocumentKey} from '../model/document_key';
+import {DocumentSet} from '../model/document_set';
+import {TargetChange} from '../remote/remote_event';
+import {debugAssert, fail} from '../util/assert';
 
-import { Query } from './query';
-import { OnlineState } from './types';
+import {Query} from './query';
+import {OnlineState} from './types';
 import {
   ChangeType,
   DocumentChangeSet,
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
+import {objectValueEquals} from "../model/field_value";
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
@@ -174,7 +175,7 @@ export class View {
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data().isEqual(newDoc.data());
+          const docsEqual = objectValueEquals(oldDoc.data(), newDoc.data());
           if (!docsEqual) {
             if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
               changeSet.track({

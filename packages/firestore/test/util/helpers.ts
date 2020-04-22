@@ -19,17 +19,17 @@ import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../../src/protos/firestore_proto_api';
 
-import { expect } from 'chai';
+import {expect} from 'chai';
 
-import { Blob } from '../../src/api/blob';
-import { fromDotSeparatedString } from '../../src/api/field_path';
-import { FieldValueImpl } from '../../src/api/field_value';
-import { UserDataWriter } from '../../src/api/user_data_writer';
+import {Blob} from '../../src/api/blob';
+import {fromDotSeparatedString} from '../../src/api/field_path';
+import {FieldValueImpl} from '../../src/api/field_value';
+import {UserDataWriter} from '../../src/api/user_data_writer';
 import {
   DocumentKeyReference,
   UserDataReader
 } from '../../src/api/user_data_reader';
-import { DatabaseId } from '../../src/core/database_info';
+import {DatabaseId} from '../../src/core/database_info';
 import {
   Bound,
   Direction,
@@ -37,8 +37,8 @@ import {
   Operator,
   OrderBy
 } from '../../src/core/query';
-import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { TargetId } from '../../src/core/types';
+import {SnapshotVersion} from '../../src/core/snapshot_version';
+import {TargetId} from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -46,8 +46,8 @@ import {
   View,
   ViewChange
 } from '../../src/core/view';
-import { LocalViewChanges } from '../../src/local/local_view_changes';
-import { TargetData, TargetPurpose } from '../../src/local/target_data';
+import {LocalViewChanges} from '../../src/local/local_view_changes';
+import {TargetData, TargetPurpose} from '../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -55,16 +55,21 @@ import {
   maybeDocumentMap
 } from '../../src/model/collections';
 import {
+  compareByField,
   Document,
   DocumentOptions,
   MaybeDocument,
   NoDocument,
   UnknownDocument
 } from '../../src/model/document';
-import { DocumentComparator } from '../../src/model/document_comparator';
-import { DocumentKey } from '../../src/model/document_key';
-import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/field_value';
+import {DocumentComparator} from '../../src/model/document_comparator';
+import {DocumentKey} from '../../src/model/document_key';
+import {DocumentSet} from '../../src/model/document_set';
+import {
+  JsonObject,
+  ObjectValue,
+  objectValueEquals
+} from '../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -74,24 +79,24 @@ import {
   SetMutation,
   TransformMutation
 } from '../../src/model/mutation';
-import { FieldPath, ResourcePath } from '../../src/model/path';
-import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
+import {FieldPath, ResourcePath} from '../../src/model/path';
+import {RemoteEvent, TargetChange} from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import { debugAssert, fail } from '../../src/util/assert';
-import { primitiveComparator } from '../../src/util/misc';
-import { Dict } from '../../src/util/obj';
-import { SortedMap } from '../../src/util/sorted_map';
-import { SortedSet } from '../../src/util/sorted_set';
-import { query } from './api_helpers';
-import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { Timestamp } from '../../src/api/timestamp';
+import {debugAssert, fail} from '../../src/util/assert';
+import {primitiveComparator} from '../../src/util/misc';
+import {Dict} from '../../src/util/obj';
+import {SortedMap} from '../../src/util/sorted_map';
+import {SortedSet} from '../../src/util/sorted_set';
+import {query} from './api_helpers';
+import {ByteString} from '../../src/util/byte_string';
+import {PlatformSupport} from '../../src/platform/platform';
+import {JsonProtoSerializer} from '../../src/remote/serializer';
+import {Timestamp} from '../../src/api/timestamp';
 
 /* eslint-disable no-restricted-globals */
 
@@ -653,7 +658,7 @@ export function documentSetAsArray(docs: DocumentSet): Document[] {
 export class DocComparator {
   static byField(...fields: string[]): DocumentComparator {
     const path = new FieldPath(fields);
-    return Document.compareByField.bind(this, path);
+    return compareByField.bind(this, path);
   }
 }
 
@@ -664,12 +669,16 @@ export class DocComparator {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
-  if (typeof left.isEqual !== 'function') {
+  if (typeof function (other: ObjectValue): boolean {
+    return objectValueEquals(this, other);
+  } !== 'function') {
     return fail(
       JSON.stringify(left) + ' does not support isEqual (left) ' + message
     );
   }
-  if (typeof right.isEqual !== 'function') {
+  if (typeof function (other: ObjectValue): boolean {
+    return objectValueEquals(this, other);
+  } !== 'function') {
     return fail(
       JSON.stringify(right) + ' does not support isEqual (right) ' + message
     );

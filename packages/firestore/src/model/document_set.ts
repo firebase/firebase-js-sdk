@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { SortedMap } from '../util/sorted_map';
+import {SortedMap} from '../util/sorted_map';
 
-import { documentMap } from './collections';
-import { Document } from './document';
-import { DocumentComparator } from './document_comparator';
-import { DocumentKey } from './document_key';
+import {documentMap} from './collections';
+import {Document, maybeDocumentEquals} from './document';
+import {DocumentComparator} from './document_comparator';
+import {DocumentKey} from './document_key';
 
 /**
  * DocumentSet is an immutable (copy-on-write) collection that holds documents
@@ -132,7 +132,7 @@ export class DocumentSet {
     while (thisIt.hasNext()) {
       const thisDoc = thisIt.getNext().key;
       const otherDoc = otherIt.getNext().key;
-      if (!thisDoc.isEqual(otherDoc)) {
+      if (!maybeDocumentEquals(thisDoc, otherDoc)) {
         return false;
       }
     }

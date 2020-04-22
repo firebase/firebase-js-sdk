@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import {expect} from 'chai';
 import {
   doc,
   expectEqual,
@@ -23,6 +23,7 @@ import {
   field,
   wrap
 } from '../../util/helpers';
+import {maybeDocumentEquals} from "../../../src/model/document";
 
 describe('Document', () => {
   it('can be constructed', () => {
@@ -60,7 +61,7 @@ describe('Document', () => {
   });
 
   it('equals to other same documents', () => {
-    expect(doc('a/b', 0, {}).isEqual(null)).to.equal(false);
+    expect(maybeDocumentEquals(doc('a/b', 0, {}), null)).to.equal(false);
 
     expectEqual(doc('a/b', 3, { foo: 'bar' }), doc('a/b', 3, { foo: 'bar' }));
     expectEqual(doc('a/b', 1, { foo: NaN }), doc('a/b', 1, { foo: NaN }));

@@ -17,15 +17,16 @@
 
 import * as api from '../../../src/protos/firestore_proto_api';
 
-import { expect } from 'chai';
+import {expect} from 'chai';
 import {
   extractFieldMask,
   ObjectValue,
   ObjectValueBuilder,
+  objectValueEquals,
   TypeOrder
 } from '../../../src/model/field_value';
-import { typeOrder } from '../../../src/model/values';
-import { field, mask, wrap, wrapObject } from '../../util/helpers';
+import {typeOrder} from '../../../src/model/values';
+import {field, mask, wrap, wrapObject} from '../../util/helpers';
 
 describe('FieldValue', () => {
   it('can extract fields', () => {
@@ -239,6 +240,6 @@ describe('FieldValue', () => {
     objValue: ObjectValue,
     data: { [k: string]: unknown }
   ): void {
-    expect(objValue.isEqual(wrapObject(data)));
+    expect(objectValueEquals(objValue, wrapObject(data)));
   }
 });

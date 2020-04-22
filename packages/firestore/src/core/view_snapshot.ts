@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { Document } from '../model/document';
-import { DocumentKey } from '../model/document_key';
-import { DocumentSet } from '../model/document_set';
-import { fail } from '../util/assert';
-import { SortedMap } from '../util/sorted_map';
+import {Document, maybeDocumentEquals} from '../model/document';
+import {DocumentKey} from '../model/document_key';
+import {DocumentSet} from '../model/document_set';
+import {fail} from '../util/assert';
+import {SortedMap} from '../util/sorted_map';
 
-import { DocumentKeySet } from '../model/collections';
-import { Query } from './query';
+import {DocumentKeySet} from '../model/collections';
+import {Query} from './query';
 
 export const enum ChangeType {
   Added,
@@ -196,7 +196,7 @@ export class ViewSnapshot {
     for (let i = 0; i < changes.length; i++) {
       if (
         changes[i].type !== otherChanges[i].type ||
-        !changes[i].doc.isEqual(otherChanges[i].doc)
+        !maybeDocumentEquals(changes[i].doc, otherChanges[i].doc)
       ) {
         return false;
       }

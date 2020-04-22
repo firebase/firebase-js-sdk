@@ -66,8 +66,7 @@ const browserBuilds = [
     input: './rest/index.ts',
     output: {
       file: './rest/dist/index.esm2017.js',
-      format: 'es',
-      sourcemap: true
+      format: 'es'
     },
     plugins: defaultPlugins,
     external: resolveBrowserExterns,

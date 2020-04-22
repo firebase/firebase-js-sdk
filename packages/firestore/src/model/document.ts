@@ -17,13 +17,13 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { fail } from '../util/assert';
+import {SnapshotVersion} from '../core/snapshot_version';
+import {debugAssert, fail, hardAssert} from '../util/assert';
 
-import { DocumentKey } from './document_key';
-import { ObjectValue } from './field_value';
-import { FieldPath } from './path';
-import { valueCompare } from './values';
+import {DocumentKey} from './document_key';
+import {ObjectValue, objectValueEquals} from './field_value';
+import {FieldPath} from './path';
+import {valueCompare} from './values';
 
 export interface DocumentOptions {
   hasLocalMutations?: boolean;
@@ -46,8 +46,6 @@ export abstract class MaybeDocument {
    * acknowledged by Watch.
    */
   abstract get hasPendingWrites(): boolean;
-
-  abstract isEqual(other: MaybeDocument | null | undefined): boolean;
 
   abstract toString(): string;
 }
@@ -82,18 +80,7 @@ export class Document extends MaybeDocument {
   toProto(): { mapValue: api.MapValue } {
     return this.objectValue.proto;
   }
-
-  isEqual(other: MaybeDocument | null | undefined): boolean {
-    return (
-      other instanceof Document &&
-      this.key.isEqual(other.key) &&
-      this.version.isEqual(other.version) &&
-      this.hasLocalMutations === other.hasLocalMutations &&
-      this.hasCommittedMutations === other.hasCommittedMutations &&
-      this.objectValue.isEqual(other.objectValue)
-    );
-  }
-
+  
   toString(): string {
     return (
       `Document(${this.key}, ${
@@ -107,16 +94,41 @@ export class Document extends MaybeDocument {
   get hasPendingWrites(): boolean {
     return this.hasLocalMutations || this.hasCommittedMutations;
   }
+}
 
-  static compareByField(field: FieldPath, d1: Document, d2: Document): number {
-    const v1 = d1.field(field);
-    const v2 = d2.field(field);
-    if (v1 !== null && v2 !== null) {
-      return valueCompare(v1, v2);
-    } else {
-      return fail("Trying to compare documents on fields that don't exist");
-    }
+export function compareByField(field: FieldPath, d1: Document, d2: Document): number {
+  const v1 = d1.field(field);
+  const v2 = d2.field(field);
+    return valueCompare(v1, v2);
+}
+// TODO(mrschmidt): I think this is only ever called with documents
+export function maybeDocumentEquals(left: MaybeDocument| null | undefined , right: MaybeDocument | null | undefined) : boolean {
+  if (left === right) {
+    return true;
   }
+  if (left instanceof Document &&
+    right instanceof Document) {
+    return left.key.isEqual(right.key) &&
+      left.version.isEqual(right.version) &&
+      left.hasLocalMutations === right.hasLocalMutations &&
+      left.hasCommittedMutations === right.hasCommittedMutations &&
+      objectValueEquals(left.data(), right.data());
+  }
+
+  if (left instanceof NoDocument &&
+    right instanceof NoDocument) {
+    return left.key.isEqual(right.key) &&
+      left.version.isEqual(right.version) &&
+      left.hasCommittedMutations === right.hasCommittedMutations;
+  }
+
+  if (left instanceof UnknownDocument &&
+    right instanceof UnknownDocument) {
+    return left.key.isEqual(right.key) &&
+      left.version.isEqual(right.version);
+  }
+  
+  return false;
 }
 
 /**
@@ -143,15 +155,6 @@ export class NoDocument extends MaybeDocument {
   get hasPendingWrites(): boolean {
     return this.hasCommittedMutations;
   }
-
-  isEqual(other: MaybeDocument | null | undefined): boolean {
-    return (
-      other instanceof NoDocument &&
-      other.hasCommittedMutations === this.hasCommittedMutations &&
-      other.version.isEqual(this.version) &&
-      other.key.isEqual(this.key)
-    );
-  }
 }
 
 /**
@@ -165,13 +168,5 @@ export class UnknownDocument extends MaybeDocument {
 
   get hasPendingWrites(): boolean {
     return true;
-  }
-
-  isEqual(other: MaybeDocument | null | undefined): boolean {
-    return (
-      other instanceof UnknownDocument &&
-      other.version.isEqual(this.version) &&
-      other.key.isEqual(this.key)
-    );
   }
 }
