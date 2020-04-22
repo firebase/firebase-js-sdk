@@ -34,7 +34,11 @@ export function fail(appName: string, errorCode: AuthErrorCode): never {
  * @param assertion
  * @param appName
  */
-export function assert(assertion: unknown, appName: string, errorCode: AuthErrorCode = AuthErrorCode.INTERNAL_ERROR): asserts assertion {
+export function assert(
+  assertion: unknown,
+  appName: string,
+  errorCode: AuthErrorCode = AuthErrorCode.INTERNAL_ERROR
+): asserts assertion {
   if (!assertion) {
     fail(appName, errorCode);
   }
@@ -66,7 +70,7 @@ export function debugFail(failure: string): never {
  * @param message
  */
 export function debugAssert(
-  assertion: boolean,
+  assertion: unknown,
   message: string
 ): asserts assertion {
   if (!assertion) {

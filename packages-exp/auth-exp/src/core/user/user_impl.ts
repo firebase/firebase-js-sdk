@@ -34,7 +34,6 @@ export interface UserParameters {
   photoURL?: string;
 }
 
-
 function assertStringOrUndefined(
   assertion: unknown,
   appName: string
@@ -115,7 +114,7 @@ export class UserImpl implements User {
       photoURL
     } = object;
 
-    assert(uid && !!plainObjectTokenManager, auth.name);
+    assert(uid && plainObjectTokenManager, auth.name);
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
       auth.name,
