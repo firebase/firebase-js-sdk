@@ -33,7 +33,7 @@ const typescript = require('typescript');
 const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
 // For minified builds, wrap the output so we avoid leaking global variables.
-const CJS_WRAPPER_PREFIX = `(function() {var firebase = require('@firebase/app').default;`;
+const CJS_WRAPPER_PREFIX = `(function() {`;
 const CJS_WRAPPER_SUFFIX =
   `}).apply(typeof global !== 'undefined' ? ` +
   `global : typeof self !== 'undefined' ? ` +
@@ -117,15 +117,14 @@ function createRollupTask({
     plugins.push(terser());
     const inputOptions = {
       input: inputPath,
-      plugins,
-      external: ['@firebase/app']
+      plugins
     };
 
     const outputOptions = {
       file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
       format,
       sourcemap: true,
-      exports: 'named'
+      // exports: 'named'
     };
 
     const bundle = await rollup.rollup(inputOptions);
