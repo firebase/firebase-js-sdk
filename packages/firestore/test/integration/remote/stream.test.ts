@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import {
-  CredentialsProvider,
   EmptyCredentialsProvider,
   Token
 } from '../../../src/api/credentials';
