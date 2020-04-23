@@ -20,32 +20,42 @@ import { querystring } from '@firebase/util';
 import { performFetchWithErrorHandling } from '../';
 import { Auth } from '../../model/auth';
 
-const ENDPOINT = 'https://securetoken.googleapis.com/v1/token';
+export const _ENDPOINT = 'https://securetoken.googleapis.com/v1/token';
 const GRANT_TYPE = 'refresh_token';
 
+enum ServerField {
+  ACCESS_TOKEN = 'access_token',
+  EXPIRES_IN = 'expires_in',
+  REFRESH_TOKEN = 'refresh_token',
+}
+
 export interface RequestStsTokenResponse {
-  access_token?: string;
-  expires_in?: string;
-  token_type?: string;
-  refresh_token?: string;
-  id_token?: string;
-  user_id?: string;
-  project_id?: string;
+  accessToken?: string;
+  expiresIn?: string;
+  refreshToken?: string;
 }
 
 export async function requestStsToken(auth: Auth, refreshToken: string): Promise<RequestStsTokenResponse> {
-  return performFetchWithErrorHandling<RequestStsTokenResponse>(auth, {}, () => {
+  const response = await performFetchWithErrorHandling<{[key: string]: string}>(auth, {}, () => {
     const body = querystring({
       'grant_type': GRANT_TYPE,
       'refresh_token': refreshToken,
     }).slice(1);
 
-    return fetch(`${ENDPOINT}?key=${auth.config.apiKey}`, {
+    return fetch(`${_ENDPOINT}?key=${auth.config.apiKey}`, {
       method: 'POST',
       headers: {
         'X-Client-Version': auth.config.sdkClientVersion,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body,
     });
   });
+
+  // The response comes back in snake_case. Convert to camel:
+  return {
+    accessToken: response[ServerField.ACCESS_TOKEN],
+    expiresIn: response[ServerField.EXPIRES_IN],
+    refreshToken: response[ServerField.REFRESH_TOKEN],
+  };
 }

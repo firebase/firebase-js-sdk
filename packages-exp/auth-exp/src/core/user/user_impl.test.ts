@@ -18,6 +18,9 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockAuth } from '../../../test/mock_auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
@@ -78,11 +81,6 @@ describe('core/user/user_impl', () => {
       const token = await user.getIdToken();
       expect(token).to.eq('id-token-string');
       expect(user.refreshToken).to.eq('refresh-token-string');
-    });
-
-    it('throws if refresh is required', async () => {
-      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
-      await expect(user.getIdToken()).to.be.rejectedWith(Error);
     });
   });
 

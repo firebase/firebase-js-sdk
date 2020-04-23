@@ -89,12 +89,12 @@ export class StsTokenManager {
     };
   }
 
-  private async refresh(auth: Auth, refreshToken: string) {
-    const {access_token, refresh_token, expires_in} = await requestStsToken(auth, refreshToken);
-    this.updateTokensAndExpiration(access_token, refresh_token, expires_in);
+  private async refresh(auth: Auth, oldToken: string): Promise<void> {
+    const {accessToken, refreshToken, expiresIn} = await requestStsToken(auth, oldToken);
+    this.updateTokensAndExpiration(accessToken, refreshToken, expiresIn);
   }
 
-  private updateTokensAndExpiration(accessToken: string|undefined, refreshToken: string|undefined, expiresInSec: string|undefined) {
+  private updateTokensAndExpiration(accessToken: string|undefined, refreshToken: string|undefined, expiresInSec: string|undefined): void {
     this.refreshToken = refreshToken || null;
     this.accessToken = accessToken || null;
     this.expirationTime = expiresInSec ? Date.now() + Number(expiresInSec) * 1000 : null;
