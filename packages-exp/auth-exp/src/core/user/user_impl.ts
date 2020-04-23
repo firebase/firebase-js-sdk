@@ -49,6 +49,16 @@ function assertStringOrUndefined(
   );
 }
 
+function assertStringOrUndefined(
+  assertion: unknown,
+  appName: string
+): asserts assertion is string | undefined {
+  assert(
+    typeof assertion === 'string' || typeof assertion === 'undefined',
+    appName
+  );
+}
+
 export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = externs.ProviderId.FIREBASE;

@@ -27,6 +27,7 @@ import {
   ServerError,
   ServerErrorMap
 } from './errors';
+import { Delay } from '../core/util/delay';
 
 export enum HttpMethod {
   POST = 'POST',
