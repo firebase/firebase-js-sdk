@@ -32,16 +32,6 @@ import {
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
 
-// The generated proto interfaces for these class are missing the database
-// field. So we add it here.
-// TODO(b/36015800): Remove this once the api generator is fixed.
-interface BatchGetDocumentsRequest extends api.BatchGetDocumentsRequest {
-  database?: string;
-}
-interface CommitRequest extends api.CommitRequest {
-  database?: string;
-}
-
 /**
  * Datastore and its related methods are a wrapper around the external Google
  * Cloud Datastore grpc API, which provides an interface that is more convenient
@@ -108,7 +98,7 @@ export function createDatastore(
   return new DatastoreImpl(connection, credentials, serializer);
 }
 
-export function invokeCommitRpc(
+export async function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
 ): Promise<MutationResult[]> {
@@ -116,21 +106,21 @@ export function invokeCommitRpc(
     datastore instanceof DatastoreImpl,
     'invokeCommitRpc() requires DatastoreImpl'
   );
-  const params: CommitRequest = {
+  const params = {
     database: datastore.serializer.encodedDatabaseId,
     writes: mutations.map(m => datastore.serializer.toMutation(m))
   };
-  return datastore
-    .invokeRPC<CommitRequest, api.CommitResponse>('Commit', params)
-    .then(response => {
-      return datastore.serializer.fromWriteResults(
-        response.writeResults,
-        response.commitTime
-      );
-    });
+  const response = await datastore.invokeRPC<
+    api.CommitRequest,
+    api.CommitResponse
+  >('Commit', params);
+  return datastore.serializer.fromWriteResults(
+    response.writeResults,
+    response.commitTime
+  );
 }
 
-export function invokeBatchGetDocumentsRpc(
+export async function invokeBatchGetDocumentsRpc(
   datastore: Datastore,
   keys: DocumentKey[]
 ): Promise<MaybeDocument[]> {
@@ -138,30 +128,27 @@ export function invokeBatchGetDocumentsRpc(
     datastore instanceof DatastoreImpl,
     'invokeBatchGetDocumentsRpc() requires DatastoreImpl'
   );
-  const params: BatchGetDocumentsRequest = {
+  const params = {
     database: datastore.serializer.encodedDatabaseId,
     documents: keys.map(k => datastore.serializer.toName(k))
   };
+  const response = await datastore.invokeStreamingRPC<
+    api.BatchGetDocumentsRequest,
+    api.BatchGetDocumentsResponse
+  >('BatchGetDocuments', params);
 
-  return datastore
-    .invokeStreamingRPC<
-      BatchGetDocumentsRequest,
-      api.BatchGetDocumentsResponse
-    >('BatchGetDocuments', params)
-    .then(response => {
-      const docs = new Map<string, MaybeDocument>();
-      response.forEach(proto => {
-        const doc = datastore.serializer.fromMaybeDocument(proto);
-        docs.set(doc.key.toString(), doc);
-      });
-      const result: MaybeDocument[] = [];
-      keys.forEach(key => {
-        const doc = docs.get(key.toString());
-        hardAssert(!!doc, 'Missing entity in write response for ' + key);
-        result.push(doc);
-      });
-      return result;
-    });
+  const docs = new Map<string, MaybeDocument>();
+  response.forEach(proto => {
+    const doc = datastore.serializer.fromMaybeDocument(proto);
+    docs.set(doc.key.toString(), doc);
+  });
+  const result: MaybeDocument[] = [];
+  keys.forEach(key => {
+    const doc = docs.get(key.toString());
+    hardAssert(!!doc, 'Missing entity in write response for ' + key);
+    result.push(doc);
+  });
+  return result;
 }
 
 export function newPersistentWriteStream(
