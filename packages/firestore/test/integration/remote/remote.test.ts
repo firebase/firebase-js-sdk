@@ -30,53 +30,48 @@ describe('Remote Storage', () => {
   addEqualityMatcher();
 
   it('can write', () => {
-    return withTestDatastore(ds => {
+    return withTestDatastore(async ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
-
-      return invokeCommitRpc(ds, [mutation]).then(result => {
-        expect(result.length).to.equal(1);
-        const version = result[0].version;
-        expect(version).not.to.equal(null);
-        expect(SnapshotVersion.MIN.compareTo(version!)).to.be.lessThan(0);
-      });
+      const result = await invokeCommitRpc(ds, [mutation]);
+      expect(result.length).to.equal(1);
+      
+      const version = result[0].version;
+      expect(version).not.to.equal(null);
+      expect(SnapshotVersion.MIN.compareTo(version!)).to.be.lessThan(0);
     });
   });
 
   it('can read', () => {
-    return withTestDatastore(ds => {
+    return withTestDatastore(async ds => {
       const k = key('docs/1');
       const mutation = setMutation('docs/1', { sort: 10 });
 
-      return invokeCommitRpc(ds, [mutation])
-        .then(() => invokeBatchGetDocumentsRpc(ds, [k]))
-        .then(docs => {
-          expect(docs.length).to.equal(1);
+      await invokeCommitRpc(ds, [mutation]);
+      const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
+      expect(docs.length).to.equal(1);
 
-          const doc = docs[0];
-          expect(doc).to.be.an.instanceof(Document);
-          if (doc instanceof Document) {
-            expect(doc.data()).to.deep.equal(mutation.value);
-            expect(doc.key).to.deep.equal(k);
-            expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(
-              0
-            );
-          }
-        });
+      const doc = docs[0];
+      expect(doc).to.be.an.instanceof(Document);
+      if (doc instanceof Document) {
+        expect(doc.data()).to.deep.equal(mutation.value);
+        expect(doc.key).to.deep.equal(k);
+        expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
+      }
     });
   });
 
   it('can read deleted documents', () => {
-    return withTestDatastore(ds => {
+    return withTestDatastore(async ds => {
       const k = key('docs/2');
-      return invokeBatchGetDocumentsRpc(ds, [k]).then(docs => {
-        expect(docs.length).to.equal(1);
-        const doc = docs[0];
-        expect(doc).to.be.an.instanceof(NoDocument);
-        if (doc instanceof NoDocument) {
-          expect(doc.key).to.deep.equal(k);
-          expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
-        }
-      });
+      const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
+      expect(docs.length).to.equal(1);
+
+      const doc = docs[0];
+      expect(doc).to.be.an.instanceof(NoDocument);
+      if (doc instanceof NoDocument) {
+        expect(doc.key).to.deep.equal(k);
+        expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
+      }
     });
   });
 });
