@@ -21,6 +21,7 @@ import { Auth } from '../src/model/auth';
 import { User } from '../src/model/user';
 
 export const TEST_HOST = 'localhost';
+export const TEST_TOKEN_HOST = 'localhost/token';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
@@ -30,6 +31,7 @@ export const mockAuth: Auth = {
     apiKey: TEST_KEY,
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
+    tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
   },
   _isInitialized: true,

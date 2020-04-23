@@ -94,16 +94,16 @@ export class StsTokenManager {
       auth,
       oldToken
     );
-    this.updateTokensAndExpiration(accessToken, refreshToken, expiresIn);
+    this.updateTokensAndExpiration(accessToken || null, refreshToken || null, expiresIn || null);
   }
 
   private updateTokensAndExpiration(
-    accessToken: string | undefined,
-    refreshToken: string | undefined,
-    expiresInSec: string | undefined
+    accessToken: string | null,
+    refreshToken: string | null,
+    expiresInSec: string | null
   ): void {
-    this.refreshToken = refreshToken || null;
-    this.accessToken = accessToken || null;
+    this.refreshToken = refreshToken;
+    this.accessToken = accessToken;
     this.expirationTime = expiresInSec
       ? Date.now() + Number(expiresInSec) * 1000
       : null;

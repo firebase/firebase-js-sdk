@@ -29,11 +29,9 @@ import { Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
-import { ClientPlatform, _getClientVersion } from '../util/version';
+import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -318,6 +316,7 @@ describe('core/auth/initializeAuth', () => {
         authDomain: FAKE_APP.options.authDomain,
         apiHost: DEFAULT_API_HOST,
         apiScheme: DEFAULT_API_SCHEME,
+        tokenApiHost: DEFAULT_TOKEN_API_HOST,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
     });

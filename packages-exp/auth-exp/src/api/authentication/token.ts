@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
+
 import { querystring } from '@firebase/util';
 
-import { performFetchWithErrorHandling } from '../';
+import { HttpMethod, performFetchWithErrorHandling } from '../';
 import { Auth } from '../../model/auth';
 
-export const _ENDPOINT = 'https://securetoken.googleapis.com/v1/token';
+export const _ENDPOINT = 'v1/token';
 const GRANT_TYPE = 'refresh_token';
 
-enum ServerField {
-  ACCESS_TOKEN = 'access_token',
-  EXPIRES_IN = 'expires_in',
-  REFRESH_TOKEN = 'refresh_token'
+/** The server responses with snake_case; we convert to camelCase */
+interface RequestStsTokenServerResponse {
+  access_token?: string;
+  expires_in?: string;
+  refresh_token?: string;
 }
 
 export interface RequestStsTokenResponse {
@@ -39,18 +42,18 @@ export async function requestStsToken(
   auth: Auth,
   refreshToken: string
 ): Promise<RequestStsTokenResponse> {
-  const response = await performFetchWithErrorHandling<{
-    [key: string]: string;
-  }>(auth, {}, () => {
+  const response = await performFetchWithErrorHandling<RequestStsTokenServerResponse>(auth, {}, () => {
     const body = querystring({
       'grant_type': GRANT_TYPE,
       'refresh_token': refreshToken
     }).slice(1);
+    const {apiScheme, tokenApiHost, apiKey, sdkClientVersion} = auth.config;
+    const url = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}`;
 
-    return fetch(`${_ENDPOINT}?key=${auth.config.apiKey}`, {
-      method: 'POST',
+    return fetch(`${url}?key=${apiKey}`, {
+      method: HttpMethod.POST,
       headers: {
-        'X-Client-Version': auth.config.sdkClientVersion,
+        'X-Client-Version': sdkClientVersion,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       body
@@ -59,8 +62,8 @@ export async function requestStsToken(
 
   // The response comes back in snake_case. Convert to camel:
   return {
-    accessToken: response[ServerField.ACCESS_TOKEN],
-    expiresIn: response[ServerField.EXPIRES_IN],
-    refreshToken: response[ServerField.REFRESH_TOKEN]
+    accessToken: response.access_token,
+    expiresIn: response.expires_in,
+    refreshToken: response.refresh_token
   };
 }
