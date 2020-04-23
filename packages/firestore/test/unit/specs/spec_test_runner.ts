@@ -54,7 +54,7 @@ import { Mutation } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
-import { Datastore } from '../../../src/remote/datastore';
+import { createDatastore, Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { RemoteStore } from '../../../src/remote/remote_store';
@@ -470,7 +470,7 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.connection = new MockConnection(this.queue);
-    this.datastore = new Datastore(
+    this.datastore = createDatastore(
       this.connection,
       new EmptyCredentialsProvider(),
       this.serializer

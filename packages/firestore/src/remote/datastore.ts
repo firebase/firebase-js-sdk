@@ -20,7 +20,7 @@ import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { hardAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
 import { JsonProtoSerializer } from './serializer';
@@ -43,16 +43,24 @@ interface CommitRequest extends api.CommitRequest {
 }
 
 /**
- * Datastore is a wrapper around the external Google Cloud Datastore grpc API,
- * which provides an interface that is more convenient for the rest of the
- * client SDK architecture to consume.
+ * Datastore and its related methods are a wrapper around the external Google
+ * Cloud Datastore grpc API, which provides an interface that is more convenient
+ * for the rest of the client SDK architecture to consume.
  */
-export class Datastore {
+export class Datastore {}
+
+/**
+ * An implementation of Datastore that exposes additional state for internal
+ * consumption.
+ */
+class DatastoreImpl extends Datastore {
   constructor(
     public readonly connection: Connection,
     public readonly credentials: CredentialsProvider,
     public readonly serializer: JsonProtoSerializer
-  ) {}
+  ) {
+    super();
+  }
 
   /** Gets an auth token and invokes the provided RPC. */
   invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
@@ -92,10 +100,22 @@ export class Datastore {
   }
 }
 
+export function createDatastore(
+  connection: Connection,
+  credentials: CredentialsProvider,
+  serializer: JsonProtoSerializer
+): Datastore {
+  return new DatastoreImpl(connection, credentials, serializer);
+}
+
 export function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
 ): Promise<MutationResult[]> {
+  debugAssert(
+    datastore instanceof DatastoreImpl,
+    'invokeCommitRpc() requires DatastoreImpl'
+  );
   const params: CommitRequest = {
     database: datastore.serializer.encodedDatabaseId,
     writes: mutations.map(m => datastore.serializer.toMutation(m))
@@ -114,6 +134,10 @@ export function invokeBatchGetDocumentsRpc(
   datastore: Datastore,
   keys: DocumentKey[]
 ): Promise<MaybeDocument[]> {
+  debugAssert(
+    datastore instanceof DatastoreImpl,
+    'invokeBatchGetDocumentsRpc() requires DatastoreImpl'
+  );
   const params: BatchGetDocumentsRequest = {
     database: datastore.serializer.encodedDatabaseId,
     documents: keys.map(k => datastore.serializer.toName(k))
@@ -145,6 +169,10 @@ export function newPersistentWriteStream(
   queue: AsyncQueue,
   listener: WriteStreamListener
 ): PersistentWriteStream {
+  debugAssert(
+    datastore instanceof DatastoreImpl,
+    'newPersistentWriteStream() requires DatastoreImpl'
+  );
   return new PersistentWriteStream(
     queue,
     datastore.connection,
@@ -159,6 +187,10 @@ export function newPersistentWatchStream(
   queue: AsyncQueue,
   listener: WatchStreamListener
 ): PersistentListenStream {
+  debugAssert(
+    datastore instanceof DatastoreImpl,
+    'newPersistentWatchStream() requires DatastoreImpl'
+  );
   return new PersistentListenStream(
     queue,
     datastore.connection,

@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { Datastore } from '../../../src/remote/datastore';
+import { createDatastore, Datastore } from '../../../src/remote/datastore';
 
 import {
   CredentialChangeListener,
@@ -61,7 +61,7 @@ export function withTestDatastore(
       const serializer = PlatformSupport.getPlatform().newSerializer(
         databaseInfo.databaseId
       );
-      const datastore = new Datastore(conn, credentialsProvider, serializer);
+      const datastore = createDatastore(conn, credentialsProvider, serializer);
       return fn(datastore);
     });
 }
