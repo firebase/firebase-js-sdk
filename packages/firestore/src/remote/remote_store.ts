@@ -32,7 +32,11 @@ import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
-import { Datastore } from './datastore';
+import {
+  Datastore,
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from './datastore';
 import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
@@ -50,9 +54,6 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { ByteString } from '../util/byte_string';
-import { Connection } from './connection';
-import { CredentialsProvider } from '../api/credentials';
-import { JsonProtoSerializer } from './serializer';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -109,7 +110,6 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets = new Map<TargetId, TargetData>();
 
-  private datastore: Datastore;
   private connectivityMonitor: ConnectivityMonitor;
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
@@ -126,10 +126,12 @@ export class RemoteStore implements TargetMetadataProvider {
   private onlineStateTracker: OnlineStateTracker;
 
   constructor(
+    /**
+     * The local store, used to fill the write pipeline with outbound mutations.
+     */
     private localStore: LocalStore,
-    connection: Connection,
-    credentials: CredentialsProvider,
-    serializer: JsonProtoSerializer,
+    /** The client-side proxy for interacting with the backend. */
+    private datastore: Datastore,
     asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
     connectivityMonitor: ConnectivityMonitor
@@ -152,33 +154,19 @@ export class RemoteStore implements TargetMetadataProvider {
       onlineStateHandler
     );
 
-    this.datastore = new Datastore(connection, credentials, serializer);
-
     // Create streams (but note they're not started yet).
-    this.watchStream = new PersistentListenStream(
-      asyncQueue,
-      connection,
-      credentials,
-      serializer,
-      {
-        onOpen: this.onWatchStreamOpen.bind(this),
-        onClose: this.onWatchStreamClose.bind(this),
-        onWatchChange: this.onWatchStreamChange.bind(this)
-      }
-    );
+    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
+      onOpen: this.onWatchStreamOpen.bind(this),
+      onClose: this.onWatchStreamClose.bind(this),
+      onWatchChange: this.onWatchStreamChange.bind(this)
+    });
 
-    this.writeStream = new PersistentWriteStream(
-      asyncQueue,
-      connection,
-      credentials,
-      serializer,
-      {
-        onOpen: this.onWriteStreamOpen.bind(this),
-        onClose: this.onWriteStreamClose.bind(this),
-        onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
-        onMutationResult: this.onMutationResult.bind(this)
-      }
-    );
+    this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
+      onOpen: this.onWriteStreamOpen.bind(this),
+      onClose: this.onWriteStreamClose.bind(this),
+      onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
+      onMutationResult: this.onMutationResult.bind(this)
+    });
   }
 
   /**

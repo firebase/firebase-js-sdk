@@ -22,6 +22,7 @@ import { Datastore } from '../../../src/remote/datastore';
 
 import {
   CredentialChangeListener,
+  CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
@@ -50,7 +51,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 }
 
 export function withTestDatastore(
-  fn: (datastore: Datastore) => Promise<void>
+  fn: (datastore: Datastore) => Promise<void>,
+  credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   return PlatformSupport.getPlatform()
@@ -59,12 +61,7 @@ export function withTestDatastore(
       const serializer = PlatformSupport.getPlatform().newSerializer(
         databaseInfo.databaseId
       );
-      const datastore = new Datastore(
-        conn,
-        new EmptyCredentialsProvider(),
-        serializer
-      );
-
+      const datastore = new Datastore(conn, credentialsProvider, serializer);
       return fn(datastore);
     });
 }

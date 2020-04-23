@@ -54,6 +54,7 @@ import { Mutation } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
+import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { RemoteStore } from '../../../src/remote/remote_store';
@@ -413,6 +414,7 @@ abstract class TestRunner {
   private networkEnabled = true;
 
   // Initialized asynchronously via start().
+  private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
@@ -468,14 +470,18 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.connection = new MockConnection(this.queue);
+    this.datastore = new Datastore(
+      this.connection,
+      new EmptyCredentialsProvider(),
+      this.serializer
+    );
+
     const componentProvider = await this.initializeComponentProvider(
       {
         asyncQueue: this.queue,
         databaseInfo: this.databaseInfo,
         platform: this.platform,
-        connection: this.connection,
-        credentials: new EmptyCredentialsProvider(),
-        serializer: this.serializer,
+        datastore: this.datastore,
         clientId: this.clientId,
         initialUser: this.user,
         maxConcurrentLimboResolutions:

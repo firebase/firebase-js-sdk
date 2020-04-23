@@ -28,6 +28,7 @@ import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseInfo } from './database_info';
 import { Platform } from '../platform/platform';
+import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
 import { debugAssert } from '../util/assert';
@@ -41,9 +42,6 @@ import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
-import { Connection } from '../remote/connection';
-import { CredentialsProvider } from '../api/credentials';
-import { JsonProtoSerializer } from '../remote/serializer';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -54,9 +52,7 @@ export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
   platform: Platform;
-  connection: Connection;
-  credentials: CredentialsProvider;
-  serializer: JsonProtoSerializer;
+  datastore: Datastore;
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
@@ -147,9 +143,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
     return new RemoteStore(
       this.localStore,
-      cfg.connection,
-      cfg.credentials,
-      cfg.serializer,
+      cfg.datastore,
       cfg.asyncQueue,
       onlineState =>
         this.syncEngine.applyOnlineStateChange(

@@ -16,10 +16,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  EmptyCredentialsProvider,
-  Token
-} from '../../../src/api/credentials';
+import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
 import {
@@ -37,8 +34,11 @@ import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { getDefaultDatabaseInfo } from '../util/internal_helpers';
+import { withTestDatastore } from '../util/internal_helpers';
+import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from '../../../src/remote/datastore';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -277,25 +277,18 @@ export async function withTestWriteStream(
   ) => Promise<void>,
   credentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
-  const queue = new AsyncQueue();
-  const streamListener = new StreamStatusListener();
-  const databaseInfo = getDefaultDatabaseInfo();
-  const connection = await PlatformSupport.getPlatform().loadConnection(
-    databaseInfo
-  );
-  const serializer = PlatformSupport.getPlatform().newSerializer(
-    databaseInfo.databaseId
-  );
-  const writeStream = new PersistentWriteStream(
-    queue,
-    connection,
-    credentialsProvider,
-    serializer,
-    streamListener
-  );
-  await writeStream.start();
-  await fn(writeStream, streamListener, queue);
-  streamListener.verifyNoPendingCallbacks();
+  await withTestDatastore(async datastore => {
+    const queue = new AsyncQueue();
+    const streamListener = new StreamStatusListener();
+    const writeStream = newPersistentWriteStream(
+      datastore,
+      queue,
+      streamListener
+    );
+    await writeStream.start();
+    await fn(writeStream, streamListener, queue);
+    streamListener.verifyNoPendingCallbacks();
+  }, credentialsProvider);
 }
 
 export async function withTestWatchStream(
@@ -304,22 +297,16 @@ export async function withTestWatchStream(
     streamListener: StreamStatusListener
   ) => Promise<void>
 ): Promise<void> {
-  const streamListener = new StreamStatusListener();
-  const databaseInfo = getDefaultDatabaseInfo();
-  const connection = await PlatformSupport.getPlatform().loadConnection(
-    databaseInfo
-  );
-  const serializer = PlatformSupport.getPlatform().newSerializer(
-    databaseInfo.databaseId
-  );
-  const watchStream = new PersistentListenStream(
-    new AsyncQueue(),
-    connection,
-    new EmptyCredentialsProvider(),
-    serializer,
-    streamListener
-  );
-  await watchStream.start();
-  await fn(watchStream, streamListener);
-  streamListener.verifyNoPendingCallbacks();
+  await withTestDatastore(async datastore => {
+    const queue = new AsyncQueue();
+    const streamListener = new StreamStatusListener();
+    const watchStream = newPersistentWatchStream(
+      datastore,
+      queue,
+      streamListener
+    );
+    await watchStream.start();
+    await fn(watchStream, streamListener);
+    streamListener.verifyNoPendingCallbacks();
+  });
 }

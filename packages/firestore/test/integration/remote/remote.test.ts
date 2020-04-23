@@ -17,15 +17,14 @@
 
 import { expect } from 'chai';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument
-} from '../../../src/model/document';
-import { MutationResult } from '../../../src/model/mutation';
+import { Document, NoDocument } from '../../../src/model/document';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { key, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
+import {
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../../../src/remote/datastore';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
@@ -34,7 +33,7 @@ describe('Remote Storage', () => {
     return withTestDatastore(ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
 
-      return ds.commit([mutation]).then((result: MutationResult[]) => {
+      return invokeCommitRpc(ds, [mutation]).then(result => {
         expect(result.length).to.equal(1);
         const version = result[0].version;
         expect(version).not.to.equal(null);
@@ -48,12 +47,9 @@ describe('Remote Storage', () => {
       const k = key('docs/1');
       const mutation = setMutation('docs/1', { sort: 10 });
 
-      return ds
-        .commit([mutation])
-        .then((result: MutationResult[]) => {
-          return ds.lookup([k]);
-        })
-        .then((docs: MaybeDocument[]) => {
+      return invokeCommitRpc(ds, [mutation])
+        .then(() => invokeBatchGetDocumentsRpc(ds, [k]))
+        .then(docs => {
           expect(docs.length).to.equal(1);
 
           const doc = docs[0];
@@ -72,7 +68,7 @@ describe('Remote Storage', () => {
   it('can read deleted documents', () => {
     return withTestDatastore(ds => {
       const k = key('docs/2');
-      return ds.lookup([k]).then((docs: MaybeDocument[]) => {
+      return invokeBatchGetDocumentsRpc(ds, [k]).then(docs => {
         expect(docs.length).to.equal(1);
         const doc = docs[0];
         expect(doc).to.be.an.instanceof(NoDocument);
