@@ -17,11 +17,13 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockAuth } from '../../../test/mock_auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
-import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -90,13 +92,6 @@ describe('core/user/user_impl', () => {
     it('throws', async () => {
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       await expect(user.getIdTokenResult()).to.be.rejectedWith(Error);
-    });
-  });
-
-  describe('#reload', () => {
-    it('throws', () => {
-      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
-      expect(() => user.reload()).to.throw();
     });
   });
 

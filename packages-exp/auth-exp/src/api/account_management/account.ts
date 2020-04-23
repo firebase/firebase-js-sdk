@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, performApiRequest } from '../';
 import { Auth } from '../../model/auth';
 import { APIMFAInfo } from '../../model/id_token';
 
@@ -74,7 +74,7 @@ export interface APIUserInfo {
   createdAt?: number;
   tenantId?: string;
   passwordHash?: string;
-  providerUserInfo: ProviderUserInfo[];
+  providerUserInfo?: ProviderUserInfo[];
   mfaInfo?: APIMFAInfo[];
 }
 
