@@ -18,7 +18,7 @@
 import { SinonStub, stub } from 'sinon';
 
 export interface Call {
-  request?: object|string;
+  request?: object | string;
   method?: string;
   headers?: HeadersInit;
 }
@@ -45,8 +45,11 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   // Bang-assertion is fine since we check for routes.has() above
   const { response, status, calls } = routes.get(input)!;
 
-  const requestBody = request?.body && (request?.headers as any)?.['Content-Type'] === 'application/json' ? 
-    JSON.parse(request.body as string) : request?.body;
+  const requestBody =
+    request?.body &&
+    (request?.headers as any)?.['Content-Type'] === 'application/json'
+      ? JSON.parse(request.body as string)
+      : request?.body;
 
   calls.push({
     request: requestBody,

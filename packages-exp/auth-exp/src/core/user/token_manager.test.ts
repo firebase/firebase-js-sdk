@@ -82,7 +82,7 @@ describe('core/user/token_manager', () => {
         mock = fetch.mock(endpoint, {
           'access_token': 'new-access-token',
           'refresh_token': 'new-refresh-token',
-          'expires_in': '3600',
+          'expires_in': '3600'
         });
       });
 
@@ -102,7 +102,7 @@ describe('core/user/token_manager', () => {
         expect(tokens).to.eql({
           accessToken: 'new-access-token',
           refreshToken: 'new-refresh-token',
-          wasRefreshed: true,
+          wasRefreshed: true
         });
       });
 
@@ -122,7 +122,7 @@ describe('core/user/token_manager', () => {
         expect(tokens).to.eql({
           accessToken: 'new-access-token',
           refreshToken: 'new-refresh-token',
-          wasRefreshed: true,
+          wasRefreshed: true
         });
       });
     });
@@ -139,7 +139,7 @@ describe('core/user/token_manager', () => {
 
       await expect(stsTokenManager.getToken(mockAuth)).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: The user\'s credential is no longer valid. The user must sign in again. (auth/user-token-expired)'
+        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
     });
 
@@ -154,7 +154,7 @@ describe('core/user/token_manager', () => {
       expect(tokens).to.eql({
         accessToken: 'token',
         refreshToken: 'refresh',
-        wasRefreshed: false,
+        wasRefreshed: false
       });
     });
   });

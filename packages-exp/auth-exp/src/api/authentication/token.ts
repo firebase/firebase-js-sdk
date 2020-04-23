@@ -26,7 +26,7 @@ const GRANT_TYPE = 'refresh_token';
 enum ServerField {
   ACCESS_TOKEN = 'access_token',
   EXPIRES_IN = 'expires_in',
-  REFRESH_TOKEN = 'refresh_token',
+  REFRESH_TOKEN = 'refresh_token'
 }
 
 export interface RequestStsTokenResponse {
@@ -35,20 +35,25 @@ export interface RequestStsTokenResponse {
   refreshToken?: string;
 }
 
-export async function requestStsToken(auth: Auth, refreshToken: string): Promise<RequestStsTokenResponse> {
-  const response = await performFetchWithErrorHandling<{[key: string]: string}>(auth, {}, () => {
+export async function requestStsToken(
+  auth: Auth,
+  refreshToken: string
+): Promise<RequestStsTokenResponse> {
+  const response = await performFetchWithErrorHandling<{
+    [key: string]: string;
+  }>(auth, {}, () => {
     const body = querystring({
       'grant_type': GRANT_TYPE,
-      'refresh_token': refreshToken,
+      'refresh_token': refreshToken
     }).slice(1);
 
     return fetch(`${_ENDPOINT}?key=${auth.config.apiKey}`, {
       method: 'POST',
       headers: {
         'X-Client-Version': auth.config.sdkClientVersion,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body,
+      body
     });
   });
 
@@ -56,6 +61,6 @@ export async function requestStsToken(auth: Auth, refreshToken: string): Promise
   return {
     accessToken: response[ServerField.ACCESS_TOKEN],
     expiresIn: response[ServerField.EXPIRES_IN],
-    refreshToken: response[ServerField.REFRESH_TOKEN],
+    refreshToken: response[ServerField.REFRESH_TOKEN]
   };
 }

@@ -57,7 +57,7 @@ export async function _performApiRequest<T, V>(
   method: HttpMethod,
   path: Endpoint,
   request?: T,
-  customErrorMap: Partial<ServerErrorMap<ServerError>> = {},
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
   return performFetchWithErrorHandling(auth, customErrorMap, () => {
     let body = {};
@@ -77,31 +77,31 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
-   return fetch(
-        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
-        {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Client-Version': auth.config.sdkClientVersion
-          },
-          referrerPolicy: 'no-referrer',
-          ...body
-        }
-      );
-      });
+    return fetch(
+      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
+      {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Version': auth.config.sdkClientVersion
+        },
+        referrerPolicy: 'no-referrer',
+        ...body
+      }
+    );
+  });
 }
 
 export async function performFetchWithErrorHandling<V>(
   auth: Auth,
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
-  fetchFn: () => Promise<Response>,
+  fetchFn: () => Promise<Response>
 ): Promise<V> {
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     const response: Response = await Promise.race<Promise<Response>>([
       fetchFn(),
-      makeNetworkTimeout(auth.name),
+      makeNetworkTimeout(auth.name)
     ]);
     if (response.ok) {
       return response.json();
@@ -155,12 +155,11 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
 
 function makeNetworkTimeout<T>(appName: string): Promise<T> {
   return new Promise((_, reject) =>
-  setTimeout(() => {
-    return reject(
-      AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-        appName,
-      })
-    );
-  }, DEFAULT_API_TIMEOUT_MS.get())
-)
+    setTimeout(() => {
+      return reject(
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
+          appName,
+        })
+      );
+    }, DEFAULT_API_TIMEOUT_MS.get()));
 }

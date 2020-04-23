@@ -36,7 +36,7 @@ describe('requestStsToken', () => {
     const mock = fetch.mock(endpoint, {
       'access_token': 'new-access-token',
       'expires_in': '3600',
-      'refresh_token': 'new-refresh-token',
+      'refresh_token': 'new-refresh-token'
     });
 
     const response = await requestStsToken(mockAuth, 'old-refresh-token');
@@ -46,7 +46,7 @@ describe('requestStsToken', () => {
     const request = querystringDecode(`?${mock.calls[0].request}`);
     expect(request).to.eql({
       'grant_type': 'refresh_token',
-      'refresh_token': 'old-refresh-token',
+      'refresh_token': 'old-refresh-token'
     });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -74,12 +74,12 @@ describe('requestStsToken', () => {
 
     await expect(requestStsToken(mockAuth, 'old-token')).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The user\'s credential is no longer valid. The user must sign in again. (auth/user-token-expired)'
+      "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
     );
     const request = querystringDecode(`?${mock.calls[0].request}`);
     expect(request).to.eql({
       'grant_type': 'refresh_token',
-      'refresh_token': 'old-token',
+      'refresh_token': 'old-token'
     });
   });
 });

@@ -54,18 +54,18 @@ export class StsTokenManager {
     this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec);
   }
 
-  async getToken(auth: Auth, forceRefresh = false): Promise<Tokens|null> {
+  async getToken(auth: Auth, forceRefresh = false): Promise<Tokens | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return {
         accessToken: this.accessToken,
         refreshToken: this.refreshToken,
-        wasRefreshed: false,
+        wasRefreshed: false
       };
     }
 
     if (this.accessToken && !this.refreshToken) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
-        appName: auth.name,
+        appName: auth.name
       });
     }
 
@@ -77,7 +77,7 @@ export class StsTokenManager {
     return {
       accessToken: this.accessToken!,
       refreshToken: this.refreshToken,
-      wasRefreshed: true,
+      wasRefreshed: true
     };
   }
 
@@ -90,14 +90,23 @@ export class StsTokenManager {
   }
 
   private async refresh(auth: Auth, oldToken: string): Promise<void> {
-    const {accessToken, refreshToken, expiresIn} = await requestStsToken(auth, oldToken);
+    const { accessToken, refreshToken, expiresIn } = await requestStsToken(
+      auth,
+      oldToken
+    );
     this.updateTokensAndExpiration(accessToken, refreshToken, expiresIn);
   }
 
-  private updateTokensAndExpiration(accessToken: string|undefined, refreshToken: string|undefined, expiresInSec: string|undefined): void {
+  private updateTokensAndExpiration(
+    accessToken: string | undefined,
+    refreshToken: string | undefined,
+    expiresInSec: string | undefined
+  ): void {
     this.refreshToken = refreshToken || null;
     this.accessToken = accessToken || null;
-    this.expirationTime = expiresInSec ? Date.now() + Number(expiresInSec) * 1000 : null;
+    this.expirationTime = expiresInSec
+      ? Date.now() + Number(expiresInSec) * 1000
+      : null;
   }
 
   static fromPlainObject(

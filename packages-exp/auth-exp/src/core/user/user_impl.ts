@@ -79,7 +79,7 @@ export class UserImpl implements User {
     assert(tokens, this.auth.name);
 
     // TODO: remove ! after #2934 is merged --
-    const { refreshToken, accessToken, /* wasRefreshed */ } = tokens!;
+    const { refreshToken, accessToken /* wasRefreshed */ } = tokens!;
     this.refreshToken = refreshToken || '';
 
     // TODO: Uncomment after #2961 is merged
