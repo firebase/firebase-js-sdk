@@ -18,13 +18,7 @@
 import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
@@ -216,7 +210,7 @@ class Subscription<T> {
   constructor(readonly auth: Auth) {}
 
   get next(): NextFn<T | null> {
-    const observer = assert(this.observer, this.auth.name);
-    return observer.next.bind(observer);
+    assert(this.observer, this.auth.name);
+    return this.observer.next.bind(this.observer);
   }
 }
