@@ -73,23 +73,11 @@ const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
 
 const typescriptPlugin = rollupTypescriptPlugin({
   typescript,
-  // Workaround for typescript plugins that use async functions.
-  // In this case, `rollup-plugin-sourcemaps`.
-  // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-  objectHashIgnoreUnknownHack: true,
-  // For safety, given hack above (see link).
-  clean: true,
   transformers: [importPathTransformer]
 });
 
 const typescriptPluginUMD = rollupTypescriptPlugin({
   typescript,
-  // Workaround for typescript plugins that use async functions.
-  // In this case, `rollup-plugin-sourcemaps`.
-  // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-  objectHashIgnoreUnknownHack: true,
-  // For safety, given hack above (see link).
-  clean: true,
   tsconfigOverride: {
     compilerOptions: {
       declaration: false
