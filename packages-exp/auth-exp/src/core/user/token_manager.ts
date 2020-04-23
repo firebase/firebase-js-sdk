@@ -17,7 +17,7 @@
 
 import { IdTokenResponse } from '../../model/id_token';
 import { PersistedBlob } from '../persistence';
-import { assertType } from '../util/assert';
+import { assert } from '../util/assert';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -79,13 +79,16 @@ export class StsTokenManager {
 
     const manager = new StsTokenManager();
     if (refreshToken) {
-      manager.refreshToken = assertType(refreshToken, 'string', appName);
+      assert(typeof refreshToken === 'string', appName);
+      manager.refreshToken = refreshToken;
     }
     if (accessToken) {
-      manager.accessToken = assertType(accessToken, 'string', appName);
+      assert(typeof accessToken === 'string', appName);
+      manager.accessToken = accessToken;
     }
     if (expirationTime) {
-      manager.expirationTime = assertType(expirationTime, 'number', appName);
+      assert(typeof expirationTime === 'number', appName);
+      manager.expirationTime = expirationTime;
     }
     return manager;
   }
