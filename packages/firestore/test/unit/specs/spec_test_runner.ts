@@ -70,7 +70,7 @@ import {
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
-import { FirestoreError } from '../../../src/util/error';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
@@ -608,28 +608,36 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() => {
-      return this.eventManager.listen(queryListener);
+    const targetAdded = await this.queue.enqueue(async () => {
+      try {
+        await this.eventManager.listen(queryListener);
+        return true;
+      } catch (e) {
+        expect(this.persistence.injectFailures).to.be.true;
+        queryListener.onError(
+          new FirestoreError(Code.UNAVAILABLE, e.message)
+        );
+        return false;
+      }
     });
 
-    if (this.persistence.injectFailures) {
-      // The Watch stream won't open if we are injecting failures.
-      return;
-    }
+    if (targetAdded) {
+      // Skip the backoff that may have been triggered by a previous call to
+      // `watchStreamCloses()`.
+      if (
+        this.queue.containsDelayedOperation(
+          TimerId.ListenStreamConnectionBackoff
+        )
+      ) {
+        await this.queue.runDelayedOperationsEarly(
+          TimerId.ListenStreamConnectionBackoff
+        );
+      }
 
-    // Skip the backoff that may have been triggered by a previous call to
-    // `watchStreamCloses()`.
-    if (
-      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
-    ) {
-      await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnectionBackoff
-      );
-    }
-
-    if (this.isPrimaryClient && this.networkEnabled) {
-      // Open should always have happened after a listen
-      await this.connection.waitForWatchOpen();
+      if (this.isPrimaryClient && this.networkEnabled) {
+        // Open should always have happened after a listen
+        await this.connection.waitForWatchOpen();
+      }
     }
   }
 

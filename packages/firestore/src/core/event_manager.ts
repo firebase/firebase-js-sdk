@@ -20,12 +20,8 @@ import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
-import { OnlineState, TargetId } from './types';
+import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
-import { logError } from '../util/log';
-import { Code, FirestoreError } from '../util/error';
-
-const LOG_TAG = 'EventManager';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -33,7 +29,6 @@ const LOG_TAG = 'EventManager';
  */
 class QueryListenersInfo {
   viewSnap: ViewSnapshot | undefined = undefined;
-  targetId: TargetId = 0;
   listeners: QueryListener[] = [];
 }
 
@@ -74,23 +69,7 @@ export class EventManager implements SyncEngineListener {
     }
 
     if (firstListen) {
-      try {
-        const { targetId, snapshot } = await this.syncEngine.listen(query);
-        queryInfo.targetId = targetId;
-        queryInfo.viewSnap = snapshot;
-      } catch (e) {
-        if (e.name === 'IndexedDbTransactionError') {
-          logError(LOG_TAG, `Failed to register query: ${e}`);
-          listener.onError(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              `Failed to register query: ${e}`
-            )
-          );
-          return;
-        }
-        throw e;
-      }
+      queryInfo.viewSnap = await this.syncEngine.listen(query);
     }
 
     this.queries.set(query, queryInfo!);

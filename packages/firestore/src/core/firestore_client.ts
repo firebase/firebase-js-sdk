@@ -27,7 +27,7 @@ import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -398,8 +398,22 @@ export class FirestoreClient {
   ): QueryListener {
     this.verifyNotTerminated();
     const listener = new QueryListener(query, observer, options);
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.eventMgr.listen(listener);
+    this.asyncQueue.enqueueAndForget(async () => {
+      try {
+        await this.eventMgr.listen(listener);
+      } catch (e) {
+        logError(LOG_TAG, `Failed to register query: ${e}`);
+        if (e.name === 'IndexedDbTransactionError') {
+          listener.onError(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              `Failed to register query: ${e}`
+            )
+          );
+        } else {
+          throw e;
+        }
+      }
     });
     return listener;
   }
