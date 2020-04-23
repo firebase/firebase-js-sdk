@@ -97,7 +97,8 @@ class AuthImpl implements Auth {
   }
 
   private get assertedPersistence(): PersistenceUserManager {
-    return assert(this.persistenceManager, this.name);
+    assert(this.persistenceManager, this.name);
+    return this.persistenceManager;
   }
 }
 
@@ -110,8 +111,9 @@ export function initializeAuth(
   const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
+  assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
   const config: Config = {
-    apiKey: assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY),
+    apiKey,
     authDomain,
     apiHost: DEFAULT_API_HOST,
     apiScheme: DEFAULT_API_SCHEME,
