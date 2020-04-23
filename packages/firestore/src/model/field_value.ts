@@ -17,7 +17,7 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
@@ -240,14 +240,18 @@ export class ObjectValueBuilder {
 }
 
 /**
- * Returns a FieldMask built from all fields in an MapValue.
+ * Returns a FieldMask built from all fields in a MapValue.
  */
-export function extractFieldMask(value: api.MapValue): FieldMask {
+export function extractFieldMask(value: api.Value): FieldMask {
+  debugAssert(
+    isMapValue(value),
+    'Can only extract a field mask from a map value'
+  );
   let fields = new SortedSet<FieldPath>(FieldPath.comparator);
-  forEach(value.fields || {}, (key, value) => {
+  forEach(value.mapValue!.fields || {}, (key, value) => {
     const currentPath = new FieldPath([key]);
-    if (typeOrder(value) === TypeOrder.ObjectValue) {
-      const nestedMask = extractFieldMask(value.mapValue!);
+    if (isMapValue(value)) {
+      const nestedMask = extractFieldMask(value);
       const nestedFields = nestedMask.fields;
       if (nestedFields.isEmpty()) {
         // Preserve the empty map by adding it to the FieldMask.
