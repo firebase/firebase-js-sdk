@@ -54,10 +54,7 @@ class FirestoreSettings {
   }
 
   isEqual(other: FirestoreSettings): boolean {
-    return (
-      this.host === other.host &&
-      this.ssl === other.ssl
-    );
+    return this.host === other.host && this.ssl === other.ssl;
   }
 }
 
@@ -66,19 +63,18 @@ class FirestoreSettings {
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _firebaseApp: FirebaseApp;
-  private _settings: FirestoreSettings;
+  private _settings = new FirestoreSettings({});
 
   constructor(app: FirebaseApp) {
     this._firebaseApp = app;
-    this._settings = new FirestoreSettings({});
   }
 
   get app(): FirebaseApp {
     return this._firebaseApp;
   }
 
-  _configureClient(settings: Settings): void {
-    this._settings = new FirestoreSettings(settings);
+  _configureClient(settings: FirestoreSettings): void {
+    this._settings = settings;
   }
 }
 
@@ -87,7 +83,9 @@ export interface Settings {
   ssl?: boolean;
 }
 
-export function initializeFirestore(firstore: Firestore, settings?: Settings) {
-  firstore._configureClient(settings ?? {});
+export function initializeFirestore(
+  firstore: Firestore,
+  settings?: Settings
+): void {
+  firstore._configureClient(new FirestoreSettings(settings ?? {}));
 }
-

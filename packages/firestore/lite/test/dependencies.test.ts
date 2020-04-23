@@ -25,7 +25,7 @@ import { expect } from 'chai';
  * This functions builds a simple JS app that only depends on the provided
  * export. It then uses Rollup to gather all top-level classes and functions
  * that that the export depends on.
- * 
+ *
  * @return a list of dependencies for the given export
  */
 async function extractDependencies(exportName: string): Promise<string[]> {
@@ -40,7 +40,7 @@ async function extractDependencies(exportName: string): Promise<string[]> {
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
   const bundle = await rollup.rollup({
-    input: input,
+    input,
     external: id => id.startsWith('@firebase/')
   });
   await bundle.write({ file: output, format: 'es' });
