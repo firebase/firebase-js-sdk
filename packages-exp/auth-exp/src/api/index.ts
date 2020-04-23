@@ -25,6 +25,7 @@ import {
   ServerErrorMap,
   SERVER_ERROR_MAP
 } from './errors';
+import { Delay } from '../core/util/delay';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -53,7 +54,7 @@ export enum Endpoint {
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw'
 }
 
-export const DEFAULT_API_TIMEOUT_MS = 30_000;
+export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export async function performApiRequest<T, V>(
   auth: Auth,
@@ -101,7 +102,7 @@ export async function performApiRequest<T, V>(
               appName: auth.name
             })
           );
-        }, DEFAULT_API_TIMEOUT_MS)
+        }, DEFAULT_API_TIMEOUT_MS.get())
       )
     ]);
     if (response.ok) {

@@ -175,7 +175,7 @@ describe('performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      clock.tick(DEFAULT_API_TIMEOUT_MS + 1);
+      clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
         'Firebase: The operation has timed out. (auth/timeout).'
