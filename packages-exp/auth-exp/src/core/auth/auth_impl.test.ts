@@ -24,6 +24,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import { Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
@@ -115,6 +116,139 @@ describe('AuthImpl', () => {
         sinon.match.any,
         testUser('test').toPlainObject()
       );
+    });
+  });
+
+  describe('change listeners', () => {
+    // // Helpers to convert auth state change results to promise
+    // function onAuthStateChange(callback: NextFn<User|null>)
+
+    it('immediately calls authStateChange if initialization finished', done => {
+      const user = testUser('uid');
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth.onAuthStateChanged(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+
+    it('immediately calls idTokenChange if initialization finished', done => {
+      const user = testUser('uid');
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth.onIdTokenChange(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+
+    it('immediate callback is done async', () => {
+      auth._isInitialized = true;
+      let callbackCalled = false;
+      auth.onIdTokenChange(() => {
+        callbackCalled = true;
+      });
+
+      expect(callbackCalled).to.be.false;
+    });
+
+    describe('user logs in/out, tokens refresh', () => {
+      let user: User;
+      let authStateCallback: sinon.SinonSpy;
+      let idTokenCallback: sinon.SinonSpy;
+
+      beforeEach(() => {
+        user = testUser('uid');
+        authStateCallback = sinon.spy();
+        idTokenCallback = sinon.spy();
+      });
+
+      context('initially currentUser is null', () => {
+        beforeEach(async () => {
+          auth.onAuthStateChanged(authStateCallback);
+          auth.onIdTokenChange(idTokenCallback);
+          await auth.updateCurrentUser(null);
+          authStateCallback.resetHistory();
+          idTokenCallback.resetHistory();
+        });
+
+        it('onAuthStateChange triggers on log in', async () => {
+          await auth.updateCurrentUser(user);
+          expect(authStateCallback).to.have.been.calledWith(user);
+        });
+
+        it('onIdTokenChange triggers on log in', async () => {
+          await auth.updateCurrentUser(user);
+          expect(idTokenCallback).to.have.been.calledWith(user);
+        });
+      });
+
+      context('initially currentUser is user', () => {
+        beforeEach(async () => {
+          auth.onAuthStateChanged(authStateCallback);
+          auth.onIdTokenChange(idTokenCallback);
+          await auth.updateCurrentUser(user);
+          authStateCallback.resetHistory();
+          idTokenCallback.resetHistory();
+        });
+
+        it('onAuthStateChange triggers on log out', async () => {
+          await auth.updateCurrentUser(null);
+          expect(authStateCallback).to.have.been.calledWith(null);
+        });
+
+        it('onIdTokenChange triggers on log out', async () => {
+          await auth.updateCurrentUser(null);
+          expect(idTokenCallback).to.have.been.calledWith(null);
+        });
+
+        it('onAuthStateChange does not trigger for user props change', async () => {
+          user.refreshToken = 'hey look I changed';
+          await auth.updateCurrentUser(user);
+          expect(authStateCallback).not.to.have.been.called;
+        });
+
+        it('onIdTokenChange triggers for user props change', async () => {
+          user.refreshToken = 'hey look I changed';
+          await auth.updateCurrentUser(user);
+          expect(idTokenCallback).to.have.been.calledWith(user);
+        });
+
+        it('onAuthStateChange triggers if uid changes', async () => {
+          const newUser = testUser('different-uid');
+          await auth.updateCurrentUser(newUser);
+          expect(authStateCallback).to.have.been.calledWith(newUser);
+        });
+      });
+
+      it('onAuthStateChange works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.onAuthStateChanged(cb1);
+        auth.onAuthStateChanged(cb2);
+        await auth.updateCurrentUser(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth.updateCurrentUser(user);
+        expect(cb1).to.have.been.calledWith(user);
+        expect(cb2).to.have.been.calledWith(user);
+      });
+
+      it('onIdTokenChange works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.onIdTokenChange(cb1);
+        auth.onIdTokenChange(cb2);
+        await auth.updateCurrentUser(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth.updateCurrentUser(user);
+        expect(cb1).to.have.been.calledWith(user);
+        expect(cb2).to.have.been.calledWith(user);
+      });
     });
   });
 });

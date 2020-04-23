@@ -17,20 +17,31 @@
 
 import { PersistedBlob } from '../core/persistence';
 import { ProviderId } from '../core/providers';
+import { Auth } from './auth';
 import { IdTokenResult } from './id_token';
 
+export interface UserMetadata {
+  readonly creationTime?: string;
+  readonly lastSignInTime?: string;
+}
+
 export interface UserInfo {
-  readonly uid: string;
-  readonly providerId: ProviderId;
-  readonly displayName: string | null;
-  readonly email: string | null;
-  readonly phoneNumber: string | null;
-  readonly photoURL: string | null;
+  uid: string;
+  providerId: ProviderId;
+  displayName: string | null;
+  email: string | null;
+  phoneNumber: string | null;
+  photoURL: string | null;
 }
 
 export interface User extends UserInfo {
+  auth: Auth;
   providerId: ProviderId.FIREBASE;
   refreshToken: string;
+  emailVerified: boolean;
+  tenantId: string | null;
+  providerData: UserInfo[];
+  metadata: UserMetadata;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;

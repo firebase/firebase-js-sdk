@@ -17,8 +17,17 @@
 
 import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
+} from '@firebase/util';
 
-import { Auth, Config, Dependencies } from '../../model/auth';
+import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
@@ -37,6 +46,13 @@ class AuthImpl implements Auth {
   currentUser: User | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
+  private authStateSubscription = new Subscription<User>(this);
+  private idTokenSubscription = new Subscription<User>(this);
+  _isInitialized = false;
+
+  // Tracks the last notified UID for state change listeners to prevent
+  // repeated calls to the callbacks
+  private lastNotifiedUid: string | undefined = undefined;
 
   constructor(
     public readonly name: string,
@@ -57,6 +73,9 @@ class AuthImpl implements Auth {
       if (storedUser) {
         await this.directlySetCurrentUser(storedUser);
       }
+
+      this._isInitialized = true;
+      this._notifyStateListeners();
     });
   }
 
@@ -74,6 +93,68 @@ class AuthImpl implements Auth {
     });
   }
 
+  onAuthStateChanged(
+    nextOrObserver: NextOrObserver<User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.authStateSubscription,
+      nextOrObserver,
+      error,
+      completed
+    );
+  }
+
+  onIdTokenChange(
+    nextOrObserver: NextOrObserver<User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.idTokenSubscription,
+      nextOrObserver,
+      error,
+      completed
+    );
+  }
+
+  _notifyStateListeners(): void {
+    if (!this._isInitialized) {
+      return;
+    }
+
+    this.idTokenSubscription.next(this.currentUser);
+
+    if (this.lastNotifiedUid !== this.currentUser?.uid) {
+      this.lastNotifiedUid = this.currentUser?.uid;
+      this.authStateSubscription.next(this.currentUser);
+    }
+  }
+
+  private registerStateListener(
+    subscription: Subscription<User>,
+    nextOrObserver: NextOrObserver<User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    if (this._isInitialized) {
+      const cb =
+        typeof nextOrObserver === 'function'
+          ? nextOrObserver
+          : nextOrObserver.next;
+      // The callback needs to be called asynchronously per the spec.
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      Promise.resolve().then(() => cb(this.currentUser));
+    }
+
+    if (typeof nextOrObserver === 'function') {
+      return subscription.addObserver(nextOrObserver, error, completed);
+    } else {
+      return subscription.addObserver(nextOrObserver);
+    }
+  }
+
   /**
    * Unprotected (from race conditions) method to set the current user. This
    * should only be called from within a queued callback. This is necessary
@@ -87,6 +168,8 @@ class AuthImpl implements Auth {
     } else {
       await this.assertedPersistence.removeCurrentUser();
     }
+
+    this._notifyStateListeners();
   }
 
   private queue(action: AsyncAction): Promise<void> {
@@ -121,4 +204,19 @@ export function initializeAuth(
   };
 
   return new AuthImpl(app.name, config, hierarchy);
+}
+
+/** Helper class to wrap subscriber logic */
+class Subscription<T> {
+  private observer: Observer<T | null> | null = null;
+  readonly addObserver: Subscribe<T | null> = createSubscribe(
+    observer => (this.observer = observer)
+  );
+
+  constructor(readonly auth: Auth) {}
+
+  get next(): NextFn<T | null> {
+    assert(this.observer, this.auth.name);
+    return this.observer.next.bind(this.observer);
+  }
 }
