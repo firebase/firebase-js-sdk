@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "7.14.1",
+  "version": "7.14.2",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -45,15 +45,15 @@
   "dependencies": {
     "@firebase/app": "0.6.2",
     "@firebase/app-types": "0.6.0",
-    "@firebase/auth": "0.14.3",
+    "@firebase/auth": "0.14.4",
     "@firebase/database": "0.6.1",
-    "@firebase/firestore": "1.14.1",
-    "@firebase/functions": "0.4.41",
+    "@firebase/firestore": "1.14.2",
+    "@firebase/functions": "0.4.42",
     "@firebase/installations": "0.4.8",
-    "@firebase/messaging": "0.6.13",
+    "@firebase/messaging": "0.6.14",
     "@firebase/polyfill": "0.3.34",
     "@firebase/storage": "0.3.32",
-    "@firebase/performance": "0.3.1",
+    "@firebase/performance": "0.3.2",
     "@firebase/remote-config": "0.1.19",
     "@firebase/analytics": "0.3.3",
     "@firebase/util": "0.2.45"
