@@ -17,7 +17,7 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { debugAssert, hardAssert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
