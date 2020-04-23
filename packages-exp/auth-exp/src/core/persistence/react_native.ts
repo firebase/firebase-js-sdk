@@ -28,11 +28,8 @@ import {ReactNativeAsyncStorage} from '@firebase/auth-types-exp';
  */
 export class ReactNativePersistence implements Persistence {
   readonly type: PersistenceType = PersistenceType.LOCAL;
-  private readonly storage: ReactNativeAsyncStorage;
 
-  constructor(storage: ReactNativeAsyncStorage) {
-    this.storage = storage;
-  }
+  constructor(private readonly storage: ReactNativeAsyncStorage) {}
 
   async isAvailable(): Promise<boolean> {
     try {

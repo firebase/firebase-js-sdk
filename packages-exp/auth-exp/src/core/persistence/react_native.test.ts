@@ -32,7 +32,7 @@ class FakeAsyncStorage implements ReactNativeAsyncStorage {
 
   async getItem(key: string): Promise<string | null> {
     const value = this.storage[key];
-    return value === undefined ? null : value;
+    return value ?? null;
   }
   async removeItem(key: string): Promise<void> {
     delete this.storage[key];
