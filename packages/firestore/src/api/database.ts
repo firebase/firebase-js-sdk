@@ -1462,15 +1462,15 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     const fieldPath = fieldPathFromArgument('Query.where', field);
     if (fieldPath.isKeyField()) {
       if (
-        opStr === Operator.ARRAY_CONTAINS ||
-        opStr === Operator.ARRAY_CONTAINS_ANY
+        op === Operator.ARRAY_CONTAINS ||
+        op === Operator.ARRAY_CONTAINS_ANY
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid Query. You can't perform '${op}' ` +
             'queries on FieldPath.documentId().'
         );
-      } else if (opStr === Operator.IN) {
+      } else if (op === Operator.IN) {
         this.validateDisjunctiveFilterElements(value, op);
         const referenceList: api.Value[] = [];
         for (const arrayValue of value as api.Value[]) {
@@ -1481,7 +1481,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         fieldValue = this.parseDocumentIdValue(value);
       }
     } else {
-      if (opStr === Operator.IN || opStr === Operator.ARRAY_CONTAINS_ANY) {
+      if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
         this.validateDisjunctiveFilterElements(value, op);
       }
       fieldValue = this.firestore._dataReader.parseQueryValue(
