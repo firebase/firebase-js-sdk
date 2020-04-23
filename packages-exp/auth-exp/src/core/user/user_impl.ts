@@ -20,12 +20,8 @@ import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
-<<<<<<< HEAD
 import { assert } from '../util/assert';
-=======
-import { assert, assertType } from '../util/assert';
 import { reload } from './reload';
->>>>>>> e1eb57d5... Implement user.reload()
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
