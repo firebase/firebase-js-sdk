@@ -78,9 +78,8 @@ describe('core/user/token_manager', () => {
     context('with endpoint setup', () => {
       let mock: fetch.Route;
       beforeEach(() => {
-        const {apiKey, tokenApiHost, apiScheme} = mockAuth.config;
-        const endpoint =
-            `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
+        const { apiKey, tokenApiHost, apiScheme } = mockAuth.config;
+        const endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
         mock = fetch.mock(endpoint, {
           'access_token': 'new-access-token',
           'refresh_token': 'new-refresh-token',

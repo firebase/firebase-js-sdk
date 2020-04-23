@@ -94,7 +94,11 @@ export class StsTokenManager {
       auth,
       oldToken
     );
-    this.updateTokensAndExpiration(accessToken || null, refreshToken || null, expiresIn || null);
+    this.updateTokensAndExpiration(
+      accessToken || null,
+      refreshToken || null,
+      expiresIn || null
+    );
   }
 
   private updateTokensAndExpiration(

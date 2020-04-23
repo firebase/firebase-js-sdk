@@ -42,12 +42,14 @@ export async function requestStsToken(
   auth: Auth,
   refreshToken: string
 ): Promise<RequestStsTokenResponse> {
-  const response = await performFetchWithErrorHandling<RequestStsTokenServerResponse>(auth, {}, () => {
+  const response = await performFetchWithErrorHandling<
+    RequestStsTokenServerResponse
+  >(auth, {}, () => {
     const body = querystring({
       'grant_type': GRANT_TYPE,
       'refresh_token': refreshToken
     }).slice(1);
-    const {apiScheme, tokenApiHost, apiKey, sdkClientVersion} = auth.config;
+    const { apiScheme, tokenApiHost, apiKey, sdkClientVersion } = auth.config;
     const url = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}`;
 
     return fetch(`${url}?key=${apiKey}`, {

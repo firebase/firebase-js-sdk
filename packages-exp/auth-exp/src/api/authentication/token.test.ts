@@ -28,7 +28,7 @@ import { _ENDPOINT, requestStsToken } from './token';
 use(chaiAsPromised);
 
 describe('requestStsToken', () => {
-  const {apiKey, tokenApiHost, apiScheme} = mockAuth.config;
+  const { apiKey, tokenApiHost, apiScheme } = mockAuth.config;
   const endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
   beforeEach(fetch.setUp);
   afterEach(fetch.tearDown);
