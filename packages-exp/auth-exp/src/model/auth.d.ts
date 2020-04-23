@@ -15,12 +15,21 @@
  * limitations under the License.
  */
 
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
+
 import { Persistence } from '../core/persistence';
 import { User } from './user';
 
 export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
+export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 export interface Config {
   apiKey: ApiKey;
@@ -34,10 +43,22 @@ export interface Auth {
   currentUser: User | null;
   readonly name: AppName;
   readonly config: Config;
+  _isInitialized: boolean;
 
   setPersistence(persistence: Persistence): Promise<void>;
   updateCurrentUser(user: User | null): Promise<void>;
   signOut(): Promise<void>;
+  onAuthStateChanged(
+    nextOrObserver: NextOrObserver<User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe;
+  onIdTokenChange(
+    nextOrObserver: NextOrObserver<User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe;
+  _notifyStateListeners(): void;
 }
 
 export interface Dependencies {
