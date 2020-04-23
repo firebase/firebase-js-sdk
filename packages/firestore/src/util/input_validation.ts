@@ -297,14 +297,15 @@ export function validateNamedOptionalPropertyEquals<T>(
  * @param functionName Function making the validation call.
  * @param enums Array containing all possible values for the enum.
  * @param position Position of the argument in `functionName`.
- * @param argument Arugment to validate.
+ * @param argument Argument to validate.
+ * @return The value as T if the argument can be converted.
  */
 export function validateStringEnum<T>(
   functionName: string,
-  enums: string[],
+  enums: T[],
   position: number,
   argument: unknown
-): void {
+): T {
   if (!enums.some(element => element === argument)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -313,6 +314,7 @@ export function validateStringEnum<T>(
         `values: ${enums.join(', ')}`
     );
   }
+  return argument as T;
 }
 
 /** Helper to validate the type of a provided input. */

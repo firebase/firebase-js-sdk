@@ -69,7 +69,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
+import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -1447,32 +1447,31 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     // Enumerated from the WhereFilterOp type in index.d.ts.
     const whereFilterOpEnums = [
-      '<',
-      '<=',
-      '==',
-      '>=',
-      '>',
-      'array-contains',
-      'in',
-      'array-contains-any'
+      Operator.LESS_THAN,
+      Operator.LESS_THAN_OR_EQUAL,
+      Operator.EQUAL,
+      Operator.GREATER_THAN_OR_EQUAL,
+      Operator.GREATER_THAN,
+      Operator.ARRAY_CONTAINS,
+      Operator.IN,
+      Operator.ARRAY_CONTAINS_ANY
     ];
-    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
 
     let fieldValue: api.Value;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const operator = opStr as Operator;
     if (fieldPath.isKeyField()) {
       if (
-        operator === Operator.ARRAY_CONTAINS ||
-        operator === Operator.ARRAY_CONTAINS_ANY
+        opStr === Operator.ARRAY_CONTAINS ||
+        opStr === Operator.ARRAY_CONTAINS_ANY
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid Query. You can't perform '${operator.toString()}' ` +
+          `Invalid Query. You can't perform '${op}' ` +
             'queries on FieldPath.documentId().'
         );
-      } else if (operator === Operator.IN) {
-        this.validateDisjunctiveFilterElements(value, operator);
+      } else if (opStr === Operator.IN) {
+        this.validateDisjunctiveFilterElements(value, op);
         const referenceList: api.Value[] = [];
         for (const arrayValue of value as api.Value[]) {
           referenceList.push(this.parseDocumentIdValue(arrayValue));
@@ -1482,20 +1481,17 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         fieldValue = this.parseDocumentIdValue(value);
       }
     } else {
-      if (
-        operator === Operator.IN ||
-        operator === Operator.ARRAY_CONTAINS_ANY
-      ) {
-        this.validateDisjunctiveFilterElements(value, operator);
+      if (opStr === Operator.IN || opStr === Operator.ARRAY_CONTAINS_ANY) {
+        this.validateDisjunctiveFilterElements(value, op);
       }
       fieldValue = this.firestore._dataReader.parseQueryValue(
         'Query.where',
         value,
         // We only allow nested arrays for IN queries.
-        /** allowArrays = */ operator === Operator.IN
+        /** allowArrays = */ op === Operator.IN
       );
     }
-    const filter = FieldFilter.create(fieldPath, operator, fieldValue);
+    const filter = FieldFilter.create(fieldPath, op, fieldValue);
     this.validateNewFilter(filter);
     return new Query(
       this._query.addFilter(filter),
