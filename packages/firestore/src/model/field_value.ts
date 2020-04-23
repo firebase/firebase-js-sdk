@@ -242,16 +242,12 @@ export class ObjectValueBuilder {
 /**
  * Returns a FieldMask built from all fields in a MapValue.
  */
-export function extractFieldMask(value: api.Value): FieldMask {
-  debugAssert(
-    isMapValue(value),
-    'Can only extract a field mask from a map value'
-  );
+export function extractFieldMask(value: api.MapValue): FieldMask {
   let fields = new SortedSet<FieldPath>(FieldPath.comparator);
-  forEach(value.mapValue!.fields || {}, (key, value) => {
+  forEach(value!.fields || {}, (key, value) => {
     const currentPath = new FieldPath([key]);
     if (isMapValue(value)) {
-      const nestedMask = extractFieldMask(value);
+      const nestedMask = extractFieldMask(value.mapValue!);
       const nestedFields = nestedMask.fields;
       if (nestedFields.isEmpty()) {
         // Preserve the empty map by adding it to the FieldMask.

@@ -340,7 +340,7 @@ export class LocalStore {
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  extractFieldMask(baseValue.proto),
+                  extractFieldMask(baseValue.proto.mapValue!),
                   Precondition.exists(true)
                 )
               );
