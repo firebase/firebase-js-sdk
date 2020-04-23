@@ -90,7 +90,7 @@ class DatastoreImpl extends Datastore {
   }
 }
 
-export function createDatastore(
+export function newDatastore(
   connection: Connection,
   credentials: CredentialsProvider,
   serializer: JsonProtoSerializer

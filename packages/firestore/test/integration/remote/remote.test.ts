@@ -34,7 +34,7 @@ describe('Remote Storage', () => {
       const mutation = setMutation('docs/1', { sort: 1 });
       const result = await invokeCommitRpc(ds, [mutation]);
       expect(result.length).to.equal(1);
-      
+
       const version = result[0].version;
       expect(version).not.to.equal(null);
       expect(SnapshotVersion.MIN.compareTo(version!)).to.be.lessThan(0);
