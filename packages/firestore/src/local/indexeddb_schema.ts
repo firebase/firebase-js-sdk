@@ -1011,7 +1011,7 @@ function writeEmptyTargetGlobalEntry(
   const metadata = new DbTargetGlobal(
     /*highestTargetId=*/ 0,
     /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp(),
+    SnapshotVersion.min().toTimestamp(),
     /*targetCount=*/ 0
   );
   return globalStore.put(DbTargetGlobal.key, metadata);

@@ -193,7 +193,7 @@ export class LocalStore {
    *
    * PORTING NOTE: This is only used for multi-tab synchronization.
    */
-  protected lastDocumentChangeReadTime = SnapshotVersion.MIN;
+  protected lastDocumentChangeReadTime = SnapshotVersion.min();
 
   constructor(
     /** Manages our in-memory or durable persistence. */
@@ -563,13 +563,13 @@ export class LocalStore {
 
               // Note: The order of the steps below is important, since we want
               // to ensure that rejected limbo resolutions (which fabricate
-              // NoDocuments with SnapshotVersion.MIN) never add documents to
+              // NoDocuments with SnapshotVersion.min()) never add documents to
               // cache.
               if (
                 doc instanceof NoDocument &&
-                doc.version.isEqual(SnapshotVersion.MIN)
+                doc.version.isEqual(SnapshotVersion.min())
               ) {
-                // NoDocuments with SnapshotVersion.MIN are used in manufactured
+                // NoDocuments with SnapshotVersion.min() are used in manufactured
                 // events. We remove these documents from cache since we lost
                 // access.
                 documentBuffer.removeEntry(key, remoteVersion);
@@ -581,7 +581,7 @@ export class LocalStore {
                   existingDoc.hasPendingWrites)
               ) {
                 debugAssert(
-                  !SnapshotVersion.MIN.isEqual(remoteVersion),
+                  !SnapshotVersion.min().isEqual(remoteVersion),
                   'Cannot add a document when the remote version is zero'
                 );
                 documentBuffer.addEntry(doc, remoteVersion);
@@ -614,7 +614,7 @@ export class LocalStore {
         // can synthesize remote events when we get permission denied errors while
         // trying to resolve the state of a locally cached document that is in
         // limbo.
-        if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
+        if (!remoteVersion.isEqual(SnapshotVersion.min())) {
           const updateRemoteVersion = this.targetCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
@@ -910,7 +910,7 @@ export class LocalStore {
     query: Query,
     usePreviousResults: boolean
   ): Promise<QueryResult> {
-    let lastLimboFreeSnapshotVersion = SnapshotVersion.MIN;
+    let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
     let remoteKeys = documentKeySet();
 
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
@@ -932,7 +932,7 @@ export class LocalStore {
             query,
             usePreviousResults
               ? lastLimboFreeSnapshotVersion
-              : SnapshotVersion.MIN,
+              : SnapshotVersion.min(),
             usePreviousResults ? remoteKeys : documentKeySet()
           )
         )

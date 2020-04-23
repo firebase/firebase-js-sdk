@@ -80,20 +80,20 @@ export class Query {
 
   get orderBy(): OrderBy[] {
     if (this.memoizedOrderBy === null) {
+      this.memoizedOrderBy = [];
+
       const inequalityField = this.getInequalityFilterField();
       const firstOrderByField = this.getFirstOrderByField();
       if (inequalityField !== null && firstOrderByField === null) {
         // In order to implicitly add key ordering, we must also add the
         // inequality filter field for it to be a valid query.
         // Note that the default inequality field and key ordering is ascending.
-        if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [KEY_ORDERING_ASC];
-        } else {
-          this.memoizedOrderBy = [
-            new OrderBy(inequalityField),
-            KEY_ORDERING_ASC
-          ];
+        if (!inequalityField.isKeyField()) {
+          this.memoizedOrderBy.push(new OrderBy(inequalityField));
         }
+        this.memoizedOrderBy.push(
+          new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+        );
       } else {
         debugAssert(
           inequalityField === null ||
@@ -101,7 +101,6 @@ export class Query {
               inequalityField.isEqual(firstOrderByField)),
           'First orderBy should match inequality field.'
         );
-        this.memoizedOrderBy = [];
         let foundKeyOrdering = false;
         for (const orderBy of this.explicitOrderBy) {
           this.memoizedOrderBy.push(orderBy);
@@ -117,9 +116,7 @@ export class Query {
               ? this.explicitOrderBy[this.explicitOrderBy.length - 1].dir
               : Direction.ASCENDING;
           this.memoizedOrderBy.push(
-            lastDirection === Direction.ASCENDING
-              ? KEY_ORDERING_ASC
-              : KEY_ORDERING_DESC
+            new OrderBy(FieldPath.keyField(), lastDirection)
           );
         }
       }
@@ -468,48 +465,15 @@ export abstract class Filter {
   abstract isEqual(filter: Filter): boolean;
 }
 
-export class Operator {
-  static LESS_THAN = new Operator('<');
-  static LESS_THAN_OR_EQUAL = new Operator('<=');
-  static EQUAL = new Operator('==');
-  static GREATER_THAN = new Operator('>');
-  static GREATER_THAN_OR_EQUAL = new Operator('>=');
-  static ARRAY_CONTAINS = new Operator('array-contains');
-  static IN = new Operator('in');
-  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
-
-  static fromString(op: string): Operator {
-    switch (op) {
-      case '<':
-        return Operator.LESS_THAN;
-      case '<=':
-        return Operator.LESS_THAN_OR_EQUAL;
-      case '==':
-        return Operator.EQUAL;
-      case '>=':
-        return Operator.GREATER_THAN_OR_EQUAL;
-      case '>':
-        return Operator.GREATER_THAN;
-      case 'array-contains':
-        return Operator.ARRAY_CONTAINS;
-      case 'in':
-        return Operator.IN;
-      case 'array-contains-any':
-        return Operator.ARRAY_CONTAINS_ANY;
-      default:
-        return fail('Unknown FieldFilter operator: ' + op);
-    }
-  }
-
-  constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
-
-  isEqual(other: Operator): boolean {
-    return this.name === other.name;
-  }
+export const enum Operator {
+  LESS_THAN = '<',
+  LESS_THAN_OR_EQUAL = '<=',
+  EQUAL = '==',
+  GREATER_THAN = '>',
+  GREATER_THAN_OR_EQUAL = '>=',
+  ARRAY_CONTAINS = 'array-contains',
+  IN = 'in',
+  ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
 export class FieldFilter extends Filter {
@@ -635,7 +599,7 @@ export class FieldFilter extends Filter {
   isEqual(other: Filter): boolean {
     if (other instanceof FieldFilter) {
       return (
-        this.op.isEqual(other.op) &&
+        this.op === other.op &&
         this.field.isEqual(other.field) &&
         valueEquals(this.value, other.value)
       );
@@ -737,15 +701,9 @@ export class ArrayContainsAnyFilter extends FieldFilter {
 /**
  * The direction of sorting in an order by.
  */
-export class Direction {
-  static ASCENDING = new Direction('asc');
-  static DESCENDING = new Direction('desc');
-
-  private constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
+export const enum Direction {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc'
 }
 
 /**
@@ -875,9 +833,3 @@ export class OrderBy {
     return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
-
-const KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
-const KEY_ORDERING_DESC = new OrderBy(
-  FieldPath.keyField(),
-  Direction.DESCENDING
-);

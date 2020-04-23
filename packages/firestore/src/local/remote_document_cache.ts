@@ -71,7 +71,7 @@ export interface RemoteDocumentCache {
    * Cached NoDocument entries have no bearing on query results.
    *
    * @param query The query to match documents against.
-   * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
+   * @param sinceReadTime If not set to SnapshotVersion.min(), return only
    *     documents that have been read since this snapshot version (exclusive).
    * @return The set of matching documents.
    */

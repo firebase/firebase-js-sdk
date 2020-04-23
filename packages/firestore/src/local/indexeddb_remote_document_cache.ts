@@ -252,7 +252,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const immediateChildrenPathLength = query.path.length + 1;
 
     const iterationOptions: IterateOptions = {};
-    if (sinceReadTime.isEqual(SnapshotVersion.MIN)) {
+    if (sinceReadTime.isEqual(SnapshotVersion.min())) {
       // Documents are ordered by key, so we can use a prefix scan to narrow
       // down the documents we need to match the query against.
       const startKey = query.path.toArray();
@@ -330,7 +330,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * Returns the read time of the most recently read document in the cache, or
-   * SnapshotVersion.MIN if not available.
+   * SnapshotVersion.min() if not available.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   getLastReadTime(
@@ -338,8 +338,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<SnapshotVersion> {
     const documentsStore = remoteDocumentsStore(transaction);
 
-    // If there are no existing entries, we return SnapshotVersion.MIN.
-    let readTime = SnapshotVersion.MIN;
+    // If there are no existing entries, we return SnapshotVersion.min().
+    let readTime = SnapshotVersion.min();
 
     return documentsStore
       .iterate(
@@ -396,7 +396,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
       if (
         doc instanceof NoDocument &&
-        doc.version.isEqual(SnapshotVersion.forDeletedDoc())
+        doc.version.isEqual(SnapshotVersion.min())
       ) {
         // The document is a sentinel removal and should only be used in the
         // `getNewDocumentChanges()`.
@@ -453,7 +453,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         );
         if (maybeDocument) {
           debugAssert(
-            !this.readTime.isEqual(SnapshotVersion.MIN),
+            !this.readTime.isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
@@ -473,7 +473,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // with a version of 0 and ignored by `maybeDecodeDocument()` but
             // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
-              new NoDocument(key, SnapshotVersion.forDeletedDoc()),
+              new NoDocument(key, SnapshotVersion.min()),
               this.readTime
             );
             promises.push(

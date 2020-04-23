@@ -399,7 +399,7 @@ export class WatchChangeAggregator {
           this.removeDocumentFromTarget(
             targetId,
             key,
-            new NoDocument(key, SnapshotVersion.forDeletedDoc())
+            new NoDocument(key, SnapshotVersion.min())
           );
         } else {
           hardAssert(

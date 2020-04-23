@@ -224,7 +224,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const resetTargetGlobal = new DbTargetGlobal(
       /*highestTargetId=*/ 0,
       /*highestListenSequencNumber=*/ 0,
-      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.MIN.toTimestamp(),
+      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.min().toTimestamp(),
       /*targetCount=*/ 0
     );
 

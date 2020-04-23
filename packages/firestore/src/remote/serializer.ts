@@ -77,21 +77,21 @@ import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
-  dirs[Direction.ASCENDING.name] = 'ASCENDING';
-  dirs[Direction.DESCENDING.name] = 'DESCENDING';
+  dirs[Direction.ASCENDING] = 'ASCENDING';
+  dirs[Direction.DESCENDING] = 'DESCENDING';
   return dirs;
 })();
 
 const OPERATORS = (() => {
   const ops: { [op: string]: api.FieldFilterOp } = {};
-  ops[Operator.LESS_THAN.name] = 'LESS_THAN';
-  ops[Operator.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
-  ops[Operator.GREATER_THAN.name] = 'GREATER_THAN';
-  ops[Operator.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
-  ops[Operator.EQUAL.name] = 'EQUAL';
-  ops[Operator.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
-  ops[Operator.IN.name] = 'IN';
-  ops[Operator.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
+  ops[Operator.LESS_THAN] = 'LESS_THAN';
+  ops[Operator.LESS_THAN_OR_EQUAL] = 'LESS_THAN_OR_EQUAL';
+  ops[Operator.GREATER_THAN] = 'GREATER_THAN';
+  ops[Operator.GREATER_THAN_OR_EQUAL] = 'GREATER_THAN_OR_EQUAL';
+  ops[Operator.EQUAL] = 'EQUAL';
+  ops[Operator.ARRAY_CONTAINS] = 'ARRAY_CONTAINS';
+  ops[Operator.IN] = 'IN';
+  ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
 
@@ -467,7 +467,7 @@ export class JsonProtoSerializer {
       const key = this.fromName(docDelete.document);
       const version = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
-        : SnapshotVersion.forDeletedDoc();
+        : SnapshotVersion.min();
       const doc = new NoDocument(key, version);
       const removedTargetIds = docDelete.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
@@ -516,14 +516,14 @@ export class JsonProtoSerializer {
     // is a read_time set and it applies to all targets (i.e. the list of
     // targets is empty). The backend is guaranteed to send such responses.
     if (!('targetChange' in change)) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     const targetChange = change.targetChange!;
     if (targetChange.targetIds && targetChange.targetIds.length) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     if (!targetChange.readTime) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     return this.fromVersion(targetChange.readTime);
   }
@@ -568,7 +568,7 @@ export class JsonProtoSerializer {
   fromMutation(proto: api.Write): Mutation {
     const precondition = proto.currentDocument
       ? this.fromPrecondition(proto.currentDocument)
-      : Precondition.NONE;
+      : Precondition.none();
 
     if (proto.update) {
       assertPresent(proto.update.name, 'name');
@@ -622,7 +622,7 @@ export class JsonProtoSerializer {
     } else if (precondition.exists !== undefined) {
       return Precondition.exists(precondition.exists);
     } else {
-      return Precondition.NONE;
+      return Precondition.none();
     }
   }
 
@@ -635,7 +635,7 @@ export class JsonProtoSerializer {
       ? this.fromVersion(proto.updateTime)
       : this.fromVersion(commitTime);
 
-    if (version.isEqual(SnapshotVersion.MIN)) {
+    if (version.isEqual(SnapshotVersion.min())) {
       // The Firestore Emulator currently returns an update time of 0 for
       // deletes of non-existing documents (rather than null). This breaks the
       // test "get deleted doc while offline with source=cache" as NoDocuments
@@ -947,7 +947,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toDirection(dir: Direction): api.OrderDirection {
-    return DIRECTIONS[dir.name];
+    return DIRECTIONS[dir];
   }
 
   // visible for testing
@@ -964,7 +964,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toOperatorName(op: Operator): api.FieldFilterOp {
-    return OPERATORS[op.name];
+    return OPERATORS[op];
   }
 
   fromOperatorName(op: api.FieldFilterOp): Operator {
