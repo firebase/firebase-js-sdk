@@ -65,11 +65,7 @@ async function doPrettierCommit(changedFiles) {
   }
 
   // Only run on .js or .ts files.
-  const targetFiles = changedFiles.filter(line => {
-    const res = line.match(/(js|ts)$/);
-    console.log(res, line);
-    return true;
-  });
+  const targetFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
 
   if (targetFiles.length === 0) {
     console.log('No files changed.');
