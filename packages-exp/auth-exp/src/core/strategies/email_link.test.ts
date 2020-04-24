@@ -121,7 +121,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   });
 });
 
-describe('icore/strategies/isSignInWithEmailLink', () => {
+describe('core/strategies/isSignInWithEmailLink', () => {
   context('simple links', () => {
     it('should recognize sign in links', () => {
       const link =
