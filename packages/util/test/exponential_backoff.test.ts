@@ -20,7 +20,7 @@ import {
   calculateBackoffMillis,
   MAX_VALUE_MILLIS,
   RANDOM_FACTOR
-} from '../../src/client/exponential_backoff';
+} from '../src/exponential_backoff';
 
 describe('ExponentialBackoff', () => {
   // Based on
