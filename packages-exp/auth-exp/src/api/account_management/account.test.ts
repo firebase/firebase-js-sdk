@@ -28,7 +28,7 @@ import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
 
 use(chaiAsPromised);
 
-describe('deleteAccount', () => {
+describe('api/account_management/deleteAccount', () => {
   const request = {
     idToken: 'id-token'
   };
@@ -73,7 +73,7 @@ describe('deleteAccount', () => {
   });
 });
 
-describe('deleteLinkedAccounts', () => {
+describe('api/account_management/deleteLinkedAccounts', () => {
   const request = {
     idToken: 'id-token',
     deleteProvider: [ProviderId.GOOGLE]
@@ -128,7 +128,7 @@ describe('deleteLinkedAccounts', () => {
   });
 });
 
-describe('getAccountInfo', () => {
+describe('api/account_management/getAccountInfo', () => {
   const request = {
     idToken: 'id-token'
   };

@@ -27,7 +27,7 @@ import {
 } from '../../model/action_code_settings';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { getCurrentUrl, isHttpOrHttps } from '../util/location';
+import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 
 export async function fetchSignInMethodsForEmail(
   auth: Auth,
@@ -36,7 +36,7 @@ export async function fetchSignInMethodsForEmail(
   // createAuthUri returns an error if continue URI is not http or https.
   // For environments like Cordova, Chrome extensions, native frameworks, file
   // systems, etc, use http://localhost as continue URL.
-  const continueUri = isHttpOrHttps() ? getCurrentUrl() : 'http://localhost';
+  const continueUri = _isHttpOrHttps() ? _getCurrentUrl() : 'http://localhost';
   const request: CreateAuthUriRequest = {
     identifier: email,
     continueUri

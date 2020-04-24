@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '../';
+import { Endpoint, HttpMethod, _performApiRequest } from '../';
 import { Auth } from '../../model/auth';
 import { APIMFAInfo } from '../../model/id_token';
 
@@ -27,7 +27,7 @@ export async function deleteAccount(
   auth: Auth,
   request: DeleteAccountRequest
 ): Promise<void> {
-  return performApiRequest<DeleteAccountRequest, void>(
+  return _performApiRequest<DeleteAccountRequest, void>(
     auth,
     HttpMethod.POST,
     Endpoint.DELETE_ACCOUNT,
@@ -57,7 +57,7 @@ export async function deleteLinkedAccounts(
   auth: Auth,
   request: DeleteLinkedAccountsRequest
 ): Promise<DeleteLinkedAccountsResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     DeleteLinkedAccountsRequest,
     DeleteLinkedAccountsResponse
   >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);
@@ -90,7 +90,7 @@ export async function getAccountInfo(
   auth: Auth,
   request: GetAccountInfoRequest
 ): Promise<GetAccountInfoResponse> {
-  return performApiRequest<GetAccountInfoRequest, GetAccountInfoResponse>(
+  return _performApiRequest<GetAccountInfoRequest, GetAccountInfoResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.GET_ACCOUNT_INFO,

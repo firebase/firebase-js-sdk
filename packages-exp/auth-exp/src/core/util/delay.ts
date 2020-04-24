@@ -16,7 +16,7 @@
  */
 
 import { isMobileCordova, isReactNative } from '@firebase/util';
-import { isOnline } from './navigator';
+import { _isOnline } from './navigator';
 import { debugAssert } from './assert';
 
 export const _OFFLINE_DELAY_MS = 5000;
@@ -43,7 +43,7 @@ export class Delay {
   }
 
   get(): number {
-    if (!isOnline()) {
+    if (!_isOnline()) {
       // Pick the shorter timeout.
       return Math.min(_OFFLINE_DELAY_MS, this.shortDelay);
     }
