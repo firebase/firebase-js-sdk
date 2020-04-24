@@ -33,7 +33,7 @@ import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
-import { ClientPlatform, getClientVersion } from '../util/version';
+import { ClientPlatform, _getClientVersion } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -200,7 +200,7 @@ export function initializeAuth(
     authDomain,
     apiHost: DEFAULT_API_HOST,
     apiScheme: DEFAULT_API_SCHEME,
-    sdkClientVersion: getClientVersion(ClientPlatform.BROWSER)
+    sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
   };
 
   return new AuthImpl(app.name, config, hierarchy);

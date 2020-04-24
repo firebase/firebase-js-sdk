@@ -18,8 +18,8 @@
 import {
   Endpoint,
   HttpMethod,
-  performApiRequest,
-  performSignInRequest
+  _performApiRequest,
+  _performSignInRequest
 } from '..';
 import { Auth } from '../../model/auth';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
@@ -40,7 +40,7 @@ export async function signInWithPassword(
   auth: Auth,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
-  return performSignInRequest<
+  return _performSignInRequest<
     SignInWithPasswordRequest,
     SignInWithPasswordResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
@@ -89,7 +89,7 @@ async function sendOobCode(
   auth: Auth,
   request: GetOobCodeRequest
 ): Promise<GetOobCodeResponse> {
-  return performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
+  return _performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SEND_OOB_CODE,

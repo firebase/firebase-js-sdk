@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-
-import { FirebaseError } from '@firebase/util';
-
 import { mockAuth } from '../../../test/mock_auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
@@ -35,7 +33,7 @@ describe('core/user/user_impl', () => {
     stsTokenManager = new StsTokenManager();
   });
 
-  describe('constructor', () => {
+  describe('.constructor', () => {
     it('attaches required fields', () => {
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       expect(user.auth).to.eq(auth);
@@ -102,7 +100,7 @@ describe('core/user/user_impl', () => {
     });
   });
 
-  describe('fromPlainObject', () => {
+  describe('.fromPlainObject', () => {
     const errorString =
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 

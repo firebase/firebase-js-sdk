@@ -23,21 +23,21 @@ export { LogLevel };
 const logClient = new Logger('@firebase/auth-exp');
 
 // Helper methods are needed because variables can't be exported as read/write
-export function getLogLevel(): LogLevel {
+export function _getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevel): void {
+export function _setLogLevel(newLevel: LogLevel): void {
   logClient.logLevel = newLevel;
 }
 
-export function logDebug(msg: string, ...args: string[]): void {
+export function _logDebug(msg: string, ...args: string[]): void {
   if (logClient.logLevel <= LogLevel.DEBUG) {
     logClient.debug(`Auth (${SDK_VERSION}): ${msg}`, ...args);
   }
 }
 
-export function logError(msg: string, ...args: string[]): void {
+export function _logError(msg: string, ...args: string[]): void {
   if (logClient.logLevel <= LogLevel.ERROR) {
     logClient.error(`Auth (${SDK_VERSION}): ${msg}`, ...args);
   }

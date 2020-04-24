@@ -29,7 +29,7 @@ import { Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
-import { ClientPlatform, getClientVersion } from '../util/version';
+import { ClientPlatform, _getClientVersion } from '../util/version';
 import {
   DEFAULT_API_HOST,
   DEFAULT_API_SCHEME,
@@ -47,7 +47,7 @@ const FAKE_APP: FirebaseApp = {
   automaticDataCollectionEnabled: false
 };
 
-describe('AuthImpl', () => {
+describe('core/auth/auth_impl', () => {
   let auth: Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
@@ -253,7 +253,7 @@ describe('AuthImpl', () => {
   });
 });
 
-describe('initializeAuth', () => {
+describe('core/auth/initializeAuth', () => {
   afterEach(sinon.restore);
 
   it('throws an API error if key not provided', () => {
@@ -318,7 +318,7 @@ describe('initializeAuth', () => {
         authDomain: FAKE_APP.options.authDomain,
         apiHost: DEFAULT_API_HOST,
         apiScheme: DEFAULT_API_SCHEME,
-        sdkClientVersion: getClientVersion(ClientPlatform.BROWSER)
+        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
     });
   });

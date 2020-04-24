@@ -23,7 +23,7 @@ import {
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
   HttpMethod,
-  performApiRequest
+  _performApiRequest
 } from '.';
 import { mockEndpoint } from '../../test/api/helper';
 import { mockAuth } from '../../test/mock_auth';
@@ -33,7 +33,7 @@ import { AuthErrorCode } from '../core/errors';
 
 use(chaiAsPromised);
 
-describe('performApiRequest', () => {
+describe('api/_performApiRequest', () => {
   const request = {
     requestKey: 'request-value'
   };
@@ -48,7 +48,7 @@ describe('performApiRequest', () => {
 
     it('should set the correct request, method and HTTP Headers', async () => {
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
-      const response = await performApiRequest<
+      const response = await _performApiRequest<
         typeof request,
         typeof serverResponse
       >(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
@@ -78,7 +78,7 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
         mockAuth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
@@ -107,7 +107,7 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
         mockAuth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
@@ -136,7 +136,7 @@ describe('performApiRequest', () => {
         },
         400
       );
-      const promise = performApiRequest<typeof request, typeof serverResponse>(
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
         mockAuth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
@@ -169,7 +169,7 @@ describe('performApiRequest', () => {
       fetchStub.callsFake(() => {
         return new Promise<never>(() => null);
       });
-      const promise = performApiRequest<typeof request, never>(
+      const promise = _performApiRequest<typeof request, never>(
         mockAuth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
@@ -189,7 +189,7 @@ describe('performApiRequest', () => {
           reject(new Error('network error'))
         );
       });
-      const promise = performApiRequest<typeof request, never>(
+      const promise = _performApiRequest<typeof request, never>(
         mockAuth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,

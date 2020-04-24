@@ -27,7 +27,7 @@ import { updateProfile } from './profile';
 
 use(chaiAsPromised);
 
-describe('updateProfile', () => {
+describe('api/account_management/updateProfile', () => {
   const request = {
     idToken: 'my-token',
     email: 'test@foo.com',

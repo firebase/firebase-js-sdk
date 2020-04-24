@@ -27,7 +27,7 @@ import { getRecaptchaParams } from './recaptcha';
 
 use(chaiAsPromised);
 
-describe('getRecaptchaParams', () => {
+describe('api/authentication/getRecaptchaParams', () => {
   beforeEach(mockFetch.setUp);
   afterEach(mockFetch.tearDown);
 
