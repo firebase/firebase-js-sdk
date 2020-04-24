@@ -38,6 +38,8 @@ describe('typeCast', () => {
     class Foo {}
     class Bar {}
     const foo = new Foo();
-    expect(debugCast(foo, Bar)).to.throw("Expected type 'Bar', but was 'Foo'");
+    expect(() => debugCast(foo, Bar)).to.throw(
+      "Expected type 'Bar', but was 'Foo'"
+    );
   });
 });
