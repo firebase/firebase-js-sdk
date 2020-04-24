@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 
 interface GetRecaptchaParamResponse {
@@ -25,7 +25,7 @@ interface GetRecaptchaParamResponse {
 export async function getRecaptchaParams(auth: Auth): Promise<string> {
   return (
     (
-      await performApiRequest<void, GetRecaptchaParamResponse>(
+      await _performApiRequest<void, GetRecaptchaParamResponse>(
         auth,
         HttpMethod.GET,
         Endpoint.GET_RECAPTCHA_PARAM

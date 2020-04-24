@@ -27,7 +27,7 @@ import { signUp } from './sign_up';
 
 use(chaiAsPromised);
 
-describe('signUp', () => {
+describe('api/authentication/signUp', () => {
   const request = {
     returnSecureToken: true,
     email: 'test@foo.com',

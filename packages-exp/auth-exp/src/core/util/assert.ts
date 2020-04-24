@@ -16,7 +16,7 @@
  */
 
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
-import { logError } from './log';
+import { _logError } from './log';
 
 /**
  * Unconditionally fails, throwing a developer facing INTERNAL_ERROR
@@ -54,7 +54,7 @@ export function debugFail(failure: string): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
   const message = `INTERNAL ASSERTION FAILED: ` + failure;
-  logError(message);
+  _logError(message);
 
   // NOTE: We don't use FirebaseError here because these are internal failures
   // that cannot be handled by the user. (Also it would create a circular

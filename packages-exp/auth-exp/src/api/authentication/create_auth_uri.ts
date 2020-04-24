@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 
 export interface CreateAuthUriRequest {
@@ -31,7 +31,7 @@ export async function createAuthUri(
   auth: Auth,
   request: CreateAuthUriRequest
 ): Promise<CreateAuthUriResponse> {
-  return performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
+  return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.CREATE_AUTH_URI,

@@ -27,7 +27,7 @@ import { signInWithEmailLink } from './email_link';
 
 use(chaiAsPromised);
 
-describe('signInWithEmailLink', () => {
+describe('api/authentication/signInWithEmailLink', () => {
   const request = {
     email: 'foo@bar.com',
     oobCode: 'my-code'
