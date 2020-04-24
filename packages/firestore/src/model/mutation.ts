@@ -29,7 +29,7 @@ import {
   UnknownDocument
 } from './document';
 import { DocumentKey } from './document_key';
-import { ObjectValue, ObjectValueBuilder } from './field_value';
+import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
 import { arrayEquals } from '../util/misc';

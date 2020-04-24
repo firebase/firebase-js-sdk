@@ -64,7 +64,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/field_value';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,

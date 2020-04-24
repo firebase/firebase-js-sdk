@@ -66,7 +66,7 @@ import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
-import { extractFieldMask } from '../model/field_value';
+import { extractFieldMask } from '../model/object_value';
 
 const LOG_TAG = 'LocalStore';
 

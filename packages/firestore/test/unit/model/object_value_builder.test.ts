@@ -21,7 +21,7 @@ import { field, wrap, wrapObject } from '../../util/helpers';
 import {
   ObjectValue,
   ObjectValueBuilder
-} from '../../../src/model/field_value';
+} from '../../../src/model/object_value';
 
 describe('ObjectValueBuilder', () => {
   it('supports empty builders', () => {

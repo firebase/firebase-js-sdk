@@ -47,7 +47,7 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { ObjectValueBuilder } from '../../../src/model/field_value';
+import { ObjectValueBuilder } from '../../../src/model/object_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();

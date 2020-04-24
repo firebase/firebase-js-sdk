@@ -37,7 +37,7 @@ import {
 } from '../model/server_timestamps';
 import { fail, hardAssert } from '../util/assert';
 import { forEach } from '../util/obj';
-import { TypeOrder } from '../model/field_value';
+import { TypeOrder } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';

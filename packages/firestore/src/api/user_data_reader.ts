@@ -36,7 +36,7 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
-import { ObjectValue, ObjectValueBuilder } from '../model/field_value';
+import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
