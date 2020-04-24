@@ -233,3 +233,10 @@ export interface PhoneInfoOptions {
   // session?: MultiFactorSession;
   // multiFactorHint?: MultiFactorInfo;
 }
+
+/**
+ * A provider for generating credentials
+ */
+export interface AuthProvider {
+  readonly providerId: ProviderId;
+}

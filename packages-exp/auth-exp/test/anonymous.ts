@@ -15,27 +15,30 @@
  * limitations under the License.
  */
 
-import { AuthProvider, ProviderId, SignInMethod } from '.';
-import { signUp } from '../../api/authentication/sign_up';
-import { Auth } from '../../model/auth';
-import { AuthCredential } from '../../model/auth_credential';
-import { IdTokenResponse } from '../../model/id_token';
-import { debugFail } from '../util/assert';
+import { AuthCredential, ProviderId, SignInMethod, AuthProvider } from "@firebase/auth-types-exp";
+import { signUp } from '../src/api/authentication/sign_up';
+import { debugFail } from '../src/core/util/assert';
+import { Auth } from '../src/model/auth';
+import { IdTokenResponse } from "../src/model/id_token";
 
 export class AnonymousCredential implements AuthCredential {
   providerId = ProviderId.ANONYMOUS;
   signInMethod = SignInMethod.ANONYMOUS;
-  
+
   toJSON(): never {
     debugFail('Method not implemented.');
   }
-  
+
+  fromJSON(): never {
+    debugFail('Method not implemented');
+  }
+
   async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     return signUp(auth, {
       returnSecureToken: true
     });
   }
-  
+
   async _linkToIdToken(_auth: Auth, _idToken: string): Promise<never> {
     debugFail("Can't link to an anonymous credential");
   }
@@ -47,7 +50,7 @@ export class AnonymousCredential implements AuthCredential {
 
 export class AnonymousProvider implements AuthProvider {
   providerId = ProviderId.ANONYMOUS;
-  
+
   static credential(): AnonymousCredential {
     return new AnonymousCredential();
   }

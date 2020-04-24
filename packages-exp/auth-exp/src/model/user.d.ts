@@ -39,7 +39,6 @@ export interface User extends externs.User {
   tenantId: string | null;
   providerData: MutableUserInfo[];
   metadata: externs.UserMetadata;
-  isAnonymous: boolean;
 
   _updateTokensIfNecessary(response: IdTokenResponse): boolean;
 

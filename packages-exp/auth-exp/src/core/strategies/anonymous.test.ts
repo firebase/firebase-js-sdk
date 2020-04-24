@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect } from 'chai';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from "../../../test/mock_auth";
+import { mockAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { OperationType } from '../../model/user_credential';
-import { ProviderId, SignInMethod } from '../providers';
-import { signInAnonymously } from './anonymous';
 import { APIUserInfo } from '../../api/account_management/account';
+import { signInAnonymously } from './anonymous';
 
 describe('core/strategies/anonymous', () => {
   const serverUser: APIUserInfo = {
-    localId: 'local-id',
+    localId: 'local-id'
   };
 
   beforeEach(() => {
@@ -46,7 +45,9 @@ describe('core/strategies/anonymous', () => {
 
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
-      const { credential, user, operationType } = await signInAnonymously(mockAuth);
+      const { credential, user, operationType } = await signInAnonymously(
+        mockAuth
+      );
       expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
       expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
       expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -54,12 +55,8 @@ describe('core/strategies/anonymous', () => {
       expect(user.isAnonymous).to.be.true;
     });
 
-    context('already signed in anonymousl', () => {
+    context('already signed in anonymousl', () => {});
 
-    });
-
-    context('already signed in with a non-anonymous account', () => {
-
-    });
+    context('already signed in with a non-anonymous account', () => {});
   });
- });
+});

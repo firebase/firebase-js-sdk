@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/auth';
-import { OperationType, UserCredential } from '../../model/user_credential';
-import { AnonymousProvider } from '../providers/anonymous';
+import * as externs from '@firebase/auth-types-exp';
+import { AnonymousProvider } from '../../../test/anonymous';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signInWithCredential } from './credential';
-export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
+import { Auth } from '../../model/auth';
+
+export async function signInAnonymously(externAuth: externs.Auth): Promise<externs.UserCredential> {
+  const auth = externAuth as Auth;
   const credential = AnonymousProvider.credential();
   if (auth.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl(
       auth.currentUser,
       credential,
-      OperationType.SIGN_IN
+      externs.OperationType.SIGN_IN
     );
   }
   return signInWithCredential(auth, credential);

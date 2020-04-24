@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { ProviderId, SignInMethod } from '.';
-import { mockAuth } from '../../../test/mock_auth';
-import { AnonymousCredential, AnonymousProvider } from "./anonymous";
+import { AnonymousCredential, AnonymousProvider } from './anonymous';
+import { mockAuth } from './mock_auth';
 
 use(chaiAsPromised);
 
 describe('core/providers/anonymous', () => {
   describe('AnonymousCredential', () => {
     const credential = new AnonymousCredential();
-    
+
     it('should have an anonymous provider', () => {
       expect(credential.providerId).to.eq(ProviderId.ANONYMOUS);
     });
@@ -38,25 +38,31 @@ describe('core/providers/anonymous', () => {
     describe('#toJSON', () => {
       it('throws', () => {
         expect(credential.toJSON).to.throw(Error);
-      });    
+      });
     });
 
     describe('#_getIdTokenResponse', () => {
       it('throws', async () => {
-        await expect(credential._getIdTokenResponse(mockAuth)).to.be.rejectedWith(Error);
-      });    
+        await expect(
+          credential._getIdTokenResponse(mockAuth)
+        ).to.be.rejectedWith(Error);
+      });
     });
 
     describe('#_linkToIdToken', () => {
       it('throws', async () => {
-        await expect(credential._linkToIdToken(mockAuth,'id-token')).to.be.rejectedWith(Error);
-      });   
+        await expect(
+          credential._linkToIdToken(mockAuth, 'id-token')
+        ).to.be.rejectedWith(Error);
+      });
     });
 
     describe('#_matchIdTokenWithUid', () => {
       it('throws', () => {
-        expect(() => credential._matchIdTokenWithUid(mockAuth, 'other-uid')).to.throw(Error);
-      });   
+        expect(() =>
+          credential._matchIdTokenWithUid(mockAuth, 'other-uid')
+        ).to.throw(Error);
+      });
     });
   });
 
@@ -69,4 +75,4 @@ describe('core/providers/anonymous', () => {
       });
     });
   });
- });
+});
