@@ -106,15 +106,16 @@ export async function invokeCommitRpc(
     datastore instanceof DatastoreImpl,
     'invokeCommitRpc() requires DatastoreImpl'
   );
+  const datastoreImpl: DatastoreImpl = datastore;
   const params = {
-    database: datastore.serializer.encodedDatabaseId,
-    writes: mutations.map(m => datastore.serializer.toMutation(m))
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
   };
-  const response = await datastore.invokeRPC<
+  const response = await datastoreImpl.invokeRPC<
     api.CommitRequest,
     api.CommitResponse
   >('Commit', params);
-  return datastore.serializer.fromWriteResults(
+  return datastoreImpl.serializer.fromWriteResults(
     response.writeResults,
     response.commitTime
   );
@@ -128,18 +129,19 @@ export async function invokeBatchGetDocumentsRpc(
     datastore instanceof DatastoreImpl,
     'invokeBatchGetDocumentsRpc() requires DatastoreImpl'
   );
+  const datastoreImpl: DatastoreImpl = datastore;
   const params = {
-    database: datastore.serializer.encodedDatabaseId,
-    documents: keys.map(k => datastore.serializer.toName(k))
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    documents: keys.map(k => datastoreImpl.serializer.toName(k))
   };
-  const response = await datastore.invokeStreamingRPC<
+  const response = await datastoreImpl.invokeStreamingRPC<
     api.BatchGetDocumentsRequest,
     api.BatchGetDocumentsResponse
   >('BatchGetDocuments', params);
 
   const docs = new Map<string, MaybeDocument>();
   response.forEach(proto => {
-    const doc = datastore.serializer.fromMaybeDocument(proto);
+    const doc = datastoreImpl.serializer.fromMaybeDocument(proto);
     docs.set(doc.key.toString(), doc);
   });
   const result: MaybeDocument[] = [];
@@ -160,11 +162,12 @@ export function newPersistentWriteStream(
     datastore instanceof DatastoreImpl,
     'newPersistentWriteStream() requires DatastoreImpl'
   );
+  const datastoreImpl: DatastoreImpl = datastore;
   return new PersistentWriteStream(
     queue,
-    datastore.connection,
-    datastore.credentials,
-    datastore.serializer,
+    datastoreImpl.connection,
+    datastoreImpl.credentials,
+    datastoreImpl.serializer,
     listener
   );
 }
@@ -178,11 +181,12 @@ export function newPersistentWatchStream(
     datastore instanceof DatastoreImpl,
     'newPersistentWatchStream() requires DatastoreImpl'
   );
+  const datastoreImpl: DatastoreImpl = datastore;
   return new PersistentListenStream(
     queue,
-    datastore.connection,
-    datastore.credentials,
-    datastore.serializer,
+    datastoreImpl.connection,
+    datastoreImpl.credentials,
+    datastoreImpl.serializer,
     listener
   );
 }
