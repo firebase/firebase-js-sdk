@@ -48,7 +48,7 @@ describe('core/user/user_credential_impl', () => {
       users: [serverUser]
     });
   });
-  
+
   describe('fromIdTokenResponse', () => {
     const idTokenResponse: IdTokenResponse = {
       idToken: 'my-id-token',
@@ -75,8 +75,6 @@ describe('core/user/user_credential_impl', () => {
       expect(userCredential.user.uid).to.eq('my-uid');
     });
 
-    it('should not trigger callbacks', () => {
-
-    });
+    it('should not trigger callbacks', () => {});
   });
 });

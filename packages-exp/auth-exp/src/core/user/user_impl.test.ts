@@ -239,10 +239,7 @@ describe('core/user/user_impl', () => {
     it('should not trigger additional callbacks', async () => {
       const cb = sinon.spy();
       auth.onAuthStateChanged(cb);
-      await UserImpl._fromIdTokenResponse(
-        mockAuth,
-        idTokenResponse
-      );
+      await UserImpl._fromIdTokenResponse(mockAuth, idTokenResponse);
       expect(cb).not.to.have.been.called;
     });
   });
