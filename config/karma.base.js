@@ -125,4 +125,13 @@ if (false /* process.env.TRAVIS */) {
   config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
 }
 
+// Make it easy to spot failed tests in CI
+if (process.env.CI) {
+  config.specReporter = {
+    suppressErrorSummary: true,
+    suppressPassed: true, // do not print information about passed tests
+    suppressSkipped: true
+  };
+}
+
 module.exports = config;

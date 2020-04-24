@@ -34,7 +34,7 @@ const fullTestTriggerFiles = [
   'config/karma.base.js',
   'config/.eslintrc.js',
   'config/mocha.browser.opts',
-  'config/mocha.node.opts',
+  'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',

@@ -19,7 +19,7 @@
     "test": "yarn type-check && run-p lint test:browser test:node",
     "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
+    "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",

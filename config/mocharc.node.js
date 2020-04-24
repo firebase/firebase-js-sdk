@@ -15,11 +15,23 @@
  * limitations under the License.
  */
 
-# See:
-#   - https://mochajs.org/#usage for more information on usage of mocha flags.
-#   - https://github.com/karma-runner/karma-mocha for more information on all mocha flags which the
-#     karma runner supports.
-# This file is not converted to .mocharc.js format because karma-mocha doesn't work with it.
+/**
+ * See:
+ * - https://mochajs.org/#usage for more information on usage of mocha flags.
+ * - https://github.com/karma-runner/karma-mocha for more information on all mocha flags which the
+ *   karma runner supports.
+ */
 
---timeout 20000
---retry 3
+const config = {
+  require: 'ts-node/register',
+  timeout: 5000,
+  retries: 5,
+  exit: true
+};
+
+// use min reporter in CI to make it easy to spot failed tests
+if (process.env.CI) {
+  config.reporter = 'min';
+}
+
+module.exports = config;
