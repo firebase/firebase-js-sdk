@@ -31,7 +31,7 @@ describe('typeCast', () => {
     class Foo {}
     class Bar extends Foo {}
     const foo: Foo = new Bar();
-    const bar: Bar = debugCast(foo, Bar);
+    const _: Bar = debugCast(foo, Bar);
   });
 
   it('validates types', () => {
