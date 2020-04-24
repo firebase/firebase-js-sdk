@@ -34,7 +34,7 @@ describe('typeCast', () => {
     const bar: Bar = debugCast(foo, Bar);
   });
 
-  it.only('validates types', () => {
+  it('validates types', () => {
     class Foo {}
     class Bar {}
     const foo = new Foo();
