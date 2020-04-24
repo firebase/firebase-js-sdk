@@ -129,10 +129,9 @@ if (false /* process.env.TRAVIS */) {
 if (process.env.CI) {
   config.specReporter = {
     suppressErrorSummary: true,
-    suppressPassed: true,      // do not print information about passed tests
-    suppressSkipped: true,
+    suppressPassed: true, // do not print information about passed tests
+    suppressSkipped: true
   };
 }
-
 
 module.exports = config;
