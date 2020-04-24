@@ -16,7 +16,7 @@
  */
 
 import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
-import { ProviderId, SignInMethod } from "../src/core/providers";
+import { ProviderId, SignInMethod } from '../src/core/providers';
 import { Auth } from '../src/model/auth';
 import { AuthCredential } from '../src/model/auth_credential';
 import { IdTokenResponse } from '../src/model/id_token';
@@ -27,7 +27,7 @@ export class MockAuthCredential implements AuthCredential {
   constructor(
     readonly providerId: ProviderId,
     readonly signInMethod: SignInMethod
-  ) { }
+  ) {}
 
   toJSON(): object {
     throw new Error('Method not implemented.');
@@ -35,7 +35,7 @@ export class MockAuthCredential implements AuthCredential {
 
   /**
    * For testing purposes only
-   * @param response 
+   * @param response
    */
   _setIdTokenResponse(response: PhoneOrOauthTokenResponse): void {
     this.response = response;

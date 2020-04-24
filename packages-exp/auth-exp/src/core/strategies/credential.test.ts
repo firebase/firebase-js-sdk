@@ -42,7 +42,7 @@ describe('core/strategies/signInWithCredential', () => {
     createdAt: 123,
     lastLoginAt: 456
   };
-  
+
   const idTokenResponse: IdTokenResponse = {
     idToken: 'my-id-token',
     refreshToken: 'my-refresh-token',
@@ -51,7 +51,10 @@ describe('core/strategies/signInWithCredential', () => {
     kind: 'my-kind'
   };
 
-  const authCredential = new MockAuthCredential(ProviderId.FIREBASE, SignInMethod.EMAIL_LINK);
+  const authCredential = new MockAuthCredential(
+    ProviderId.FIREBASE,
+    SignInMethod.EMAIL_LINK
+  );
 
   beforeEach(() => {
     mockFetch.setUp();
@@ -63,7 +66,10 @@ describe('core/strategies/signInWithCredential', () => {
   afterEach(mockFetch.tearDown);
 
   it('should return a valid user credential', async () => {
-    const {credential, user, operationType } = await signInWithCredential(mockAuth, authCredential);
+    const { credential, user, operationType } = await signInWithCredential(
+      mockAuth,
+      authCredential
+    );
     expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
     expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
     expect(user.uid).to.eq('local-id');
@@ -71,7 +77,7 @@ describe('core/strategies/signInWithCredential', () => {
     expect(user.displayName).to.eq('display-name');
     expect(operationType).to.eq(OperationType.SIGN_IN);
   });
-  
+
   it('should update the current user', async () => {
     const { user } = await signInWithCredential(mockAuth, authCredential);
     expect(mockAuth.currentUser).to.eq(user);

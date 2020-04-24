@@ -240,7 +240,7 @@ describe('core/user/user_impl', () => {
       auth.onAuthStateChanged(cb);
       await auth.updateCurrentUser(null);
       cb.resetHistory();
-      
+
       await UserImpl._fromIdTokenResponse(mockAuth, idTokenResponse);
       expect(cb).not.to.have.been.called;
     });

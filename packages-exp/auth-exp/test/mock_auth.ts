@@ -35,10 +35,9 @@ export const mockAuth: Auth = new AuthImpl(
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
-    tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
   },
-  [],
+  []
 );
 
 export function testUser(
