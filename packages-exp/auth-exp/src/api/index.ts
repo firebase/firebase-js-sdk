@@ -59,7 +59,7 @@ export async function _performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  return performFetchWithErrorHandling(auth, customErrorMap, () => {
+  return _performFetchWithErrorHandling(auth, customErrorMap, () => {
     let body = {};
     let params = {};
     if (request) {
@@ -92,7 +92,7 @@ export async function _performApiRequest<T, V>(
   });
 }
 
-export async function performFetchWithErrorHandling<V>(
+export async function _performFetchWithErrorHandling<V>(
   auth: Auth,
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
