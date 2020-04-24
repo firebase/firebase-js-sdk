@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from './idp';
@@ -42,7 +42,7 @@ export function startSignInPhoneMfa(
   auth: Auth,
   request: StartPhoneMfaSignInRequest
 ): Promise<StartPhoneMfaSignInResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     StartPhoneMfaSignInRequest,
     StartPhoneMfaSignInResponse
   >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_SIGN_IN, request);
@@ -59,7 +59,7 @@ export function finalizeSignInPhoneMfa(
   auth: Auth,
   request: FinalizePhoneMfaSignInRequest
 ): Promise<FinalizePhoneMfaSignInResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     FinalizePhoneMfaSignInRequest,
     FinalizePhoneMfaSignInResponse
   >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, request);

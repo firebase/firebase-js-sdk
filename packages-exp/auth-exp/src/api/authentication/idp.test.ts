@@ -27,7 +27,7 @@ import { signInWithIdp } from './idp';
 
 use(chaiAsPromised);
 
-describe('signInWithIdp', () => {
+describe('api/authentication/signInWithIdp', () => {
   const request = {
     returnSecureToken: true,
     requestUri: 'request-uri',

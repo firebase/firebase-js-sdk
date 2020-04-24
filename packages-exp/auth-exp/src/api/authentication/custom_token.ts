@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performSignInRequest } from '..';
+import { Endpoint, HttpMethod, _performSignInRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
@@ -29,7 +29,7 @@ export async function signInWithCustomToken(
   auth: Auth,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
-  return performSignInRequest<
+  return _performSignInRequest<
     SignInWithCustomTokenRequest,
     SignInWithCustomTokenResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, request);

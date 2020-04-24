@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-export function getCurrentUrl(): string {
+export function _getCurrentUrl(): string {
   return self?.location?.href || '';
 }
 
-export function isHttpOrHttps(): boolean {
-  return getCurrentScheme() === 'http:' || getCurrentScheme() === 'https:';
+export function _isHttpOrHttps(): boolean {
+  return _getCurrentScheme() === 'http:' || _getCurrentScheme() === 'https:';
 }
 
-export function getCurrentScheme(): string | null {
+export function _getCurrentScheme(): string | null {
   return self?.location?.protocol || null;
 }
