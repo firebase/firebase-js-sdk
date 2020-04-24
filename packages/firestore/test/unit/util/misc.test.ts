@@ -17,10 +17,29 @@
 
 import { expect } from 'chai';
 import { immediateSuccessor } from '../../../src/util/misc';
+import { debugCast } from '../../../src/util/assert';
 
 describe('immediateSuccessor', () => {
   it('generates the correct immediate successors', () => {
     expect(immediateSuccessor('hello')).to.equal('hello\0');
     expect(immediateSuccessor('')).to.equal('\0');
+  });
+});
+
+describe('typeCast', () => {
+  it('can cast types', () => {
+    class Foo {}
+    class Bar extends Foo {}
+    const foo: Foo = new Bar();
+    const _: Bar = debugCast(foo, Bar);
+  });
+
+  it('validates types', () => {
+    class Foo {}
+    class Bar {}
+    const foo = new Foo();
+    expect(() => debugCast(foo, Bar)).to.throw(
+      "Expected type 'Bar', but was 'Foo'"
+    );
   });
 });

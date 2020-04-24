@@ -32,7 +32,11 @@ import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
-import { Datastore } from './datastore';
+import {
+  Datastore,
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from './datastore';
 import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
@@ -151,13 +155,13 @@ export class RemoteStore implements TargetMetadataProvider {
     );
 
     // Create streams (but note they're not started yet).
-    this.watchStream = this.datastore.newPersistentWatchStream({
+    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
       onOpen: this.onWatchStreamOpen.bind(this),
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
 
-    this.writeStream = this.datastore.newPersistentWriteStream({
+    this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
       onOpen: this.onWriteStreamOpen.bind(this),
       onClose: this.onWriteStreamClose.bind(this),
       onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),

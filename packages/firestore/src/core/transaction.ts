@@ -26,8 +26,12 @@ import {
   Precondition,
   VerifyMutation
 } from '../model/mutation';
-import { Datastore } from '../remote/datastore';
-import { debugAssert, fail } from '../util/assert';
+import {
+  Datastore,
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../remote/datastore';
+import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
 
@@ -66,7 +70,7 @@ export class Transaction {
         'Firestore transactions require all reads to be executed before all writes.'
       );
     }
-    const docs = await this.datastore.lookup(keys);
+    const docs = await invokeBatchGetDocumentsRpc(this.datastore, keys);
     docs.forEach(doc => {
       if (doc instanceof NoDocument || doc instanceof Document) {
         this.recordVersion(doc);
@@ -112,7 +116,7 @@ export class Transaction {
     unwritten.forEach((key, _version) => {
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
-    await this.datastore.commit(this.mutations);
+    await invokeCommitRpc(this.datastore, this.mutations);
     this.committed = true;
   }
 

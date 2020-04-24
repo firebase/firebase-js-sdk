@@ -52,7 +52,7 @@ import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { Datastore } from '../../../src/remote/datastore';
+import { newDatastore, Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -222,8 +222,7 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.connection = new MockConnection(this.queue);
-    this.datastore = new Datastore(
-      this.queue,
+    this.datastore = newDatastore(
       this.connection,
       new EmptyCredentialsProvider(),
       this.serializer
