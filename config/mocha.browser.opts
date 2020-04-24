@@ -2,5 +2,7 @@
 #   - https://mochajs.org/#usage for more information on usage of mocha flags.
 #   - https://github.com/karma-runner/karma-mocha for more information on all mocha flags which the
 #     karma runner supports.
+# This file is not converted to .mocharc.js format because karma-mocha doesn't work with it.
+
 --timeout 20000
 --retry 3
