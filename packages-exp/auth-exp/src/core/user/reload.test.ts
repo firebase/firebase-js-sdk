@@ -25,7 +25,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import {
   APIUserInfo,
@@ -56,8 +56,8 @@ const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
 };
 
 describe('core/user/reload', () => {
-  beforeEach(fetch.setUp);
-  afterEach(fetch.tearDown);
+  beforeEach(mockFetch.setUp);
+  afterEach(mockFetch.tearDown);
 
   it('sets all the new properties', async () => {
     const serverUser: APIUserInfo = {

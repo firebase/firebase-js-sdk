@@ -169,9 +169,9 @@ export class UserImpl implements User {
 
     // Initialize the Firebase Auth user.
     const user = new UserImpl({
+      uid: idTokenResponse.localId,
       auth,
-      stsTokenManager,
-      uid: idTokenResponse.localId
+      stsTokenManager
     });
 
     // Updates the user info and data and resolves with a user instance.

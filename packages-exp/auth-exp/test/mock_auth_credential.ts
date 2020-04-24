@@ -15,24 +15,34 @@
  * limitations under the License.
  */
 
-import { AuthCredential } from '../../model/auth_credential';
-import { ProviderId, SignInMethod } from '.';
-import { IdTokenResponse } from '../../model/id_token';
-import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
+import { ProviderId, SignInMethod } from "../src/core/providers";
+import { Auth } from '../src/model/auth';
+import { AuthCredential } from '../src/model/auth_credential';
+import { IdTokenResponse } from '../src/model/id_token';
 
-export class AuthCredentialImpl implements AuthCredential {
+export class MockAuthCredential implements AuthCredential {
+  response?: PhoneOrOauthTokenResponse;
+
   constructor(
     readonly providerId: ProviderId,
     readonly signInMethod: SignInMethod
-  ) {}
+  ) { }
 
   toJSON(): object {
     throw new Error('Method not implemented.');
   }
 
-  _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
-    throw new Error('Method not implemented.');
+  /**
+   * For testing purposes only
+   * @param response 
+   */
+  _setIdTokenResponse(response: PhoneOrOauthTokenResponse): void {
+    this.response = response;
+  }
+
+  async _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+    return this.response!;
   }
 
   _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {

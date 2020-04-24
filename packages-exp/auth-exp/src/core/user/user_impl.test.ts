@@ -30,9 +30,6 @@ import { Endpoint } from '../../api';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
-import { mockEndpoint } from '../../../test/api/helper';
-import { Endpoint } from '../../api';
-import { APIUserInfo } from '../../api/account_management/account';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -195,7 +192,7 @@ describe('core/user/user_impl', () => {
       idToken: 'my-id-token',
       refreshToken: 'my-refresh-token',
       expiresIn: '1234',
-      localId: 'my-uid',
+      localId: 'local-id',
       kind: 'my-kind'
     };
 
@@ -212,10 +209,12 @@ describe('core/user/user_impl', () => {
     };
 
     beforeEach(() => {
+      mockFetch.setUp();
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [serverUser]
       });
     });
+    afterEach(mockFetch.tearDown);
 
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(
@@ -223,8 +222,8 @@ describe('core/user/user_impl', () => {
         idTokenResponse
       );
       expect(user.uid).to.eq(idTokenResponse.localId);
-      expect(user.refreshToken).to.eq('my-refresh-token');
       expect(await user.getIdToken()).to.eq('my-id-token');
+      expect(user.refreshToken).to.eq('my-refresh-token');
     });
 
     it('should pull additional user info on the user', async () => {
@@ -239,6 +238,9 @@ describe('core/user/user_impl', () => {
     it('should not trigger additional callbacks', async () => {
       const cb = sinon.spy();
       auth.onAuthStateChanged(cb);
+      await auth.updateCurrentUser(null);
+      cb.resetHistory();
+      
       await UserImpl._fromIdTokenResponse(mockAuth, idTokenResponse);
       expect(cb).not.to.have.been.called;
     });

@@ -17,48 +17,54 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
+import { MockAuthCredential } from '../../../test/mock_auth_credential';
+import * as mockFetch from '../../../test/mock_fetch';
+import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { OperationType } from '../../model/user_credential';
 import { ProviderId, SignInMethod } from '../providers';
-import { AuthCredentialImpl } from '../providers/auth_credential_impl';
 import { UserCredentialImpl } from './user_credential_impl';
-import { APIUserInfo } from '../../api/account_management/account';
-import { mockEndpoint } from '../../../test/api/helper';
-import { Endpoint } from '../../api';
 
 use(chaiAsPromised);
+use(sinonChai);
 
 describe('core/user/user_credential_impl', () => {
   const serverUser: APIUserInfo = {
-    localId: 'localId',
-    displayName: 'displayName',
-    photoUrl: 'photoURL',
+    localId: 'local-id',
+    displayName: 'display-name',
+    photoUrl: 'photo-url',
     email: 'email',
     emailVerified: true,
-    phoneNumber: 'phoneNumber',
-    tenantId: 'tenantId',
+    phoneNumber: 'phone-number',
+    tenantId: 'tenant-id',
     createdAt: 123,
     lastLoginAt: 456
   };
 
   beforeEach(() => {
+    mockFetch.setUp();
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
     });
   });
+  afterEach(mockFetch.tearDown);
 
   describe('fromIdTokenResponse', () => {
     const idTokenResponse: IdTokenResponse = {
       idToken: 'my-id-token',
       refreshToken: 'my-refresh-token',
       expiresIn: '1234',
-      localId: 'my-uid',
+      localId: serverUser.localId!,
       kind: 'my-kind'
     };
 
-    const credential: AuthCredential = new AuthCredentialImpl(
+    const credential: AuthCredential = new MockAuthCredential(
       ProviderId.FIREBASE,
       SignInMethod.EMAIL_PASSWORD
     );
@@ -72,9 +78,22 @@ describe('core/user/user_credential_impl', () => {
       );
       expect(userCredential.credential).to.eq(credential);
       expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
-      expect(userCredential.user.uid).to.eq('my-uid');
+      expect(userCredential.user.uid).to.eq('local-id');
     });
 
-    it('should not trigger callbacks', () => {});
+    it('should not trigger callbacks', async () => {
+      const cb = sinon.spy();
+      mockAuth.onAuthStateChanged(cb);
+      await mockAuth.updateCurrentUser(null);
+      cb.resetHistory();
+
+      await UserCredentialImpl._fromIdTokenResponse(
+        mockAuth,
+        credential,
+        OperationType.SIGN_IN,
+        idTokenResponse
+      );
+      expect(cb).not.to.have.been.called;
+    });
   });
 });
