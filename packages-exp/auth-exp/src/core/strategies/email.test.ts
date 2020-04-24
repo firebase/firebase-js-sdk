@@ -33,7 +33,7 @@ import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('fetchSignInMethodsForEmail', () => {
+describe('core/strategies/fetchSignInMethodsForEmail', () => {
   const email = 'foo@bar.com';
   const expectedSignInMethods = [ProviderId.PASSWORD, ProviderId.GOOGLE];
 
@@ -48,7 +48,7 @@ describe('fetchSignInMethodsForEmail', () => {
     expect(response).to.eql(expectedSignInMethods);
     expect(mock.calls[0].request).to.eql({
       identifier: email,
-      continueUri: location.getCurrentUrl()
+      continueUri: location._getCurrentUrl()
     });
   });
 
@@ -56,7 +56,7 @@ describe('fetchSignInMethodsForEmail', () => {
     let locationStub: SinonStub;
 
     beforeEach(() => {
-      locationStub = stub(location, 'isHttpOrHttps');
+      locationStub = stub(location, '_isHttpOrHttps');
       locationStub.callsFake(() => false);
     });
 
@@ -98,7 +98,7 @@ describe('fetchSignInMethodsForEmail', () => {
   });
 });
 
-describe('sendEmailVerification', () => {
+describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
   const user = testUser('my-user-uid', email);
   const idToken = 'id-token';
