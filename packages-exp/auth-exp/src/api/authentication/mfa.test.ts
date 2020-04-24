@@ -27,7 +27,7 @@ import { finalizeSignInPhoneMfa, startSignInPhoneMfa } from './mfa';
 
 use(chaiAsPromised);
 
-describe('startSignInPhoneMfa', () => {
+describe('api/authentication/startSignInPhoneMfa', () => {
   const request = {
     mfaPendingCredential: 'my-creds',
     mfaEnrollmentId: 'my-enrollment-id',
@@ -81,7 +81,7 @@ describe('startSignInPhoneMfa', () => {
   });
 });
 
-describe('finalizeSignInPhoneMfa', () => {
+describe('api/authentication/finalizeSignInPhoneMfa', () => {
   const request = {
     mfaPendingCredential: 'pending-cred',
     phoneVerificationInfo: {
