@@ -178,9 +178,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
       400
     );
 
-    await expect(
-      sendPasswordResetEmail(mockAuth, request)
-    ).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(mockAuth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
