@@ -27,7 +27,7 @@ import { createAuthUri } from './create_auth_uri';
 
 use(chaiAsPromised);
 
-describe('createAuthUri', () => {
+describe('api/authentication/createAuthUri', () => {
   const request = {
     identifier: 'my-id',
     continueUri: 'example.com/redirectUri'

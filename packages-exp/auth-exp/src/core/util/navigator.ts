@@ -16,7 +16,7 @@
  */
 
 import { isBrowserExtension } from '@firebase/util';
-import { isHttpOrHttps } from './location';
+import { _isHttpOrHttps } from './location';
 
 /**
  * For some reason the TS library doesn't know about NetworkInformation
@@ -36,7 +36,7 @@ interface StandardNavigator extends Navigator {
 /**
  * Determine whether the browser is working online
  */
-export function isOnline(): boolean {
+export function _isOnline(): boolean {
   if (
     navigator &&
     typeof navigator.onLine === 'boolean' &&
@@ -45,7 +45,7 @@ export function isOnline(): boolean {
     // navigator.onLine behavior unless cordova-plugin-network-information is
     // installed which overwrites the native navigator.onLine value and
     // defines navigator.connection.
-    (isHttpOrHttps() ||
+    (_isHttpOrHttps() ||
       isBrowserExtension() ||
       typeof (navigator as StandardNavigator).connection !== 'undefined')
   ) {

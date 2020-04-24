@@ -28,7 +28,7 @@ import { signInWithCustomToken } from './custom_token';
 
 use(chaiAsPromised);
 
-describe('signInWithCustomToken', () => {
+describe('api/authentication/signInWithCustomToken', () => {
   const request = {
     token: 'my-token'
   };
