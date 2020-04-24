@@ -175,7 +175,7 @@ export class UserImpl implements User {
     });
 
     // Updates the user info and data and resolves with a user instance.
-    await user.reload();
+    await _reloadWithoutSaving(user);
     return user;
   }
 }

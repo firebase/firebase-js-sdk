@@ -36,8 +36,6 @@ export class UserCredentialImpl implements UserCredential {
     idTokenResponse: IdTokenResponse
   ): Promise<UserCredential> {
     const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
-    // TODO: Rebase and uncomment
-    // await auth.updateCurrentUser(user);
     const userCred = new UserCredentialImpl(user, credential, operationType);
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);

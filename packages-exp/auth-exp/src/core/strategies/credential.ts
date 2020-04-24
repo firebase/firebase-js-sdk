@@ -26,10 +26,12 @@ export async function signInWithCredential(
 ): Promise<UserCredential> {
   // TODO: handle mfa by wrapping with callApiWithMfaContext
   const response = await credential._getIdTokenResponse(auth);
-  return UserCredentialImpl._fromIdTokenResponse(
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     auth,
     credential,
     OperationType.SIGN_IN,
     response
   );
+  await auth.updateCurrentUser(userCredential.user);
+  return userCredential;
 }

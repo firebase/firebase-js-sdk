@@ -30,9 +30,13 @@ import { Endpoint } from '../../api';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
+import { mockEndpoint } from '../../../test/api/helper';
+import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
 
 use(sinonChai);
 use(chaiAsPromised);
+use(sinonChai);
 
 describe('core/user/user_impl', () => {
   const auth = mockAuth;
@@ -195,6 +199,24 @@ describe('core/user/user_impl', () => {
       kind: 'my-kind'
     };
 
+    const serverUser: APIUserInfo = {
+      localId: 'local-id',
+      displayName: 'display-name',
+      photoUrl: 'photo-url',
+      email: 'email',
+      emailVerified: true,
+      phoneNumber: 'phone-number',
+      tenantId: 'tenant-id',
+      createdAt: 123,
+      lastLoginAt: 456
+    };
+
+    beforeEach(() => {
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [serverUser]
+      });
+    });
+
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(
         mockAuth,
@@ -205,8 +227,23 @@ describe('core/user/user_impl', () => {
       expect(await user.getIdToken()).to.eq('my-id-token');
     });
 
-    it('should reload the user', () => {
-      // TODO: need to wait for https://github.com/firebase/firebase-js-sdk/pull/2961
+    it('should pull additional user info on the user', async () => {
+      const user = await UserImpl._fromIdTokenResponse(
+        mockAuth,
+        idTokenResponse
+      );
+      expect(user.displayName).to.eq('display-name');
+      expect(user.phoneNumber).to.eq('phone-number');
+    });
+
+    it('should not trigger additional callbacks', async () => {
+      const cb = sinon.spy();
+      auth.onAuthStateChanged(cb);
+      await UserImpl._fromIdTokenResponse(
+        mockAuth,
+        idTokenResponse
+      );
+      expect(cb).not.to.have.been.called;
     });
   });
 });

@@ -24,10 +24,31 @@ import { OperationType } from '../../model/user_credential';
 import { ProviderId, SignInMethod } from '../providers';
 import { AuthCredentialImpl } from '../providers/auth_credential_impl';
 import { UserCredentialImpl } from './user_credential_impl';
+import { APIUserInfo } from '../../api/account_management/account';
+import { mockEndpoint } from '../../../test/api/helper';
+import { Endpoint } from '../../api';
 
 use(chaiAsPromised);
 
 describe('core/user/user_credential_impl', () => {
+  const serverUser: APIUserInfo = {
+    localId: 'localId',
+    displayName: 'displayName',
+    photoUrl: 'photoURL',
+    email: 'email',
+    emailVerified: true,
+    phoneNumber: 'phoneNumber',
+    tenantId: 'tenantId',
+    createdAt: 123,
+    lastLoginAt: 456
+  };
+
+  beforeEach(() => {
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [serverUser]
+    });
+  });
+  
   describe('fromIdTokenResponse', () => {
     const idTokenResponse: IdTokenResponse = {
       idToken: 'my-id-token',
@@ -52,6 +73,10 @@ describe('core/user/user_credential_impl', () => {
       expect(userCredential.credential).to.eq(credential);
       expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
       expect(userCredential.user.uid).to.eq('my-uid');
+    });
+
+    it('should not trigger callbacks', () => {
+
     });
   });
 });

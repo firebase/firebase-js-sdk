@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
