@@ -24,7 +24,6 @@ const sourcemaps = require('gulp-sourcemaps');
 const { resolve } = require('path');
 const commonjs = require('rollup-plugin-commonjs');
 const rollupSourcemaps = require('rollup-plugin-sourcemaps');
-const { terser } = require('rollup-plugin-terser');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
 
@@ -113,8 +112,6 @@ function createRollupTask({
         })
       );
     }
-    // Typescript step unminifies minified Closure output.
-    plugins.push(terser());
     const inputOptions = {
       input: inputPath,
       plugins
@@ -123,8 +120,9 @@ function createRollupTask({
     const outputOptions = {
       file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
       format,
-      sourcemap: true
-      // exports: 'named'
+      sourcemap: true,
+      // Prevents warning when compiling CJS that there are named and default exports together.
+      exports: 'named'
     };
 
     const bundle = await rollup.rollup(inputOptions);
