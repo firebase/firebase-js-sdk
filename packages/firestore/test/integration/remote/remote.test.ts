@@ -37,7 +37,7 @@ describe('Remote Storage', () => {
 
       const version = result[0].version;
       expect(version).not.to.equal(null);
-      expect(SnapshotVersion.MIN.compareTo(version!)).to.be.lessThan(0);
+      expect(SnapshotVersion.min().compareTo(version!)).to.be.lessThan(0);
     });
   });
 
@@ -55,7 +55,7 @@ describe('Remote Storage', () => {
       if (doc instanceof Document) {
         expect(doc.data()).to.deep.equal(mutation.value);
         expect(doc.key).to.deep.equal(k);
-        expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
+        expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(0);
       }
     });
   });
@@ -63,6 +63,7 @@ describe('Remote Storage', () => {
   it('can read deleted documents', () => {
     return withTestDatastore(async ds => {
       const k = key('docs/2');
+
       const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
       expect(docs.length).to.equal(1);
 
@@ -70,7 +71,7 @@ describe('Remote Storage', () => {
       expect(doc).to.be.an.instanceof(NoDocument);
       if (doc instanceof NoDocument) {
         expect(doc.key).to.deep.equal(k);
-        expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
+        expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(0);
       }
     });
   });

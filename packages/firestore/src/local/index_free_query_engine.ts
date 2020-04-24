@@ -78,7 +78,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
-    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)) {
+    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.min())) {
       return this.executeFullCollectionScan(transaction, query);
     }
 
@@ -204,7 +204,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
   }
 }

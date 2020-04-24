@@ -52,7 +52,7 @@ export class SimpleQueryEngine implements QueryEngine {
     return this.localDocumentsView.getDocumentsMatchingQuery(
       transaction,
       query,
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
   }
 }

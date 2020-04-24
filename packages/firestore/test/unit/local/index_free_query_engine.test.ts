@@ -60,7 +60,7 @@ const MATCHING_DOC_B = doc('coll/b', 1, { matches: true, order: 2 });
 const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
 
 const LAST_LIMBO_FREE_SNAPSHOT = version(10);
-const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.MIN;
+const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
 
 /**
  * A LocalDocumentsView wrapper that inspects the arguments to
@@ -74,7 +74,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
+    const indexFreeExecution = !SnapshotVersion.min().isEqual(sinceReadTime);
 
     expect(indexFreeExecution).to.eq(
       this.expectIndexFreeExecution,

@@ -78,7 +78,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
     debugAssert(
-      !readTime.isEqual(SnapshotVersion.MIN),
+      !readTime.isEqual(SnapshotVersion.min()),
       'Cannot add a document with a read time of zero'
     );
 

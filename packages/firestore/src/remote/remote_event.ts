@@ -78,7 +78,7 @@ export class RemoteEvent {
       )
     );
     return new RemoteEvent(
-      SnapshotVersion.MIN,
+      SnapshotVersion.min(),
       targetChanges,
       targetIdSet(),
       maybeDocumentMap(),

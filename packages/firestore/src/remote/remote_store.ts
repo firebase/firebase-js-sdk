@@ -406,11 +406,11 @@ export class RemoteStore implements TargetMetadataProvider {
       this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
-    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+    if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
       const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
       if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
         // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.MIN.
+        // version is not equal to SnapshotVersion.min().
         await this.raiseWatchSnapshot(snapshotVersion);
       }
     }
@@ -423,7 +423,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     debugAssert(
-      !snapshotVersion.isEqual(SnapshotVersion.MIN),
+      !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
     );
     const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(

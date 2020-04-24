@@ -39,7 +39,7 @@ export class MemoryTargetCache implements TargetCache {
   private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
 
   /** The last received snapshot version. */
-  private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
+  private lastRemoteSnapshotVersion = SnapshotVersion.min();
   /** The highest numbered target ID encountered. */
   private highestTargetId: TargetId = 0;
   /** The highest sequence number encountered. */

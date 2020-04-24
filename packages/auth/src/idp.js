@@ -135,7 +135,7 @@ fireauth.idp.Settings = {
   },
   APPLE: {
     languageParam: 'locale',
-    popupWidth: 600,
+    popupWidth: 640,
     popupHeight: 600,
     providerId: 'apple.com',
     reservedOAuthParameters: [],

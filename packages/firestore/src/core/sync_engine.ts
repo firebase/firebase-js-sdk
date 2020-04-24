@@ -33,7 +33,7 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { MutationBatchResult, BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
@@ -52,7 +52,7 @@ import {
 } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
-import { Query, LimitType } from './query';
+import { LimitType, Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
@@ -504,11 +504,11 @@ export class SyncEngine implements RemoteSyncer {
       );
       documentUpdates = documentUpdates.insert(
         limboKey,
-        new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
+        new NoDocument(limboKey, SnapshotVersion.min())
       );
       const resolvedLimboDocuments = documentKeySet().add(limboKey);
       const event = new RemoteEvent(
-        SnapshotVersion.MIN,
+        SnapshotVersion.min(),
         /* targetChanges= */ new Map<TargetId, TargetChange>(),
         /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
         documentUpdates,

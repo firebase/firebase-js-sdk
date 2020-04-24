@@ -133,8 +133,6 @@ export const enum MutationType {
  * (meaning no precondition).
  */
 export class Precondition {
-  static readonly NONE = new Precondition();
-
   private constructor(
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
@@ -143,6 +141,11 @@ export class Precondition {
       updateTime === undefined || exists === undefined,
       'Precondition can specify "exists" or "updateTime" but not both'
     );
+  }
+
+  /** Creates a new empty Precondition. */
+  static none(): Precondition {
+    return new Precondition();
   }
 
   /** Creates a new Precondition with an exists flag. */
@@ -314,7 +317,7 @@ export abstract class Mutation {
    * Returns the version from the given document for use as the result of a
    * mutation. Mutations are defined to return the version of the base document
    * only if it is an existing document. Deleted and unknown documents have a
-   * post-mutation version of SnapshotVersion.MIN.
+   * post-mutation version of SnapshotVersion.min().
    */
   protected static getPostMutationVersion(
     maybeDoc: MaybeDocument | null
@@ -322,7 +325,7 @@ export abstract class Mutation {
     if (maybeDoc instanceof Document) {
       return maybeDoc.version;
     } else {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
   }
 }
@@ -485,13 +488,13 @@ export class PatchMutation extends Mutation {
     if (maybeDoc instanceof Document) {
       data = maybeDoc.data();
     } else {
-      data = ObjectValue.EMPTY;
+      data = ObjectValue.empty();
     }
     return this.patchObject(data);
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
@@ -598,7 +601,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.newBuilder().set(
+          baseObject = new ObjectValueBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -726,7 +729,7 @@ export class TransformMutation extends Mutation {
       'TransformResults length mismatch.'
     );
 
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;
@@ -781,7 +784,7 @@ export class DeleteMutation extends Mutation {
         'Can only apply mutation to document with same key'
       );
     }
-    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
+    return new NoDocument(this.key, SnapshotVersion.min());
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {

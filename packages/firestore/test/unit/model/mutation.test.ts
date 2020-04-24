@@ -47,6 +47,7 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
+import { ObjectValueBuilder } from '../../../src/model/field_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -95,7 +96,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -116,7 +117,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -191,11 +192,12 @@ describe('Mutation', () => {
     );
 
     // Server timestamps aren't parsed, so we manually insert it.
-    const data = wrapObject({
-      foo: { bar: '<server-timestamp>' },
-      baz: 'baz-value'
-    })
-      .toBuilder()
+    const data = new ObjectValueBuilder(
+      wrapObject({
+        foo: { bar: '<server-timestamp>' },
+        baz: 'baz-value'
+      })
+    )
       .set(field('foo.bar'), serverTimestamp(timestamp, null))
       .build();
     const expectedDoc = new Document(key('collection/key'), version(0), data, {

@@ -36,7 +36,7 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
-import { ObjectValue } from '../model/field_value';
+import { ObjectValue, ObjectValueBuilder } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -390,7 +390,7 @@ export class UserDataReader {
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-    const updateData = ObjectValue.newBuilder();
+    const updateData = new ObjectValueBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
@@ -450,7 +450,7 @@ export class UserDataReader {
     }
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-    const updateData = ObjectValue.newBuilder();
+    const updateData = new ObjectValueBuilder();
 
     for (let i = 0; i < keys.length; ++i) {
       const path = keys[i];
