@@ -20,7 +20,7 @@ import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { debugAssert, hardAssert } from '../util/assert';
+import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
 import { JsonProtoSerializer } from './serializer';
@@ -102,11 +102,7 @@ export async function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
 ): Promise<MutationResult[]> {
-  debugAssert(
-    datastore instanceof DatastoreImpl,
-    'invokeCommitRpc() requires DatastoreImpl'
-  );
-  const datastoreImpl: DatastoreImpl = datastore;
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
     database: datastoreImpl.serializer.encodedDatabaseId,
     writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
@@ -125,11 +121,7 @@ export async function invokeBatchGetDocumentsRpc(
   datastore: Datastore,
   keys: DocumentKey[]
 ): Promise<MaybeDocument[]> {
-  debugAssert(
-    datastore instanceof DatastoreImpl,
-    'invokeBatchGetDocumentsRpc() requires DatastoreImpl'
-  );
-  const datastoreImpl: DatastoreImpl = datastore;
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
     database: datastoreImpl.serializer.encodedDatabaseId,
     documents: keys.map(k => datastoreImpl.serializer.toName(k))
@@ -158,11 +150,7 @@ export function newPersistentWriteStream(
   queue: AsyncQueue,
   listener: WriteStreamListener
 ): PersistentWriteStream {
-  debugAssert(
-    datastore instanceof DatastoreImpl,
-    'newPersistentWriteStream() requires DatastoreImpl'
-  );
-  const datastoreImpl: DatastoreImpl = datastore;
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
   return new PersistentWriteStream(
     queue,
     datastoreImpl.connection,
@@ -177,11 +165,7 @@ export function newPersistentWatchStream(
   queue: AsyncQueue,
   listener: WatchStreamListener
 ): PersistentListenStream {
-  debugAssert(
-    datastore instanceof DatastoreImpl,
-    'newPersistentWatchStream() requires DatastoreImpl'
-  );
-  const datastoreImpl: DatastoreImpl = datastore;
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
   return new PersistentListenStream(
     queue,
     datastoreImpl.connection,
