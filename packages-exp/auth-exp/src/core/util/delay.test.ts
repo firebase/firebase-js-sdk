@@ -21,7 +21,7 @@ import { restore, stub } from 'sinon';
 import { Delay, _OFFLINE_DELAY_MS } from './delay';
 import * as navigator from './navigator';
 
-describe('Delay.get()', () => {
+describe('core/util/delay', () => {
   const SHORT_DELAY = 30_000;
   const LONG_DELAY = 60_000;
 
@@ -47,7 +47,7 @@ describe('Delay.get()', () => {
   });
 
   it('should return quicker when offline', () => {
-    const mock = stub(navigator, 'isOnline');
+    const mock = stub(navigator, '_isOnline');
     mock.callsFake(() => false);
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
     expect(delay.get()).to.eq(_OFFLINE_DELAY_MS);

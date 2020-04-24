@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
 
-describe('AUTH_ERROR_FACTORY', () => {
+describe('core/AUTH_ERROR_FACTORY', () => {
   it('should create an Auth namespaced FirebaseError', () => {
     const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
       appName: 'my-app'

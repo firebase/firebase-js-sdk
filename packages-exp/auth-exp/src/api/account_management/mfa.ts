@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
@@ -39,7 +39,7 @@ export function startEnrollPhoneMfa(
   auth: Auth,
   request: StartPhoneMfaEnrollmentRequest
 ): Promise<StartPhoneMfaEnrollmentResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     StartPhoneMfaEnrollmentRequest,
     StartPhoneMfaEnrollmentResponse
   >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_ENROLLMENT, request);
@@ -55,7 +55,7 @@ export function enrollPhoneMfa(
   auth: Auth,
   request: PhoneMfaEnrollmentRequest
 ): Promise<PhoneMfaEnrollmentResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     PhoneMfaEnrollmentRequest,
     PhoneMfaEnrollmentResponse
   >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, request);
@@ -72,7 +72,7 @@ export function withdrawMfa(
   auth: Auth,
   request: WithdrawMfaRequest
 ): Promise<WithdrawMfaResponse> {
-  return performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(
+  return _performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.WITHDRAW_MFA,

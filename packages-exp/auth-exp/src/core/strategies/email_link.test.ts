@@ -30,7 +30,7 @@ import { sendSignInLinkToEmail, isSignInWithEmailLink } from './email_link';
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('sendSignInLinkToEmail', () => {
+describe('core/strategies/sendSignInLinkToEmail', () => {
   const email = 'foo@bar.com';
 
   beforeEach(mockFetch.setUp);
@@ -121,7 +121,7 @@ describe('sendSignInLinkToEmail', () => {
   });
 });
 
-describe('isSignInWithEmailLink', () => {
+describe('core/strategies/isSignInWithEmailLink', () => {
   context('simple links', () => {
     it('should recognize sign in links', () => {
       const link =

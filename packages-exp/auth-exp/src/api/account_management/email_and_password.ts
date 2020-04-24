@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
@@ -35,7 +35,7 @@ export async function resetPassword(
   auth: Auth,
   request: ResetPasswordRequest
 ): Promise<ResetPasswordResponse> {
-  return performApiRequest<ResetPasswordRequest, ResetPasswordResponse>(
+  return _performApiRequest<ResetPasswordRequest, ResetPasswordResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.RESET_PASSWORD,
@@ -55,7 +55,7 @@ export async function updateEmailPassword(
   auth: Auth,
   request: UpdateEmailPasswordRequest
 ): Promise<UpdateEmailPasswordResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     UpdateEmailPasswordRequest,
     UpdateEmailPasswordResponse
   >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);

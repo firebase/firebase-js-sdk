@@ -36,7 +36,7 @@ export enum BrowserName {
 /**
  * Determine the browser for the purposes of reporting usage to the API
  */
-export function getBrowserName(userAgent: string): BrowserName | string {
+export function _getBrowserName(userAgent: string): BrowserName | string {
   const ua = userAgent.toLowerCase();
   if (ua.includes('opera/') || ua.includes('opr/') || ua.includes('opios/')) {
     return BrowserName.OPERA;

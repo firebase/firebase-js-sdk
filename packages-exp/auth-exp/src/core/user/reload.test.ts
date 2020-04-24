@@ -41,33 +41,33 @@ const BASIC_USER_INFO: UserInfo = {
   providerId: ProviderId.FIREBASE,
   uid: 'uid',
   email: 'email',
-  displayName: 'displayName',
-  phoneNumber: 'phoneNumber',
-  photoURL: 'photoURL'
+  displayName: 'display-name',
+  phoneNumber: 'phone-number',
+  photoURL: 'photo-url'
 };
 
 const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
   providerId: ProviderId.FIREBASE,
   rawId: 'uid',
   email: 'email',
-  displayName: 'displayName',
-  phoneNumber: 'phoneNumber',
-  photoUrl: 'photoURL'
+  displayName: 'display-name',
+  phoneNumber: 'phone-number',
+  photoUrl: 'photo-url'
 };
 
-describe('reload()', () => {
+describe('core/user/reload', () => {
   beforeEach(fetch.setUp);
   afterEach(fetch.tearDown);
 
   it('sets all the new properties', async () => {
     const serverUser: APIUserInfo = {
-      localId: 'localId',
-      displayName: 'displayName',
-      photoUrl: 'photoURL',
+      localId: 'local-id',
+      displayName: 'display-name',
+      photoUrl: 'photo-url',
       email: 'email',
       emailVerified: true,
-      phoneNumber: 'phoneNumber',
-      tenantId: 'tenantId',
+      phoneNumber: 'phone-number',
+      tenantId: 'tenant-id',
       createdAt: 123,
       lastLoginAt: 456
     };
@@ -78,13 +78,13 @@ describe('reload()', () => {
 
     const user = testUser('abc', '', true);
     await _reloadWithoutSaving(user);
-    expect(user.uid).to.eq('localId');
-    expect(user.displayName).to.eq('displayName');
-    expect(user.photoURL).to.eq('photoURL');
+    expect(user.uid).to.eq('local-id');
+    expect(user.displayName).to.eq('display-name');
+    expect(user.photoURL).to.eq('photo-url');
     expect(user.email).to.eq('email');
     expect(user.emailVerified).to.be.true;
-    expect(user.phoneNumber).to.eq('phoneNumber');
-    expect(user.tenantId).to.eq('tenantId');
+    expect(user.phoneNumber).to.eq('phone-number');
+    expect(user.tenantId).to.eq('tenant-id');
     expect(user.metadata).to.eql({
       creationTime: '123',
       lastSignInTime: '456'

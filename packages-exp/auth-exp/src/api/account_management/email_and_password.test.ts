@@ -27,7 +27,7 @@ import { resetPassword, updateEmailPassword } from './email_and_password';
 
 use(chaiAsPromised);
 
-describe('resetPassword', () => {
+describe('api/account_management/resetPassword', () => {
   const request = {
     oobCode: 'oob-code',
     newPassword: 'new-password'
@@ -76,7 +76,7 @@ describe('resetPassword', () => {
   });
 });
 
-describe('updateEmailPassword', () => {
+describe('api/account_management/updateEmailPassword', () => {
   const request = {
     idToken: 'id-token',
     returnSecureToken: true,

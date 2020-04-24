@@ -20,8 +20,8 @@ import { ActionCodeURL } from './action_code_url';
 import { mockAuth } from '../../test/mock_auth';
 import { Operation } from '../model/action_code_info';
 
-describe('ActionCodeURL', () => {
-  describe('_fromLink', () => {
+describe('core/action_code_url', () => {
+  describe('._fromLink', () => {
     it('should parse correctly formatted links', () => {
       const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
       const actionLink =

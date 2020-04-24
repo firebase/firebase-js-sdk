@@ -33,7 +33,7 @@ import {
 
 use(chaiAsPromised);
 
-describe('sendPhoneVerificationCode', () => {
+describe('api/authentication/sendPhoneVerificationCode', () => {
   const request = {
     phoneNumber: '123456789',
     recaptchaToken: 'captchad'
@@ -84,7 +84,7 @@ describe('sendPhoneVerificationCode', () => {
   });
 });
 
-describe('signInWithPhoneNumber', () => {
+describe('api/authentication/signInWithPhoneNumber', () => {
   const request = {
     temporaryProof: 'my-proof',
     phoneNumber: '1234567',
@@ -142,7 +142,7 @@ describe('signInWithPhoneNumber', () => {
   });
 });
 
-describe('linkWithPhoneNumber', () => {
+describe('api/authentication/linkWithPhoneNumber', () => {
   const request = {
     idToken: 'id-token',
     temporaryProof: 'my-proof',
@@ -201,7 +201,7 @@ describe('linkWithPhoneNumber', () => {
   });
 });
 
-describe('verifyPhoneNumberForExisting', () => {
+describe('api/authentication/verifyPhoneNumberForExisting', () => {
   const request = {
     temporaryProof: 'my-proof',
     phoneNumber: '1234567',

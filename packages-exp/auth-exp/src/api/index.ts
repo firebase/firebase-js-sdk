@@ -56,7 +56,7 @@ export enum Endpoint {
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
-export async function performApiRequest<T, V>(
+export async function _performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
   path: Endpoint,
@@ -131,14 +131,14 @@ export async function performApiRequest<T, V>(
   }
 }
 
-export async function performSignInRequest<T, V extends IdTokenResponse>(
+export async function _performSignInRequest<T, V extends IdTokenResponse>(
   auth: Auth,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = await performApiRequest<T, V>(
+  const serverResponse = await _performApiRequest<T, V>(
     auth,
     method,
     path,

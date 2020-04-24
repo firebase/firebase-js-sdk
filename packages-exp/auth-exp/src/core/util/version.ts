@@ -16,7 +16,7 @@
  */
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import { getBrowserName } from './browser';
+import { _getBrowserName } from './browser';
 import { getUA } from '@firebase/util';
 
 const CLIENT_IMPLEMENTATION = 'JsCore';
@@ -41,18 +41,18 @@ enum ClientFramework {
  *
  * TODO: This should be set on the Auth object during initialization
  */
-export function getClientVersion(clientPlatform: ClientPlatform): string {
+export function _getClientVersion(clientPlatform: ClientPlatform): string {
   let reportedPlatform: string;
   switch (clientPlatform) {
     case ClientPlatform.BROWSER:
       // In a browser environment, report the browser name.
-      reportedPlatform = getBrowserName(getUA());
+      reportedPlatform = _getBrowserName(getUA());
       break;
     case ClientPlatform.WORKER:
       // Technically a worker runs from a browser but we need to differentiate a
       // worker from a browser.
       // For example: Chrome-Worker/JsCore/4.9.1/FirebaseCore-web.
-      reportedPlatform = `${getBrowserName(getUA())}-${clientPlatform}`;
+      reportedPlatform = `${_getBrowserName(getUA())}-${clientPlatform}`;
       break;
     default:
       reportedPlatform = clientPlatform;

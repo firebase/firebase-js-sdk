@@ -17,12 +17,12 @@
 
 import { SDK_VERSION } from '@firebase/app-exp';
 import { expect } from 'chai';
-import { ClientPlatform, getClientVersion } from './version';
+import { ClientPlatform, _getClientVersion } from './version';
 
-describe('getClientVersion', () => {
+describe('core/util/_getClientVersion', () => {
   context('browser', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.BROWSER)).to.eq(
+      expect(_getClientVersion(ClientPlatform.BROWSER)).to.eq(
         `Chrome/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });
@@ -30,7 +30,7 @@ describe('getClientVersion', () => {
 
   context('worker', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.WORKER)).to.eq(
+      expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
         `Chrome-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });
@@ -38,7 +38,7 @@ describe('getClientVersion', () => {
 
   context('React Native', () => {
     it('should set the correct version', () => {
-      expect(getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
+      expect(_getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
         `ReactNative/JsCore/${SDK_VERSION}/FirebaseCore-web`
       );
     });

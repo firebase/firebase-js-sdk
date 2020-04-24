@@ -27,7 +27,7 @@ import { enrollPhoneMfa, startEnrollPhoneMfa, withdrawMfa } from './mfa';
 
 use(chaiAsPromised);
 
-describe('startEnrollPhoneMfa', () => {
+describe('api/account_management/startEnrollPhoneMfa', () => {
   const request = {
     idToken: 'id-token',
     phoneEnrollmentInfo: {
@@ -81,7 +81,7 @@ describe('startEnrollPhoneMfa', () => {
   });
 });
 
-describe('enrollPhoneMfa', () => {
+describe('api/account_management/enrollPhoneMfa', () => {
   const request = {
     phoneVerificationInfo: {
       temporaryProof: 'temporary-proof',
@@ -136,7 +136,7 @@ describe('enrollPhoneMfa', () => {
   });
 });
 
-describe('withdrawMfa', () => {
+describe('api/account_management/withdrawMfa', () => {
   const request = {
     idToken: 'id-token',
     mfaEnrollmentId: 'mfa-enrollment-id'

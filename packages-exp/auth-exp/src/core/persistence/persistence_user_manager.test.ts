@@ -49,7 +49,7 @@ function makePersistence(
 }
 
 describe('core/persistence/persistence_user_manager', () => {
-  describe('create', () => {
+  describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
       const manager = await PersistenceUserManager.create(mockAuth, []);
       expect(manager.persistence).to.eq(inMemoryPersistence);

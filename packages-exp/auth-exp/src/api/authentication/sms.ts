@@ -18,8 +18,8 @@
 import {
   Endpoint,
   HttpMethod,
-  performApiRequest,
-  performSignInRequest
+  _performApiRequest,
+  _performSignInRequest
 } from '..';
 import { AuthErrorCode } from '../../core/errors';
 import { Auth } from '../../model/auth';
@@ -39,7 +39,7 @@ export async function sendPhoneVerificationCode(
   auth: Auth,
   request: SendPhoneVerificationCodeRequest
 ): Promise<SendPhoneVerificationCodeResponse> {
-  return performApiRequest<
+  return _performApiRequest<
     SendPhoneVerificationCodeRequest,
     SendPhoneVerificationCodeResponse
   >(auth, HttpMethod.POST, Endpoint.SEND_VERIFICATION_CODE, request);
@@ -66,7 +66,7 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performSignInRequest<
+  return _performSignInRequest<
     SignInWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
@@ -76,7 +76,7 @@ export async function linkWithPhoneNumber(
   auth: Auth,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return performSignInRequest<
+  return _performSignInRequest<
     LinkWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
@@ -101,7 +101,7 @@ export async function verifyPhoneNumberForExisting(
     ...request,
     operation: 'REAUTH'
   };
-  return performSignInRequest<
+  return _performSignInRequest<
     VerifyPhoneNumberForExistingRequest,
     SignInWithPhoneNumberResponse
   >(

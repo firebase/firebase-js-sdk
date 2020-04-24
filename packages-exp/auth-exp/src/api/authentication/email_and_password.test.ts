@@ -36,7 +36,7 @@ import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 
-describe('signInWithPassword', () => {
+describe('api/authentication/signInWithPassword', () => {
   const request = {
     returnSecureToken: true,
     email: 'test@foo.com',
@@ -88,153 +88,149 @@ describe('signInWithPassword', () => {
   });
 });
 
-describe('sendOobCode', () => {
-  context('VERIFY_EMAIL', () => {
-    const request: VerifyEmailRequest = {
-      requestType: Operation.VERIFY_EMAIL,
-      idToken: 'my-token'
-    };
+describe('api/authentication/sendEmailVerification', () => {
+  const request: VerifyEmailRequest = {
+    requestType: Operation.VERIFY_EMAIL,
+    idToken: 'my-token'
+  };
 
-    beforeEach(mockFetch.setUp);
-    afterEach(mockFetch.tearDown);
+  beforeEach(mockFetch.setUp);
+  afterEach(mockFetch.tearDown);
 
-    it('should POST to the correct endpoint', async () => {
-      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        email: 'test@foo.com'
-      });
-
-      const response = await sendEmailVerification(mockAuth, request);
-      expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].method).to.eq('POST');
-      expect(mock.calls[0].headers).to.eql({
-        'Content-Type': 'application/json',
-        'X-Client-Version': 'testSDK/0.0.0'
-      });
+  it('should POST to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      email: 'test@foo.com'
     });
 
-    it('should handle errors', async () => {
-      const mock = mockEndpoint(
-        Endpoint.SEND_OOB_CODE,
-        {
-          error: {
-            code: 400,
-            message: ServerError.INVALID_EMAIL,
-            errors: [
-              {
-                message: ServerError.INVALID_EMAIL
-              }
-            ]
-          }
-        },
-        400
-      );
-
-      await expect(sendEmailVerification(mockAuth, request)).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The email address is badly formatted. (auth/invalid-email).'
-      );
-      expect(mock.calls[0].request).to.eql(request);
+    const response = await sendEmailVerification(mockAuth, request);
+    expect(response.email).to.eq('test@foo.com');
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers).to.eql({
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
   });
 
-  context('PASSWORD_RESET', () => {
-    const request: PasswordResetRequest = {
-      requestType: Operation.PASSWORD_RESET,
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SEND_OOB_CODE,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL,
+          errors: [
+            {
+              message: ServerError.INVALID_EMAIL
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(sendEmailVerification(mockAuth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  });
+});
+
+describe('api/authentication/sendPasswordResetEmail', () => {
+  const request: PasswordResetRequest = {
+    requestType: Operation.PASSWORD_RESET,
+    email: 'test@foo.com'
+  };
+
+  beforeEach(mockFetch.setUp);
+  afterEach(mockFetch.tearDown);
+
+  it('should POST to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email: 'test@foo.com'
-    };
-
-    beforeEach(mockFetch.setUp);
-    afterEach(mockFetch.tearDown);
-
-    it('should POST to the correct endpoint', async () => {
-      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        email: 'test@foo.com'
-      });
-
-      const response = await sendPasswordResetEmail(mockAuth, request);
-      expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].method).to.eq('POST');
-      expect(mock.calls[0].headers).to.eql({
-        'Content-Type': 'application/json',
-        'X-Client-Version': 'testSDK/0.0.0'
-      });
     });
 
-    it('should handle errors', async () => {
-      const mock = mockEndpoint(
-        Endpoint.SEND_OOB_CODE,
-        {
-          error: {
-            code: 400,
-            message: ServerError.INVALID_EMAIL,
-            errors: [
-              {
-                message: ServerError.INVALID_EMAIL
-              }
-            ]
-          }
-        },
-        400
-      );
-
-      await expect(
-        sendPasswordResetEmail(mockAuth, request)
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The email address is badly formatted. (auth/invalid-email).'
-      );
-      expect(mock.calls[0].request).to.eql(request);
+    const response = await sendPasswordResetEmail(mockAuth, request);
+    expect(response.email).to.eq('test@foo.com');
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers).to.eql({
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
   });
 
-  context('EMAIL_SIGNIN', () => {
-    const request: EmailSignInRequest = {
-      requestType: Operation.EMAIL_SIGNIN,
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SEND_OOB_CODE,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL,
+          errors: [
+            {
+              message: ServerError.INVALID_EMAIL
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(sendPasswordResetEmail(mockAuth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  });
+});
+
+describe('api/authentication/sendSignInLinkToEmail', () => {
+  const request: EmailSignInRequest = {
+    requestType: Operation.EMAIL_SIGNIN,
+    email: 'test@foo.com'
+  };
+
+  beforeEach(mockFetch.setUp);
+  afterEach(mockFetch.tearDown);
+
+  it('should POST to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email: 'test@foo.com'
-    };
-
-    beforeEach(mockFetch.setUp);
-    afterEach(mockFetch.tearDown);
-
-    it('should POST to the correct endpoint', async () => {
-      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        email: 'test@foo.com'
-      });
-
-      const response = await sendSignInLinkToEmail(mockAuth, request);
-      expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].method).to.eq('POST');
-      expect(mock.calls[0].headers).to.eql({
-        'Content-Type': 'application/json',
-        'X-Client-Version': 'testSDK/0.0.0'
-      });
     });
 
-    it('should handle errors', async () => {
-      const mock = mockEndpoint(
-        Endpoint.SEND_OOB_CODE,
-        {
-          error: {
-            code: 400,
-            message: ServerError.INVALID_EMAIL,
-            errors: [
-              {
-                message: ServerError.INVALID_EMAIL
-              }
-            ]
-          }
-        },
-        400
-      );
-
-      await expect(sendSignInLinkToEmail(mockAuth, request)).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The email address is badly formatted. (auth/invalid-email).'
-      );
-      expect(mock.calls[0].request).to.eql(request);
+    const response = await sendSignInLinkToEmail(mockAuth, request);
+    expect(response.email).to.eq('test@foo.com');
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers).to.eql({
+      'Content-Type': 'application/json',
+      'X-Client-Version': 'testSDK/0.0.0'
     });
+  });
+
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SEND_OOB_CODE,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL,
+          errors: [
+            {
+              message: ServerError.INVALID_EMAIL
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(sendSignInLinkToEmail(mockAuth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
   });
 });

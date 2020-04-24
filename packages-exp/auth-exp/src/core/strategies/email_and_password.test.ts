@@ -35,7 +35,7 @@ import {
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('sendPasswordResetEmail', () => {
+describe('core/strategies/sendPasswordResetEmail', () => {
   const email = 'foo@bar.com';
 
   beforeEach(mockFetch.setUp);
@@ -126,7 +126,7 @@ describe('sendPasswordResetEmail', () => {
   });
 });
 
-describe('confirmPasswordReset', () => {
+describe('core/strategies/confirmPasswordReset', () => {
   const oobCode = 'oob-code';
   const newPassword = 'new-password';
 
@@ -166,7 +166,7 @@ describe('confirmPasswordReset', () => {
   });
 });
 
-describe('checkActionCode', () => {
+describe('core/strategies/checkActionCode', () => {
   const oobCode = 'oob-code';
   const email = 'foo@bar.com';
   const newEmail = 'new@email.com';
@@ -241,7 +241,7 @@ describe('checkActionCode', () => {
   });
 });
 
-describe('verifyPasswordResetCode', () => {
+describe('core/strategies/verifyPasswordResetCode', () => {
   const oobCode = 'oob-code';
   const email = 'foo@bar.com';
 

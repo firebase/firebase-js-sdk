@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, performSignInRequest } from '..';
+import { Endpoint, HttpMethod, _performSignInRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
@@ -34,7 +34,7 @@ export async function signUp(
   auth: Auth,
   request: SignUpRequest
 ): Promise<SignUpResponse> {
-  return performSignInRequest<SignUpRequest, SignUpResponse>(
+  return _performSignInRequest<SignUpRequest, SignUpResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_UP,
