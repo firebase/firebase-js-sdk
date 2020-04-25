@@ -15,6 +15,7 @@
     "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",

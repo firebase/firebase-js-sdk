@@ -17,6 +17,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.ts' '*.js' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-s lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:all": "run-p test:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",

@@ -4,7 +4,8 @@
   "version": "0.2.1",
   "scripts": {
     "pretest": "mkdirp dist && browserify src/namespace.test.js -o dist/namespace.test.js",
-    "test": "karma start --single-run"
+    "test": "karma start --single-run",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "dependencies": {
     "firebase": "7.14.2"
