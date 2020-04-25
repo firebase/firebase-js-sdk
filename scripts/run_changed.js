@@ -24,7 +24,7 @@ const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
 // use test:ci command in CI
-const testCommand = !!process.env.CI ? 'test:ci': 'test';
+const testCommand = !!process.env.CI ? 'test:ci' : 'test';
 /**
  * Changes to these files warrant running all tests.
  */
