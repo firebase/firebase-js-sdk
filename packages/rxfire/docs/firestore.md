@@ -148,7 +148,7 @@ const davidDoc = db.doc('users/david');
 davidDoc.set({ name: 'David' });
 
 collectionChanges(db.collection('users'))
-  .subscribe(changes => { console.log(users) });
+  .subscribe(changes => { console.log(changes) });
 
 // Listen to only 'added' events
 collectionChanges(db.collection('users'), ['added'])
@@ -181,7 +181,7 @@ const davidDoc = db.doc('users/david');
 davidDoc.set({ name: 'David' });
 
 sortedChanges(db.collection('users'))
-  .subscribe(changes => { console.log(users) });
+  .subscribe(changes => { console.log(changes) });
 
 // Listen to only 'added' events
 docChanges(db.collection('users'), ['added'])
