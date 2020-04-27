@@ -30,6 +30,7 @@
     "release": "node scripts/release/cli.js",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --concurrency 4 --stream test",
+    "test:ci": "lerna run --concurrency 4 --stream test:ci",
     "test:exp": "lerna run --concurrency 4 --stream --scope @firebase/*-exp --scope firebase-exp test",
     "pretest:coverage": "mkdirp coverage",
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
