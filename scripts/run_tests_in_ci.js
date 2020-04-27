@@ -24,13 +24,13 @@ const { spawn } = require('child-process-promise');
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
-  let stdio = '';
+  let stdout = '';
   let stderr = '';
   try {
     const testProcess = spawn('yarn', ['--cwd', dir, 'test']);
 
     testProcess.childProcess.stdout.on('data', data => {
-      stdio += data.toString();
+      stdout += data.toString();
     });
     testProcess.childProcess.stderr.on('data', data => {
       stderr += data.toString();
@@ -40,7 +40,7 @@ const { spawn } = require('child-process-promise');
     console.log('Success: ' + name);
   } catch (e) {
     console.error('Failure: ' + name);
-    console.log(stdio);
+    console.log(stdout);
     console.error(stderr);
     process.exit(1);
   }
