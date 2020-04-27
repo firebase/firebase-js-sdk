@@ -55,6 +55,8 @@ export interface IdTokenResponse {
   // MFA-specific fields
   mfaPendingCredential?: string;
   mfaInfo?: APIMFAInfo[];
+
+  // Used in AdditionalUserInfo
   isNewUser?: boolean;
   rawUserInfo?: string;
   screenName?: string | null;
