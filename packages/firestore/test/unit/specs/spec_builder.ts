@@ -25,7 +25,7 @@ import {
   NoDocument
 } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonObject } from '../../../src/model/field_value';
+import { JsonObject } from '../../../src/model/object_value';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
