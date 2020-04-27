@@ -16,86 +16,128 @@
  */
 
 import { expect } from 'chai';
-import { IdTokenResponse } from '../../model/id_token';
-import { ProviderId } from '../providers';
 import { fromIdTokenResponse } from './additional_user_info';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
+import { ProviderId } from '../providers';
+import { UserProfile } from '../../model/user';
 
 describe('core/user/additional_user_info', () => {
-
   describe('fromIdTokenResponse', () => {
-    const profile = {login: 'scott', friends: [], netWorth: 5.00};
-    const rawUserInfo = JSON.stringify(profile);
+    const userProfileWithLogin: UserProfile = {
+      login: 'scott',
+      friends: [],
+      netWorth: 5.0
+    };
+    const rawUserInfoWithLogin = JSON.stringify(userProfileWithLogin);
+    const userProfileNoLogin: UserProfile = { sample: 'data' };
+    const rawUserInfoNoLogin = JSON.stringify(userProfileNoLogin);
 
     describe('parses federated IDP response tokens', () => {
-
       it('for FacebookAdditionalUserInfo', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK, rawUserInfo}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.FACEBOOK,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.null;
-        expect(profile).to.eq(profile);
+        expect(profile).to.eq(userProfileWithLogin);
       });
 
       it('for GithubAdditionalUserInfo', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.GITHUB, rawUserInfo}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.GITHUB,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
-        expect(profile).to.eq(profile);
+        expect(profile).to.eq(userProfileWithLogin);
       });
 
       it('for GoogleAdditionalUserInfo', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.GOOGLE, rawUserInfo}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.GOOGLE,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
         expect(username).to.be.null;
-        expect(profile).to.eq(profile);
+        expect(profile).to.eq(userProfileWithLogin);
       });
 
       it('for TwitterAdditionalUserInfo', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.TWITTER, rawUserInfo, screenName: 'scott'}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.TWITTER,
+          rawUserInfo: rawUserInfoNoLogin,
+          screenName: 'scott'
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.TWITTER);
         expect(username).to.eq('scott');
-        expect(profile).to.eq(profile);
+        expect(profile).to.eql(userProfileNoLogin);
       });
     });
 
     describe('parses profile data', () => {
-
       it('for valid JSON', () => {
-        expect(fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK, rawUserInfo}))!.profile).to.deep.eq(profile);
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.FACEBOOK,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        expect(additionalUserInfo.profile).to.eql(userProfileWithLogin);
       });
 
       it('for missing JSON', () => {
-        expect(fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK}))!.profile).to.deep.eq({});
+        const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        expect(additionalUserInfo.profile).to.be.empty;
       });
     });
 
     describe('determines new-user status', () => {
-
       it('for new users by token response', () => {
-        expect(fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK, isNewUser: true}))!.isNewUser).to.be.true;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.FACEBOOK,
+          isNewUser: true
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        expect(additionalUserInfo.isNewUser).to.be.true;
       });
 
       it('for new users by toolkit response kind', () => {
-        expect(fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK, kind: 'identitytoolkit#SignupNewUserResponse'}))!.isNewUser).to.be.true;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.FACEBOOK,
+          kind: IdTokenResponseKind.SignupNewUser
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        expect(additionalUserInfo.isNewUser).to.be.true;
       });
 
       it('for old users', () => {
-        expect(fromIdTokenResponse(idTokenResponse({providerId: ProviderId.FACEBOOK}))!.isNewUser).to.be.false;
+        const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        expect(additionalUserInfo.isNewUser).to.be.false;
       });
     });
 
     describe('creates generic AdditionalUserInfo', () => {
-
       it('for custom auth', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.CUSTOM, rawUserInfo}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.CUSTOM,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
@@ -103,14 +145,19 @@ describe('core/user/additional_user_info', () => {
       });
 
       it('for anonymous auth', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({providerId: ProviderId.ANONYMOUS, rawUserInfo}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const idResponse = idTokenResponse({
+          providerId: ProviderId.ANONYMOUS,
+          rawUserInfo: rawUserInfoWithLogin
+        });
+        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
         expect(profile).to.eq(profile);
       });
       /*
+      Uncomment this once ID token parsing is built
       it('for missing provider IDs in response but not in token', () => {
         const additionalUserInfo = fromIdTokenResponse(idTokenResponse({rawUserInfo}))!;
         const {isNewUser, providerId, username, profile} = additionalUserInfo;
@@ -124,29 +171,21 @@ describe('core/user/additional_user_info', () => {
 
     describe('returns null', () => {
       it('for missing provider IDs', () => {
-        expect(fromIdTokenResponse(idTokenResponse({}))).to.be.null;
+        const idResponse = idTokenResponse({});
+        const additionalUserInfo = fromIdTokenResponse(idResponse);
+        expect(additionalUserInfo).to.be.null;
       });
     });
   });
 });
 
-function idTokenResponse(partial: PartialIdTokenResponse): IdTokenResponse {
+function idTokenResponse(partial: Partial<IdTokenResponse>): IdTokenResponse {
   return {
     idToken: 'Parsing logic not implemented',
-    refreshToken: 'Doesn\'t matter',
-    expiresIn: 'Doesn\'t matter',
-    localId: 'Doesn\'t matter',
-    kind: 'Not a new user response ',
+    refreshToken: "Doesn't matter",
+    expiresIn: "Doesn't matter",
+    localId: "Doesn't matter",
+    kind: IdTokenResponseKind.CreateAuthUri,
     ...partial
   };
-}
-
-interface PartialIdTokenResponse {
-  providerId?: ProviderId;
-  isNewUser?: boolean;
-  rawUserInfo?: string;
-  screenName?: string | null;
-  displayName?: string | null;
-  photoUrl?: string | null;
-  kind?: string;
 }

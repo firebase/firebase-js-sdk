@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IdTokenResponse } from '../../model/id_token';
+import { AdditionalUserInfo, UserProfile } from '../../model/user';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { ProviderId } from '../providers';
-import { AdditionalUserInfo } from '../../model/user';
 
 export function fromIdTokenResponse(
   idTokenResponse: IdTokenResponse
@@ -28,8 +28,9 @@ export function fromIdTokenResponse(
       : {};
   const isNewUser =
     !!idTokenResponse.isNewUser ||
-    idTokenResponse.kind === 'identitytoolkit#SignupNewUserResponse';
+    idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
   /*
+  Uncomment this once ID token parsing is built
   if (!providerId && !!idTokenResponse) {
     const providerId = parseIdToken(idTokenResponse.idToken).signInProvider;
     return new GenericAdditionalUserInfo(isNewUser, providerId, null, profile);
@@ -69,18 +70,18 @@ class GenericAdditionalUserInfo implements AdditionalUserInfo {
     readonly isNewUser: boolean,
     readonly providerId: ProviderId | null,
     readonly username: string | null,
-    readonly profile: { [key: string]: unknown } | null
+    readonly profile: UserProfile
   ) {}
 }
 
 class FacebookAdditionalUserInfo extends GenericAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: { [key: string]: unknown } | null) {
+  constructor(isNewUser: boolean, profile: UserProfile) {
     super(isNewUser, ProviderId.FACEBOOK, null, profile);
   }
 }
 
 class GithubAdditionalUserInfo extends GenericAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: { [key: string]: unknown } | null) {
+  constructor(isNewUser: boolean, profile: UserProfile) {
     super(
       isNewUser,
       ProviderId.GITHUB,
@@ -91,7 +92,7 @@ class GithubAdditionalUserInfo extends GenericAdditionalUserInfo {
 }
 
 class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: { [key: string]: unknown } | null) {
+  constructor(isNewUser: boolean, profile: UserProfile) {
     super(isNewUser, ProviderId.GOOGLE, null, profile);
   }
 }
@@ -99,7 +100,7 @@ class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
 class TwitterAdditionalUserInfo extends GenericAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
-    profile: { [key: string]: unknown } | null,
+    profile: UserProfile,
     screenName: string | null
   ) {
     super(isNewUser, ProviderId.TWITTER, screenName, profile);
