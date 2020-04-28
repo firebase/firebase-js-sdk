@@ -125,6 +125,13 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private onlineStateTracker: OnlineStateTracker;
 
+  /**
+   * A barrier to track unresolved operations that block the restart of the
+   * write stream. This is used to remove writes from the mutation queue if the
+   * initial removal attempt failed.
+   */
+  private writeStreamBarrier = 0;
+
   constructor(
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
@@ -132,7 +139,7 @@ export class RemoteStore implements TargetMetadataProvider {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
-    asyncQueue: AsyncQueue,
+    private asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
     connectivityMonitor: ConnectivityMonitor
   ) {
@@ -184,9 +191,12 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Re-enables the network. Idempotent. */
-  async enableNetwork(): Promise<void> {
+  enableNetwork(): Promise<void> {
     this.networkEnabled = true;
+    return this.enableNetworkInternal();
+  }
 
+  async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
@@ -224,6 +234,29 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     this.cleanUpWatchStreamState();
+  }
+
+  /**
+   * Recovery logic for IndexedDB errors that takes the network offline until
+   * `op` succeeds. Retries are scheduled with backoff using `enqueueRetryable()`.
+   */
+  private async disableNetworkUntilRecovery(
+    e: FirestoreError,
+    op: () => Promise<void>
+  ): Promise<void> {
+    if (e.name === 'IndexedDbTransactionError') {
+      // Increment the write stream barrier to prevent out of band stream
+      // restarts.
+      ++this.writeStreamBarrier;
+      await this.disableNetworkInternal();
+      this.asyncQueue.enqueueRetryable(async () => {
+        await op();
+        --this.writeStreamBarrier;
+        await this.enableNetworkInternal();
+      });
+    } else {
+      throw e;
+    }
   }
 
   async shutdown(): Promise<void> {
@@ -337,7 +370,9 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   canUseNetwork(): boolean {
-    return this.isPrimary && this.networkEnabled;
+    return (
+      this.writeStreamBarrier === 0 && this.isPrimary && this.networkEnabled
+    );
   }
 
   private cleanUpWatchStreamState(): void {
@@ -510,27 +545,31 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts the write stream if necessary.
    */
   async fillWritePipeline(): Promise<void> {
-    if (this.canAddToWritePipeline()) {
-      const lastBatchIdRetrieved =
-        this.writePipeline.length > 0
-          ? this.writePipeline[this.writePipeline.length - 1].batchId
-          : BATCHID_UNKNOWN;
-      const batch = await this.localStore.nextMutationBatch(
-        lastBatchIdRetrieved
-      );
+    try {
+      while (this.canAddToWritePipeline()) {
+        const lastBatchIdRetrieved =
+          this.writePipeline.length > 0
+            ? this.writePipeline[this.writePipeline.length - 1].batchId
+            : BATCHID_UNKNOWN;
 
-      if (batch === null) {
-        if (this.writePipeline.length === 0) {
-          this.writeStream.markIdle();
+        const batch = await this.localStore.nextMutationBatch(
+          lastBatchIdRetrieved
+        );
+
+        if (batch) {
+          this.addToWritePipeline(batch);
+        } else {
+          break;
         }
-      } else {
-        this.addToWritePipeline(batch);
-        await this.fillWritePipeline();
       }
-    }
 
-    if (this.shouldStartWriteStream()) {
-      this.startWriteStream();
+      if (this.shouldStartWriteStream()) {
+        this.startWriteStream();
+      } else if (this.writePipeline.length === 0) {
+        this.writeStream.markIdle();
+      }
+    } catch (e) {
+      await this.disableNetworkUntilRecovery(e, () => Promise.resolve());
     }
   }
 
@@ -568,6 +607,7 @@ export class RemoteStore implements TargetMetadataProvider {
   private shouldStartWriteStream(): boolean {
     return (
       this.canUseNetwork() &&
+      this.writeStreamBarrier === 0 &&
       !this.writeStream.isStarted() &&
       this.writePipeline.length > 0
     );
@@ -592,7 +632,7 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  private onMutationResult(
+  private async onMutationResult(
     commitVersion: SnapshotVersion,
     results: MutationResult[]
   ): Promise<void> {
@@ -604,11 +644,16 @@ export class RemoteStore implements TargetMetadataProvider {
     );
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(batch, commitVersion, results);
-    return this.syncEngine.applySuccessfulWrite(success).then(() => {
+    try {
+      await this.syncEngine.applySuccessfulWrite(success);
       // It's possible that with the completion of this mutation another
       // slot has freed up.
-      return this.fillWritePipeline();
-    });
+      await this.fillWritePipeline();
+    } catch (e) {
+      await this.disableNetworkUntilRecovery(e, () =>
+        this.syncEngine.applySuccessfulWrite(success)
+      );
+    }
   }
 
   private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
@@ -621,8 +666,8 @@ export class RemoteStore implements TargetMetadataProvider {
       );
     }
 
-    // If the write stream closed after the write handshake completes, a write
-    // operation failed and we fail the pending operation.
+    // An error that occurs after the write handshake completes is an indication
+    // that the write operation itself failed.
     if (error && this.writeStream.handshakeComplete) {
       // This error affects the actual write.
       await this.handleWriteError(error!);
@@ -648,13 +693,16 @@ export class RemoteStore implements TargetMetadataProvider {
       // restart.
       this.writeStream.inhibitBackoff();
 
-      return this.syncEngine
-        .rejectFailedWrite(batch.batchId, error)
-        .then(() => {
-          // It's possible that with the completion of this mutation
-          // another slot has freed up.
-          return this.fillWritePipeline();
-        });
+      try {
+        await this.syncEngine.rejectFailedWrite(batch.batchId, error);
+        // It's possible that with the completion of this mutation
+        // another slot has freed up.
+        await this.fillWritePipeline();
+      } catch (e) {
+        await this.disableNetworkUntilRecovery(e, () =>
+          this.syncEngine.rejectFailedWrite(batch.batchId, error)
+        );
+      }
     } else {
       // Transient error, just let the retry logic kick in.
     }
