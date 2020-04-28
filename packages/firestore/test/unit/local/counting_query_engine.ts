@@ -129,7 +129,6 @@ export class CountingQueryEngine implements QueryEngine {
 
   private wrapMutationQueue(subject: MutationQueue): MutationQueue {
     return {
-      acknowledgeBatch: subject.acknowledgeBatch,
       addMutationBatch: subject.addMutationBatch,
       checkEmpty: subject.checkEmpty,
       getAllMutationBatches: transaction => {
@@ -166,13 +165,11 @@ export class CountingQueryEngine implements QueryEngine {
           });
       },
       getHighestUnacknowledgedBatchId: subject.getHighestUnacknowledgedBatchId,
-      getLastStreamToken: subject.getLastStreamToken,
       getNextMutationBatchAfterBatchId:
         subject.getNextMutationBatchAfterBatchId,
       lookupMutationBatch: subject.lookupMutationBatch,
       performConsistencyCheck: subject.performConsistencyCheck,
-      removeMutationBatch: subject.removeMutationBatch,
-      setLastStreamToken: subject.setLastStreamToken
+      removeMutationBatch: subject.removeMutationBatch
     };
   }
 }

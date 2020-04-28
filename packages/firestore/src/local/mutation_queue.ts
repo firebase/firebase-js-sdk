@@ -21,7 +21,6 @@ import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
-import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
@@ -31,26 +30,6 @@ import { PersistencePromise } from './persistence_promise';
 export interface MutationQueue {
   /** Returns true if this queue contains no mutation batches. */
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
-
-  /**
-   * Acknowledges the given batch.
-   */
-  acknowledgeBatch(
-    transaction: PersistenceTransaction,
-    batch: MutationBatch,
-    streamToken: ByteString
-  ): PersistencePromise<void>;
-
-  /** Returns the current stream token for this mutation queue. */
-  getLastStreamToken(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ByteString>;
-
-  /** Sets the stream token for this mutation queue. */
-  setLastStreamToken(
-    transaction: PersistenceTransaction,
-    streamToken: ByteString
-  ): PersistencePromise<void>;
 
   /**
    * Creates a new mutation batch and adds it to this mutation queue.

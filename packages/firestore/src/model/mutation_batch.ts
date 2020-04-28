@@ -20,7 +20,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { hardAssert, debugAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
-import { ByteString } from '../util/byte_string';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -189,7 +188,6 @@ export class MutationBatchResult {
     readonly batch: MutationBatch,
     readonly commitVersion: SnapshotVersion,
     readonly mutationResults: MutationResult[],
-    readonly streamToken: ByteString,
     /**
      * A pre-computed mapping from each mutated document to the resulting
      * version.
@@ -205,8 +203,7 @@ export class MutationBatchResult {
   static from(
     batch: MutationBatch,
     commitVersion: SnapshotVersion,
-    results: MutationResult[],
-    streamToken: ByteString
+    results: MutationResult[]
   ): MutationBatchResult {
     hardAssert(
       batch.mutations.length === results.length,
@@ -222,12 +219,6 @@ export class MutationBatchResult {
       versionMap = versionMap.insert(mutations[i].key, results[i].version);
     }
 
-    return new MutationBatchResult(
-      batch,
-      commitVersion,
-      results,
-      streamToken,
-      versionMap
-    );
+    return new MutationBatchResult(batch, commitVersion, results, versionMap);
   }
 }
