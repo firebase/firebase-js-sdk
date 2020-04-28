@@ -25,7 +25,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { ByteString } from '../../../src/util/byte_string';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -46,39 +45,6 @@ export class TestMutationQueue {
         return this.queue.getAllMutationBatches(txn);
       })
       .then(batches => batches.length);
-  }
-
-  acknowledgeBatch(
-    batch: MutationBatch,
-    streamToken: ByteString
-  ): Promise<void> {
-    return this.persistence.runTransaction(
-      'acknowledgeThroughBatchId',
-      'readwrite-primary',
-      txn => {
-        return this.queue.acknowledgeBatch(txn, batch, streamToken);
-      }
-    );
-  }
-
-  getLastStreamToken(): Promise<ByteString> {
-    return this.persistence.runTransaction(
-      'getLastStreamToken',
-      'readonly',
-      txn => {
-        return this.queue.getLastStreamToken(txn);
-      }
-    );
-  }
-
-  setLastStreamToken(streamToken: ByteString): Promise<void> {
-    return this.persistence.runTransaction(
-      'setLastStreamToken',
-      'readwrite-primary',
-      txn => {
-        return this.queue.setLastStreamToken(txn, streamToken);
-      }
-    );
   }
 
   addMutationBatch(mutations: Mutation[]): Promise<MutationBatch> {

@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -43,7 +43,7 @@ import {
   PersistentWriteStream
 } from './persistent_stream';
 import { RemoteSyncer } from './remote_syncer';
-import { isPermanentError, isPermanentWriteError } from './rpc_error';
+import { isPermanentWriteError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -199,8 +199,6 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
-      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
-
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
       } else {
@@ -644,17 +642,11 @@ export class RemoteStore implements TargetMetadataProvider {
     this.writeStream.writeHandshake();
   }
 
-  private onWriteHandshakeComplete(): Promise<void> {
-    // Record the stream token.
-    return this.localStore
-      .setLastStreamToken(this.writeStream.lastStreamToken)
-      .then(() => {
-        // Send the write pipeline now that the stream is established.
-        for (const batch of this.writePipeline) {
-          this.writeStream.writeMutations(batch.mutations);
-        }
-      })
-      .catch(ignoreIfPrimaryLeaseLoss);
+  private async onWriteHandshakeComplete(): Promise<void> {
+    // Send the write pipeline now that the stream is established.
+    for (const batch of this.writePipeline) {
+      this.writeStream.writeMutations(batch.mutations);
+    }
   }
 
   private onMutationResult(
@@ -668,12 +660,7 @@ export class RemoteStore implements TargetMetadataProvider {
       'Got result for empty write pipeline'
     );
     const batch = this.writePipeline.shift()!;
-    const success = MutationBatchResult.from(
-      batch,
-      commitVersion,
-      results,
-      this.writeStream.lastStreamToken
-    );
+    const success = MutationBatchResult.from(batch, commitVersion, results);
     return this.syncEngine.applySuccessfulWrite(success).then(() => {
       // It's possible that with the completion of this mutation another
       // slot has freed up.
@@ -691,46 +678,17 @@ export class RemoteStore implements TargetMetadataProvider {
       );
     }
 
-    // If the write stream closed due to an error, invoke the error callbacks if
-    // there are pending writes.
-    if (error && this.writePipeline.length > 0) {
-      if (this.writeStream.handshakeComplete) {
-        // This error affects the actual write.
-        await this.handleWriteError(error!);
-      } else {
-        // If there was an error before the handshake has finished, it's
-        // possible that the server is unable to process the stream token
-        // we're sending. (Perhaps it's too old?)
-        await this.handleHandshakeError(error!);
-      }
-
-      // The write stream might have been started by refilling the write
-      // pipeline for failed writes
-      if (this.shouldStartWriteStream()) {
-        this.startWriteStream();
-      }
+    // If the write stream closed after the write handshake completes, a write
+    // operation failed and we fail the pending operation.
+    if (error && this.writeStream.handshakeComplete) {
+      // This error affects the actual write.
+      await this.handleWriteError(error!);
     }
-    // No pending writes, nothing to do
-  }
 
-  private async handleHandshakeError(error: FirestoreError): Promise<void> {
-    // Reset the token if it's a permanent error, signaling the write stream is
-    // no longer valid. Note that the handshake does not count as a write: see
-    // comments on isPermanentWriteError for details.
-    if (isPermanentError(error.code)) {
-      logDebug(
-        LOG_TAG,
-        'RemoteStore error before completed handshake; resetting stream token: ',
-        this.writeStream.lastStreamToken
-      );
-      this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
-
-      return this.localStore
-        .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
-        .catch(ignoreIfPrimaryLeaseLoss);
-    } else {
-      // Some other error, don't reset stream token. Our stream logic will
-      // just retry with exponential backoff.
+    // The write stream might have been started by refilling the write
+    // pipeline for failed writes
+    if (this.shouldStartWriteStream()) {
+      this.startWriteStream();
     }
   }
 
