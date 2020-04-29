@@ -212,11 +212,7 @@ export function field(path: string): FieldPath {
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+  return new FieldMask(paths.map(v => field(v)));
 }
 
 export function blob(...bytes: number[]): Blob {

@@ -44,7 +44,6 @@ import {
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { SortedSet } from '../util/sorted_set';
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
@@ -337,10 +336,10 @@ export class UserDataReader {
     let fieldTransforms: FieldTransform[];
 
     if (!fieldPaths) {
-      fieldMask = FieldMask.fromArray(context.fieldMask);
+      fieldMask = new FieldMask(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
     } else {
-      let validatedFieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+      const validatedFieldPaths: FieldPath[] = [];
 
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
@@ -365,10 +364,12 @@ export class UserDataReader {
           );
         }
 
-        validatedFieldPaths = validatedFieldPaths.add(fieldPath);
+        if (!fieldMaskContains(validatedFieldPaths, fieldPath)) {
+          validatedFieldPaths.push(fieldPath);
+        }
       }
 
-      fieldMask = FieldMask.fromSet(validatedFieldPaths);
+      fieldMask = new FieldMask(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
         fieldMask.covers(transform.field)
       );
@@ -389,7 +390,7 @@ export class UserDataReader {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+    const fieldMaskPaths: FieldPath[] = [];
     const updateData = new ObjectValueBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
@@ -398,17 +399,17 @@ export class UserDataReader {
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths = fieldMaskPaths.add(path);
+        fieldMaskPaths.push(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths = fieldMaskPaths.add(path);
+          fieldMaskPaths.push(path);
           updateData.set(path, parsedValue);
         }
       }
     });
 
-    const mask = FieldMask.fromSet(fieldMaskPaths);
+    const mask = new FieldMask(fieldMaskPaths);
     return new ParsedUpdateData(
       updateData.build(),
       mask,
@@ -449,26 +450,30 @@ export class UserDataReader {
       values.push(moreFieldsAndValues[i + 1]);
     }
 
-    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+    const fieldMaskPaths: FieldPath[] = [];
     const updateData = new ObjectValueBuilder();
 
-    for (let i = 0; i < keys.length; ++i) {
-      const path = keys[i];
-      const childContext = context.childContextForFieldPath(path);
-      const value = this.runPreConverter(values[i], childContext);
-      if (value instanceof DeleteFieldValueImpl) {
-        // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths = fieldMaskPaths.add(path);
-      } else {
-        const parsedValue = this.parseData(value, childContext);
-        if (parsedValue != null) {
-          fieldMaskPaths = fieldMaskPaths.add(path);
-          updateData.set(path, parsedValue);
+    // We iterate in reverse order to pick the last value for a field if the
+    // user specified the field multiple times.
+    for (let i = keys.length - 1; i >= 0; --i) {
+      if (!fieldMaskContains(fieldMaskPaths, keys[i])) {
+        const path = keys[i];
+        const childContext = context.childContextForFieldPath(path);
+        const value = this.runPreConverter(values[i], childContext);
+        if (value instanceof DeleteFieldValueImpl) {
+          // Add it to the field mask, but don't add anything to updateData.
+          fieldMaskPaths.push(path);
+        } else {
+          const parsedValue = this.parseData(value, childContext);
+          if (parsedValue != null) {
+            fieldMaskPaths.push(path);
+            updateData.set(path, parsedValue);
+          }
         }
       }
     }
 
-    const mask = FieldMask.fromSet(fieldMaskPaths);
+    const mask = new FieldMask(fieldMaskPaths);
     return new ParsedUpdateData(
       updateData.build(),
       mask,
@@ -840,4 +845,9 @@ function fieldPathFromDotSeparatedString(
  */
 function errorMessage(error: Error | object): string {
   return error instanceof Error ? error.message : error.toString();
+}
+
+/** Checks `haystack` if FieldPath `needle` is present. Runs in O(n). */
+function fieldMaskContains(haystack: FieldPath[], needle: FieldPath): boolean {
+  return haystack.some(v => v.isEqual(needle));
 }

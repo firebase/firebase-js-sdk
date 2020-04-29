@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import { immediateSuccessor } from '../../../src/util/misc';
 import { debugCast } from '../../../src/util/assert';
+import { mask } from '../../util/helpers';
 
 describe('immediateSuccessor', () => {
   it('generates the correct immediate successors', () => {
@@ -40,6 +41,14 @@ describe('typeCast', () => {
     const foo = new Foo();
     expect(() => debugCast(foo, Bar)).to.throw(
       "Expected type 'Bar', but was 'Foo'"
+    );
+  });
+});
+
+describe('FieldMask', () => {
+  it('cannot contain duplicate fields', () => {
+    expect(() => mask('a', 'b', 'a')).to.throw(
+      'FieldMask contains fields that are not unique'
     );
   });
 });
