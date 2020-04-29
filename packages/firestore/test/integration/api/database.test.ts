@@ -1074,7 +1074,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
-    'can clear persistence if the client has not been initialized',
+    'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async docRef => {
         const firestore = docRef.firestore;
@@ -1087,6 +1087,30 @@ apiDescribe('Database', (persistence: boolean) => {
         await firestore.clearPersistence();
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(docRef.path);
+        await expect(
+          docRef2.get({ source: 'cache' })
+        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+      });
+    }
+  );
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)(
+    'can clear persistence if the client has not been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
+        await docRef.set({ foo: 'bar' });
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.clearPersistence();
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         await expect(
