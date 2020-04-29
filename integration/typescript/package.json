@@ -1,13 +1,13 @@
 {
   "name": "firebase-typescript-test",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.1",
   "scripts": {
     "test": "karma start --single-run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "dependencies": {
-    "firebase": "^7.14.3"
+    "firebase": "7.14.2"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",

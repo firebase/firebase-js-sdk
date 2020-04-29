@@ -1,6 +1,6 @@
 {
   "name": "firebase-firestore-integration-test",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "build:deps": "cd ../../packages/firestore ; yarn build",
