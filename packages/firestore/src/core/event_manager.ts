@@ -22,6 +22,10 @@ import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import { logError } from '../util/log';
+import { Code, FirestoreError } from '../util/error';
+
+const LOG_TAG = 'EventManager';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -69,10 +73,21 @@ export class EventManager implements SyncEngineListener {
     }
 
     if (firstListen) {
-      queryInfo.viewSnap = await this.syncEngine.listen(query);
+      try {
+        queryInfo.viewSnap = await this.syncEngine.listen(query);
+      } catch (e) {
+        const msg = `Initialization of query '${query}' failed: ${e}`;
+        logError(LOG_TAG, msg);
+        if (e.name === 'IndexedDbTransactionError') {
+          listener.onError(new FirestoreError(Code.UNAVAILABLE, msg));
+        } else {
+          throw e;
+        }
+        return;
+      }
     }
 
-    this.queries.set(query, queryInfo!);
+    this.queries.set(query, queryInfo);
     queryInfo.listeners.push(listener);
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.

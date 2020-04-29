@@ -70,7 +70,7 @@ import {
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
-import { Code, FirestoreError } from '../../../src/util/error';
+import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
@@ -80,7 +80,7 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
-  expectFirestoreError,
+  validateFirestoreError,
   filter,
   key,
   orderBy,
@@ -358,7 +358,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
   }
 
   error(error: Error): void {
-    expectFirestoreError(error);
+    expect(error.name).to.equal('FirebaseError');
     this.pushEvent({ query: this.query, error: error as FirestoreError });
   }
 }
@@ -597,9 +597,16 @@ abstract class TestRunner {
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
+    let targetFailed = false;
+
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
-    const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
+    const aggregator = new EventAggregator(query, e => {
+      if (e.error) {
+        targetFailed = true;
+      }
+      this.pushEvent(e);
+    });
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
       includeMetadataChanges: true,
@@ -608,20 +615,11 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    const targetAdded = await this.queue.enqueue(async () => {
-      try {
-        await this.eventManager.listen(queryListener);
-        return true;
-      } catch (e) {
-        expect(this.persistence.injectFailures).to.be.true;
-        queryListener.onError(
-          new FirestoreError(Code.UNAVAILABLE, e.message)
-        );
-        return false;
-      }
-    });
+    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
-    if (targetAdded) {
+    if (targetFailed) {
+      expect(this.persistence.injectFailures).to.be.true;
+    } else {
       // Skip the backoff that may have been triggered by a previous call to
       // `watchStreamCloses()`.
       if (
@@ -1206,7 +1204,10 @@ abstract class TestRunner {
     const expectedQuery = parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      expectFirestoreError(actual.error!);
+      validateFirestoreError(
+        mapCodeFromRpcCode(expected.errorCode),
+        actual.error!
+      );
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {
