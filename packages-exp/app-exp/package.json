@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-exp",
-  "version": "0.0.800",
+  "version": "0.0.801",
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -30,10 +30,10 @@
     "build:doc": "yarn build && yarn doc"
   },
   "dependencies": {
-    "@firebase/app-types-exp": "0.0.800",
-    "@firebase/util": "0.2.45",
-    "@firebase/logger": "0.2.2",
-    "@firebase/component": "0.1.10",
+    "@firebase/app-types-exp": "^0.0.801",
+    "@firebase/component": "^0.1.11",
+    "@firebase/logger": "^0.2.3",
+    "@firebase/util": "^0.2.46",
     "tslib": "1.11.1"
   },
   "license": "Apache-2.0",

@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.800.1",
+  "version": "0.800.2",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -33,9 +33,12 @@
     "prepare": "yarn build:release"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.0.800"
+    "@firebase/app-exp": "^0.0.801"
   },
   "devDependencies": {
+    "gulp": "4.0.2",
+    "gulp-concat": "2.6.1",
+    "gulp-sourcemaps": "2.6.5",
     "rollup": "1.28.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "0.13.0",
@@ -44,9 +47,6 @@
     "rollup-plugin-terser": "5.1.3",
     "rollup-plugin-typescript2": "0.27.0",
     "rollup-plugin-uglify": "6.0.4",
-    "gulp": "4.0.2",
-    "gulp-sourcemaps": "2.6.5",
-    "gulp-concat": "2.6.1",
     "typescript": "3.7.5"
   },
   "components": [
