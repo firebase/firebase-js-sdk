@@ -18,7 +18,7 @@
 import * as api from '../../../src/protos/firestore_proto_api';
 
 import { expect } from 'chai';
-import { PublicFieldValue } from '../../../src/api/field_value';
+import { PublicFieldValue } from '../../../src/api/database';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';

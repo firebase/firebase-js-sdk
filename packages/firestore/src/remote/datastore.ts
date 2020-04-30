@@ -37,7 +37,11 @@ import { AsyncQueue } from '../util/async_queue';
  * Cloud Datastore grpc API, which provides an interface that is more convenient
  * for the rest of the client SDK architecture to consume.
  */
-export class Datastore {}
+export class Datastore {
+  // Make sure that the structural type of `Datastore` is unique.
+  // See https://github.com/microsoft/TypeScript/issues/5451
+  private _ = undefined;
+}
 
 /**
  * An implementation of Datastore that exposes additional state for internal

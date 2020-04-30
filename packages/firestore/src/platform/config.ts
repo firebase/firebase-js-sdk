@@ -31,10 +31,10 @@ import {
   PublicQueryDocumentSnapshot,
   PublicQuerySnapshot,
   PublicTransaction,
-  PublicWriteBatch
+  PublicWriteBatch,
+  PublicFieldValue
 } from '../api/database';
 import { FieldPath } from '../api/field_path';
-import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 
