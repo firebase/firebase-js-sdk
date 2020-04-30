@@ -111,4 +111,24 @@ describe('ObjectMap', () => {
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
   });
+
+  it.only('isEqual', () => {
+    const map1 = new ObjectMap<TestKey, string>(o => o.mapKey);
+    const map2 = new ObjectMap<TestKey, string>(o => o.mapKey);
+    const map3 = new ObjectMap<TestKey, string>(o => o.mapKey);
+    // These all have the same ids, but are different entities.
+    const k1 = new TestKey(4, 4);
+    const k2 = new TestKey(4, 5);
+
+    map1.set(k1, 'foo');
+    map2.set(k1, 'foo');
+    map3.set(k1, 'bar');
+
+    map1.set(k2, 'foo');
+    map2.set(k2, 'foo');
+    map3.set(k2, 'bar');
+    
+    expect(map1.isEqual(map2)).to.be.true;
+    expect(map1.isEqual(map3)).to.be.false;
+  });
 });

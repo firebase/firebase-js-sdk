@@ -16,7 +16,6 @@
  */
 
 import { Equatable } from './misc';
-import { forEach, isEmpty } from './obj';
 
 type Entry<K, V> = [K, V];
 
@@ -33,16 +32,14 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
    * to find an actual match. Note that collisions should be rare, so we still
    * expect near constant time lookups in practice.
    */
-  private inner: {
-    [canonicalId: string]: Array<Entry<KeyType, ValueType>>;
-  } = {};
+  private inner = new Map<string, Array<Entry<KeyType, ValueType>>>();
 
   constructor(private mapKeyFn: (key: KeyType) => string) {}
 
   /** Get a value for this key, or undefined if it does not exist. */
   get(key: KeyType): ValueType | undefined {
     const id = this.mapKeyFn(key);
-    const matches = this.inner[id];
+    const matches = this.inner.get(id);
     if (matches === undefined) {
       return undefined;
     }
@@ -61,9 +58,9 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   /** Put this key and value in the map. */
   set(key: KeyType, value: ValueType): void {
     const id = this.mapKeyFn(key);
-    const matches = this.inner[id];
+    const matches = this.inner.get(id);
     if (matches === undefined) {
-      this.inner[id] = [[key, value]];
+      this.inner.set(id, [[key, value]]);
       return;
     }
     for (let i = 0; i < matches.length; i++) {
@@ -80,14 +77,14 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
    */
   delete(key: KeyType): boolean {
     const id = this.mapKeyFn(key);
-    const matches = this.inner[id];
+    const matches = this.inner.get(id);
     if (matches === undefined) {
       return false;
     }
     for (let i = 0; i < matches.length; i++) {
       if (matches[i][0].isEqual(key)) {
         if (matches.length === 1) {
-          delete this.inner[id];
+          this.inner.delete(id);
         } else {
           matches.splice(i, 1);
         }
@@ -98,14 +95,25 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   }
 
   forEach(fn: (key: KeyType, val: ValueType) => void): void {
-    forEach(this.inner, (_, entries) => {
+    this.inner.forEach(entries => {
       for (const [k, v] of entries) {
         fn(k, v);
       }
     });
   }
 
+  isEqual(other: ObjectMap<KeyType, ValueType>) : boolean {
+    if (this.inner.size !== other.inner.size) {
+      return false;
+    }
+    let equal = true;
+    this.forEach(v => {
+      equal = equal || other.hasv);
+    });
+    return equal;
+  }
+
   isEmpty(): boolean {
-    return isEmpty(this.inner);
+    return this.inner.size === 0;
   }
 }

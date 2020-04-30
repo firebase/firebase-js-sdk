@@ -20,8 +20,6 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { SortedSet } from '../util/sorted_set';
-
 import {
   Document,
   MaybeDocument,
@@ -33,6 +31,7 @@ import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
 import { arrayEquals } from '../util/misc';
+import { ObjectSet } from '../util/obj_set';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -45,17 +44,13 @@ import { arrayEquals } from '../util/misc';
  *             containing foo
  */
 export class FieldMask {
-  constructor(readonly fields: SortedSet<FieldPath>) {
+  constructor(readonly fields: ObjectSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
   }
 
-  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
-    return new FieldMask(fields);
-  }
-
   static fromArray(fields: FieldPath[]): FieldMask {
-    let fieldsAsSet = new SortedSet<FieldPath>(FieldPath.comparator);
-    fields.forEach(fieldPath => (fieldsAsSet = fieldsAsSet.add(fieldPath)));
+    const fieldsAsSet = new ObjectSet<FieldPath>(f => f.canonicalString());
+    fields.forEach(fieldPath => fieldsAsSet.add(fieldPath));
     return new FieldMask(fieldsAsSet);
   }
 

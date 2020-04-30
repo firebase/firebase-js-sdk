@@ -44,7 +44,6 @@ import {
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { SortedSet } from '../util/sorted_set';
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
@@ -59,6 +58,7 @@ import {
   ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
+import { ObjectSet } from '../util/obj_set';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -340,7 +340,9 @@ export class UserDataReader {
       fieldMask = FieldMask.fromArray(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
     } else {
-      let validatedFieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+      const validatedFieldPaths = new ObjectSet<FieldPath>(f =>
+        f.canonicalString()
+      );
 
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
@@ -365,10 +367,10 @@ export class UserDataReader {
           );
         }
 
-        validatedFieldPaths = validatedFieldPaths.add(fieldPath);
+        validatedFieldPaths.add(fieldPath);
       }
 
-      fieldMask = FieldMask.fromSet(validatedFieldPaths);
+      fieldMask = new FieldMask(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
         fieldMask.covers(transform.field)
       );
@@ -389,7 +391,7 @@ export class UserDataReader {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+    const fieldMaskPaths = new ObjectSet<FieldPath>(f => f.canonicalString());
     const updateData = new ObjectValueBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
@@ -398,17 +400,17 @@ export class UserDataReader {
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths = fieldMaskPaths.add(path);
+        fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths = fieldMaskPaths.add(path);
+          fieldMaskPaths.add(path);
           updateData.set(path, parsedValue);
         }
       }
     });
 
-    const mask = FieldMask.fromSet(fieldMaskPaths);
+    const mask = new FieldMask(fieldMaskPaths);
     return new ParsedUpdateData(
       updateData.build(),
       mask,
@@ -449,7 +451,7 @@ export class UserDataReader {
       values.push(moreFieldsAndValues[i + 1]);
     }
 
-    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+    const fieldMaskPaths = new ObjectSet<FieldPath>(f => f.canonicalString());
     const updateData = new ObjectValueBuilder();
 
     for (let i = 0; i < keys.length; ++i) {
@@ -458,17 +460,17 @@ export class UserDataReader {
       const value = this.runPreConverter(values[i], childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths = fieldMaskPaths.add(path);
+        fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths = fieldMaskPaths.add(path);
+          fieldMaskPaths.add(path);
           updateData.set(path, parsedValue);
         }
       }
     }
 
-    const mask = FieldMask.fromSet(fieldMaskPaths);
+    const mask = new FieldMask(fieldMaskPaths);
     return new ParsedUpdateData(
       updateData.build(),
       mask,

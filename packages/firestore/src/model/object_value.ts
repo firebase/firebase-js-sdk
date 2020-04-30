@@ -21,9 +21,9 @@ import { debugAssert } from '../util/assert';
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { valueEquals, isMapValue, typeOrder } from './values';
+import { isMapValue, typeOrder, valueEquals } from './values';
 import { forEach } from '../util/obj';
-import { SortedSet } from '../util/sorted_set';
+import { ObjectSet } from '../util/obj_set';
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -243,7 +243,7 @@ export class ObjectValueBuilder {
  * Returns a FieldMask built from all fields in a MapValue.
  */
 export function extractFieldMask(value: api.MapValue): FieldMask {
-  let fields = new SortedSet<FieldPath>(FieldPath.comparator);
+  const fields = new ObjectSet<FieldPath>(v => v.canonicalString());
   forEach(value!.fields || {}, (key, value) => {
     const currentPath = new FieldPath([key]);
     if (isMapValue(value)) {
@@ -251,19 +251,19 @@ export function extractFieldMask(value: api.MapValue): FieldMask {
       const nestedFields = nestedMask.fields;
       if (nestedFields.isEmpty()) {
         // Preserve the empty map by adding it to the FieldMask.
-        fields = fields.add(currentPath);
+        fields.add(currentPath);
       } else {
         // For nested and non-empty ObjectValues, add the FieldPath of the
         // leaf nodes.
         nestedFields.forEach(nestedPath => {
-          fields = fields.add(currentPath.child(nestedPath));
+          fields.add(currentPath.child(nestedPath));
         });
       }
     } else {
       // For nested and non-empty ObjectValues, add the FieldPath of the leaf
       // nodes.
-      fields = fields.add(currentPath);
+      fields.add(currentPath);
     }
   });
-  return FieldMask.fromSet(fields);
+  return new FieldMask(fields);
 }
