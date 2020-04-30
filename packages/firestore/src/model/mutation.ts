@@ -50,7 +50,8 @@ export class FieldMask {
     fields.sort(FieldPath.comparator);
     debugAssert(
       !fields.some((v, i) => i !== 0 && v.isEqual(fields[i - 1])),
-      'FieldMask contains fields that are not unique'
+      'FieldMask contains field that is not unique: ' +
+        fields.find((v, i) => i !== 0 && v.isEqual(fields[i - 1]))!
     );
   }
 

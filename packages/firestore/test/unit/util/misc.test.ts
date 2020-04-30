@@ -48,7 +48,7 @@ describe('typeCast', () => {
 describe('FieldMask', () => {
   it('cannot contain duplicate fields', () => {
     expect(() => mask('a', 'b', 'a')).to.throw(
-      'FieldMask contains fields that are not unique'
+      'FieldMask contains field that is not unique: a'
     );
   });
 });
