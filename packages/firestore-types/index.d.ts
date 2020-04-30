@@ -24,7 +24,7 @@ import {
   FirestoreError,
   DocumentData,
   FieldPath,
-  DocumentChange
+  DocumentChange, CollectionReference
 } from './lite';
 
 export {
@@ -118,8 +118,6 @@ export class DocumentSnapshot<T = DocumentData> {
   data(options?: SnapshotOptions): T | undefined;
 
   get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
-
-  isEqual(other: DocumentSnapshot<T>): boolean;
 }
 
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
@@ -145,8 +143,6 @@ export class QuerySnapshot<T = DocumentData> {
     callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: any
   ): void;
-
-  isEqual(other: QuerySnapshot<T>): boolean;
 }
 
 // MARK: Firestore methods
@@ -241,6 +237,11 @@ export function onSnapshot<T>(
   onError?: (error: Error) => void,
   onCompletion?: () => void
 ): () => void;
+
+// MARK: Equals methods
+export function referencesEqual(l: DocumentReference|CollectionReference, r:DocumentReference|CollectionReference): boolean;
+export function queriesEqual(l: Query, r:Query) : boolean;
+export function snapshotsEqual(l: DocumentSnapshot|QuerySnapshot, r:DocumentSnapshot|QuerySnapshot) : boolean;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
