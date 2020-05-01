@@ -128,24 +128,21 @@ function isWrite(dataSource: UserDataSource): boolean {
   }
 }
 
-interface ParseSettings {
+/** Contains the settings that are mutated as we parse user data. */
+interface ContextSettings {
   /** Indicates what kind of API method this data came from. */
-  dataSource: UserDataSource;
-  /** The serializer to use for user data conversion. */
-  serializer: JsonProtoSerializer;
-  /** The database ID of the instance. */
-  databaseId: DatabaseId;
+  readonly dataSource: UserDataSource;
   /** The name of the method the user called to create the ParseContext. */
-  methodName: string;
+  readonly methodName: string;
   /**
    * A path within the object being parsed. This could be an empty path (in
    * which case the context represents the root of the data being parsed), or a
    * nonempty path (indicating the context represents a nested location within
    * the data).
    */
-  path: FieldPath | null;
+  readonly path: FieldPath | null;
   /** Whether or not this context corresponds to an element of an array. */
-  arrayElement: boolean;
+  readonly arrayElement: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -156,6 +153,8 @@ export class ParseContext {
    * Initializes a ParseContext with the given source and path.
    *
    * @param settings The settings for the parser.
+   * @param databaseId The database ID of the Firestore instance.
+   * @param serializer The serialize to use to generate the Value proto.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
    * @param fieldMask A mutable list of field paths encountered while parsing
@@ -167,7 +166,9 @@ export class ParseContext {
    * compromised).
    */
   constructor(
-    private readonly settings: ParseSettings,
+    readonly settings: ContextSettings,
+    readonly databaseId: DatabaseId,
+    readonly serializer: JsonProtoSerializer,
     fieldTransforms?: FieldTransform[],
     fieldMask?: FieldPath[]
   ) {
@@ -188,22 +189,12 @@ export class ParseContext {
     return this.settings.dataSource;
   }
 
-  get arrayElement(): boolean {
-    return this.settings.arrayElement;
-  }
-
-  get serializer(): JsonProtoSerializer {
-    return this.settings.serializer;
-  }
-
-  get databaseId(): DatabaseId {
-    return this.settings.databaseId;
-  }
-
   /** Returns a new context with the specified settings overwritten. */
-  contextWith(configuration: Partial<ParseSettings>): ParseContext {
+  contextWith(configuration: Partial<ContextSettings>): ParseContext {
     return new ParseContext(
       { ...this.settings, ...configuration },
+      this.databaseId,
+      this.serializer,
       this.fieldTransforms,
       this.fieldMask
     );
@@ -422,7 +413,7 @@ export class UserDataReader {
 
     const fieldMaskPaths: FieldPath[] = [];
     const updateData = new ObjectValueBuilder();
-    
+
     // We iterate in reverse order to pick the last value for a field if the
     // user specified the field multiple times.
     for (let i = keys.length - 1; i >= 0; --i) {
@@ -456,14 +447,16 @@ export class UserDataReader {
     dataSource: UserDataSource,
     methodName: string
   ): ParseContext {
-    return new ParseContext({
-      dataSource,
-      databaseId: this.databaseId,
-      serializer: this.serializer,
-      methodName,
-      path: FieldPath.EMPTY_PATH,
-      arrayElement: false
-    });
+    return new ParseContext(
+      {
+        dataSource,
+        methodName,
+        path: FieldPath.EMPTY_PATH,
+        arrayElement: false
+      },
+      this.databaseId,
+      this.serializer
+    );
   }
 
   /**
@@ -531,7 +524,7 @@ export function parseData(
       // contain additional arrays (each representing an individual field
       // value), so we disable this validation.
       if (
-        context.arrayElement &&
+        context.settings.arrayElement &&
         context.dataSource !== UserDataSource.ArrayArgument
       ) {
         throw context.createError('Nested arrays are not supported');
