@@ -23,12 +23,8 @@ import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
-import { FieldValueImpl } from '../../src/api/field_value';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import {
-  DocumentKeyReference,
-  UserDataReader
-} from '../../src/api/user_data_reader';
+import { UserDataReader } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -84,7 +80,7 @@ import {
 } from '../../src/remote/watch_change';
 import { debugAssert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
-import { Dict } from '../../src/util/obj';
+import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
@@ -92,42 +88,32 @@ import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
+import { DocumentReference, Firestore } from '../../src/api/database';
+import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
 
+// A Firestore that can be used in DocumentReferences and UserDataWriter.
+const fakeFirestore: Firestore = {
+  ensureClientConfigured: () => {},
+  _databaseId: new DatabaseId('test-project')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
+
 export type TestSnapshotVersion = number;
 
-/**
- * A string sentinel that can be used with patchMutation() to mark a field for
- * deletion.
- */
-export const DELETE_SENTINEL = '<DELETE>';
-
-const preConverter = (input: unknown): unknown => {
-  return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
-};
-
 export function testUserDataWriter(): UserDataWriter {
-  // We should pass in a proper Firestore instance, but for now, only
-  // `ensureClientConfigured()` and `_databaseId` is used in our test usage of
-  // UserDataWriter.
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const firestore: any = {
-    ensureClientConfigured: () => {},
-    _databaseId: new DatabaseId('test-project')
-  };
-  return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(fakeFirestore, /* timestampsInSnapshots= */ false);
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
   const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
+    databaseId,
     useProto3Json !== undefined
       ? new JsonProtoSerializer(databaseId, { useProto3Json })
-      : PlatformSupport.getPlatform().newSerializer(databaseId),
-    preConverter
+      : undefined
   );
 }
 
@@ -137,14 +123,11 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
   return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
 }
 
-export function ref(
-  dbIdStr: string,
-  keyStr: string,
-  offset?: number
-): DocumentKeyReference {
-  const [project, database] = dbIdStr.split('/', 2);
-  const dbId = new DatabaseId(project, database);
-  return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
+export function ref(key: string, offset?: number): DocumentReference {
+  return new DocumentReference(
+    new DocumentKey(path(key, offset)),
+    fakeFirestore
+  );
 }
 
 export function doc(
@@ -248,7 +231,12 @@ export function patchMutation(
   if (precondition === undefined) {
     precondition = Precondition.exists(true);
   }
-
+  // Replace '<DELETE>' from JSON with FieldValue
+  forEach(json, (k, v) => {
+    if (v === '<DELETE>') {
+      json[k] = new DeleteFieldValueImpl();
+    }
+  });
   const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
   return new PatchMutation(
     key(keyStr),

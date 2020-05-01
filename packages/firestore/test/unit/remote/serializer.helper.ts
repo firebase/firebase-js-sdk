@@ -18,11 +18,12 @@
 import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
-import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import {
+  PublicFieldValue as FieldValue,
+  DocumentReference
+} from '../../../src/api/database';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
-import { DocumentKeyReference } from '../../../src/api/user_data_reader';
-import { DocumentReference } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,
@@ -47,7 +48,6 @@ import {
   VerifyMutation
 } from '../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
-import { refValue } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
@@ -60,7 +60,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
   byteStringFromString,
-  dbId,
   deletedDoc,
   deleteMutation,
   doc,
@@ -145,7 +144,15 @@ export function serializerTest(
         const actualReturnFieldValue = userDataWriter.convertValue(
           actualJsonProto
         );
-        expect(actualReturnFieldValue).to.deep.equal(value);
+
+        if (
+          actualReturnFieldValue instanceof DocumentReference &&
+          value instanceof DocumentReference
+        ) {
+          expect(actualReturnFieldValue.isEqual(value)).to.be.true;
+        } else {
+          expect(actualReturnFieldValue).to.deep.equal(value);
+        }
 
         // Convert value to ProtoJs and verify.
         const actualProtoJsProto = protoJsReader.parseQueryValue(
@@ -468,21 +475,12 @@ export function serializerTest(
       });
 
       it('converts RefValue', () => {
-        // verifyFieldValueRoundTrip cannot be used for RefValues since the
-        // serializer takes a DocumentKeyReference but returns a DocumentReference
-        const example = new DocumentKeyReference(
-          dbId('project1', 'database1'),
-          key('docs/1')
-        );
-        const actualValue = protoJsReader.parseQueryValue('refValue', example);
-        expect(actualValue).to.deep.equal(
-          refValue(dbId('project1', 'database1'), key('docs/1'))
-        );
-
-        const roundtripResult = userDataWriter.convertValue(
-          actualValue
-        ) as DocumentReference;
-        expect(roundtripResult._key.isEqual(key('docs/1'))).to.be.true;
+        verifyFieldValueRoundTrip({
+          value: ref('docs/1'),
+          valueType: 'referenceValue',
+          jsonValue:
+            'projects/test-project/databases/(default)/documents/docs/1'
+        });
       });
     });
 
@@ -807,11 +805,7 @@ export function serializerTest(
       });
 
       it('converts key field', () => {
-        const input = filter(
-          DOCUMENT_KEY_NAME,
-          '==',
-          ref('project/database', 'coll/doc')
-        );
+        const input = filter(DOCUMENT_KEY_NAME, '==', ref('coll/doc'));
         const actual = s.toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
@@ -819,7 +813,7 @@ export function serializerTest(
             op: 'EQUAL',
             value: {
               referenceValue:
-                'projects/project/databases/database/documents/coll/doc'
+                'projects/test-project/databases/(default)/documents/coll/doc'
             }
           }
         });
@@ -1198,13 +1192,13 @@ export function serializerTest(
         const q = Query.atPath(path('docs'))
           .withStartAt(
             bound(
-              [[DOCUMENT_KEY_NAME, ref('p/d', 'foo/bar'), 'asc']],
+              [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
               /*before=*/ true
             )
           )
           .withEndAt(
             bound(
-              [[DOCUMENT_KEY_NAME, ref('p/d', 'foo/bar'), 'asc']],
+              [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
               /*before=*/ false
             )
           )
@@ -1223,13 +1217,19 @@ export function serializerTest(
               ],
               startAt: {
                 values: [
-                  { referenceValue: 'projects/p/databases/d/documents/foo/bar' }
+                  {
+                    referenceValue:
+                      'projects/test-project/databases/(default)/documents/foo/bar'
+                  }
                 ],
                 before: true
               },
               endAt: {
                 values: [
-                  { referenceValue: 'projects/p/databases/d/documents/foo/bar' }
+                  {
+                    referenceValue:
+                      'projects/test-project/databases/(default)/documents/foo/bar'
+                  }
                 ],
                 before: false
               }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { PublicFieldValue as FieldValue } from '../../../src/api/database';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldValue', () => {

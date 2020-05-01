@@ -89,14 +89,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import {
-  DocumentKeyReference,
-  fieldPathFromArgument,
-  UserDataReader
-} from './user_data_reader';
+import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { FieldValue } from './field_value';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -315,7 +312,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
-    this._dataReader = this.createDataReader(this._databaseId);
+    this._dataReader = new UserDataReader(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -497,28 +494,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
 
     return this._firestoreClient.start(componentProvider, persistenceSettings);
-  }
-
-  private createDataReader(databaseId: DatabaseId): UserDataReader {
-    const preConverter = (value: unknown): unknown => {
-      if (value instanceof DocumentReference) {
-        const thisDb = databaseId;
-        const otherDb = value.firestore._databaseId;
-        if (!otherDb.isEqual(thisDb)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Document reference is for database ' +
-              `${otherDb.projectId}/${otherDb.database} but should be ` +
-              `for database ${thisDb.projectId}/${thisDb.database}`
-          );
-        }
-        return new DocumentKeyReference(databaseId, value._key);
-      } else {
-        return value;
-      }
-    };
-    const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
-    return new UserDataReader(serializer, preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -2585,4 +2560,8 @@ export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
 export const PublicCollectionReference = makeConstructorPrivate(
   CollectionReference,
   'Use firebase.firestore().collection() instead.'
+);
+export const PublicFieldValue = makeConstructorPrivate(
+  FieldValue,
+  'Use FieldValue.<field>() instead.'
 );
