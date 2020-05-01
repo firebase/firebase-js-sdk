@@ -540,7 +540,7 @@ export function serializerTest(
         const expected: api.DocumentMask = {
           fieldPaths: ['foo.`bar.baz\\qux`']
         };
-        const mask = FieldMask.fromArray([
+        const mask = new FieldMask([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const actual = s.toDocumentMask(mask);
@@ -554,7 +554,7 @@ export function serializerTest(
       // TODO(b/34988481): Implement correct escaping
       // eslint-disable-next-line no-restricted-properties
       it.skip('converts a weird path', () => {
-        const expected = FieldMask.fromArray([
+        const expected = new FieldMask([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
