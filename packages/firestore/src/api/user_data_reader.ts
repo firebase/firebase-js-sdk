@@ -154,7 +154,7 @@ export class ParseContext {
    *
    * @param settings The settings for the parser.
    * @param databaseId The database ID of the Firestore instance.
-   * @param serializer The serialize to use to generate the Value proto.
+   * @param serializer The serializer to use to generate the Value proto.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
    * @param fieldMask A mutable list of field paths encountered while parsing
