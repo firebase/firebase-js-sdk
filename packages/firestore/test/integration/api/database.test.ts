@@ -1101,7 +1101,6 @@ apiDescribe('Database', (persistence: boolean) => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
-        const firestore = docRef.firestore;
         await docRef.set({ foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
