@@ -39,6 +39,8 @@ export interface FirestoreDataConverter<T> {
 export class FirebaseFirestore {
   private constructor();
 
+  settings: Settings;
+
   collection(collectionPath: string): CollectionReference<DocumentData>;
 
   doc(documentPath: string): DocumentReference<DocumentData>;
@@ -71,9 +73,9 @@ export class Timestamp {
 
   toMillis(): number;
 
-  isEqual(other: Timestamp): boolean;
-
   valueOf(): string;
+
+  isEqual(other: Timestamp): boolean;
 }
 
 export class Blob {
@@ -262,10 +264,12 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
 export class FieldValue {
   private constructor();
+  isEqual(other: FieldValue): boolean;
 }
 
 export class FieldPath {
   constructor(...fieldNames: string[]);
+  isEqual(other: FieldPath): boolean;
 }
 
 // MARK: Initialization methods
@@ -278,9 +282,7 @@ export function initializeFirestore(
 // MARK: Firestore methods
 
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
-
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
-
 export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
@@ -291,26 +293,21 @@ export function runTransaction<T>(
 export function getDocument<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-
 export function deleteDocument(reference: DocumentReference): Promise<void>;
-
 export function updateDocument(
   reference: DocumentReference,
   data: UpdateData
 ): Promise<void>;
-
 export function updateDocument(
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
-
 export function setDocument<T>(
   reference: DocumentReference<T>,
   data: T,
   options?: SetOptions
 ): Promise<void>;
-
 export function addDocument<T>(
   reference: CollectionReference<T>,
   data: T
@@ -330,9 +327,15 @@ export function arrayRemove(...elements: any[]): FieldValue;
 export function increment(n: number): FieldValue;
 
 // MARK: Equals method
-export function referencesEqual(l: DocumentReference|CollectionReference, r:DocumentReference|CollectionReference): boolean;
-export function queriesEqual(l: Query, r:Query) : boolean;
-export function snapshotsEqual(l: DocumentSnapshot|QuerySnapshot, r:DocumentSnapshot|QuerySnapshot) : boolean;
+export function referencesEqual(
+  l: DocumentReference | CollectionReference,
+  r: DocumentReference | CollectionReference
+): boolean;
+export function queriesEqual(l: Query, r: Query): boolean;
+export function snapshotsEqual(
+  l: DocumentSnapshot | QuerySnapshot,
+  r: DocumentSnapshot | QuerySnapshot
+): boolean;
 
 export type FirestoreErrorCode =
   | 'cancelled'

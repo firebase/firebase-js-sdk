@@ -18,13 +18,13 @@
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 
 import {
-  FirebaseFirestore,
   DocumentReference,
   Query,
   FirestoreError,
   DocumentData,
   FieldPath,
-  DocumentChange, CollectionReference
+  DocumentChange,
+  CollectionReference
 } from './lite';
 
 export {
@@ -32,7 +32,6 @@ export {
   UpdateData,
   LogLevel,
   setLogLevel,
-  FirebaseFirestore,
   GeoPoint,
   Timestamp,
   Blob,
@@ -71,6 +70,18 @@ export interface Settings {
   experimentalForceLongPolling?: boolean;
 }
 
+export class FirebaseFirestore {
+  private constructor();
+
+  settings: Settings;
+
+  collection(collectionPath: string): CollectionReference<DocumentData>;
+
+  doc(documentPath: string): DocumentReference<DocumentData>;
+
+  collectionGroup(collectionId: string): Query<DocumentData>;
+}
+
 export interface GetOptions {
   readonly source?: 'default' | 'server' | 'cache';
 }
@@ -97,14 +108,20 @@ export interface FirestoreDataConverter<T> {
 }
 
 // MARK: Initialization methods
-export function memoryPersistence(): Promise<Persistence>;
-export function indexedDbPersistence(): Promise<Persistence>;
-export function multiTabIndexedDbPersistence(): Promise<Persistence>;
-
-export function initializeFirestore(
-  firestore: FirebaseFirestore,
-  persistence: Promise<Persistence>,
-  settings?: Settings
+export function startMemoryPersistence(
+  firstore: FirebaseFirestore
+): Promise<void>;
+export function startIndexedDbPersistence(
+  firstore: FirebaseFirestore
+): Promise<void>;
+export function startIndexedDbOrMemoryPersistence(
+  firstore: FirebaseFirestore
+): Promise<void>;
+export function startMultiTabIndexedDbPersistence(
+  firstore: FirebaseFirestore
+): Promise<void>;
+export function startMultiTabIndexedDbOrMemoryPersistence(
+  firstore: FirebaseFirestore
 ): Promise<void>;
 
 export class DocumentSnapshot<T = DocumentData> {
@@ -152,6 +169,7 @@ export function waitForPendingWrites(
 export function clearPersistence(firestore: FirebaseFirestore): Promise<void>;
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
+
 export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   observer: {
@@ -239,9 +257,15 @@ export function onSnapshot<T>(
 ): () => void;
 
 // MARK: Equals methods
-export function referencesEqual(l: DocumentReference|CollectionReference, r:DocumentReference|CollectionReference): boolean;
-export function queriesEqual(l: Query, r:Query) : boolean;
-export function snapshotsEqual(l: DocumentSnapshot|QuerySnapshot, r:DocumentSnapshot|QuerySnapshot) : boolean;
+export function referencesEqual(
+  l: DocumentReference | CollectionReference,
+  r: DocumentReference | CollectionReference
+): boolean;
+export function queriesEqual(l: Query, r: Query): boolean;
+export function snapshotsEqual(
+  l: DocumentSnapshot | QuerySnapshot,
+  r: DocumentSnapshot | QuerySnapshot
+): boolean;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
