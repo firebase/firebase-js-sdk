@@ -115,7 +115,7 @@ export class ArrayUnionFieldValueImpl extends FieldValueImpl {
 
   isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
-    return false;
+    return this === other;
   }
 }
 
@@ -141,7 +141,7 @@ export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
 
   isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
-    return false;
+    return this === other;
   }
 }
 
@@ -162,7 +162,7 @@ export class NumericIncrementFieldValueImpl extends FieldValueImpl {
 
   isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
-    return false;
+    return this === other;
   }
 }
 
