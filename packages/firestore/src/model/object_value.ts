@@ -23,7 +23,6 @@ import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
 import { valueEquals, isMapValue, typeOrder } from './values';
 import { forEach } from '../util/obj';
-import { SortedSet } from '../util/sorted_set';
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -59,9 +58,8 @@ export class ObjectValue {
     );
   }
 
-  /** Returns a new Builder instance that is based on an empty object. */
-  static newBuilder(): ObjectValueBuilder {
-    return ObjectValue.EMPTY.toBuilder();
+  static empty(): ObjectValue {
+    return new ObjectValue({ mapValue: {} });
   }
 
   /**
@@ -90,47 +88,8 @@ export class ObjectValue {
     }
   }
 
-  /**
-   * Returns a FieldMask built from all FieldPaths starting from this
-   * ObjectValue, including paths from nested objects.
-   */
-  fieldMask(): FieldMask {
-    return this.extractFieldMask(this.proto.mapValue!);
-  }
-
-  private extractFieldMask(value: api.MapValue): FieldMask {
-    let fields = new SortedSet<FieldPath>(FieldPath.comparator);
-    forEach(value.fields || {}, (key, value) => {
-      const currentPath = new FieldPath([key]);
-      if (typeOrder(value) === TypeOrder.ObjectValue) {
-        const nestedMask = this.extractFieldMask(value.mapValue!);
-        const nestedFields = nestedMask.fields;
-        if (nestedFields.isEmpty()) {
-          // Preserve the empty map by adding it to the FieldMask.
-          fields = fields.add(currentPath);
-        } else {
-          // For nested and non-empty ObjectValues, add the FieldPath of the
-          // leaf nodes.
-          nestedFields.forEach(nestedPath => {
-            fields = fields.add(currentPath.child(nestedPath));
-          });
-        }
-      } else {
-        // For nested and non-empty ObjectValues, add the FieldPath of the leaf
-        // nodes.
-        fields = fields.add(currentPath);
-      }
-    });
-    return FieldMask.fromSet(fields);
-  }
-
   isEqual(other: ObjectValue): boolean {
     return valueEquals(this.proto, other.proto);
-  }
-
-  /** Creates a ObjectValueBuilder instance that is based on the current value. */
-  toBuilder(): ObjectValueBuilder {
-    return new ObjectValueBuilder(this);
   }
 }
 
@@ -152,7 +111,7 @@ export class ObjectValueBuilder {
   /**
    * @param baseObject The object to mutate.
    */
-  constructor(private readonly baseObject: ObjectValue) {}
+  constructor(private readonly baseObject: ObjectValue = ObjectValue.empty()) {}
 
   /**
    * Sets the field to the provided value.
@@ -277,4 +236,33 @@ export class ObjectValueBuilder {
 
     return modified ? { mapValue: { fields: resultAtPath } } : null;
   }
+}
+
+/**
+ * Returns a FieldMask built from all fields in a MapValue.
+ */
+export function extractFieldMask(value: api.MapValue): FieldMask {
+  const fields: FieldPath[] = [];
+  forEach(value!.fields || {}, (key, value) => {
+    const currentPath = new FieldPath([key]);
+    if (isMapValue(value)) {
+      const nestedMask = extractFieldMask(value.mapValue!);
+      const nestedFields = nestedMask.fields;
+      if (nestedFields.length === 0) {
+        // Preserve the empty map by adding it to the FieldMask.
+        fields.push(currentPath);
+      } else {
+        // For nested and non-empty ObjectValues, add the FieldPath of the
+        // leaf nodes.
+        for (const nestedPath of nestedFields) {
+          fields.push(currentPath.child(nestedPath));
+        }
+      }
+    } else {
+      // For nested and non-empty ObjectValues, add the FieldPath of the leaf
+      // nodes.
+      fields.push(currentPath);
+    }
+  });
+  return new FieldMask(fields);
 }

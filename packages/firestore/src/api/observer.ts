@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { JsonObject } from '../model/field_value';
+import { JsonObject } from '../model/object_value';
 
 /**
  * Observer/Subscribe interfaces.

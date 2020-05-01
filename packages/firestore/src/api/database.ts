@@ -69,7 +69,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { logError, setLogLevel, LogLevel, getLogLevel } from '../util/log';
+import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -288,7 +288,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    persistenceProvider: ComponentProvider = new MemoryComponentProvider()
+    componentProvider: ComponentProvider = new MemoryComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -313,7 +313,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._componentProvider = persistenceProvider;
+    this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
     this._dataReader = this.createDataReader(this._databaseId);
   }
@@ -836,7 +836,7 @@ export class WriteBatch implements firestore.WriteBatch {
             convertedValue
           );
     this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.NONE)
+      parsed.toMutations(ref._key, Precondition.none())
     );
     return this;
   }
@@ -906,7 +906,7 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.NONE)
+      new DeleteMutation(ref._key, Precondition.none())
     );
     return this;
   }
@@ -1031,7 +1031,7 @@ export class DocumentReference<T = firestore.DocumentData>
           )
         : this.firestore._dataReader.parseSetData(functionName, convertedValue);
     return this._firestoreClient.write(
-      parsed.toMutations(this._key, Precondition.NONE)
+      parsed.toMutations(this._key, Precondition.none())
     );
   }
 
@@ -1075,7 +1075,7 @@ export class DocumentReference<T = firestore.DocumentData>
   delete(): Promise<void> {
     validateExactNumberOfArgs('DocumentReference.delete', arguments, 0);
     return this._firestoreClient.write([
-      new DeleteMutation(this._key, Precondition.NONE)
+      new DeleteMutation(this._key, Precondition.none())
     ]);
   }
 
@@ -1447,32 +1447,31 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     // Enumerated from the WhereFilterOp type in index.d.ts.
     const whereFilterOpEnums = [
-      '<',
-      '<=',
-      '==',
-      '>=',
-      '>',
-      'array-contains',
-      'in',
-      'array-contains-any'
+      Operator.LESS_THAN,
+      Operator.LESS_THAN_OR_EQUAL,
+      Operator.EQUAL,
+      Operator.GREATER_THAN_OR_EQUAL,
+      Operator.GREATER_THAN,
+      Operator.ARRAY_CONTAINS,
+      Operator.IN,
+      Operator.ARRAY_CONTAINS_ANY
     ];
-    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
 
     let fieldValue: api.Value;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const operator = Operator.fromString(opStr);
     if (fieldPath.isKeyField()) {
       if (
-        operator === Operator.ARRAY_CONTAINS ||
-        operator === Operator.ARRAY_CONTAINS_ANY
+        op === Operator.ARRAY_CONTAINS ||
+        op === Operator.ARRAY_CONTAINS_ANY
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid Query. You can't perform '${operator.toString()}' ` +
+          `Invalid Query. You can't perform '${op}' ` +
             'queries on FieldPath.documentId().'
         );
-      } else if (operator === Operator.IN) {
-        this.validateDisjunctiveFilterElements(value, operator);
+      } else if (op === Operator.IN) {
+        this.validateDisjunctiveFilterElements(value, op);
         const referenceList: api.Value[] = [];
         for (const arrayValue of value as api.Value[]) {
           referenceList.push(this.parseDocumentIdValue(arrayValue));
@@ -1482,20 +1481,17 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
         fieldValue = this.parseDocumentIdValue(value);
       }
     } else {
-      if (
-        operator === Operator.IN ||
-        operator === Operator.ARRAY_CONTAINS_ANY
-      ) {
-        this.validateDisjunctiveFilterElements(value, operator);
+      if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
+        this.validateDisjunctiveFilterElements(value, op);
       }
       fieldValue = this.firestore._dataReader.parseQueryValue(
         'Query.where',
         value,
         // We only allow nested arrays for IN queries.
-        /** allowArrays = */ operator === Operator.IN ? true : false
+        /** allowArrays = */ op === Operator.IN
       );
     }
-    const filter = FieldFilter.create(fieldPath, operator, fieldValue);
+    const filter = FieldFilter.create(fieldPath, op, fieldValue);
     this.validateNewFilter(filter);
     return new Query(
       this._query.addFilter(filter),

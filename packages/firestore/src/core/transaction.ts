@@ -17,7 +17,7 @@
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
 import { documentVersionMap } from '../model/collections';
-import { Document, NoDocument, MaybeDocument } from '../model/document';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 
 import { DocumentKey } from '../model/document_key';
 import {
@@ -26,7 +26,11 @@ import {
   Precondition,
   VerifyMutation
 } from '../model/mutation';
-import { Datastore } from '../remote/datastore';
+import {
+  Datastore,
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../remote/datastore';
 import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
@@ -66,7 +70,7 @@ export class Transaction {
         'Firestore transactions require all reads to be executed before all writes.'
       );
     }
-    const docs = await this.datastore.lookup(keys);
+    const docs = await invokeBatchGetDocumentsRpc(this.datastore, keys);
     docs.forEach(doc => {
       if (doc instanceof NoDocument || doc instanceof Document) {
         this.recordVersion(doc);
@@ -112,7 +116,7 @@ export class Transaction {
     unwritten.forEach((key, _version) => {
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
-    await this.datastore.commit(this.mutations);
+    await invokeCommitRpc(this.datastore, this.mutations);
     this.committed = true;
   }
 
@@ -123,7 +127,7 @@ export class Transaction {
       docVersion = doc.version;
     } else if (doc instanceof NoDocument) {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
-      docVersion = SnapshotVersion.forDeletedDoc();
+      docVersion = SnapshotVersion.min();
     } else {
       throw fail('Document in a transaction was a ' + doc.constructor.name);
     }
@@ -151,7 +155,7 @@ export class Transaction {
     if (!this.writtenDocs.has(key) && version) {
       return Precondition.updateTime(version);
     } else {
-      return Precondition.NONE;
+      return Precondition.none();
     }
   }
 
@@ -163,7 +167,7 @@ export class Transaction {
     // The first time a document is written, we want to take into account the
     // read time and existence
     if (!this.writtenDocs.has(key) && version) {
-      if (version.isEqual(SnapshotVersion.forDeletedDoc())) {
+      if (version.isEqual(SnapshotVersion.min())) {
         // The document doesn't exist, so fail the transaction.
 
         // This has to be validated locally because you can't send a

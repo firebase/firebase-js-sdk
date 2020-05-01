@@ -23,6 +23,8 @@ const simpleGit = require('simple-git/promise');
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
+// use test:ci command in CI
+const testCommand = !!process.env.CI ? 'test:ci' : 'test';
 /**
  * Changes to these files warrant running all tests.
  */
@@ -34,7 +36,7 @@ const fullTestTriggerFiles = [
   'config/karma.base.js',
   'config/.eslintrc.js',
   'config/mocha.browser.opts',
-  'config/mocha.node.opts',
+  'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',
@@ -148,7 +150,7 @@ async function runTests(pathList) {
   if (!pathList) return;
   for (const testPath of pathList) {
     try {
-      await spawn('yarn', ['--cwd', testPath, 'test'], {
+      await spawn('yarn', ['--cwd', testPath, testCommand], {
         stdio: 'inherit'
       });
     } catch (e) {
@@ -161,7 +163,7 @@ async function main() {
   try {
     const { testAll, changedPackages = {} } = await getChangedPackages();
     if (testAll) {
-      await spawn('yarn', ['test'], {
+      await spawn('yarn', [testCommand], {
         stdio: 'inherit'
       });
     } else {
@@ -178,6 +180,8 @@ async function main() {
           console.log(chalk`{yellow ${filename} (depends on modified files)}`);
         }
       }
+
+      changedPackages['packages/app'] = 'direct';
       await runTests(alwaysRunTestPaths);
       await runTests(Object.keys(changedPackages));
     }

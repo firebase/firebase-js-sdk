@@ -20,7 +20,6 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { SortedSet } from '../util/sorted_set';
 
 import {
   Document,
@@ -29,7 +28,7 @@ import {
   UnknownDocument
 } from './document';
 import { DocumentKey } from './document_key';
-import { ObjectValue, ObjectValueBuilder } from './field_value';
+import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
 import { arrayEquals } from '../util/misc';
@@ -45,18 +44,15 @@ import { arrayEquals } from '../util/misc';
  *             containing foo
  */
 export class FieldMask {
-  constructor(readonly fields: SortedSet<FieldPath>) {
+  constructor(readonly fields: FieldPath[]) {
     // TODO(dimond): validation of FieldMask
-  }
-
-  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
-    return new FieldMask(fields);
-  }
-
-  static fromArray(fields: FieldPath[]): FieldMask {
-    let fieldsAsSet = new SortedSet<FieldPath>(FieldPath.comparator);
-    fields.forEach(fieldPath => (fieldsAsSet = fieldsAsSet.add(fieldPath)));
-    return new FieldMask(fieldsAsSet);
+    // Sort the field mask to support `FieldMask.isEqual()` and assert below.
+    fields.sort(FieldPath.comparator);
+    debugAssert(
+      !fields.some((v, i) => i !== 0 && v.isEqual(fields[i - 1])),
+      'FieldMask contains field that is not unique: ' +
+        fields.find((v, i) => i !== 0 && v.isEqual(fields[i - 1]))!
+    );
   }
 
   /**
@@ -66,17 +62,16 @@ export class FieldMask {
    * This is an O(n) operation, where `n` is the size of the field mask.
    */
   covers(fieldPath: FieldPath): boolean {
-    let found = false;
-    this.fields.forEach(fieldMaskPath => {
+    for (const fieldMaskPath of this.fields) {
       if (fieldMaskPath.isPrefixOf(fieldPath)) {
-        found = true;
+        return true;
       }
-    });
-    return found;
+    }
+    return false;
   }
 
   isEqual(other: FieldMask): boolean {
-    return this.fields.isEqual(other.fields);
+    return arrayEquals(this.fields, other.fields, (l, r) => l.isEqual(r));
   }
 }
 
@@ -133,8 +128,6 @@ export const enum MutationType {
  * (meaning no precondition).
  */
 export class Precondition {
-  static readonly NONE = new Precondition();
-
   private constructor(
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
@@ -143,6 +136,11 @@ export class Precondition {
       updateTime === undefined || exists === undefined,
       'Precondition can specify "exists" or "updateTime" but not both'
     );
+  }
+
+  /** Creates a new empty Precondition. */
+  static none(): Precondition {
+    return new Precondition();
   }
 
   /** Creates a new Precondition with an exists flag. */
@@ -314,7 +312,7 @@ export abstract class Mutation {
    * Returns the version from the given document for use as the result of a
    * mutation. Mutations are defined to return the version of the base document
    * only if it is an existing document. Deleted and unknown documents have a
-   * post-mutation version of SnapshotVersion.MIN.
+   * post-mutation version of SnapshotVersion.min().
    */
   protected static getPostMutationVersion(
     maybeDoc: MaybeDocument | null
@@ -322,7 +320,7 @@ export abstract class Mutation {
     if (maybeDoc instanceof Document) {
       return maybeDoc.version;
     } else {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
   }
 }
@@ -485,13 +483,13 @@ export class PatchMutation extends Mutation {
     if (maybeDoc instanceof Document) {
       data = maybeDoc.data();
     } else {
-      data = ObjectValue.EMPTY;
+      data = ObjectValue.empty();
     }
     return this.patchObject(data);
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
@@ -598,7 +596,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.newBuilder().set(
+          baseObject = new ObjectValueBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -726,7 +724,7 @@ export class TransformMutation extends Mutation {
       'TransformResults length mismatch.'
     );
 
-    const builder = data.toBuilder();
+    const builder = new ObjectValueBuilder(data);
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;
@@ -781,7 +779,7 @@ export class DeleteMutation extends Mutation {
         'Can only apply mutation to document with same key'
       );
     }
-    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
+    return new NoDocument(this.key, SnapshotVersion.min());
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {

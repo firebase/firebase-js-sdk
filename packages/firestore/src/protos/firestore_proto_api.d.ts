@@ -141,6 +141,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     values?: Value[];
   }
   interface BatchGetDocumentsRequest {
+    database?: string;
     documents?: string[];
     mask?: DocumentMask;
     transaction?: string;
@@ -164,6 +165,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     allDescendants?: boolean;
   }
   interface CommitRequest {
+    database?: string;
     writes?: Write[];
     transaction?: string;
   }

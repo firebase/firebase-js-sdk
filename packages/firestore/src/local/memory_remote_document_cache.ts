@@ -21,7 +21,6 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
-  MaybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';
@@ -79,7 +78,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
     debugAssert(
-      !readTime.isEqual(SnapshotVersion.MIN),
+      !readTime.isEqual(SnapshotVersion.min()),
       'Cannot add a document with a read time of zero'
     );
 
@@ -174,24 +173,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
-  }
-
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    throw new Error(
-      'getNewDocumentChanges() is not supported with MemoryPersistence'
-    );
-  }
-
-  getLastReadTime(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion> {
-    return PersistencePromise.resolve(SnapshotVersion.MIN);
   }
 
   newChangeBuffer(options?: {

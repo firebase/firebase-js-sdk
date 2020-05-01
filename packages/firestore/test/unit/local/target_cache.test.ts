@@ -135,7 +135,7 @@ function genericTargetCacheTests(
       TargetPurpose.Listen,
       ++previousSequenceNumber,
       snapshotVersion,
-      /* lastLimboFreeSnapshotVersion= */ SnapshotVersion.MIN,
+      /* lastLimboFreeSnapshotVersion= */ SnapshotVersion.min(),
       resumeToken
     );
   }
@@ -349,7 +349,7 @@ function genericTargetCacheTests(
 
   it('can get / set targets metadata', async () => {
     expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
 
     // Can set the snapshot version.

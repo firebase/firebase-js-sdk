@@ -20,7 +20,7 @@ import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
 import { ActiveTargets } from './lru_garbage_collector';
@@ -39,7 +39,7 @@ export class MemoryTargetCache implements TargetCache {
   private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
 
   /** The last received snapshot version. */
-  private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
+  private lastRemoteSnapshotVersion = SnapshotVersion.min();
   /** The highest numbered target ID encountered. */
   private highestTargetId: TargetId = 0;
   /** The highest sequence number encountered. */
@@ -183,15 +183,6 @@ export class MemoryTargetCache implements TargetCache {
   ): PersistencePromise<TargetData | null> {
     const targetData = this.targets.get(target) || null;
     return PersistencePromise.resolve(targetData);
-  }
-
-  getTargetDataForTarget(
-    transaction: PersistenceTransaction,
-    targetId: TargetId
-  ): never {
-    // This method is only needed for multi-tab and we can't implement it
-    // efficiently without additional data structures.
-    return fail('Not yet implemented.');
   }
 
   addMatchingKeys(

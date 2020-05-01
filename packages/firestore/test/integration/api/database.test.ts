@@ -531,6 +531,18 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can specify updated field multiple times', () => {
+    return withTestDoc(persistence, doc => {
+      return doc
+        .set({})
+        .then(() => doc.update('field', 100, new FieldPath('field'), 200))
+        .then(() => doc.get())
+        .then(docSnap => {
+          expect(docSnap.data()).to.deep.equal({ field: 200 });
+        });
+    });
+  });
+
   describe('documents: ', () => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {

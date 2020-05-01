@@ -64,7 +64,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/field_value';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -172,7 +172,7 @@ export function unknownDoc(
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+  return new NoDocument(key(keyStr), SnapshotVersion.min());
 }
 
 export function wrap(value: unknown): api.Value {
@@ -213,11 +213,7 @@ export function field(path: string): FieldPath {
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+  return new FieldMask(paths.map(v => field(v)));
 }
 
 export function blob(...bytes: number[]): Blob {
@@ -227,7 +223,7 @@ export function blob(...bytes: number[]): Blob {
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
-  const operator = Operator.fromString(op);
+  const operator = op as Operator;
   const filter = FieldFilter.create(field(path), operator, dataValue);
 
   if (filter instanceof FieldFilter) {
@@ -241,7 +237,7 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
+  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
 }
 
 export function patchMutation(
@@ -263,7 +259,7 @@ export function patchMutation(
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
-  return new DeleteMutation(key(keyStr), Precondition.NONE);
+  return new DeleteMutation(key(keyStr), Precondition.none());
 }
 
 /**
@@ -365,7 +361,7 @@ export function docAddedRemoteEvent(
     }
   });
 
-  let version = SnapshotVersion.MIN;
+  let version = SnapshotVersion.min();
 
   for (const doc of docs) {
     debugAssert(
@@ -452,7 +448,7 @@ export function addTargetMapping(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -464,7 +460,7 @@ export function ackTarget(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -539,7 +535,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ByteString {
-  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+  if (snapshotVersion.isEqual(SnapshotVersion.min())) {
     return ByteString.EMPTY_BYTE_STRING;
   } else {
     return byteStringFromString(snapshotVersion.toString());
@@ -589,7 +585,7 @@ export function documentUpdates(
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+        new NoDocument(docOrKey, SnapshotVersion.min())
       );
     }
   }

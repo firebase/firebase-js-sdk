@@ -1,8 +1,0 @@
-# This is the place to store default mocha options. Mocha options supplied on
-# command lines will override their values specified here.
-# See https://mochajs.org/#mochaopts for detailed usage of the mocha config file.
-
---require ts-node/register
---timeout 5000
---retries 5
---exit

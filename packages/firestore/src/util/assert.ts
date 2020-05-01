@@ -70,3 +70,19 @@ export function debugAssert(
     fail(message);
   }
 }
+
+/**
+ * Casts `obj` to `T`. In non-production builds, verifies that `obj` is an
+ * instance of `T` before casting.
+ */
+export function debugCast<T>(
+  obj: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor: { new (...args: any[]): T }
+): T {
+  debugAssert(
+    obj instanceof constructor,
+    `Expected type '${constructor.name}', but was '${obj.constructor.name}'`
+  );
+  return obj as T;
+}

@@ -32,7 +32,11 @@ import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
-import { Datastore } from './datastore';
+import {
+  Datastore,
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from './datastore';
 import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
@@ -151,13 +155,13 @@ export class RemoteStore implements TargetMetadataProvider {
     );
 
     // Create streams (but note they're not started yet).
-    this.watchStream = this.datastore.newPersistentWatchStream({
+    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
       onOpen: this.onWatchStreamOpen.bind(this),
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
 
-    this.writeStream = this.datastore.newPersistentWriteStream({
+    this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
       onOpen: this.onWriteStreamOpen.bind(this),
       onClose: this.onWriteStreamClose.bind(this),
       onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
@@ -402,11 +406,11 @@ export class RemoteStore implements TargetMetadataProvider {
       this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
-    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+    if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
       const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
       if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
         // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.MIN.
+        // version is not equal to SnapshotVersion.min().
         await this.raiseWatchSnapshot(snapshotVersion);
       }
     }
@@ -419,7 +423,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     debugAssert(
-      !snapshotVersion.isEqual(SnapshotVersion.MIN),
+      !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
     );
     const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(

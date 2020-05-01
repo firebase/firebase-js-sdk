@@ -240,7 +240,7 @@ export class AsyncQueue {
 
   constructor() {
     const window = PlatformSupport.getPlatform().window;
-    if (window) {
+    if (window && typeof window.addEventListener === 'function') {
       window.addEventListener('visibilitychange', this.visibilityHandler);
     }
   }

@@ -56,7 +56,6 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { forEach } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -541,7 +540,7 @@ export function serializerTest(
         const expected: api.DocumentMask = {
           fieldPaths: ['foo.`bar.baz\\qux`']
         };
-        const mask = FieldMask.fromArray([
+        const mask = new FieldMask([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const actual = s.toDocumentMask(mask);
@@ -555,7 +554,7 @@ export function serializerTest(
       // TODO(b/34988481): Implement correct escaping
       // eslint-disable-next-line no-restricted-properties
       it.skip('converts a weird path', () => {
-        const expected = FieldMask.fromArray([
+        const expected = new FieldMask([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
@@ -566,7 +565,7 @@ export function serializerTest(
 
     describe('toMutation', () => {
       it('converts DeleteMutation', () => {
-        const mutation = new DeleteMutation(key('docs/1'), Precondition.NONE);
+        const mutation = new DeleteMutation(key('docs/1'), Precondition.none());
         const result = s.toMutation(mutation);
         expect(result).to.deep.equal({
           delete: 'projects/p/databases/d/documents/docs/1'
@@ -609,7 +608,7 @@ export function serializerTest(
         const mutation = patchMutation(
           'bar/baz',
           { a: 'b', num: 1, 'some.deep.thing': 2 },
-          Precondition.NONE
+          Precondition.none()
         );
         const proto = {
           update: s.toMutationDocument(mutation.key, mutation.data),
@@ -1250,8 +1249,8 @@ export function serializerTest(
             1,
             TargetPurpose.Listen,
             4,
-            SnapshotVersion.MIN,
-            SnapshotVersion.MIN,
+            SnapshotVersion.min(),
+            SnapshotVersion.min(),
             ByteString.fromUint8Array(new Uint8Array([1, 2, 3]))
           )
         );
@@ -1279,14 +1278,20 @@ export function serializerTest(
       addEqualityMatcher();
 
       it('contains all Operators', () => {
-        // giant hack
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        forEach(Operator as any, (name, op) => {
-          if (op instanceof Operator) {
-            expect(s.toOperatorName(op), 'for name').to.exist;
-            expect(s.fromOperatorName(s.toOperatorName(op))).to.deep.equal(op);
-          }
-        });
+        const allOperators = [
+          Operator.LESS_THAN,
+          Operator.LESS_THAN_OR_EQUAL,
+          Operator.EQUAL,
+          Operator.GREATER_THAN,
+          Operator.GREATER_THAN_OR_EQUAL,
+          Operator.ARRAY_CONTAINS,
+          Operator.IN,
+          Operator.ARRAY_CONTAINS_ANY
+        ];
+
+        for (const op of allOperators) {
+          expect(s.fromOperatorName(s.toOperatorName(op))).to.deep.equal(op);
+        }
       });
     });
 
@@ -1294,14 +1299,11 @@ export function serializerTest(
       addEqualityMatcher();
 
       it('contains all Directions', () => {
-        // giant hack
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        forEach(Direction as any, (name, dir) => {
-          if (dir instanceof Direction) {
-            expect(s.toDirection(dir), 'for ' + name).to.exist;
-            expect(s.fromDirection(s.toDirection(dir))).to.deep.equal(dir);
-          }
-        });
+        const allDirections = [Direction.ASCENDING, Direction.DESCENDING];
+
+        for (const dir of allDirections) {
+          expect(s.fromDirection(s.toDirection(dir))).to.deep.equal(dir);
+        }
       });
     });
 
