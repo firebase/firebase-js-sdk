@@ -90,6 +90,7 @@ import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference, Firestore } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
+import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
 
@@ -195,11 +196,7 @@ export function field(path: string): FieldPath {
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+  return new FieldMask(paths.map(v => field(v)));
 }
 
 export function blob(...bytes: number[]): Blob {
@@ -807,8 +804,12 @@ export function expectEqualitySets<T>(
   }
 }
 
-export function expectFirestoreError(err: Error): void {
-  expect(err.name).to.equal('FirebaseError');
+export function validateFirestoreError(
+  expectedCode: Code,
+  actualError: Error
+): void {
+  expect(actualError.name).to.equal('FirebaseError');
+  expect((actualError as FirestoreError).code).to.equal(expectedCode);
 }
 
 export function forEachNumber<V>(

@@ -89,6 +89,7 @@ export class ClientMemoryState {
   limboMapping: LimboMap = {};
 
   limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  injectFailures = false;
 
   constructor() {
     this.reset();
@@ -191,6 +192,14 @@ export class SpecBuilder {
     return this.clientState.activeTargets;
   }
 
+  private get injectFailures(): boolean {
+    return this.clientState.injectFailures;
+  }
+
+  private set injectFailures(injectFailures: boolean) {
+    this.clientState.injectFailures = injectFailures;
+  }
+
   /**
    * Exports the spec steps as a JSON object that be used in the spec runner.
    */
@@ -232,18 +241,26 @@ export class SpecBuilder {
 
     const target = query.toTarget();
     let targetId: TargetId = 0;
-    if (this.queryMapping.has(target)) {
-      targetId = this.queryMapping.get(target)!;
-    } else {
-      targetId = this.queryIdGenerator.next(target);
-    }
 
-    this.queryMapping.set(target, targetId);
-    this.addQueryToActiveTargets(targetId, query, resumeToken);
-    this.currentStep = {
-      userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: { ...this.activeTargets } }
-    };
+    if (this.injectFailures) {
+      // Return a `userListens()` step but don't advance the target IDs.
+      this.currentStep = {
+        userListen: [targetId, SpecBuilder.queryToSpec(query)]
+      };
+    } else {
+      if (this.queryMapping.has(target)) {
+        targetId = this.queryMapping.get(target)!;
+      } else {
+        targetId = this.queryIdGenerator.next(target);
+      }
+
+      this.queryMapping.set(target, targetId);
+      this.addQueryToActiveTargets(targetId, query, resumeToken);
+      this.currentStep = {
+        userListen: [targetId, SpecBuilder.queryToSpec(query)],
+        expectedState: { activeTargets: { ...this.activeTargets } }
+      };
+    }
     return this;
   }
 
@@ -421,6 +438,7 @@ export class SpecBuilder {
   /** Fails all database operations until `recoverDatabase()` is called. */
   failDatabase(): this {
     this.nextStep();
+    this.injectFailures = true;
     this.currentStep = {
       failDatabase: true
     };
@@ -430,6 +448,7 @@ export class SpecBuilder {
   /** Stops failing database operations. */
   recoverDatabase(): this {
     this.nextStep();
+    this.injectFailures = false;
     this.currentStep = {
       failDatabase: false
     };

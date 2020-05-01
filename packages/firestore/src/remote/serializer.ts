@@ -1086,8 +1086,7 @@ export class JsonProtoSerializer {
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
-    const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return FieldMask.fromArray(fields);
+    return new FieldMask(paths.map(path => FieldPath.fromServerFormat(path)));
   }
 }
 
