@@ -92,6 +92,7 @@ import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
+import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
 
@@ -815,8 +816,12 @@ export function expectEqualitySets<T>(
   }
 }
 
-export function expectFirestoreError(err: Error): void {
-  expect(err.name).to.equal('FirebaseError');
+export function validateFirestoreError(
+  expectedCode: Code,
+  actualError: Error
+): void {
+  expect(actualError.name).to.equal('FirebaseError');
+  expect((actualError as FirestoreError).code).to.equal(expectedCode);
 }
 
 export function forEachNumber<V>(

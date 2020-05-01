@@ -213,9 +213,9 @@ export class SyncEngine implements RemoteSyncer {
   /**
    * Initiates the new listen, resolves promise when listen enqueued to the
    * server. All the subsequent view snapshots or errors are sent to the
-   * subscribed handlers. Returns the targetId of the query.
+   * subscribed handlers. Returns the initial snapshot.
    */
-  async listen(query: Query): Promise<TargetId> {
+  async listen(query: Query): Promise<ViewSnapshot> {
     this.assertSubscribed('listen()');
 
     let targetId;
@@ -249,8 +249,7 @@ export class SyncEngine implements RemoteSyncer {
       }
     }
 
-    this.syncEngineListener!.onWatchChange([viewSnapshot]);
-    return targetId;
+    return viewSnapshot;
   }
 
   /**

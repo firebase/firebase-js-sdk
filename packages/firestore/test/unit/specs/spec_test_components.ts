@@ -48,8 +48,8 @@ import { Token } from '../../../src/api/credentials';
 import { Observer } from '../../../src/core/event_manager';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import { Query } from '../../../src/core/query';
-import { expectFirestoreError } from '../../util/helpers';
 import { Mutation } from '../../../src/model/mutation';
+import { expect } from 'chai';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -367,7 +367,7 @@ export class EventAggregator implements Observer<ViewSnapshot> {
   }
 
   error(error: Error): void {
-    expectFirestoreError(error);
+    expect(error.name).to.equal('FirebaseError');
     this.pushEvent({ query: this.query, error: error as FirestoreError });
   }
 }

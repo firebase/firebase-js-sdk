@@ -1,4 +1,6 @@
 # Unreleased
+- [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
+  registered in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Firestore now rejects write operations if they cannot be persisted
   in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
