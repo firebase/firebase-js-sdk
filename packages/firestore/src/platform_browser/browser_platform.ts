@@ -20,13 +20,19 @@ import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
+// Polyfill for IE and WebWorker
+// eslint-disable-next-line no-restricted-globals
+const crypto = window['crypto'] || window['msCrypto'] || self['crypto'];
+
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
 export class BrowserPlatform implements Platform {
+  readonly useProto3Json = true;
   readonly base64Available: boolean;
 
   constructor() {
@@ -71,5 +77,22 @@ export class BrowserPlatform implements Platform {
 
   btoa(raw: string): string {
     return btoa(raw);
+  }
+
+  randomBytes(nBytes: number): Uint8Array {
+    if (nBytes <= 0) {
+      return new Uint8Array();
+    }
+
+    const v = new Uint8Array(nBytes);
+    if(!!crypto) {
+      crypto.getRandomValues(v);
+    } else {
+      // Falls back to Math.random
+      for(let i = 0; i < nBytes; i++) {
+        v[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    return v;
   }
 }
