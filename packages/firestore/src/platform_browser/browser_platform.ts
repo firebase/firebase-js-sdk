@@ -25,10 +25,6 @@ import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
-// Polyfill for IE and WebWorker
-// eslint-disable-next-line no-restricted-globals
-const crypto = window['crypto'] || window['msCrypto'] || self['crypto'];
-
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
 export class BrowserPlatform implements Platform {
@@ -84,12 +80,18 @@ export class BrowserPlatform implements Platform {
       return new Uint8Array();
     }
 
+    // Polyfill for IE and WebWorker
+    // eslint-disable-next-line no-restricted-globals
+    const crypto =
+      (this.window &&
+        (this.window.crypto || (this.window as any)['msCrypto'])) ||
+      (self && self.crypto);
     const v = new Uint8Array(nBytes);
-    if(!!crypto) {
+    if (!!crypto) {
       crypto.getRandomValues(v);
     } else {
       // Falls back to Math.random
-      for(let i = 0; i < nBytes; i++) {
+      for (let i = 0; i < nBytes; i++) {
         v[i] = Math.floor(Math.random() * 256);
       }
     }
