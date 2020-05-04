@@ -26,7 +26,8 @@
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x"
+    "@firebase/app-types-exp": "0.x",
+    "@firebase/auth-types-exp": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "^0.2.2",
