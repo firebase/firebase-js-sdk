@@ -21,6 +21,7 @@ import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
+import { getIdTokenResult } from './id_token_result';
 import { reload } from './reload';
 import { StsTokenManager } from './token_manager';
 
@@ -78,22 +79,18 @@ export class UserImpl implements User {
     const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
     assert(tokens, this.auth.name);
 
-    // TODO: remove ! after #2934 is merged --
-    const { refreshToken, accessToken /* wasRefreshed */ } = tokens!;
+    const { refreshToken, accessToken, wasRefreshed } = tokens;
     this.refreshToken = refreshToken || '';
 
-    // TODO: Uncomment after #2961 is merged
-    // if (wasRefreshed && this.auth.currentUser === this) {
-    //   this.auth._notifyListeners();
-    // }
+    if (wasRefreshed && this.auth.currentUser === this) {
+      this.auth._notifyStateListeners();
+    }
 
     return accessToken;
   }
 
-  async getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
-    await this.getIdToken(forceRefresh);
-    // TODO: Parse token
-    throw new Error('Method not implemented');
+  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
+    return getIdTokenResult(this, forceRefresh);
   }
 
   reload(): Promise<void> {
