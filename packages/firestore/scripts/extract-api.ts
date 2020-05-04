@@ -51,7 +51,8 @@ export function extractPublicIdentifiers(filePaths: string[]): Set<string> {
     ts.forEachChild(sourceFile, (childNode: ts.Node) =>
       extractIdentifiersFromNodeAndChildren(childNode, identifiers)
     );
-
+    identifiers.add("require");
+    identifiers.add("messages");
     identifiers.forEach(api => {
       publicIdentifiers.add(api);
     });

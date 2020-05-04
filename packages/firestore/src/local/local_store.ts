@@ -590,12 +590,8 @@ export class LocalStore {
               } else {
                 logDebug(
                   LOG_TAG,
-                  'Ignoring outdated watch update for ',
-                  key,
-                  '. Current version:',
-                  existingDoc.version,
-                  ' Watch version:',
-                  doc.version
+                  'Ignoring outdated watch update for %s. Current version:%s, Watch version: %s',
+                  doc.version,key, existingDoc.version,doc.version
                 );
               }
 

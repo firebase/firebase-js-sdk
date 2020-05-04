@@ -475,7 +475,7 @@ export abstract class PersistentStream<
       this.isStarted(),
       "Can't handle server close on non-started stream"
     );
-    logDebug(LOG_TAG, `close with error: ${error}`);
+    logDebug(LOG_TAG, `close with error: `, error);
 
     this.stream = null;
 

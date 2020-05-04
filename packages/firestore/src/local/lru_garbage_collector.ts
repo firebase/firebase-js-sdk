@@ -260,7 +260,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
     logDebug(
       'LruGarbageCollector',
-      `Garbage collection scheduled in ${delay}ms`
+      `Garbage collection scheduled in %s ms`, delay
     );
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
@@ -353,9 +353,9 @@ export class LruGarbageCollector {
       if (cacheSize < this.params.cacheSizeCollectionThreshold) {
         logDebug(
           'LruGarbageCollector',
-          `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
-        );
+          `Garbage collection skipped; Cache size %s ` +
+            `is lower than threshold %s`
+        , cacheSize, this.params.cacheSizeCollectionThreshold);
         return GC_DID_NOT_RUN;
       } else {
         return this.runGarbageCollection(txn, activeTargetIds);

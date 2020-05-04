@@ -21,6 +21,12 @@ import { PlatformSupport } from '../platform/platform';
 
 export { LogLevel };
 
+let logMessages: string[] = [];
+
+export function registerLogMessages(msgs:string[]) {
+  logMessages = msgs;
+}
+
 const logClient = new Logger('@firebase/firestore');
 
 // Helper methods are needed because variables can't be exported as read/write
@@ -32,10 +38,10 @@ export function setLogLevel(newLevel: LogLevel): void {
   logClient.logLevel = newLevel;
 }
 
-export function logDebug(msg: string, ...obj: unknown[]): void {
+export function logDebug(tag: string, msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= LogLevel.DEBUG) {
     const args = obj.map(argToString);
-    logClient.debug(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+    logClient.debug(`Firestore (${SDK_VERSION}): ${msg}`, tag, typeof msg === 'number' ? logMessages[msg] : msg,  ...args);
   }
 }
 

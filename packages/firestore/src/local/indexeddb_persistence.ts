@@ -624,9 +624,7 @@ export class IndexedDbPersistence implements Persistence {
         if (this.isPrimary !== canActAsPrimary) {
           logDebug(
             LOG_TAG,
-            `Client ${
-              canActAsPrimary ? 'is' : 'is not'
-            } eligible for a primary lease.`
+            `Client %s eligible for a primary lease.`, canActAsPrimary ? 'is' : 'is not'
           );
         }
         return canActAsPrimary;
@@ -1004,9 +1002,7 @@ export class IndexedDbPersistence implements Persistence {
         null;
       logDebug(
         LOG_TAG,
-        `Client '${clientId}' ${
-          isZombied ? 'is' : 'is not'
-        } zombied in LocalStorage`
+        `Client '%s'%s zombied in LocalStorage`, clientId, isZombied ? 'is' : 'is not'
       );
       return isZombied;
     } catch (e) {

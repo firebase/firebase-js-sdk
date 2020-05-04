@@ -955,7 +955,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     if (mutationBatch.user.uid !== this.currentUser.uid) {
       logDebug(
         LOG_TAG,
-        `Ignoring mutation for non-active user ${mutationBatch.user.uid}`
+        `Ignoring mutation for non-active user`, mutationBatch.user.uid
       );
       return;
     }

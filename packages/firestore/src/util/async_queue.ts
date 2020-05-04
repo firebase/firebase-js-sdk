@@ -339,7 +339,7 @@ export class AsyncQueue {
           this.backoff.reset();
         } catch (e) {
           if (e.name === 'IndexedDbTransactionError') {
-            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+            logDebug(LOG_TAG, 'Operation failed with retryable error: ',);
             this.backoff.backoffAndRun(retryingOp);
           } else {
             deferred.resolve();

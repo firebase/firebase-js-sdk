@@ -718,7 +718,7 @@ export class SyncEngine implements RemoteSyncer {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
         this.trackLimboChange(limboChange);
       } else if (limboChange instanceof RemovedLimboDocument) {
-        logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
+        logDebug(LOG_TAG, 'Document no longer in limbo: ', limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
         const isReferenced = this.limboDocumentRefs.containsKey(
           limboChange.key
@@ -736,7 +736,7 @@ export class SyncEngine implements RemoteSyncer {
   private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
     if (!this.activeLimboTargetsByKey.get(key)) {
-      logDebug(LOG_TAG, 'New document in limbo: ' + key);
+      logDebug(LOG_TAG, 'New document in limbo: ', key);
       this.enqueuedLimboResolutions.push(key);
       this.pumpEnqueuedLimboResolutions();
     }
@@ -1009,7 +1009,7 @@ export class MultiTabSyncEngine extends SyncEngine
       // had, we would have cached the affected documents), and so we will just
       // see any resulting document changes via normal remote document updates
       // as applicable.
-      logDebug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      logDebug(LOG_TAG, 'Cannot apply mutation batch with id: ', batchId);
       return;
     }
 
@@ -1228,7 +1228,7 @@ export class MultiTabSyncEngine extends SyncEngine
     for (const targetId of added) {
       if (this.queriesByTarget.has(targetId)) {
         // A target might have been added in a previous attempt
-        logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
+        logDebug(LOG_TAG, 'Adding an already active target ', targetId);
         continue;
       }
 

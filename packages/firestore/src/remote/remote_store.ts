@@ -220,7 +220,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (this.writePipeline.length > 0) {
       logDebug(
         LOG_TAG,
-        `Stopping write stream with ${this.writePipeline.length} pending writes`
+        `Stopping write stream with %s pending writes`, this.writePipeline.length
       );
       this.writePipeline = [];
     }

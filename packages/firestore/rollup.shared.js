@@ -19,6 +19,7 @@ import * as path from 'path';
 
 import { externs } from './externs.json';
 import { renameInternals } from './scripts/rename-internals';
+import { removeLogging } from './scripts/remove-logging';
 import { extractPublicIdentifiers } from './scripts/extract-api';
 import { removeAsserts } from './scripts/remove-asserts';
 
@@ -54,7 +55,8 @@ export const firestoreTransformers = [
       renameInternals(service.getProgram(), {
         publicIdentifiers,
         prefix: '__PRIVATE_'
-      })
+      }),
+      removeLogging(service.getProgram())
     ],
     after: []
   })

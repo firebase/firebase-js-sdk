@@ -118,7 +118,7 @@ export class WebChannelConnection implements Connection {
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              logDebug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+              logDebug(LOG_TAG, 'RPC %s timed out', rpcName);
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
@@ -127,9 +127,9 @@ export class WebChannelConnection implements Connection {
               const status = xhr.getStatus();
               logDebug(
                 LOG_TAG,
-                'RPC "' + rpcName + '" failed with status:',
+                'RPC %s failed with status: %s, response text: %s',
+                rpcName,
                 status,
-                'response text:',
                 xhr.getResponseText()
               );
               if (status > 0) {
@@ -160,7 +160,7 @@ export class WebChannelConnection implements Connection {
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
-                logDebug(LOG_TAG, 'RPC "' + rpcName + '" failed');
+                logDebug(LOG_TAG, 'RPC %s failed', rpcName);
                 reject(
                   new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                 );
@@ -179,7 +179,7 @@ export class WebChannelConnection implements Connection {
               );
           }
         } finally {
-          logDebug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
+          logDebug(LOG_TAG, 'RPC %s completed.', rpcName);
         }
       });
 
@@ -282,7 +282,7 @@ export class WebChannelConnection implements Connection {
     }
 
     const url = urlParts.join('');
-    logDebug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
+    logDebug(LOG_TAG, 'Creating WebChannel: ',  url + ' ' + request);
     const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving

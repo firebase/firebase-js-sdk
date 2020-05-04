@@ -32,7 +32,8 @@ import {
   PublicQuerySnapshot,
   PublicTransaction,
   PublicWriteBatch,
-  PublicFieldValue
+  PublicFieldValue,
+  setLogLevel
 } from '../api/database';
 import { FieldPath } from '../api/field_path';
 import { GeoPoint } from '../api/geo_point';
@@ -53,7 +54,6 @@ const firestoreNamespace = {
   CollectionReference: PublicCollectionReference,
   FieldPath,
   FieldValue: PublicFieldValue,
-  setLogLevel: Firestore.setLogLevel,
   CACHE_SIZE_UNLIMITED
 };
 

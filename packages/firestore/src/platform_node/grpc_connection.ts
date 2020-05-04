@@ -133,7 +133,7 @@ export class GrpcConnection implements Connection {
           } else {
             logDebug(
               LOG_TAG,
-              `RPC '${rpcName}' completed with response:`,
+              `RPC %s completed with response: %s`, rpcName,
               value
             );
             callback(undefined, value);
@@ -160,15 +160,15 @@ export class GrpcConnection implements Connection {
     const metadata = createMetadata(this.databaseInfo, token);
     const stream = stub[rpcName](request, metadata);
     stream.on('data', (response: Resp) => {
-      logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
+      logDebug(LOG_TAG, `RPC %s received result: %s`,rpcName, response);
       results.push(response);
     });
     stream.on('end', () => {
-      logDebug(LOG_TAG, `RPC '${rpcName}' completed.`);
+      logDebug(LOG_TAG, `RPC '%s' completed.`, rpcName);
       responseDeferred.resolve(results);
     });
     stream.on('error', (grpcError: ServiceError) => {
-      logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
+      logDebug(LOG_TAG, `RPC '%s' failed with error: %s`, rpcName, grpcError);
       const code = mapCodeFromRpcCode(grpcError.code);
       responseDeferred.reject(new FirestoreError(code, grpcError.message));
     });

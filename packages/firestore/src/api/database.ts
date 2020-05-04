@@ -69,7 +69,13 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import {
+  getLogLevel,
+  logError,
+  LogLevel,
+  registerLogMessages,
+  setLogLevel as globalSetLogLevel
+} from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -94,6 +100,8 @@ import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { FieldValue } from './field_value';
+
+const logMessages = require('../../log-messages.json').messages;
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -588,44 +596,33 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return new WriteBatch(this);
   }
 
-  static get logLevel(): firestore.LogLevel {
-    switch (getLogLevel()) {
-      case LogLevel.DEBUG:
-        return 'debug';
-      case LogLevel.SILENT:
-        return 'silent';
-      default:
-        // The default log level is error
-        return 'error';
-    }
-  }
-
-  static setLogLevel(level: firestore.LogLevel): void {
-    validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
-    switch (level) {
-      case 'debug':
-        setLogLevel(LogLevel.DEBUG);
-        break;
-      case 'error':
-        setLogLevel(LogLevel.ERROR);
-        break;
-      case 'silent':
-        setLogLevel(LogLevel.SILENT);
-        break;
-      default:
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid log level: ' + level
-        );
-    }
-  }
-
   // Note: this is not a property because the minifier can't work correctly with
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
   }
+}
+
+export function setLogLevel(level: firestore.LogLevel): void {
+  validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
+  registerLogMessages(logMessages);
+validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
+switch (level) {
+  case 'debug':
+    globalSetLogLevel(LogLevel.DEBUG);
+    break;
+  case 'error':
+    globalSetLogLevel(LogLevel.ERROR);
+    break;
+  case 'silent':
+    globalSetLogLevel(LogLevel.SILENT);
+    break;
+  default:
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Invalid log level: ' + level
+    );
+}
 }
 
 /**
