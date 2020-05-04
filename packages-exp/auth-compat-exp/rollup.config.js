@@ -55,7 +55,7 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
-   * App React Native Builds
+   * React Native Builds
    */
   {
     input: 'index.rn.ts',
