@@ -78,14 +78,14 @@ export interface APIMFAInfo {
  */
 export interface IdTokenResult {
   token: string;
-  authTime: string|null;
-  expirationTime: string|null;
-  issuedAtTime: string|null;
+  authTime: string | null;
+  expirationTime: string | null;
+  issuedAtTime: string | null;
   signInProvider: ProviderId | null;
   signInSecondFactor: string | null;
   claims: ParsedToken;
 }
 
 export interface ParsedToken {
-  [key: string]: string|ParsedToken;
+  [key: string]: string | ParsedToken;
 }

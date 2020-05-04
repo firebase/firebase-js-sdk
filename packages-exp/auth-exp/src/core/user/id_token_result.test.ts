@@ -49,15 +49,17 @@ describe('/core/user/id_token_result', () => {
 
   it('throws an internal error when the token is malformed', async () => {
     setup('not.valid');
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(FirebaseError, 
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(getIdTokenResult(user)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('builds the result properly w/ timestamps', async () => {
     const token = {
       'iat': (MAY_1.getTime() / 1000).toString(),
       'auth_time': (MAY_2.getTime() / 1000).toString(),
-      'exp': (MAY_3.getTime() / 1000).toString(),
+      'exp': (MAY_3.getTime() / 1000).toString()
     };
 
     const encodedStr = makeJWT(token);
@@ -70,7 +72,7 @@ describe('/core/user/id_token_result', () => {
       authTime: MAY_2.toUTCString(),
       expirationTime: MAY_3.toUTCString(),
       signInProvider: null,
-      signInSecondFactor: null,
+      signInSecondFactor: null
     });
   });
 
@@ -81,8 +83,8 @@ describe('/core/user/id_token_result', () => {
       'exp': (MAY_3.getTime() / 1000).toString(),
       'firebase': {
         'sign_in_provider': 'google.com',
-        'sign_in_second_factor': 'sure',
-      },
+        'sign_in_second_factor': 'sure'
+      }
     };
 
     const encodedStr = makeJWT(token);
@@ -95,43 +97,49 @@ describe('/core/user/id_token_result', () => {
       authTime: MAY_2.toUTCString(),
       expirationTime: MAY_3.toUTCString(),
       signInProvider: 'google.com',
-      signInSecondFactor: 'sure',
+      signInSecondFactor: 'sure'
     });
   });
 
   it('errors if iat is missing', async () => {
     const token = {
       'auth_time': (MAY_2.getTime() / 1000).toString(),
-      'exp': (MAY_3.getTime() / 1000).toString(),
+      'exp': (MAY_3.getTime() / 1000).toString()
     };
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(FirebaseError, 
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(getIdTokenResult(user)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('errors if auth_time is missing', async () => {
     const token = {
       'iat': (MAY_1.getTime() / 1000).toString(),
-      'exp': (MAY_3.getTime() / 1000).toString(),
+      'exp': (MAY_3.getTime() / 1000).toString()
     };
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(FirebaseError, 
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(getIdTokenResult(user)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('errors if exp is missing', async () => {
     const token = {
       'iat': (MAY_1.getTime() / 1000).toString(),
-      'auth_time': (MAY_2.getTime() / 1000).toString(),
+      'auth_time': (MAY_2.getTime() / 1000).toString()
     };
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(FirebaseError, 
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(getIdTokenResult(user)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 });

@@ -22,14 +22,23 @@ import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 
-export async function getIdTokenResult(user: User, forceRefresh = false): Promise<IdTokenResult> {
+export async function getIdTokenResult(
+  user: User,
+  forceRefresh = false
+): Promise<IdTokenResult> {
   const token = await user.getIdToken(forceRefresh);
   const claims = parseClaims(token);
   // const firebase = claims?.firebase;
 
-  assert(claims && claims['exp'] && claims['auth_time'] && claims['iat'], user.auth.name);
-  const firebase = typeof claims['firebase'] !== 'string' && typeof claims['firebase'] !== 'undefined' ?
-    claims['firebase'] : undefined;
+  assert(
+    claims && claims['exp'] && claims['auth_time'] && claims['iat'],
+    user.auth.name
+  );
+  const firebase =
+    typeof claims['firebase'] !== 'string' &&
+    typeof claims['firebase'] !== 'undefined'
+      ? claims['firebase']
+      : undefined;
 
   return {
     claims,
@@ -38,11 +47,11 @@ export async function getIdTokenResult(user: User, forceRefresh = false): Promis
     issuedAtTime: utcTimestampToDateString(Number(claims['iat']) * 1000),
     expirationTime: utcTimestampToDateString(Number(claims['exp']) * 1000),
     signInProvider: (firebase?.['sign_in_provider'] as ProviderId) || null,
-    signInSecondFactor: firebase?.['sign_in_second_factor'] as string || null,
+    signInSecondFactor: (firebase?.['sign_in_second_factor'] as string) || null
   };
 }
 
-function utcTimestampToDateString(timestamp: string|number): string|null {
+function utcTimestampToDateString(timestamp: string | number): string | null {
   try {
     const date = new Date(Number(timestamp));
     if (!isNaN(date.getTime())) {
@@ -55,9 +64,13 @@ function utcTimestampToDateString(timestamp: string|number): string|null {
   return null;
 }
 
-function parseClaims(token: string): ParsedToken|null {
+function parseClaims(token: string): ParsedToken | null {
   const [algorithm, jsonInfo, signature] = token.split('.');
-  if (algorithm === undefined || jsonInfo === undefined || signature === undefined) {
+  if (
+    algorithm === undefined ||
+    jsonInfo === undefined ||
+    signature === undefined
+  ) {
     return null;
   }
 
@@ -67,7 +80,7 @@ function parseClaims(token: string): ParsedToken|null {
       return null;
     }
     return JSON.parse(decoded);
-  } catch(e) {
+  } catch (e) {
     return null;
   }
 }
