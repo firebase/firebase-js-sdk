@@ -49,7 +49,9 @@ class RenameInternals {
         !this.publicApi.has(name) &&
         blacklist.indexOf(node.escapedText.toString()) === -1
       ) {
-        return ts.createIdentifier(this.prefix + name);
+        const newIdentifier = ts.createIdentifier(this.prefix + name);
+        ts.setSourceMapRange(newIdentifier, ts.getSourceMapRange(node));
+        return newIdentifier;
       }
     }
 
