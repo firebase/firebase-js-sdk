@@ -49,6 +49,8 @@ class RemoveAsserts {
   }
 
   visitNode(node: ts.Node): ts.Node {
+    let updatedNode: ts.Node | null = null;
+
     if (ts.isCallExpression(node)) {
       const signature = this.typeChecker.getResolvedSignature(node);
       if (
@@ -63,19 +65,31 @@ class RemoveAsserts {
         ) {
           const method = declaration.name!.text;
           if (method === 'debugAssert') {
-            return ts.createEmptyStatement();
+            updatedNode = ts.createEmptyStatement();
           } else if (method === 'hardAssert') {
             // Remove the log message but keep the assertion
-            return ts.createCall(declaration.name!, /*typeArgs*/ undefined, [
-              node.arguments[0]
-            ]);
+            updatedNode = ts.createCall(
+              declaration.name!,
+              /*typeArgs*/ undefined,
+              [node.arguments[0]]
+            );
           } else if (method === 'fail') {
             // Remove the log message
-            return ts.createCall(declaration.name!, /*typeArgs*/ undefined, []);
+            updatedNode = ts.createCall(
+              declaration.name!,
+              /*typeArgs*/ undefined,
+              []
+            );
           }
         }
       }
     }
-    return node;
+
+    if (updatedNode) {
+      ts.setSourceMapRange(updatedNode, ts.getSourceMapRange(node));
+      return updatedNode;
+    } else {
+      return node;
+    }
   }
 }
