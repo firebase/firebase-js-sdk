@@ -28,7 +28,6 @@ import { WebChannelConnection } from './webchannel_connection';
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
 export class BrowserPlatform implements Platform {
-  readonly useProto3Json = true;
   readonly base64Available: boolean;
 
   constructor() {
