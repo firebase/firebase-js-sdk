@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
+import { requestStsToken } from '../../api/authentication/token';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 
@@ -28,6 +31,7 @@ export const TOKEN_REFRESH_BUFFER_MS = 30_000;
 export interface Tokens {
   accessToken: string;
   refreshToken: string | null;
+  wasRefreshed: boolean;
 }
 
 export class StsTokenManager {
@@ -47,20 +51,34 @@ export class StsTokenManager {
     refreshToken,
     expiresIn: expiresInSec
   }: IdTokenResponse): void {
-    this.refreshToken = refreshToken;
-    this.accessToken = idToken;
-    this.expirationTime = Date.now() + Number(expiresInSec) * 1000;
+    this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec);
   }
 
-  async getToken(forceRefresh = false): Promise<Tokens> {
+  async getToken(auth: Auth, forceRefresh = false): Promise<Tokens | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return {
         accessToken: this.accessToken,
-        refreshToken: this.refreshToken
+        refreshToken: this.refreshToken,
+        wasRefreshed: false
       };
     }
 
-    throw new Error('StsTokenManager: token refresh not implemented');
+    if (this.accessToken && !this.refreshToken) {
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
+        appName: auth.name
+      });
+    }
+
+    if (!this.refreshToken) {
+      return null;
+    }
+
+    await this.refresh(auth, this.refreshToken);
+    return {
+      accessToken: this.accessToken!,
+      refreshToken: this.refreshToken,
+      wasRefreshed: true
+    };
   }
 
   toPlainObject(): object {
@@ -69,6 +87,30 @@ export class StsTokenManager {
       accessToken: this.accessToken,
       expirationTime: this.expirationTime
     };
+  }
+
+  private async refresh(auth: Auth, oldToken: string): Promise<void> {
+    const { accessToken, refreshToken, expiresIn } = await requestStsToken(
+      auth,
+      oldToken
+    );
+    this.updateTokensAndExpiration(
+      accessToken || null,
+      refreshToken || null,
+      expiresIn || null
+    );
+  }
+
+  private updateTokensAndExpiration(
+    accessToken: string | null,
+    refreshToken: string | null,
+    expiresInSec: string | null
+  ): void {
+    this.refreshToken = refreshToken;
+    this.accessToken = accessToken;
+    this.expirationTime = expiresInSec
+      ? Date.now() + Number(expiresInSec) * 1000
+      : null;
   }
 
   static fromPlainObject(

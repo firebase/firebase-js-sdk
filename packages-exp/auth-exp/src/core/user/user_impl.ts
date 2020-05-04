@@ -75,12 +75,18 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const { refreshToken, accessToken } = await this.stsTokenManager.getToken(
-      forceRefresh
-    );
+    const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
+    assert(tokens, this.auth.name);
+
+    // TODO: remove ! after #2934 is merged --
+    const { refreshToken, accessToken /* wasRefreshed */ } = tokens!;
     this.refreshToken = refreshToken || '';
 
-    // TODO: notify listeners at this point
+    // TODO: Uncomment after #2961 is merged
+    // if (wasRefreshed && this.auth.currentUser === this) {
+    //   this.auth._notifyListeners();
+    // }
+
     return accessToken;
   }
 

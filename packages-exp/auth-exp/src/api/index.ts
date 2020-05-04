@@ -16,16 +16,17 @@
  */
 
 import { FirebaseError, querystring } from '@firebase/util';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
+
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
 import {
   JsonError,
+  SERVER_ERROR_MAP,
   ServerError,
-  ServerErrorMap,
-  SERVER_ERROR_MAP
+  ServerErrorMap
 } from './errors';
-import { Delay } from '../core/util/delay';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -63,8 +64,7 @@ export async function _performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
-  try {
+  return _performFetchWithErrorHandling(auth, customErrorMap, () => {
     let body = {};
     let params = {};
     if (request) {
@@ -82,28 +82,31 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
+    return fetch(
+      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
+      {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Version': auth.config.sdkClientVersion
+        },
+        referrerPolicy: 'no-referrer',
+        ...body
+      }
+    );
+  });
+}
+
+export async function _performFetchWithErrorHandling<V>(
+  auth: Auth,
+  customErrorMap: Partial<ServerErrorMap<ServerError>>,
+  fetchFn: () => Promise<Response>
+): Promise<V> {
+  const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
+  try {
     const response: Response = await Promise.race<Promise<Response>>([
-      fetch(
-        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
-        {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Client-Version': auth.config.sdkClientVersion
-          },
-          referrerPolicy: 'no-referrer',
-          ...body
-        }
-      ),
-      new Promise((_, reject) =>
-        setTimeout(() => {
-          return reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-              appName: auth.name
-            })
-          );
-        }, DEFAULT_API_TIMEOUT_MS.get())
-      )
+      fetchFn(),
+      makeNetworkTimeout(auth.name)
     ]);
     if (response.ok) {
       return response.json();
@@ -153,4 +156,16 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   }
 
   return serverResponse;
+}
+
+function makeNetworkTimeout<T>(appName: string): Promise<T> {
+  return new Promise((_, reject) =>
+    setTimeout(() => {
+      return reject(
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
+          appName
+        })
+      );
+    }, DEFAULT_API_TIMEOUT_MS.get())
+  );
 }

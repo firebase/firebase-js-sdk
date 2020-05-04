@@ -39,6 +39,7 @@ interface AsyncAction {
   (): Promise<void>;
 }
 
+export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
@@ -199,6 +200,7 @@ export function initializeAuth(
     apiKey,
     authDomain,
     apiHost: DEFAULT_API_HOST,
+    tokenApiHost: DEFAULT_TOKEN_API_HOST,
     apiScheme: DEFAULT_API_SCHEME,
     sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
   };
