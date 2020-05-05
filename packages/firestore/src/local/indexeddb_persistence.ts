@@ -412,8 +412,16 @@ export class IndexedDbPersistence implements Persistence {
       })
       .catch(e => {
         if (!this.allowTabSynchronization) {
-          throw e;
-        }
+          if (e.name === 'IndexedDbTransactionError') {
+            logDebug(LOG_TAG, "Failed to extend owner lease: ", e);
+            // Proceed in primary mode since the client was not initialized
+            // to support multi-tab. Any subsequent access to IndexedDB will
+            // verify the lease.
+            return true;
+          } else {
+            throw e;
+          }
+        } 
 
         logDebug(
           LOG_TAG,
