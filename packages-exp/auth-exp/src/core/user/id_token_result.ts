@@ -35,20 +35,30 @@ export async function getIdTokenResult(
     user.auth.name
   );
   const firebase =
-    typeof claims.firebase === 'object' ? claims.firebase
-      : undefined;
-  
-  const signInProvider: ProviderId|undefined = firebase?.['sign_in_provider'] as ProviderId;
-  assert(!signInProvider || Object.values(ProviderId).includes(signInProvider), user.auth.name);
+    typeof claims.firebase === 'object' ? claims.firebase : undefined;
+
+  const signInProvider: ProviderId | undefined = firebase?.[
+    'sign_in_provider'
+  ] as ProviderId;
+  assert(
+    !signInProvider || Object.values(ProviderId).includes(signInProvider),
+    user.auth.name
+  );
 
   return {
     claims,
     token,
-    authTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.auth_time)),
-    issuedAtTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.iat)),
-    expirationTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.exp)),
-    signInProvider: signInProvider|| null,
-    signInSecondFactor: firebase?.['sign_in_second_factor'] || null,
+    authTime: utcTimestampToDateString(
+      secondsStringToMilliseconds(claims.auth_time)
+    ),
+    issuedAtTime: utcTimestampToDateString(
+      secondsStringToMilliseconds(claims.iat)
+    ),
+    expirationTime: utcTimestampToDateString(
+      secondsStringToMilliseconds(claims.exp)
+    ),
+    signInProvider: signInProvider || null,
+    signInSecondFactor: firebase?.['sign_in_second_factor'] || null
   };
 }
 

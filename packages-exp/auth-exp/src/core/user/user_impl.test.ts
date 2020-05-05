@@ -90,7 +90,7 @@ describe('core/user/user_impl', () => {
       const token = {
         'iat': String(new Date('May 1, 2020').getTime() / 1000),
         'auth_time': String(new Date('May 2, 2020').getTime() / 1000),
-        'exp': String(new Date('May 3, 2020').getTime() / 1000),
+        'exp': String(new Date('May 3, 2020').getTime() / 1000)
       };
 
       const jwt = makeJWT(token);
@@ -101,7 +101,7 @@ describe('core/user/user_impl', () => {
         expiresIn: '100000'
       } as IdTokenResponse);
 
-      const user = new UserImpl({uid: 'uid', auth, stsTokenManager });
+      const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const tokenResult = await user.getIdTokenResult();
       expect(tokenResult).to.eql({
         issuedAtTime: new Date('May 1, 2020').toUTCString(),
@@ -110,7 +110,7 @@ describe('core/user/user_impl', () => {
         token: jwt,
         claims: token,
         signInProvider: null,
-        signInSecondFactor: null,
+        signInSecondFactor: null
       });
     });
   });
