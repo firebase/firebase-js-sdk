@@ -47,7 +47,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
-import { makeConstructorPrivate } from '../util/api';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
@@ -93,7 +92,6 @@ import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { FieldValue } from './field_value';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -2529,39 +2527,3 @@ function applyFirestoreDataConverter<T>(
 function contains(obj: object, key: string): obj is { key: unknown } {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
-
-// Export the classes with a private constructor (it will fail if invoked
-// at runtime). Note that this still allows instanceof checks.
-
-// We're treating the variables as class names, so disable checking for lower
-// case variable names.
-export const PublicFirestore = makeConstructorPrivate(
-  Firestore,
-  'Use firebase.firestore() instead.'
-);
-export const PublicTransaction = makeConstructorPrivate(
-  Transaction,
-  'Use firebase.firestore().runTransaction() instead.'
-);
-export const PublicWriteBatch = makeConstructorPrivate(
-  WriteBatch,
-  'Use firebase.firestore().batch() instead.'
-);
-export const PublicDocumentReference = makeConstructorPrivate(
-  DocumentReference,
-  'Use firebase.firestore().doc() instead.'
-);
-export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
-export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
-  QueryDocumentSnapshot
-);
-export const PublicQuery = makeConstructorPrivate(Query);
-export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
-export const PublicCollectionReference = makeConstructorPrivate(
-  CollectionReference,
-  'Use firebase.firestore().collection() instead.'
-);
-export const PublicFieldValue = makeConstructorPrivate(
-  FieldValue,
-  'Use FieldValue.<field>() instead.'
-);

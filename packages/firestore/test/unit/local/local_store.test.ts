@@ -18,7 +18,7 @@
 import * as api from '../../../src/protos/firestore_proto_api';
 
 import { expect } from 'chai';
-import { PublicFieldValue } from '../../../src/api/database';
+import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
@@ -1256,16 +1256,12 @@ function genericLocalStoreTests(
         doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
-      .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
-      )
+      .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
-      .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
-      )
+      .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 3 }, { hasLocalMutations: true })
       )
@@ -1290,9 +1286,7 @@ function genericLocalStoreTests(
         .toContain(
           doc('foo/bar', 1, { sum: 0 }, { hasCommittedMutations: true })
         )
-        .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
-        )
+        .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
         .toReturnChanged(
           doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
         )
@@ -1307,9 +1301,7 @@ function genericLocalStoreTests(
         .toContain(
           doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true })
         )
-        .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
-        )
+        .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
         )
@@ -1335,9 +1327,7 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 1 })
         .toReturnChanged(doc('foo/bar', 1, { sum: 0 }))
         .toContain(doc('foo/bar', 1, { sum: 0 }))
-        .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
-        )
+        .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
         .toReturnChanged(
           doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
         )
@@ -1353,9 +1343,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 2, { sum: 1 }, { hasLocalMutations: true }))
         // Add another increment. Note that we still compute the increment based
         // on the local value.
-        .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
-        )
+        .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
         )
@@ -1417,9 +1405,9 @@ function genericLocalStoreTests(
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
         .afterMutations([
-          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) }),
+          transformMutation('foo/bar', { sum: FieldValue.increment(1) }),
           transformMutation('foo/bar', {
-            arrayUnion: PublicFieldValue.arrayUnion('foo')
+            arrayUnion: FieldValue.arrayUnion('foo')
           })
         ])
         .toReturnChanged(
@@ -1458,7 +1446,7 @@ function genericLocalStoreTests(
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}, Precondition.none()),
-        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
       ])
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
@@ -1484,7 +1472,7 @@ function genericLocalStoreTests(
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}),
-        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
       ])
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')
