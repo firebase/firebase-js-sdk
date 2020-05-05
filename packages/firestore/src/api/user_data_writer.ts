@@ -94,7 +94,10 @@ export class UserDataWriter<T = firestore.DocumentData> {
   }
 
   private convertGeoPoint(value: api.LatLng): GeoPoint {
-    return new GeoPoint(normalizeNumber(value.latitude), normalizeNumber(value.longitude));
+    return new GeoPoint(
+      normalizeNumber(value.latitude),
+      normalizeNumber(value.longitude)
+    );
   }
 
   private convertArray(arrayValue: api.ArrayValue): unknown[] {

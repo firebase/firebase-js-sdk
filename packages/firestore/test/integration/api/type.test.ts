@@ -63,9 +63,10 @@ apiDescribe('Firestore', (persistence: boolean) => {
     return withTestDoc(persistence, doc => {
       return doc
         .set({
-            geopoint1: new GeoPoint(1.23, 4.56),
-            geopoint2: new GeoPoint(0, 0)
-          }).then(() => {
+          geopoint1: new GeoPoint(1.23, 4.56),
+          geopoint2: new GeoPoint(0, 0)
+        })
+        .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
