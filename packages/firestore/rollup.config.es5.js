@@ -33,13 +33,6 @@ import memoryPkg from './memory/package.json';
 // language levels that don't support tree shaking.
 
 const browserPlugins = [
-  typescriptPlugin({
-    typescript,
-    compilerOptions: {
-      allowJs: true
-    },
-    include: ['dist/*.js']
-  }),
   compiler({
     languageIn: 'ECMASCRIPT_2017',
     languageOut: 'ECMASCRIPT5',

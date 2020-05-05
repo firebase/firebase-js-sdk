@@ -142,33 +142,33 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
       fail('Invalid encoded resource path: "' + path + '"');
     }
 
-    const next = path.charAt(end + 1);
-    switch (next) {
-      case encodedSeparatorChar:
-        const currentPiece = path.substring(start, end);
-        let segment;
-        if (segmentBuilder.length === 0) {
-          // Avoid copying for the common case of a segment that excludes \0
-          // and \001
-          segment = currentPiece;
-        } else {
-          segmentBuilder += currentPiece;
-          segment = segmentBuilder;
-          segmentBuilder = '';
-        }
-        segments.push(segment);
-        break;
-      case encodedNul:
-        segmentBuilder += path.substring(start, end);
-        segmentBuilder += '\0';
-        break;
-      case encodedEscape:
-        // The escape character can be used in the output to encode itself.
-        segmentBuilder += path.substring(start, end + 1);
-        break;
-      default:
-        fail('Invalid encoded resource path: "' + path + '"');
-    }
+    // const next = path.charAt(end + 1);
+    // switch (next) {
+    //   case encodedSeparatorChar:
+    //     const currentPiece = path.substring(start, end);
+    //     let segment;
+    //     if (segmentBuilder.length === 0) {
+    //       // Avoid copying for the common case of a segment that excludes \0
+    //       // and \001
+    //       segment = currentPiece;
+    //     } else {
+    //       segmentBuilder += currentPiece;
+    //       segment = segmentBuilder;
+    //       segmentBuilder = '';
+    //     }
+    //     segments.push(segment);
+    //     break;
+    //   case encodedNul:
+    //     segmentBuilder += path.substring(start, end);
+    //     segmentBuilder += '\0';
+    //     break;
+    //   case encodedEscape:
+    //     // The escape character can be used in the output to encode itself.
+    //     segmentBuilder += path.substring(start, end + 1);
+    //     break;
+    //   default:
+    //     fail('Invalid encoded resource path: "' + path + '"');
+    // }
 
     start = end + 2;
   }

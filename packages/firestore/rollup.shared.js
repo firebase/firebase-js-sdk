@@ -65,9 +65,10 @@ export const firestoreTransformers = [
  */
 export const manglePrivatePropertiesOptions = {
   output: {
-    comments: 'all',
+    comments: false,
     beautify: true
   },
+  compress: false,
   mangle: {
     properties: {
       regex: /^__PRIVATE_/
