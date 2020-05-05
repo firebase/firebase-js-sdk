@@ -21,34 +21,39 @@ import { IdTokenResult, ParsedToken } from '../../model/id_token';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
+import { _logError } from '../util/log';
 
 export async function getIdTokenResult(
   user: User,
   forceRefresh = false
 ): Promise<IdTokenResult> {
   const token = await user.getIdToken(forceRefresh);
-  const claims = parseClaims(token);
-  // const firebase = claims?.firebase;
+  const claims = parseToken(token);
 
   assert(
-    claims && claims['exp'] && claims['auth_time'] && claims['iat'],
+    claims && claims.exp && claims.auth_time && claims.iat,
     user.auth.name
   );
   const firebase =
-    typeof claims['firebase'] !== 'string' &&
-    typeof claims['firebase'] !== 'undefined'
-      ? claims['firebase']
+    typeof claims.firebase === 'object' ? claims.firebase
       : undefined;
+  
+  const signInProvider: ProviderId|undefined = firebase?.['sign_in_provider'] as ProviderId;
+  assert(!signInProvider || Object.values(ProviderId).includes(signInProvider), user.auth.name);
 
   return {
     claims,
     token,
-    authTime: utcTimestampToDateString(Number(claims['auth_time']) * 1000),
-    issuedAtTime: utcTimestampToDateString(Number(claims['iat']) * 1000),
-    expirationTime: utcTimestampToDateString(Number(claims['exp']) * 1000),
-    signInProvider: (firebase?.['sign_in_provider'] as ProviderId) || null,
-    signInSecondFactor: (firebase?.['sign_in_second_factor'] as string) || null
+    authTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.auth_time)),
+    issuedAtTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.iat)),
+    expirationTime: utcTimestampToDateString(secondsStringToMilliseconds(claims.exp)),
+    signInProvider: signInProvider|| null,
+    signInSecondFactor: firebase?.['sign_in_second_factor'] || null,
   };
+}
+
+function secondsStringToMilliseconds(seconds: string): number {
+  return Number(seconds) * 1000;
 }
 
 function utcTimestampToDateString(timestamp: string | number): string | null {
@@ -64,23 +69,26 @@ function utcTimestampToDateString(timestamp: string | number): string | null {
   return null;
 }
 
-function parseClaims(token: string): ParsedToken | null {
-  const [algorithm, jsonInfo, signature] = token.split('.');
+function parseToken(token: string): ParsedToken | null {
+  const [algorithm, payload, signature] = token.split('.');
   if (
     algorithm === undefined ||
-    jsonInfo === undefined ||
+    payload === undefined ||
     signature === undefined
   ) {
+    _logError('JWT malformed, contained fewer than 3 sections');
     return null;
   }
 
   try {
-    const decoded = base64Decode(jsonInfo);
+    const decoded = base64Decode(payload);
     if (!decoded) {
+      _logError('Failed to decode base64 JWT payload');
       return null;
     }
     return JSON.parse(decoded);
   } catch (e) {
+    _logError('Caught error parsing JWT payload as JSON', e);
     return null;
   }
 }

@@ -20,6 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
+import { makeJWT } from '../../../test/jwt';
 import { mockAuth } from '../../../test/mock_auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
@@ -80,6 +81,37 @@ describe('core/user/user_impl', () => {
       const token = await user.getIdToken();
       expect(token).to.eq('id-token-string');
       expect(user.refreshToken).to.eq('refresh-token-string');
+    });
+  });
+
+  describe('#getIdTokenResult', () => {
+    // Smoke test; comprehensive tests in id_token_result.test.ts
+    it('calls through to getIdTokenResult', async () => {
+      const token = {
+        'iat': String(new Date('May 1, 2020').getTime() / 1000),
+        'auth_time': String(new Date('May 2, 2020').getTime() / 1000),
+        'exp': String(new Date('May 3, 2020').getTime() / 1000),
+      };
+
+      const jwt = makeJWT(token);
+
+      stsTokenManager.updateFromServerResponse({
+        idToken: jwt,
+        refreshToken: 'refresh-token-string',
+        expiresIn: '100000'
+      } as IdTokenResponse);
+
+      const user = new UserImpl({uid: 'uid', auth, stsTokenManager });
+      const tokenResult = await user.getIdTokenResult();
+      expect(tokenResult).to.eql({
+        issuedAtTime: new Date('May 1, 2020').toUTCString(),
+        authTime: new Date('May 2, 2020').toUTCString(),
+        expirationTime: new Date('May 3, 2020').toUTCString(),
+        token: jwt,
+        claims: token,
+        signInProvider: null,
+        signInSecondFactor: null,
+      });
     });
   });
 

@@ -87,5 +87,12 @@ export interface IdTokenResult {
 }
 
 export interface ParsedToken {
-  [key: string]: string | ParsedToken;
+  'exp'?: string;
+  'auth_time'?: string;
+  'iat'?: string;
+  'firebase'?: {
+    'sign_in_provider'?: string;
+    'sign_in_second_factor'?: string;
+  },
+  [key: string]: string | ParsedToken | undefined;
 }

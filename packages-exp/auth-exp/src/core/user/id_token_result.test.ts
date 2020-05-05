@@ -19,10 +19,12 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { base64Encode, FirebaseError } from '@firebase/util';
+import { FirebaseError } from '@firebase/util';
 
+import { makeJWT } from '../../../test/jwt';
 import { testUser } from '../../../test/mock_auth';
 import { User } from '../../model/user';
+import { ProviderId } from '../providers';
 import { getIdTokenResult } from './id_token_result';
 
 use(chaiAsPromised);
@@ -30,11 +32,6 @@ use(chaiAsPromised);
 const MAY_1 = new Date('May 1, 2020');
 const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
-
-function makeJWT(claims: object): string {
-  const b64 = base64Encode(JSON.stringify(claims));
-  return `algorithm.${b64}.signature`;
-}
 
 describe('/core/user/id_token_result', () => {
   let user: User;
@@ -82,7 +79,7 @@ describe('/core/user/id_token_result', () => {
       'auth_time': (MAY_2.getTime() / 1000).toString(),
       'exp': (MAY_3.getTime() / 1000).toString(),
       'firebase': {
-        'sign_in_provider': 'google.com',
+        'sign_in_provider': ProviderId.GOOGLE,
         'sign_in_second_factor': 'sure'
       }
     };
@@ -96,7 +93,7 @@ describe('/core/user/id_token_result', () => {
       issuedAtTime: MAY_1.toUTCString(),
       authTime: MAY_2.toUTCString(),
       expirationTime: MAY_3.toUTCString(),
-      signInProvider: 'google.com',
+      signInProvider: ProviderId.GOOGLE,
       signInSecondFactor: 'sure'
     });
   });
