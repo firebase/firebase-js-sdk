@@ -40,37 +40,37 @@ import { FieldValue } from '../api/field_value';
 
 // Public instance that disallows construction at runtime. Note that this still
 // allows instanceof checks.
-const PublicFirestore = makeConstructorPrivate(
+export const PublicFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
 );
-const PublicTransaction = makeConstructorPrivate(
+export const PublicTransaction = makeConstructorPrivate(
   Transaction,
   'Use firebase.firestore().runTransaction() instead.'
 );
-const PublicWriteBatch = makeConstructorPrivate(
+export const PublicWriteBatch = makeConstructorPrivate(
   WriteBatch,
   'Use firebase.firestore().batch() instead.'
 );
-const PublicDocumentReference = makeConstructorPrivate(
+export const PublicDocumentReference = makeConstructorPrivate(
   DocumentReference,
   'Use firebase.firestore().doc() instead.'
 );
-const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
-const PublicQueryDocumentSnapshot = makeConstructorPrivate(
+export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
+export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
   QueryDocumentSnapshot
 );
-const PublicQuery = makeConstructorPrivate(Query);
-const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
-const PublicCollectionReference = makeConstructorPrivate(
+export const PublicQuery = makeConstructorPrivate(Query);
+export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
+export const PublicCollectionReference = makeConstructorPrivate(
   CollectionReference,
   'Use firebase.firestore().collection() instead.'
 );
-const PublicFieldValue = makeConstructorPrivate(
+export const PublicFieldValue = makeConstructorPrivate(
   FieldValue,
   'Use FieldValue.<field>() instead.'
 );
-const PublicBlob = makeConstructorPrivate(
+export const PublicBlob = makeConstructorPrivate(
   Blob,
   'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
 );
