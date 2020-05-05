@@ -78,12 +78,21 @@ export interface APIMFAInfo {
  */
 export interface IdTokenResult {
   token: string;
-  authTime: string;
-  expirationTime: string;
-  issuedAtTime: string;
+  authTime: string | null;
+  expirationTime: string | null;
+  issuedAtTime: string | null;
   signInProvider: ProviderId | null;
   signInSecondFactor: string | null;
-  claims: {
-    [claim: string]: string;
+  claims: ParsedToken;
+}
+
+export interface ParsedToken {
+  'exp'?: string;
+  'auth_time'?: string;
+  'iat'?: string;
+  'firebase'?: {
+    'sign_in_provider'?: string;
+    'sign_in_second_factor'?: string;
   };
+  [key: string]: string | object | undefined;
 }
