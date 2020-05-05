@@ -115,26 +115,24 @@ async function doLicenseCommit(changedFiles) {
     symbol: '✅'
   });
 
-  const hasDiff = await git.diff();
+  // Diff unstaged (prettier writes) against staged.
+  const stageDiff = await git.diff(['--name-only']);
 
-  if (!hasDiff) {
-    console.log(
-      chalk`\n{red License pass caused no changes.} Skipping commit.\n`
-    );
+  if (!stageDiff) {
+    console.log(chalk`\n{red License pass caused no changes.}\n`);
     return;
+  } else {
+    console.log(
+      `License script modified ${stageDiff.split('\n').length - 1} files.`
+    );
   }
 
-  const gitSpinner = ora(' Creating automated license commit').start();
+  const gitSpinner = ora(' Git staging license text modifications.').start();
   await git.add('.');
 
-  const commit = await git.commit('[AUTOMATED]: License Headers');
-
   gitSpinner.stopAndPersist({
-    symbol: '✅'
+    symbol: '▶️'
   });
-  console.log(
-    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
-  );
 }
 
 module.exports = {

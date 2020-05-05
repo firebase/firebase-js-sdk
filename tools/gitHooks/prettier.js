@@ -73,7 +73,7 @@ async function doPrettierCommit(changedFiles) {
   }
 
   const stylingSpinner = ora(
-    ` Formatting ${targetFiles.length} files with prettier`
+    ` Checking ${targetFiles.length} files with prettier`
   ).start();
   await spawn(
     'prettier',
@@ -90,25 +90,21 @@ async function doPrettierCommit(changedFiles) {
     symbol: '✅'
   });
 
-  const hasDiff = await git.diff();
+  // Diff unstaged (prettier writes) against staged.
+  const stageDiff = await git.diff(['--name-only']);
 
-  if (!hasDiff) {
-    console.log(
-      chalk`\n{red Prettier formatting caused no changes.} Skipping commit.\n`
-    );
+  if (!stageDiff) {
+    console.log(chalk`\n{red Prettier formatting caused no changes.}\n`);
     return;
+  } else {
+    console.log(`Prettier modified ${stageDiff.split('\n').length - 1} files.`);
   }
 
-  const gitSpinner = ora(' Creating automated style commit').start();
+  const gitSpinner = ora(' Git staging prettier formatting changes.').start();
   await git.add(targetFiles);
-
-  const commit = await git.commit('[AUTOMATED]: Prettier Code Styling');
   gitSpinner.stopAndPersist({
-    symbol: '✅'
+    symbol: '▶️'
   });
-  console.log(
-    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
-  );
 }
 
 module.exports = {
