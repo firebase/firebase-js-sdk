@@ -49,7 +49,6 @@ export const enum TypeOrder {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  static EMPTY = new ObjectValue({ mapValue: {} });
 
   constructor(public readonly proto: { mapValue: api.MapValue }) {
     debugAssert(
