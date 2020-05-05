@@ -274,7 +274,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
           await localStore.collectGarbage(this.garbageCollector);
         } catch (e) {
           if (e.name === 'IndexedDbTransactionError') {
-            logDebug(LOG_TAG, 'Ignoring IndexedDB error during LRU: ', e);
+            logDebug(LOG_TAG, 'Ignoring IndexedDB error during garbage collection: ', e);
           } else {
             await ignoreIfPrimaryLeaseLoss(e);
           }
