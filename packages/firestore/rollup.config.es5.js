@@ -36,6 +36,7 @@ const browserPlugins = [
   compiler({
     languageIn: 'ECMASCRIPT_2017',
     languageOut: 'ECMASCRIPT5',
+    compilationLevel: 'ADVANCED',
     assumeFunctionWrapper: true
   }),
   sourcemaps()
