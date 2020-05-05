@@ -31,13 +31,13 @@ export class AutoId {
     let autoId = '';
     while (autoId.length < 20) {
       const bytes = PlatformSupport.getPlatform().randomBytes(40);
-      for (const b of Array.from(bytes)) {
+      for (let i = 0; i < bytes.length; ++i) {
         // Length of `chars` is 62. We only take bytes between 0 and 62*4-1
         // (both inclusive). The value is then evenly mapped to indices of `char`
         // via a modulo operation.
         const maxValue = 62 * 4 - 1;
-        if (autoId.length < 20 && b <= maxValue) {
-          autoId += chars.charAt(b % 62);
+        if (autoId.length < 20 && bytes[i] <= maxValue) {
+          autoId += chars.charAt(bytes[i] % 62);
         }
       }
     }

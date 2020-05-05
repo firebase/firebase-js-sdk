@@ -28,6 +28,7 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
+import { validatePositiveNumber } from '../util/input_validation';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -78,9 +79,7 @@ export class NodePlatform implements Platform {
   }
 
   randomBytes(nBytes: number): Uint8Array {
-    if (nBytes <= 0) {
-      return new Uint8Array();
-    }
+    validatePositiveNumber('randomBytes', 1, nBytes);
 
     return randomBytes(nBytes);
   }

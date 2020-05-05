@@ -44,8 +44,9 @@ export interface Platform {
   btoa(raw: string): string;
 
   /**
-   * Generates `nBytes` of random bytes. If `nBytes` is negative, an empty array
-   * will be returned.
+   * Generates `nBytes` of random bytes.
+   *
+   * If `nBytes <= 0` , an error will be thrown.
    */
   randomBytes(nBytes: number): Uint8Array;
 
