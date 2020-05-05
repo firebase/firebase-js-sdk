@@ -22,6 +22,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
 import { resolveNodeExterns, resolveBrowserExterns } from './rollup.shared';
+import compiler from '@ampproject/rollup-plugin-closure-compiler';
 
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
@@ -39,12 +40,10 @@ const browserPlugins = [
     },
     include: ['dist/*.js']
   }),
-  terser({
-    output: {
-      comments: 'all',
-      beautify: true
-    },
-    mangle: true
+  compiler({
+    languageIn: 'ECMASCRIPT_2017',
+    languageOut: 'ECMASCRIPT5',
+    assumeFunctionWrapper: true
   }),
   sourcemaps()
 ];
