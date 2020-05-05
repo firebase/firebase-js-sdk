@@ -25,6 +25,7 @@ import {
   expectEqual,
   expectNotEqual
 } from '../../util/helpers';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const d1 = doc('docs/1', 1, { sort: 2 });
 const d2 = doc('docs/2', 1, { sort: 3 });
@@ -54,7 +55,7 @@ describe('DocumentSet', () => {
   });
 
   it('adds and deletes elements', () => {
-    const set = new DocumentSet(Document.compareByKey)
+    const set = new DocumentSet() // Compares by key by default
       .add(d1)
       .add(d2)
       .add(d3)
