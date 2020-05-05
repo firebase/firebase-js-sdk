@@ -75,11 +75,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:
-        // `geoPointValue` stores zeroes as undefined, which will fail
-        // `GeoPoint` constructor's argument validation if used directly.
-        const latitude = value.geoPointValue!.latitude! || 0;
-        const longitude = value.geoPointValue!.longitude! || 0;
-        return new GeoPoint(latitude, longitude);
+        return this.convertGeoPoint(value.geoPointValue!);
       case TypeOrder.ArrayValue:
         return this.convertArray(value.arrayValue!);
       case TypeOrder.ObjectValue:
@@ -95,6 +91,10 @@ export class UserDataWriter<T = firestore.DocumentData> {
       result[key] = this.convertValue(value);
     });
     return result;
+  }
+
+  private convertGeoPoint(value: api.LatLng): GeoPoint {
+    return new GeoPoint(normalizeNumber(value.latitude), normalizeNumber(value.longitude));
   }
 
   private convertArray(arrayValue: api.ArrayValue): unknown[] {
