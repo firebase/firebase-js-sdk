@@ -24,7 +24,7 @@ import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
-import { validatePositiveNumber } from '../util/input_validation';
+import { debugAssert } from '../util/assert';
 
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
@@ -76,10 +76,11 @@ export class BrowserPlatform implements Platform {
   }
 
   randomBytes(nBytes: number): Uint8Array {
-    validatePositiveNumber('randomBytes', 1, nBytes);
+    debugAssert(nBytes >= 0, 'Number of random bytes must not be negative');
 
     // Polyfill for IE and WebWorker
     const crypto =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       typeof self !== 'undefined' && (self.crypto || (self as any)['msCrypto']);
     const v = new Uint8Array(nBytes);
     if (crypto) {
