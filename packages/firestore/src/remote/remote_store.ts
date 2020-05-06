@@ -28,7 +28,7 @@ import {
 } from '../model/mutation_batch';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
