@@ -17,7 +17,6 @@
 
 const { doPrettierCommit } = require('./prettier');
 const { doLicenseCommit } = require('./license');
-const { doApiReportsCommit } = require('./api-report');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const chalk = require('chalk');
