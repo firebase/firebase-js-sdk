@@ -58,9 +58,6 @@ $ git stash pop
     // Validate License headers exist
     await doLicenseCommit(changedFiles);
 
-    // Generate API reports
-    await doApiReportsCommit();
-
     console.log(chalk`
 Pre-Push Validation Succeeded
 
