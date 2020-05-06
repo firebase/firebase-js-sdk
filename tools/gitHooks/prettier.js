@@ -56,7 +56,7 @@ function checkVersion() {
   });
 }
 
-async function doPrettierCommit(changedFiles) {
+async function doPrettier(changedFiles) {
   try {
     await checkVersion();
   } catch (e) {
@@ -108,5 +108,5 @@ async function doPrettierCommit(changedFiles) {
 }
 
 module.exports = {
-  doPrettierCommit
+  doPrettier
 };

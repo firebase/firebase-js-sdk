@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-const { doPrettierCommit } = require('./prettier');
-const { doLicenseCommit } = require('./license');
+const { doPrettier } = require('./prettier');
+const { doLicense } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const ora = require('ora');
@@ -75,11 +75,17 @@ $ git stash pop
     const changedFiles = diff.split('\n');
 
     // Style the code
-    await doPrettierCommit(changedFiles);
+    await doPrettier(changedFiles);
 
     // Validate License headers exist
-    await doLicenseCommit(changedFiles);
+    await doLicense(changedFiles);
 
+<<<<<<< HEAD
+=======
+    // Generate API reports
+    await doApiReports(changedFiles);
+
+>>>>>>> 391f3e4b... Address some PR comments
     // Diff staged changes against last commit. Don't do an empty commit.
     const postDiff = await git.diff(['--cached']);
     if (!postDiff) {

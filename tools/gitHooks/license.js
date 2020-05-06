@@ -76,7 +76,7 @@ function rewriteCopyrightLine(contents) {
   return newLines.join('\n');
 }
 
-async function doLicenseCommit(changedFiles) {
+async function doLicense(changedFiles) {
   const licenseSpinner = ora(' Validating License Headers').start();
 
   const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
@@ -115,7 +115,7 @@ async function doLicenseCommit(changedFiles) {
     symbol: '✅'
   });
 
-  // Diff unstaged (prettier writes) against staged.
+  // Diff unstaged (license writes) against staged.
   const stageDiff = await git.diff(['--name-only']);
 
   if (!stageDiff) {
@@ -136,5 +136,5 @@ async function doLicenseCommit(changedFiles) {
 }
 
 module.exports = {
-  doLicenseCommit
+  doLicense
 };
