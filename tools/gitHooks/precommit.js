@@ -80,12 +80,6 @@ $ git stash pop
     // Validate License headers exist
     await doLicense(changedFiles);
 
-<<<<<<< HEAD
-=======
-    // Generate API reports
-    await doApiReports(changedFiles);
-
->>>>>>> 391f3e4b... Address some PR comments
     // Diff staged changes against last commit. Don't do an empty commit.
     const postDiff = await git.diff(['--cached']);
     if (!postDiff) {
