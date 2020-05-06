@@ -171,7 +171,7 @@ export async function invokeRunQueryRpc(
 
   return (
     response
-      // Filter RunQueryResponses that only contain readTimes.
+      // Omit RunQueryResponses that only contain readTimes.
       .filter(proto => !!proto.document)
       .map(proto => datastoreImpl.serializer.fromDocument(proto.document!))
   );
