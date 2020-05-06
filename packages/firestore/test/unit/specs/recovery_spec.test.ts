@@ -205,24 +205,27 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const query = Query.atPath(path('collection'));
       const doc1 = doc('collection/key1', 1000, { foo: 'a' });
       const doc2 = doc('collection/key2', 2000, { foo: 'b' });
-      return spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, doc1)
-        .expectEvents(query, {
-          added: [doc1]
-        })
-        .watchSends({ affects: [query] }, doc2)
-        .failDatabase()
-        .watchSnapshots(1500)
-        // `failDatabase()` causes us to go offline.
-        .expectActiveTargets()
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
-        .watchAcksFull(query, 2000, doc2)
-        .expectEvents(query, {
-          added: [doc2]
-        });
+      return (
+        spec()
+          .userListens(query)
+          .watchAcksFull(query, 1000, doc1)
+          .expectEvents(query, {
+            added: [doc1]
+          })
+          .watchSends({ affects: [query] }, doc2)
+          .failDatabase()
+          .watchSnapshots(1500)
+          // `failDatabase()` causes us to go offline.
+          .expectActiveTargets()
+          .expectEvents(query, { fromCache: true })
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
+          .watchAcksFull(query, 2000, doc2)
+          .expectEvents(query, {
+            added: [doc2]
+          })
+      );
     }
   );
 
@@ -235,41 +238,46 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const doc1a = doc('collection/key1', 1000, { foo: 'a' });
       const doc1b = doc('collection/key1', 4000, { foo: 'a', updated: true });
       const doc2 = doc('collection/key2', 2000, { foo: 'b' });
-      return spec()
-        .userListens(doc1Query)
-        .watchAcksFull(doc1Query, 1000, doc1a)
-        .expectEvents(doc1Query, {
-          added: [doc1a]
-        })
-        .userListens(doc2Query)
-        .watchAcksFull(doc2Query, 2000, doc2)
-        .expectEvents(doc2Query, {
-          added: [doc2]
-        })
-        .failDatabase()
-        .watchRemoves(
-          doc1Query,
-          new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
-        )
-        // `failDatabase()` causes us to go offline.
-        .expectActiveTargets()
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectActiveTargets(
-          { query: doc1Query, resumeToken: 'resume-token-1000' },
-          { query: doc2Query, resumeToken: 'resume-token-2000' }
-        )
-        .watchAcksFull(doc1Query, 3000)
-        .watchRemoves(
-          doc2Query,
-          new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
-        )
-        .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
-        .watchSends({ affects: [doc1Query] }, doc1b)
-        .watchSnapshots(4000)
-        .expectEvents(doc1Query, {
-          modified: [doc1b]
-        });
+      return (
+        spec()
+          .userListens(doc1Query)
+          .watchAcksFull(doc1Query, 1000, doc1a)
+          .expectEvents(doc1Query, {
+            added: [doc1a]
+          })
+          .userListens(doc2Query)
+          .watchAcksFull(doc2Query, 2000, doc2)
+          .expectEvents(doc2Query, {
+            added: [doc2]
+          })
+          .failDatabase()
+          .watchRemoves(
+            doc1Query,
+            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+          )
+          // `failDatabase()` causes us to go offline.
+          .expectActiveTargets()
+          .expectEvents(doc1Query, { fromCache: true })
+          .expectEvents(doc2Query, { fromCache: true })
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets(
+            { query: doc1Query, resumeToken: 'resume-token-1000' },
+            { query: doc2Query, resumeToken: 'resume-token-2000' }
+          )
+          .watchAcksFull(doc1Query, 3000)
+          .expectEvents(doc1Query, {})
+          .watchRemoves(
+            doc2Query,
+            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+          )
+          .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
+          .watchSends({ affects: [doc1Query] }, doc1b)
+          .watchSnapshots(4000)
+          .expectEvents(doc1Query, {
+            modified: [doc1b]
+          })
+      );
     }
   );
 });
