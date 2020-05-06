@@ -25,7 +25,6 @@ import {
   expectEqual,
   expectNotEqual
 } from '../../util/helpers';
-import { DocumentKey } from '../../../src/model/document_key';
 
 const d1 = doc('docs/1', 1, { sort: 2 });
 const d2 = doc('docs/2', 1, { sort: 3 });
