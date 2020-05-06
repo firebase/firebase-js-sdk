@@ -314,6 +314,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     transaction?: string;
   }
   interface RunQueryRequest {
+    parent?: string;
     structuredQuery?: StructuredQuery;
     transaction?: string;
     newTransaction?: TransactionOptions;
