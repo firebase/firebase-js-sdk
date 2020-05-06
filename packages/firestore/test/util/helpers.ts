@@ -51,6 +51,7 @@ import {
   maybeDocumentMap
 } from '../../src/model/collections';
 import {
+  compareDocumentsByField,
   Document,
   DocumentOptions,
   MaybeDocument,
@@ -640,7 +641,7 @@ export function documentSetAsArray(docs: DocumentSet): Document[] {
 export class DocComparator {
   static byField(...fields: string[]): DocumentComparator {
     const path = new FieldPath(fields);
-    return Document.compareByField.bind(this, path);
+    return (doc1, doc2) => compareDocumentsByField(path, doc1, doc2);
   }
 }
 

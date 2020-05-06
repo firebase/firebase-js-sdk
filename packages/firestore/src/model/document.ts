@@ -37,10 +37,6 @@ export interface DocumentOptions {
 export abstract class MaybeDocument {
   constructor(readonly key: DocumentKey, readonly version: SnapshotVersion) {}
 
-  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
-    return DocumentKey.comparator(d1.key, d2.key);
-  }
-
   /**
    * Whether this document had a local mutation applied that has not yet been
    * acknowledged by Watch.
@@ -107,15 +103,23 @@ export class Document extends MaybeDocument {
   get hasPendingWrites(): boolean {
     return this.hasLocalMutations || this.hasCommittedMutations;
   }
+}
 
-  static compareByField(field: FieldPath, d1: Document, d2: Document): number {
-    const v1 = d1.field(field);
-    const v2 = d2.field(field);
-    if (v1 !== null && v2 !== null) {
-      return valueCompare(v1, v2);
-    } else {
-      return fail("Trying to compare documents on fields that don't exist");
-    }
+/**
+ * Compares the value for field `field` in the provided documents. Throws if
+ * the field does not exist in both documents.
+ */
+export function compareDocumentsByField(
+  field: FieldPath,
+  d1: Document,
+  d2: Document
+): number {
+  const v1 = d1.field(field);
+  const v2 = d2.field(field);
+  if (v1 !== null && v2 !== null) {
+    return valueCompare(v1, v2);
+  } else {
+    return fail("Trying to compare documents on fields that don't exist");
   }
 }
 
