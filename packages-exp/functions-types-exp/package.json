@@ -1,0 +1,24 @@
+{
+  "name": "@firebase/functions-types-exp",
+  "version": "0.3.16",
+  "description": "@firebase/functions Types",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tsc"
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "repository": {
+    "directory": "packages/functions-types",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "typescript": "3.8.3"
+  }
+}
