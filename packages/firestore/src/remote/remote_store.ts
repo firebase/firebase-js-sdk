@@ -464,7 +464,7 @@ export class RemoteStore implements TargetMetadataProvider {
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Offline);
       
-      // Probe IndexedDB periodically and re-enable network.
+      // Probe IndexedDB periodically and re-enable network
       this.asyncQueue.enqueueRetryable(async () => {
         logDebug(LOG_TAG, 'Retrying IndexedDB access');
         // Issue a simple read operation to determine if IndexedDB recovered.
