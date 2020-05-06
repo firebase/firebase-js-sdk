@@ -218,6 +218,9 @@ export class RemoteStore implements TargetMetadataProvider {
   async disableNetwork(): Promise<void> {
     this.networkEnabled = false;
     await this.disableNetworkInternal();
+
+    // Set the OnlineState to Offline so get()s return from cache, etc.
+    this.onlineStateTracker.set(OnlineState.Offline);
   }
 
   private async disableNetworkInternal(): Promise<void> {
@@ -233,9 +236,6 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     this.cleanUpWatchStreamState();
-
-    // Set the OnlineState to Offline so get()s return from cache, etc.
-    this.onlineStateTracker.set(OnlineState.Offline);
   }
 
   async shutdown(): Promise<void> {
@@ -459,7 +459,12 @@ export class RemoteStore implements TargetMetadataProvider {
         'Unexpected network event when IndexedDB was marked failed.'
       );
       this.indexedDbFailed = true;
+      
+      // Disable network and raise offline snapshots
       await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Offline);
+      
+      // Probe IndexedDB periodically and re-enable network.
       this.asyncQueue.enqueueRetryable(async () => {
         logDebug(LOG_TAG, 'Retrying IndexedDB access');
         // Issue a simple read operation to determine if IndexedDB recovered.
