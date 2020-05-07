@@ -17,9 +17,10 @@
 import { AdditionalUserInfo, UserProfile } from '../../model/user';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { ProviderId } from '../providers';
+import { parseToken } from './id_token_result';
 
 export function fromIdTokenResponse(
-  idTokenResponse: IdTokenResponse
+  idTokenResponse: IdTokenResponse,
 ): AdditionalUserInfo | null {
   const { providerId } = idTokenResponse;
   const profile =
@@ -29,13 +30,12 @@ export function fromIdTokenResponse(
   const isNewUser =
     !!idTokenResponse.isNewUser ||
     idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
-  /*
-  Uncomment this once ID token parsing is built
   if (!providerId && !!idTokenResponse) {
-    const providerId = parseIdToken(idTokenResponse.idToken).signInProvider;
-    return new GenericAdditionalUserInfo(isNewUser, providerId, null, profile);
+    const providerId = parseToken(idTokenResponse.idToken)?.firebase?.['sign_in_provider'] as ProviderId;
+    if (providerId && Object.values(ProviderId).includes(providerId)) {
+      return new GenericAdditionalUserInfo(isNewUser, providerId, null, profile);
+    }
   }
-  */
   if (!providerId) {
     return null;
   }

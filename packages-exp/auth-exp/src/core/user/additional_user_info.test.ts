@@ -156,17 +156,15 @@ describe('core/user/additional_user_info', () => {
         expect(username).to.be.null;
         expect(profile).to.eq(profile);
       });
-      /*
-      Uncomment this once ID token parsing is built
+
       it('for missing provider IDs in response but not in token', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({rawUserInfo}))!;
+        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({rawUserInfo: rawUserInfoWithLogin}))!;
         const {isNewUser, providerId, username, profile} = additionalUserInfo;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.null;
         expect(profile).to.eq(profile);
       });
-      */
     });
 
     describe('returns null', () => {
