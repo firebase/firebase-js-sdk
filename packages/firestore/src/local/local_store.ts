@@ -943,20 +943,6 @@ export class LocalStore {
     });
   }
 
-  /**
-   * Returns the keys of the documents that are associated with the given
-   * target id in the remote table.
-   */
-  remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction(
-      'Remote document keys',
-      'readonly',
-      txn => {
-        return this.targetCache.getMatchingKeysForTargetId(txn, targetId);
-      }
-    );
-  }
-
   private applyWriteToRemoteDocuments(
     txn: PersistenceTransaction,
     batchResult: MutationBatchResult,
