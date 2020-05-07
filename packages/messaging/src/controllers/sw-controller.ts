@@ -298,7 +298,7 @@ async function hasVisibleClients(clientList: WindowClient[]): Promise<boolean> {
         client.visibilityState === 'visible' &&
         // Ignore browser extension clients as that matches the background pages
         // of extensions, which are always considered visible for some reason.
-        !(await isBackgroundClient(client))
+        !(await isExtensionBackgroundClient(client))
     )
   );
 
@@ -309,14 +309,17 @@ async function hasVisibleClients(clientList: WindowClient[]): Promise<boolean> {
  * @returns If client is the background page of browser extension, this method will
  * resolve to true, otherwise false.
  */
-async function isBackgroundClient(client: WindowClient): Promise<boolean> {
+async function isExtensionBackgroundClient(
+  client: WindowClient
+): Promise<boolean> {
   const runtime = getBrowserExtensionRuntime();
 
-  if (runtime) {
+  if (runtime && runtime.getBackgroundClient) {
     try {
       const backgroundClient = await runtime.getBackgroundClient();
       return client === backgroundClient;
-    } catch {
+    } catch (e) {
+      console.error('Error while calling "getBackgroundClient": ', e);
       return false;
     }
   }

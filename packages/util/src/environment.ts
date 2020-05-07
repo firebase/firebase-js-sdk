@@ -78,7 +78,7 @@ export function isBrowser(): boolean {
  */
 interface BrowserRuntime {
   id?: unknown;
-  getBackgroundClient: Function;
+  getBackgroundClient?: Function;
 }
 declare const chrome: { runtime?: BrowserRuntime };
 declare const browser: { runtime?: BrowserRuntime };
