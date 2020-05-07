@@ -127,7 +127,8 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
       LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
       cfg.asyncQueue,
       serializer,
-      this.sharedClientState
+      this.sharedClientState,
+      cfg.persistenceSettings.forceOwningTab
     );
   }
 }

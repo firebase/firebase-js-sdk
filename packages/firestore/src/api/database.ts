@@ -354,7 +354,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     let synchronizeTabs = false;
-    let experimentalForce = false;
+    let experimentalForceOwningTab = false;
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
@@ -367,16 +367,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         settings.experimentalTabSynchronization ??
         DEFAULT_SYNCHRONIZE_TABS;
 
-      experimentalForce = settings.experimentalForce
-      ? settings.experimentalForce
-      : false;
+      experimentalForceOwningTab = settings.experimentalForceOwningTab
+        ? settings.experimentalForceOwningTab
+        : false;
     }
 
     return this.configureClient(this._componentProvider, {
       durable: true,
       cacheSizeBytes: this._settings.cacheSizeBytes,
       synchronizeTabs,
-      force: experimentalForce
+      forceOwningTab: experimentalForceOwningTab
     });
   }
 

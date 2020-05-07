@@ -256,7 +256,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       cfg.asyncQueue,
       serializer,
       this.sharedClientState,
-      cfg.persistenceSettings.force
+      cfg.persistenceSettings.forceOwningTab
     );
   }
 

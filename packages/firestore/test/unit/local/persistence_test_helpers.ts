@@ -124,7 +124,7 @@ export async function testIndexedDbPersistence(
     queue,
     JSON_SERIALIZER,
     MOCK_SEQUENCE_NUMBER_SYNCER,
-    /** force= */ false
+    /** forceOwningTab= */ false
   );
   await persistence.start();
   return persistence;

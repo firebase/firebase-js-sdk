@@ -135,7 +135,7 @@ async function withCustomPersistence(
     queue,
     serializer,
     MOCK_SEQUENCE_NUMBER_SYNCER,
-    /* force= */ false
+    /* forceOwningTab= */ false
   );
 
   await persistence.start();

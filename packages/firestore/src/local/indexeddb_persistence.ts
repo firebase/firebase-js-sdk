@@ -235,7 +235,7 @@ export class IndexedDbPersistence implements Persistence {
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
-    private readonly force: boolean
+    private readonly forceOwningTab: boolean
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -262,7 +262,7 @@ export class IndexedDbPersistence implements Persistence {
       this.webStorage = platform.window.localStorage;
     } else {
       this.webStorage = null;
-      if (force === false) {
+      if (forceOwningTab === false) {
         logError(
           LOG_TAG,
           'LocalStorage is unavailable. As a result, persistence may not work ' +
@@ -291,7 +291,9 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb = db;
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary(this.force);
+        return this.updateClientMetadataAndTryBecomePrimary(
+          this.forceOwningTab
+        );
       })
       .then(() => {
         this.attachVisibilityHandler();
@@ -381,7 +383,7 @@ export class IndexedDbPersistence implements Persistence {
    * primary lease.
    */
   private updateClientMetadataAndTryBecomePrimary(
-    force = false
+    forceOwningTab = false
   ): Promise<void> {
     return this.simpleDb
       .runTransaction('readwrite', ALL_STORES, txn => {
@@ -407,7 +409,7 @@ export class IndexedDbPersistence implements Persistence {
               });
             }
           })
-          .next(() => (force ? true : this.canActAsPrimary(txn)))
+          .next(() => (forceOwningTab ? true : this.canActAsPrimary(txn)))
           .next(canActAsPrimary => {
             if (this.isPrimary && !canActAsPrimary) {
               return this.releasePrimaryLeaseIfHeld(txn).next(() => false);
@@ -574,7 +576,7 @@ export class IndexedDbPersistence implements Persistence {
           }
 
           if (!this.isLocalClient(currentPrimary)) {
-            if (this.force) {
+            if (this.forceOwningTab) {
               return true;
             }
             if (!currentPrimary!.allowTabSynchronization) {

@@ -7768,19 +7768,23 @@ declare namespace firebase.firestore {
      * shared execution of queries and latency-compensated local document updates
      * across all connected instances.
      *
-     * @deprecated This setting is deprecated. To enabled synchronization between
+     * @deprecated This setting is deprecated. To enable synchronization between
      * multiple tabs, please use `synchronizeTabs: true` instead.
      */
     experimentalTabSynchronization?: boolean;
 
     /**
-     * Whether to force enabling persistence for the client even if another
-     * client is already running with persistence enabled. This cannot be used
+     * Whether to force enable persistence for the client. This cannot be used
      * with `synchronizeTabs:true` and is primarily intended for use with Web
      * Workers. Setting this to 'true' will enable persistence, but cause other
      * tabs using persistence to fail.
+     * 
+     * This setting may be removed in a future release. If you find yourself
+     * using it for a specific use case or run into any issues, please tell us
+     * about it in
+     * https://github.com/firebase/firebase-js-sdk/issues/983.
      */
-    experimentalForce?: boolean;
+    experimentalForceOwningTab?: boolean;
   }
 
   export type LogLevel = 'debug' | 'error' | 'silent';
