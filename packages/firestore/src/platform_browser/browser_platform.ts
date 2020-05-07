@@ -20,9 +20,11 @@ import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
+import { debugAssert } from '../util/assert';
 
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
@@ -71,5 +73,24 @@ export class BrowserPlatform implements Platform {
 
   btoa(raw: string): string {
     return btoa(raw);
+  }
+
+  randomBytes(nBytes: number): Uint8Array {
+    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+
+    // Polyfills for IE and WebWorker by using `self` and `msCrypto` when `crypto` is not available.
+    const crypto =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typeof self !== 'undefined' && (self.crypto || (self as any)['msCrypto']);
+    const bytes = new Uint8Array(nBytes);
+    if (crypto) {
+      crypto.getRandomValues(bytes);
+    } else {
+      // Falls back to Math.random
+      for (let i = 0; i < nBytes; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    return bytes;
   }
 }
