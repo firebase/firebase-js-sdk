@@ -28,20 +28,27 @@ export class AutoId {
     // Alphanumeric characters
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    // The largest byte value that is a multiple of `char.length`.
+    const maxMultiple = Math.floor(256 / chars.length) * chars.length;
+    debugAssert(
+      0 < maxMultiple && maxMultiple < 256,
+      `Expect maxMultiple to be (0, 256), but got ${maxMultiple}`
+    );
+
     let autoId = '';
-    while (autoId.length < 20) {
+    const targetLength = 20;
+    while (autoId.length < targetLength) {
       const bytes = PlatformSupport.getPlatform().randomBytes(40);
       for (let i = 0; i < bytes.length; ++i) {
-        // Length of `chars` is 62. We only take bytes between 0 and 62*4-1
-        // (both inclusive). The value is then evenly mapped to indices of `char`
-        // via a modulo operation.
-        const maxValue = 62 * 4 - 1;
-        if (autoId.length < 20 && bytes[i] <= maxValue) {
-          autoId += chars.charAt(bytes[i] % 62);
+        // Only accept values that are [0, maxMultiple), this ensures they can
+        // be evenly mapped to indices of `chars` via a modulo operation.
+        if (autoId.length < targetLength && bytes[i] < maxMultiple) {
+          autoId += chars.charAt(bytes[i] % chars.length);
         }
       }
     }
-    debugAssert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    debugAssert(autoId.length === targetLength, 'Invalid auto ID: ' + autoId);
+
     return autoId;
   }
 }

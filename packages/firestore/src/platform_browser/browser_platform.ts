@@ -76,21 +76,21 @@ export class BrowserPlatform implements Platform {
   }
 
   randomBytes(nBytes: number): Uint8Array {
-    debugAssert(nBytes >= 0, 'Number of random bytes must not be negative');
+    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
 
-    // Polyfill for IE and WebWorker
+    // Polyfills for IE and WebWorker by using `self` and `msCrypto` when `crypto` is not available.
     const crypto =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       typeof self !== 'undefined' && (self.crypto || (self as any)['msCrypto']);
-    const v = new Uint8Array(nBytes);
+    const bytes = new Uint8Array(nBytes);
     if (crypto) {
-      crypto.getRandomValues(v);
+      crypto.getRandomValues(bytes);
     } else {
       // Falls back to Math.random
       for (let i = 0; i < nBytes; i++) {
-        v[i] = Math.floor(Math.random() * 256);
+        bytes[i] = Math.floor(Math.random() * 256);
       }
     }
-    return v;
+    return bytes;
   }
 }
