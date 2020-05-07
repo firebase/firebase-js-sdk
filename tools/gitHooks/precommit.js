@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-const { doPrettierCommit } = require('./prettier');
-const { doLicenseCommit } = require('./license');
+const { doPrettier } = require('./prettier');
+const { doLicense } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
+const ora = require('ora');
 const chalk = require('chalk');
 
 // Computed Deps
@@ -44,18 +45,51 @@ $ git stash pop
       return process.exit(1);
     }
 
-    const diff = await git.diff([
-      '--name-only',
-      '--diff-filter=d',
-      'origin/master...HEAD'
-    ]);
+    // Try to get most current origin/master.
+    const fetchSpinner = ora(
+      ' Fetching latest version of master branch.'
+    ).start();
+    try {
+      await git.fetch('origin', 'master');
+      fetchSpinner.stopAndPersist({
+        symbol: '✅'
+      });
+    } catch (e) {
+      fetchSpinner.stopAndPersist({
+        symbol: '⚠️'
+      });
+      console.warn(
+        chalk`\n{yellow} Unable to fetch latest version of master, diff may be stale.`
+      );
+    }
+
+    // Diff staged changes against origin/master...HEAD (common ancestor of HEAD and origin/master).
+    const mergeBase = await git.raw(['merge-base', 'origin/master', 'HEAD']);
+    let diffOptions = ['--name-only', '--diff-filter=d', '--cached'];
+    if (mergeBase) {
+      diffOptions.push(mergeBase.trim());
+    } else {
+      diffOptions.push('origin/master');
+    }
+    const diff = await git.diff(diffOptions);
     const changedFiles = diff.split('\n');
 
     // Style the code
-    await doPrettierCommit(changedFiles);
+    await doPrettier(changedFiles);
 
     // Validate License headers exist
-    await doLicenseCommit(changedFiles);
+    await doLicense(changedFiles);
+
+    // Diff staged changes against last commit. Don't do an empty commit.
+    const postDiff = await git.diff(['--cached']);
+    if (!postDiff) {
+      console.error(chalk`
+{red Staged files are identical to previous commit after running formatting
+steps. Skipping commit.}
+
+`);
+      return process.exit(1);
+    }
 
     console.log(chalk`
 Pre-Push Validation Succeeded
