@@ -47,6 +47,12 @@ apiDescribe('Firestore', (persistence: boolean) => {
     });
   });
 
+  it('can read and write number fields', () => {
+    return withTestDb(persistence, db => {
+      return expectRoundtrip(db, { a: 1, b: NaN, c: Infinity, d: -0.0 });
+    });
+  });
+
   it('can read and write array fields', () => {
     return withTestDb(persistence, db => {
       return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
@@ -56,15 +62,23 @@ apiDescribe('Firestore', (persistence: boolean) => {
   it('can read and write geo point fields', () => {
     return withTestDoc(persistence, doc => {
       return doc
-        .set({ geopoint: new GeoPoint(1.23, 4.56) })
+        .set({
+          geopoint1: new GeoPoint(1.23, 4.56),
+          geopoint2: new GeoPoint(0, 0)
+        })
         .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
-          const latLong = docSnapshot.data()!['geopoint'];
+          const latLong = docSnapshot.data()!['geopoint1'];
           expect(latLong instanceof GeoPoint).to.equal(true);
           expect(latLong.latitude).to.equal(1.23);
           expect(latLong.longitude).to.equal(4.56);
+
+          const zeroLatLong = docSnapshot.data()!['geopoint2'];
+          expect(zeroLatLong instanceof GeoPoint).to.equal(true);
+          expect(zeroLatLong.latitude).to.equal(0);
+          expect(zeroLatLong.longitude).to.equal(0);
         });
     });
   });

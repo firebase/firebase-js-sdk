@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
-import { emptyByteString } from '../platform/platform';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { ByteString } from '../util/byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
-export enum TargetPurpose {
+export const enum TargetPurpose {
   /** A regular, normal query target. */
   Listen,
 
@@ -54,19 +54,19 @@ export class TargetData {
      */
     readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
-    readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    readonly snapshotVersion: SnapshotVersion = SnapshotVersion.min(),
     /**
      * The maximum snapshot version at which the associated view
      * contained no limbo documents.
      */
-    readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.min(),
     /**
      * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    readonly resumeToken: ProtoByteString = emptyByteString()
+    readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */
@@ -87,7 +87,7 @@ export class TargetData {
    * snapshot version.
    */
   withResumeToken(
-    resumeToken: ProtoByteString,
+    resumeToken: ByteString,
     snapshotVersion: SnapshotVersion
   ): TargetData {
     return new TargetData(
@@ -116,20 +116,6 @@ export class TargetData {
       this.snapshotVersion,
       lastLimboFreeSnapshotVersion,
       this.resumeToken
-    );
-  }
-
-  isEqual(other: TargetData): boolean {
-    return (
-      this.targetId === other.targetId &&
-      this.purpose === other.purpose &&
-      this.sequenceNumber === other.sequenceNumber &&
-      this.snapshotVersion.isEqual(other.snapshotVersion) &&
-      this.lastLimboFreeSnapshotVersion.isEqual(
-        other.lastLimboFreeSnapshotVersion
-      ) &&
-      this.resumeToken === other.resumeToken &&
-      this.target.isEqual(other.target)
     );
   }
 }

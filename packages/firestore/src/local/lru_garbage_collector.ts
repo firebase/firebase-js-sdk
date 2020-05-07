@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,22 @@
 
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
-import * as log from '../util/log';
+import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
-import { PersistenceTransaction } from './persistence';
+import {
+  GarbageCollectionScheduler,
+  PersistenceTransaction
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
+
+const LOG_TAG = 'LruGarbageCollector';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
@@ -214,20 +219,19 @@ const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
  * This class is responsible for the scheduling of LRU garbage collection. It handles checking
  * whether or not GC is enabled, as well as which delay to use before the next run.
  */
-export class LruScheduler {
+export class LruScheduler implements GarbageCollectionScheduler {
   private hasRun: boolean = false;
   private gcTask: CancelablePromise<void> | null;
 
   constructor(
     private readonly garbageCollector: LruGarbageCollector,
-    private readonly asyncQueue: AsyncQueue,
-    private readonly localStore: LocalStore
+    private readonly asyncQueue: AsyncQueue
   ) {
     this.gcTask = null;
   }
 
-  start(): void {
-    assert(
+  start(localStore: LocalStore): void {
+    debugAssert(
       this.gcTask === null,
       'Cannot start an already started LruScheduler'
     );
@@ -235,7 +239,7 @@ export class LruScheduler {
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
       LruParams.COLLECTION_DISABLED
     ) {
-      this.scheduleGC();
+      this.scheduleGC(localStore);
     }
   }
 
@@ -250,23 +254,32 @@ export class LruScheduler {
     return this.gcTask !== null;
   }
 
-  private scheduleGC(): void {
-    assert(this.gcTask === null, 'Cannot schedule GC while a task is pending');
+  private scheduleGC(localStore: LocalStore): void {
+    debugAssert(
+      this.gcTask === null,
+      'Cannot schedule GC while a task is pending'
+    );
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
-    log.debug(
+    logDebug(
       'LruGarbageCollector',
       `Garbage collection scheduled in ${delay}ms`
     );
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
-      () => {
+      async () => {
         this.gcTask = null;
         this.hasRun = true;
-        return this.localStore
-          .collectGarbage(this.garbageCollector)
-          .then(() => this.scheduleGC())
-          .catch(ignoreIfPrimaryLeaseLoss);
+        try {
+          await localStore.collectGarbage(this.garbageCollector);
+        } catch (e) {
+          if (e.name === 'IndexedDbTransactionError') {
+            logDebug(LOG_TAG, 'Ignoring IndexedDB error during garbage collection: ', e);
+          } else {
+            await ignoreIfPrimaryLeaseLoss(e);
+          }
+        }
+        await this.scheduleGC(localStore);
       }
     );
   }
@@ -340,13 +353,13 @@ export class LruGarbageCollector {
     if (
       this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED
     ) {
-      log.debug('LruGarbageCollector', 'Garbage collection skipped; disabled');
+      logDebug('LruGarbageCollector', 'Garbage collection skipped; disabled');
       return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }
 
     return this.getCacheSize(txn).next(cacheSize => {
       if (cacheSize < this.params.cacheSizeCollectionThreshold) {
-        log.debug(
+        logDebug(
           'LruGarbageCollector',
           `Garbage collection skipped; Cache size ${cacheSize} ` +
             `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
@@ -378,7 +391,7 @@ export class LruGarbageCollector {
       .next(sequenceNumbers => {
         // Cap at the configured max
         if (sequenceNumbers > this.params.maximumSequenceNumbersToCollect) {
-          log.debug(
+          logDebug(
             'LruGarbageCollector',
             'Capping sequence numbers to collect down ' +
               `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
@@ -412,7 +425,7 @@ export class LruGarbageCollector {
       .next(documentsRemoved => {
         removedDocumentsTs = Date.now();
 
-        if (log.getLogLevel() <= log.LogLevel.DEBUG) {
+        if (getLogLevel() <= LogLevel.DEBUG) {
           const desc =
             'LRU Garbage Collection\n' +
             `\tCounted targets in ${countedTargetsTs - startTs}ms\n` +
@@ -423,7 +436,7 @@ export class LruGarbageCollector {
             `\tRemoved ${documentsRemoved} documents in ` +
             `${removedDocumentsTs - removedTargetsTs}ms\n` +
             `Total Duration: ${removedDocumentsTs - startTs}ms`;
-          log.debug('LruGarbageCollector', desc);
+          logDebug('LruGarbageCollector', desc);
         }
 
         return PersistencePromise.resolve<LruResults>({

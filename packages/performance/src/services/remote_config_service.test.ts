@@ -20,7 +20,7 @@ import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
-import { getConfig } from './remote_config_service';
+import { getConfig, isDestFl } from './remote_config_service';
 import { FirebaseApp } from '@firebase/app-types';
 import '../../test/setup';
 
@@ -28,18 +28,22 @@ describe('Performance Monitoring > remote_config_service', () => {
   const IID = 'asd123';
   const AUTH_TOKEN = 'auth_token';
   const LOG_URL = 'https://firebaselogging.test.com';
+  const TRANSPORT_KEY = 'pseudo-transport-key';
   const LOG_SOURCE = 2;
   const NETWORK_SAMPLIG_RATE = 0.25;
   const TRACE_SAMPLING_RATE = 0.5;
   const GLOBAL_CLOCK_NOW = 1556524895326;
   const STRINGIFIED_CONFIG = `{"entries":{"fpr_enabled":"true",\
-"fpr_log_endpoint_url":"https://firebaselogging.test.com",\
-"fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-"fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
-"state":"UPDATE"}`;
+  "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+  "fpr_log_transport_key":"pseudo-transport-key",\
+  "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+  "fpr_log_transport_web_percent":"100.0",\
+  "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+  "state":"UPDATE"}`;
   const PROJECT_ID = 'project1';
   const APP_ID = '1:23r:web:fewq';
   const API_KEY = 'asdfghjk';
+  const NOT_VALID_CONFIG = 'not a valid config and should not be used';
 
   let clock: SinonFakeTimers;
 
@@ -127,7 +131,11 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(getItemStub).to.be.called;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).to.equal(
+        TRANSPORT_KEY
+      );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -164,7 +172,11 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
       expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).to.equal(
+        TRANSPORT_KEY
+      );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -180,7 +192,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       setup(
         {
           expiry: EXPIRY_LOCAL_STORAGE_VALUE,
-          config: 'not a valid config and should not be used'
+          config: NOT_VALID_CONFIG
         },
         { reject: true }
       );
@@ -201,7 +213,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       setup(
         {
           expiry: EXPIRY_LOCAL_STORAGE_VALUE,
-          config: 'not a valid config and should not be used'
+          config: NOT_VALID_CONFIG
         },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
@@ -214,18 +226,145 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('uses secondary configs if the response does not have any fields', async () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
-      const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
+      const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO_TEMPLATE"}';
 
       setup(
         {
           expiry: EXPIRY_LOCAL_STORAGE_VALUE,
-          config: 'not a valid config and should not be used'
+          config: NOT_VALID_CONFIG
         },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
       await getConfig(IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+    });
+
+    it('marks event destination to cc if there is no template', async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        { reject: false, value: new Response('{"state":"NO_TEMPLATE"}') }
+      );
+      await getConfig(IID);
+
+      // If no template, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
+    });
+
+    it('marks event destination to cc if instance state unspecified', async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        {
+          reject: false,
+          value: new Response('{"state":"INSTANCE_STATE_UNSPECIFIED"}')
+        }
+      );
+      await getConfig(IID);
+
+      // If instance state unspecified, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
+    });
+
+    it("marks event destination to cc if state doesn't exist", async () => {
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        { reject: false, value: new Response('{}') }
+      );
+      await getConfig(IID);
+
+      // If "state" doesn't exist, will send to cc.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
+    });
+
+    it('marks event destination to Fl if template exists but no rollout flag', async () => {
+      const CONFIG_WITHOUT_ROLLOUT_FLAG = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        { reject: false, value: new Response(CONFIG_WITHOUT_ROLLOUT_FLAG) }
+      );
+      await getConfig(IID);
+
+      // If template exists but no rollout flag, will send to Fl.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
+    });
+
+    it('marks event destination to cc when instance is outside of rollout range', async () => {
+      const CONFIG_WITH_ROLLOUT_FLAG_10 = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_log_transport_web_percent":"10.0",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_10) }
+      );
+      await getConfig(IID);
+
+      // If rollout flag exists, will send to cc when this instance is out of rollout scope.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
+    });
+
+    it('marks event destination to Fl when instance is within rollout range', async () => {
+      const CONFIG_WITH_ROLLOUT_FLAG_40 = `{"entries":{"fpr_enabled":"true",\
+    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
+    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
+    "fpr_log_transport_web_percent":"40.0",\
+    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+    "state":"UPDATE"}`;
+      setup(
+        {
+          // Expired local config.
+          expiry: '1556524895320',
+          config: NOT_VALID_CONFIG
+        },
+        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_40) }
+      );
+      await getConfig(IID);
+
+      // If rollout flag exists, will send to Fl when this instance is within rollout scope.
+      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
+    });
+  });
+
+  describe('isDestFl', () => {
+    it('marks traffic to cc when rollout percentage is 0', () => {
+      const shouldSendToFl = isDestFl('abc', 0); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.false;
+    });
+
+    it('marks traffic to Fl when rollout percentage is 100', () => {
+      const shouldSendToFl = isDestFl('abc', 100); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.true;
+    });
+
+    it('marks traffic to Fl if hash percentage is lower than rollout percentage 50%', () => {
+      const shouldSendToFl = isDestFl('abc', 50); // Hash percentage of "abc" is 38%.
+      expect(shouldSendToFl).to.be.true;
     });
   });
 });

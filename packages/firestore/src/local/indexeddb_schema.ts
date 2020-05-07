@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,15 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath,
+  EncodedResourcePath
+} from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
@@ -33,22 +37,23 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /**
  * Schema Version for the Web client:
- * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
- *    Cache
- * 2. Used to ensure a targetGlobal object exists and add targetCount to it. No
- *    longer required because migration 3 unconditionally clears it.
- * 3. Dropped and re-created Query Cache to deal with cache corruption related
- *    to limbo resolution. Addresses
- *    https://github.com/firebase/firebase-ios-sdk/issues/1548
- * 4. Multi-Tab Support.
- * 5. Removal of held write acks.
- * 6. Create document global for tracking document cache size.
- * 7. Ensure every cached document has a sentinel row with a sequence number.
- * 8. Add collection-parent index for Collection Group queries.
- * 9. Change RemoteDocumentChanges store to be keyed by readTime rather than
- *    an auto-incrementing ID. This is required for Index-Free queries.
+ * 1.  Initial version including Mutation Queue, Query Cache, and Remote
+ *     Document Cache
+ * 2.  Used to ensure a targetGlobal object exists and add targetCount to it. No
+ *     longer required because migration 3 unconditionally clears it.
+ * 3.  Dropped and re-created Query Cache to deal with cache corruption related
+ *     to limbo resolution. Addresses
+ *     https://github.com/firebase/firebase-ios-sdk/issues/1548
+ * 4.  Multi-Tab Support.
+ * 5.  Removal of held write acks.
+ * 6.  Create document global for tracking document cache size.
+ * 7.  Ensure every cached document has a sentinel row with a sequence number.
+ * 8.  Add collection-parent index for Collection Group queries.
+ * 9.  Change RemoteDocumentChanges store to be keyed by readTime rather than
+ *     an auto-incrementing ID. This is required for Index-Free queries.
+ * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -67,11 +72,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    assert(
+    hardAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
-      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+      `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
     const simpleDbTransaction = new SimpleDbTransaction(txn);
@@ -145,6 +150,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         createRemoteDocumentReadTimeIndex(txn);
       });
     }
+
+    if (fromVersion < 10 && toVersion >= 10) {
+      p = p.next(() => this.rewriteCanonicalIds(simpleDbTransaction));
+    }
     return p;
   }
 
@@ -190,7 +199,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return PersistencePromise.forEach(
               dbBatches,
               (dbBatch: DbMutationBatch) => {
-                assert(
+                hardAssert(
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
@@ -228,7 +237,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         path: ResourcePath
       ): PersistencePromise<void> => {
         return documentTargetStore.put(
-          new DbTargetDocument(0, encode(path), currentSequenceNumber)
+          new DbTargetDocument(
+            0,
+            encodeResourcePath(path),
+            currentSequenceNumber
+          )
         );
       };
 
@@ -275,7 +288,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         const parentPath = collectionPath.popLast();
         return collectionParentsStore.put({
           collectionId,
-          parent: encode(parentPath)
+          parent: encodeResourcePath(parentPath)
         });
       }
     };
@@ -294,15 +307,26 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             DbDocumentMutation.store
           )
           .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
-            const path = decode(encodedPath);
+            const path = decodeResourcePath(encodedPath);
             return addEntry(path.popLast());
           });
       });
   }
+
+  private rewriteCanonicalIds(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+    return targetStore.iterate((key, originalDbTarget) => {
+      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
+      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      return targetStore.put(updatedDbTarget);
+    });
+  }
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
-  return [0, encode(path)];
+  return [0, encodeResourcePath(path)];
 }
 
 /**
@@ -543,7 +567,7 @@ export class DbDocumentMutation {
     userId: string,
     path: ResourcePath
   ): [string, EncodedResourcePath] {
-    return [userId, encode(path)];
+    return [userId, encodeResourcePath(path)];
   }
 
   /**
@@ -555,7 +579,7 @@ export class DbDocumentMutation {
     path: ResourcePath,
     batchId: BatchId
   ): DbDocumentMutationKey {
-    return [userId, encode(path), batchId];
+    return [userId, encodeResourcePath(path), batchId];
   }
 
   /**
@@ -850,7 +874,7 @@ export class DbTargetDocument {
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
-    assert(
+    debugAssert(
       (targetId === 0) === (sequenceNumber !== undefined),
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );
@@ -987,7 +1011,7 @@ function writeEmptyTargetGlobalEntry(
   const metadata = new DbTargetGlobal(
     /*highestTargetId=*/ 0,
     /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp(),
+    SnapshotVersion.min().toTimestamp(),
     /*targetCount=*/ 0
   );
   return globalStore.put(DbTargetGlobal.key, metadata);
@@ -1078,6 +1102,8 @@ export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 // V9 does not change the set of stores.
+
+// V10 does not change the set of stores.
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is

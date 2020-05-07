@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,13 @@ export interface EventParams {
   value?: number;
   event_label?: string;
   event_category?: string;
+  shipping_tier?: string;
+  item_list_id?: string;
+  item_list_name?: string;
+  promotion_id?: string;
+  promotion_name?: string;
+  payment_type?: string;
+  affiliation?: string;
 }
 
 /**
@@ -158,6 +165,7 @@ export interface CustomParams {
  */
 export type EventNameString =
   | 'add_payment_info'
+  | 'add_shipping_info'
   | 'add_to_cart'
   | 'add_to_wishlist'
   | 'begin_checkout'
@@ -172,10 +180,13 @@ export type EventNameString =
   | 'screen_view'
   | 'search'
   | 'select_content'
+  | 'select_item'
+  | 'select_promotion'
   | 'set_checkout_option'
   | 'share'
   | 'sign_up'
   | 'timing_complete'
+  | 'view_cart'
   | 'view_item'
   | 'view_item_list'
   | 'view_promotion'
@@ -184,17 +195,39 @@ export type EventNameString =
 export type Currency = string | number;
 
 export interface Item {
-  brand?: string;
-  category?: string;
-  creative_name?: string;
-  creative_slot?: string;
-  id?: string;
-  location_id?: string;
-  name?: string;
+  item_id?: string;
+  item_name?: string;
+  item_brand?: string;
+  item_category?: string;
+  item_category2?: string;
+  item_category3?: string;
+  item_category4?: string;
+  item_category5?: string;
+  item_variant?: string;
   price?: Currency;
   quantity?: number;
+  index?: number;
+  coupon?: string;
+  item_list_name?: string;
+  item_list_id?: string;
+  discount?: Currency;
+  affiliation?: string;
+  creative_name?: string;
+  creative_slot?: string;
+  promotion_id?: string;
+  promotion_name?: string;
+  location_id?: string;
+  /** @deprecated Use item_brand instead. */
+  brand?: string;
+  /** @deprecated Use item_category instead. */
+  category?: string;
+  /** @deprecated Use item_id instead. */
+  id?: string;
+  /** @deprecated Use item_name instead. */
+  name?: string;
 }
 
+/** @deprecated Use Item instead. */
 export interface Promotion {
   creative_name?: string;
   creative_slot?: string;

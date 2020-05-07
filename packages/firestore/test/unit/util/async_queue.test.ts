@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
+import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
+import { fail } from '../../../src/util/assert';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+
+use(chaiAsPromised);
 
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
@@ -72,7 +78,7 @@ describe('AsyncQueue', () => {
 
   it('handles failures', () => {
     const queue = new AsyncQueue();
-    const expected = new Error('Firestore Test Simulated Error');
+    const expected = new Error('Firit cestore Test Simulated Error');
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
@@ -203,6 +209,107 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
+  it('Retries retryable operations', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+      if (completedSteps.length === 1) {
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
+      }
+    });
+    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    expect(completedSteps).to.deep.equal([1, 1]);
+  });
+
+  it("Doesn't retry internal exceptions", async () => {
+    const queue = new AsyncQueue();
+    // We use a deferred Promise as retryable operations are scheduled only
+    // when Promise chains are resolved, which can happen after the
+    // `queue.enqueue()` call below.
+    const deferred = new Deferred<void>();
+    queue.enqueueRetryable(async () => {
+      deferred.resolve();
+      throw fail('Simulated test failure');
+    });
+    await deferred.promise;
+    await expect(
+      queue.enqueue(() => Promise.resolve())
+    ).to.eventually.be.rejectedWith('Simulated test failure');
+  });
+
+  it('Schedules first retryable attempt with no delay', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+    });
+    expect(queue.containsDelayedOperation(TimerId.AsyncQueueRetry)).to.be.false;
+    // Use `drain()` instead of runDelayedOperationsEarly since the
+    // operation was scheduled directly on the queue.
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([1]);
+  });
+
+  it('Retries retryable operations with backoff', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+      if (completedSteps.length === 1) {
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
+      }
+    });
+
+    // Verify that only one attempt has been made
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([1]);
+
+    // Fast forward all operations
+    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    expect(completedSteps).to.deep.equal([1, 1]);
+  });
+
+  it('Retries retryable operations in order', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+
+    const blockingPromise = new Deferred<void>();
+
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+      if (completedSteps.length > 1) {
+      } else {
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
+      }
+    });
+    queue.enqueueRetryable(async () => {
+      doStep(2);
+      blockingPromise.resolve();
+    });
+
+    await blockingPromise.promise;
+    expect(completedSteps).to.deep.equal([1, 1, 2]);
+  });
+
   it('Can drain (non-delayed) operations', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
@@ -217,7 +324,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1, 2]);
   });
 
-  it('Schedules operaions with respect to shut down', async () => {
+  it('Schedules operations with respect to shut down', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<void> =>

@@ -121,9 +121,8 @@ export interface Reference extends Query {
 }
 
 export interface ServerValue {
-  TIMESTAMP: {
-    '.sv': string;
-  };
+  TIMESTAMP: Object;
+  increment(delta: number) : Object;
 }
 
 export interface ThenableReference extends Reference, Promise<Reference> {}

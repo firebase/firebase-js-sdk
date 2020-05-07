@@ -59,6 +59,9 @@ fireauth.IdTokenResult = function(tokenString) {
     'signInProvider': (idToken['firebase'] &&
                        idToken['firebase']['sign_in_provider']) ?
                       idToken['firebase']['sign_in_provider'] : null,
+    'signInSecondFactor': (idToken['firebase'] &&
+                           idToken['firebase']['sign_in_second_factor']) ?
+                          idToken['firebase']['sign_in_second_factor'] : null,
     'claims': idToken
   });
 };

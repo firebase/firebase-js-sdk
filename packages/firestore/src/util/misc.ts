@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert } from './assert';
+import { debugAssert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {
@@ -31,7 +31,7 @@ export class AutoId {
     for (let i = 0; i < 20; i++) {
       autoId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    assert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
+    debugAssert(autoId.length === 20, 'Invalid auto ID: ' + autoId);
     return autoId;
   }
 }
@@ -46,38 +46,20 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
-/** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
 }
 
-/** Helper to compare nullable (or undefined-able) objects using isEqual(). */
-export function equals<T>(
-  left: Equatable<T> | null | undefined,
-  right: T | null | undefined
-): boolean {
-  if (left !== null && left !== undefined) {
-    return !!(right && left.isEqual(right));
-  } else {
-    // HACK: Explicitly cast since TypeScript's type narrowing apparently isn't
-    // smart enough.
-    return (left as null | undefined) === right;
-  }
-}
-
 /** Helper to compare arrays using isEqual(). */
-export function arrayEquals<T>(left: Array<Equatable<T>>, right: T[]): boolean {
+export function arrayEquals<T>(
+  left: T[],
+  right: T[],
+  comparator: (l: T, r: T) => boolean
+): boolean {
   if (left.length !== right.length) {
     return false;
   }
-
-  for (let i = 0; i < left.length; i++) {
-    if (!left[i].isEqual(right[i])) {
-      return false;
-    }
-  }
-
-  return true;
+  return left.every((value, index) => comparator(value, right[index]));
 }
 /**
  * Returns the immediate lexicographically-following string. This is useful to

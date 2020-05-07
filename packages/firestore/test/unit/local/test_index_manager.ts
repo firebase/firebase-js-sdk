@@ -32,7 +32,7 @@ export class TestIndexManager {
   addToCollectionParentIndex(collectionPath: ResourcePath): Promise<void> {
     return this.persistence.runTransaction(
       'addToCollectionParentIndex',
-      'readwrite-idempotent',
+      'readwrite',
       txn => {
         return this.indexManager.addToCollectionParentIndex(
           txn,
@@ -45,7 +45,7 @@ export class TestIndexManager {
   getCollectionParents(collectionId: string): Promise<ResourcePath[]> {
     return this.persistence.runTransaction(
       'getCollectionParents',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.indexManager.getCollectionParents(txn, collectionId);
       }

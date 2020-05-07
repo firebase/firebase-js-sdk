@@ -8,12 +8,12 @@
       "type": "node",
       "request": "launch",
       "name": "RTDB Unit Tests (Node)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/packages/firebase/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/database",
       "args": [
         "test/{,!(browser)/**/}*.test.ts",
         "--file", "index.node.ts",
-        "--opts", "../../config/mocha.node.opts"
+        "--config", "../../config/mocharc.node.js"
       ],
       "env": {
         "TS_NODE_CACHE": "NO",
@@ -26,7 +26,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Node)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",
@@ -46,7 +46,7 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Node / Persistence)",
-      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "ts-node/register/type-check",

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +64,7 @@ const plugins = [
   sourcemaps(),
   resolveModule(),
   typescriptPlugin({
-    typescript,
-    // Workaround for typescript plugins that use async functions.
-    // In this case, `rollup-plugin-sourcemaps`.
-    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-    objectHashIgnoreUnknownHack: true,
-    // For safety, given hack above (see link).
-    clean: true
+    typescript
   }),
   json(),
   commonjs()
@@ -147,12 +141,31 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-const firestoreMinifiedBuild = {
-  input: `firestore/index.min.ts`,
-  output: createUmdOutputConfig(`firebase-firestore.min.js`),
-  plugins: [...plugins, uglify()],
-  external: ['@firebase/app']
-};
+const firestoreMemoryBuilds = [
+  {
+    input: `firestore/memory/index.ts`,
+    output: [
+      {
+        file: resolve('firestore/memory', pkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('firestore/memory', pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `firestore/memory/index.ts`,
+    output: createUmdOutputConfig(`firebase-firestore.memory.js`),
+    plugins: [...plugins, uglify()],
+    external: ['@firebase/app']
+  }
+];
 
 /**
  * Complete Package Builds
@@ -215,13 +228,7 @@ const completeBuilds = [
         mainFields: ['lite', 'module', 'main']
       }),
       typescriptPlugin({
-        typescript,
-        // Workaround for typescript plugins that use async functions.
-        // In this case, `rollup-plugin-sourcemaps`.
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-        objectHashIgnoreUnknownHack: true,
-        // For safety, given hack above (see link).
-        clean: true
+        typescript
       }),
       json(),
       commonjs(),
@@ -246,12 +253,6 @@ const completeBuilds = [
       }),
       typescriptPlugin({
         typescript,
-        // Workaround for typescript plugins that use async functions.
-        // In this case, `rollup-plugin-sourcemaps`.
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-        objectHashIgnoreUnknownHack: true,
-        // For safety, given hack above (see link).
-        clean: true,
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017'
@@ -270,6 +271,6 @@ const completeBuilds = [
 export default [
   ...appBuilds,
   ...componentBuilds,
-  firestoreMinifiedBuild,
+  ...firestoreMemoryBuilds,
   ...completeBuilds
 ];

@@ -33,10 +33,14 @@ goog.require('fireauth.GRecaptchaMockFactory');
 goog.require('fireauth.GithubAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.InvalidOriginError');
+goog.require('fireauth.MultiFactorError');
+goog.require('fireauth.MultiFactorResolver');
+goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.OAuthCredential');
 goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
+goog.require('fireauth.PhoneMultiFactorGenerator');
 goog.require('fireauth.RecaptchaVerifier');
 goog.require('fireauth.SAMLAuthCredential');
 goog.require('fireauth.SAMLAuthProvider');
@@ -325,6 +329,17 @@ fireauth.exportlib.exportPrototypeMethods(
       updateProfile: {
         name: 'updateProfile',
         args: [fireauth.args.object('profile')]
+      },
+      verifyBeforeUpdateEmail: {
+        name: 'verifyBeforeUpdateEmail',
+        args: [
+          fireauth.args.string('email'),
+          fireauth.args.or(
+              fireauth.args.object('opt_actionCodeSettings', true),
+              fireauth.args.null(null, true),
+              'opt_actionCodeSettings',
+              true)
+        ]
       }
     });
 
@@ -549,7 +564,10 @@ fireauth.exportlib.exportPrototypeMethods(
       verifyPhoneNumber: {
         name: 'verifyPhoneNumber',
         args: [
-          fireauth.args.string('phoneNumber'),
+          fireauth.args.or(
+              fireauth.args.string(),
+              fireauth.args.phoneInfoOptions(),
+              'phoneInfoOptions'),
           fireauth.args.applicationVerifier()
         ]
       }
@@ -596,6 +614,46 @@ fireauth.exportlib.exportPrototypeMethods(
         args: [fireauth.args.string(null, true)]
       }
     });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorError.prototype, {
+      toJSON: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
+      }
+    });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorResolver.prototype, {
+      resolveSignIn: {
+        name: 'resolveSignIn',
+        args: [fireauth.args.multiFactorAssertion()]
+      }
+    });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorUser.prototype, {
+      getSession: {
+        name: 'getSession',
+        args: []
+      },
+      enroll: {
+        name: 'enroll',
+        args: [
+          fireauth.args.multiFactorAssertion(),
+          fireauth.args.string('displayName', true)
+        ]
+      },
+      unenroll: {
+        name: 'unenroll',
+        args: [
+          fireauth.args.or(
+              fireauth.args.multiFactorInfo(),
+              fireauth.args.string(),
+              'multiFactorInfoIdentifier')
+        ]
+      }
+    });
 
 fireauth.exportlib.exportPrototypeMethods(
     fireauth.RecaptchaVerifier.prototype, {
@@ -617,6 +675,11 @@ fireauth.exportlib.exportFunction(
     fireauth.ActionCodeURL, 'parseLink',
     fireauth.ActionCodeURL.parseLink, [fireauth.args.string('link')]);
 
+fireauth.exportlib.exportFunction(
+    fireauth.PhoneMultiFactorGenerator, 'assertion',
+    fireauth.PhoneMultiFactorGenerator.assertion,
+    [fireauth.args.authCredential(fireauth.idp.ProviderId.PHONE)]);
+
 
 (function() {
   if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
@@ -631,6 +694,10 @@ fireauth.exportlib.exportFunction(
           'EMAIL_SIGNIN': fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
           'PASSWORD_RESET': fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
           'RECOVER_EMAIL': fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
+          'REVERT_SECOND_FACTOR_ADDITION':
+              fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION,
+          'VERIFY_AND_CHANGE_EMAIL':
+              fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL,
           'VERIFY_EMAIL': fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL
         }
       },
@@ -671,6 +738,8 @@ fireauth.exportlib.exportFunction(
         ]);
     fireauth.exportlib.exportFunction(namespace,
         'ActionCodeURL', fireauth.ActionCodeURL, []);
+    fireauth.exportlib.exportFunction(namespace,
+        'PhoneMultiFactorGenerator', fireauth.PhoneMultiFactorGenerator, []);
 
     // Create auth components to register with firebase.
     // Provides Auth public APIs.

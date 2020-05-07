@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.9.10",
+  "version": "3.12.2",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -24,9 +24,11 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path './.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path './.gitignore'",
     "build": "rollup -c",
+    "build:deps": "lerna run --scope '{firebase,rxfire}' --include-dependencies build",
     "dev": "rollup -c -w",
     "prepare": "yarn build",
     "test": "run-p lint test:browser",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
@@ -34,20 +36,20 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "dependencies": {
-    "tslib": "1.10.0"
+    "tslib": "1.11.1"
   },
   "peerDependencies": {
     "firebase": ">= 5.0.0 <8",
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "7.8.1",
-    "rollup": "1.28.0",
+    "firebase": "7.14.2",
+    "rollup": "2.7.6",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.25.3",
+    "rollup-plugin-typescript2": "0.27.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.7.5"
+    "typescript": "3.8.3"
   },
   "typings": "dist/index.d.ts",
   "files": [

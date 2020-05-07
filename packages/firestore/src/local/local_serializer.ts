@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,9 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert, fail } from '../util/assert';
-
-import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { debugAssert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -42,7 +40,6 @@ import {
   DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
-import { SimpleDb } from './simple_db';
 import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
@@ -79,9 +76,7 @@ export class LocalSerializer {
     const dbReadTime = this.toDbTimestampKey(readTime);
     const parentPath = maybeDoc.key.path.popLast().toArray();
     if (maybeDoc instanceof Document) {
-      const doc = maybeDoc.proto
-        ? maybeDoc.proto
-        : this.remoteSerializer.toDocument(maybeDoc);
+      const doc = this.remoteSerializer.toDocument(maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,
@@ -176,39 +171,13 @@ export class LocalSerializer {
     );
   }
 
-  /*
-   * Encodes a set of document keys into an array of EncodedResourcePaths.
-   */
-  toDbResourcePaths(keys: DocumentKeySet): EncodedResourcePath[] {
-    const encodedKeys: EncodedResourcePath[] = [];
-
-    keys.forEach(key => {
-      encodedKeys.push(encode(key.path));
-    });
-
-    return encodedKeys;
-  }
-
-  /** Decodes an array of EncodedResourcePaths into a set of document keys. */
-  fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
-    let keys = documentKeySet();
-
-    for (const documentKey of encodedPaths) {
-      keys = keys.add(new DocumentKey(decode(documentKey)));
-    }
-
-    return keys;
-  }
-
   /** Decodes a DbTarget into TargetData */
   fromDbTarget(dbTarget: DbTarget): TargetData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
     const lastLimboFreeSnapshotVersion =
       dbTarget.lastLimboFreeSnapshotVersion !== undefined
         ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
-        : SnapshotVersion.MIN;
-    // TODO(b/140573486): Convert to platform representation
-    const resumeToken = dbTarget.resumeToken;
+        : SnapshotVersion.min();
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
@@ -223,13 +192,13 @@ export class LocalSerializer {
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
-      resumeToken
+      ByteString.fromBase64String(dbTarget.resumeToken)
     );
   }
 
   /** Encodes TargetData into a DbTarget for storage locally. */
   toDbTarget(targetData: TargetData): DbTarget {
-    assert(
+    debugAssert(
       TargetPurpose.Listen === targetData.purpose,
       'Only queries with purpose ' +
         TargetPurpose.Listen +
@@ -247,18 +216,9 @@ export class LocalSerializer {
       queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
-    let resumeToken: string;
-
-    if (targetData.resumeToken instanceof Uint8Array) {
-      // TODO(b/78771403): Convert tokens to strings during deserialization
-      assert(
-        SimpleDb.isMockPersistence(),
-        'Persisting non-string stream tokens is only supported with mock persistence .'
-      );
-      resumeToken = targetData.resumeToken.toString();
-    } else {
-      resumeToken = targetData.resumeToken;
-    }
+    // We can't store the resumeToken as a ByteString in IndexedDb, so we
+    // convert it to a base64 string for storage.
+    const resumeToken = targetData.resumeToken.toBase64();
 
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(

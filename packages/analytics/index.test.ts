@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import './testing/setup';
 import {
   settings as analyticsSettings,
   factory as analyticsFactory,
-  resetGlobalVars
+  resetGlobalVars,
+  getGlobalVars
 } from './index';
 import {
   getFakeApp,
@@ -32,6 +33,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
+import { Deferred } from '@firebase/util';
 
 let analyticsInstance: FirebaseAnalytics = {} as FirebaseAnalytics;
 const analyticsId = 'abcd-efgh';
@@ -57,10 +59,14 @@ describe('FirebaseAnalytics instance tests', () => {
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
+    let fidDeferred: Deferred<void>;
     before(() => {
       resetGlobalVars();
       app = getFakeApp(analyticsId);
-      const installations = getFakeInstallations();
+      fidDeferred = new Deferred<void>();
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
 
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
@@ -82,7 +88,9 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      await Promise.resolve();
+      // For IE: Need then() or else "expect" runs immediately on FID resolve
+      // before the other statements in initializeGAId.
+      await fidDeferred.promise.then();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -94,7 +102,9 @@ describe('FirebaseAnalytics instance tests', () => {
         }
       );
       // Clear event stack of initialization promise.
-      await Promise.resolve();
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await Promise.all(Object.values(initializedIdPromisesMap));
+      // await Promise.resolve().then(() => {});
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
         EventName.ADD_PAYMENT_INFO,
@@ -121,10 +131,14 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has user gtag script with custom gtag and dataLayer names', () => {
+    let fidDeferred: Deferred<void>;
     before(() => {
       resetGlobalVars();
       const app = getFakeApp(analyticsId);
-      const installations = getFakeInstallations();
+      fidDeferred = new Deferred<void>();
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
       analyticsSettings({
@@ -146,7 +160,9 @@ describe('FirebaseAnalytics instance tests', () => {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
-      await Promise.resolve();
+      // For IE: Need then() or else "expect" runs immediately on FID resolve
+      // before the other statements in initializeGAId.
+      await fidDeferred.promise.then();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -158,7 +174,8 @@ describe('FirebaseAnalytics instance tests', () => {
         }
       );
       // Clear event stack of initialization promise.
-      await Promise.resolve();
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
         EventName.ADD_PAYMENT_INFO,
@@ -182,8 +199,12 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['dataLayer'];
       removeGtagScript();
     });
-    it('Adds the script tag to the page', () => {
+    it('Adds the script tag to the page', async () => {
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await initializedIdPromisesMap[analyticsId];
       expect(findGtagScriptOnPage()).to.not.be.null;
+      expect(typeof window['gtag']).to.equal('function');
+      expect(Array.isArray(window['dataLayer'])).to.be.true;
     });
   });
 });

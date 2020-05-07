@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
  */
 
 import { expect } from 'chai';
+import { Blob } from '../../../src/api/blob';
+import { Timestamp } from '../../../src/api/timestamp';
+import { GeoPoint } from '../../../src/api/geo_point';
 import { Bound, Query } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -396,7 +399,7 @@ describe('Query', () => {
       doc('collection/1', 0, { sort: 'a' }),
       doc('collection/1', 0, { sort: 'ab' }),
       doc('collection/1', 0, { sort: 'b' }),
-      doc('collection/1', 0, { sort: ref('p', 'collection/id1') })
+      doc('collection/1', 0, { sort: ref('collection/id1') })
     ];
 
     expectCorrectComparisons(docs, query.docComparator.bind(query));
@@ -497,9 +500,8 @@ describe('Query', () => {
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'exclusive');
 
-    const relativeReference = ref('project1/database1', 'col/doc');
+    const relativeReference = ref('col/doc');
     const absoluteReference = ref(
-      'project1/database1',
       'projects/project1/databases/database1/documents/col/doc',
       5
     );
@@ -542,6 +544,105 @@ describe('Query', () => {
     expectEqualitySets(queries, (q1, q2) => {
       return q1.canonicalId() === q2.canonicalId();
     });
+  });
+
+  it('canonical ids are stable', () => {
+    // This test aims to ensure that we do not break canonical IDs, as they are
+    // used as keys in the TargetCache.
+
+    const baseQuery = Query.atPath(path('collection'));
+
+    assertCanonicalId(baseQuery, 'collection|f:|ob:__name__asc');
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', '>', 'a')),
+      'collection|f:a>a|ob:aasc,__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', '<=', new GeoPoint(90.0, -90.0))),
+      'collection|f:a<=geo(90,-90)|ob:aasc,__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', '<=', new Timestamp(60, 3000))),
+      'collection|f:a<=time(60,3000)|ob:aasc,__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(
+        filter('a', '>=', Blob.fromUint8Array(new Uint8Array([1, 2, 3])))
+      ),
+      'collection|f:a>=AQID|ob:aasc,__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', '==', [1, 2, 3])),
+      'collection|f:a==[1,2,3]|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', '==', NaN)),
+      'collection|f:a==NaN|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('__name__', '==', ref('collection/id'))),
+      'collection|f:__name__==collection/id|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(
+        filter('a', '==', { 'a': 'b', 'inner': { 'd': 'c' } })
+      ),
+      'collection|f:a=={a:b,inner:{d:c}}|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', 'in', [1, 2, 3])),
+      'collection|f:ain[1,2,3]|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', 'array-contains-any', [1, 2, 3])),
+      'collection|f:aarray-contains-any[1,2,3]|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addFilter(filter('a', 'array-contains', 'a')),
+      'collection|f:aarray-containsa|ob:__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery.addOrderBy(orderBy('a')),
+      'collection|f:|ob:aasc,__name__asc'
+    );
+    assertCanonicalId(
+      baseQuery
+        .addOrderBy(orderBy('a', 'asc'))
+        .addOrderBy(orderBy('b', 'asc'))
+        .withStartAt(
+          bound(
+            [
+              ['a', 'foo', 'asc'],
+              ['b', [1, 2, 3], 'asc']
+            ],
+            true
+          )
+        ),
+      'collection|f:|ob:aasc,basc,__name__asc|lb:b:foo,[1,2,3]'
+    );
+    assertCanonicalId(
+      baseQuery
+        .addOrderBy(orderBy('a', 'desc'))
+        .addOrderBy(orderBy('b', 'desc'))
+        .withEndAt(
+          bound(
+            [
+              ['a', 'foo', 'desc'],
+              ['b', [1, 2, 3], 'desc']
+            ],
+            false
+          )
+        ),
+      'collection|f:|ob:adesc,bdesc,__name__desc|ub:a:foo,[1,2,3]'
+    );
+    assertCanonicalId(
+      baseQuery.withLimitToFirst(5),
+      'collection|f:|ob:__name__asc|l:5'
+    );
+    assertCanonicalId(
+      baseQuery.withLimitToLast(5),
+      'collection|f:|ob:__name__desc|l:5'
+    );
   });
 
   it("generates the correct implicit order by's", () => {
@@ -619,4 +720,8 @@ describe('Query', () => {
     query = baseQuery.withEndAt(bound([], true));
     expect(query.matchesAllDocuments()).to.be.false;
   });
+
+  function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
+    expect(query.toTarget().canonicalId()).to.equal(expectedCanonicalId);
+  }
 });

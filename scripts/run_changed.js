@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ const simpleGit = require('simple-git/promise');
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
+// use test:ci command in CI
+const testCommand = !!process.env.CI ? 'test:ci' : 'test';
 /**
  * Changes to these files warrant running all tests.
  */
@@ -34,7 +36,7 @@ const fullTestTriggerFiles = [
   'config/karma.base.js',
   'config/.eslintrc.js',
   'config/mocha.browser.opts',
-  'config/mocha.node.opts',
+  'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',
@@ -56,9 +58,16 @@ const alwaysRunTestPaths = [
  * These files trigger tests in other dirs
  */
 const specialPaths = {
-  'scripts/emulator-testing/emulators/firestore-emulator.ts': ['packages/firestore'],
-  'scripts/emulator-testing/emulators/database-emulator.ts': ['packages/database'],
-  'scripts/emulator-testing/emulators/emulator.ts': ['packages/firestore', 'packages/database'],
+  'scripts/emulator-testing/emulators/firestore-emulator.ts': [
+    'packages/firestore'
+  ],
+  'scripts/emulator-testing/emulators/database-emulator.ts': [
+    'packages/database'
+  ],
+  'scripts/emulator-testing/emulators/emulator.ts': [
+    'packages/firestore',
+    'packages/database'
+  ],
   'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
   'scripts/emulator-testing/database-test-runner.ts': ['packages/database']
 };
@@ -91,7 +100,7 @@ async function getChangedPackages() {
       }
     }
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {
@@ -141,7 +150,7 @@ async function runTests(pathList) {
   if (!pathList) return;
   for (const testPath of pathList) {
     try {
-      await spawn('yarn', ['--cwd', testPath, 'test'], {
+      await spawn('yarn', ['--cwd', testPath, testCommand], {
         stdio: 'inherit'
       });
     } catch (e) {
@@ -152,26 +161,27 @@ async function runTests(pathList) {
 
 async function main() {
   try {
-    const {
-      testAll,
-      changedPackages = {}
-    } = await getChangedPackages();
+    const { testAll, changedPackages = {} } = await getChangedPackages();
     if (testAll) {
-      await spawn('yarn', ['test'], {
+      await spawn('yarn', [testCommand], {
         stdio: 'inherit'
       });
     } else {
       console.log(chalk`{blue Running tests in:}`);
-      for (const filename of alwaysRunTestPaths) { // array
+      for (const filename of alwaysRunTestPaths) {
+        // array
         console.log(chalk`{green ${filename} (always runs)}`);
       }
-      for (const filename in changedPackages) { // obj
+      for (const filename in changedPackages) {
+        // obj
         if (changedPackages[filename] === 'direct') {
           console.log(chalk`{yellow ${filename} (contains modified files)}`);
         } else {
           console.log(chalk`{yellow ${filename} (depends on modified files)}`);
         }
       }
+
+      changedPackages['packages/app'] = 'direct';
       await runTests(alwaysRunTestPaths);
       await runTests(Object.keys(changedPackages));
     }

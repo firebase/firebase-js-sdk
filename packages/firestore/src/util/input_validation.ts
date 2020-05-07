@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
-import * as obj from './obj';
+import { Dict, forEach } from './obj';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =
@@ -297,14 +297,15 @@ export function validateNamedOptionalPropertyEquals<T>(
  * @param functionName Function making the validation call.
  * @param enums Array containing all possible values for the enum.
  * @param position Position of the argument in `functionName`.
- * @param argument Arugment to validate.
+ * @param argument Argument to validate.
+ * @return The value as T if the argument can be converted.
  */
 export function validateStringEnum<T>(
   functionName: string,
-  enums: string[],
+  enums: T[],
   position: number,
   argument: unknown
-): void {
+): T {
   if (!enums.some(element => element === argument)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -313,6 +314,7 @@ export function validateStringEnum<T>(
         `values: ${enums.join(', ')}`
     );
   }
+  return argument as T;
 }
 
 /** Helper to validate the type of a provided input. */
@@ -421,7 +423,7 @@ export function validateOptionNames(
   options: object,
   optionNames: string[]
 ): void {
-  obj.forEach(options as obj.Dict<unknown>, (key, _) => {
+  forEach(options as Dict<unknown>, (key, _) => {
     if (optionNames.indexOf(key) < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

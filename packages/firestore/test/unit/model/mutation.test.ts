@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
-import {
-  IntegerValue,
-  ServerTimestampValue,
-  TimestampValue
-} from '../../../src/model/field_value';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   Mutation,
   MutationResult,
@@ -36,7 +32,6 @@ import {
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
-  DELETE_SENTINEL,
   deletedDoc,
   deleteMutation,
   doc,
@@ -51,6 +46,7 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
+import { ObjectValueBuilder } from '../../../src/model/object_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -99,7 +95,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -120,7 +116,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -139,7 +135,7 @@ describe('Mutation', () => {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
     const patch = patchMutation('collection/key', {
-      'foo.bar': DELETE_SENTINEL
+      'foo.bar': FieldValue.delete()
     });
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -195,23 +191,22 @@ describe('Mutation', () => {
     );
 
     // Server timestamps aren't parsed, so we manually insert it.
-    const data = wrapObject({
-      foo: { bar: '<server-timestamp>' },
-      baz: 'baz-value'
-    }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
-    const expectedDoc = new Document(
-      key('collection/key'),
-      version(0),
-      {
-        hasLocalMutations: true
-      },
-      data
-    );
+    const data = new ObjectValueBuilder(
+      wrapObject({
+        foo: { bar: '<server-timestamp>' },
+        baz: 'baz-value'
+      })
+    )
+      .set(field('foo.bar'), serverTimestamp(timestamp, null))
+      .build();
+    const expectedDoc = new Document(key('collection/key'), version(0), data, {
+      hasLocalMutations: true
+    });
 
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
 
-  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // NOTE: This is more a test of UserDataReader code than Mutation code but
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayUnion() transform.', () => {
@@ -237,7 +232,7 @@ describe('Mutation', () => {
     );
   });
 
-  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // NOTE: This is more a test of UserDataReader code than Mutation code but
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayRemove() transform.', () => {
@@ -387,7 +382,12 @@ describe('Mutation', () => {
     });
 
     const mutationResult = new MutationResult(version(1), [
-      new TimestampValue(timestamp)
+      {
+        timestampValue: {
+          seconds: timestamp.seconds,
+          nanos: timestamp.nanoseconds
+        }
+      }
     ]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
@@ -498,7 +498,7 @@ describe('Mutation', () => {
     });
 
     const mutationResult = new MutationResult(version(1), [
-      new IntegerValue(3)
+      { integerValue: 3 }
     ]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
@@ -664,7 +664,7 @@ describe('Mutation', () => {
     };
     const transform = transformMutation('collection/key', allTransforms);
 
-    const expectedBaseValue = wrap({
+    const expectedBaseValue = wrapObject({
       double: 42.0,
       long: 42,
       text: 0,
@@ -695,6 +695,6 @@ describe('Mutation', () => {
     );
 
     expect(mutatedDoc).to.be.an.instanceof(Document);
-    expect((mutatedDoc as Document).field(field('sum'))!.value()).to.equal(2);
+    expect((mutatedDoc as Document).field(field('sum'))).to.deep.equal(wrap(2));
   });
 });

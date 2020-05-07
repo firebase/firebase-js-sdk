@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,65 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { PublicBlob } from '../api/blob';
+import { Component, ComponentType, Provider } from '@firebase/component';
 import {
   CACHE_SIZE_UNLIMITED,
   Firestore,
-  PublicCollectionReference,
-  PublicDocumentReference,
-  PublicDocumentSnapshot,
-  PublicFirestore,
-  PublicQuery,
-  PublicQueryDocumentSnapshot,
-  PublicQuerySnapshot,
-  PublicTransaction,
-  PublicWriteBatch
+  DocumentReference,
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  Query,
+  QuerySnapshot,
+  CollectionReference,
+  Transaction,
+  WriteBatch
 } from '../api/database';
+import { Blob } from '../api/blob';
 import { FieldPath } from '../api/field_path';
-import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
-import { shallowCopy } from '../util/obj';
-import { Component, ComponentType } from '@firebase/component';
+import { makeConstructorPrivate } from '../util/api';
+import { FieldValue } from '../api/field_value';
+
+// Public instance that disallows construction at runtime. Note that this still
+// allows instanceof checks.
+export const PublicFirestore = makeConstructorPrivate(
+  Firestore,
+  'Use firebase.firestore() instead.'
+);
+export const PublicTransaction = makeConstructorPrivate(
+  Transaction,
+  'Use firebase.firestore().runTransaction() instead.'
+);
+export const PublicWriteBatch = makeConstructorPrivate(
+  WriteBatch,
+  'Use firebase.firestore().batch() instead.'
+);
+export const PublicDocumentReference = makeConstructorPrivate(
+  DocumentReference,
+  'Use firebase.firestore().doc() instead.'
+);
+export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
+export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
+  QueryDocumentSnapshot
+);
+export const PublicQuery = makeConstructorPrivate(Query);
+export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
+export const PublicCollectionReference = makeConstructorPrivate(
+  CollectionReference,
+  'Use firebase.firestore().collection() instead.'
+);
+export const PublicFieldValue = makeConstructorPrivate(
+  FieldValue,
+  'Use FieldValue.<field>() instead.'
+);
+export const PublicBlob = makeConstructorPrivate(
+  Blob,
+  'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
+);
 
 const firestoreNamespace = {
   Firestore: PublicFirestore,
@@ -59,31 +96,26 @@ const firestoreNamespace = {
 
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerService.
+ *
+ * @param firebase The FirebaseNamespace to register Firestore with
+ * @param firestoreFactory A factory function that returns a new Firestore
+ *    instance.
  */
-export function configureForFirebase(firebase: FirebaseNamespace): void {
+export function configureForFirebase(
+  firebase: FirebaseNamespace,
+  firestoreFactory: (
+    app: FirebaseApp,
+    auth: Provider<FirebaseAuthInternalName>
+  ) => Firestore
+): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'firestore',
       container => {
         const app = container.getProvider('app').getImmediate()!;
-        return new Firestore(app, container.getProvider('auth-internal'));
+        return firestoreFactory(app, container.getProvider('auth-internal'));
       },
       ComponentType.PUBLIC
-    ).setServiceProps(shallowCopy(firestoreNamespace))
+    ).setServiceProps({ ...firestoreNamespace })
   );
-}
-
-/**
- * Exports the Firestore namespace into the provided `exportObject` object under
- * the key 'firestore'. This is used for wrapped binary that exposes Firestore
- * as a goog module.
- */
-export function configureForStandalone(exportObject: {
-  [key: string]: {};
-}): void {
-  const copiedNamespace = shallowCopy(firestoreNamespace);
-  // Unlike the use with Firebase, the standalone allows the use of the
-  // constructor, so export it's internal class
-  copiedNamespace['Firestore'] = Firestore;
-  exportObject['firestore'] = copiedNamespace;
 }

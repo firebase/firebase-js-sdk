@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import { primitiveComparator } from '../../../src/util/misc';
-import { SortedMap } from '../../../src/util/sorted_map';
 import { SortedSet } from '../../../src/util/sorted_set';
 
 import { expectSetToEqual } from '../../util/helpers';
@@ -159,21 +158,6 @@ describe('SortedSet', () => {
       .add(3)
       .add(4);
     expect(set.unionWith(set2)).to.deep.equal(expected);
-  });
-
-  it('can build set from map keys.', () => {
-    const empty = new SortedSet<number>(primitiveComparator);
-    const map = new SortedMap<number, string>(primitiveComparator)
-      .insert(0, 'zero')
-      .insert(2, 'two')
-      .insert(4, 'four');
-    const set = SortedSet.fromMapKeys(map);
-    expect(set).to.deep.equal(
-      empty
-        .add(0)
-        .add(2)
-        .add(4)
-    );
   });
 
   it('returns indexes of elements', () => {

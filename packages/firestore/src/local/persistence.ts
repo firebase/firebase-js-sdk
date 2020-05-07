@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
  */
 
 import { User } from '../auth/user';
-
 import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
+import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
@@ -58,10 +57,7 @@ export abstract class PersistenceTransaction {
 export type PersistenceTransactionMode =
   | 'readonly'
   | 'readwrite'
-  | 'readwrite-primary'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent'
-  | 'readwrite-primary-idempotent';
+  | 'readwrite-primary';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -173,21 +169,13 @@ export interface Persistence {
 
   readonly referenceDelegate: ReferenceDelegate;
 
+  /** Starts persistence. */
+  start(): Promise<void>;
+
   /**
    * Releases any resources held during eager shutdown.
    */
   shutdown(): Promise<void>;
-
-  /**
-   * Registers a listener that gets called when the primary state of the
-   * instance changes. Upon registering, this listener is invoked immediately
-   * with the current primary state.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void>;
 
   /**
    * Registers a listener that gets called when the database receives a
@@ -198,23 +186,6 @@ export interface Persistence {
   setDatabaseDeletedListener(
     databaseDeletedListener: () => Promise<void>
   ): void;
-
-  /**
-   * Adjusts the current network state in the client's metadata, potentially
-   * affecting the primary lease.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setNetworkEnabled(networkEnabled: boolean): void;
-
-  /**
-   * Returns the IDs of the clients that are currently active. If multi-tab
-   * is not supported, returns an array that only contains the local client's
-   * ID.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  getActiveClients(): Promise<ClientId[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the
@@ -284,4 +255,14 @@ export interface Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T>;
+}
+
+/**
+ * Interface implemented by the LRU scheduler to start(), stop() and restart
+ * garbage collection.
+ */
+export interface GarbageCollectionScheduler {
+  readonly started: boolean;
+  start(localStore: LocalStore): void;
+  stop(): void;
 }

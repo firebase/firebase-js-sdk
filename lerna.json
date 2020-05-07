@@ -4,6 +4,7 @@
   "npmClient": "yarn",
   "packages": [
     "packages/*",
+    "packages-exp/*",
     "integration/*"
   ],
   "useWorkspaces": true

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,16 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import * as log from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { CancelablePromise } from '../util/promise';
-
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  EncodedResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -58,7 +61,6 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
@@ -72,6 +74,7 @@ import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
@@ -185,39 +188,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static async createIndexedDbPersistence(options: {
-    allowTabSynchronization: boolean;
-    persistenceKey: string;
-    clientId: ClientId;
-    platform: Platform;
-    lruParams: LruParams;
-    queue: AsyncQueue;
-    serializer: JsonProtoSerializer;
-    sequenceNumberSyncer: SequenceNumberSyncer;
-    force: boolean;
-  }): Promise<IndexedDbPersistence> {
-    if (!IndexedDbPersistence.isAvailable()) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-    }
-
-    const persistence = new IndexedDbPersistence(
-      options.allowTabSynchronization,
-      options.persistenceKey,
-      options.clientId,
-      options.platform,
-      options.lruParams,
-      options.queue,
-      options.serializer,
-      options.sequenceNumberSyncer,
-      options.force
-    );
-    await persistence.start();
-    return persistence;
-  }
-
   private readonly document: Document | null;
   private readonly window: Window | null;
 
@@ -256,7 +226,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
-  private constructor(
+  constructor(
     private readonly allowTabSynchronization: boolean,
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
@@ -267,6 +237,13 @@ export class IndexedDbPersistence implements Persistence {
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
     private readonly force: boolean
   ) {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
+
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
@@ -286,7 +263,7 @@ export class IndexedDbPersistence implements Persistence {
     } else {
       this.webStorage = null;
       if (force === false) {
-        log.error(
+        logError(
           LOG_TAG,
           'LocalStorage is unavailable. As a result, persistence may not work ' +
             'reliably. In particular enablePersistence() could fail immediately ' +
@@ -301,8 +278,9 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  private start(): Promise<void> {
-    assert(!this.started, 'IndexedDbPersistence double-started!');
+  start(): Promise<void> {
+    debugAssert(!this.started, 'IndexedDbPersistence double-started!');
+    debugAssert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(
       this.dbName,
@@ -322,7 +300,7 @@ export class IndexedDbPersistence implements Persistence {
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
         return this.simpleDb.runTransaction(
-          'readonly-idempotent',
+          'readonly',
           [DbTargetGlobal.store],
           txn => getHighestListenSequenceNumber(txn)
         );
@@ -342,6 +320,13 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
+  /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void> {
@@ -353,6 +338,12 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
+  /**
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setDatabaseDeletedListener(
     databaseDeletedListener: () => Promise<void>
   ): void {
@@ -364,6 +355,12 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
+  /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   setNetworkEnabled(networkEnabled: boolean): void {
     if (this.networkEnabled !== networkEnabled) {
       this.networkEnabled = networkEnabled;
@@ -387,7 +384,7 @@ export class IndexedDbPersistence implements Persistence {
     force = false
   ): Promise<void> {
     return this.simpleDb
-      .runTransaction('readwrite-idempotent', ALL_STORES, txn => {
+      .runTransaction('readwrite', ALL_STORES, txn => {
         const metadataStore = clientMetadataStore(txn);
         return metadataStore
           .put(
@@ -426,7 +423,7 @@ export class IndexedDbPersistence implements Persistence {
           throw e;
         }
 
-        log.debug(
+        logDebug(
           LOG_TAG,
           'Releasing owner lease after error during lease refresh',
           e
@@ -473,7 +470,7 @@ export class IndexedDbPersistence implements Persistence {
 
       const inactiveClients = await this.runTransaction(
         'maybeGarbageCollectMultiClientState',
-        'readwrite-primary-idempotent',
+        'readwrite-primary',
         txn => {
           const metadataStore = IndexedDbPersistence.getStore<
             DbClientMetadataKey,
@@ -638,7 +635,7 @@ export class IndexedDbPersistence implements Persistence {
       })
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
-          log.debug(
+          logDebug(
             LOG_TAG,
             `Client ${
               canActAsPrimary ? 'is' : 'is not'
@@ -662,7 +659,7 @@ export class IndexedDbPersistence implements Persistence {
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
-      'readwrite-idempotent',
+      'readwrite',
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -692,9 +689,16 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
-      'readonly-idempotent',
+      'readonly',
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
@@ -720,8 +724,8 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue {
-    assert(
+  getMutationQueue(user: User): IndexedDbMutationQueue {
+    debugAssert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
     );
@@ -734,7 +738,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getTargetCache(): IndexedDbTargetCache {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize TargetCache before persistence is started.'
     );
@@ -742,7 +746,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize RemoteDocumentCache before persistence is started.'
     );
@@ -750,7 +754,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getIndexManager(): IndexedDbIndexManager {
-    assert(
+    debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
@@ -764,18 +768,9 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    log.debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
 
-    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
-    const idempotent = mode.endsWith('idempotent');
-    const readonly = mode.startsWith('readonly');
-    const simpleDbMode = readonly
-      ? idempotent
-        ? 'readonly-idempotent'
-        : 'readonly'
-      : idempotent
-      ? 'readwrite-idempotent'
-      : 'readwrite';
+    const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
 
     let persistenceTransaction: PersistenceTransaction;
 
@@ -788,10 +783,7 @@ export class IndexedDbPersistence implements Persistence {
           this.listenSequence.next()
         );
 
-        if (
-          mode === 'readwrite-primary' ||
-          mode === 'readwrite-primary-idempotent'
-        ) {
+        if (mode === 'readwrite-primary') {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the
@@ -806,7 +798,7 @@ export class IndexedDbPersistence implements Persistence {
             })
             .next(holdsPrimaryLease => {
               if (!holdsPrimaryLease) {
-                log.error(
+                logError(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
                 this.isPrimary = false;
@@ -913,7 +905,7 @@ export class IndexedDbPersistence implements Persistence {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
-        log.debug(LOG_TAG, 'Releasing primary lease.');
+        logDebug(LOG_TAG, 'Releasing primary lease.');
         return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
@@ -929,7 +921,7 @@ export class IndexedDbPersistence implements Persistence {
     if (updateTimeMs < minAcceptable) {
       return false;
     } else if (updateTimeMs > maxAcceptable) {
-      log.error(
+      logError(
         `Detected an update time that is in the future: ${updateTimeMs} > ${maxAcceptable}`
       );
       return false;
@@ -961,7 +953,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachVisibilityHandler(): void {
     if (this.documentVisibilityHandler) {
-      assert(
+      debugAssert(
         this.document !== null &&
           typeof this.document.addEventListener === 'function',
         "Expected 'document.addEventListener' to be a function"
@@ -1010,7 +1002,7 @@ export class IndexedDbPersistence implements Persistence {
       return;
     }
     if (this.windowUnloadHandler) {
-      assert(
+      debugAssert(
         typeof this.window.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
@@ -1032,7 +1024,7 @@ export class IndexedDbPersistence implements Persistence {
       const isZombied =
         this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
         null;
-      log.debug(
+      logDebug(
         LOG_TAG,
         `Client '${clientId}' ${
           isZombied ? 'is' : 'is not'
@@ -1041,7 +1033,7 @@ export class IndexedDbPersistence implements Persistence {
       return isZombied;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't working.
-      log.error(LOG_TAG, 'Failed to get zombied client id.', e);
+      logError(LOG_TAG, 'Failed to get zombied client id.', e);
       return false;
     }
   }
@@ -1061,7 +1053,7 @@ export class IndexedDbPersistence implements Persistence {
       );
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to set zombie client id.', e);
+      logError('Failed to set zombie client id.', e);
     }
   }
 
@@ -1275,7 +1267,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.
             if (nextToReport !== ListenSequence.INVALID) {
-              f(new DocumentKey(decode(nextPath)), nextToReport);
+              f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
             }
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
@@ -1295,7 +1287,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         // need to check if the last key we iterated over was an orphaned
         // document and report it.
         if (nextToReport !== ListenSequence.INVALID) {
-          f(new DocumentKey(decode(nextPath)), nextToReport);
+          f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
         }
       });
   }
@@ -1306,7 +1298,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 }
 
 function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
-  return [0, encode(key.path)];
+  return [0, encodeResourcePath(key.path)];
 }
 
 /**
@@ -1317,7 +1309,7 @@ function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
 ): DbTargetDocument {
-  return new DbTargetDocument(0, encode(key.path), sequenceNumber);
+  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
 }
 
 function writeSentinelKey(

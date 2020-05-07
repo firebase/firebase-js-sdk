@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
  */
 
 import { getUA } from '@firebase/util';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug, error } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
+
+// References to `window` are guarded by SimpleDb.isAvailable()
+/* eslint-disable no-restricted-globals */
 
 const LOG_TAG = 'SimpleDb';
 
@@ -32,11 +35,7 @@ const LOG_TAG = 'SimpleDb';
 const TRANSACTION_RETRY_COUNT = 3;
 
 // The different modes supported by `SimpleDb.runTransaction()`
-type SimpleDbTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent';
+type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
@@ -68,11 +67,11 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    assert(
+    debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
-    debug(LOG_TAG, 'Opening database:', name);
+    logDebug(LOG_TAG, 'Opening database:', name);
     return new PersistencePromise<SimpleDb>((resolve, reject) => {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -122,7 +121,7 @@ export class SimpleDb {
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        debug(
+        logDebug(
           LOG_TAG,
           'Database "' + name + '" requires upgrade from version:',
           event.oldVersion
@@ -136,7 +135,7 @@ export class SimpleDb {
             SCHEMA_VERSION
           )
           .next(() => {
-            debug(
+            logDebug(
               LOG_TAG,
               'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
             );
@@ -147,7 +146,7 @@ export class SimpleDb {
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
-    debug(LOG_TAG, 'Removing database:', name);
+    logDebug(LOG_TAG, 'Removing database:', name);
     return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
@@ -265,7 +264,7 @@ export class SimpleDb {
     // whatever reason it's much harder to hit after 12.2 so we only proactively
     // log on 12.2.
     if (iOSVersion === 12.2) {
-      error(
+      logError(
         'Firestore persistence suffers from a bug in iOS 12.2 ' +
           'Safari that may cause your app to stop working. See ' +
           'https://stackoverflow.com/q/56496296/110915 for details ' +
@@ -287,8 +286,7 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const readonly = mode.startsWith('readonly');
-    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode === 'readonly';
     let attemptNumber = 0;
 
     while (true) {
@@ -329,10 +327,9 @@ export class SimpleDb {
         // Note: We cannot use an instanceof check for FirestoreException, since the
         // exception is wrapped in a generic error by our async/await handling.
         const retryable =
-          idempotent &&
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        debug(
+        logDebug(
           LOG_TAG,
           'Transaction failed with error: %s. Retrying: %s.',
           error.message,
@@ -423,6 +420,15 @@ export interface IterateOptions {
   reverse?: boolean;
 }
 
+/** An error that wraps exceptions that thrown during IndexedDB execution. */
+export class IndexedDbTransactionError extends FirestoreError {
+  name = 'IndexedDbTransactionError';
+
+  constructor(cause: Error) {
+    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
+  }
+}
+
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.
@@ -449,7 +455,9 @@ export class SimpleDbTransaction {
     };
     this.transaction.onabort = () => {
       if (transaction.error) {
-        this.completionDeferred.reject(transaction.error);
+        this.completionDeferred.reject(
+          new IndexedDbTransactionError(transaction.error)
+        );
       } else {
         this.completionDeferred.resolve();
       }
@@ -458,7 +466,7 @@ export class SimpleDbTransaction {
       const error = checkForAndReportiOSError(
         (event.target as IDBRequest).error!
       );
-      this.completionDeferred.reject(error);
+      this.completionDeferred.reject(new IndexedDbTransactionError(error));
     };
   }
 
@@ -472,7 +480,7 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      debug(
+      logDebug(
         LOG_TAG,
         'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
@@ -495,7 +503,7 @@ export class SimpleDbTransaction {
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
-    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
 }
@@ -531,10 +539,10 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      debug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
+      logDebug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      debug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
+      logDebug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -548,7 +556,7 @@ export class SimpleDbStore<
    * @return The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    debug(LOG_TAG, 'ADD', this.store.name, value, value);
+    logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -569,13 +577,13 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      debug(LOG_TAG, 'GET', this.store.name, key, result);
+      logDebug(LOG_TAG, 'GET', this.store.name, key, result);
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    debug(LOG_TAG, 'DELETE', this.store.name, key);
+    logDebug(LOG_TAG, 'DELETE', this.store.name, key);
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -587,7 +595,7 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    debug(LOG_TAG, 'COUNT', this.store.name);
+    logDebug(LOG_TAG, 'COUNT', this.store.name);
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -615,7 +623,7 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    debug(LOG_TAG, 'DELETE ALL', this.store.name);
+    logDebug(LOG_TAG, 'DELETE ALL', this.store.name);
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);
@@ -755,7 +763,7 @@ export class SimpleDbStore<
       if (typeof indexOrRange === 'string') {
         indexName = indexOrRange;
       } else {
-        assert(
+        debugAssert(
           range === undefined,
           '3rd argument must not be defined if 2nd is a range.'
         );

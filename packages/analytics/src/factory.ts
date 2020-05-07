@@ -86,6 +86,17 @@ export function resetGlobalVars(
 }
 
 /**
+ * For testing
+ */
+export function getGlobalVars(): {
+  initializedIdPromisesMap: { [gaId: string]: Promise<void> };
+} {
+  return {
+    initializedIdPromisesMap
+  };
+}
+
+/**
  * This must be run before calling firebase.analytics() or it won't
  * have any effect.
  * @param options Custom gtag and dataLayer names.

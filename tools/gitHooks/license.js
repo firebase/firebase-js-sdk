@@ -1,17 +1,31 @@
-const { promisify } = require('util');
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
-const chalk = require('chalk');
-const globRaw = require('glob');
 const fs = require('mz/fs');
 const ora = require('ora');
+const chalk = require('chalk');
 
-const glob = promisify(globRaw);
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 const licenseHeader = `/**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,49 +42,72 @@ const licenseHeader = `/**
 
 `;
 
-async function doLicenseCommit() {
+const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
+const oldCopyrightPattern = /(\s*\*\s*Copyright \d{4}) Google Inc\./;
+
+async function readFiles(paths) {
+  const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
+  return fileContents.map((buffer, idx) => ({
+    contents: String(buffer),
+    path: paths[idx]
+  }));
+}
+
+function addLicenceTag(contents) {
+  const lines = contents.split('\n');
+  let newLines = [];
+  for (const line of lines) {
+    if (line.match(copyrightPattern)) {
+      const indent = line.split('*')[0]; // Get whitespace to match
+      newLines.push(indent + '* @license');
+    }
+    newLines.push(line);
+  }
+  return newLines.join('\n');
+}
+
+function rewriteCopyrightLine(contents) {
+  const lines = contents.split('\n');
+  let newLines = lines.map(line => {
+    return line.replace(oldCopyrightPattern, (_, leader) => {
+      return leader + ' Google LLC';
+    });
+  });
+  return newLines.join('\n');
+}
+
+async function doLicenseCommit(changedFiles) {
   const licenseSpinner = ora(' Validating License Headers').start();
 
-  const paths = await glob('**/*.+(ts|js)', {
-    ignore: ['**/node_modules/**', '**/dist/**']
-  });
+  const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
+  if (paths.length === 0) return;
 
-  // Files with no license block at all.
-  const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
-  const filesMissingLicensePaths = fileContents
-    .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(
-      ({ buffer }) =>
-        String(buffer).match(/Copyright \d{4} Google Inc\./) == null
-    );
+  const files = await readFiles(paths);
 
   await Promise.all(
-    filesMissingLicensePaths.map(({ buffer, path }) => {
-      const contents = Buffer.concat([new Buffer(licenseHeader), buffer]);
-      return fs.writeFile(path, contents, 'utf8');
-    })
-  );
+    files.map(({ contents, path }) => {
+      let result = contents;
 
-  // Files with no @license tag.
-  const appendedFileContents = await Promise.all(
-    paths.map(path => fs.readFile(path))
-  );
-  const filesMissingTagPaths = appendedFileContents
-    .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(({ buffer }) => String(buffer).match(/@license/) == null);
-
-  await Promise.all(
-    filesMissingTagPaths.map(({ buffer, path }) => {
-      const lines = String(buffer).split('\n');
-      let newLines = [];
-      for (const line of lines) {
-        if (line.match(/Copyright \d{4} Google Inc\./)) {
-          const indent = line.split('*')[0]; // Get whitespace to match
-          newLines.push(indent + '* @license');
-        }
-        newLines.push(line);
+      // Files with no license block at all.
+      if (result.match(copyrightPattern) == null) {
+        result = licenseHeader + result;
       }
-      return fs.writeFile(path, newLines.join('\n'), 'utf8');
+
+      // Files with no @license tag.
+      if (result.match(/@license/) == null) {
+        result = addLicenceTag(result);
+      }
+
+      // Files with the old form of copyright notice.
+      if (result.match(oldCopyrightPattern) != null) {
+        result = rewriteCopyrightLine(result);
+      }
+
+      if (contents !== result) {
+        return fs.writeFile(path, result, 'utf8');
+      } else {
+        return Promise.resolve();
+      }
     })
   );
 
@@ -80,16 +117,24 @@ async function doLicenseCommit() {
 
   const hasDiff = await git.diff();
 
-  if (!hasDiff) return;
+  if (!hasDiff) {
+    console.log(
+      chalk`\n{red License pass caused no changes.} Skipping commit.\n`
+    );
+    return;
+  }
 
   const gitSpinner = ora(' Creating automated license commit').start();
   await git.add('.');
 
-  await git.commit('[AUTOMATED]: License Headers');
+  const commit = await git.commit('[AUTOMATED]: License Headers');
 
   gitSpinner.stopAndPersist({
     symbol: '✅'
   });
+  console.log(
+    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
+  );
 }
 
 module.exports = {

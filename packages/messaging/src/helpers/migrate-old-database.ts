@@ -17,7 +17,7 @@
 
 import { openDb, deleteDb } from 'idb';
 import { TokenDetails } from '../interfaces/token-details';
-import { arrayToBase64 } from './array-to-base64';
+import { arrayToBase64 } from './array-base64-translator';
 
 // https://github.com/firebase/firebase-js-sdk/blob/7857c212f944a2a9eb421fd4cb7370181bc034b5/packages/messaging/src/interfaces/token-details.ts
 export interface V2TokenDetails {

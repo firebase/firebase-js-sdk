@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,24 @@
  * limitations under the License.
  */
 
-const { projectRoot: root } = require('./constants');
-const { spawn } = require('child-process-promise');
+const { projectRoot: root } = require('../../utils');
+const { spawn, exec } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 const { readFile: _readFile } = require('fs');
 const { promisify } = require('util');
 const Listr = require('listr');
 const readFile = promisify(_readFile);
+
+/**
+ * Given NPM package name, get env variable name for its publish token.
+ * @param {string} packageName NPM package name
+ */
+function getEnvTokenKey(packageName) {
+  let result = packageName.replace('@firebase/', '');
+  result = result.replace(/-/g, '_');
+  result = result.toUpperCase();
+  return `NPM_TOKEN_${result}`;
+}
 
 async function publishPackage(pkg, releaseType) {
   try {
@@ -48,9 +59,20 @@ async function publishPackage(pkg, releaseType) {
     if (releaseType === 'Staging') {
       args = [...args, '--tag', 'next'];
     } else if (releaseType === 'Canary') {
-      args = [...args, '--tag', 'canary'];
+      // Write proxy registry token for this package to .npmrc.
+      await exec(
+        `echo "//wombat-dressing-room.appspot.com/:_authToken=${
+          process.env[getEnvTokenKey(pkg)]
+        }" >> ~/.npmrc`
+      );
+      args = [
+        ...args,
+        '--tag',
+        'canary',
+        '--registry',
+        `https://wombat-dressing-room.appspot.com`
+      ];
     }
-
     return spawn('npm', args, { cwd: path });
   } catch (err) {
     throw err;

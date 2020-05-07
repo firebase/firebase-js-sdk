@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,24 @@ $ git stash pop
       return process.exit(1);
     }
 
+    const diff = await git.diff([
+      '--name-only',
+      '--diff-filter=d',
+      'origin/master...HEAD'
+    ]);
+    const changedFiles = diff.split('\n');
+
     // Style the code
-    await doPrettierCommit();
+    await doPrettierCommit(changedFiles);
 
     // Validate License headers exist
-    await doLicenseCommit();
+    await doLicenseCommit(changedFiles);
 
     console.log(chalk`
 Pre-Push Validation Succeeded
 
 `);
+    process.exit();
   } catch (err) {
     console.error(chalk`
 {red Pre-Push Validation Failed, error body below}

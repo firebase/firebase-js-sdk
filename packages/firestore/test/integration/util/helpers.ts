@@ -17,6 +17,9 @@
 
 import * as firestore from '@firebase/firestore-types';
 import firebase from './firebase_export';
+
+/* eslint-disable no-restricted-globals */
+
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
@@ -78,12 +81,10 @@ export function isPersistenceAvailable(): boolean {
   return (
     typeof window === 'object' &&
     typeof window.indexedDB === 'object' &&
-    !isIeOrEdge()
+    !isIeOrEdge() &&
+    (typeof process === 'undefined' ||
+      process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== 'false')
   );
-}
-
-export function isRunningAgainstEmulator(): boolean {
-  return USE_EMULATOR;
 }
 
 /**
@@ -235,7 +236,9 @@ export async function withTestDbsSettings(
     await wipeDb(dbs[0]);
     for (const db of dbs) {
       await db.terminate();
-      await db.clearPersistence();
+      if (persistence) {
+        await db.clearPersistence();
+      }
     }
   }
 }

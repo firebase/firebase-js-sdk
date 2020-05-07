@@ -24,7 +24,7 @@ import { SortedMap } from '../util/sorted_map';
 import { DocumentKeySet } from '../model/collections';
 import { Query } from './query';
 
-export enum ChangeType {
+export const enum ChangeType {
   Added,
   Removed,
   Modified,
@@ -36,7 +36,7 @@ export interface DocumentViewChange {
   doc: Document;
 }
 
-export enum SyncState {
+export const enum SyncState {
   Local,
   Synced
 }

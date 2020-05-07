@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
+import * as api from '../../src/protos/firestore_proto_api';
+
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
-import { FieldValueImpl } from '../../src/api/field_value';
-import {
-  DocumentKeyReference,
-  UserDataConverter
-} from '../../src/api/user_data_converter';
+import { UserDataWriter } from '../../src/api/user_data_writer';
+import { UserDataReader } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -34,7 +34,7 @@ import {
   OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { ProtoByteString, TargetId } from '../../src/core/types';
+import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -51,6 +51,7 @@ import {
   maybeDocumentMap
 } from '../../src/model/collections';
 import {
+  compareDocumentsByField,
   Document,
   DocumentOptions,
   MaybeDocument,
@@ -60,11 +61,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import {
-  FieldValue,
-  JsonObject,
-  ObjectValue
-} from '../../src/model/field_value';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -75,7 +72,6 @@ import {
   TransformMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
-import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
@@ -83,39 +79,56 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
+import { ByteString } from '../../src/util/byte_string';
+import { PlatformSupport } from '../../src/platform/platform';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { Timestamp } from '../../src/api/timestamp';
+import { DocumentReference, Firestore } from '../../src/api/database';
+import { DeleteFieldValueImpl } from '../../src/api/field_value';
+import { Code, FirestoreError } from '../../src/util/error';
+
+/* eslint-disable no-restricted-globals */
+
+// A Firestore that can be used in DocumentReferences and UserDataWriter.
+const fakeFirestore: Firestore = {
+  ensureClientConfigured: () => {},
+  _databaseId: new DatabaseId('test-project')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 export type TestSnapshotVersion = number;
 
-/**
- * A string sentinel that can be used with patchMutation() to mark a field for
- * deletion.
- */
-export const DELETE_SENTINEL = '<DELETE>';
-
-const preConverter = (input: unknown): unknown => {
-  return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
-};
-
-const dataConverter = new UserDataConverter(preConverter);
-
-export function version(v: TestSnapshotVersion): SnapshotVersion {
-  return SnapshotVersion.fromMicroseconds(v);
+export function testUserDataWriter(): UserDataWriter {
+  return new UserDataWriter(fakeFirestore, /* timestampsInSnapshots= */ false);
 }
 
-export function ref(
-  dbIdStr: string,
-  keyStr: string,
-  offset?: number
-): DocumentKeyReference {
-  const [project, database] = dbIdStr.split('/', 2);
-  const dbId = new DatabaseId(project, database);
-  return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
+export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
+  const databaseId = new DatabaseId('test-project');
+  return new UserDataReader(
+    databaseId,
+    useProto3Json !== undefined
+      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      : undefined
+  );
+}
+
+export function version(v: TestSnapshotVersion): SnapshotVersion {
+  const seconds = Math.floor(v / 1e6);
+  const nanos = (v % 1e6) * 1e3;
+  return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
+}
+
+export function ref(key: string, offset?: number): DocumentReference {
+  return new DocumentReference(
+    new DocumentKey(path(key, offset)),
+    fakeFirestore
+  );
 }
 
 export function doc(
@@ -124,7 +137,7 @@ export function doc(
   json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), options, wrapObject(json));
+  return new Document(key(keyStr), version(ver), wrapObject(json), options);
 }
 
 export function deletedDoc(
@@ -143,19 +156,18 @@ export function unknownDoc(
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+  return new NoDocument(key(keyStr), SnapshotVersion.min());
 }
 
-export function wrap(value: unknown): FieldValue {
+export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return dataConverter.parseQueryValue('wrap', value);
+  return testUserDataReader().parseQueryValue('wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
-  // Cast is safe here because value passed in is a map
-  return wrap(obj) as ObjectValue;
+  return new ObjectValue(wrap(obj) as { mapValue: api.MapValue });
 }
 
 export function dbId(project: string, database?: string): DatabaseId {
@@ -185,11 +197,7 @@ export function field(path: string): FieldPath {
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+  return new FieldMask(paths.map(v => field(v)));
 }
 
 export function blob(...bytes: number[]): Blob {
@@ -199,7 +207,7 @@ export function blob(...bytes: number[]): Blob {
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
-  const operator = Operator.fromString(op);
+  const operator = op as Operator;
   const filter = FieldFilter.create(field(path), operator, dataValue);
 
   if (filter instanceof FieldFilter) {
@@ -213,7 +221,7 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
+  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
 }
 
 export function patchMutation(
@@ -224,8 +232,13 @@ export function patchMutation(
   if (precondition === undefined) {
     precondition = Precondition.exists(true);
   }
-
-  const parsed = dataConverter.parseUpdateData('patchMutation', json);
+  // Replace '<DELETE>' from JSON with FieldValue
+  forEach(json, (k, v) => {
+    if (v === '<DELETE>') {
+      json[k] = new DeleteFieldValueImpl();
+    }
+  });
+  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
   return new PatchMutation(
     key(keyStr),
     parsed.data,
@@ -235,7 +248,7 @@ export function patchMutation(
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
-  return new DeleteMutation(key(keyStr), Precondition.NONE);
+  return new DeleteMutation(key(keyStr), Precondition.none());
 }
 
 /**
@@ -248,7 +261,10 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = dataConverter.parseUpdateData('transformMutation()', data);
+  const result = testUserDataReader().parseUpdateData(
+    'transformMutation()',
+    data
+  );
   return new TransformMutation(key(keyStr), result.fieldTransforms);
 }
 
@@ -262,7 +278,7 @@ export function bound(
   values: Array<[string, {}, firestore.OrderByDirection]>,
   before: boolean
 ): Bound {
-  const components: FieldValue[] = [];
+  const components: api.Value[] = [];
   for (const value of values) {
     const [_, dataValue] = value;
     components.push(wrap(dataValue));
@@ -288,7 +304,7 @@ export function targetData(
 export function noChangeEvent(
   targetId: number,
   snapshotVersion: number,
-  resumeToken: ProtoByteString = emptyByteString()
+  resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
@@ -312,7 +328,7 @@ export function docAddedRemoteEvent(
   activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+  debugAssert(docs.length !== 0, 'Cannot pass empty docs array');
 
   const allTargets = activeTargets
     ? activeTargets
@@ -334,10 +350,10 @@ export function docAddedRemoteEvent(
     }
   });
 
-  let version = SnapshotVersion.MIN;
+  let version = SnapshotVersion.min();
 
   for (const doc of docs) {
-    assert(
+    debugAssert(
       !(doc instanceof Document) || !doc.hasLocalMutations,
       "Docs from remote updates shouldn't have local changes."
     );
@@ -360,7 +376,7 @@ export function docUpdateRemoteEvent(
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
+  debugAssert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
@@ -421,7 +437,7 @@ export function addTargetMapping(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -433,7 +449,7 @@ export function ackTarget(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -481,20 +497,43 @@ export function localViewChanges(
   return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
+/**
+ * Returns a ByteString representation for the platform from the given string.
+ */
+export function byteStringFromString(value: string): ByteString {
+  const base64 = PlatformSupport.getPlatform().btoa(value);
+  return ByteString.fromBase64String(base64);
+}
+
+/**
+ * Decodes a base 64 decoded string.
+ *
+ * Note that this is typed to accept Uint8Arrays to match the types used
+ * by the spec tests. Since the spec tests only use JSON strings, this method
+ * throws if an Uint8Array is passed.
+ */
+export function stringFromBase64String(value?: string | Uint8Array): string {
+  debugAssert(
+    value === undefined || typeof value === 'string',
+    'Can only decode base64 encoded strings'
+  );
+  return PlatformSupport.getPlatform().atob(value ?? '');
+}
+
 /** Creates a resume token to match the given snapshot version. */
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
-): ProtoByteString {
-  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-    return emptyByteString();
+): ByteString {
+  if (snapshotVersion.isEqual(SnapshotVersion.min())) {
+    return ByteString.EMPTY_BYTE_STRING;
   } else {
-    return snapshotVersion.toString();
+    return byteStringFromString(snapshotVersion.toString());
   }
 }
 
 export function orderBy(path: string, op?: string): OrderBy {
   op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+  debugAssert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
   const dir: Direction =
     op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
   return new OrderBy(field(path), dir);
@@ -535,7 +574,7 @@ export function documentUpdates(
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+        new NoDocument(docOrKey, SnapshotVersion.min())
       );
     }
   }
@@ -570,7 +609,10 @@ export function documentSet(...args: unknown[]): DocumentSet {
     docSet = new DocumentSet();
   }
   for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+    debugAssert(
+      doc instanceof Document,
+      'Bad argument, expected Document: ' + doc
+    );
     docSet = docSet.add(doc);
   }
   return docSet;
@@ -599,7 +641,7 @@ export function documentSetAsArray(docs: DocumentSet): Document[] {
 export class DocComparator {
   static byField(...fields: string[]): DocumentComparator {
     const path = new FieldPath(fields);
-    return Document.compareByField.bind(this, path);
+    return (doc1, doc2) => compareDocumentsByField(path, doc1, doc2);
   }
 }
 
@@ -763,13 +805,24 @@ export function expectEqualitySets<T>(
   }
 }
 
-/** Returns the number of keys in this object. */
-export function size(obj: JsonObject<unknown>): number {
-  let c = 0;
-  forEach(obj, () => c++);
-  return c;
+export function validateFirestoreError(
+  expectedCode: Code,
+  actualError: Error
+): void {
+  expect(actualError.name).to.equal('FirebaseError');
+  expect((actualError as FirestoreError).code).to.equal(expectedCode);
 }
 
-export function expectFirestoreError(err: Error): void {
-  expect(err.name).to.equal('FirebaseError');
+export function forEachNumber<V>(
+  obj: Dict<V>,
+  fn: (key: number, val: V) => void
+): void {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const num = Number(key);
+      if (!isNaN(num)) {
+        fn(num, obj[key]);
+      }
+    }
+  }
 }

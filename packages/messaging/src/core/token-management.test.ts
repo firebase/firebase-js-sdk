@@ -29,7 +29,7 @@ import * as apiModule from './api';
 import { Stub } from '../testing/sinon-types';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
-import { arrayToBase64 } from '../helpers/array-to-base64';
+import { arrayToBase64} from '../helpers/array-base64-translator';
 
 describe('Token Management', () => {
   let tokenDetails: TokenDetails;

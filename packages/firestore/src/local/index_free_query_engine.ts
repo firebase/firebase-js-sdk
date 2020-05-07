@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { Query, LimitType } from '../core/query';
+import { LimitType, Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -27,8 +27,8 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
-import { assert } from '../util/assert';
-import { debug, getLogLevel, LogLevel } from '../util/log';
+import { debugAssert } from '../util/assert';
+import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
 // TOOD(b/140938512): Drop SimpleQueryEngine and rename IndexFreeQueryEngine.
@@ -64,7 +64,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       this.localDocumentsView !== undefined,
       'setLocalDocumentsView() not called'
     );
@@ -78,7 +78,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
-    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)) {
+    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.min())) {
       return this.executeFullCollectionScan(transaction, query);
     }
 
@@ -99,7 +99,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
         }
 
         if (getLogLevel() <= LogLevel.DEBUG) {
-          debug(
+          logDebug(
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
             lastLimboFreeSnapshotVersion.toString(),
@@ -194,7 +194,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     query: Query
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
-      debug(
+      logDebug(
         'IndexFreeQueryEngine',
         'Using full collection scan to execute query: %s',
         query.toString()
@@ -204,7 +204,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
   }
 }

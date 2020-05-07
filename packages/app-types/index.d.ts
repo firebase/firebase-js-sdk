@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
 
 export type FirebaseOptions = {
   apiKey?: string;
@@ -104,6 +105,12 @@ export interface FirebaseNamespace {
    * @param version Current version of that library.
    */
   registerVersion(library: string, version: string, variant?: string): void;
+
+  // Sets log level for all Firebase components.
+  setLogLevel(logLevel: LogLevelString): void;
+
+  // Sets log handler for all Firebase components.
+  onLog(logCallback: LogCallback, options?: LogOptions): void;
 
   // The current SDK version.
   SDK_VERSION: string;

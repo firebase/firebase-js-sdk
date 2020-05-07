@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -24,8 +24,8 @@ import {
   MaybeDocumentMap,
   targetIdSet
 } from '../model/collections';
-import { emptyByteString } from '../platform/platform';
 import { SortedSet } from '../util/sorted_set';
+import { ByteString } from '../util/byte_string';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -41,7 +41,7 @@ export class RemoteEvent {
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    readonly targetChanges: { [targetId: number]: TargetChange },
+    readonly targetChanges: Map<TargetId, TargetChange>,
     /**
      * A set of targets that is known to be inconsistent. Listens for these
      * targets should be re-established without resume tokens.
@@ -69,14 +69,16 @@ export class RemoteEvent {
     targetId: TargetId,
     current: boolean
   ): RemoteEvent {
-    const targetChanges = {
-      [targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
+    const targetChanges = new Map<TargetId, TargetChange>();
+    targetChanges.set(
+      targetId,
+      TargetChange.createSynthesizedTargetChangeForCurrentChange(
         targetId,
         current
       )
-    };
+    );
     return new RemoteEvent(
-      SnapshotVersion.MIN,
+      SnapshotVersion.min(),
       targetChanges,
       targetIdSet(),
       maybeDocumentMap(),
@@ -101,7 +103,7 @@ export class TargetChange {
      * query. The resume token essentially identifies a point in time from which
      * the server should resume sending results.
      */
-    readonly resumeToken: ProtoByteString,
+    readonly resumeToken: ByteString,
     /**
      * The "current" (synced) status of this target. Note that "current"
      * has special meaning in the RPC protocol that implies that a target is
@@ -135,7 +137,7 @@ export class TargetChange {
     current: boolean
   ): TargetChange {
     return new TargetChange(
-      emptyByteString(),
+      ByteString.EMPTY_BYTE_STRING,
       current,
       documentKeySet(),
       documentKeySet(),
