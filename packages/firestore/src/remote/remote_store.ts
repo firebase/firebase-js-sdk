@@ -123,6 +123,13 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private isPrimary = false;
 
+  /**
+   * When set to `true`, the network was taken offline due to an IndexedDB
+   * failure. The state is flipped to `false` when access becomes available
+   * again.
+   */
+  private indexedDbFailed = false;
+
   private onlineStateTracker: OnlineStateTracker;
 
   constructor(
@@ -132,7 +139,7 @@ export class RemoteStore implements TargetMetadataProvider {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
-    asyncQueue: AsyncQueue,
+    private asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
     connectivityMonitor: ConnectivityMonitor
   ) {
@@ -184,9 +191,12 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Re-enables the network. Idempotent. */
-  async enableNetwork(): Promise<void> {
+  enableNetwork(): Promise<void> {
     this.networkEnabled = true;
+    return this.enableNetworkInternal();
+  }
 
+  private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
       this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
@@ -339,7 +349,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   canUseNetwork(): boolean {
-    return this.isPrimary && this.networkEnabled;
+    return !this.indexedDbFailed && this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -391,7 +401,18 @@ export class RemoteStore implements TargetMetadataProvider {
     ) {
       // There was an error on a target, don't wait for a consistent snapshot
       // to raise events
-      return this.handleTargetError(watchChange);
+      try {
+        await this.handleTargetError(watchChange);
+      } catch (e) {
+        logDebug(
+          LOG_TAG,
+          'Failed to remove targets %s: %s ',
+          watchChange.targetIds.join(','),
+          e
+        );
+        await this.disableNetworkUntilRecovery(e);
+      }
+      return;
     }
 
     if (watchChange instanceof DocumentWatchChange) {
@@ -407,12 +428,49 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
-      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-        // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.min().
-        await this.raiseWatchSnapshot(snapshotVersion);
+      try {
+        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+          // We have received a target change with a global snapshot if the snapshot
+          // version is not equal to SnapshotVersion.min().
+          await this.raiseWatchSnapshot(snapshotVersion);
+        }
+      } catch (e) {
+        logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
+        await this.disableNetworkUntilRecovery(e);
       }
+    }
+  }
+
+  /**
+   * Recovery logic for IndexedDB errors that takes the network offline until
+   * IndexedDb probing succeeds. Retries are scheduled with backoff using
+   * `enqueueRetryable()`.
+   */
+  private async disableNetworkUntilRecovery(e: FirestoreError): Promise<void> {
+    if (e.name === 'IndexedDbTransactionError') {
+      debugAssert(
+        !this.indexedDbFailed,
+        'Unexpected network event when IndexedDB was marked failed.'
+      );
+      this.indexedDbFailed = true;
+      
+      // Disable network and raise offline snapshots
+      await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Offline);
+      
+      // Probe IndexedDB periodically and re-enable network
+      this.asyncQueue.enqueueRetryable(async () => {
+        logDebug(LOG_TAG, 'Retrying IndexedDB access');
+        // Issue a simple read operation to determine if IndexedDB recovered.
+        // Ideally, we would expose a health check directly on SimpleDb, but
+        // RemoteStore only has access to persistence through LocalStore.
+        await this.localStore.getLastRemoteSnapshotVersion();
+        this.indexedDbFailed = false;
+        await this.enableNetworkInternal();
+      });
+    } else {
+      throw e;
     }
   }
 
@@ -486,21 +544,19 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Handles an error on a target */
-  private handleTargetError(watchChange: WatchTargetChange): Promise<void> {
+  private async handleTargetError(
+    watchChange: WatchTargetChange
+  ): Promise<void> {
     debugAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
-    let promiseChain = Promise.resolve();
-    watchChange.targetIds.forEach(targetId => {
-      promiseChain = promiseChain.then(async () => {
-        // A watched target might have been removed already.
-        if (this.listenTargets.has(targetId)) {
-          this.listenTargets.delete(targetId);
-          this.watchChangeAggregator!.removeTarget(targetId);
-          return this.syncEngine.rejectListen(targetId, error);
-        }
-      });
-    });
-    return promiseChain;
+    for (const targetId of watchChange.targetIds) {
+      // A watched target might have been removed already.
+      if (this.listenTargets.has(targetId)) {
+        await this.syncEngine.rejectListen(targetId, error);
+        this.listenTargets.delete(targetId);
+        this.watchChangeAggregator!.removeTarget(targetId);
+      }
+    }
   }
 
   /**
@@ -637,25 +693,21 @@ export class RemoteStore implements TargetMetadataProvider {
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
     if (error && this.writePipeline.length > 0) {
-      // A promise that is resolved after we processed the error
-      let errorHandling: Promise<void>;
       if (this.writeStream.handshakeComplete) {
         // This error affects the actual write.
-        errorHandling = this.handleWriteError(error!);
+        await this.handleWriteError(error!);
       } else {
         // If there was an error before the handshake has finished, it's
         // possible that the server is unable to process the stream token
         // we're sending. (Perhaps it's too old?)
-        errorHandling = this.handleHandshakeError(error!);
+        await this.handleHandshakeError(error!);
       }
 
-      return errorHandling.then(() => {
-        // The write stream might have been started by refilling the write
-        // pipeline for failed writes
-        if (this.shouldStartWriteStream()) {
-          this.startWriteStream();
-        }
-      });
+      // The write stream might have been started by refilling the write
+      // pipeline for failed writes
+      if (this.shouldStartWriteStream()) {
+        this.startWriteStream();
+      }
     }
     // No pending writes, nothing to do
   }
