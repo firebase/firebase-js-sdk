@@ -1,0 +1,15 @@
+{
+    "foo": {
+        "dependencies": [
+            "bar",
+            "foo"
+        ],
+        "sizeInBytes": 67
+    },
+    "bar": {
+        "dependencies": [
+            "bar"
+        ],
+        "sizeInBytes": 39
+    }
+}
