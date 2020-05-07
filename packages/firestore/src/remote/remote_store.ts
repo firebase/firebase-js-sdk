@@ -436,12 +436,7 @@ export class RemoteStore implements TargetMetadataProvider {
           await this.raiseWatchSnapshot(snapshotVersion);
         }
       } catch (e) {
-        logDebug(
-          LOG_TAG,
-          'Failed to raise snapshot for %s: %s',
-          snapshotVersion.toString(),
-          e
-        );
+        logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
         await this.disableNetworkUntilRecovery(e);
       }
     }
