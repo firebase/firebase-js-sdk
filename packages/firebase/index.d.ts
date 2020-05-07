@@ -6920,15 +6920,15 @@ declare namespace firebase.database.ServerValue {
    * ```
    */
   var TIMESTAMP: Object;
-  
+
   /**
-   * Returns a placeholder value that can be used to atomically increment the 
+   * Returns a placeholder value that can be used to atomically increment the
    * current database value by the provided delta.
    *
    * @param delta the amount to modify the current value atomically.
    * @return a placeholder value for modifying data atomically server-side.
    */
-  function increment(delta: number) : Object;
+  function increment(delta: number): Object;
 }
 
 /**
@@ -7778,7 +7778,7 @@ declare namespace firebase.firestore {
      * with `synchronizeTabs:true` and is primarily intended for use with Web
      * Workers. Setting this to 'true' will enable persistence, but cause other
      * tabs using persistence to fail.
-     * 
+     *
      * This setting may be removed in a future release. If you find yourself
      * using it for a specific use case or run into any issues, please tell us
      * about it in
