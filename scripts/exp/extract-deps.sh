@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# extract-deps --- Invokes extract-deps uaing TS_NODE
+# extract-deps --- Invokes extract-deps using TS_NODE
 
 set -o nounset
 set -o errexit
