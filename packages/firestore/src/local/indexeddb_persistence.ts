@@ -580,10 +580,33 @@ export class IndexedDbPersistence implements Persistence {
         if (currentLeaseIsValid) {
           if (this.isLocalClient(currentPrimary) && this.networkEnabled) {
             return true;
-          } else if (!this.isLocalClient(currentPrimary)) {
+          }
+
+          if (!this.isLocalClient(currentPrimary)) {
+            if (!currentPrimary!.allowTabSynchronization) {
+              // Fail the `canActAsPrimary` check if the current leaseholder has
+              // not opted into multi-tab synchronization. If this happens at
+              // client startup, we reject the Promise returned by
+              // `enablePersistence()` and the user can continue to use Firestore
+              // with in-memory persistence.
+              // If this fails during a lease refresh, we will instead block the
+              // AsyncQueue from executing further operations. Note that this is
+              // acceptable since mixing & matching different `synchronizeTabs`
+              // settings is not supported.
+              //
+              // TODO(b/114226234): Remove this check when `synchronizeTabs` can
+              // no longer be turned off.
+              throw new FirestoreError(
+                Code.FAILED_PRECONDITION,
+                PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+              );
+            }
+
             return false;
           }
-        } else if (this.networkEnabled && this.inForeground) {
+        }
+
+        if (this.networkEnabled && this.inForeground) {
           return true;
         }
 
