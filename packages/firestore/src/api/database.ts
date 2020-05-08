@@ -395,7 +395,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         deferred.reject(e);
       }
     });
-    return deferred.promise;
+    return deferred;
   }
 
   terminate(): Promise<void> {

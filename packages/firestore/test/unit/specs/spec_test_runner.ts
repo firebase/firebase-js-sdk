@@ -441,7 +441,7 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const documentKeys = mutations.map(val => val.key.path.toString());
     const syncEngineCallback = new Deferred<void>();
-    syncEngineCallback.promise.then(
+    syncEngineCallback.then(
       () => this.acknowledgedDocs.push(...documentKeys),
       () => this.rejectedDocs.push(...documentKeys)
     );

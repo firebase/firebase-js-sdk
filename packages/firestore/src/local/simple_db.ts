@@ -460,7 +460,7 @@ export class SimpleDbTransaction {
   }
 
   get completionPromise(): Promise<void> {
-    return this.completionDeferred.promise;
+    return this.completionDeferred;
   }
 
   abort(error?: Error): void {

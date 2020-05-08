@@ -173,7 +173,7 @@ export class GrpcConnection implements Connection {
       responseDeferred.reject(new FirestoreError(code, grpcError.message));
     });
 
-    return responseDeferred.promise;
+    return responseDeferred;
   }
 
   // TODO(mikelehen): This "method" is a monster. Should be refactored.

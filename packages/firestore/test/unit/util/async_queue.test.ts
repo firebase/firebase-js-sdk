@@ -69,7 +69,7 @@ describe('AsyncQueue', () => {
         expect(results[0]).to.deep.equal('Hello world!');
         expect(results[1]).to.deep.equal('Bye bye.');
         expect(results[2]).to.deep.equal('Welcome back.');
-        return op4.promise;
+        return op4;
       })
       .then(() => {
         expect(results[3]).to.deep.equal('Bye for good.');
@@ -237,7 +237,7 @@ describe('AsyncQueue', () => {
       deferred.resolve();
       throw fail('Simulated test failure');
     });
-    await deferred.promise;
+    await deferred;
     await expect(
       queue.enqueue(() => Promise.resolve())
     ).to.eventually.be.rejectedWith('Simulated test failure');
@@ -306,7 +306,7 @@ describe('AsyncQueue', () => {
       blockingPromise.resolve();
     });
 
-    await blockingPromise.promise;
+    await blockingPromise;
     expect(completedSteps).to.deep.equal([1, 1, 2]);
   });
 

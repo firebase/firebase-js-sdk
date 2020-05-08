@@ -210,11 +210,11 @@ export class MockConnection implements Connection {
     }
     const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
-    return barrier.promise;
+    return barrier;
   }
 
   waitForWatchOpen(): Promise<void> {
-    return this.watchOpen.promise;
+    return this.watchOpen;
   }
 
   ackWrite(

@@ -186,13 +186,13 @@ export class FirestoreClient {
 
     // Block the async queue until initialization is done
     this.asyncQueue.enqueueAndForget(() => {
-      return initializationDone.promise;
+      return initializationDone;
     });
 
     // Return only the result of enabling persistence. Note that this does not
     // need to await the completion of initializationDone because the result of
     // this method should not reflect any other kind of failure to start.
-    return persistenceResult.promise;
+    return persistenceResult;
   }
 
   /** Enables the network connection and requeues all pending operations. */
@@ -383,7 +383,7 @@ export class FirestoreClient {
     this.asyncQueue.enqueueAndForget(() => {
       return this.syncEngine.registerPendingWritesCallback(deferred);
     });
-    return deferred.promise;
+    return deferred;
   }
 
   listen(
@@ -453,7 +453,7 @@ export class FirestoreClient {
     this.asyncQueue.enqueueAndForget(() =>
       this.syncEngine.write(mutations, deferred)
     );
-    return deferred.promise;
+    return deferred;
   }
 
   databaseId(): DatabaseId {
@@ -493,6 +493,6 @@ export class FirestoreClient {
       this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
       return Promise.resolve();
     });
-    return deferred.promise;
+    return deferred;
   }
 }

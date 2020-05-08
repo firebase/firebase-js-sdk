@@ -42,16 +42,21 @@ export interface CancelablePromise<T> {
 }
 
 export class Deferred<R> {
-  promise: Promise<R>;
-  // Assigned synchronously in constructor by Promise constructor callback.
+  private promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
+    this.resolve = resolve;
+    this.reject = reject;
+  });
   resolve!: Resolver<R>;
   reject!: Rejecter;
+  readonly [Symbol.toStringTag]: 'Promise';
+  then = this.promise.then.bind(this.promise);
+  catch = this.promise.catch.bind(this.promise);
 
-  constructor() {
-    this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
+  finally(onfinally?: (() => void) | undefined | null): Promise<R> {
+    // Unlike the assignments above, `finally` is implemented as an override 
+    // since `finally` support is only available in environments that support 
+    // ES2018.
+    return this.promise.finally(onfinally);
   }
 }
 

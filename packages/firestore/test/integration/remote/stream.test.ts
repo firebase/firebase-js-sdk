@@ -73,7 +73,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     } else {
       const deferred = new Deferred<StreamEventType>();
       this.pendingPromises.push(deferred);
-      promise = deferred.promise;
+      promise = deferred;
     }
 
     return promise.then(actualCallback => {

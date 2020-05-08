@@ -103,7 +103,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
     // It's normal for the deferred promise to be canceled (due to cancellation)
     // and so we attach a dummy catch callback to avoid
     // 'UnhandledPromiseRejectionWarning' log spam.
-    this.deferred.promise.catch(err => {});
+    this.deferred.catch(err => {});
   }
 
   /**
@@ -176,8 +176,8 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
 
   // Promise implementation.
   readonly [Symbol.toStringTag]: 'Promise';
-  then = this.deferred.promise.then.bind(this.deferred.promise);
-  catch = this.deferred.promise.catch.bind(this.deferred.promise);
+  then = this.deferred.then.bind(this.deferred);
+  catch = this.deferred.catch.bind(this.deferred);
 
   private handleDelayElapsed(): void {
     this.asyncQueue.enqueueAndForget(() => {
@@ -348,7 +348,7 @@ export class AsyncQueue {
         }
       };
       this.enqueueAndForget(retryingOp);
-      return deferred.promise;
+      return deferred;
     });
   }
 
