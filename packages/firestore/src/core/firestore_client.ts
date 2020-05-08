@@ -25,9 +25,9 @@ import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, executeWithIndexedDbRecovery } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -408,43 +408,66 @@ export class FirestoreClient {
     });
   }
 
-  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
+  async getDocumentFromLocalCache(
+    docKey: DocumentKey
+  ): Promise<Document | null> {
     this.verifyNotTerminated();
-    return this.asyncQueue
-      .enqueue(() => {
-        return this.localStore.readDocument(docKey);
-      })
-      .then((maybeDoc: MaybeDocument | null) => {
-        if (maybeDoc instanceof Document) {
-          return maybeDoc;
-        } else if (maybeDoc instanceof NoDocument) {
-          return null;
-        } else {
-          throw new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get document from cache. (However, this document may ' +
-              "exist on the server. Run again without setting 'source' in " +
-              'the GetOptions to attempt to retrieve the document from the ' +
-              'server.)'
-          );
+    const deferred = new Deferred<MaybeDocument | null>();
+    await this.asyncQueue.enqueue(() =>
+      executeWithIndexedDbRecovery(
+        async () =>
+          deferred.resolve(await this.localStore.readDocument(docKey)),
+        e => {
+          const msg = `Failed to get document '${docKey} from cache': ${e}`;
+          logError(LOG_TAG, msg);
+          deferred.reject(new FirestoreError(Code.UNAVAILABLE, msg));
         }
-      });
+      )
+    );
+
+    return deferred.promise.then(maybeDoc => {
+      if (maybeDoc instanceof Document) {
+        return maybeDoc;
+      } else if (maybeDoc instanceof NoDocument) {
+        return null;
+      } else {
+        throw new FirestoreError(
+          Code.UNAVAILABLE,
+          'Failed to get document from cache. (However, this document may ' +
+            "exist on the server. Run again without setting 'source' in " +
+            'the GetOptions to attempt to retrieve the document from the ' +
+            'server.)'
+        );
+      }
+    });
   }
 
-  getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
+  async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    return this.asyncQueue.enqueue(async () => {
-      const queryResult = await this.localStore.executeQuery(
-        query,
-        /* usePreviousResults= */ true
-      );
-      const view = new View(query, queryResult.remoteKeys);
-      const viewDocChanges = view.computeDocChanges(queryResult.documents);
-      return view.applyChanges(
-        viewDocChanges,
-        /* updateLimboDocuments= */ false
-      ).snapshot!;
-    });
+    const deferred = new Deferred<ViewSnapshot>();
+    await this.asyncQueue.enqueue(() =>
+      executeWithIndexedDbRecovery(
+        async () => {
+          const queryResult = await this.localStore.executeQuery(
+            query,
+            /* usePreviousResults= */ true
+          );
+          const view = new View(query, queryResult.remoteKeys);
+          const viewDocChanges = view.computeDocChanges(queryResult.documents);
+          const viewChange = view.applyChanges(
+            viewDocChanges,
+            /* updateLimboDocuments= */ false
+          );
+          deferred.resolve(viewChange.snapshot!);
+        },
+        e => {
+          const msg = `Failed to execute query '${query} against cache': ${e}`;
+          logError(LOG_TAG, msg);
+          deferred.reject(new FirestoreError(Code.UNAVAILABLE, msg));
+        }
+      )
+    );
+    return deferred.promise;
   }
 
   write(mutations: Mutation[]): Promise<void> {
