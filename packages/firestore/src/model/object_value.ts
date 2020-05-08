@@ -49,7 +49,6 @@ export const enum TypeOrder {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-
   constructor(public readonly proto: { mapValue: api.MapValue }) {
     debugAssert(
       !isServerTimestamp(proto),

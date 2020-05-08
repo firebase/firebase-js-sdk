@@ -454,11 +454,11 @@ export class RemoteStore implements TargetMetadataProvider {
         'Unexpected network event when IndexedDB was marked failed.'
       );
       this.indexedDbFailed = true;
-      
+
       // Disable network and raise offline snapshots
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Offline);
-      
+
       // Probe IndexedDB periodically and re-enable network
       this.asyncQueue.enqueueRetryable(async () => {
         logDebug(LOG_TAG, 'Retrying IndexedDB access');

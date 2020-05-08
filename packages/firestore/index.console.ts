@@ -17,10 +17,7 @@
 
 import './src/platform_browser/browser_init';
 
-export {
-  Firestore,
-  FirestoreDatabase,
-} from './src/api/database';
+export { Firestore, FirestoreDatabase } from './src/api/database';
 export {
   PublicCollectionReference as CollectionReference,
   PublicDocumentReference as DocumentReference,
