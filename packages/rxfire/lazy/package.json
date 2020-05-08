@@ -1,0 +1,6 @@
+{
+  "name": "rxfire/lazy",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/lazy/index.d.ts"
+}

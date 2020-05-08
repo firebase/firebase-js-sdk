@@ -28,13 +28,15 @@ import storagePkg from './storage/package.json';
 import functionsPkg from './functions/package.json';
 import firestorePkg from './firestore/package.json';
 import databasePkg from './database/package.json';
+import lazyPkg from './lazy/package.json';
 
 const pkgsByName = {
   auth: authPkg,
   storage: storagePkg,
   functions: functionsPkg,
   firestore: firestorePkg,
-  database: databasePkg
+  database: databasePkg,
+  lazy: lazyPkg,
 };
 
 const plugins = [resolveModule(), commonjs()];
@@ -49,13 +51,14 @@ const external = [
  */
 const GLOBAL_NAME = 'rxfire';
 
-const components = ['auth', 'storage', 'functions', 'firestore', 'database'];
+const components = ['auth', 'storage', 'functions', 'firestore', 'database', 'lazy'];
 const componentBuilds = components
   .map(component => {
     const pkg = pkgsByName[component];
     return [
       {
         input: `${component}/index.ts`,
+        inlineDynamicImports: true,
         output: [
           {
             file: resolve(component, pkg.main),
@@ -78,6 +81,7 @@ const componentBuilds = components
       },
       {
         input: `${component}/index.ts`,
+        inlineDynamicImports: true,
         output: {
           file: `rxfire-${component}.js`,
           format: 'iife',

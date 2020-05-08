@@ -3,7 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true,
-    "noEmit": false
+    "noEmit": false,
+    "module": "ESNext",
+    "lib": [
+      "es2019"
+    ]
   },
   "exclude": [
     "dist/**/*"

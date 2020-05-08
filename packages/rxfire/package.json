@@ -63,6 +63,8 @@
     "/functions/dist",
     "/database/dist",
     "/database/package.json",
+    "/lazy/dist",
+    "/lazy/package.json",
     "/rxfire-auth.js",
     "/rxfire-auth.js.map",
     "/rxfire-firestore.js",
@@ -72,6 +74,8 @@
     "/rxfire-storage.js",
     "/rxfire-storage.js.map",
     "/rxfire-database.js",
-    "/rxfire-database.js.map"
+    "/rxfire-database.js.map",
+    "/rxfire-lazy.js",
+    "/rxfire-lazy.js.map"
   ]
 }
