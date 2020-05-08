@@ -19,7 +19,6 @@ import { User } from '../auth/user';
 import {
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  LocalWriteResult,
   MultiTabLocalStore
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';

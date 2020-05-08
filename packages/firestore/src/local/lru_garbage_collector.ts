@@ -36,8 +36,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 
-const LOG_TAG = 'LruGarbageCollector';
-
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
  * implement this interface. This interface defines the operations that the LRU garbage collector
