@@ -103,7 +103,9 @@ const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Another tab has exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
+  '`enablePersistence()` with `synchronizeTabs:true` in all tabs. ' +
+  'If you are using `experimentalForceOwningTab:true`, make sure that only ' +
+  'one tab has persistence enabled at any given time.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
