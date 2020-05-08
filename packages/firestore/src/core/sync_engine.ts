@@ -73,7 +73,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, executeWithIndexedDbRecovery } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
@@ -350,30 +350,25 @@ export class SyncEngine implements RemoteSyncer {
    * userCallback is resolved once the write was acked/rejected by the
    * backend (or failed locally for any other reason).
    */
-  async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
+   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
 
-    let result: LocalWriteResult;
-    try {
-      result = await this.localStore.localWrite(batch);
-    } catch (e) {
-      if (e.name === 'IndexedDbTransactionError') {
+    return executeWithIndexedDbRecovery(
+      async () => {
+        const result = await this.localStore.localWrite(batch);
+        this.sharedClientState.addPendingMutation(result.batchId);
+        this.addMutationCallback(result.batchId, userCallback);
+        await this.emitNewSnapsAndNotifyLocalStore(result.changes);
+        await this.remoteStore.fillWritePipeline();
+      },
+      e => {
         // If we can't persist the mutation, we reject the user callback and
         // don't send the mutation. The user can then retry the write.
-        logError(LOG_TAG, 'Dropping write that cannot be persisted: ' + e);
-        userCallback.reject(
-          new FirestoreError(Code.UNAVAILABLE, 'Failed to persist write: ' + e)
-        );
-        return;
-      } else {
-        throw e;
+        const msg = `Failed to persist write: ${e}`;
+        logError(LOG_TAG, msg);
+        userCallback.reject(new FirestoreError(Code.UNAVAILABLE, msg));
       }
-    }
-
-    this.sharedClientState.addPendingMutation(result.batchId);
-    this.addMutationCallback(result.batchId, userCallback);
-    await this.emitNewSnapsAndNotifyLocalStore(result.changes);
-    await this.remoteStore.fillWritePipeline();
+    );
   }
 
   /**
@@ -584,16 +579,24 @@ export class SyncEngine implements RemoteSyncer {
       );
     }
 
-    const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
-    if (highestBatchId === BATCHID_UNKNOWN) {
-      // Trigger the callback right away if there is no pending writes at the moment.
-      callback.resolve();
-      return;
-    }
-
-    const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
-    callbacks.push(callback);
-    this.pendingWritesCallbacks.set(highestBatchId, callbacks);
+    return executeWithIndexedDbRecovery(
+      async () => {
+        const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
+        if (highestBatchId === BATCHID_UNKNOWN) {
+          // Trigger the callback right away if there is no pending writes at the moment.
+          callback.resolve();
+          return;
+        }
+        const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
+        callbacks.push(callback);
+        this.pendingWritesCallbacks.set(highestBatchId, callbacks);
+      },
+      e => {
+        const msg = `Initialization of waitForPendingWrites() operation failed: ${e}`;
+        logError(LOG_TAG, msg);
+        callback.reject(new FirestoreError(Code.UNAVAILABLE, msg));
+      }
+    );
   }
 
   /**

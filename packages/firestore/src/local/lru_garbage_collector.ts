@@ -18,7 +18,11 @@
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { debugAssert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import {
+  AsyncQueue,
+  TimerId,
+  executeWithIndexedDbRecovery
+} from '../util/async_queue';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
@@ -267,23 +271,15 @@ export class LruScheduler implements GarbageCollectionScheduler {
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
-      async () => {
+      () => {
         this.gcTask = null;
         this.hasRun = true;
-        try {
-          await localStore.collectGarbage(this.garbageCollector);
-        } catch (e) {
-          if (e.name === 'IndexedDbTransactionError') {
-            logDebug(
-              LOG_TAG,
-              'Ignoring IndexedDB error during garbage collection: ',
-              e
-            );
-          } else {
-            await ignoreIfPrimaryLeaseLoss(e);
-          }
-        }
-        await this.scheduleGC(localStore);
+        return executeWithIndexedDbRecovery(
+          () => localStore.collectGarbage(this.garbageCollector).then(() => {}),
+          /* recoveryHandler= */ () => {}
+        )
+          .then(() => this.scheduleGC(localStore))
+          .catch(ignoreIfPrimaryLeaseLoss);
       }
     );
   }

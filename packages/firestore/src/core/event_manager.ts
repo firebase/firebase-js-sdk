@@ -24,6 +24,7 @@ import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { logError } from '../util/log';
 import { Code, FirestoreError } from '../util/error';
+import { executeWithIndexedDbRecovery } from '../util/async_queue';
 
 const LOG_TAG = 'EventManager';
 
@@ -62,47 +63,45 @@ export class EventManager implements SyncEngineListener {
     this.syncEngine.subscribe(this);
   }
 
-  async listen(listener: QueryListener): Promise<void> {
-    const query = listener.query;
-    let firstListen = false;
+  listen(listener: QueryListener): Promise<void> {
+    return executeWithIndexedDbRecovery(
+      async () => {
+        const query = listener.query;
+        let firstListen = false;
 
-    let queryInfo = this.queries.get(query);
-    if (!queryInfo) {
-      firstListen = true;
-      queryInfo = new QueryListenersInfo();
-    }
-
-    if (firstListen) {
-      try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query);
-      } catch (e) {
-        const msg = `Initialization of query '${query}' failed: ${e}`;
-        logError(LOG_TAG, msg);
-        if (e.name === 'IndexedDbTransactionError') {
-          listener.onError(new FirestoreError(Code.UNAVAILABLE, msg));
-        } else {
-          throw e;
+        let queryInfo = this.queries.get(query);
+        if (!queryInfo) {
+          firstListen = true;
+          queryInfo = new QueryListenersInfo();
         }
-        return;
+
+        if (firstListen) {
+          queryInfo.viewSnap = await this.syncEngine.listen(query);
+        }
+
+        this.queries.set(query, queryInfo);
+        queryInfo.listeners.push(listener);
+
+        // Run global snapshot listeners if a consistent snapshot has been emitted.
+        const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
+        debugAssert(
+          !raisedEvent,
+          "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
+        );
+
+        if (queryInfo.viewSnap) {
+          const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
+          if (raisedEvent) {
+            this.raiseSnapshotsInSyncEvent();
+          }
+        }
+      },
+      e => {
+        const msg = `Initialization of query '${listener.query}' failed: ${e}`;
+        logError(LOG_TAG, msg);
+        listener.onError(new FirestoreError(Code.UNAVAILABLE, msg));
       }
-    }
-
-    this.queries.set(query, queryInfo);
-    queryInfo.listeners.push(listener);
-
-    // Run global snapshot listeners if a consistent snapshot has been emitted.
-    const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
-    debugAssert(
-      !raisedEvent,
-      "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
     );
-
-    if (queryInfo.viewSnap) {
-      const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
-      if (raisedEvent) {
-        this.raiseSnapshotsInSyncEvent();
-      }
-    }
   }
 
   async unlisten(listener: QueryListener): Promise<void> {

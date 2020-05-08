@@ -21,6 +21,7 @@ import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { PlatformSupport } from '../platform/platform';
+import { IndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -500,4 +501,23 @@ export class AsyncQueue {
     debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
   }
+}
+
+/**
+ * Runs the provided `op`. If `op` fails with an `IndexedDbTransactionError`,
+ * calls `recoveryHandler` and returns a resolved Promise. If `op` is successful
+ * or fails with another type of error, returns op's result.
+ */
+export function executeWithIndexedDbRecovery<T>(
+  op: () => Promise<void>,
+  recoveryHandler: (e: IndexedDbTransactionError) => void
+): Promise<void> {
+  return op().catch(e => {
+    logDebug(LOG_TAG, 'Internal operation failed: ', e);
+    if (e.name === 'IndexedDbTransactionError') {
+      recoveryHandler(e);
+    } else {
+      throw e;
+    }
+  });
 }
