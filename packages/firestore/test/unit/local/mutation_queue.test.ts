@@ -72,7 +72,6 @@ function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
   beforeEach(() => {
-    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))

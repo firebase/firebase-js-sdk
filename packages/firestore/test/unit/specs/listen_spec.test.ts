@@ -45,6 +45,40 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  specTest(
+    'Documents outside of view are cleared when listen is removed.',
+    ['eager-gc', 'exclusive'],
+    '',
+    () => {
+      const filteredQuery = Query.atPath(path('collection')).addFilter(
+        filter('matches', '==', true)
+      );
+      const unfilteredQuery = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { matches: true });
+      const docB = doc('collection/b', 1000, { matches: true });
+      return (
+        spec()
+          .userSets('collection/a', { matches: false })
+          .userListens(filteredQuery)
+          .watchAcksFull(filteredQuery, 1000, docA, docB)
+          // DocA doesn't match because of a pending mutation
+          .expectEvents(filteredQuery, { added: [docB] })
+          .userSets('collection/b', { matches: false })
+          // DocB doesn't match because of a pending mutation
+          .expectEvents(filteredQuery, { removed: [docB] })
+          .userUnlistens(filteredQuery)
+          // Should get no events since documents are filtered
+          .userListens(filteredQuery)
+          .userUnlistens(filteredQuery)
+          .writeAcks('collection/a', 2000)
+          .writeAcks('collection/b', 3000)
+          // Should get no events since documents were GCed
+          .userListens(unfilteredQuery)
+          .userUnlistens(unfilteredQuery)
+      );
+    }
+  );
+
   specTest('Contents of query update when new data is received.', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });

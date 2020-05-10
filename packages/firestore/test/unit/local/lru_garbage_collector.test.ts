@@ -122,7 +122,6 @@ function genericLruGarbageCollectorTests(
       txn => PersistencePromise.resolve(txn.currentSequenceNumber)
     );
     const referenceDelegate = persistence.referenceDelegate;
-    referenceDelegate.setInMemoryPins(new ReferenceSet());
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     garbageCollector = ((referenceDelegate as any) as LruDelegate)
       .garbageCollector;
@@ -175,7 +174,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return persistence.referenceDelegate.removeMutationReference(txn, key);
+    return persistence.referenceDelegate.markPotentiallyOrphaned(txn, key);
   }
 
   function markDocumentEligibleForGC(key: DocumentKey): Promise<void> {

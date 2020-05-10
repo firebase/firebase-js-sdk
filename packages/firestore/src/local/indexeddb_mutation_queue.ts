@@ -519,7 +519,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       return PersistencePromise.forEach(
         removedDocuments,
         (key: DocumentKey) => {
-          return this.referenceDelegate.removeMutationReference(
+          return this.referenceDelegate.markPotentiallyOrphaned(
             transaction,
             key
           );

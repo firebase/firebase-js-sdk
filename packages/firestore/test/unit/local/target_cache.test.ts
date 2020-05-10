@@ -143,7 +143,6 @@ function genericTargetCacheTests(
   let persistence: Persistence;
   beforeEach(async () => {
     persistence = await persistencePromise();
-    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     cache = new TestTargetCache(persistence, persistence.getTargetCache());
   });
 

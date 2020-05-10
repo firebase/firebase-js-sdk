@@ -1070,8 +1070,6 @@ function clientMetadataStore(
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
-
   readonly garbageCollector: LruGarbageCollector;
 
   constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
@@ -1081,14 +1079,14 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   getSequenceNumberCount(
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
-    const docCountPromise = this.orphanedDocmentCount(txn);
+    const docCountPromise = this.orphanedDocumentCount(txn);
     const targetCountPromise = this.db.getTargetCache().getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
   }
 
-  private orphanedDocmentCount(
+  private orphanedDocumentCount(
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
     let orphanedCount = 0;
@@ -1113,12 +1111,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     );
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     return writeSentinelKey(txn, key);
@@ -1126,6 +1121,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     return writeSentinelKey(txn, key);
@@ -1141,7 +1137,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -1158,11 +1154,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
-    if (this.inMemoryPins!.containsKey(docKey)) {
-      return PersistencePromise.resolve<boolean>(true);
-    } else {
-      return mutationQueuesContainKey(txn, docKey);
-    }
+    return mutationQueuesContainKey(txn, docKey);
   }
 
   removeOrphanedDocuments(
