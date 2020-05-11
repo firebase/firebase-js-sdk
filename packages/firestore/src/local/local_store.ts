@@ -56,7 +56,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
-import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
