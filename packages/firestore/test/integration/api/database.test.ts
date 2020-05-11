@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  DEFAULT_SETTINGS,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData,
-  DEFAULT_SETTINGS
+  withTestDocAndInitialData
 } from '../util/helpers';
 
 // tslint:disable:no-floating-promises
@@ -40,6 +40,10 @@ use(chaiAsPromised);
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
+
+const MEMORY_ONLY_BUILD =
+  typeof process !== 'undefined' &&
+  process.env?.INCLUDE_FIRESTORE_PERSISTENCE === 'false';
 
 apiDescribe('Database', (persistence: boolean) => {
   it('can set a document', () => {
@@ -216,6 +220,24 @@ apiDescribe('Database', (persistence: boolean) => {
         });
 
       unsubscribe();
+    });
+  });
+
+  it('update with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.update('a', {});
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+    });
+  });
+
+  it('merge with empty object replaces all fields', () => {
+    return withTestDoc(persistence, async doc => {
+      await doc.set({ a: 'a' });
+      await doc.set({ 'a': {} }, { merge: true });
+      const docSnapshot = await doc.get();
+      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
     });
   });
 
@@ -505,6 +527,18 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
+
+  it('can specify updated field multiple times', () => {
+    return withTestDoc(persistence, doc => {
+      return doc
+        .set({})
+        .then(() => doc.update('field', 100, new FieldPath('field'), 200))
+        .then(() => doc.get())
+        .then(docSnap => {
+          expect(docSnap.data()).to.deep.equal({ field: 200 });
         });
     });
   });
@@ -1003,6 +1037,33 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
+  (MEMORY_ONLY_BUILD ? it : it.skip)(
+    'recovers when persistence is missing',
+    async () => {
+      await withTestDbs(/* persistence */ false, 2, async dbs => {
+        for (let i = 0; i < 2; ++i) {
+          const db = dbs[i];
+
+          try {
+            await (i === 0 ? db.enablePersistence() : db.clearPersistence());
+            expect.fail(
+              'Persistence operation should fail for memory-only build'
+            );
+          } catch (err) {
+            expect(err.code).to.equal('failed-precondition');
+            expect(err.message).to.match(
+              /You are using the memory-only build of Firestore./
+            );
+          }
+
+          // Verify client functionality after failed call
+          await db.doc('coll/doc').get();
+        }
+      });
+    }
+  );
+
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
@@ -1025,7 +1086,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
-    'can clear persistence if the client has not been initialized',
+    'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async docRef => {
         const firestore = docRef.firestore;
@@ -1047,14 +1108,43 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
-  it('can not clear persistence if the client has been initialized', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
-      );
-    });
-  });
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)(
+    'can clear persistence if the client has not been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        await docRef.set({ foo: 'bar' });
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.clearPersistence();
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(docRef.path);
+        await expect(
+          docRef2.get({ source: 'cache' })
+        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+      });
+    }
+  );
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)(
+    'cannot clear persistence if the client has been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
+        await expect(
+          firestore.clearPersistence()
+        ).to.eventually.be.rejectedWith(
+          'Persistence cannot be cleared after this Firestore instance is initialized.'
+        );
+      });
+    }
+  );
 
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async docRef => {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import { isNode, isBrowser } from '@firebase/util';
 import { logger } from './src/logger';
 import { registerCoreComponents } from './src/registerCoreComponents';
 
-// Firebase Lite detection
+// Firebase Lite detection test
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (isBrowser() && (self as any).firebase !== undefined) {
   logger.warn(`

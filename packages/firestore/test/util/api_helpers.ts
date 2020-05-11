@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
+import { IndexedDbComponentProvider } from '../../src/core/component_provider';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -35,7 +36,7 @@ import {
 import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject } from '../../src/model/field_value';
+import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 
@@ -47,7 +48,8 @@ export const FIRESTORE = new Firestore(
     projectId: 'projectid',
     database: 'database'
   },
-  new Provider('auth-internal', new ComponentContainer('default'))
+  new Provider('auth-internal', new ComponentContainer('default')),
+  new IndexedDbComponentProvider()
 );
 
 export function firestore(): Firestore {

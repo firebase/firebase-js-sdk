@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
-import { BatchId, ProtoByteString } from '../../../src/core/types';
+import { BatchId } from '../../../src/core/types';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
@@ -25,6 +25,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
+import { ByteString } from '../../../src/util/byte_string';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -34,18 +35,14 @@ export class TestMutationQueue {
   constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
   checkEmpty(): Promise<boolean> {
-    return this.persistence.runTransaction(
-      'checkEmpty',
-      'readonly-idempotent',
-      txn => {
-        return this.queue.checkEmpty(txn);
-      }
-    );
+    return this.persistence.runTransaction('checkEmpty', 'readonly', txn => {
+      return this.queue.checkEmpty(txn);
+    });
   }
 
   countBatches(): Promise<number> {
     return this.persistence
-      .runTransaction('countBatches', 'readonly-idempotent', txn => {
+      .runTransaction('countBatches', 'readonly', txn => {
         return this.queue.getAllMutationBatches(txn);
       })
       .then(batches => batches.length);
@@ -53,7 +50,7 @@ export class TestMutationQueue {
 
   acknowledgeBatch(
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): Promise<void> {
     return this.persistence.runTransaction(
       'acknowledgeThroughBatchId',
@@ -64,26 +61,20 @@ export class TestMutationQueue {
     );
   }
 
-  getLastStreamToken(): Promise<string> {
+  getLastStreamToken(): Promise<ByteString> {
     return this.persistence.runTransaction(
       'getLastStreamToken',
-      'readonly-idempotent',
+      'readonly',
       txn => {
-        return this.queue.getLastStreamToken(txn).next(token => {
-          if (typeof token === 'string') {
-            return token;
-          } else {
-            throw new Error('Test mutation queue cannot handle Uint8Arrays');
-          }
-        });
+        return this.queue.getLastStreamToken(txn);
       }
     );
   }
 
-  setLastStreamToken(streamToken: string): Promise<void> {
+  setLastStreamToken(streamToken: ByteString): Promise<void> {
     return this.persistence.runTransaction(
       'setLastStreamToken',
-      'readwrite-primary-idempotent',
+      'readwrite-primary',
       txn => {
         return this.queue.setLastStreamToken(txn, streamToken);
       }
@@ -108,7 +99,7 @@ export class TestMutationQueue {
   lookupMutationBatch(batchId: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'lookupMutationBatch',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.lookupMutationBatch(txn, batchId);
       }
@@ -120,7 +111,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'getNextMutationBatchAfterBatchId',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.getNextMutationBatchAfterBatchId(txn, batchId);
       }
@@ -130,7 +121,7 @@ export class TestMutationQueue {
   getAllMutationBatches(): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatches',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.getAllMutationBatches(txn);
       }
@@ -142,7 +133,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKey',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKey(
           txn,
@@ -162,7 +153,7 @@ export class TestMutationQueue {
 
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKeys',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKeys(
           txn,
@@ -175,7 +166,7 @@ export class TestMutationQueue {
   getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingQuery',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
       }

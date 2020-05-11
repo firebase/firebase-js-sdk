@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+import * as api from '../protos/firestore_proto_api';
+
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
-import * as misc from '../util/misc';
-import { SortedSet } from '../util/sorted_set';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 
 import {
   Document,
@@ -28,9 +28,10 @@ import {
   UnknownDocument
 } from './document';
 import { DocumentKey } from './document_key';
-import { FieldValue, ObjectValue } from './field_value';
+import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
+import { arrayEquals } from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -43,18 +44,15 @@ import { TransformOperation } from './transform_operation';
  *             containing foo
  */
 export class FieldMask {
-  constructor(readonly fields: SortedSet<FieldPath>) {
+  constructor(readonly fields: FieldPath[]) {
     // TODO(dimond): validation of FieldMask
-  }
-
-  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
-    return new FieldMask(fields);
-  }
-
-  static fromArray(fields: FieldPath[]): FieldMask {
-    let fieldsAsSet = new SortedSet<FieldPath>(FieldPath.comparator);
-    fields.forEach(fieldPath => (fieldsAsSet = fieldsAsSet.add(fieldPath)));
-    return new FieldMask(fieldsAsSet);
+    // Sort the field mask to support `FieldMask.isEqual()` and assert below.
+    fields.sort(FieldPath.comparator);
+    debugAssert(
+      !fields.some((v, i) => i !== 0 && v.isEqual(fields[i - 1])),
+      'FieldMask contains field that is not unique: ' +
+        fields.find((v, i) => i !== 0 && v.isEqual(fields[i - 1]))!
+    );
   }
 
   /**
@@ -64,17 +62,16 @@ export class FieldMask {
    * This is an O(n) operation, where `n` is the size of the field mask.
    */
   covers(fieldPath: FieldPath): boolean {
-    let found = false;
-    this.fields.forEach(fieldMaskPath => {
+    for (const fieldMaskPath of this.fields) {
       if (fieldMaskPath.isPrefixOf(fieldPath)) {
-        found = true;
+        return true;
       }
-    });
-    return found;
+    }
+    return false;
   }
 
   isEqual(other: FieldMask): boolean {
-    return this.fields.isEqual(other.fields);
+    return arrayEquals(this.fields, other.fields, (l, r) => l.isEqual(r));
   }
 }
 
@@ -113,11 +110,11 @@ export class MutationResult {
      *
      * Will be null if the mutation was not a TransformMutation.
      */
-    readonly transformResults: Array<FieldValue | null> | null
+    readonly transformResults: Array<api.Value | null> | null
   ) {}
 }
 
-export enum MutationType {
+export const enum MutationType {
   Set,
   Patch,
   Transform,
@@ -131,16 +128,19 @@ export enum MutationType {
  * (meaning no precondition).
  */
 export class Precondition {
-  static readonly NONE = new Precondition();
-
   private constructor(
     readonly updateTime?: SnapshotVersion,
     readonly exists?: boolean
   ) {
-    assert(
+    debugAssert(
       updateTime === undefined || exists === undefined,
       'Precondition can specify "exists" or "updateTime" but not both'
     );
+  }
+
+  /** Creates a new empty Precondition. */
+  static none(): Precondition {
+    return new Precondition();
   }
 
   /** Creates a new Precondition with an exists flag. */
@@ -171,15 +171,17 @@ export class Precondition {
     } else if (this.exists !== undefined) {
       return this.exists === maybeDoc instanceof Document;
     } else {
-      assert(this.isNone, 'Precondition should be empty');
+      debugAssert(this.isNone, 'Precondition should be empty');
       return true;
     }
   }
 
   isEqual(other: Precondition): boolean {
     return (
-      misc.equals(this.updateTime, other.updateTime) &&
-      this.exists === other.exists
+      this.exists === other.exists &&
+      (this.updateTime
+        ? !!other.updateTime && this.updateTime.isEqual(other.updateTime)
+        : !other.updateTime)
     );
   }
 }
@@ -299,7 +301,7 @@ export abstract class Mutation {
 
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(this.key),
         'Can only apply a mutation to a document with the same key'
       );
@@ -310,7 +312,7 @@ export abstract class Mutation {
    * Returns the version from the given document for use as the result of a
    * mutation. Mutations are defined to return the version of the base document
    * only if it is an existing document. Deleted and unknown documents have a
-   * post-mutation version of SnapshotVersion.MIN.
+   * post-mutation version of SnapshotVersion.min().
    */
   protected static getPostMutationVersion(
     maybeDoc: MaybeDocument | null
@@ -318,7 +320,7 @@ export abstract class Mutation {
     if (maybeDoc instanceof Document) {
       return maybeDoc.version;
     } else {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
   }
 }
@@ -344,7 +346,7 @@ export class SetMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by SetMutation.'
     );
@@ -354,14 +356,9 @@ export class SetMutation extends Mutation {
     // have held.
 
     const version = mutationResult.version;
-    return new Document(
-      this.key,
-      version,
-      {
-        hasCommittedMutations: true
-      },
-      this.value
-    );
+    return new Document(this.key, version, this.value, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -376,14 +373,9 @@ export class SetMutation extends Mutation {
     }
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasLocalMutations: true
-      },
-      this.value
-    );
+    return new Document(this.key, version, this.value, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
@@ -431,7 +423,7 @@ export class PatchMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by PatchMutation.'
     );
@@ -445,14 +437,9 @@ export class PatchMutation extends Mutation {
     }
 
     const newData = this.patchDocument(maybeDoc);
-    return new Document(
-      this.key,
-      mutationResult.version,
-      {
-        hasCommittedMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, mutationResult.version, newData, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -468,14 +455,9 @@ export class PatchMutation extends Mutation {
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
     const newData = this.patchDocument(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasLocalMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {
@@ -501,23 +483,24 @@ export class PatchMutation extends Mutation {
     if (maybeDoc instanceof Document) {
       data = maybeDoc.data();
     } else {
-      data = ObjectValue.EMPTY;
+      data = ObjectValue.empty();
     }
     return this.patchObject(data);
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
+    const builder = new ObjectValueBuilder(data);
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
         if (newValue !== null) {
-          data = data.set(fieldPath, newValue);
+          builder.set(fieldPath, newValue);
         } else {
-          data = data.delete(fieldPath);
+          builder.delete(fieldPath);
         }
       }
     });
-    return data;
+    return builder.build();
   }
 }
 
@@ -551,7 +534,7 @@ export class TransformMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    hardAssert(
       mutationResult.transformResults != null,
       'Transform results missing for TransformMutation.'
     );
@@ -572,14 +555,9 @@ export class TransformMutation extends Mutation {
 
     const version = mutationResult.version;
     const newData = this.transformObject(doc.data(), transformResults);
-    return new Document(
-      this.key,
-      version,
-      {
-        hasCommittedMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, version, newData, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -600,18 +578,13 @@ export class TransformMutation extends Mutation {
       baseDoc
     );
     const newData = this.transformObject(doc.data(), transformResults);
-    return new Document(
-      this.key,
-      doc.version,
-      {
-        hasLocalMutations: true
-      },
-      newData
-    );
+    return new Document(this.key, doc.version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
-    let baseObject: ObjectValue | null = null;
+    let baseObject: ObjectValueBuilder | null = null;
     for (const fieldTransform of this.fieldTransforms) {
       const existingValue =
         maybeDoc instanceof Document
@@ -623,7 +596,7 @@ export class TransformMutation extends Mutation {
 
       if (coercedValue != null) {
         if (baseObject == null) {
-          baseObject = ObjectValue.EMPTY.set(
+          baseObject = new ObjectValueBuilder().set(
             fieldTransform.field,
             coercedValue
           );
@@ -632,14 +605,16 @@ export class TransformMutation extends Mutation {
         }
       }
     }
-    return baseObject;
+    return baseObject ? baseObject.build() : null;
   }
 
   isEqual(other: Mutation): boolean {
     return (
       other instanceof TransformMutation &&
       this.key.isEqual(other.key) &&
-      misc.arrayEquals(this.fieldTransforms, other.fieldTransforms) &&
+      arrayEquals(this.fieldTransforms, other.fieldTransforms, (l, r) =>
+        l.isEqual(r)
+      ) &&
       this.precondition.isEqual(other.precondition)
     );
   }
@@ -651,11 +626,11 @@ export class TransformMutation extends Mutation {
    * safe.
    */
   private requireDocument(maybeDoc: MaybeDocument | null): Document {
-    assert(
+    debugAssert(
       maybeDoc instanceof Document,
       'Unknown MaybeDocument type ' + maybeDoc
     );
-    assert(
+    debugAssert(
       maybeDoc.key.isEqual(this.key),
       'Can only transform a document with the same key'
     );
@@ -673,10 +648,10 @@ export class TransformMutation extends Mutation {
    */
   private serverTransformResults(
     baseDoc: MaybeDocument | null,
-    serverTransformResults: Array<FieldValue | null>
-  ): FieldValue[] {
-    const transformResults = [] as FieldValue[];
-    assert(
+    serverTransformResults: Array<api.Value | null>
+  ): api.Value[] {
+    const transformResults: api.Value[] = [];
+    hardAssert(
       this.fieldTransforms.length === serverTransformResults.length,
       `server transform result count (${serverTransformResults.length}) ` +
         `should match field transform count (${this.fieldTransforms.length})`
@@ -685,7 +660,7 @@ export class TransformMutation extends Mutation {
     for (let i = 0; i < serverTransformResults.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const transform = fieldTransform.transform;
-      let previousValue: FieldValue | null = null;
+      let previousValue: api.Value | null = null;
       if (baseDoc instanceof Document) {
         previousValue = baseDoc.field(fieldTransform.field);
       }
@@ -715,12 +690,12 @@ export class TransformMutation extends Mutation {
     localWriteTime: Timestamp,
     maybeDoc: MaybeDocument | null,
     baseDoc: MaybeDocument | null
-  ): FieldValue[] {
-    const transformResults = [] as FieldValue[];
+  ): api.Value[] {
+    const transformResults: api.Value[] = [];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
 
-      let previousValue: FieldValue | null = null;
+      let previousValue: api.Value | null = null;
       if (maybeDoc instanceof Document) {
         previousValue = maybeDoc.field(fieldTransform.field);
       }
@@ -742,19 +717,20 @@ export class TransformMutation extends Mutation {
 
   private transformObject(
     data: ObjectValue,
-    transformResults: FieldValue[]
+    transformResults: api.Value[]
   ): ObjectValue {
-    assert(
+    debugAssert(
       transformResults.length === this.fieldTransforms.length,
       'TransformResults length mismatch.'
     );
 
+    const builder = new ObjectValueBuilder(data);
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;
-      data = data.set(fieldPath, transformResults[i]);
+      builder.set(fieldPath, transformResults[i]);
     }
-    return data;
+    return builder.build();
   }
 }
 
@@ -772,7 +748,7 @@ export class DeleteMutation extends Mutation {
   ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
-    assert(
+    debugAssert(
       mutationResult.transformResults == null,
       'Transform results received by DeleteMutation.'
     );
@@ -798,12 +774,12 @@ export class DeleteMutation extends Mutation {
     }
 
     if (maybeDoc) {
-      assert(
+      debugAssert(
         maybeDoc.key.isEqual(this.key),
         'Can only apply mutation to document with same key'
       );
     }
-    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
+    return new NoDocument(this.key, SnapshotVersion.min());
   }
 
   extractBaseValue(maybeDoc: MaybeDocument | null): null {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
-import { makeConstructorPrivate } from '../util/api';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
   validateArgType,
   validateExactNumberOfArgs
 } from '../util/input_validation';
-import { primitiveComparator } from '../util/misc';
+import { ByteString } from '../util/byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -53,15 +52,13 @@ function assertBase64Available(): void {
  * using the hack above to make sure no-one outside this module can call it.
  */
 export class Blob {
-  // Prefix with underscore to signal this is a private variable in JS and
-  // prevent it showing up for autocompletion.
-  // A binary string is a string with each char as Unicode code point in the
-  // range of [0, 255], essentially simulating a byte array.
-  private _binaryString: string;
+  // Prefix with underscore to signal that we consider this not part of the
+  // public API and to prevent it from showing up for autocompletion.
+  _byteString: ByteString;
 
-  private constructor(binaryString: string) {
+  constructor(byteString: ByteString) {
     assertBase64Available();
-    this._binaryString = binaryString;
+    this._byteString = byteString;
   }
 
   static fromBase64String(base64: string): Blob {
@@ -69,8 +66,7 @@ export class Blob {
     validateArgType('Blob.fromBase64String', 'string', 1, base64);
     assertBase64Available();
     try {
-      const binaryString = PlatformSupport.getPlatform().atob(base64);
-      return new Blob(binaryString);
+      return new Blob(ByteString.fromBase64String(base64));
     } catch (e) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -85,31 +81,19 @@ export class Blob {
     if (!(array instanceof Uint8Array)) {
       throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
     }
-    // We can't call array.map directly because it expects the return type to
-    // be a Uint8Array, whereas we can convert it to a regular array by invoking
-    // map on the Array prototype.
-    const binaryString = Array.prototype.map
-      .call(array, (char: number) => {
-        return String.fromCharCode(char);
-      })
-      .join('');
-    return new Blob(binaryString);
+    return new Blob(ByteString.fromUint8Array(array));
   }
 
   toBase64(): string {
     validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
-    return PlatformSupport.getPlatform().btoa(this._binaryString);
+    return this._byteString.toBase64();
   }
 
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    const buffer = new Uint8Array(this._binaryString.length);
-    for (let i = 0; i < this._binaryString.length; i++) {
-      buffer[i] = this._binaryString.charCodeAt(i);
-    }
-    return buffer;
+    return this._byteString.toUint8Array();
   }
 
   toString(): string {
@@ -117,31 +101,6 @@ export class Blob {
   }
 
   isEqual(other: Blob): boolean {
-    return this._binaryString === other._binaryString;
-  }
-
-  _approximateByteSize(): number {
-    // Assume UTF-16 encoding in memory (see StringValue.approximateByteSize())
-    return this._binaryString.length * 2;
-  }
-
-  /**
-   * Actually private to JS consumers of our API, so this function is prefixed
-   * with an underscore.
-   */
-  _compareTo(other: Blob): number {
-    return primitiveComparator(this._binaryString, other._binaryString);
+    return this._byteString.isEqual(other._byteString);
   }
 }
-
-// Public instance that disallows construction at runtime. This constructor is
-// used when exporting Blob on firebase.firestore.Blob and will be called Blob
-// publicly. Internally we still use Blob which has a type checked private
-// constructor. Note that Blob and PublicBlob can be used interchangeably in
-// instanceof checks.
-// For our internal TypeScript code PublicBlob doesn't exist as a type, and so
-// we need to use Blob as type and export it too.
-export const PublicBlob = makeConstructorPrivate(
-  Blob,
-  'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
-);

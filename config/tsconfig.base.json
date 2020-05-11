@@ -14,6 +14,7 @@
       "es2015.symbol.wellknown",
       "es2015.core",
       "es2017.object",
+      "es2017.string",
     ],
     "module": "ES2015",
     "moduleResolution": "node",

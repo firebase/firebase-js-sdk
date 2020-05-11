@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,18 @@ import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
-import { debug } from '../util/log';
-import * as obj from '../util/obj';
+import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
-import { encode } from './encoded_resource_path';
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { estimateByteSize } from '../model/values';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
@@ -41,16 +40,13 @@ import {
   Persistence,
   PersistenceTransaction,
   PersistenceTransactionMode,
-  PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
-import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
-
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
@@ -71,22 +67,7 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  readonly referenceDelegate: MemoryLruDelegate | MemoryEagerDelegate;
-
-  static createLruPersistence(
-    clientId: ClientId,
-    params: LruParams
-  ): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, params);
-    return new MemoryPersistence(clientId, factory);
-  }
-
-  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
-    const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
-      new MemoryEagerDelegate(p);
-    return new MemoryPersistence(clientId, factory);
-  }
+  readonly referenceDelegate: MemoryReferenceDelegate;
 
   /**
    * The constructor accepts a factory for creating a reference delegate. This
@@ -94,11 +75,8 @@ export class MemoryPersistence implements Persistence {
    * each other without having nullable fields that would then need to be
    * checked or asserted on every access.
    */
-  private constructor(
-    private readonly clientId: ClientId,
-    referenceDelegateFactory: (
-      p: MemoryPersistence
-    ) => MemoryLruDelegate | MemoryEagerDelegate
+  constructor(
+    referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
@@ -112,6 +90,10 @@ export class MemoryPersistence implements Persistence {
     );
   }
 
+  start(): Promise<void> {
+    return Promise.resolve();
+  }
+
   shutdown(): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     this._started = false;
@@ -122,22 +104,7 @@ export class MemoryPersistence implements Persistence {
     return this._started;
   }
 
-  async getActiveClients(): Promise<ClientId[]> {
-    return [this.clientId];
-  }
-
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void> {
-    // All clients using memory persistence act as primary.
-    return primaryStateListener(true);
-  }
-
   setDatabaseDeletedListener(): void {
-    // No op.
-  }
-
-  setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }
 
@@ -172,7 +139,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    debug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(LOG_TAG, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
@@ -193,9 +160,9 @@ export class MemoryPersistence implements Persistence {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or(
-      obj
-        .values(this.mutationQueues)
-        .map(queue => () => queue.containsKey(transaction, key))
+      Object.values(this.mutationQueues).map(queue => () =>
+        queue.containsKey(transaction, key)
+      )
     );
   }
 }
@@ -210,11 +177,21 @@ export class MemoryTransaction extends PersistenceTransaction {
   }
 }
 
-export class MemoryEagerDelegate implements ReferenceDelegate {
+export interface MemoryReferenceDelegate extends ReferenceDelegate {
+  documentSize(doc: MaybeDocument): number;
+  onTransactionStarted(): void;
+  onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void>;
+}
+
+export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   private inMemoryPins: ReferenceSet | null = null;
   private _orphanedDocuments: Set<DocumentKey> | null = null;
 
-  constructor(private readonly persistence: MemoryPersistence) {}
+  private constructor(private readonly persistence: MemoryPersistence) {}
+
+  static factory(persistence: MemoryPersistence): MemoryEagerDelegate {
+    return new MemoryEagerDelegate(persistence);
+  }
 
   private get orphanedDocuments(): Set<DocumentKey> {
     if (!this._orphanedDocuments) {
@@ -325,7 +302,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encode(k.path));
+  > = new ObjectMap(k => encodeResourcePath(k.path));
 
   readonly garbageCollector: LruGarbageCollector;
 
@@ -469,7 +446,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(maybeDoc: MaybeDocument): number {
     let documentSize = maybeDoc.key.toString().length;
     if (maybeDoc instanceof Document) {
-      documentSize += maybeDoc.data().approximateByteSize();
+      documentSize += estimateByteSize(maybeDoc.toProto());
     }
     return documentSize;
   }

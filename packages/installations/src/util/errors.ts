@@ -45,6 +45,7 @@ interface ErrorParams {
   };
   [ErrorCode.REQUEST_FAILED]: {
     requestName: string;
+    [index: string]: string | number; // to make Typescript 3.8 happy
   } & ServerErrorData;
 }
 

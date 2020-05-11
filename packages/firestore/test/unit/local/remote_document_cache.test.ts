@@ -91,14 +91,10 @@ describe('IndexedDbRemoteDocumentCache', () => {
   });
 
   function getLastReadTime(): Promise<SnapshotVersion> {
-    return persistence.runTransaction(
-      'getLastReadTime',
-      'readonly-idempotent',
-      txn => {
-        const remoteDocuments = persistence.getRemoteDocumentCache();
-        return remoteDocuments.getLastReadTime(txn);
-      }
-    );
+    return persistence.runTransaction('getLastReadTime', 'readonly', txn => {
+      const remoteDocuments = persistence.getRemoteDocumentCache();
+      return remoteDocuments.getLastReadTime(txn);
+    });
   }
 
   it('skips previous changes', async () => {
@@ -129,7 +125,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
 
     let { changedDocs, readTime } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches(
       [
@@ -147,7 +143,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   it('can get empty changes', async () => {
     const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches([], changedDocs);
   });
@@ -164,7 +160,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     await cache.removeEntry(key('a/2'), version(4));
 
     const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
     assertMatches(
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
@@ -382,7 +378,7 @@ function genericRemoteDocumentCacheTests(
     const query = new Query(path('b'));
     const matchingDocs = await cache.getDocumentsMatchingQuery(
       query,
-      SnapshotVersion.MIN
+      SnapshotVersion.min()
     );
 
     assertMatches(

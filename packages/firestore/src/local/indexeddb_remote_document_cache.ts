@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -243,7 +243,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -252,7 +252,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const immediateChildrenPathLength = query.path.length + 1;
 
     const iterationOptions: IterateOptions = {};
-    if (sinceReadTime.isEqual(SnapshotVersion.MIN)) {
+    if (sinceReadTime.isEqual(SnapshotVersion.min())) {
       // Documents are ordered by key, so we can use a prefix scan to narrow
       // down the documents we need to match the query against.
       const startKey = query.path.toArray();
@@ -291,6 +291,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
+  /**
+   * Returns the set of documents that have changed since the specified read
+   * time.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
     transaction: PersistenceTransaction,
     sinceReadTime: SnapshotVersion
@@ -323,13 +328,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       });
   }
 
+  /**
+   * Returns the read time of the most recently read document in the cache, or
+   * SnapshotVersion.min() if not available.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
   getLastReadTime(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
     const documentsStore = remoteDocumentsStore(transaction);
 
-    // If there are no existing entries, we return SnapshotVersion.MIN.
-    let readTime = SnapshotVersion.MIN;
+    // If there are no existing entries, we return SnapshotVersion.min().
+    let readTime = SnapshotVersion.min();
 
     return documentsStore
       .iterate(
@@ -363,7 +373,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobal.key)
       .next(metadata => {
-        assert(!!metadata, 'Missing document cache metadata');
+        hardAssert(!!metadata, 'Missing document cache metadata');
         return metadata!;
       });
   }
@@ -386,7 +396,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
       if (
         doc instanceof NoDocument &&
-        doc.version.isEqual(SnapshotVersion.forDeletedDoc())
+        doc.version.isEqual(SnapshotVersion.min())
       ) {
         // The document is a sentinel removal and should only be used in the
         // `getNewDocumentChanges()`.
@@ -437,13 +447,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
       this.changes.forEach((key, maybeDocument) => {
         const previousSize = this.documentSizes.get(key);
-        assert(
+        debugAssert(
           previousSize !== undefined,
           `Cannot modify a document that wasn't read (for ${key})`
         );
         if (maybeDocument) {
-          assert(
-            !this.readTime.isEqual(SnapshotVersion.MIN),
+          debugAssert(
+            !this.readTime.isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
@@ -463,7 +473,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // with a version of 0 and ignored by `maybeDecodeDocument()` but
             // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
-              new NoDocument(key, SnapshotVersion.forDeletedDoc()),
+              new NoDocument(key, SnapshotVersion.min()),
               this.readTime
             );
             promises.push(

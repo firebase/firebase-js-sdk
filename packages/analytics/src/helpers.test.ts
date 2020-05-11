@@ -80,10 +80,13 @@ describe('FirebaseAnalytics methods', () => {
     });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
-      const deferred = new Deferred<void>();
-      const deferred2 = new Deferred<void>();
+      const initPromise1 = new Deferred<void>();
+      const initPromise2 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+        {
+          [mockAnalyticsId]: initPromise1.promise,
+          otherId: initPromise2.promise
+        },
         'dataLayer',
         'gtag'
       );
@@ -92,15 +95,13 @@ describe('FirebaseAnalytics methods', () => {
         'transaction_id': 'abcd123',
         'send_to': 'some_group'
       });
-      await Promise.resolve(); // Clear async event stack but not pending initialization promises.
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-      deferred.resolve(); // Resolves first initialization promise.
-      await Promise.resolve(); // wait for the next cycle
+      initPromise1.resolve(); // Resolves first initialization promise.
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-      deferred2.resolve(); // Resolves second initialization promise.
-      await Promise.resolve(); // wait for the next cycle
+      initPromise2.resolve(); // Resolves second initialization promise.
+      await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
@@ -109,10 +110,13 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function waits for all initialization promises before sending ' +
         'event with at least one unknown send_to ID',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -121,15 +125,13 @@ describe('FirebaseAnalytics methods', () => {
           'transaction_id': 'abcd123',
           'send_to': [mockAnalyticsId, 'some_group']
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-        deferred2.resolve(); // Resolves second initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise2.resolve(); // Resolves second initialization promise.
+        await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
         expect((window['dataLayer'] as DataLayer).length).to.equal(1);
       }
@@ -139,10 +141,13 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function waits for all initialization promises before sending ' +
         'events with no send_to field',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -150,15 +155,13 @@ describe('FirebaseAnalytics methods', () => {
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
           'transaction_id': 'abcd123'
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-        deferred2.resolve(); // Resolves second initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise2.resolve(); // Resolves second initialization promise.
+        await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
         expect((window['dataLayer'] as DataLayer).length).to.equal(1);
       }
@@ -168,10 +171,13 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function only waits for firebase initialization promise ' +
         'before sending event only targeted to Firebase instance GA ID',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -180,11 +186,10 @@ describe('FirebaseAnalytics methods', () => {
           'transaction_id': 'abcd123',
           'send_to': mockAnalyticsId
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
+        await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
         expect((window['dataLayer'] as DataLayer).length).to.equal(1);
       }
@@ -196,7 +201,7 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
         'transaction_id': 'abcd123'
       });
-      await Promise.resolve(); // Clear async event stack.
+      await Promise.all([]); // Promise.all() always runs before event call, even if empty.
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
 
@@ -212,9 +217,9 @@ describe('FirebaseAnalytics methods', () => {
     });
 
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
-      const deferred = new Deferred<void>();
+      const initPromise1 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: deferred.promise },
+        { [mockAnalyticsId]: initPromise1.promise },
         'dataLayer',
         'gtag'
       );
@@ -222,11 +227,10 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, mockAnalyticsId, {
         'language': 'en'
       });
-      await Promise.resolve();
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
-      deferred.resolve();
-      await Promise.resolve();
+      initPromise1.resolve();
+      await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
@@ -237,7 +241,7 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, mockAnalyticsId, {
         'transaction_id': 'abcd123'
       });
-      await Promise.resolve(); // Clear async event stack.
+      await Promise.resolve(); // Config call is always chained onto a promise, even if empty.
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
   });
@@ -254,10 +258,13 @@ describe('FirebaseAnalytics methods', () => {
     });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
-      const deferred = new Deferred<void>();
-      const deferred2 = new Deferred<void>();
+      const initPromise1 = new Deferred<void>();
+      const initPromise2 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+        {
+          [mockAnalyticsId]: initPromise1.promise,
+          otherId: initPromise2.promise
+        },
         'dataLayer',
         'gtag'
       );
@@ -265,15 +272,13 @@ describe('FirebaseAnalytics methods', () => {
         'transaction_id': 'abcd123',
         'send_to': 'some_group'
       });
-      await Promise.resolve(); // Clear async event stack but not pending initialization promises.
       expect(existingGtagStub).to.not.be.called;
 
-      deferred.resolve(); // Resolves first initialization promise.
-      await Promise.resolve(); // wait for the next cycle
+      initPromise1.resolve(); // Resolves first initialization promise.
       expect(existingGtagStub).to.not.be.called;
 
-      deferred2.resolve(); // Resolves second initialization promise.
-      await Promise.resolve(); // wait for the next cycle
+      initPromise2.resolve(); // Resolves second initialization promise.
+      await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
       expect(existingGtagStub).to.be.calledWith(GtagCommand.EVENT, 'purchase', {
         'send_to': 'some_group',
@@ -285,10 +290,13 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function waits for all initialization promises before sending ' +
         'event with at least one unknown send_to ID',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -296,15 +304,13 @@ describe('FirebaseAnalytics methods', () => {
           'transaction_id': 'abcd123',
           'send_to': [mockAnalyticsId, 'some_group']
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect(existingGtagStub).to.not.be.called;
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
         expect(existingGtagStub).to.not.be.called;
 
-        deferred2.resolve(); // Resolves second initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise2.resolve(); // Resolves second initialization promise.
+        await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
         expect(existingGtagStub).to.be.calledWith(
           GtagCommand.EVENT,
@@ -321,25 +327,26 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function waits for all initialization promises before sending ' +
         'events with no send_to field',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
           'transaction_id': 'abcd123'
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect(existingGtagStub).to.not.be.called;
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
         expect(existingGtagStub).to.not.be.called;
 
-        deferred2.resolve(); // Resolves second initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise2.resolve(); // Resolves second initialization promise.
+        await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
         expect(existingGtagStub).to.be.calledWith(
           GtagCommand.EVENT,
@@ -353,10 +360,13 @@ describe('FirebaseAnalytics methods', () => {
       'new window.gtag function only waits for firebase initialization promise ' +
         'before sending event only targeted to Firebase instance GA ID',
       async () => {
-        const deferred = new Deferred<void>();
-        const deferred2 = new Deferred<void>();
+        const initPromise1 = new Deferred<void>();
+        const initPromise2 = new Deferred<void>();
         wrapOrCreateGtag(
-          { [mockAnalyticsId]: deferred.promise, otherId: deferred2.promise },
+          {
+            [mockAnalyticsId]: initPromise1.promise,
+            otherId: initPromise2.promise
+          },
           'dataLayer',
           'gtag'
         );
@@ -364,11 +374,10 @@ describe('FirebaseAnalytics methods', () => {
           'transaction_id': 'abcd123',
           'send_to': mockAnalyticsId
         });
-        await Promise.resolve(); // Clear async event stack but not pending initialization promises.
         expect(existingGtagStub).to.not.be.called;
 
-        deferred.resolve(); // Resolves first initialization promise.
-        await Promise.resolve(); // wait for the next cycle
+        initPromise1.resolve(); // Resolves first initialization promise.
+        await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
         expect(existingGtagStub).to.be.calledWith(
           GtagCommand.EVENT,
@@ -384,7 +393,7 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
         'transaction_id': 'abcd321'
       });
-      await Promise.resolve(); // Clear async event stack.
+      await Promise.all([]); // Promise.all() always runs before event call, even if empty.
       expect(existingGtagStub).to.be.calledWith(GtagCommand.EVENT, 'purchase', {
         'transaction_id': 'abcd321'
       });
@@ -404,9 +413,9 @@ describe('FirebaseAnalytics methods', () => {
     });
 
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
-      const deferred = new Deferred<void>();
+      const initPromise1 = new Deferred<void>();
       wrapOrCreateGtag(
-        { [mockAnalyticsId]: deferred.promise },
+        { [mockAnalyticsId]: initPromise1.promise },
         'dataLayer',
         'gtag'
       );
@@ -414,11 +423,10 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, mockAnalyticsId, {
         'language': 'en'
       });
-      await Promise.resolve();
       expect(existingGtagStub).to.not.be.called;
 
-      deferred.resolve();
-      await Promise.resolve();
+      initPromise1.resolve();
+      await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
       expect(existingGtagStub).to.be.calledWith(
         GtagCommand.CONFIG,
@@ -435,7 +443,7 @@ describe('FirebaseAnalytics methods', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, mockAnalyticsId, {
         'transaction_id': 'abcd123'
       });
-      await Promise.resolve(); // Clear async event stack.
+      await Promise.resolve(); // Config call is always chained onto a promise, even if empty.
       expect(existingGtagStub).to.be.calledWith(
         GtagCommand.CONFIG,
         mockAnalyticsId,

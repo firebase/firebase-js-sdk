@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
-  MaybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';
@@ -29,7 +28,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
@@ -78,8 +77,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     doc: MaybeDocument,
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
-    assert(
-      !readTime.isEqual(SnapshotVersion.MIN),
+    debugAssert(
+      !readTime.isEqual(SnapshotVersion.min()),
       'Cannot add a document with a read time of zero'
     );
 
@@ -141,7 +140,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -174,24 +173,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
-  }
-
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    throw new Error(
-      'getNewDocumentChanges() is not supported with MemoryPersistence'
-    );
-  }
-
-  getLastReadTime(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion> {
-    return PersistencePromise.resolve(SnapshotVersion.MIN);
   }
 
   newChangeBuffer(options?: {

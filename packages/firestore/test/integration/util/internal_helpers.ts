@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { Datastore } from '../../../src/remote/datastore';
+import { newDatastore, Datastore } from '../../../src/remote/datastore';
 
 import {
   CredentialChangeListener,
@@ -52,8 +52,7 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  queue?: AsyncQueue,
-  credentialsProvider?: CredentialsProvider
+  credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   return PlatformSupport.getPlatform()
@@ -62,13 +61,7 @@ export function withTestDatastore(
       const serializer = PlatformSupport.getPlatform().newSerializer(
         databaseInfo.databaseId
       );
-      const datastore = new Datastore(
-        queue || new AsyncQueue(),
-        conn,
-        credentialsProvider || new EmptyCredentialsProvider(),
-        serializer
-      );
-
+      const datastore = newDatastore(conn, credentialsProvider, serializer);
       return fn(datastore);
     });
 }

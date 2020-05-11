@@ -113,6 +113,8 @@ export class Timestamp {
   toMillis(): number;
 
   isEqual(other: Timestamp): boolean;
+
+  valueOf(): string;
 }
 
 export class Blob {

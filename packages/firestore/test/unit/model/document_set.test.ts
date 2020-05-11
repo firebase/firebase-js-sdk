@@ -54,7 +54,7 @@ describe('DocumentSet', () => {
   });
 
   it('adds and deletes elements', () => {
-    const set = new DocumentSet(Document.compareByKey)
+    const set = new DocumentSet() // Compares by key by default
       .add(d1)
       .add(d2)
       .add(d3)

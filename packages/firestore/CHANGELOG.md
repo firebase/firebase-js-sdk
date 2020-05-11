@@ -1,4 +1,29 @@
 # Unreleased
+- [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
+  registered in IndexedDB. Previously, these errors crashed the client.
+- [fixed] Firestore now rejects write operations if they cannot be persisted
+  in IndexedDB. Previously, these errors crashed the client.
+- [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
+  multi-tab notifications while the file system is locked.
+
+# 1.10.2
+- [fixed] Temporarily reverted the use of window.crypto to generate document
+  IDs to address compatibility issues with IE 11, WebWorkers, and React Native.
+- [changed] Firestore now limits the number of concurrent document lookups it
+  will perform when resolving inconsistencies in the local cache (#2683).
+- [changed] Changed the in-memory representation of Firestore documents to
+  reduce memory allocations and improve performance. Calls to 
+  `DocumentSnapshot.getData()` and `DocumentSnapshot.toObject()` will see
+  the biggest improvement.
+
+# 1.10.1
+- [fixed] Fixed an issue where the number value `-0.0` would lose its sign when
+  stored in Firestore.
+
+# 1.10.0
+- [feature] Implemented `Timestamp.valueOf()` so that `Timestamp` objects can be
+  compared for relative ordering using the JavaScript arithmetic comparison
+  operators (#2632).
 - [fixed] Fixed an issue where auth credentials were not respected in Cordova
   environments (#2626).
 - [fixed] Fixed a performance regression introduced by the addition of

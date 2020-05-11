@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-import { decode, encode } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
@@ -51,7 +54,7 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
-    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
+    debugAssert(collectionPath.length % 2 === 1, 'Expected a collection path.');
     if (!this.collectionParentsCache.has(collectionPath)) {
       const collectionId = collectionPath.lastSegment();
       const parentPath = collectionPath.popLast();
@@ -64,7 +67,7 @@ export class IndexedDbIndexManager implements IndexManager {
 
       const collectionParent: DbCollectionParent = {
         collectionId,
-        parent: encode(parentPath)
+        parent: encodeResourcePath(parentPath)
       };
       return collectionParentsStore(transaction).put(collectionParent);
     }
@@ -93,7 +96,7 @@ export class IndexedDbIndexManager implements IndexManager {
           if (entry.collectionId !== collectionId) {
             break;
           }
-          parentPaths.push(decode(entry.parent));
+          parentPaths.push(decodeResourcePath(entry.parent));
         }
         return parentPaths;
       });

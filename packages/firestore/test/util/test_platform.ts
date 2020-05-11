@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { ProtoByteString } from '../../src/core/types';
 import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
+
+/* eslint-disable no-restricted-globals */
 
 /**
  * `Window` fake that implements the event and storage API that is used by
@@ -63,7 +64,9 @@ export class FakeWindow {
         this.storageListeners.push(listener);
         break;
       case 'unload':
-        // The spec tests currently do not rely on 'unload' listeners.
+      case 'visibilitychange':
+        // The spec tests currently do not rely on `unload`/`visibilitychange`
+        // listeners.
         break;
       default:
         fail(`MockWindow doesn't support events of type '${type}'`);
@@ -77,7 +80,7 @@ export class FakeWindow {
         registeredListener => listener !== registeredListener
       );
       const newCount = this.storageListeners.length;
-      assert(
+      debugAssert(
         newCount === oldCount - 1,
         "Listener passed to 'removeEventListener' doesn't match any registered listener."
       );
@@ -97,7 +100,7 @@ export class FakeDocument {
   }
 
   addEventListener(type: string, listener: EventListener): void {
-    assert(
+    debugAssert(
       type === 'visibilitychange',
       "FakeDocument only supports events of type 'visibilitychange'"
     );
@@ -234,10 +237,6 @@ export class TestPlatform implements Platform {
     return this.basePlatform.base64Available;
   }
 
-  get emptyByteString(): ProtoByteString {
-    return this.basePlatform.emptyByteString;
-  }
-
   raiseVisibilityEvent(visibility: VisibilityState): void {
     if (this.mockDocument) {
       this.mockDocument.raiseVisibilityEvent(visibility);
@@ -267,4 +266,17 @@ export class TestPlatform implements Platform {
   btoa(raw: string): string {
     return this.basePlatform.btoa(raw);
   }
+
+  randomBytes(nBytes: number): Uint8Array {
+    return this.basePlatform.randomBytes(nBytes);
+  }
+}
+
+/** Returns true if we are running under Node. */
+export function isNode(): boolean {
+  return (
+    typeof process !== 'undefined' &&
+    process.title !== undefined &&
+    process.title.indexOf('node') !== -1
+  );
 }

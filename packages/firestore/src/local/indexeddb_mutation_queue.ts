@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,18 @@
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
-import { BatchId, ProtoByteString } from '../core/types';
+import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-
-import * as EncodedResourcePath from './encoded_resource_path';
+import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import {
   IndexedDbPersistence,
@@ -47,7 +47,7 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -91,7 +91,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
-    assert(user.uid !== '', 'UserID must not be an empty string.');
+    hardAssert(user.uid !== '', 'UserID must not be an empty string.');
     const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(
       userId,
@@ -121,10 +121,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // We can't store the resumeToken as a ByteString in IndexedDB, so we
+      // convert it to a Base64 string for storage.
+      metadata.lastStreamToken = streamToken.toBase64();
 
       return mutationQueuesStore(transaction).put(metadata);
     });
@@ -132,18 +134,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   getLastStreamToken(
     transaction: PersistenceTransaction
-  ): PersistencePromise<ProtoByteString> {
-    return this.getMutationQueueMetadata(transaction).next<ProtoByteString>(
-      metadata => metadata.lastStreamToken
+  ): PersistencePromise<ByteString> {
+    return this.getMutationQueueMetadata(transaction).next<ByteString>(
+      metadata => ByteString.fromBase64String(metadata.lastStreamToken)
     );
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
-    streamToken: ProtoByteString
+    streamToken: ByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      metadata.lastStreamToken = convertStreamToken(streamToken);
+      // We can't store the resumeToken as a ByteString in IndexedDB, so we
+      // convert it to a Base64 string for storage.
+      metadata.lastStreamToken = streamToken.toBase64();
       return mutationQueuesStore(transaction).put(metadata);
     });
   }
@@ -168,7 +172,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // We write an empty object to obtain key
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return mutationStore.add({} as any).next(batchId => {
-      assert(typeof batchId === 'number', 'Auto-generated key is not a number');
+      hardAssert(
+        typeof batchId === 'number',
+        'Auto-generated key is not a number'
+      );
 
       const batch = new MutationBatch(
         batchId,
@@ -217,7 +224,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .get(batchId)
       .next(dbBatch => {
         if (dbBatch) {
-          assert(
+          hardAssert(
             dbBatch.userId === this.userId,
             `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
           );
@@ -227,6 +234,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
       });
   }
 
+  /**
+   * Returns the document keys for the mutation batch with the given batchId.
+   * For primary clients, this method returns `null` after
+   * `removeMutationBatches()` has been called. Secondary clients return a
+   * cached result until `removeCachedMutationKeys()` is invoked.
+   */
+  // PORTING NOTE: Multi-tab only.
   lookupMutationKeys(
     transaction: PersistenceTransaction,
     batchId: BatchId
@@ -261,7 +275,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         { index: DbMutationBatch.userMutationsIndex, range },
         (key, dbBatch, control) => {
           if (dbBatch.userId === this.userId) {
-            assert(
+            hardAssert(
               dbBatch.batchId >= nextBatchId,
               'Should have found mutation after ' + nextBatchId
             );
@@ -331,7 +345,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         // the rows for documentKey will occur before any rows for
         // documents nested in a subcollection beneath documentKey so we
         // can stop as soon as we hit any such row.
-        const path = EncodedResourcePath.decode(encodedPath);
+        const path = decodeResourcePath(encodedPath);
         if (userID !== this.userId || !documentKey.path.isEqual(path)) {
           control.done();
           return;
@@ -348,7 +362,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
                   batchId
               );
             }
-            assert(
+            hardAssert(
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
@@ -384,7 +398,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           // the rows for documentKey will occur before any rows for
           // documents nested in a subcollection beneath documentKey so we
           // can stop as soon as we hit any such row.
-          const path = EncodedResourcePath.decode(encodedPath);
+          const path = decodeResourcePath(encodedPath);
           if (userID !== this.userId || !documentKey.path.isEqual(path)) {
             control.done();
             return;
@@ -406,11 +420,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
-    assert(
+    debugAssert(
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
-    assert(
+    debugAssert(
       !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
@@ -442,7 +456,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return documentMutationsStore(transaction)
       .iterate({ range: indexStart }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;
-        const path = EncodedResourcePath.decode(encodedPath);
+        const path = decodeResourcePath(encodedPath);
         if (userID !== this.userId || !queryPath.isPrefixOf(path)) {
           control.done();
           return;
@@ -479,7 +493,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
                   batchId
               );
             }
-            assert(
+            hardAssert(
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
@@ -514,6 +528,15 @@ export class IndexedDbMutationQueue implements MutationQueue {
     });
   }
 
+  /**
+   * Clears the cached keys for a mutation batch. This method should be
+   * called by secondary clients after they process mutation updates.
+   *
+   * Note that this method does not have to be called from primary clients as
+   * the corresponding cache entries are cleared when an acknowledged or
+   * rejected batch is removed from the mutation queue.
+   */
+  // PORTING NOTE: Multi-tab only
   removeCachedMutationKeys(batchId: BatchId): void {
     delete this.documentKeysByBatchId[batchId];
   }
@@ -539,12 +562,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
             control.done();
             return;
           } else {
-            const path = EncodedResourcePath.decode(key[1]);
+            const path = decodeResourcePath(key[1]);
             danglingMutationReferences.push(path);
           }
         })
         .next(() => {
-          assert(
+          hardAssert(
             danglingMutationReferences.length === 0,
             'Document leak -- detected dangling mutation references when queue is empty. ' +
               'Dangling keys: ' +
@@ -651,7 +674,7 @@ export function removeMutationBatch(
   );
   promises.push(
     removePromise.next(() => {
-      assert(
+      hardAssert(
         numDeleted === 1,
         'Dangling document-mutation reference found: Missing batch ' +
           batch.batchId
@@ -669,19 +692,6 @@ export function removeMutationBatch(
     removedDocuments.push(mutation.key);
   }
   return PersistencePromise.waitFor(promises).next(() => removedDocuments);
-}
-
-function convertStreamToken(token: ProtoByteString): string {
-  if (token instanceof Uint8Array) {
-    // TODO(b/78771403): Convert tokens to strings during deserialization
-    assert(
-      SimpleDb.isMockPersistence(),
-      'Persisting non-string stream tokens is only supported with mock persistence.'
-    );
-    return token.toString();
-  } else {
-    return token;
-  }
 }
 
 /**

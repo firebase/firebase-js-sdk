@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,17 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import { emptyByteString } from '../platform/platform';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import * as log from '../util/log';
-import * as objUtils from '../util/obj';
-
+import { logDebug } from '../util/log';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
-import { Datastore } from './datastore';
+import {
+  Datastore,
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from './datastore';
 import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
@@ -52,6 +53,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -106,7 +108,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * to the server. The targets removed with unlistens are removed eagerly
    * without waiting for confirmation from the listen stream.
    */
-  private listenTargets: { [targetId: number]: TargetData } = {};
+  private listenTargets = new Map<TargetId, TargetData>();
 
   private connectivityMonitor: ConnectivityMonitor;
   private watchStream: PersistentListenStream;
@@ -121,6 +123,13 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private isPrimary = false;
 
+  /**
+   * When set to `true`, the network was taken offline due to an IndexedDB
+   * failure. The state is flipped to `false` when access becomes available
+   * again.
+   */
+  private indexedDbFailed = false;
+
   private onlineStateTracker: OnlineStateTracker;
 
   constructor(
@@ -130,7 +139,7 @@ export class RemoteStore implements TargetMetadataProvider {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
-    asyncQueue: AsyncQueue,
+    private asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
     connectivityMonitor: ConnectivityMonitor
   ) {
@@ -138,7 +147,7 @@ export class RemoteStore implements TargetMetadataProvider {
     this.connectivityMonitor.addCallback((status: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
         if (this.canUseNetwork()) {
-          log.debug(
+          logDebug(
             LOG_TAG,
             'Restarting streams for network reachability change.'
           );
@@ -153,13 +162,13 @@ export class RemoteStore implements TargetMetadataProvider {
     );
 
     // Create streams (but note they're not started yet).
-    this.watchStream = this.datastore.newPersistentWatchStream({
+    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
       onOpen: this.onWatchStreamOpen.bind(this),
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
 
-    this.writeStream = this.datastore.newPersistentWriteStream({
+    this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
       onOpen: this.onWriteStreamOpen.bind(this),
       onClose: this.onWriteStreamClose.bind(this),
       onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
@@ -182,9 +191,12 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Re-enables the network. Idempotent. */
-  async enableNetwork(): Promise<void> {
+  enableNetwork(): Promise<void> {
     this.networkEnabled = true;
+    return this.enableNetworkInternal();
+  }
 
+  private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
       this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
@@ -216,7 +228,7 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
-      log.debug(
+      logDebug(
         LOG_TAG,
         `Stopping write stream with ${this.writePipeline.length} pending writes`
       );
@@ -227,7 +239,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   async shutdown(): Promise<void> {
-    log.debug(LOG_TAG, 'RemoteStore shutting down.');
+    logDebug(LOG_TAG, 'RemoteStore shutting down.');
     this.networkEnabled = false;
     await this.disableNetworkInternal();
     this.connectivityMonitor.shutdown();
@@ -242,12 +254,12 @@ export class RemoteStore implements TargetMetadataProvider {
    * is a no-op if the target of given `TargetData` is already being listened to.
    */
   listen(targetData: TargetData): void {
-    if (objUtils.contains(this.listenTargets, targetData.targetId)) {
+    if (this.listenTargets.has(targetData.targetId)) {
       return;
     }
 
     // Mark this as something the client is currently listening for.
-    this.listenTargets[targetData.targetId] = targetData;
+    this.listenTargets.set(targetData.targetId, targetData);
 
     if (this.shouldStartWatchStream()) {
       // The listen will be sent in onWatchStreamOpen
@@ -262,17 +274,17 @@ export class RemoteStore implements TargetMetadataProvider {
    * not being listened to.
    */
   unlisten(targetId: TargetId): void {
-    assert(
-      objUtils.contains(this.listenTargets, targetId),
+    debugAssert(
+      this.listenTargets.has(targetId),
       `unlisten called on target no currently watched: ${targetId}`
     );
 
-    delete this.listenTargets[targetId];
+    this.listenTargets.delete(targetId);
     if (this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
     }
 
-    if (objUtils.isEmpty(this.listenTargets)) {
+    if (this.listenTargets.size === 0) {
       if (this.watchStream.isOpen()) {
         this.watchStream.markIdle();
       } else if (this.canUseNetwork()) {
@@ -286,7 +298,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** {@link TargetMetadataProvider.getTargetDataForTarget} */
   getTargetDataForTarget(targetId: TargetId): TargetData | null {
-    return this.listenTargets[targetId] || null;
+    return this.listenTargets.get(targetId) || null;
   }
 
   /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
@@ -314,7 +326,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWatchStream(): void {
-    assert(
+    debugAssert(
       this.shouldStartWatchStream(),
       'startWatchStream() called when shouldStartWatchStream() is false.'
     );
@@ -332,12 +344,12 @@ export class RemoteStore implements TargetMetadataProvider {
     return (
       this.canUseNetwork() &&
       !this.watchStream.isStarted() &&
-      !objUtils.isEmpty(this.listenTargets)
+      this.listenTargets.size > 0
     );
   }
 
   canUseNetwork(): boolean {
-    return this.isPrimary && this.networkEnabled;
+    return !this.indexedDbFailed && this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -345,7 +357,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWatchStreamOpen(): Promise<void> {
-    objUtils.forEachNumber(this.listenTargets, (targetId, targetData) => {
+    this.listenTargets.forEach((targetData, targetId) => {
       this.sendWatchRequest(targetData);
     });
   }
@@ -354,7 +366,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
+      debugAssert(
         !this.shouldStartWatchStream(),
         'Watch stream was stopped gracefully while still needed.'
       );
@@ -389,7 +401,18 @@ export class RemoteStore implements TargetMetadataProvider {
     ) {
       // There was an error on a target, don't wait for a consistent snapshot
       // to raise events
-      return this.handleTargetError(watchChange);
+      try {
+        await this.handleTargetError(watchChange);
+      } catch (e) {
+        logDebug(
+          LOG_TAG,
+          'Failed to remove targets %s: %s ',
+          watchChange.targetIds.join(','),
+          e
+        );
+        await this.disableNetworkUntilRecovery(e);
+      }
+      return;
     }
 
     if (watchChange instanceof DocumentWatchChange) {
@@ -397,20 +420,57 @@ export class RemoteStore implements TargetMetadataProvider {
     } else if (watchChange instanceof ExistenceFilterChange) {
       this.watchChangeAggregator!.handleExistenceFilter(watchChange);
     } else {
-      assert(
+      debugAssert(
         watchChange instanceof WatchTargetChange,
         'Expected watchChange to be an instance of WatchTargetChange'
       );
       this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
-    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
-      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-        // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.MIN.
-        await this.raiseWatchSnapshot(snapshotVersion);
+    if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
+      try {
+        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+          // We have received a target change with a global snapshot if the snapshot
+          // version is not equal to SnapshotVersion.min().
+          await this.raiseWatchSnapshot(snapshotVersion);
+        }
+      } catch (e) {
+        logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
+        await this.disableNetworkUntilRecovery(e);
       }
+    }
+  }
+
+  /**
+   * Recovery logic for IndexedDB errors that takes the network offline until
+   * IndexedDb probing succeeds. Retries are scheduled with backoff using
+   * `enqueueRetryable()`.
+   */
+  private async disableNetworkUntilRecovery(e: FirestoreError): Promise<void> {
+    if (e.name === 'IndexedDbTransactionError') {
+      debugAssert(
+        !this.indexedDbFailed,
+        'Unexpected network event when IndexedDB was marked failed.'
+      );
+      this.indexedDbFailed = true;
+
+      // Disable network and raise offline snapshots
+      await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Offline);
+
+      // Probe IndexedDB periodically and re-enable network
+      this.asyncQueue.enqueueRetryable(async () => {
+        logDebug(LOG_TAG, 'Retrying IndexedDB access');
+        // Issue a simple read operation to determine if IndexedDB recovered.
+        // Ideally, we would expose a health check directly on SimpleDb, but
+        // RemoteStore only has access to persistence through LocalStore.
+        await this.localStore.getLastRemoteSnapshotVersion();
+        this.indexedDbFailed = false;
+        await this.enableNetworkInternal();
+      });
+    } else {
+      throw e;
     }
   }
 
@@ -420,8 +480,8 @@ export class RemoteStore implements TargetMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    assert(
-      !snapshotVersion.isEqual(SnapshotVersion.MIN),
+    debugAssert(
+      !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
     );
     const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(
@@ -430,14 +490,14 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // Update in-memory resume tokens. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
-    objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
-      if (change.resumeToken.length > 0) {
-        const targetData = this.listenTargets[targetId];
+    remoteEvent.targetChanges.forEach((change, targetId) => {
+      if (change.resumeToken.approximateByteSize() > 0) {
+        const targetData = this.listenTargets.get(targetId);
         // A watched target might have been removed already.
         if (targetData) {
-          this.listenTargets[targetId] = targetData.withResumeToken(
-            change.resumeToken,
-            snapshotVersion
+          this.listenTargets.set(
+            targetId,
+            targetData.withResumeToken(change.resumeToken, snapshotVersion)
           );
         }
       }
@@ -446,7 +506,7 @@ export class RemoteStore implements TargetMetadataProvider {
     // Re-establish listens for the targets that have been invalidated by
     // existence filter mismatches.
     remoteEvent.targetMismatches.forEach(targetId => {
-      const targetData = this.listenTargets[targetId];
+      const targetData = this.listenTargets.get(targetId);
       if (!targetData) {
         // A watched target might have been removed already.
         return;
@@ -454,9 +514,12 @@ export class RemoteStore implements TargetMetadataProvider {
 
       // Clear the resume token for the target, since we're in a known mismatch
       // state.
-      this.listenTargets[targetId] = targetData.withResumeToken(
-        emptyByteString(),
-        targetData.snapshotVersion
+      this.listenTargets.set(
+        targetId,
+        targetData.withResumeToken(
+          ByteString.EMPTY_BYTE_STRING,
+          targetData.snapshotVersion
+        )
       );
 
       // Cause a hard reset by unwatching and rewatching immediately, but
@@ -481,21 +544,19 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Handles an error on a target */
-  private handleTargetError(watchChange: WatchTargetChange): Promise<void> {
-    assert(!!watchChange.cause, 'Handling target error without a cause');
+  private async handleTargetError(
+    watchChange: WatchTargetChange
+  ): Promise<void> {
+    debugAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
-    let promiseChain = Promise.resolve();
-    watchChange.targetIds.forEach(targetId => {
-      promiseChain = promiseChain.then(async () => {
-        // A watched target might have been removed already.
-        if (objUtils.contains(this.listenTargets, targetId)) {
-          delete this.listenTargets[targetId];
-          this.watchChangeAggregator!.removeTarget(targetId);
-          return this.syncEngine.rejectListen(targetId, error);
-        }
-      });
-    });
-    return promiseChain;
+    for (const targetId of watchChange.targetIds) {
+      // A watched target might have been removed already.
+      if (this.listenTargets.has(targetId)) {
+        await this.syncEngine.rejectListen(targetId, error);
+        this.listenTargets.delete(targetId);
+        this.watchChangeAggregator!.removeTarget(targetId);
+      }
+    }
   }
 
   /**
@@ -551,7 +612,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * immediately if the write stream is established.
    */
   private addToWritePipeline(batch: MutationBatch): void {
-    assert(
+    debugAssert(
       this.canAddToWritePipeline(),
       'addToWritePipeline called when pipeline is full'
     );
@@ -571,7 +632,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWriteStream(): void {
-    assert(
+    debugAssert(
       this.shouldStartWriteStream(),
       'startWriteStream() called when shouldStartWriteStream() is false.'
     );
@@ -601,7 +662,7 @@ export class RemoteStore implements TargetMetadataProvider {
   ): Promise<void> {
     // This is a response to a write containing mutations and should be
     // correlated to the first write in our write pipeline.
-    assert(
+    debugAssert(
       this.writePipeline.length > 0,
       'Got result for empty write pipeline'
     );
@@ -623,7 +684,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (error === undefined) {
       // Graceful stop (due to stop() or idle timeout). Make sure that's
       // desirable.
-      assert(
+      debugAssert(
         !this.shouldStartWriteStream(),
         'Write stream was stopped gracefully while still needed.'
       );
@@ -632,25 +693,21 @@ export class RemoteStore implements TargetMetadataProvider {
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
     if (error && this.writePipeline.length > 0) {
-      // A promise that is resolved after we processed the error
-      let errorHandling: Promise<void>;
       if (this.writeStream.handshakeComplete) {
         // This error affects the actual write.
-        errorHandling = this.handleWriteError(error!);
+        await this.handleWriteError(error!);
       } else {
         // If there was an error before the handshake has finished, it's
         // possible that the server is unable to process the stream token
         // we're sending. (Perhaps it's too old?)
-        errorHandling = this.handleHandshakeError(error!);
+        await this.handleHandshakeError(error!);
       }
 
-      return errorHandling.then(() => {
-        // The write stream might have been started by refilling the write
-        // pipeline for failed writes
-        if (this.shouldStartWriteStream()) {
-          this.startWriteStream();
-        }
-      });
+      // The write stream might have been started by refilling the write
+      // pipeline for failed writes
+      if (this.shouldStartWriteStream()) {
+        this.startWriteStream();
+      }
     }
     // No pending writes, nothing to do
   }
@@ -660,15 +717,15 @@ export class RemoteStore implements TargetMetadataProvider {
     // no longer valid. Note that the handshake does not count as a write: see
     // comments on isPermanentWriteError for details.
     if (isPermanentError(error.code)) {
-      log.debug(
+      logDebug(
         LOG_TAG,
         'RemoteStore error before completed handshake; resetting stream token: ',
         this.writeStream.lastStreamToken
       );
-      this.writeStream.lastStreamToken = emptyByteString();
+      this.writeStream.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
 
       return this.localStore
-        .setLastStreamToken(emptyByteString())
+        .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
         .catch(ignoreIfPrimaryLeaseLoss);
     } else {
       // Some other error, don't reset stream token. Our stream logic will
@@ -717,7 +774,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
+      logDebug(LOG_TAG, 'RemoteStore restarting streams for new credential');
       await this.restartNetwork();
     }
   }

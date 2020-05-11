@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import * as util from 'util';
+import { randomBytes } from 'crypto';
+import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
@@ -27,16 +28,16 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
+import { debugAssert } from '../util/assert';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
-
-  readonly emptyByteString = new Uint8Array(0);
 
   readonly document = null;
 
   get window(): Window | null {
     if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      // eslint-disable-next-line no-restricted-globals
       return window;
     }
 
@@ -58,7 +59,7 @@ export class NodePlatform implements Platform {
 
   formatJSON(value: unknown): string {
     // util.inspect() results in much more readable output than JSON.stringify()
-    return util.inspect(value, { depth: 100 });
+    return inspect(value, { depth: 100 });
   }
 
   atob(encoded: string): string {
@@ -75,5 +76,11 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
+  }
+
+  randomBytes(nBytes: number): Uint8Array {
+    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+
+    return randomBytes(nBytes);
   }
 }

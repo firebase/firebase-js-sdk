@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-import { Document } from '../model/document';
+import * as api from '../protos/firestore_proto_api';
+
+import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
-  ArrayValue,
-  DoubleValue,
-  FieldValue,
-  NullValue,
-  RefValue
-} from '../model/field_value';
+  canonicalId,
+  valueCompare,
+  arrayValueContains,
+  valueEquals,
+  isArray,
+  isNanValue,
+  isNullValue,
+  isReferenceValue,
+  typeOrder
+} from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
 
-export enum LimitType {
+export const enum LimitType {
   First = 'F',
   Last = 'L'
 }
@@ -74,28 +80,27 @@ export class Query {
 
   get orderBy(): OrderBy[] {
     if (this.memoizedOrderBy === null) {
+      this.memoizedOrderBy = [];
+
       const inequalityField = this.getInequalityFilterField();
       const firstOrderByField = this.getFirstOrderByField();
       if (inequalityField !== null && firstOrderByField === null) {
         // In order to implicitly add key ordering, we must also add the
         // inequality filter field for it to be a valid query.
         // Note that the default inequality field and key ordering is ascending.
-        if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [KEY_ORDERING_ASC];
-        } else {
-          this.memoizedOrderBy = [
-            new OrderBy(inequalityField),
-            KEY_ORDERING_ASC
-          ];
+        if (!inequalityField.isKeyField()) {
+          this.memoizedOrderBy.push(new OrderBy(inequalityField));
         }
+        this.memoizedOrderBy.push(
+          new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+        );
       } else {
-        assert(
+        debugAssert(
           inequalityField === null ||
             (firstOrderByField !== null &&
               inequalityField.isEqual(firstOrderByField)),
           'First orderBy should match inequality field.'
         );
-        this.memoizedOrderBy = [];
         let foundKeyOrdering = false;
         for (const orderBy of this.explicitOrderBy) {
           this.memoizedOrderBy.push(orderBy);
@@ -111,9 +116,7 @@ export class Query {
               ? this.explicitOrderBy[this.explicitOrderBy.length - 1].dir
               : Direction.ASCENDING;
           this.memoizedOrderBy.push(
-            lastDirection === Direction.ASCENDING
-              ? KEY_ORDERING_ASC
-              : KEY_ORDERING_DESC
+            new OrderBy(FieldPath.keyField(), lastDirection)
           );
         }
       }
@@ -122,7 +125,7 @@ export class Query {
   }
 
   addFilter(filter: Filter): Query {
-    assert(
+    debugAssert(
       this.getInequalityFilterField() == null ||
         !(filter instanceof FieldFilter) ||
         !filter.isInequality() ||
@@ -130,7 +133,10 @@ export class Query {
       'Query must only have one inequality field.'
     );
 
-    assert(!this.isDocumentQuery(), 'No filtering allowed for document query');
+    debugAssert(
+      !this.isDocumentQuery(),
+      'No filtering allowed for document query'
+    );
 
     const newFilters = this.filters.concat([filter]);
     return new Query(
@@ -146,7 +152,10 @@ export class Query {
   }
 
   addOrderBy(orderBy: OrderBy): Query {
-    assert(!this.startAt && !this.endAt, 'Bounds must be set after orderBy');
+    debugAssert(
+      !this.startAt && !this.endAt,
+      'Bounds must be set after orderBy'
+    );
     // TODO(dimond): validate that orderBy does not list the same key twice.
     const newOrderBy = this.explicitOrderBy.concat([orderBy]);
     return new Query(
@@ -278,7 +287,7 @@ export class Query {
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key
-    assert(
+    debugAssert(
       comparedOnKeyField,
       "orderBy used that doesn't compare on key field"
     );
@@ -443,7 +452,7 @@ export class Query {
   }
 
   private assertValidBound(bound: Bound): void {
-    assert(
+    debugAssert(
       bound.position.length <= this.orderBy.length,
       'Bound is longer than orderBy'
     );
@@ -456,55 +465,22 @@ export abstract class Filter {
   abstract isEqual(filter: Filter): boolean;
 }
 
-export class Operator {
-  static LESS_THAN = new Operator('<');
-  static LESS_THAN_OR_EQUAL = new Operator('<=');
-  static EQUAL = new Operator('==');
-  static GREATER_THAN = new Operator('>');
-  static GREATER_THAN_OR_EQUAL = new Operator('>=');
-  static ARRAY_CONTAINS = new Operator('array-contains');
-  static IN = new Operator('in');
-  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
-
-  static fromString(op: string): Operator {
-    switch (op) {
-      case '<':
-        return Operator.LESS_THAN;
-      case '<=':
-        return Operator.LESS_THAN_OR_EQUAL;
-      case '==':
-        return Operator.EQUAL;
-      case '>=':
-        return Operator.GREATER_THAN_OR_EQUAL;
-      case '>':
-        return Operator.GREATER_THAN;
-      case 'array-contains':
-        return Operator.ARRAY_CONTAINS;
-      case 'in':
-        return Operator.IN;
-      case 'array-contains-any':
-        return Operator.ARRAY_CONTAINS_ANY;
-      default:
-        return fail('Unknown FieldFilter operator: ' + op);
-    }
-  }
-
-  constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
-
-  isEqual(other: Operator): boolean {
-    return this.name === other.name;
-  }
+export const enum Operator {
+  LESS_THAN = '<',
+  LESS_THAN_OR_EQUAL = '<=',
+  EQUAL = '==',
+  GREATER_THAN = '>',
+  GREATER_THAN_OR_EQUAL = '>=',
+  ARRAY_CONTAINS = 'array-contains',
+  IN = 'in',
+  ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
 export class FieldFilter extends Filter {
   protected constructor(
     public field: FieldPath,
     public op: Operator,
-    public value: FieldValue
+    public value: api.Value
   ) {
     super();
   }
@@ -512,36 +488,30 @@ export class FieldFilter extends Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(
-    field: FieldPath,
-    op: Operator,
-    value: FieldValue
-  ): FieldFilter {
+  static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
     if (field.isKeyField()) {
       if (op === Operator.IN) {
-        assert(
-          value instanceof ArrayValue,
+        debugAssert(
+          isArray(value),
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
-        assert(
-          value.internalValue.every(elem => {
-            return elem instanceof RefValue;
-          }),
+        debugAssert(
+          (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
         return new KeyFieldInFilter(field, value);
       } else {
-        assert(
-          value instanceof RefValue,
+        debugAssert(
+          isReferenceValue(value),
           'Comparing on key, but filter value not a RefValue'
         );
-        assert(
+        debugAssert(
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
         return new KeyFieldFilter(field, op, value);
       }
-    } else if (value.isEqual(NullValue.INSTANCE)) {
+    } else if (isNullValue(value)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -549,7 +519,7 @@ export class FieldFilter extends Filter {
         );
       }
       return new FieldFilter(field, op, value);
-    } else if (value.isEqual(DoubleValue.NAN)) {
+    } else if (isNanValue(value)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -560,14 +530,14 @@ export class FieldFilter extends Filter {
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
     } else if (op === Operator.IN) {
-      assert(
-        value instanceof ArrayValue,
+      debugAssert(
+        isArray(value),
         'IN filter has invalid value: ' + value.toString()
       );
       return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
-      assert(
-        value instanceof ArrayValue,
+      debugAssert(
+        isArray(value),
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
       return new ArrayContainsAnyFilter(field, value);
@@ -582,8 +552,8 @@ export class FieldFilter extends Filter {
     // Only compare types with matching backend order (such as double and int).
     return (
       other !== null &&
-      this.value.typeOrder === other.typeOrder &&
-      this.matchesComparison(other.compareTo(this.value))
+      typeOrder(this.value) === typeOrder(other) &&
+      this.matchesComparison(valueCompare(other, this.value))
     );
   }
 
@@ -620,16 +590,18 @@ export class FieldFilter extends Filter {
     // the same description, such as the int 3 and the string "3". So we should
     // add the types in here somehow, too.
     return (
-      this.field.canonicalString() + this.op.toString() + this.value.toString()
+      this.field.canonicalString() +
+      this.op.toString() +
+      canonicalId(this.value)
     );
   }
 
   isEqual(other: Filter): boolean {
     if (other instanceof FieldFilter) {
       return (
-        this.op.isEqual(other.op) &&
+        this.op === other.op &&
         this.field.isEqual(other.field) &&
-        this.value.isEqual(other.value)
+        valueEquals(this.value, other.value)
       );
     } else {
       return false;
@@ -637,71 +609,91 @@ export class FieldFilter extends Filter {
   }
 
   toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${this.value.value()}`;
+    return `${this.field.canonicalString()} ${this.op} ${canonicalId(
+      this.value
+    )}`;
   }
 }
 
 /** Filter that matches on key fields (i.e. '__name__'). */
 export class KeyFieldFilter extends FieldFilter {
+  private readonly key: DocumentKey;
+
+  constructor(field: FieldPath, op: Operator, value: api.Value) {
+    super(field, op, value);
+    debugAssert(
+      isReferenceValue(value),
+      'KeyFieldFilter expects a ReferenceValue'
+    );
+    this.key = DocumentKey.fromName(value.referenceValue);
+  }
+
   matches(doc: Document): boolean {
-    const refValue = this.value as RefValue;
-    const comparison = DocumentKey.comparator(doc.key, refValue.key);
+    const comparison = DocumentKey.comparator(doc.key, this.key);
     return this.matchesComparison(comparison);
   }
 }
 
 /** Filter that matches on key fields within an array. */
 export class KeyFieldInFilter extends FieldFilter {
-  constructor(field: FieldPath, public value: ArrayValue) {
+  private readonly keys: DocumentKey[];
+
+  constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
+    debugAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
+    this.keys = (value.arrayValue.values || []).map(v => {
+      debugAssert(
+        isReferenceValue(v),
+        'Comparing on key with IN, but an array value was not a ReferenceValue'
+      );
+      return DocumentKey.fromName(v.referenceValue);
+    });
   }
 
   matches(doc: Document): boolean {
-    const arrayValue = this.value;
-    return arrayValue.internalValue.some(refValue => {
-      return doc.key.isEqual((refValue as RefValue).key);
-    });
+    return this.keys.some(key => key.isEqual(doc.key));
   }
 }
 
 /** A Filter that implements the array-contains operator. */
 export class ArrayContainsFilter extends FieldFilter {
-  constructor(field: FieldPath, value: FieldValue) {
+  constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.ARRAY_CONTAINS, value);
   }
 
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
-    return other instanceof ArrayValue && other.contains(this.value);
+    return isArray(other) && arrayValueContains(other.arrayValue, this.value);
   }
 }
 
 /** A Filter that implements the IN operator. */
 export class InFilter extends FieldFilter {
-  constructor(field: FieldPath, public value: ArrayValue) {
+  constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
+    debugAssert(isArray(value), 'InFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
-    const arrayValue = this.value;
     const other = doc.field(this.field);
-    return other !== null && arrayValue.contains(other);
+    return other !== null && arrayValueContains(this.value.arrayValue!, other);
   }
 }
 
 /** A Filter that implements the array-contains-any operator. */
 export class ArrayContainsAnyFilter extends FieldFilter {
-  constructor(field: FieldPath, public value: ArrayValue) {
+  constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);
+    debugAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
   }
 
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
-    return (
-      other instanceof ArrayValue &&
-      other.internalValue.some(lhsElem => {
-        return this.value.contains(lhsElem);
-      })
+    if (!isArray(other) || !other.arrayValue.values) {
+      return false;
+    }
+    return other.arrayValue.values.some(val =>
+      arrayValueContains(this.value.arrayValue!, val)
     );
   }
 }
@@ -709,15 +701,9 @@ export class ArrayContainsAnyFilter extends FieldFilter {
 /**
  * The direction of sorting in an order by.
  */
-export class Direction {
-  static ASCENDING = new Direction('asc');
-  static DESCENDING = new Direction('desc');
-
-  private constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
+export const enum Direction {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc'
 }
 
 /**
@@ -735,15 +721,13 @@ export class Direction {
  * just after the provided values.
  */
 export class Bound {
-  constructor(readonly position: FieldValue[], readonly before: boolean) {}
+  constructor(readonly position: api.Value[], readonly before: boolean) {}
 
   canonicalId(): string {
     // TODO(b/29183165): Make this collision robust.
-    let canonicalId = this.before ? 'b:' : 'a:';
-    for (const component of this.position) {
-      canonicalId += component.toString();
-    }
-    return canonicalId;
+    return `${this.before ? 'b' : 'a'}:${this.position
+      .map(p => canonicalId(p))
+      .join(',')}`;
   }
 
   /**
@@ -751,7 +735,7 @@ export class Bound {
    * order.
    */
   sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
-    assert(
+    debugAssert(
       this.position.length <= orderBy.length,
       "Bound has more components than query's orderBy"
     );
@@ -760,18 +744,21 @@ export class Bound {
       const orderByComponent = orderBy[i];
       const component = this.position[i];
       if (orderByComponent.field.isKeyField()) {
-        assert(
-          component instanceof RefValue,
+        debugAssert(
+          isReferenceValue(component),
           'Bound has a non-key value where the key path is being used.'
         );
-        comparison = DocumentKey.comparator(component.key, doc.key);
+        comparison = DocumentKey.comparator(
+          DocumentKey.fromName(component.referenceValue),
+          doc.key
+        );
       } else {
         const docValue = doc.field(orderByComponent.field);
-        assert(
+        debugAssert(
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = component.compareTo(docValue);
+        comparison = valueCompare(component, docValue);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;
@@ -796,7 +783,7 @@ export class Bound {
     for (let i = 0; i < this.position.length; i++) {
       const thisPosition = this.position[i];
       const otherPosition = other.position[i];
-      if (!thisPosition.isEqual(otherPosition)) {
+      if (!valueEquals(thisPosition, otherPosition)) {
         return false;
       }
     }
@@ -821,8 +808,8 @@ export class OrderBy {
 
   compare(d1: Document, d2: Document): number {
     const comparison = this.isKeyOrderBy
-      ? Document.compareByKey(d1, d2)
-      : Document.compareByField(this.field, d1, d2);
+      ? DocumentKey.comparator(d1.key, d2.key)
+      : compareDocumentsByField(this.field, d1, d2);
     switch (this.dir) {
       case Direction.ASCENDING:
         return comparison;
@@ -846,9 +833,3 @@ export class OrderBy {
     return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
-
-const KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
-const KEY_ORDERING_DESC = new OrderBy(
-  FieldPath.keyField(),
-  Direction.DESCENDING
-);

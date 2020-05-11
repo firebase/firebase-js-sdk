@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,25 +56,24 @@ function checkVersion() {
   });
 }
 
-async function doPrettierCommit() {
+async function doPrettier(changedFiles) {
   try {
     await checkVersion();
   } catch (e) {
     console.error(e);
     return process.exit(1);
   }
-  const diff = await git.diff([
-    '--name-only',
-    'origin/master...HEAD',
-    '--diff-filter',
-    'd'
-  ]);
+
   // Only run on .js or .ts files.
-  const targetFiles = diff.split('\n').filter(line => line.match(/(js|ts)$/));
-  if (targetFiles.length === 0) return;
+  const targetFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
+
+  if (targetFiles.length === 0) {
+    console.log('No files changed.');
+    return;
+  }
 
   const stylingSpinner = ora(
-    ` Formatting ${targetFiles.length} files with prettier`
+    ` Checking ${targetFiles.length} files with prettier`
   ).start();
   await spawn(
     'prettier',
@@ -91,19 +90,23 @@ async function doPrettierCommit() {
     symbol: '✅'
   });
 
-  const hasDiff = await git.diff();
+  // Diff unstaged (prettier writes) against staged.
+  const stageDiff = await git.diff(['--name-only']);
 
-  if (!hasDiff) return;
+  if (!stageDiff) {
+    console.log(chalk`\n{red Prettier formatting caused no changes.}\n`);
+    return;
+  } else {
+    console.log(`Prettier modified ${stageDiff.split('\n').length - 1} files.`);
+  }
 
-  const gitSpinner = ora(' Creating automated style commit').start();
+  const gitSpinner = ora(' Git staging prettier formatting changes.').start();
   await git.add(targetFiles);
-
-  await git.commit('[AUTOMATED]: Prettier Code Styling');
   gitSpinner.stopAndPersist({
-    symbol: '✅'
+    symbol: '▶️'
   });
 }
 
 module.exports = {
-  doPrettierCommit
+  doPrettier
 };

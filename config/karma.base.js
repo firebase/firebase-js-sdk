@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,10 @@ const config = {
   // preprocess matching files before serving them to the browser
   // available preprocessors:
   // https://npmjs.org/browse/keyword/karma-preprocessor
-  preprocessors: { 'test/**/*.ts': ['webpack', 'sourcemap'] },
+  preprocessors: {
+    'test/**/*.ts': ['webpack', 'sourcemap'],
+    'src/**/*.test.ts': ['webpack', 'sourcemap']
+  },
 
   mime: { 'text/x-typescript': ['ts', 'tsx'] },
 
@@ -120,6 +123,15 @@ const config = {
 // In CI environment, use saucelabs to test
 if (false /* process.env.TRAVIS */) {
   config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
+}
+
+// Make it easy to spot failed tests in CI
+if (process.env.CI) {
+  config.specReporter = {
+    suppressErrorSummary: true,
+    suppressPassed: true, // do not print information about passed tests
+    suppressSkipped: true
+  };
 }
 
 module.exports = config;

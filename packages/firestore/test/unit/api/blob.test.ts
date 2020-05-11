@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
  */
 
 import { expect } from 'chai';
-import { Blob, PublicBlob } from '../../../src/api/blob';
-import {
-  blob,
-  expectCorrectComparisons,
-  expectEqual,
-  expectNotEqual
-} from '../../util/helpers';
+import { Blob } from '../../../src/api/blob';
+import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('Blob', () => {
   const base64Mappings: { [base64: string]: number[] } = {
@@ -57,37 +52,8 @@ describe('Blob', () => {
     );
   });
 
-  it('Blob throws on using the public constructor', () => {
-    // allow using constructor with any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(() => new (PublicBlob as any)('')).to.throw(
-      'This constructor is private. Use Blob.fromUint8Array() or ' +
-        'Blob.fromBase64String() instead.'
-    );
-  });
-
-  it('PublicBlob works with instanceof checks', () => {
-    expect(Blob.fromBase64String('') instanceof PublicBlob).to.equal(true);
-  });
-
-  it('compares correctly', () => {
-    const values = [
-      blob(0),
-      blob(0, 1),
-      blob(0, 1, 2),
-      blob(0, 2),
-      blob(0, 255),
-      blob(1),
-      blob(1, 0),
-      blob(1, 2),
-      blob(1, 255),
-      blob(2),
-      blob(255)
-    ];
-
-    expectCorrectComparisons(values, (left: Blob, right: Blob) => {
-      return left._compareTo(right);
-    });
+  it('works with instanceof checks', () => {
+    expect(Blob.fromBase64String('') instanceof Blob).to.equal(true);
   });
 
   it('support equality checking with isEqual()', () => {

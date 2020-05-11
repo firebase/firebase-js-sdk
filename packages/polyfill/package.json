@@ -1,6 +1,6 @@
 {
   "name": "@firebase/polyfill",
-  "version": "0.3.31",
+  "version": "0.3.35",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -16,13 +16,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "core-js": "3.6.2",
+    "core-js": "3.6.5",
     "promise-polyfill": "8.1.3",
     "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "1.28.0",
-    "rollup-plugin-typescript2": "0.25.3"
+    "rollup": "2.7.6",
+    "rollup-plugin-typescript2": "0.27.0"
   },
   "repository": {
     "directory": "packages/polyfill",

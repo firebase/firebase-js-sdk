@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ apiDescribe(
       let started = 0;
 
       return integrationHelpers.withTestDb(persistence, db => {
-        asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+        asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
         const doc = db.collection('counters').doc();
         return doc
           .set({
@@ -93,7 +93,7 @@ apiDescribe(
       let counter = 0;
 
       return integrationHelpers.withTestDb(persistence, db => {
-        asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+        asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
         const doc = db.collection('counters').doc();
         return doc
           .set({
@@ -148,7 +148,7 @@ apiDescribe(
 
     it('handle reading a doc twice with different versions', () => {
       return integrationHelpers.withTestDb(persistence, db => {
-        asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+        asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
         const doc = db.collection('counters').doc();
         let counter = 0;
         return doc

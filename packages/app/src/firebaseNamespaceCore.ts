@@ -34,6 +34,12 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
+import {
+  setUserLogHandler,
+  setLogLevel,
+  LogCallback,
+  LogOptions
+} from '@firebase/logger';
 import { Component, ComponentType, Name } from '@firebase/component';
 
 /**
@@ -60,6 +66,8 @@ export function createFirebaseNamespaceCore(
     // @ts-ignore
     app,
     registerVersion,
+    setLogLevel,
+    onLog,
     // @ts-ignore
     apps: null,
     SDK_VERSION: version,
@@ -275,6 +283,15 @@ export function createFirebaseNamespaceCore(
         ComponentType.VERSION
       )
     );
+  }
+
+  function onLog(logCallback: LogCallback | null, options?: LogOptions): void {
+    if (logCallback !== null && typeof logCallback !== 'function') {
+      throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
+        appName: name
+      });
+    }
+    setUserLogHandler(logCallback, options);
   }
 
   // Map the requested service to a registered service name

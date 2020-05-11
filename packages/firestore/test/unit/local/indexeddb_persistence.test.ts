@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
  */
 
 import { expect } from 'chai';
+import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { decode, encode } from '../../../src/local/encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbCollectionParent,
@@ -53,12 +57,13 @@ import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { doc, path, version } from '../../util/helpers';
+import { doc, filter, path, version } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -67,6 +72,8 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+
+/* eslint-disable no-restricted-globals */
 
 function withDb(
   schemaVersion: number,
@@ -119,17 +126,18 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: multiClient,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new IndexedDbPersistence(
+    multiClient,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
+    LruParams.DEFAULT,
     queue,
     serializer,
-    lruParams: LruParams.DEFAULT,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    MOCK_SEQUENCE_NUMBER_SYNCER
+  );
 
+  await persistence.start();
   await fn(persistence, platform, queue);
   await persistence.shutdown();
 }
@@ -216,14 +224,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const resetTargetGlobal = new DbTargetGlobal(
       /*highestTargetId=*/ 0,
       /*highestListenSequencNumber=*/ 0,
-      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.MIN.toTimestamp(),
+      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.min().toTimestamp(),
       /*targetCount=*/ 0
     );
 
     return withDb(2, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction(
-        'readwrite-idempotent',
+        'readwrite',
         [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
         txn => {
           const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
@@ -252,7 +260,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         const sdb = new SimpleDb(db);
         return sdb.runTransaction(
-          'readwrite-idempotent',
+          'readwrite',
           [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
           txn => {
             const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
@@ -317,47 +325,39 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(3, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction(
-        'readwrite-idempotent',
-        [DbMutationBatch.store],
-        txn => {
-          const store = txn.store(DbMutationBatch.store);
-          return PersistencePromise.forEach(
-            testMutations,
-            (testMutation: DbMutationBatch) => store.put(testMutation)
-          );
-        }
-      );
+      return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
+        const store = txn.store(DbMutationBatch.store);
+        return PersistencePromise.forEach(
+          testMutations,
+          (testMutation: DbMutationBatch) => store.put(testMutation)
+        );
+      });
     }).then(() =>
       withDb(4, db => {
         expect(db.version).to.be.equal(4);
         expect(getAllObjectStores(db)).to.have.members(V4_STORES);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction(
-          'readwrite-idempotent',
-          [DbMutationBatch.store],
-          txn => {
-            const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-              DbMutationBatch.store
-            );
-            let p = PersistencePromise.forEach(
-              testMutations,
-              (testMutation: DbMutationBatch) =>
-                store.get(testMutation.batchId).next(mutationBatch => {
-                  expect(mutationBatch).to.deep.equal(testMutation);
-                })
-            );
-            p = p.next(() => {
-              store
-                .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-                .next(batchId => {
-                  expect(batchId).to.equal(43);
-                });
-            });
-            return p;
-          }
-        );
+        return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
+          const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
+            DbMutationBatch.store
+          );
+          let p = PersistencePromise.forEach(
+            testMutations,
+            (testMutation: DbMutationBatch) =>
+              store.get(testMutation.batchId).next(mutationBatch => {
+                expect(mutationBatch).to.deep.equal(testMutation);
+              })
+          );
+          p = p.next(() => {
+            store
+              .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+              .next(batchId => {
+                expect(batchId).to.equal(43);
+              });
+          });
+          return p;
+        });
       })
     );
   });
@@ -430,7 +430,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return withDb(4, db => {
       const sdb = new SimpleDb(db);
       // We can only use the V4 stores here, since that's as far as we've upgraded.
-      return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
         const mutationBatchStore = txn.store<
           DbMutationBatchKey,
           DbMutationBatch
@@ -479,7 +479,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         const sdb = new SimpleDb(db);
         // There is no V5_STORES, continue using V4.
-        return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
+        return sdb.runTransaction('readwrite', V4_STORES, txn => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
@@ -531,7 +531,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       }));
       // V5 stores doesn't exist
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
         const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
           DbRemoteDocument.store
         );
@@ -544,7 +544,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
     await withDb(6, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
         const store = txn.store<
           DbRemoteDocumentGlobalKey,
           DbRemoteDocumentGlobal
@@ -567,7 +567,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const serializer = TEST_SERIALIZER;
 
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
         const targetGlobalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
           DbTargetGlobal.store
         );
@@ -603,7 +603,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                   targetDocumentStore.put(
                     new DbTargetDocument(
                       0,
-                      encode(document.key.path),
+                      encodeResourcePath(document.key.path),
                       oldSequenceNumber
                     )
                   )
@@ -618,7 +618,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Now run the migration and verify
     await withDb(7, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
         const targetDocumentStore = txn.store<
           DbTargetDocumentKey,
           DbTargetDocument
@@ -632,7 +632,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return targetDocumentStore.iterate(
           { range },
           ([_, path], targetDocument) => {
-            const decoded = decode(path);
+            const decoded = decodeResourcePath(path);
             const lastSegment = decoded.lastSegment();
             const docNum = +lastSegment.split('_')[1];
             const expected =
@@ -669,7 +669,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(7, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -706,7 +706,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Migrate to v8 and verify index entries.
     await withDb(8, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const collectionParentsStore = txn.store<
           DbCollectionParentKey,
           DbCollectionParent
@@ -719,10 +719,48 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               parents = [];
               actualParents[collectionId] = parents;
             }
-            parents.push(decode(parent).toString());
+            parents.push(decodeResourcePath(parent).toString());
           }
 
           expect(actualParents).to.deep.equal(expectedParents);
+        });
+      });
+    });
+  });
+
+  it('rewrites canonical IDs during upgrade from version 9 to 10', async () => {
+    await withDb(9, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+        const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+
+        const filteredQuery = Query.atPath(path('collection')).addFilter(
+          filter('foo', '==', 'bar')
+        );
+        const initialTargetData = new TargetData(
+          filteredQuery.toTarget(),
+          /* targetId= */ 2,
+          TargetPurpose.Listen,
+          /* sequenceNumber= */ 1
+        );
+
+        const serializedData = TEST_SERIALIZER.toDbTarget(initialTargetData);
+        serializedData.canonicalId = 'invalid_canonical_id';
+
+        return targetsStore.put(TEST_SERIALIZER.toDbTarget(initialTargetData));
+      });
+    });
+
+    await withDb(10, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+        const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+        return targetsStore.iterate((key, value) => {
+          const targetData = TEST_SERIALIZER.fromDbTarget(value).target;
+          const expectedCanonicalId = targetData.canonicalId();
+
+          const actualCanonicalId = value.canonicalId;
+          expect(actualCanonicalId).to.equal(expectedCanonicalId);
         });
       });
     });
@@ -748,7 +786,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(8, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -824,7 +862,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -858,7 +896,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -920,16 +958,12 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER)
     );
-    await simpleDb.runTransaction(
-      'readwrite-idempotent',
-      [DbPrimaryClient.store],
-      txn => {
-        const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-          DbPrimaryClient.store
-        );
-        return primaryStore.delete(DbPrimaryClient.key);
-      }
-    );
+    await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+      const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
+      return primaryStore.delete(DbPrimaryClient.key);
+    });
     simpleDb.close();
   }
 
@@ -940,7 +974,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       new SchemaConverter(TEST_SERIALIZER)
     );
     const leaseOwner = await simpleDb.runTransaction(
-      'readonly-idempotent',
+      'readonly',
       [DbPrimaryClient.store],
       txn => {
         const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
@@ -1067,7 +1101,7 @@ describe('IndexedDb: canActAsPrimary', () => {
 
       await persistence.runTransaction(
         'regain lease',
-        'readwrite-primary-idempotent',
+        'readwrite-primary',
         () => PersistencePromise.resolve()
       );
 

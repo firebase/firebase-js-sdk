@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -49,7 +48,7 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { path, wrapObject } from '../../util/helpers';
+import { key, path, version, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -140,7 +139,7 @@ function genericLruGarbageCollectorTests(
   }
 
   function nextTestDocumentKey(): DocumentKey {
-    return DocumentKey.fromPathString('docs/doc_' + ++previousDocNum);
+    return key('docs/doc_' + ++previousDocNum);
   }
 
   function emptyTargetDataMap(): SortedMap<TargetId, TargetData> {
@@ -246,9 +245,12 @@ function genericLruGarbageCollectorTests(
     const key = nextTestDocumentKey();
     return new Document(
       key,
-      SnapshotVersion.fromMicroseconds(1000),
-      {},
-      wrapObject({ foo: 3, bar: false })
+      version(1000),
+      wrapObject({
+        foo: 3,
+        bar: false
+      }),
+      {}
     );
   }
 
@@ -274,7 +276,7 @@ function genericLruGarbageCollectorTests(
     return new SetMutation(
       key,
       wrapObject({ baz: 'hello', world: 2 }),
-      Precondition.NONE
+      Precondition.none()
     );
   }
 
@@ -781,9 +783,12 @@ function genericLruGarbageCollectorTests(
       txn => {
         const doc = new Document(
           middleDocToUpdate,
-          SnapshotVersion.fromMicroseconds(2000),
-          {},
-          wrapObject({ foo: 4, bar: true })
+          version(2000),
+          wrapObject({
+            foo: 4,
+            bar: true
+          }),
+          {}
         );
         return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);

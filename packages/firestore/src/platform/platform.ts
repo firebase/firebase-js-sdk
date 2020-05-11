@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { ProtoByteString } from '../core/types';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
@@ -44,6 +43,13 @@ export interface Platform {
   /** Converts a binary string to a Base64 encoded string. */
   btoa(raw: string): string;
 
+  /**
+   * Generates `nBytes` of random bytes.
+   *
+   * If `nBytes < 0` , an error will be thrown.
+   */
+  randomBytes(nBytes: number): Uint8Array;
+
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
 
@@ -52,8 +58,6 @@ export interface Platform {
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;
-
-  readonly emptyByteString: ProtoByteString;
 }
 
 /**
@@ -76,12 +80,4 @@ export class PlatformSupport {
     }
     return PlatformSupport.platform;
   }
-}
-
-/**
- * Returns the representation of an empty "proto" byte string for the
- * platform.
- */
-export function emptyByteString(): ProtoByteString {
-  return PlatformSupport.getPlatform().emptyByteString;
 }

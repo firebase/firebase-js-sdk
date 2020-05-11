@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-types",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -11,11 +11,12 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "typescript": "3.7.5"
+    "typescript": "3.8.3"
   },
   "repository": {
+    "directory": "packages/performance-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/performance-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

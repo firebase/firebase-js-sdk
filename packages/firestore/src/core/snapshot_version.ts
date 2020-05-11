@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,12 @@ import { Timestamp } from '../api/timestamp';
  * timestamp, such as update_time or read_time.
  */
 export class SnapshotVersion {
-  static readonly MIN = new SnapshotVersion(new Timestamp(0, 0));
-
-  // TODO(b/34176344): Once we no longer need to use the old alpha protos,
-  // delete this constructor and use a timestamp-backed version everywhere.
-  static fromMicroseconds(value: number): SnapshotVersion {
-    const seconds = Math.floor(value / 1e6);
-    const nanos = (value % 1e6) * 1e3;
-    return new SnapshotVersion(new Timestamp(seconds, nanos));
-  }
-
   static fromTimestamp(value: Timestamp): SnapshotVersion {
     return new SnapshotVersion(value);
   }
 
-  static forDeletedDoc(): SnapshotVersion {
-    return SnapshotVersion.MIN;
+  static min(): SnapshotVersion {
+    return new SnapshotVersion(new Timestamp(0, 0));
   }
 
   private constructor(private timestamp: Timestamp) {}
