@@ -50,12 +50,6 @@ describe('Database Tests', () => {
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');
   });
 
-  it('Can get database with custom URL', () => {
-    const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('https://foo.euw1.firebasedatabase.app/');
-  });
-
   it('Can get database with custom URL and port', () => {
     const db = defaultApp.database('http://foo.bar.com:80');
     expect(db).to.be.ok;
@@ -66,6 +60,13 @@ describe('Database Tests', () => {
     const db = defaultApp.database('https://foo.bar.com');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+  });
+
+  it('Can get database with multi-region URL', () => {
+    const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db.ref().toString()).to.equal('https://foo.euw1.firebasedatabase.app/');
   });
 
   it('Can get database with localhost URL and port', () => {

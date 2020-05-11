@@ -181,6 +181,8 @@ export const parseDatabaseURL = function(
     const hostFirstPart = host.substring(0, dotInd);
     if (hostFirstPart.toLowerCase() === 'localhost') {
       domain = 'localhost';
+    } else if (dotInd === colonInd) {
+      return; // Not a valid URL.
     } else {
       domain = host.substring(dotInd+1);
       // Normalize namespaces to lowercase to share storage / connection.
