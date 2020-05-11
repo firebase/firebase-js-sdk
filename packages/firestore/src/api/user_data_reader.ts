@@ -138,11 +138,14 @@ interface ContextSettings {
    * A path within the object being parsed. This could be an empty path (in
    * which case the context represents the root of the data being parsed), or a
    * nonempty path (indicating the context represents a nested location within
-   * the data).
+   * the data). Defaults to null.
    */
-  readonly path: FieldPath | null;
-  /** Whether or not this context corresponds to an element of an array. */
-  readonly arrayElement: boolean;
+  readonly path?: FieldPath;
+  /**
+   * Whether or not this context corresponds to an element of an array.
+   * Defaults to false.
+   */
+  readonly arrayElement?: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -181,7 +184,7 @@ export class ParseContext {
     this.fieldMask = fieldMask || [];
   }
 
-  get path(): FieldPath | null {
+  get path(): FieldPath | undefined {
     return this.settings.path;
   }
 
@@ -201,14 +204,14 @@ export class ParseContext {
   }
 
   childContextForField(field: string): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
+    const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePathSegment(field);
     return context;
   }
 
   childContextForFieldPath(field: FieldPath): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
+    const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePath();
     return context;
@@ -217,12 +220,12 @@ export class ParseContext {
   childContextForArray(index: number): ParseContext {
     // TODO(b/34871131): We don't support array paths right now; so make path
     // null.
-    return this.contextWith({ path: null, arrayElement: true });
+    return this.contextWith({ path: undefined, arrayElement: true });
   }
 
   createError(reason: string): Error {
     const fieldDescription =
-      this.path === null || this.path.isEmpty()
+      !this.path || this.path.isEmpty()
         ? ''
         : ` (found in field ${this.path.toString()})`;
     return new FirestoreError(
@@ -246,7 +249,7 @@ export class ParseContext {
   private validatePath(): void {
     // TODO(b/34871131): Remove null check once we have proper paths for fields
     // within arrays.
-    if (this.path === null) {
+    if (!this.path) {
       return;
     }
     for (let i = 0; i < this.path.length; i++) {
