@@ -72,7 +72,7 @@ export const parseRepoInfo = function(
   const parsedUrl = parseDatabaseURL(dataURL),
     namespace = parsedUrl.namespace;
 
-  if (parsedUrl.domain === 'firebase') {
+  if (parsedUrl.domain === 'firebase.com') {
     fatal(
       parsedUrl.host +
         ' is no longer supported. ' +
@@ -174,21 +174,18 @@ export const parseDatabaseURL = function(
       colonInd = dataURL.length;
     }
 
-    const parts = host.split('.');
-    if (parts.length === 4) {
-      domain = parts[1] + "." + parts[2];
-      subdomain = parts[0].toLowerCase();
-      namespace = subdomain;
-    } else if (parts.length === 3) {
-      // Normalize namespaces to lowercase to share storage / connection.
-      domain = parts[1];
-      subdomain = parts[0].toLowerCase();
-      // We interpret the subdomain of a 3 component URL as the namespace name.
-      namespace = subdomain;
-    } else if (parts.length === 2) {
-      domain = parts[0];
-    } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
+    let dotInd = host.indexOf('.');
+    if (dotInd === -1) {
+      dotInd = colonInd;
+    }
+    const hostFirstPart = host.substring(0, dotInd);
+    if (hostFirstPart.toLowerCase() === 'localhost') {
       domain = 'localhost';
+    } else {
+      domain = host.substring(dotInd+1);
+      // Normalize namespaces to lowercase to share storage / connection.
+      subdomain = hostFirstPart.toLowerCase();
+      namespace = subdomain;
     }
     // Always treat the value of the `ns` as the namespace name if it is present.
     if ('ns' in queryParams) {
