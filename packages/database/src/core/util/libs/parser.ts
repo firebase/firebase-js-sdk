@@ -174,16 +174,14 @@ export const parseDatabaseURL = function(
       colonInd = dataURL.length;
     }
 
-    let dotInd = host.indexOf('.');
-    if (dotInd === -1) {
-      dotInd = colonInd;
-    }
-    const hostFirstPart = host.substring(0, dotInd);
-    if (hostFirstPart.toLowerCase() === 'localhost') {
+    if (host.slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
-    } else if (dotInd === colonInd) {
-      return; // Not a valid URL.
     } else {
+      let dotInd = host.indexOf('.');
+      if (dotInd === -1) {
+        return; // Not a valid URL.
+      }
+      const hostFirstPart = host.substring(0, dotInd);
       domain = host.substring(dotInd+1);
       // Normalize namespaces to lowercase to share storage / connection.
       subdomain = hostFirstPart.toLowerCase();
