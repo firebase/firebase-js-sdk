@@ -175,7 +175,11 @@ export const parseDatabaseURL = function(
     }
 
     const parts = host.split('.');
-    if (parts.length === 3) {
+    if (parts.length === 4) {
+      domain = parts[1] + "." + parts[2];
+      subdomain = parts[0].toLowerCase();
+      namespace = subdomain;
+    } else if (parts.length === 3) {
       // Normalize namespaces to lowercase to share storage / connection.
       domain = parts[1];
       subdomain = parts[0].toLowerCase();
