@@ -53,8 +53,7 @@ describe('Database Tests', () => {
   it('Can get database with custom URL', () => {
     const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
     expect(db).to.be.ok;
-    // The URL is assumed to be secure if no port is specified.
-    expect(db.ref().toString()).to.equal('http://foo.euw1.firebasedatabase.app/');
+    expect(db.ref().toString()).to.equal('https://foo.euw1.firebasedatabase.app/');
   });
 
   it('Can get database with custom URL and port', () => {
