@@ -1032,9 +1032,6 @@ export class MultiTabSyncEngine extends SyncEngine
 
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
     if (isPrimary === true && this.isPrimary !== true) {
-      this.isPrimary = true;
-      await this.remoteStore.applyPrimaryState(true);
-
       // Secondary tabs only maintain Views for their local listeners and the
       // Views internal state may not be 100% populated (in particular
       // secondary tabs don't track syncedDocuments, the set of documents the
@@ -1043,14 +1040,15 @@ export class MultiTabSyncEngine extends SyncEngine
       // match the state on disk.
       const activeTargets = this.sharedClientState.getAllActiveQueryTargets();
       const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
-        activeTargets.toArray()
+        activeTargets.toArray(),
+        /*transitionToPrimary=*/ true
       );
+      this.isPrimary = true;
+      await this.remoteStore.applyPrimaryState(true);
       for (const targetData of activeQueries) {
         this.remoteStore.listen(targetData);
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
-      this.isPrimary = false;
-
       const activeTargets: TargetId[] = [];
 
       let p = Promise.resolve();
@@ -1070,8 +1068,12 @@ export class MultiTabSyncEngine extends SyncEngine
       });
       await p;
 
-      await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
+      await this.synchronizeQueryViewsAndRaiseSnapshots(
+        activeTargets,
+        /*transitionToPrimary=*/ false
+      );
       this.resetLimboDocuments();
+      this.isPrimary = false;
       await this.remoteStore.applyPrimaryState(false);
     }
   }
@@ -1091,9 +1093,14 @@ export class MultiTabSyncEngine extends SyncEngine
    * Reconcile the query views of the provided query targets with the state from
    * persistence. Raises snapshots for any changes that affect the local
    * client and returns the updated state of all target's query data.
+   *
+   * @param targets the list of targets with views that need to be recomputed
+   * @param transitionToPrimary `true` iff the tab transitions from a secondary
+   * tab to a primary tab
    */
   private async synchronizeQueryViewsAndRaiseSnapshots(
-    targets: TargetId[]
+    targets: TargetId[],
+    transitionToPrimary: boolean
   ): Promise<TargetData[]> {
     const activeQueries: TargetData[] = [];
     const newViewSnapshots: ViewSnapshot[] = [];
@@ -1127,7 +1134,7 @@ export class MultiTabSyncEngine extends SyncEngine
         }
       } else {
         debugAssert(
-          this.isPrimary === true,
+          transitionToPrimary,
           'A secondary tab should never have an active target without an active query.'
         );
         // For queries that never executed on this client, we need to
