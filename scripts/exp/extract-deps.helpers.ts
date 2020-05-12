@@ -24,9 +24,9 @@ import * as ts from 'typescript';
 
 /** Contains a list of members by type. */
 export type MemberList = {
-  classes: string[],
-  functions: string[],
-  variables:  string[]
+  classes: string[];
+  functions: string[];
+  variables: string[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
 export type ExportData = { dependencies: MemberList; sizeInBytes: number };
@@ -75,7 +75,7 @@ export async function extractDependenciesAndSize(
   });
   await bundle.write({ file: output, format: 'es' });
 
-  const dependencies = extractDeclarations(output);;
+  const dependencies = extractDeclarations(output);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -94,7 +94,7 @@ export async function extractDependenciesAndSize(
 }
 
 /**
- * Extracts all function, class and variable declarations using the TypeScript 
+ * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
  */
 export function extractDeclarations(jsFile: string): MemberList {
@@ -104,7 +104,11 @@ export function extractDeclarations(jsFile: string): MemberList {
     throw new Error('Failed to parse file: ' + jsFile);
   }
 
-  const declarations: MemberList = { functions: [], classes: [], variables: []}
+  const declarations: MemberList = {
+    functions: [],
+    classes: [],
+    variables: []
+  };
   ts.forEachChild(sourceFile, node => {
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
@@ -114,11 +118,11 @@ export function extractDeclarations(jsFile: string): MemberList {
       declarations.variables.push(node.name!.getText());
     }
   });
-  
+
   // Sort to ensure stable output
   declarations.functions.sort();
   declarations.classes.sort();
   declarations.variables.sort();
-  
+
   return declarations;
 }
