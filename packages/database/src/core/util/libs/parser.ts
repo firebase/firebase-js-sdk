@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,7 @@ export const parseDatabaseURL = function(
     );
 
     // If we have a port, use scheme for determining if it's secure.
-    const colonInd = host.indexOf(':');
+    colonInd = host.indexOf(':');
     if (colonInd >= 0) {
       secure = scheme === 'https' || scheme === 'wss';
       port = parseInt(host.substring(colonInd + 1), 10);
@@ -177,12 +177,12 @@ export const parseDatabaseURL = function(
     if (host.slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
     } else {
-      let dotInd = host.indexOf('.');
+      const dotInd = host.indexOf('.');
       if (dotInd === -1) {
         return; // Not a valid URL.
       }
       const hostFirstPart = host.substring(0, dotInd);
-      domain = host.substring(dotInd+1);
+      domain = host.substring(dotInd + 1);
       // Normalize namespaces to lowercase to share storage / connection.
       subdomain = hostFirstPart.toLowerCase();
       namespace = subdomain;

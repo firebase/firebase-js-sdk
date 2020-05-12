@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,9 @@ describe('Database Tests', () => {
     const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal('https://foo.euw1.firebasedatabase.app/');
+    expect(db.ref().toString()).to.equal(
+      'https://foo.euw1.firebasedatabase.app/'
+    );
   });
 
   it('Can get database with localhost URL and port', () => {
