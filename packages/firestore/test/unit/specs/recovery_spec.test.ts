@@ -258,6 +258,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         // The write ack cannot be persisted and the client goes offline, which
         // clears all active targets, but doesn't raise a new snapshot since
         // the document is still marked `hasPendingWrites`.
+        .expectEvents(query, { fromCache: true, hasPendingWrites: true })
         .expectActiveTargets()
         .recoverDatabase()
         .runTimer(TimerId.AsyncQueueRetry)

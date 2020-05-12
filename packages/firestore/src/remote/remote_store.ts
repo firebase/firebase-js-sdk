@@ -132,13 +132,6 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private onlineStateTracker: OnlineStateTracker;
 
-  /**
-   * A barrier to track unresolved operations that block the restart of the
-   * write stream. This is used to remove writes from the mutation queue if the
-   * initial removal attempt failed.
-   */
-  private writeStreamBarrier = 0;
-
   constructor(
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
@@ -449,12 +442,13 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /**
    * Recovery logic for IndexedDB errors that takes the network offline until
-   * IndexedDb probing succeeds. Retries are scheduled with backoff using
-   * `enqueueRetryable()`.
+   * `op` succeeds. Retries are scheduled with backoff using
+   * `enqueueRetryable()`. If `op()` is not provided, IndexedDB access is
+   * validated via a generic operation.
    */
   private async disableNetworkUntilRecovery(
     e: FirestoreError,
-    op?: () => Promise<void>
+    op?: () => Promise<unknown>
   ): Promise<void> {
     if (e.name === 'IndexedDbTransactionError') {
       debugAssert(
@@ -467,17 +461,17 @@ export class RemoteStore implements TargetMetadataProvider {
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Offline);
 
+      if (!op) {
+        // Use a simple read operation to determine if IndexedDB recovered.
+        // Ideally, we would expose a health check directly on SimpleDb, but
+        // RemoteStore only has access to persistence through LocalStore.
+        op = () => this.localStore.getLastRemoteSnapshotVersion();
+      }
+
       // Probe IndexedDB periodically and re-enable network
       this.asyncQueue.enqueueRetryable(async () => {
         logDebug(LOG_TAG, 'Retrying IndexedDB access');
-        if (op) {
-          await op();
-        } else {
-          // Issue a simple read operation to determine if IndexedDB recovered.
-          // Ideally, we would expose a health check directly on SimpleDb, but
-          // RemoteStore only has access to persistence through LocalStore.
-          await this.localStore.getLastRemoteSnapshotVersion();
-        }
+        await op!();
         this.indexedDbFailed = false;
         await this.enableNetworkInternal();
       });
@@ -580,31 +574,32 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts the write stream if necessary.
    */
   async fillWritePipeline(): Promise<void> {
-    try {
-      while (this.canAddToWritePipeline()) {
-        const lastBatchIdRetrieved =
-          this.writePipeline.length > 0
-            ? this.writePipeline[this.writePipeline.length - 1].batchId
-            : BATCHID_UNKNOWN;
+    while (this.canAddToWritePipeline()) {
+      const lastBatchIdRetrieved =
+        this.writePipeline.length > 0
+          ? this.writePipeline[this.writePipeline.length - 1].batchId
+          : BATCHID_UNKNOWN;
 
+      try {
         const batch = await this.localStore.nextMutationBatch(
           lastBatchIdRetrieved
         );
-
-        if (batch) {
+        if (batch !== null) {
           this.addToWritePipeline(batch);
         } else {
           break;
         }
+      } catch (e) {
+        await this.disableNetworkUntilRecovery(e);
       }
+    }
 
-      if (this.shouldStartWriteStream()) {
-        this.startWriteStream();
-      } else if (this.writePipeline.length === 0) {
-        this.writeStream.markIdle();
-      }
-    } catch (e) {
-      await this.disableNetworkUntilRecovery(e);
+    if (this.writePipeline.length === 0) {
+      this.writeStream.markIdle();
+    }
+
+    if (this.shouldStartWriteStream()) {
+      this.startWriteStream();
     }
   }
 
@@ -642,7 +637,6 @@ export class RemoteStore implements TargetMetadataProvider {
   private shouldStartWriteStream(): boolean {
     return (
       this.canUseNetwork() &&
-      this.writeStreamBarrier === 0 &&
       !this.writeStream.isStarted() &&
       this.writePipeline.length > 0
     );
@@ -660,11 +654,12 @@ export class RemoteStore implements TargetMetadataProvider {
     this.writeStream.writeHandshake();
   }
 
-  private async onWriteHandshakeComplete(): Promise<void> {
+  private onWriteHandshakeComplete(): Promise<void> {
     // Send the write pipeline now that the stream is established.
     for (const batch of this.writePipeline) {
       this.writeStream.writeMutations(batch.mutations);
     }
+    return Promise.resolve();
   }
 
   private async onMutationResult(
@@ -681,14 +676,16 @@ export class RemoteStore implements TargetMetadataProvider {
     const success = MutationBatchResult.from(batch, commitVersion, results);
     try {
       await this.syncEngine.applySuccessfulWrite(success);
-      // It's possible that with the completion of this mutation another
-      // slot has freed up.
-      await this.fillWritePipeline();
     } catch (e) {
       await this.disableNetworkUntilRecovery(e, () =>
         this.syncEngine.applySuccessfulWrite(success)
       );
+      return;
     }
+
+    // It's possible that with the completion of this mutation another
+    // slot has freed up.
+    await this.fillWritePipeline();
   }
 
   private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
@@ -730,14 +727,16 @@ export class RemoteStore implements TargetMetadataProvider {
 
       try {
         await this.syncEngine.rejectFailedWrite(batch.batchId, error);
-        // It's possible that with the completion of this mutation
-        // another slot has freed up.
-        await this.fillWritePipeline();
       } catch (e) {
         await this.disableNetworkUntilRecovery(e, () =>
           this.syncEngine.rejectFailedWrite(batch.batchId, error)
         );
+        return;
       }
+
+      // It's possible that with the completion of this mutation
+      // another slot has freed up.
+      await this.fillWritePipeline();
     } else {
       // Transient error, just let the retry logic kick in.
     }
