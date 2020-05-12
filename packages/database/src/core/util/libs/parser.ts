@@ -178,8 +178,9 @@ export const parseDatabaseURL = function(
     if (hostWithoutPort.toLowerCase() === 'localhost') {
       domain = 'localhost';
     } else if (hostWithoutPort.split('.').length <= 2) {
-      domain = hostWithoutPort; // Domain is at least 2 parts.
+      domain = hostWithoutPort;
     } else {
+      // Interpret the subdomain of a 3 or more component URL as the namespace name.
       const dotInd = host.indexOf('.');
       subdomain = host.substring(0, dotInd).toLowerCase();
       domain = host.substring(dotInd + 1);

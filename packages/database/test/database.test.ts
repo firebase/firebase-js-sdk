@@ -80,6 +80,12 @@ describe('Database Tests', () => {
     );
   });
 
+  it('Can get database with localhost URL', () => {
+    const db = defaultApp.database('http://localhost');
+    expect(db).to.be.ok;
+    expect(db.ref().toString()).to.equal('https://localhost/');
+  });
+
   it('Can get database with localhost URL and port', () => {
     const db = defaultApp.database('http://localhost:80');
     expect(db).to.be.ok;
@@ -92,9 +98,10 @@ describe('Database Tests', () => {
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
-  it('Can get database with localhost URL', () => {
-    const db = defaultApp.database('http://localhost');
+  it('Can get database with a upper case localhost URL and ns', () => {
+    const db = defaultApp.database('http://LOCALHOST?ns=foo');
     expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
