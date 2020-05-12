@@ -21,7 +21,7 @@ import * as yargs from 'yargs';
 import {
   ExportData,
   extractDependenciesAndSize,
-  extractFunctionsAndClasses
+  extractDeclarations, MemberList
 } from './extract-deps.helpers';
 
 // Small command line app that builds a JSON file with a list of the
@@ -47,15 +47,21 @@ const argv = yargs.options({
   }
 }).argv;
 
-async function buildJson(publicApi: string[], jsFile: string): Promise<string> {
+async function buildJson(publicApi: MemberList, jsFile: string): Promise<string> {
   const result: { [key: string]: ExportData } = {};
-  for (const exp of publicApi) {
+  for (const exp of publicApi.classes) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile);
+  }
+  for (const exp of publicApi.functions) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile);
+  }
+  for (const exp of publicApi.variables) {
     result[exp] = await extractDependenciesAndSize(exp, jsFile);
   }
   return JSON.stringify(result, null, 4);
 }
 
-const publicApi = extractFunctionsAndClasses(path.resolve(argv.types));
+const publicApi = extractDeclarations(path.resolve(argv.types));
 buildJson(publicApi, path.resolve(argv.bundle)).then(json => {
   fs.writeFileSync(path.resolve(argv.output), json);
 });

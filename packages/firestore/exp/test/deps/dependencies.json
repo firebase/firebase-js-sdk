@@ -1,15 +1,23 @@
 {
-    "foo": {
-        "dependencies": [
-            "bar",
-            "foo"
-        ],
-        "sizeInBytes": 67
-    },
     "bar": {
-        "dependencies": [
-            "bar"
-        ],
+        "dependencies": {
+            "functions": [
+                "bar"
+            ],
+            "classes": [],
+            "variables": []
+        },
         "sizeInBytes": 39
+    },
+    "foo": {
+        "dependencies": {
+            "functions": [
+                "bar",
+                "foo"
+            ],
+            "classes": [],
+            "variables": []
+        },
+        "sizeInBytes": 67
     }
 }

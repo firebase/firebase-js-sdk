@@ -27,8 +27,9 @@ describe('Dependencies', () => {
   forEach(dependencies, (api, { dependencies }) => {
     it(api, () => {
       return extractDependencies(api, pkg.exp).then(extractedDependencies => {
-        dependencies.sort();
-        expect(extractedDependencies).to.have.members(dependencies);
+        expect(extractedDependencies.classes).to.have.members(dependencies.classes, "for classes");
+        expect(extractedDependencies.functions).to.have.members(dependencies.functions, "for functions");
+        expect(extractedDependencies.variables).to.have.members(dependencies.variables, "for variables");
       });
     });
   });

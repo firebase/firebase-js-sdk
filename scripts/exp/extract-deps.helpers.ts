@@ -22,8 +22,14 @@ import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
 
+/** Contains a list of members by type. */
+export type MemberList = {
+  classes: string[],
+  functions: string[],
+  variables:  string[]
+};
 /** Contains the dependencies and the size of their code for a single export. */
-export type ExportData = { dependencies: string[]; sizeInBytes: number };
+export type ExportData = { dependencies: MemberList; sizeInBytes: number };
 
 /**
  * This functions builds a simple JS app that only depends on the provided
@@ -37,7 +43,7 @@ export type ExportData = { dependencies: string[]; sizeInBytes: number };
 export async function extractDependencies(
   exportName: string,
   jsBundle: string
-): Promise<string[]> {
+): Promise<MemberList> {
   const { dependencies } = await extractDependenciesAndSize(
     exportName,
     jsBundle
@@ -69,8 +75,7 @@ export async function extractDependenciesAndSize(
   });
   await bundle.write({ file: output, format: 'es' });
 
-  const dependencies = extractFunctionsAndClasses(output);
-  dependencies.sort();
+  const dependencies = extractDeclarations(output);;
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -89,23 +94,31 @@ export async function extractDependenciesAndSize(
 }
 
 /**
- * Extracts all top-level function and classes using the TypeScript compiler
- * API.
+ * Extracts all function, class and variable declarations using the TypeScript 
+ * compiler API.
  */
-export function extractFunctionsAndClasses(jsFile: string): string[] {
+export function extractDeclarations(jsFile: string): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
   const sourceFile = program.getSourceFile(jsFile);
   if (!sourceFile) {
     throw new Error('Failed to parse file: ' + jsFile);
   }
 
-  const exports: string[] = [];
+  const declarations: MemberList = { functions: [], classes: [], variables: []}
   ts.forEachChild(sourceFile, node => {
     if (ts.isFunctionDeclaration(node)) {
-      exports.push(node.name!.text);
+      declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
-      exports.push(node.name!.text);
+      declarations.classes.push(node.name!.text);
+    } else if (ts.isVariableDeclaration(node)) {
+      declarations.variables.push(node.name!.getText());
     }
   });
-  return exports;
+  
+  // Sort to ensure stable output
+  declarations.functions.sort();
+  declarations.classes.sort();
+  declarations.variables.sort();
+  
+  return declarations;
 }
