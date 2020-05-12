@@ -171,7 +171,7 @@ export const parseDatabaseURL = function(
       secure = scheme === 'https' || scheme === 'wss';
       port = parseInt(host.substring(colonInd + 1), 10);
     } else {
-      colonInd = dataURL.length;
+      colonInd = host.length;
     }
 
     const hostWithoutPort = host.slice(0, colonInd);
@@ -181,8 +181,8 @@ export const parseDatabaseURL = function(
       domain = hostWithoutPort; // Domain is at least 2 parts.
     } else {
       const dotInd = host.indexOf('.');
-      domain = host.substring(dotInd + 1);
       subdomain = host.substring(0, dotInd).toLowerCase();
+      domain = host.substring(dotInd + 1);
       // Normalize namespaces to lowercase to share storage / connection.
       namespace = subdomain;
     }

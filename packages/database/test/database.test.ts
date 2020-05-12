@@ -71,10 +71,25 @@ describe('Database Tests', () => {
     );
   });
 
+  it('Can get database with upper case URL', () => {
+    const db = defaultApp.database('http://fOO.EUW1.firebaseDATABASE.app');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db.ref().toString()).to.equal(
+      'https://foo.euw1.firebasedatabase.app/'
+    );
+  });
+
   it('Can get database with localhost URL and port', () => {
     const db = defaultApp.database('http://localhost:80');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('http://localhost:80/');
+  });
+
+  it('Can get database with a upper case localhost URL', () => {
+    const db = defaultApp.database('http://LOCALHOST');
+    expect(db).to.be.ok;
+    expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
   it('Can get database with localhost URL', () => {
@@ -120,9 +135,18 @@ describe('Database Tests', () => {
     }).to.throw(/Database initialized multiple times/i);
   });
 
+  it('Databases with legacy domain', () => {
+    expect(() => {
+      defaultApp.database('http://foo.firebase.com/');
+    }).to.throw(/is no longer supported/i);
+  });
+
   it('Databases with invalid custom URLs', () => {
     expect(() => {
       defaultApp.database('not-a-url');
+    }).to.throw(/Cannot parse Firebase url/i);
+    expect(() => {
+      defaultApp.database('http://foo.com');
     }).to.throw(/Cannot parse Firebase url/i);
     expect(() => {
       defaultApp.database('http://fblocal.com');
