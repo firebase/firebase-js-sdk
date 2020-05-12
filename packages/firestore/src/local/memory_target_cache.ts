@@ -191,14 +191,7 @@ export class MemoryTargetCache implements TargetCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.addReferences(keys, targetId);
-    const referenceDelegate = this.persistence.referenceDelegate;
-    const promises: Array<PersistencePromise<void>> = [];
-    if (referenceDelegate) {
-      keys.forEach(key => {
-        promises.push(referenceDelegate.addReference(txn, key));
-      });
-    }
-    return PersistencePromise.waitFor(promises);
+    return PersistencePromise.resolve();
   }
 
   removeMatchingKeys(
@@ -211,7 +204,7 @@ export class MemoryTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     if (referenceDelegate) {
       keys.forEach(key => {
-        promises.push(referenceDelegate.removeReference(txn, key));
+        promises.push(referenceDelegate.markPotentiallyOrphaned(txn, key));
       });
     }
     return PersistencePromise.waitFor(promises);
