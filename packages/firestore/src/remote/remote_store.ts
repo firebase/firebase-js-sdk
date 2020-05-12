@@ -123,6 +123,13 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private isPrimary = false;
 
+  /**
+   * When set to `true`, the network was taken offline due to an IndexedDB
+   * failure. The state is flipped to `false` when access becomes available
+   * again.
+   */
+  private indexedDbFailed = false;
+
   private onlineStateTracker: OnlineStateTracker;
 
   /**
@@ -196,7 +203,7 @@ export class RemoteStore implements TargetMetadataProvider {
     return this.enableNetworkInternal();
   }
 
-  async enableNetworkInternal(): Promise<void> {
+  private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
@@ -234,29 +241,6 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     this.cleanUpWatchStreamState();
-  }
-
-  /**
-   * Recovery logic for IndexedDB errors that takes the network offline until
-   * `op` succeeds. Retries are scheduled with backoff using `enqueueRetryable()`.
-   */
-  private async disableNetworkUntilRecovery(
-    e: FirestoreError,
-    op: () => Promise<void>
-  ): Promise<void> {
-    if (e.name === 'IndexedDbTransactionError') {
-      // Increment the write stream barrier to prevent out of band stream
-      // restarts.
-      ++this.writeStreamBarrier;
-      await this.disableNetworkInternal();
-      this.asyncQueue.enqueueRetryable(async () => {
-        await op();
-        --this.writeStreamBarrier;
-        await this.enableNetworkInternal();
-      });
-    } else {
-      throw e;
-    }
   }
 
   async shutdown(): Promise<void> {
@@ -370,9 +354,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   canUseNetwork(): boolean {
-    return (
-      this.writeStreamBarrier === 0 && this.isPrimary && this.networkEnabled
-    );
+    return !this.indexedDbFailed && this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -424,7 +406,18 @@ export class RemoteStore implements TargetMetadataProvider {
     ) {
       // There was an error on a target, don't wait for a consistent snapshot
       // to raise events
-      return this.handleTargetError(watchChange);
+      try {
+        await this.handleTargetError(watchChange);
+      } catch (e) {
+        logDebug(
+          LOG_TAG,
+          'Failed to remove targets %s: %s ',
+          watchChange.targetIds.join(','),
+          e
+        );
+        await this.disableNetworkUntilRecovery(e);
+      }
+      return;
     }
 
     if (watchChange instanceof DocumentWatchChange) {
@@ -440,12 +433,56 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
-      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-        // We have received a target change with a global snapshot if the snapshot
-        // version is not equal to SnapshotVersion.min().
-        await this.raiseWatchSnapshot(snapshotVersion);
+      try {
+        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+          // We have received a target change with a global snapshot if the snapshot
+          // version is not equal to SnapshotVersion.min().
+          await this.raiseWatchSnapshot(snapshotVersion);
+        }
+      } catch (e) {
+        logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
+        await this.disableNetworkUntilRecovery(e);
       }
+    }
+  }
+
+  /**
+   * Recovery logic for IndexedDB errors that takes the network offline until
+   * IndexedDb probing succeeds. Retries are scheduled with backoff using
+   * `enqueueRetryable()`.
+   */
+  private async disableNetworkUntilRecovery(
+    e: FirestoreError,
+    op?: () => Promise<void>
+  ): Promise<void> {
+    if (e.name === 'IndexedDbTransactionError') {
+      debugAssert(
+        !this.indexedDbFailed,
+        'Unexpected network event when IndexedDB was marked failed.'
+      );
+      this.indexedDbFailed = true;
+
+      // Disable network and raise offline snapshots
+      await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Offline);
+
+      // Probe IndexedDB periodically and re-enable network
+      this.asyncQueue.enqueueRetryable(async () => {
+        logDebug(LOG_TAG, 'Retrying IndexedDB access');
+        if (op) {
+          await op();
+        } else {
+          // Issue a simple read operation to determine if IndexedDB recovered.
+          // Ideally, we would expose a health check directly on SimpleDb, but
+          // RemoteStore only has access to persistence through LocalStore.
+          await this.localStore.getLastRemoteSnapshotVersion();
+        }
+        this.indexedDbFailed = false;
+        await this.enableNetworkInternal();
+      });
+    } else {
+      throw e;
     }
   }
 
@@ -519,21 +556,19 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** Handles an error on a target */
-  private handleTargetError(watchChange: WatchTargetChange): Promise<void> {
+  private async handleTargetError(
+    watchChange: WatchTargetChange
+  ): Promise<void> {
     debugAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
-    let promiseChain = Promise.resolve();
-    watchChange.targetIds.forEach(targetId => {
-      promiseChain = promiseChain.then(async () => {
-        // A watched target might have been removed already.
-        if (this.listenTargets.has(targetId)) {
-          this.listenTargets.delete(targetId);
-          this.watchChangeAggregator!.removeTarget(targetId);
-          return this.syncEngine.rejectListen(targetId, error);
-        }
-      });
-    });
-    return promiseChain;
+    for (const targetId of watchChange.targetIds) {
+      // A watched target might have been removed already.
+      if (this.listenTargets.has(targetId)) {
+        await this.syncEngine.rejectListen(targetId, error);
+        this.listenTargets.delete(targetId);
+        this.watchChangeAggregator!.removeTarget(targetId);
+      }
+    }
   }
 
   /**
@@ -569,7 +604,7 @@ export class RemoteStore implements TargetMetadataProvider {
         this.writeStream.markIdle();
       }
     } catch (e) {
-      await this.disableNetworkUntilRecovery(e, () => Promise.resolve());
+      await this.disableNetworkUntilRecovery(e);
     }
   }
 

@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Blob, PublicBlob } from '../../../src/api/blob';
+import { Blob } from '../../../src/api/blob';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('Blob', () => {
@@ -52,17 +52,8 @@ describe('Blob', () => {
     );
   });
 
-  it('Blob throws on using the public constructor', () => {
-    // allow using constructor with any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(() => new (PublicBlob as any)('')).to.throw(
-      'This constructor is private. Use Blob.fromUint8Array() or ' +
-        'Blob.fromBase64String() instead.'
-    );
-  });
-
-  it('PublicBlob works with instanceof checks', () => {
-    expect(Blob.fromBase64String('') instanceof PublicBlob).to.equal(true);
+  it('works with instanceof checks', () => {
+    expect(Blob.fromBase64String('') instanceof Blob).to.equal(true);
   });
 
   it('support equality checking with isEqual()', () => {

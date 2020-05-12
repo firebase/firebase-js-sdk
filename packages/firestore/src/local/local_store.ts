@@ -65,7 +65,7 @@ import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
-import { extractFieldMask } from '../model/field_value';
+import { extractFieldMask } from '../model/object_value';
 
 const LOG_TAG = 'LocalStore';
 
@@ -914,20 +914,6 @@ export class LocalStore {
           return { documents, remoteKeys };
         });
     });
-  }
-
-  /**
-   * Returns the keys of the documents that are associated with the given
-   * target id in the remote table.
-   */
-  remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction(
-      'Remote document keys',
-      'readonly',
-      txn => {
-        return this.targetCache.getMatchingKeysForTargetId(txn, targetId);
-      }
-    );
   }
 
   private applyWriteToRemoteDocuments(

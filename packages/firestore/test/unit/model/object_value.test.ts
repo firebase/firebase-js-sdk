@@ -23,11 +23,11 @@ import {
   ObjectValue,
   ObjectValueBuilder,
   TypeOrder
-} from '../../../src/model/field_value';
+} from '../../../src/model/object_value';
 import { typeOrder } from '../../../src/model/values';
 import { wrap, wrapObject, field, mask } from '../../util/helpers';
 
-describe('FieldValue', () => {
+describe('ObjectValue', () => {
   it('can extract fields', () => {
     const objValue = wrapObject({ foo: { a: 1, b: true, c: 'string' } });
 

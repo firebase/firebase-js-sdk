@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ describe('DocumentSet', () => {
   });
 
   it('adds and deletes elements', () => {
-    const set = new DocumentSet(Document.compareByKey)
+    const set = new DocumentSet() // Compares by key by default
       .add(d1)
       .add(d2)
       .add(d3)

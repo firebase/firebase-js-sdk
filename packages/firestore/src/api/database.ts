@@ -47,7 +47,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
-import { makeConstructorPrivate } from '../util/api';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
@@ -89,11 +88,7 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import {
-  DocumentKeyReference,
-  fieldPathFromArgument,
-  UserDataReader
-} from './user_data_reader';
+import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -315,7 +310,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
-    this._dataReader = this.createDataReader(this._databaseId);
+    this._dataReader = new UserDataReader(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -497,28 +492,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
 
     return this._firestoreClient.start(componentProvider, persistenceSettings);
-  }
-
-  private createDataReader(databaseId: DatabaseId): UserDataReader {
-    const preConverter = (value: unknown): unknown => {
-      if (value instanceof DocumentReference) {
-        const thisDb = databaseId;
-        const otherDb = value.firestore._databaseId;
-        if (!otherDb.isEqual(thisDb)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Document reference is for database ' +
-              `${otherDb.projectId}/${otherDb.database} but should be ` +
-              `for database ${thisDb.projectId}/${thisDb.database}`
-          );
-        }
-        return new DocumentKeyReference(databaseId, value._key);
-      } else {
-        return value;
-      }
-    };
-    const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
-    return new UserDataReader(serializer, preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -2554,35 +2527,3 @@ function applyFirestoreDataConverter<T>(
 function contains(obj: object, key: string): obj is { key: unknown } {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
-
-// Export the classes with a private constructor (it will fail if invoked
-// at runtime). Note that this still allows instanceof checks.
-
-// We're treating the variables as class names, so disable checking for lower
-// case variable names.
-export const PublicFirestore = makeConstructorPrivate(
-  Firestore,
-  'Use firebase.firestore() instead.'
-);
-export const PublicTransaction = makeConstructorPrivate(
-  Transaction,
-  'Use firebase.firestore().runTransaction() instead.'
-);
-export const PublicWriteBatch = makeConstructorPrivate(
-  WriteBatch,
-  'Use firebase.firestore().batch() instead.'
-);
-export const PublicDocumentReference = makeConstructorPrivate(
-  DocumentReference,
-  'Use firebase.firestore().doc() instead.'
-);
-export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
-export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
-  QueryDocumentSnapshot
-);
-export const PublicQuery = makeConstructorPrivate(Query);
-export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
-export const PublicCollectionReference = makeConstructorPrivate(
-  CollectionReference,
-  'Use firebase.firestore().collection() instead.'
-);

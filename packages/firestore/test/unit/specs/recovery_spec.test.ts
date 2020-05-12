@@ -19,8 +19,8 @@ import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
-import { doc, path } from '../../util/helpers';
 import { Code } from '../../../src/util/error';
+import { doc, path } from '../../util/helpers';
 import { RpcError } from './spec_rpc_error';
 
 describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
@@ -272,4 +272,120 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .expectEvents(query, { metadata: [doc2] })
     );
   });
+
+  specTest('Fails targets that cannot be allocated', [], () => {
+    const query1 = Query.atPath(path('collection1'));
+    const query2 = Query.atPath(path('collection2'));
+    const query3 = Query.atPath(path('collection3'));
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1)
+      .expectEvents(query1, {})
+      .failDatabase()
+      .userListens(query2)
+      .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
+      .recoverDatabase()
+      .userListens(query3)
+      .watchAcksFull(query3, 1)
+      .expectEvents(query3, {});
+  });
+
+  specTest('Can re-add failed target', [], () => {
+    const query1 = Query.atPath(path('collection1'));
+    const query2 = Query.atPath(path('collection2'));
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1)
+      .expectEvents(query1, {})
+      .failDatabase()
+      .userListens(query2)
+      .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
+      .recoverDatabase()
+      .userListens(query2)
+      .watchAcksFull(query2, 1)
+      .expectEvents(query2, {});
+  });
+
+  specTest(
+    'Recovers when watch update cannot be persisted',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc('collection/key1', 1000, { foo: 'a' });
+      const doc2 = doc('collection/key2', 2000, { foo: 'b' });
+      return (
+        spec()
+          .userListens(query)
+          .watchAcksFull(query, 1000, doc1)
+          .expectEvents(query, {
+            added: [doc1]
+          })
+          .watchSends({ affects: [query] }, doc2)
+          .failDatabase()
+          .watchSnapshots(1500)
+          // `failDatabase()` causes us to go offline.
+          .expectActiveTargets()
+          .expectEvents(query, { fromCache: true })
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
+          .watchAcksFull(query, 2000, doc2)
+          .expectEvents(query, {
+            added: [doc2]
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Recovers when watch rejection cannot be persisted',
+    ['durable-persistence'],
+    () => {
+      const doc1Query = Query.atPath(path('collection/key1'));
+      const doc2Query = Query.atPath(path('collection/key2'));
+      const doc1a = doc('collection/key1', 1000, { foo: 'a' });
+      const doc1b = doc('collection/key1', 4000, { foo: 'a', updated: true });
+      const doc2 = doc('collection/key2', 2000, { foo: 'b' });
+      return (
+        spec()
+          .userListens(doc1Query)
+          .watchAcksFull(doc1Query, 1000, doc1a)
+          .expectEvents(doc1Query, {
+            added: [doc1a]
+          })
+          .userListens(doc2Query)
+          .watchAcksFull(doc2Query, 2000, doc2)
+          .expectEvents(doc2Query, {
+            added: [doc2]
+          })
+          .failDatabase()
+          .watchRemoves(
+            doc1Query,
+            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+          )
+          // `failDatabase()` causes us to go offline.
+          .expectActiveTargets()
+          .expectEvents(doc1Query, { fromCache: true })
+          .expectEvents(doc2Query, { fromCache: true })
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets(
+            { query: doc1Query, resumeToken: 'resume-token-1000' },
+            { query: doc2Query, resumeToken: 'resume-token-2000' }
+          )
+          .watchAcksFull(doc1Query, 3000)
+          .expectEvents(doc1Query, {})
+          .watchRemoves(
+            doc2Query,
+            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+          )
+          .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
+          .watchSends({ affects: [doc1Query] }, doc1b)
+          .watchSnapshots(4000)
+          .expectEvents(doc1Query, {
+            modified: [doc1b]
+          })
+      );
+    }
+  );
 });

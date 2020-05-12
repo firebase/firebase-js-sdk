@@ -37,7 +37,7 @@ import {
 } from '../model/server_timestamps';
 import { fail, hardAssert } from '../util/assert';
 import { forEach } from '../util/obj';
-import { TypeOrder } from '../model/field_value';
+import { TypeOrder } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
@@ -75,10 +75,7 @@ export class UserDataWriter<T = firestore.DocumentData> {
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:
-        return new GeoPoint(
-          value.geoPointValue!.latitude!,
-          value.geoPointValue!.longitude!
-        );
+        return this.convertGeoPoint(value.geoPointValue!);
       case TypeOrder.ArrayValue:
         return this.convertArray(value.arrayValue!);
       case TypeOrder.ObjectValue:
@@ -94,6 +91,13 @@ export class UserDataWriter<T = firestore.DocumentData> {
       result[key] = this.convertValue(value);
     });
     return result;
+  }
+
+  private convertGeoPoint(value: api.LatLng): GeoPoint {
+    return new GeoPoint(
+      normalizeNumber(value.latitude),
+      normalizeNumber(value.longitude)
+    );
   }
 
   private convertArray(arrayValue: api.ArrayValue): unknown[] {

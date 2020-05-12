@@ -32,6 +32,8 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 
+const LOG_TAG = 'LruGarbageCollector';
+
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
  * implement this interface. This interface defines the operations that the LRU garbage collector
@@ -265,13 +267,23 @@ export class LruScheduler implements GarbageCollectionScheduler {
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
-      () => {
+      async () => {
         this.gcTask = null;
         this.hasRun = true;
-        return localStore
-          .collectGarbage(this.garbageCollector)
-          .then(() => this.scheduleGC(localStore))
-          .catch(ignoreIfPrimaryLeaseLoss);
+        try {
+          await localStore.collectGarbage(this.garbageCollector);
+        } catch (e) {
+          if (e.name === 'IndexedDbTransactionError') {
+            logDebug(
+              LOG_TAG,
+              'Ignoring IndexedDB error during garbage collection: ',
+              e
+            );
+          } else {
+            await ignoreIfPrimaryLeaseLoss(e);
+          }
+        }
+        await this.scheduleGC(localStore);
       }
     );
   }

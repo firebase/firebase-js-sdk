@@ -17,7 +17,7 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { TypeOrder } from './field_value';
+import { TypeOrder } from './object_value';
 import { fail, hardAssert } from '../util/assert';
 import { forEach, objectSize } from '../util/obj';
 import { ByteString } from '../util/byte_string';

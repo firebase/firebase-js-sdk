@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,5 @@
  * limitations under the License.
  */
 
-import { FieldValue } from '../../../src/api/field_value';
-import { expectEqual, expectNotEqual } from '../../util/helpers';
-
-describe('FieldValue', () => {
-  it('support equality checking with isEqual()', () => {
-    expectEqual(FieldValue.delete(), FieldValue.delete());
-    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
-    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
-  });
-});
+/** @type {!Object} */
+const module = {};

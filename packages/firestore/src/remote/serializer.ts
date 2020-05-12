@@ -34,7 +34,7 @@ import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { ObjectValue } from '../model/field_value';
+import { ObjectValue } from '../model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -1086,8 +1086,7 @@ export class JsonProtoSerializer {
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
-    const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return FieldMask.fromArray(fields);
+    return new FieldMask(paths.map(path => FieldPath.fromServerFormat(path)));
   }
 }
 

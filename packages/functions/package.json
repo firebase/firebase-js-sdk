@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.42",
+  "version": "0.4.43",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -17,6 +17,7 @@
     "build:deps": "lerna run --scope @firebase/'{app,functions}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "type-check": "tsc -p . --noEmit",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
@@ -30,8 +31,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/messaging": "0.6.14",
-    "rollup": "2.6.1",
+    "@firebase/messaging": "0.6.15",
+    "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.8.3"
   },
@@ -47,7 +48,7 @@
   "dependencies": {
     "@firebase/functions-types": "0.3.16",
     "@firebase/messaging-types": "0.4.4",
-    "@firebase/component": "0.1.10",
+    "@firebase/component": "0.1.11",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.11.1"
   },

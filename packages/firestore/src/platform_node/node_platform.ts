@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -27,6 +28,7 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
+import { debugAssert } from '../util/assert';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -74,5 +76,11 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
+  }
+
+  randomBytes(nBytes: number): Uint8Array {
+    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+
+    return randomBytes(nBytes);
   }
 }

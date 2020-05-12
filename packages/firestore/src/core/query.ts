@@ -17,7 +17,7 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { Document } from '../model/document';
+import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   canonicalId,
@@ -808,8 +808,8 @@ export class OrderBy {
 
   compare(d1: Document, d2: Document): number {
     const comparison = this.isKeyOrderBy
-      ? Document.compareByKey(d1, d2)
-      : Document.compareByField(this.field, d1, d2);
+      ? DocumentKey.comparator(d1.key, d2.key)
+      : compareDocumentsByField(this.field, d1, d2);
     switch (this.dir) {
       case Direction.ASCENDING:
         return comparison;

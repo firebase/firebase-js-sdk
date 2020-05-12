@@ -16,7 +16,7 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { MaybeDocument } from '../model/document';
+import { MaybeDocument, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
@@ -31,13 +31,18 @@ import {
   WriteStreamListener
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
+import { Query } from '../core/query';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
  * Cloud Datastore grpc API, which provides an interface that is more convenient
  * for the rest of the client SDK architecture to consume.
  */
-export class Datastore {}
+export class Datastore {
+  // Make sure that the structural type of `Datastore` is unique.
+  // See https://github.com/microsoft/TypeScript/issues/5451
+  private _ = undefined;
+}
 
 /**
  * An implementation of Datastore that exposes additional state for internal
@@ -143,6 +148,33 @@ export async function invokeBatchGetDocumentsRpc(
     result.push(doc);
   });
   return result;
+}
+
+export async function invokeRunQueryRpc(
+  datastore: Datastore,
+  query: Query
+): Promise<Document[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const { structuredQuery, parent } = datastoreImpl.serializer.toQueryTarget(
+    query.toTarget()
+  );
+  const params = {
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    parent,
+    structuredQuery
+  };
+
+  const response = await datastoreImpl.invokeStreamingRPC<
+    api.RunQueryRequest,
+    api.RunQueryResponse
+  >('RunQuery', params);
+
+  return (
+    response
+      // Omit RunQueryResponses that only contain readTimes.
+      .filter(proto => !!proto.document)
+      .map(proto => datastoreImpl.serializer.fromDocument(proto.document!))
+  );
 }
 
 export function newPersistentWriteStream(

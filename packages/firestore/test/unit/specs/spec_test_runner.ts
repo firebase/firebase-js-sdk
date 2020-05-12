@@ -48,7 +48,7 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonObject } from '../../../src/model/field_value';
+import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -76,7 +76,7 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
-  expectFirestoreError,
+  validateFirestoreError,
   filter,
   key,
   orderBy,
@@ -350,10 +350,16 @@ abstract class TestRunner {
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
-    const expectedTargetId = listenSpec[0];
+    let targetFailed = false;
+
     const querySpec = listenSpec[1];
     const query = parseQuery(querySpec);
-    const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
+    const aggregator = new EventAggregator(query, e => {
+      if (e.error) {
+        targetFailed = true;
+      }
+      this.pushEvent(e);
+    });
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
       includeMetadataChanges: true,
@@ -362,27 +368,27 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(async () => {
-      const targetId = await this.eventManager.listen(queryListener);
-      expect(targetId).to.equal(
-        expectedTargetId,
-        'targetId assigned to listen'
-      );
-    });
+    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
-    // Skip the backoff that may have been triggered by a previous call to
-    // `watchStreamCloses()`.
-    if (
-      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
-    ) {
-      await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnectionBackoff
-      );
-    }
+    if (targetFailed) {
+      expect(this.persistence.injectFailures).to.be.true;
+    } else {
+      // Skip the backoff that may have been triggered by a previous call to
+      // `watchStreamCloses()`.
+      if (
+        this.queue.containsDelayedOperation(
+          TimerId.ListenStreamConnectionBackoff
+        )
+      ) {
+        await this.queue.runDelayedOperationsEarly(
+          TimerId.ListenStreamConnectionBackoff
+        );
+      }
 
-    if (this.isPrimaryClient && this.networkEnabled) {
-      // Open should always have happened after a listen
-      await this.connection.waitForWatchOpen();
+      if (this.isPrimaryClient && this.networkEnabled) {
+        // Open should always have happened after a listen
+        await this.connection.waitForWatchOpen();
+      }
     }
   }
 
@@ -955,7 +961,10 @@ abstract class TestRunner {
     const expectedQuery = parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      expectFirestoreError(actual.error!);
+      validateFirestoreError(
+        mapCodeFromRpcCode(expected.errorCode),
+        actual.error!
+      );
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {

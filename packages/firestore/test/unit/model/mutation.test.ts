@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
@@ -32,7 +32,6 @@ import {
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
-  DELETE_SENTINEL,
   deletedDoc,
   deleteMutation,
   doc,
@@ -47,7 +46,7 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { ObjectValueBuilder } from '../../../src/model/field_value';
+import { ObjectValueBuilder } from '../../../src/model/object_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -136,7 +135,7 @@ describe('Mutation', () => {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
     const patch = patchMutation('collection/key', {
-      'foo.bar': DELETE_SENTINEL
+      'foo.bar': FieldValue.delete()
     });
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
