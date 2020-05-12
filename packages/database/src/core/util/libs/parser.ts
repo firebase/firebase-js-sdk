@@ -174,16 +174,17 @@ export const parseDatabaseURL = function(
       colonInd = dataURL.length;
     }
 
-    if (host.slice(0, colonInd).toLowerCase() === 'localhost') {
+    const hostWithoutPort = host.slice(0, colonInd);
+    if (hostWithoutPort.toLowerCase() === 'localhost') {
       domain = 'localhost';
+    } else if (hostWithoutPort.split('.').length <= 2) {
+      domain = hostWithoutPort; // Domain is at least 2 parts.
     } else {
       const dotInd = host.indexOf('.');
-      if (dotInd !== -1) {
-        // Normalize namespaces to lowercase to share storage / connection.
-        subdomain = host.substring(0, dotInd).toLowerCase();
-        namespace = subdomain;
-        domain = host.substring(dotInd + 1);
-      }
+      domain = host.substring(dotInd + 1);
+      subdomain = host.substring(0, dotInd).toLowerCase();
+      // Normalize namespaces to lowercase to share storage / connection.
+      namespace = subdomain;
     }
     // Always treat the value of the `ns` as the namespace name if it is present.
     if ('ns' in queryParams) {
