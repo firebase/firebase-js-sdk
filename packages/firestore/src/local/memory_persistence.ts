@@ -184,7 +184,7 @@ export interface MemoryReferenceDelegate extends ReferenceDelegate {
 }
 
 export class MemoryEagerDelegate implements MemoryReferenceDelegate {
-  /** Manages all documents that are active in Query views. */
+  /** Tracks all documents that are active in Query views. */
   private localViewReferences: ReferenceSet = new ReferenceSet();
   /** The list of documents that are potentially GCed after each transaction. */
   private _orphanedDocuments: Set<DocumentKey> | null = null;
