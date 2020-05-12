@@ -36,6 +36,7 @@ import {
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistenceAction, SpecDatabaseFailures } from './spec_test_runner';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -56,7 +57,7 @@ import { expect } from 'chai';
  * transaction failures.
  */
 export class MockMemoryPersistence extends MemoryPersistence {
-  injectFailures = false;
+  injectFailures?: SpecDatabaseFailures;
 
   runTransaction<T>(
     action: string,
@@ -66,12 +67,17 @@ export class MockMemoryPersistence extends MemoryPersistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     if (this.injectFailures) {
-      return Promise.reject(
-        new IndexedDbTransactionError(new Error('Simulated retryable error'))
-      );
-    } else {
-      return super.runTransaction(action, mode, transactionOperation);
+      if (this.injectFailures[action as PersistenceAction] === undefined) {
+        throw fail('Failure mode not specified for action: ' + action);
+      }
+      if (this.injectFailures[action as PersistenceAction]) {
+        return Promise.reject(
+          new IndexedDbTransactionError(new Error('Simulated retryable error'))
+        );
+      }
     }
+
+    return super.runTransaction(action, mode, transactionOperation);
   }
 }
 
@@ -80,7 +86,7 @@ export class MockMemoryPersistence extends MemoryPersistence {
  * transaction failures.
  */
 export class MockIndexedDbPersistence extends IndexedDbPersistence {
-  injectFailures = false;
+  injectFailures?: SpecDatabaseFailures;
 
   runTransaction<T>(
     action: string,
@@ -90,12 +96,16 @@ export class MockIndexedDbPersistence extends IndexedDbPersistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     if (this.injectFailures) {
-      return Promise.reject(
-        new IndexedDbTransactionError(new Error('Simulated retryable error'))
-      );
-    } else {
-      return super.runTransaction(action, mode, transactionOperation);
+      if (this.injectFailures[action as PersistenceAction] === undefined) {
+        throw fail('Failure mode not specified for action: ' + action);
+      } else if (this.injectFailures[action as PersistenceAction]) {
+        return Promise.reject(
+          new IndexedDbTransactionError(new Error('Simulated retryable error'))
+        );
+      }
     }
+
+    return super.runTransaction(action, mode, transactionOperation);
   }
 }
 
