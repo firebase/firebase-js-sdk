@@ -178,13 +178,12 @@ export const parseDatabaseURL = function(
       domain = 'localhost';
     } else {
       const dotInd = host.indexOf('.');
-      if (dotInd === -1) {
-        return; // Not a valid URL.
+      if (dotInd !== -1) {
+        // Normalize namespaces to lowercase to share storage / connection.
+        subdomain = host.substring(0, dotInd).toLowerCase();
+        namespace = subdomain;
+        domain = host.substring(dotInd + 1);
       }
-      // Normalize namespaces to lowercase to share storage / connection.
-      subdomain = host.substring(0, dotInd).toLowerCase();
-      namespace = subdomain;
-      domain = host.substring(dotInd + 1);
     }
     // Always treat the value of the `ns` as the namespace name if it is present.
     if ('ns' in queryParams) {
