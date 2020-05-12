@@ -166,7 +166,7 @@ export const parseDatabaseURL = function(
     );
 
     // If we have a port, use scheme for determining if it's secure.
-    colonInd = host.indexOf(':');
+    const colonInd = host.indexOf(':');
     if (colonInd >= 0) {
       secure = scheme === 'https' || scheme === 'wss';
       port = parseInt(host.substring(colonInd + 1), 10);
