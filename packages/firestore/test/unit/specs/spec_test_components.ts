@@ -66,17 +66,7 @@ export class MockMemoryPersistence extends MemoryPersistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    if (this.injectFailures) {
-      if (this.injectFailures[action as PersistenceAction] === undefined) {
-        throw fail('Failure mode not specified for action: ' + action);
-      }
-      if (this.injectFailures[action as PersistenceAction]) {
-        return Promise.reject(
-          new IndexedDbTransactionError(new Error('Simulated retryable error'))
-        );
-      }
-    }
-
+    failTransactionIfNeeded(this.injectFailures, action);
     return super.runTransaction(action, mode, transactionOperation);
   }
 }
@@ -95,17 +85,28 @@ export class MockIndexedDbPersistence extends IndexedDbPersistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    if (this.injectFailures) {
-      if (this.injectFailures[action as PersistenceAction] === undefined) {
-        throw fail('Failure mode not specified for action: ' + action);
-      } else if (this.injectFailures[action as PersistenceAction]) {
-        return Promise.reject(
-          new IndexedDbTransactionError(new Error('Simulated retryable error'))
-        );
-      }
-    }
-
+    failTransactionIfNeeded(this.injectFailures, action);
     return super.runTransaction(action, mode, transactionOperation);
+  }
+}
+
+/**
+ * Shared failure handler between MockIndexedDbPersistence and
+ * MockMemoryPersistence that can inject transaction failures.
+ */
+function failTransactionIfNeeded(
+  config: SpecDatabaseFailures | undefined,
+  action: string
+): void {
+  if (config) {
+    const shouldFail = config[action as PersistenceAction];
+    if (shouldFail === undefined) {
+      throw fail('Failure mode not specified for action: ' + action);
+    } else if (shouldFail) {
+      throw new IndexedDbTransactionError(
+        new Error('Simulated retryable error' + action)
+      );
+    }
   }
 }
 
