@@ -138,12 +138,12 @@ interface ContextSettings {
    * A path within the object being parsed. This could be an empty path (in
    * which case the context represents the root of the data being parsed), or a
    * nonempty path (indicating the context represents a nested location within
-   * the data). Defaults to null.
+   * the data).
    */
   readonly path?: FieldPath;
   /**
    * Whether or not this context corresponds to an element of an array.
-   * Defaults to false.
+   * If not set, elements are treated as if they were outside of arrays.
    */
   readonly arrayElement?: boolean;
 }
@@ -219,7 +219,7 @@ export class ParseContext {
 
   childContextForArray(index: number): ParseContext {
     // TODO(b/34871131): We don't support array paths right now; so make path
-    // null.
+    // undefined.
     return this.contextWith({ path: undefined, arrayElement: true });
   }
 
