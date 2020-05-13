@@ -33,13 +33,13 @@ function extractIdentifiersFromNodeAndChildren(
 }
 
 function extractTypeDeclaration(fileName: string): string {
-  const compilerOptions = {  declaration: true,
-    emitDeclarationOnly: true}
-  let dtsSource : string;
-  const host = ts.createCompilerHost( compilerOptions);
-  host.writeFile = (fileName: string, contents: string) => dtsSource = contents;
+  const compilerOptions = { declaration: true, emitDeclarationOnly: true };
+  let dtsSource: string;
+  const host = ts.createCompilerHost(compilerOptions);
+  host.writeFile = (fileName: string, contents: string) =>
+    (dtsSource = contents);
   const program = ts.createProgram([fileName], compilerOptions, host);
-  program.emit()
+  program.emit();
   return dtsSource!;
 }
 
@@ -57,10 +57,14 @@ export function extractPublicIdentifiers(filePaths: string[]): Set<string> {
       contents,
       ts.ScriptTarget.ES2015
     );
-    
+
     if (!sourceFile.isDeclarationFile) {
-     const dtsSource = extractTypeDeclaration(filePath);
-     sourceFile = ts.createSourceFile(filePath.replace(".ts", ".d.ts"), dtsSource, ts.ScriptTarget.ES2015);
+      const dtsSource = extractTypeDeclaration(filePath);
+      sourceFile = ts.createSourceFile(
+        filePath.replace('.ts', '.d.ts'),
+        dtsSource,
+        ts.ScriptTarget.ES2015
+      );
     }
 
     const identifiers = new Set<string>();
