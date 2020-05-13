@@ -25,7 +25,7 @@ const timeForward = require('./utils/forwardTime');
 const triggerGetToken = require('./utils/triggerGetToken');
 const getErrors = require('./utils/getErrors');
 
-const TEST_SUITE_TIMEOUT_MS = 70_000;
+const TEST_SUITE_TIMEOUT_MS = 70000;
 const TEST_DOMAIN = 'valid-vapid-key';
 
 describe('Firebase Messaging Integration Tests > update a token', function() {
