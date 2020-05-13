@@ -370,6 +370,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       experimentalForceOwningTab = settings.experimentalForceOwningTab
         ? settings.experimentalForceOwningTab
         : false;
+
+      if (synchronizeTabs && experimentalForceOwningTab) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "The 'experimentalForceOwningTab' setting cannot be used with 'synchronizeTabs'."
+        );
+      }
     }
 
     return this.configureClient(this._componentProvider, {

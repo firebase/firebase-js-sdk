@@ -111,6 +111,7 @@ function withDb(
 async function withCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: IndexedDbPersistence,
     platform: TestPlatform,
@@ -135,7 +136,7 @@ async function withCustomPersistence(
     queue,
     serializer,
     MOCK_SEQUENCE_NUMBER_SYNCER,
-    /* forceOwningTab= */ false
+    forceOwningTab
   );
 
   await persistence.start();
@@ -151,7 +152,12 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ false,
+    fn
+  );
 }
 
 async function withMultiClientPersistence(
@@ -162,7 +168,28 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ true,
+    /* forceOwningTab= */ false,
+    fn
+  );
+}
+
+async function withForcedPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ true,
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -1107,6 +1134,12 @@ describe('IndexedDb: canActAsPrimary', () => {
       );
 
       expect(await getCurrentLeaseOwner()).to.not.be.null;
+    });
+  });
+
+  it('obtains lease if forceOwningTab is set', () => {
+    return withPersistence('clientA', async (persistence, platform, queue) => {
+      await withForcedPersistence('clientB', db2 => Promise.resolve());
     });
   });
 });

@@ -511,11 +511,11 @@ export class IndexedDbPersistence implements Persistence {
       // the client atomically, but we can't. So we opt to delete the IndexedDb
       // entries first to avoid potentially reviving a zombied client.
       if (this.webStorage) {
-        inactiveClients.forEach(inactiveClient => {
-          this.webStorage!.removeItem(
+        for (const inactiveClient of inactiveClients) {
+          this.webStorage.removeItem(
             this.zombiedClientLocalStorageKey(inactiveClient.clientId)
           );
-        });
+        }
       }
     }
   }
