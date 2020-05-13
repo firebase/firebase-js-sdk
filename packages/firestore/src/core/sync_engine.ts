@@ -483,14 +483,6 @@ export class SyncEngine implements RemoteSyncer {
     const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
-      // Since this query failed, we won't want to manually unlisten to it.
-      // So go ahead and remove it from bookkeeping.
-      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
-        limboKey
-      );
-      this.activeLimboResolutionsByTarget.delete(targetId);
-      this.pumpEnqueuedLimboResolutions();
-
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
 
@@ -513,7 +505,19 @@ export class SyncEngine implements RemoteSyncer {
         documentUpdates,
         resolvedLimboDocuments
       );
-      return this.applyRemoteEvent(event);
+
+      await this.applyRemoteEvent(event);
+
+      // Since this query failed, we won't want to manually unlisten to it.
+      // We only remove it from bookkeeping after we successfully applied the
+      // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
+      // this query when the RemoteStore restarts the Watch stream, which should
+      // re-trigger the target failure.
+      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
+        limboKey
+      );
+      this.activeLimboResolutionsByTarget.delete(targetId);
+      this.pumpEnqueuedLimboResolutions();
     } else {
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
