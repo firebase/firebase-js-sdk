@@ -335,7 +335,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         })
         .watchAcksFull(filteredQuery, 2000)
         .expectLimboDocs(doc1a.key)
-        .failDatabase()
+        .failDatabaseTransactions({ 'Get last remote snapshot version': true })
         .watchAcksFull(limboQuery, 3000, doc1b)
         .expectActiveTargets()
         .recoverDatabase()
@@ -380,7 +380,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         })
         .watchAcksFull(filteredQuery, 2000)
         .expectLimboDocs(doc1.key)
-        .failDatabase()
+        .failDatabaseTransactions({
+          'Apply remote event': true,
+          'Get last remote snapshot version': true
+        })
         .watchRemoves(
           limboQuery,
           new RpcError(Code.PERMISSION_DENIED, 'Test error')
