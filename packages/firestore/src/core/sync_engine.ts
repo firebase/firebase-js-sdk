@@ -38,7 +38,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -72,7 +72,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncQueue, executeWithIndexedDbRecovery } from '../util/async_queue';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
@@ -349,25 +349,21 @@ export class SyncEngine implements RemoteSyncer {
    * userCallback is resolved once the write was acked/rejected by the
    * backend (or failed locally for any other reason).
    */
-   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
+  async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
 
-    return executeWithIndexedDbRecovery(
-      async () => {
-        const result = await this.localStore.localWrite(batch);
-        this.sharedClientState.addPendingMutation(result.batchId);
-        this.addMutationCallback(result.batchId, userCallback);
-        await this.emitNewSnapsAndNotifyLocalStore(result.changes);
-        await this.remoteStore.fillWritePipeline();
-      },
-      e => {
-        // If we can't persist the mutation, we reject the user callback and
-        // don't send the mutation. The user can then retry the write.
-        const msg = `Failed to persist write: ${e}`;
-        logError(LOG_TAG, msg);
-        userCallback.reject(new FirestoreError(Code.UNAVAILABLE, msg));
-      }
-    );
+    try {
+      const result = await this.localStore.localWrite(batch);
+      this.sharedClientState.addPendingMutation(result.batchId);
+      this.addMutationCallback(result.batchId, userCallback);
+      await this.emitNewSnapsAndNotifyLocalStore(result.changes);
+      await this.remoteStore.fillWritePipeline();
+    } catch (e) {
+      // If we can't persist the mutation, we reject the user callback and
+      // don't send the mutation. The user can then retry the write.
+      const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
+      userCallback.reject(error);
+    }
   }
 
   /**
@@ -582,24 +578,24 @@ export class SyncEngine implements RemoteSyncer {
       );
     }
 
-    return executeWithIndexedDbRecovery(
-      async () => {
-        const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
-        if (highestBatchId === BATCHID_UNKNOWN) {
-          // Trigger the callback right away if there is no pending writes at the moment.
-          callback.resolve();
-          return;
-        }
-        const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
-        callbacks.push(callback);
-        this.pendingWritesCallbacks.set(highestBatchId, callbacks);
-      },
-      e => {
-        const msg = `Initialization of waitForPendingWrites() operation failed: ${e}`;
-        logError(LOG_TAG, msg);
-        callback.reject(new FirestoreError(Code.UNAVAILABLE, msg));
+    try {
+      const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
+      if (highestBatchId === BATCHID_UNKNOWN) {
+        // Trigger the callback right away if there is no pending writes at the moment.
+        callback.resolve();
+        return;
       }
-    );
+
+      const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
+      callbacks.push(callback);
+      this.pendingWritesCallbacks.set(highestBatchId, callbacks);
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e,
+        'Initialization of waitForPendingWrites() operation failed'
+      );
+      callback.reject(firestoreError);
+    }
   }
 
   /**
