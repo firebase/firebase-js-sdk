@@ -32,15 +32,15 @@ function extractIdentifiersFromNodeAndChildren(
   );
 }
 
+/** Generates the "d.ts" content for `fileName`. */
 function extractTypeDeclaration(fileName: string): string {
+  let result: string;
   const compilerOptions = { declaration: true, emitDeclarationOnly: true };
-  let dtsSource: string;
   const host = ts.createCompilerHost(compilerOptions);
-  host.writeFile = (fileName: string, contents: string) =>
-    (dtsSource = contents);
+  host.writeFile = (_: string, contents: string) => (result = contents);
   const program = ts.createProgram([fileName], compilerOptions, host);
   program.emit();
-  return dtsSource!;
+  return result!;
 }
 
 /**
