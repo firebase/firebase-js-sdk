@@ -76,7 +76,7 @@ function rewriteCopyrightLine(contents) {
   return newLines.join('\n');
 }
 
-async function doLicenseCommit(changedFiles) {
+async function doLicense(changedFiles) {
   const licenseSpinner = ora(' Validating License Headers').start();
 
   const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
@@ -115,28 +115,26 @@ async function doLicenseCommit(changedFiles) {
     symbol: '✅'
   });
 
-  const hasDiff = await git.diff();
+  // Diff unstaged (license writes) against staged.
+  const stageDiff = await git.diff(['--name-only']);
 
-  if (!hasDiff) {
-    console.log(
-      chalk`\n{red License pass caused no changes.} Skipping commit.\n`
-    );
+  if (!stageDiff) {
+    console.log(chalk`\n{red License pass caused no changes.}\n`);
     return;
+  } else {
+    console.log(
+      `License script modified ${stageDiff.split('\n').length - 1} files.`
+    );
   }
 
-  const gitSpinner = ora(' Creating automated license commit').start();
+  const gitSpinner = ora(' Git staging license text modifications.').start();
   await git.add('.');
 
-  const commit = await git.commit('[AUTOMATED]: License Headers');
-
   gitSpinner.stopAndPersist({
-    symbol: '✅'
+    symbol: '▶️'
   });
-  console.log(
-    chalk`{green Commited ${commit.commit} to branch ${commit.branch}}`
-  );
 }
 
 module.exports = {
-  doLicenseCommit
+  doLicense
 };

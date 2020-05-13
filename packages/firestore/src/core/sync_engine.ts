@@ -682,8 +682,7 @@ export class SyncEngine implements RemoteSyncer {
     this.queriesByTarget.delete(targetId);
 
     if (this.isPrimaryClient) {
-      const limboKeys = this.limboDocumentRefs.referencesForId(targetId);
-      this.limboDocumentRefs.removeReferencesForId(targetId);
+      const limboKeys = this.limboDocumentRefs.removeReferencesForId(targetId);
       limboKeys.forEach(limboKey => {
         const isReferenced = this.limboDocumentRefs.containsKey(limboKey);
         if (!isReferenced) {
