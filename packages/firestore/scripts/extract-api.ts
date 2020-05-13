@@ -32,6 +32,17 @@ function extractIdentifiersFromNodeAndChildren(
   );
 }
 
+function extractTypeDeclaration(fileName: string): string {
+  const compilerOptions = {  declaration: true,
+    emitDeclarationOnly: true}
+  let dtsSource : string;
+  const host = ts.createCompilerHost( compilerOptions);
+  host.writeFile = (fileName: string, contents: string) => dtsSource = contents;
+  const program = ts.createProgram([fileName], compilerOptions, host);
+  program.emit()
+  return dtsSource!;
+}
+
 /**
  * Traverses TypeScript type definition files and returns the list of referenced
  * identifiers.
@@ -41,11 +52,16 @@ export function extractPublicIdentifiers(filePaths: string[]): Set<string> {
 
   for (const filePath of filePaths) {
     const contents = fs.readFileSync(filePath, { encoding: 'UTF-8' });
-    const sourceFile = ts.createSourceFile(
+    let sourceFile = ts.createSourceFile(
       filePath,
       contents,
       ts.ScriptTarget.ES2015
     );
+    
+    if (!sourceFile.isDeclarationFile) {
+     const dtsSource = extractTypeDeclaration(filePath);
+     sourceFile = ts.createSourceFile(filePath.replace(".ts", ".d.ts"), dtsSource, ts.ScriptTarget.ES2015);
+    }
 
     const identifiers = new Set<string>();
     ts.forEachChild(sourceFile, (childNode: ts.Node) =>
