@@ -16,18 +16,25 @@
  */
 
 const fetch = require('node-fetch');
-const getTestConfigs = require('./getTestConfigs');
+const FCM_SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
+require('dotenv').config({ path: __dirname + '/.env' });
 
 module.exports = async payload => {
+  let serverKey = process.env.FCM_TEST_PROJECT_SERVER_KEY;
+
+  if (!serverKey) {
+    throw 'Fail to send a message: process.env has no server key';
+  }
+
   console.log(
     'Requesting to send an FCM message with payload: ' + JSON.stringify(payload)
   );
 
-  const response = await fetch(getTestConfigs().sendEndpoint, {
+  const response = await fetch(FCM_SEND_ENDPOINT, {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: {
-      Authorization: 'key=' + getTestConfigs().projectServerKey,
+      Authorization: 'key=' + serverKey,
       'Content-Type': 'application/json'
     }
   });

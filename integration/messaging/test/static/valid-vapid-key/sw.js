@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-importScripts('https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js');
-importScripts(
-  'https://www.gstatic.com/firebasejs/7.14.0/firebase-messaging.js'
-);
-importScripts('/firebaseConfig.js');
+importScripts('../constants.js');
+importScripts('/firebase-app.js');
+importScripts('/firebase-messaging.js');
 
 firebase.initializeApp(FIREBASE_CONFIG);
-
 const messaging = firebase.messaging();
 
-messaging.setBackgroundMessageHandler(data => {
+messaging.setBackgroundMessageHandler(payload => {
   const title = 'Background Notification';
   return self.registration.showNotification(title, {});
 });

@@ -22,6 +22,7 @@ module.exports = async (webdriver, token) => {
       return !!window.__test;
     });
   });
+
   return webdriver.executeScript(token => {
     return window.__test.triggerDeleteToken(token);
   });

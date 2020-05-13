@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
 const expect = require('chai').expect;
-
 const testServer = require('./utils/test-server');
-const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const retrieveToken = require('./utils/retrieveToken');
+const seleniumAssistant = require('selenium-assistant');
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+
 const TEST_DOMAIN = 'default-sw';
 const TEST_SUITE_TIMEOUT_MS = 70_000;
 
@@ -48,9 +48,9 @@ describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' 
     const result = await globalWebDriver.executeAsyncScript(function(cb) {
       navigator.serviceWorker
         .getRegistrations()
-        .then(regs => {
+        .then(swReg => {
           return (
-            regs[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !== 0
+            swReg[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !== 0
           );
         })
         .then(cb, cb);

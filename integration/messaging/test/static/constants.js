@@ -18,3 +18,9 @@
 const EIGHT_DAYS_IN_MS = 8 * 86400000;
 const PUBLIC_VAPID_KEY =
   'BAN_2QvaSnxnjz-2y1sARN1ErEpZhcb8kaSI08pLxiAtQPB4ja3wg_1T0cGBMpt-vRd_6G1LZeVcVYlQeSPlbt8';
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyA0p3wZ05sigxv1UtmLxMWP6iML_K0B-uE',
+  projectId: 'android-gcm-test-519bd',
+  messagingSenderId: '35006771263',
+  appId: '1:35006771263:web:18cc19582bf589e8c9c88a'
+};

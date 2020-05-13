@@ -17,18 +17,18 @@
 
 const expect = require('chai').expect;
 const testServer = require('./utils/test-server');
+const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const clearAppForTest = require('./utils/clearAppForTest');
-const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
-const sendMessage = require('./utils/sendMessage');
-const getTestConfigs = require('./utils/getTestConfigs');
 const getReceivedMessages = require('./utils/getReceivedMessages');
-
-const TEST_SUITE_TIMEOUT_MS = 70_000;
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+const TEST_SUITE_TIMEOUT_MS = 70000;
+const TEST_DOMAIN = 'valid-vapid-key';
+const TEST_PROJECT_SENDER_ID = '35006771263';
 const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
 
-describe('Starting Integration Test: Sending and Receiving ', function() {
+describe('Starting Integration Test > Sending and Receiving ', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
   let globalWebDriver;
 
@@ -46,16 +46,14 @@ describe('Starting Integration Test: Sending and Receiving ', function() {
       return;
     }
 
-    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${
-      getTestConfigs().testName
-    }`, function() {
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function() {
       before(async function() {
         // Use one webDriver per browser instead of one per test to speed up test.
         globalWebDriver = createPermittedWebDriver(
           /* browser= */ assistantBrowser.getId()
         );
         await globalWebDriver.get(
-          `${testServer.serverAddress}/${getTestConfigs().testName}/`
+          `${testServer.serverAddress}/${TEST_DOMAIN}/`
         );
       });
 
@@ -141,7 +139,7 @@ async function checkMessageReceived(
   expect(receivedMessages.length).to.equal(1);
 
   const message = receivedMessages[0];
-  expect(message.from).to.equal(getTestConfigs().senderId);
+  expect(message.from).to.equal(TEST_PROJECT_SENDER_ID);
   expect(message.collapse_key).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
 
   if (expectedNotificationPayload) {
@@ -170,8 +168,4 @@ function getTestNotificationPayload() {
 
 function getTestDataPayload() {
   return { hello: 'world' };
-}
-
-function openNewTap(webDriver) {
-  webDriver.FindElement(By.LinkText('Open new window')).Click();
 }

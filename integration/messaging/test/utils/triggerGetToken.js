@@ -22,6 +22,7 @@ module.exports = async webdriver => {
       return !!window.__test;
     });
   });
+
   return webdriver.executeAsyncScript(cb => {
     window.__test.triggerGetToken().then(token => {
       cb(token);

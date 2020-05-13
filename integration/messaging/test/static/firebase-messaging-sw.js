@@ -14,11 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-importScripts('https://www.gstatic.com/firebasejs/7.10.0/firebase-app.js');
-importScripts(
-  'https://www.gstatic.com/firebasejs/7.10.0/firebase-messaging.js'
-);
-importScripts('/firebaseConfig.js');
+importScripts('/firebase-app.js');
+importScripts('/firebase-messaging.js');
+importScripts('./constants.js');
+
 firebase.initializeApp(FIREBASE_CONFIG);
 
 const messaging = firebase.messaging();

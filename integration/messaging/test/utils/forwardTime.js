@@ -22,6 +22,7 @@ module.exports = async webdriver => {
       return !!window.__test;
     });
   });
+
   return webdriver.executeScript(() => {
     return window.__test.triggerTimeForward();
   });

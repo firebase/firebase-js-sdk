@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-const chrome = require('selenium-webdriver/chrome');
+const testServer = require('./test-server');
 const { Builder } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+
 const CHROME_PREFERENCE_NOTIFICATION_ENABLED = 1;
 const SERVER_ADDRESS_SEPARATOR = ',*';
-const testServer = require('./test-server');
 
 module.exports = browser => {
   const chromePreferences = {
@@ -44,7 +45,6 @@ module.exports = browser => {
   let driver = new Builder()
     .forBrowser(browser)
     .setChromeOptions(chromeOptions)
-    // .setFirefoxOptions(firefoxOptions)
     .build();
   return driver;
 };

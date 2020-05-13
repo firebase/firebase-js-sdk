@@ -17,11 +17,9 @@
 
 const seleniumAssistant = require('selenium-assistant');
 const expect = require('chai').expect;
-
 const testServer = require('./utils/test-server');
 const retrieveToken = require('./utils/retrieveToken');
 const clearAppForTest = require('./utils/clearAppForTest');
-const getTestConfigs = require('./utils/getTestConfigs');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const timeForward = require('./utils/forwardTime');
 const triggerGetToken = require('./utils/triggerGetToken');

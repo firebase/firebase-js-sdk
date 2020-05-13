@@ -18,13 +18,13 @@
 const expect = require('chai').expect;
 const testServer = require('./utils/test-server');
 const deleteToken = require('./utils/deleteToken');
-const getTestConfigs = require('./utils/getTestConfigs');
 const clearAppForTest = require('./utils/clearAppForTest');
 const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_SUITE_TIMEOUT_MS = 70_000;
+const TEST_DOMAIN = 'valid-vapid-key';
 
 describe('Firebase Messaging Integration Tests > get and delete token', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
@@ -40,14 +40,12 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
 
   const availableBrowsers = seleniumAssistant.getLocalBrowsers();
   availableBrowsers.forEach(assistantBrowser => {
-    //TODO: enable testing for edge and firefox if applicable
+    //TODO: enable testing for firefox
     if (assistantBrowser.getId() !== 'chrome') {
       return;
     }
 
-    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${
-      getTestConfigs().testName
-    }`, function() {
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function() {
       before(async function() {
         // Use one webDriver per browser instead of one per test to speed up test.
         globalWebDriver = createPermittedWebDriver(
@@ -55,7 +53,7 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
         );
 
         await globalWebDriver.get(
-          `${testServer.serverAddress}/${getTestConfigs().testName}/`
+          `${testServer.serverAddress}/${TEST_DOMAIN}/`
         );
       });
 

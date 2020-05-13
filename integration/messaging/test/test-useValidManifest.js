@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
 const expect = require('chai').expect;
-
 const testServer = require('./utils/test-server');
-const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const retrieveToken = require('./utils/retrieveToken');
+const seleniumAssistant = require('selenium-assistant');
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+
 const TEST_DOMAIN = 'valid-manifest';
 const TEST_SUITE_TIMEOUT_MS = 70_000;
 
