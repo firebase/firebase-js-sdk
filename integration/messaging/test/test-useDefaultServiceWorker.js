@@ -22,7 +22,7 @@ const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_DOMAIN = 'default-sw';
-const TEST_SUITE_TIMEOUT_MS = 70_000;
+const TEST_SUITE_TIMEOUT_MS = 70000;
 
 describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' by default`, function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
