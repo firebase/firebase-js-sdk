@@ -21,7 +21,6 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { ReferenceSet } from '../../../src/local/reference_set';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -143,7 +142,6 @@ function genericTargetCacheTests(
   let persistence: Persistence;
   beforeEach(async () => {
     persistence = await persistencePromise();
-    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     cache = new TestTargetCache(persistence, persistence.getTargetCache());
   });
 

@@ -1,4 +1,6 @@
 # Unreleased
+- [fixed] Fixed a regression introduced in v7.14.2 that incorrectly applied
+  a `FieldValue.increment` in combination with `set({...}, {merge: true})`.
 - [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
   registered in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Firestore now rejects write operations if they cannot be persisted

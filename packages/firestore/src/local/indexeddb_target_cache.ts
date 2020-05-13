@@ -284,7 +284,7 @@ export class IndexedDbTargetCache implements TargetCache {
     keys.forEach(key => {
       const path = encodeResourcePath(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
-      promises.push(this.referenceDelegate.addReference(txn, key));
+      promises.push(this.referenceDelegate.addReference(txn, targetId, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -301,7 +301,7 @@ export class IndexedDbTargetCache implements TargetCache {
       const path = encodeResourcePath(key.path);
       return PersistencePromise.waitFor([
         store.delete([targetId, path]),
-        this.referenceDelegate.removeReference(txn, key)
+        this.referenceDelegate.removeReference(txn, targetId, key)
       ]);
     });
   }

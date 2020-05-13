@@ -20,7 +20,7 @@ import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, path } from '../../util/helpers';
+import { doc, filter, path } from '../../util/helpers';
 import { RpcError } from './spec_rpc_error';
 
 describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
@@ -34,7 +34,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .client(1)
           .expectPrimaryState(false)
           .userSets('collection/a', { v: 1 })
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Locally write mutations': true,
+            'Synchronize last document change read time': true,
+            'Lookup mutation documents': true
+          })
           .client(0)
           .writeAcks('collection/a', 1, { expectUserCallback: false })
           .client(1)
@@ -64,7 +68,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .client(1)
         .expectPrimaryState(false)
         .userListens(query)
-        .failDatabase()
+        .failDatabaseTransactions({
+          'Allocate target': true,
+          'Lookup mutation documents': true,
+          'Get new document changes': true
+        })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000)
@@ -84,7 +92,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       return (
         client(0)
           .expectPrimaryState(true)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Allocate target': true,
+            'Get target data': true
+          })
           .client(1)
           .userListens(query)
           .client(0)
@@ -94,7 +105,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectListen(query)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Allocate target': true,
+            'Release target': true
+          })
           .client(1)
           .userUnlistens(query)
           .client(0)
@@ -113,7 +127,12 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     return spec()
       .userSets('collection/key1', { foo: 'a' })
       .expectNumOutstandingWrites(1)
-      .failDatabase()
+      .failDatabaseTransactions({
+        'Locally write mutations': true,
+        notifyLocalViewChanges: true,
+        'Get next mutation batch': true,
+        'Get last stream token': true
+      })
       .userSets('collection/key2', { bar: 'b' })
       .expectUserCallbacks({ rejected: ['collection/key2'] })
       .recoverDatabase()
@@ -149,7 +168,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         fromCache: true,
         hasPendingWrites: true
       })
-      .failDatabase()
+      .failDatabaseTransactions({
+        'Locally write mutations': true,
+        notifyLocalViewChanges: true,
+        'Get next mutation batch': true
+      })
       .userSets('collection/key2', { foo: 'b' })
       .expectUserCallbacks({ rejected: ['collection/key2'] })
       .recoverDatabase()
@@ -173,7 +196,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabase()
+      .failDatabaseTransactions({ 'Allocate target': true })
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -189,7 +212,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabase()
+      .failDatabaseTransactions({ 'Allocate target': true })
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -213,7 +236,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
             added: [doc1]
           })
           .watchSends({ affects: [query] }, doc2)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Get last remote snapshot version': true,
+            'Release target': true
+          })
           .watchSnapshots(1500)
           // `failDatabase()` causes us to go offline.
           .expectActiveTargets()
@@ -250,7 +276,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectEvents(doc2Query, {
             added: [doc2]
           })
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Get last remote snapshot version': true,
+            'Release target': true
+          })
           .watchRemoves(
             doc1Query,
             new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
@@ -278,6 +307,103 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
             modified: [doc1b]
           })
       );
+    }
+  );
+
+  specTest(
+    'Recovers when Limbo acknowledgement cannot be persisted',
+    ['durable-persistence'],
+    () => {
+      const fullQuery = Query.atPath(path('collection'));
+      const filteredQuery = Query.atPath(path('collection')).addFilter(
+        filter('included', '==', true)
+      );
+      const doc1a = doc('collection/key1', 1, { included: true });
+      const doc1b = doc('collection/key1', 1500, { included: false });
+      const limboQuery = Query.atPath(doc1a.key.path);
+      return spec()
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1000, doc1a)
+        .expectEvents(fullQuery, {
+          added: [doc1a]
+        })
+        .userUnlistens(fullQuery)
+        .userListens(filteredQuery)
+        .expectEvents(filteredQuery, {
+          added: [doc1a],
+          fromCache: true
+        })
+        .watchAcksFull(filteredQuery, 2000)
+        .expectLimboDocs(doc1a.key)
+        .failDatabaseTransactions({ 'Get last remote snapshot version': true })
+        .watchAcksFull(limboQuery, 3000, doc1b)
+        .expectActiveTargets()
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectActiveTargets(
+          {
+            query: filteredQuery,
+            resumeToken: 'resume-token-2000'
+          },
+          { query: limboQuery }
+        )
+        .watchAcksFull(filteredQuery, 4000)
+        .watchAcksFull(limboQuery, 4000, doc1b)
+        .expectLimboDocs()
+        .expectEvents(filteredQuery, {
+          removed: [doc1a]
+        });
+    }
+  );
+
+  specTest(
+    'Recovers when Limbo rejection cannot be persisted',
+    ['durable-persistence'],
+    () => {
+      const fullQuery = Query.atPath(path('collection'));
+      const filteredQuery = Query.atPath(path('collection')).addFilter(
+        filter('included', '==', true)
+      );
+      const doc1 = doc('collection/key1', 1, { included: true });
+      const limboQuery = Query.atPath(doc1.key.path);
+      return spec()
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1000, doc1)
+        .expectEvents(fullQuery, {
+          added: [doc1]
+        })
+        .userUnlistens(fullQuery)
+        .userListens(filteredQuery)
+        .expectEvents(filteredQuery, {
+          added: [doc1],
+          fromCache: true
+        })
+        .watchAcksFull(filteredQuery, 2000)
+        .expectLimboDocs(doc1.key)
+        .failDatabaseTransactions({
+          'Apply remote event': true,
+          'Get last remote snapshot version': true
+        })
+        .watchRemoves(
+          limboQuery,
+          new RpcError(Code.PERMISSION_DENIED, 'Test error')
+        )
+        .expectActiveTargets()
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectActiveTargets(
+          { query: filteredQuery, resumeToken: 'resume-token-2000' },
+          { query: limboQuery }
+        )
+        .watchAcksFull(filteredQuery, 3000)
+        .watchRemoves(
+          limboQuery,
+          new RpcError(Code.PERMISSION_DENIED, 'Test error')
+        )
+        .expectLimboDocs()
+        .expectEvents(filteredQuery, {
+          removed: [doc1]
+        });
     }
   );
 });
