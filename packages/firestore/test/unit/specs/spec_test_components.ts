@@ -104,7 +104,7 @@ function failTransactionIfNeeded(
       throw fail('Failure mode not specified for action: ' + action);
     } else if (shouldFail) {
       throw new IndexedDbTransactionError(
-        new Error('Simulated retryable error' + action)
+        new Error('Simulated retryable error: ' + action)
       );
     }
   }
