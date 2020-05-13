@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { ReferenceSet } from '../../../src/local/reference_set';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import {
@@ -72,7 +71,6 @@ function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
   beforeEach(() => {
-    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))

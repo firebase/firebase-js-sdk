@@ -34,7 +34,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .client(1)
           .expectPrimaryState(false)
           .userSets('collection/a', { v: 1 })
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Locally write mutations': true,
+            'Synchronize last document change read time': true,
+            'Lookup mutation documents': true
+          })
           .client(0)
           .writeAcks('collection/a', 1, { expectUserCallback: false })
           .client(1)
@@ -64,7 +68,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .client(1)
         .expectPrimaryState(false)
         .userListens(query)
-        .failDatabase()
+        .failDatabaseTransactions({
+          'Allocate target': true,
+          'Lookup mutation documents': true,
+          'Get new document changes': true
+        })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000)
@@ -84,7 +92,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       return (
         client(0)
           .expectPrimaryState(true)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Allocate target': true,
+            'Get target data': true
+          })
           .client(1)
           .userListens(query)
           .client(0)
@@ -94,7 +105,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectListen(query)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Allocate target': true,
+            'Release target': true
+          })
           .client(1)
           .userUnlistens(query)
           .client(0)
@@ -113,7 +127,12 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     return spec()
       .userSets('collection/key1', { foo: 'a' })
       .expectNumOutstandingWrites(1)
-      .failDatabase()
+      .failDatabaseTransactions({
+        'Locally write mutations': true,
+        notifyLocalViewChanges: true,
+        'Get next mutation batch': true,
+        'Get last stream token': true
+      })
       .userSets('collection/key2', { bar: 'b' })
       .expectUserCallbacks({ rejected: ['collection/key2'] })
       .recoverDatabase()
@@ -149,7 +168,11 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         fromCache: true,
         hasPendingWrites: true
       })
-      .failDatabase()
+      .failDatabaseTransactions({
+        'Locally write mutations': true,
+        notifyLocalViewChanges: true,
+        'Get next mutation batch': true
+      })
       .userSets('collection/key2', { foo: 'b' })
       .expectUserCallbacks({ rejected: ['collection/key2'] })
       .recoverDatabase()
@@ -173,7 +196,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabase()
+      .failDatabaseTransactions({ 'Allocate target': true })
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -189,7 +212,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabase()
+      .failDatabaseTransactions({ 'Allocate target': true })
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -213,7 +236,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
             added: [doc1]
           })
           .watchSends({ affects: [query] }, doc2)
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Get last remote snapshot version': true,
+            'Release target': true
+          })
           .watchSnapshots(1500)
           // `failDatabase()` causes us to go offline.
           .expectActiveTargets()
@@ -250,7 +276,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectEvents(doc2Query, {
             added: [doc2]
           })
-          .failDatabase()
+          .failDatabaseTransactions({
+            'Get last remote snapshot version': true,
+            'Release target': true
+          })
           .watchRemoves(
             doc1Query,
             new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
