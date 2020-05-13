@@ -36,6 +36,7 @@ import {
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { PersistenceAction, SpecDatabaseFailures } from './spec_test_runner';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -56,7 +57,7 @@ import { expect } from 'chai';
  * transaction failures.
  */
 export class MockMemoryPersistence extends MemoryPersistence {
-  injectFailures = false;
+  injectFailures?: SpecDatabaseFailures;
 
   runTransaction<T>(
     action: string,
@@ -65,13 +66,8 @@ export class MockMemoryPersistence extends MemoryPersistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    if (this.injectFailures) {
-      return Promise.reject(
-        new IndexedDbTransactionError(new Error('Simulated retryable error'))
-      );
-    } else {
-      return super.runTransaction(action, mode, transactionOperation);
-    }
+    failTransactionIfNeeded(this.injectFailures, action);
+    return super.runTransaction(action, mode, transactionOperation);
   }
 }
 
@@ -80,7 +76,7 @@ export class MockMemoryPersistence extends MemoryPersistence {
  * transaction failures.
  */
 export class MockIndexedDbPersistence extends IndexedDbPersistence {
-  injectFailures = false;
+  injectFailures?: SpecDatabaseFailures;
 
   runTransaction<T>(
     action: string,
@@ -89,12 +85,27 @@ export class MockIndexedDbPersistence extends IndexedDbPersistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    if (this.injectFailures) {
-      return Promise.reject(
-        new IndexedDbTransactionError(new Error('Simulated retryable error'))
+    failTransactionIfNeeded(this.injectFailures, action);
+    return super.runTransaction(action, mode, transactionOperation);
+  }
+}
+
+/**
+ * Shared failure handler between MockIndexedDbPersistence and
+ * MockMemoryPersistence that can inject transaction failures.
+ */
+function failTransactionIfNeeded(
+  config: SpecDatabaseFailures | undefined,
+  action: string
+): void {
+  if (config) {
+    const shouldFail = config[action as PersistenceAction];
+    if (shouldFail === undefined) {
+      throw fail('Failure mode not specified for action: ' + action);
+    } else if (shouldFail) {
+      throw new IndexedDbTransactionError(
+        new Error('Simulated retryable error: ' + action)
       );
-    } else {
-      return super.runTransaction(action, mode, transactionOperation);
     }
   }
 }
@@ -196,6 +207,9 @@ export class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
+  /** Whether the Watch stream is open. */
+  isWatchOpen = false;
+
   invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
@@ -253,6 +267,7 @@ export class MockConnection implements Connection {
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
     this.watchStream = null;
+    this.isWatchOpen = false;
   }
 
   openStream<Req, Resp>(
@@ -341,6 +356,7 @@ export class MockConnection implements Connection {
       this.queue.enqueueAndForget(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
+          this.isWatchOpen = true;
           this.watchOpen.resolve();
         }
       });
