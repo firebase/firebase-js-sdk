@@ -45,6 +45,7 @@ import {
   parseQuery,
   runSpec,
   SpecConfig,
+  SpecDatabaseFailures,
   SpecDocument,
   SpecQuery,
   SpecQueryFilter,
@@ -435,12 +436,15 @@ export class SpecBuilder {
     return this;
   }
 
-  /** Fails all database operations until `recoverDatabase()` is called. */
-  failDatabase(): this {
+  /**
+   * Fails the specified database transaction until `recoverDatabase()` is
+   * called.
+   */
+  failDatabaseTransactions(failureMode: SpecDatabaseFailures): this {
     this.nextStep();
     this.injectFailures = true;
     this.currentStep = {
-      failDatabase: true
+      failDatabase: failureMode
     };
     return this;
   }

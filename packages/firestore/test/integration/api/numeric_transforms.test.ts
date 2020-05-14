@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,14 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
       await writeInitialData({ sum: 'overwrite' });
       await docRef.update('sum', FieldValue.increment(13.37));
       await expectLocalAndRemoteValue(13.37);
+    });
+  });
+
+  it('increments with set() and merge:true', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 1 });
+      await docRef.set({ sum: FieldValue.increment(1337) }, { merge: true });
+      await expectLocalAndRemoteValue(1338);
     });
   });
 

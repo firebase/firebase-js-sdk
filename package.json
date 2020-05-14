@@ -140,7 +140,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "node tools/gitHooks/prepush.js"
+      "pre-commit": "node tools/gitHooks/precommit.js"
     }
   }
 }
