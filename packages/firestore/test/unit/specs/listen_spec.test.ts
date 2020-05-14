@@ -47,7 +47,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Documents outside of view are cleared when listen is removed.',
-    ['eager-gc', 'exclusive'],
+    ['eager-gc'],
     '',
     () => {
       const filteredQuery = Query.atPath(path('collection')).addFilter(

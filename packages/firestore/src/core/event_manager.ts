@@ -78,8 +78,8 @@ export class EventManager implements SyncEngineListener {
           `Initialization of query '${listener.query}' failed`
         );
         listener.onError(firestoreError);
+        return;
       }
-      return;
     }
 
     this.queries.set(query, queryInfo);
