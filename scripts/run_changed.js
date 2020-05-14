@@ -25,6 +25,7 @@ const git = simpleGit(root);
 
 // use test:ci command in CI
 const testCommand = !!process.env.CI ? 'test:ci' : 'test';
+// const testCommand = 'print';
 /**
  * Changes to these files warrant running all tests.
  */
@@ -104,10 +105,8 @@ async function getChangedPackages() {
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {
-        if (changedPackage.scripts.test) {
-          // Add the package itself.
-          changedPackages[match[1]] = 'direct';
-        }
+        // Add the package itself.
+        changedPackages[match[1]] = 'direct';
         // Add packages that depend on it.
         for (const package in depGraph) {
           if (depGraph[package].includes(changedPackage.name)) {
@@ -117,7 +116,7 @@ async function getChangedPackages() {
                 depData.location,
                 'package.json'
               ));
-              if (depPkgJson && depPkgJson.scripts.test) {
+              if (depPkgJson) {
                 const depPath = depData.location.replace(`${root}/`, '');
                 if (!changedPackages[depPath]) {
                   changedPackages[depPath] = 'dependency';
