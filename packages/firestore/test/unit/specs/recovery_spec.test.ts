@@ -221,98 +221,92 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .expectEvents(query2, {});
   });
 
-  specTest(
-    'Recovers when watch update cannot be persisted',
-    ['durable-persistence'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const doc1 = doc('collection/key1', 1000, { foo: 'a' });
-      const doc2 = doc('collection/key2', 2000, { foo: 'b' });
-      return (
-        spec()
-          .userListens(query)
-          .watchAcksFull(query, 1000, doc1)
-          .expectEvents(query, {
-            added: [doc1]
-          })
-          .watchSends({ affects: [query] }, doc2)
-          .failDatabaseTransactions({
-            'Get last remote snapshot version': true,
-            'Release target': true
-          })
-          .watchSnapshots(1500)
-          // `failDatabase()` causes us to go offline.
-          .expectActiveTargets()
-          .expectEvents(query, { fromCache: true })
-          .recoverDatabase()
-          .runTimer(TimerId.AsyncQueueRetry)
-          .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
-          .watchAcksFull(query, 2000, doc2)
-          .expectEvents(query, {
-            added: [doc2]
-          })
-      );
-    }
-  );
+  specTest('Recovers when watch update cannot be persisted', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/key1', 1000, { foo: 'a' });
+    const doc2 = doc('collection/key2', 2000, { foo: 'b' });
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userListens(query)
+        .watchAcksFull(query, 1000, doc1)
+        .expectEvents(query, {
+          added: [doc1]
+        })
+        .watchSends({ affects: [query] }, doc2)
+        .failDatabaseTransactions({
+          'Get last remote snapshot version': true,
+          'Release target': true
+        })
+        .watchSnapshots(1500)
+        // `failDatabase()` causes us to go offline.
+        .expectActiveTargets()
+        .expectEvents(query, { fromCache: true })
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
+        .watchAcksFull(query, 2000, doc2)
+        .expectEvents(query, {
+          added: [doc2]
+        })
+    );
+  });
 
-  specTest(
-    'Recovers when watch rejection cannot be persisted',
-    ['durable-persistence'],
-    () => {
-      const doc1Query = Query.atPath(path('collection/key1'));
-      const doc2Query = Query.atPath(path('collection/key2'));
-      const doc1a = doc('collection/key1', 1000, { foo: 'a' });
-      const doc1b = doc('collection/key1', 4000, { foo: 'a', updated: true });
-      const doc2 = doc('collection/key2', 2000, { foo: 'b' });
-      return (
-        spec()
-          .userListens(doc1Query)
-          .watchAcksFull(doc1Query, 1000, doc1a)
-          .expectEvents(doc1Query, {
-            added: [doc1a]
-          })
-          .userListens(doc2Query)
-          .watchAcksFull(doc2Query, 2000, doc2)
-          .expectEvents(doc2Query, {
-            added: [doc2]
-          })
-          .failDatabaseTransactions({
-            'Get last remote snapshot version': true,
-            'Release target': true
-          })
-          .watchRemoves(
-            doc1Query,
-            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
-          )
-          // `failDatabase()` causes us to go offline.
-          .expectActiveTargets()
-          .expectEvents(doc1Query, { fromCache: true })
-          .expectEvents(doc2Query, { fromCache: true })
-          .recoverDatabase()
-          .runTimer(TimerId.AsyncQueueRetry)
-          .expectActiveTargets(
-            { query: doc1Query, resumeToken: 'resume-token-1000' },
-            { query: doc2Query, resumeToken: 'resume-token-2000' }
-          )
-          .watchAcksFull(doc1Query, 3000)
-          .expectEvents(doc1Query, {})
-          .watchRemoves(
-            doc2Query,
-            new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
-          )
-          .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
-          .watchSends({ affects: [doc1Query] }, doc1b)
-          .watchSnapshots(4000)
-          .expectEvents(doc1Query, {
-            modified: [doc1b]
-          })
-      );
-    }
-  );
+  specTest('Recovers when watch rejection cannot be persisted', [], () => {
+    const doc1Query = Query.atPath(path('collection/key1'));
+    const doc2Query = Query.atPath(path('collection/key2'));
+    const doc1a = doc('collection/key1', 1000, { foo: 'a' });
+    const doc1b = doc('collection/key1', 4000, { foo: 'a', updated: true });
+    const doc2 = doc('collection/key2', 2000, { foo: 'b' });
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userListens(doc1Query)
+        .watchAcksFull(doc1Query, 1000, doc1a)
+        .expectEvents(doc1Query, {
+          added: [doc1a]
+        })
+        .userListens(doc2Query)
+        .watchAcksFull(doc2Query, 2000, doc2)
+        .expectEvents(doc2Query, {
+          added: [doc2]
+        })
+        .failDatabaseTransactions({
+          'Get last remote snapshot version': true,
+          'Release target': true
+        })
+        .watchRemoves(
+          doc1Query,
+          new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+        )
+        // `failDatabase()` causes us to go offline.
+        .expectActiveTargets()
+        .expectEvents(doc1Query, { fromCache: true })
+        .expectEvents(doc2Query, { fromCache: true })
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectActiveTargets(
+          { query: doc1Query, resumeToken: 'resume-token-1000' },
+          { query: doc2Query, resumeToken: 'resume-token-2000' }
+        )
+        .watchAcksFull(doc1Query, 3000)
+        .expectEvents(doc1Query, {})
+        .watchRemoves(
+          doc2Query,
+          new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
+        )
+        .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
+        .watchSends({ affects: [doc1Query] }, doc1b)
+        .watchSnapshots(4000)
+        .expectEvents(doc1Query, {
+          modified: [doc1b]
+        })
+    );
+  });
 
   specTest(
     'Recovers when Limbo acknowledgement cannot be persisted',
-    ['durable-persistence'],
+    [],
     () => {
       const fullQuery = Query.atPath(path('collection'));
       const filteredQuery = Query.atPath(path('collection')).addFilter(
@@ -322,6 +316,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const doc1b = doc('collection/key1', 1500, { included: false });
       const limboQuery = Query.atPath(doc1a.key.path);
       return spec()
+        .withGCEnabled(false)
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1000, doc1a)
         .expectEvents(fullQuery, {
@@ -356,54 +351,51 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     }
   );
 
-  specTest(
-    'Recovers when Limbo rejection cannot be persisted',
-    ['durable-persistence'],
-    () => {
-      const fullQuery = Query.atPath(path('collection'));
-      const filteredQuery = Query.atPath(path('collection')).addFilter(
-        filter('included', '==', true)
-      );
-      const doc1 = doc('collection/key1', 1, { included: true });
-      const limboQuery = Query.atPath(doc1.key.path);
-      return spec()
-        .userListens(fullQuery)
-        .watchAcksFull(fullQuery, 1000, doc1)
-        .expectEvents(fullQuery, {
-          added: [doc1]
-        })
-        .userUnlistens(fullQuery)
-        .userListens(filteredQuery)
-        .expectEvents(filteredQuery, {
-          added: [doc1],
-          fromCache: true
-        })
-        .watchAcksFull(filteredQuery, 2000)
-        .expectLimboDocs(doc1.key)
-        .failDatabaseTransactions({
-          'Apply remote event': true,
-          'Get last remote snapshot version': true
-        })
-        .watchRemoves(
-          limboQuery,
-          new RpcError(Code.PERMISSION_DENIED, 'Test error')
-        )
-        .expectActiveTargets()
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectActiveTargets(
-          { query: filteredQuery, resumeToken: 'resume-token-2000' },
-          { query: limboQuery }
-        )
-        .watchAcksFull(filteredQuery, 3000)
-        .watchRemoves(
-          limboQuery,
-          new RpcError(Code.PERMISSION_DENIED, 'Test error')
-        )
-        .expectLimboDocs()
-        .expectEvents(filteredQuery, {
-          removed: [doc1]
-        });
-    }
-  );
+  specTest('Recovers when Limbo rejection cannot be persisted', [], () => {
+    const fullQuery = Query.atPath(path('collection'));
+    const filteredQuery = Query.atPath(path('collection')).addFilter(
+      filter('included', '==', true)
+    );
+    const doc1 = doc('collection/key1', 1, { included: true });
+    const limboQuery = Query.atPath(doc1.key.path);
+    return spec()
+      .withGCEnabled(false)
+      .userListens(fullQuery)
+      .watchAcksFull(fullQuery, 1000, doc1)
+      .expectEvents(fullQuery, {
+        added: [doc1]
+      })
+      .userUnlistens(fullQuery)
+      .userListens(filteredQuery)
+      .expectEvents(filteredQuery, {
+        added: [doc1],
+        fromCache: true
+      })
+      .watchAcksFull(filteredQuery, 2000)
+      .expectLimboDocs(doc1.key)
+      .failDatabaseTransactions({
+        'Apply remote event': true,
+        'Get last remote snapshot version': true
+      })
+      .watchRemoves(
+        limboQuery,
+        new RpcError(Code.PERMISSION_DENIED, 'Test error')
+      )
+      .expectActiveTargets()
+      .recoverDatabase()
+      .runTimer(TimerId.AsyncQueueRetry)
+      .expectActiveTargets(
+        { query: filteredQuery, resumeToken: 'resume-token-2000' },
+        { query: limboQuery }
+      )
+      .watchAcksFull(filteredQuery, 3000)
+      .watchRemoves(
+        limboQuery,
+        new RpcError(Code.PERMISSION_DENIED, 'Test error')
+      )
+      .expectLimboDocs()
+      .expectEvents(filteredQuery, {
+        removed: [doc1]
+      });
+  });
 });
