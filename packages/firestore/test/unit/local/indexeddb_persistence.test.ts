@@ -1144,7 +1144,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       'clientA',
       /* multiClient= */ false,
       async db => {
-        db.injectFailures = true;
+        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
         await expect(db.start()).to.eventually.be.rejectedWith(
           'Failed to obtain exclusive access to the persistence layer.'
         );
@@ -1158,7 +1158,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       'clientA',
       /* multiClient= */ true,
       async db => {
-        db.injectFailures = true;
+        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
         await db.start();
         await db.shutdown();
       }
@@ -1167,10 +1167,10 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
-      db.injectFailures = true;
+      db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
       await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
-        db.injectFailures = false;
+        db.injectFailures = undefined;
         return db.runTransaction('check success', 'readwrite-primary', () =>
           PersistencePromise.resolve()
         );

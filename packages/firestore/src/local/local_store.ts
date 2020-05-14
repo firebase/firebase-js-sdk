@@ -66,6 +66,7 @@ import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LocalStore';
 
@@ -727,7 +728,7 @@ export class LocalStore {
         }
       );
     } catch (e) {
-      if (e.name === 'IndexedDbTransactionError') {
+      if (isIndexedDbTransactionError(e)) {
         // If `notifyLocalViewChanges` fails, we did not advance the sequence
         // number for the documents that were included in this transaction.
         // This might trigger them to be deleted earlier than they otherwise
