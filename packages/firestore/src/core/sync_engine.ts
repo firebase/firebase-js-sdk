@@ -483,14 +483,6 @@ export class SyncEngine implements RemoteSyncer {
     const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
-      // Since this query failed, we won't want to manually unlisten to it.
-      // So go ahead and remove it from bookkeeping.
-      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
-        limboKey
-      );
-      this.activeLimboResolutionsByTarget.delete(targetId);
-      this.pumpEnqueuedLimboResolutions();
-
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
 
@@ -513,7 +505,19 @@ export class SyncEngine implements RemoteSyncer {
         documentUpdates,
         resolvedLimboDocuments
       );
-      return this.applyRemoteEvent(event);
+
+      await this.applyRemoteEvent(event);
+
+      // Since this query failed, we won't want to manually unlisten to it.
+      // We only remove it from bookkeeping after we successfully applied the
+      // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
+      // this query when the RemoteStore restarts the Watch stream, which should
+      // re-trigger the target failure.
+      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
+        limboKey
+      );
+      this.activeLimboResolutionsByTarget.delete(targetId);
+      this.pumpEnqueuedLimboResolutions();
     } else {
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedTargetData */ false)
@@ -917,7 +921,7 @@ export class MultiTabSyncEngine extends SyncEngine
   // The primary state is set to `true` or `false` immediately after Firestore
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
-  private isPrimary: undefined | boolean = undefined;
+  private _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
     protected localStore: MultiTabLocalStore,
@@ -936,7 +940,7 @@ export class MultiTabSyncEngine extends SyncEngine
   }
 
   get isPrimaryClient(): boolean {
-    return this.isPrimary === true;
+    return this._isPrimaryClient === true;
   }
 
   enableNetwork(): Promise<void> {
@@ -963,7 +967,7 @@ export class MultiTabSyncEngine extends SyncEngine
     const viewSnapshot = queryView.view.synchronizeWithPersistedState(
       queryResult
     );
-    if (this.isPrimary) {
+    if (this._isPrimaryClient) {
       this.updateTrackedLimbos(queryView.targetId, viewSnapshot.limboChanges);
     }
     return viewSnapshot;
@@ -1030,10 +1034,7 @@ export class MultiTabSyncEngine extends SyncEngine
   }
 
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
-    if (isPrimary === true && this.isPrimary !== true) {
-      this.isPrimary = true;
-      await this.remoteStore.applyPrimaryState(true);
-
+    if (isPrimary === true && this._isPrimaryClient !== true) {
       // Secondary tabs only maintain Views for their local listeners and the
       // Views internal state may not be 100% populated (in particular
       // secondary tabs don't track syncedDocuments, the set of documents the
@@ -1042,14 +1043,15 @@ export class MultiTabSyncEngine extends SyncEngine
       // match the state on disk.
       const activeTargets = this.sharedClientState.getAllActiveQueryTargets();
       const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
-        activeTargets.toArray()
+        activeTargets.toArray(),
+        /*transitionToPrimary=*/ true
       );
+      this._isPrimaryClient = true;
+      await this.remoteStore.applyPrimaryState(true);
       for (const targetData of activeQueries) {
         this.remoteStore.listen(targetData);
       }
-    } else if (isPrimary === false && this.isPrimary !== false) {
-      this.isPrimary = false;
-
+    } else if (isPrimary === false && this._isPrimaryClient !== false) {
       const activeTargets: TargetId[] = [];
 
       let p = Promise.resolve();
@@ -1069,8 +1071,12 @@ export class MultiTabSyncEngine extends SyncEngine
       });
       await p;
 
-      await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
+      await this.synchronizeQueryViewsAndRaiseSnapshots(
+        activeTargets,
+        /*transitionToPrimary=*/ false
+      );
       this.resetLimboDocuments();
+      this._isPrimaryClient = false;
       await this.remoteStore.applyPrimaryState(false);
     }
   }
@@ -1090,9 +1096,14 @@ export class MultiTabSyncEngine extends SyncEngine
    * Reconcile the query views of the provided query targets with the state from
    * persistence. Raises snapshots for any changes that affect the local
    * client and returns the updated state of all target's query data.
+   *
+   * @param targets the list of targets with views that need to be recomputed
+   * @param transitionToPrimary `true` iff the tab transitions from a secondary
+   * tab to a primary tab
    */
   private async synchronizeQueryViewsAndRaiseSnapshots(
-    targets: TargetId[]
+    targets: TargetId[],
+    transitionToPrimary: boolean
   ): Promise<TargetData[]> {
     const activeQueries: TargetData[] = [];
     const newViewSnapshots: ViewSnapshot[] = [];
@@ -1126,7 +1137,7 @@ export class MultiTabSyncEngine extends SyncEngine
         }
       } else {
         debugAssert(
-          this.isPrimary === true,
+          transitionToPrimary,
           'A secondary tab should never have an active target without an active query.'
         );
         // For queries that never executed on this client, we need to
@@ -1180,7 +1191,7 @@ export class MultiTabSyncEngine extends SyncEngine
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
-    if (this.isPrimary) {
+    if (this._isPrimaryClient) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
       logDebug(LOG_TAG, 'Ignoring unexpected query state notification.');
@@ -1220,7 +1231,7 @@ export class MultiTabSyncEngine extends SyncEngine
     added: TargetId[],
     removed: TargetId[]
   ): Promise<void> {
-    if (!this.isPrimary) {
+    if (!this._isPrimaryClient) {
       return;
     }
 

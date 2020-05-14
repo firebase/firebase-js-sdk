@@ -847,18 +847,22 @@ abstract class TestRunner {
 
   private validateActiveLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
-    // Validate that each active limbo doc has an expected active target
-    actualLimboDocs.forEach((key, targetId) => {
-      const targetIds = new Array(this.expectedActiveTargets.keys()).map(
-        n => '' + n
-      );
-      expect(this.expectedActiveTargets.has(targetId)).to.equal(
-        true,
-        `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
-          `was not in the set of expected active target IDs ` +
-          `(${targetIds.join(', ')})`
-      );
-    });
+
+    if (this.connection.isWatchOpen) {
+      // Validate that each active limbo doc has an expected active target
+      actualLimboDocs.forEach((key, targetId) => {
+        const targetIds = new Array(this.expectedActiveTargets.keys()).map(
+          n => '' + n
+        );
+        expect(this.expectedActiveTargets.has(targetId)).to.equal(
+          true,
+          `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
+            `was not in the set of expected active target IDs ` +
+            `(${targetIds.join(', ')})`
+        );
+      });
+    }
+
     for (const expectedLimboDoc of this.expectedActiveLimboDocs) {
       expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
         null,

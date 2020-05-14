@@ -206,6 +206,9 @@ export class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
+  /** Whether the Watch stream is open. */
+  isWatchOpen = false;
+
   invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
@@ -263,6 +266,7 @@ export class MockConnection implements Connection {
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
     this.watchStream = null;
+    this.isWatchOpen = false;
   }
 
   openStream<Req, Resp>(
@@ -351,6 +355,7 @@ export class MockConnection implements Connection {
       this.queue.enqueueAndForget(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
+          this.isWatchOpen = true;
           this.watchOpen.resolve();
         }
       });
