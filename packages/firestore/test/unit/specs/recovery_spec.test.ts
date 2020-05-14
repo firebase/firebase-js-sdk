@@ -215,7 +215,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .userListens(query)
         .failDatabaseTransactions({
           'Locally write mutations': false,
-          notifyLocalViewChanges: true
+          notifyLocalViewChanges: true,
+          'Get next mutation batch': false,
+          'Set last stream token': false
         })
         .userSets('collection/key1', { foo: 'a' })
         .expectEvents(query, {
@@ -248,6 +250,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const deletedDoc1 = deletedDoc('collection/key1', 2000);
       return (
         spec()
+          .withGCEnabled(false)
           .userListens(query)
           .watchAcksFull(query, 1000, doc1)
           .expectEvents(query, {
@@ -266,7 +269,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .userUnlistens(query)
           // No event since the document was removed
-          .userListens(query)
+          .userListens(query, 'resume-token-1000')
       );
     }
   );
