@@ -46,6 +46,13 @@ export function logError(msg: string, ...obj: unknown[]): void {
   }
 }
 
+export function logWarn(msg: string, ...obj: unknown[]): void {
+  if (logClient.logLevel <= LogLevel.WARN) {
+    const args = obj.map(argToString);
+    logClient.warn(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+  }
+}
+
 /**
  * Converts an additional log parameter to a string representation.
  */

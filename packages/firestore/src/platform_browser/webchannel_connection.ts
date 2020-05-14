@@ -45,7 +45,7 @@ import {
 import { StreamBridge } from '../remote/stream_bridge';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
@@ -352,7 +352,7 @@ export class WebChannelConnection implements Connection {
     unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        logDebug(LOG_TAG, 'WebChannel transport errored:', err);
+        logWarn(LOG_TAG, 'WebChannel transport errored:', err);
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
