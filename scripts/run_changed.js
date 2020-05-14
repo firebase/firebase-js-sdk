@@ -153,7 +153,7 @@ async function runTests(pathList) {
         stdio: 'inherit'
       });
     } catch (e) {
-      throw new Error(`Error running tests in ${testPath}.`);
+      throw new Error(`Error running "yarn ${testCommand}" in ${testPath}.`);
     }
   }
 }
@@ -185,7 +185,7 @@ async function main() {
       await runTests(Object.keys(changedPackages));
     }
   } catch (e) {
-    console.error(e);
+    console.error(chalk`{red ${e}}`);
     process.exit(1);
   }
 }
