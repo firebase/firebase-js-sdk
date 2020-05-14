@@ -120,7 +120,9 @@ function initializeApp(
 ): firebase.app.App {
   let appOptions: { [key: string]: string } = {};
   if (databaseName) {
-    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+    appOptions[
+      'databaseURL'
+    ] = `http://${DATABASE_ADDRESS}/?ns=${databaseName}`;
   }
   if (projectId) {
     appOptions['projectId'] = projectId;
