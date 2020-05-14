@@ -38,10 +38,6 @@ import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
-import {
-  MemoryEagerDelegate,
-  MemoryPersistence
-} from '../local/memory_persistence';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -137,7 +133,20 @@ export class MemoryComponentProvider implements ComponentProvider {
       !cfg.persistenceSettings.durable,
       'Can only start memory persistence'
     );
-    return new MemoryPersistence(MemoryEagerDelegate.factory);
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      cfg.databaseInfo
+    );
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    return new IndexedDbPersistence(
+      false,
+      persistenceKey,
+      cfg.clientId,
+      cfg.platform,
+      LruParams.withCacheSize(100000),
+      cfg.asyncQueue,
+      serializer,
+      this.sharedClientState
+    );
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
