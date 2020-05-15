@@ -109,7 +109,8 @@ export class ArrayUnionFieldValueImpl extends FieldValueImpl {
         arrayElement: true
       },
       context.databaseId,
-      context.serializer
+      context.serializer,
+      context.ignoreUndefinedProperties
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -140,7 +141,8 @@ export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
         arrayElement: true
       },
       context.databaseId,
-      context.serializer
+      context.serializer,
+      context.ignoreUndefinedProperties
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -167,7 +169,8 @@ export class NumericIncrementFieldValueImpl extends FieldValueImpl {
         methodName: this._methodName
       },
       context.databaseId,
-      context.serializer
+      context.serializer,
+      context.ignoreUndefinedProperties
     );
     const operand = parseData(this._operand, parseContext)!;
     const numericIncrement = new NumericIncrementTransformOperation(
