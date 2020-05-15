@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
+import { PersistenceInternal, PersistenceType, PersistenceValue } from '../persistence';
 
-class InMemoryPersistence implements Persistence {
+class InMemoryPersistence implements PersistenceInternal {
   type: PersistenceType = PersistenceType.NONE;
   storage: {
     [key: string]: PersistenceValue;
@@ -41,4 +41,4 @@ class InMemoryPersistence implements Persistence {
   }
 }
 
-export const inMemoryPersistence: Persistence = new InMemoryPersistence();
+export const inMemoryPersistence: PersistenceInternal = new InMemoryPersistence();

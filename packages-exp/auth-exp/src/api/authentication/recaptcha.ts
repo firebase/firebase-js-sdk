@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
+import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { AuthInternal } from '../../model/auth';
 
 interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;
 }
 
-export async function getRecaptchaParams(auth: Auth): Promise<string> {
+export async function getRecaptchaParams(auth: AuthInternal): Promise<string> {
   return (
     (
       await _performApiRequest<void, GetRecaptchaParamResponse>(

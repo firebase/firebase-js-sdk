@@ -15,15 +15,10 @@
  * limitations under the License.
  */
 
-import {
-  Endpoint,
-  HttpMethod,
-  _performApiRequest,
-  _performSignInRequest
-} from '..';
-import { Auth } from '../../model/auth';
-import { IdToken, IdTokenResponse } from '../../model/id_token';
+import { _performApiRequest, _performSignInRequest, Endpoint, HttpMethod } from '../';
 import { Operation } from '../../model/action_code_info';
+import { AuthInternal } from '../../model/auth';
+import { IdToken, IdTokenResponse } from '../../model/id_token';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
@@ -37,7 +32,7 @@ export interface SignInWithPasswordResponse extends IdTokenResponse {
 }
 
 export async function signInWithPassword(
-  auth: Auth,
+  auth: AuthInternal,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
   return _performSignInRequest<
@@ -86,7 +81,7 @@ export interface PasswordResetResponse extends GetOobCodeResponse {}
 export interface EmailSignInResponse extends GetOobCodeResponse {}
 
 async function sendOobCode(
-  auth: Auth,
+  auth: AuthInternal,
   request: GetOobCodeRequest
 ): Promise<GetOobCodeResponse> {
   return _performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
@@ -98,21 +93,21 @@ async function sendOobCode(
 }
 
 export async function sendEmailVerification(
-  auth: Auth,
+  auth: AuthInternal,
   request: VerifyEmailRequest
 ): Promise<VerifyEmailResponse> {
   return sendOobCode(auth, request);
 }
 
 export async function sendPasswordResetEmail(
-  auth: Auth,
+  auth: AuthInternal,
   request: PasswordResetRequest
 ): Promise<PasswordResetResponse> {
   return sendOobCode(auth, request);
 }
 
 export async function sendSignInLinkToEmail(
-  auth: Auth,
+  auth: AuthInternal,
   request: EmailSignInRequest
 ): Promise<EmailSignInResponse> {
   return sendOobCode(auth, request);

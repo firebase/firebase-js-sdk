@@ -15,6 +15,3 @@
  * limitations under the License.
  */
 
-import { testFxn } from './src';
-
-testFxn();

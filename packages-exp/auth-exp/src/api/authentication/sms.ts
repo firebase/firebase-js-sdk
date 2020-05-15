@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  Endpoint,
-  HttpMethod,
-  _performApiRequest,
-  _performSignInRequest
-} from '..';
+import { _performApiRequest, _performSignInRequest, Endpoint, HttpMethod } from '../';
 import { AuthErrorCode } from '../../core/errors';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { ServerError, ServerErrorMap } from '../errors';
 
@@ -36,7 +31,7 @@ export interface SendPhoneVerificationCodeResponse {
 }
 
 export async function sendPhoneVerificationCode(
-  auth: Auth,
+  auth: AuthInternal,
   request: SendPhoneVerificationCodeRequest
 ): Promise<SendPhoneVerificationCodeResponse> {
   return _performApiRequest<
@@ -63,7 +58,7 @@ export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
 }
 
 export async function signInWithPhoneNumber(
-  auth: Auth,
+  auth: AuthInternal,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   return _performSignInRequest<
@@ -73,7 +68,7 @@ export async function signInWithPhoneNumber(
 }
 
 export async function linkWithPhoneNumber(
-  auth: Auth,
+  auth: AuthInternal,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   return _performSignInRequest<
@@ -94,7 +89,7 @@ const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_: Partial<ServerErrorMap<
 };
 
 export async function verifyPhoneNumberForExisting(
-  auth: Auth,
+  auth: AuthInternal,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   const apiRequest: VerifyPhoneNumberForExistingRequest = {

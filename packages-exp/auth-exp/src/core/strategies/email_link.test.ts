@@ -15,17 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { mockAuthExternal } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
-import { sendSignInLinkToEmail, isSignInWithEmailLink } from './email_link';
+import { isSignInWithEmailLink, sendSignInLinkToEmail } from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -40,7 +42,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email
     });
-    await sendSignInLinkToEmail(mockAuth, email);
+    await sendSignInLinkToEmail(mockAuthExternal, email);
     expect(mock.calls[0].request).to.eql({
       requestType: Operation.EMAIL_SIGNIN,
       email
@@ -58,7 +60,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       },
       400
     );
-    await expect(sendSignInLinkToEmail(mockAuth, email)).to.be.rejectedWith(
+    await expect(sendSignInLinkToEmail(mockAuthExternal, email)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -70,7 +72,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      await sendSignInLinkToEmail(mockAuth, email, {
+      await sendSignInLinkToEmail(mockAuthExternal, email, {
         handleCodeInApp: true,
         iOS: {
           bundleId: 'my-bundle',
@@ -97,7 +99,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      await sendSignInLinkToEmail(mockAuth, email, {
+      await sendSignInLinkToEmail(mockAuthExternal, email, {
         handleCodeInApp: true,
         android: {
           installApp: false,
@@ -126,18 +128,18 @@ describe('core/strategies/isSignInWithEmailLink', () => {
     it('should recognize sign in links', () => {
       const link =
         'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.true;
     });
 
     it('should not recognize other email links', () => {
       const link =
         'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.false;
     });
 
     it('should not recognize invalid links', () => {
       const link = 'https://www.example.com/action?mode=signIn';
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.false;
     });
   });
 
@@ -148,7 +150,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.true;
     });
 
     it('should recognize valid links with deep_link_id', () => {
@@ -157,7 +159,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `somexampleiosurl://google/link?deep_link_id=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.true;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.true;
     });
 
     it('should reject other email links', () => {
@@ -166,7 +168,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.false;
     });
 
     it('should reject invalid links', () => {
@@ -174,7 +176,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(mockAuth, link)).to.be.false;
+      expect(isSignInWithEmailLink(mockAuthExternal, link)).to.be.false;
     });
   });
 });

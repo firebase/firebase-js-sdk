@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  getAccountInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
-import { User, UserInfo } from '../../model/user';
+import { User } from '@firebase/auth-types-exp';
+
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import { UserInfoInternal, UserInternal } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
+import { castInternal } from '../util/cast_internal';
 
-export async function _reloadWithoutSaving(user: User): Promise<void> {
+export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
@@ -34,7 +34,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   const newProviderData = coreAccount.providerUserInfo?.length
     ? extractProviderData(coreAccount.providerUserInfo, auth.name)
     : [];
-  const updates: Partial<User> = {
+  const updates: Partial<UserInternal> = {
     uid: coreAccount.localId,
     displayName: coreAccount.displayName || null,
     photoURL: coreAccount.photoUrl || null,
@@ -53,18 +53,19 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 }
 
 export async function reload(user: User): Promise<void> {
-  await _reloadWithoutSaving(user);
+  const userInternal: UserInternal = castInternal(user);
+  await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  return user.auth.updateCurrentUser(user);
+  return userInternal.auth.updateCurrentUser(userInternal);
 }
 
 function mergeProviderData(
-  original: UserInfo[],
-  newData: UserInfo[]
-): UserInfo[] {
+  original: UserInfoInternal[],
+  newData: UserInfoInternal[]
+): UserInfoInternal[] {
   const deduped = original.filter(
     o => !newData.some(n => n.providerId === o.providerId)
   );
@@ -74,7 +75,7 @@ function mergeProviderData(
 function extractProviderData(
   providers: ProviderUserInfo[],
   appName: string
-): UserInfo[] {
+): UserInfoInternal[] {
   return providers.map(({ providerId, ...provider }) => {
     assert(
       providerId && Object.values<string>(ProviderId).includes(providerId),

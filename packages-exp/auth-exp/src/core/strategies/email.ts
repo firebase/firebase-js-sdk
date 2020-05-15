@@ -15,18 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  createAuthUri,
-  CreateAuthUriRequest
-} from '../../api/authentication/create_auth_uri';
+import { Auth, User } from '@firebase/auth-types-exp';
+
+import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import {
-  ActionCodeSettings,
-  setActionCodeSettingsOnRequest
+    ActionCodeSettings, setActionCodeSettingsOnRequest
 } from '../../model/action_code_settings';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { castInternal } from '../util/cast_internal';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 
 export async function fetchSignInMethodsForEmail(
@@ -42,7 +39,7 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const { signinMethods } = await createAuthUri(auth, request);
+  const { signinMethods } = await createAuthUri(castInternal(auth), request);
 
   return signinMethods || [];
 }
@@ -61,7 +58,7 @@ export async function sendEmailVerification(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  const { email } = await api.sendEmailVerification(auth, request);
+  const { email } = await api.sendEmailVerification(castInternal(auth), request);
 
   if (email !== user.email) {
     await user.reload();

@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
-import {ReactNativeAsyncStorage} from '@firebase/auth-types-exp';
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
+
+import { PersistenceInternal, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 /**
  * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
  */
-export class ReactNativePersistence implements Persistence {
+export class ReactNativePersistence implements PersistenceInternal {
   readonly type: PersistenceType = PersistenceType.LOCAL;
 
   constructor(private readonly storage: ReactNativeAsyncStorage) {}

@@ -26,18 +26,16 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import {
-  APIUserInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
-import { UserInfo } from '../../model/user';
+import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
+import { UserInfoInternal, UserInternal } from '../../model/user';
 import { ProviderId } from '../providers';
+import { castInternal } from '../util/cast_internal';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
 use(sinonChai);
 
-const BASIC_USER_INFO: UserInfo = {
+const BASIC_USER_INFO: UserInfoInternal = {
   providerId: ProviderId.FIREBASE,
   uid: 'uid',
   email: 'email',
@@ -93,7 +91,7 @@ describe('core/user/reload', () => {
 
   it('adds missing provider data', async () => {
     const user = testUser('abc', '', true);
-    user.providerData = [{ ...BASIC_USER_INFO }];
+    castInternal<UserInternal>(user).providerData = [{ ...BASIC_USER_INFO }];
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [
         {
@@ -112,7 +110,7 @@ describe('core/user/reload', () => {
 
   it('merges provider data, using the new data for overlaps', async () => {
     const user = testUser('abc', '', true);
-    user.providerData = [
+    castInternal<UserInternal>(user).providerData = [
       {
         ...BASIC_USER_INFO,
         providerId: ProviderId.GITHUB,

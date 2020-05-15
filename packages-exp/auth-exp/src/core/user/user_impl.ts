@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/auth';
-import { IdTokenResult } from '../../model/id_token';
-import { User } from '../../model/user';
+import { IdTokenResult } from '@firebase/auth-types-exp';
+
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
+import { castInternal } from '../util/cast_internal';
 import { getIdTokenResult } from './id_token_result';
 import { reload } from './reload';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
   uid: string;
-  auth: Auth;
+  auth: AuthInternal;
   stsTokenManager: StsTokenManager;
 
   displayName?: string;
@@ -46,14 +48,14 @@ function assertStringOrUndefined(
   );
 }
 
-export class UserImpl implements User {
+export class UserImpl implements UserInternal {
   // For the user object, provider is always Firebase.
   readonly providerId = ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
   refreshToken = '';
 
   uid: string;
-  auth: Auth;
+  auth: AuthInternal;
   emailVerified = false;
   tenantId = null;
   metadata = {};
@@ -82,7 +84,7 @@ export class UserImpl implements User {
     const { refreshToken, accessToken, wasRefreshed } = tokens;
     this.refreshToken = refreshToken || '';
 
-    if (wasRefreshed && this.auth.currentUser === this) {
+    if (wasRefreshed && castInternal(this.auth.currentUser) === this) {
       this.auth._notifyStateListeners();
     }
 
@@ -90,11 +92,11 @@ export class UserImpl implements User {
   }
 
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
-    return getIdTokenResult(this, forceRefresh);
+    return getIdTokenResult(castInternal(this), forceRefresh);
   }
 
   reload(): Promise<void> {
-    return reload(this);
+    return reload(castInternal(this));
   }
 
   delete(): Promise<void> {
@@ -112,7 +114,7 @@ export class UserImpl implements User {
     };
   }
 
-  static fromPlainObject(auth: Auth, object: PersistedBlob): User {
+  static fromPlainObject(auth: AuthInternal, object: PersistedBlob): UserInternal {
     const {
       uid,
       stsTokenManager: plainObjectTokenManager,

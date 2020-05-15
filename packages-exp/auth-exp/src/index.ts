@@ -15,9 +15,3 @@
  * limitations under the License.
  */
 
-// import { TestType } from '@firebase/template-types';
-
-export function testFxn(): number {
-  console.log('hi');
-  return 42;
-}

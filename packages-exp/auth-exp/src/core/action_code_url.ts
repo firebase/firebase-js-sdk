@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
 import { Operation } from '../model/action_code_info';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
 /**
  * Enums for fields in URL query string.
@@ -72,7 +72,7 @@ export class ActionCodeURL {
   readonly operation: Operation;
   readonly tenantId: string | null;
 
-  constructor(auth: Auth, actionLink: string) {
+  constructor(auth: AuthInternal, actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);
@@ -91,7 +91,7 @@ export class ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  static _fromLink(auth: Auth, link: string): ActionCodeURL | null {
+  static _fromLink(auth: AuthInternal, link: string): ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
       return new ActionCodeURL(auth, actionLink);

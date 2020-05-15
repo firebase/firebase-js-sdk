@@ -15,26 +15,6 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod } from '../';
-import { AuthInternal } from '../../model/auth';
-
-export interface CreateAuthUriRequest {
-  identifier: string;
-  continueUri: string;
-}
-
-export interface CreateAuthUriResponse {
-  signinMethods: string[];
-}
-
-export async function createAuthUri(
-  auth: AuthInternal,
-  request: CreateAuthUriRequest
-): Promise<CreateAuthUriResponse> {
-  return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.CREATE_AUTH_URI,
-    request
-  );
+export function castInternal<I>(obj: unknown): I {
+  return obj as I;
 }

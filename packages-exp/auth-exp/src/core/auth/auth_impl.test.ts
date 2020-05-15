@@ -23,18 +23,16 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/mock_auth';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { Persistence } from '../persistence';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { PersistenceInternal } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
+import { castInternal } from '../util/cast_internal';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -49,8 +47,8 @@ const FAKE_APP: FirebaseApp = {
 };
 
 describe('core/auth/auth_impl', () => {
-  let auth: Auth;
-  let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
+  let auth: AuthInternal;
+  let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
 
   beforeEach(() => {
     persistenceStub = sinon.stub(inMemoryPersistence);
@@ -155,7 +153,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     describe('user logs in/out, tokens refresh', () => {
-      let user: User;
+      let user: UserInternal;
       let authStateCallback: sinon.SinonSpy;
       let idTokenCallback: sinon.SinonSpy;
 
@@ -205,13 +203,13 @@ describe('core/auth/auth_impl', () => {
         });
 
         it('onAuthStateChange does not trigger for user props change', async () => {
-          user.refreshToken = 'hey look I changed';
+          castInternal<UserInternal>(user).refreshToken = 'hey look I changed';
           await auth.updateCurrentUser(user);
           expect(authStateCallback).not.to.have.been.called;
         });
 
         it('onIdTokenChange triggers for user props change', async () => {
-          user.refreshToken = 'hey look I changed';
+          castInternal<UserInternal>(user).refreshToken = 'hey look I changed';
           await auth.updateCurrentUser(user);
           expect(idTokenCallback).to.have.been.calledWith(user);
         });
@@ -276,8 +274,8 @@ describe('core/auth/initializeAuth', () => {
     });
 
     async function initAndWait(
-      persistence: Persistence | Persistence[]
-    ): Promise<Auth> {
+      persistence: PersistenceInternal | PersistenceInternal[]
+    ): Promise<AuthInternal> {
       const auth = initializeAuth(FAKE_APP, { persistence });
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
-import { Auth } from '../../model/auth';
+import { _performSignInRequest, Endpoint, HttpMethod } from '../';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
 export interface SignInWithEmailLinkRequest {
@@ -30,7 +30,7 @@ export interface SignInWithEmailLinkResponse extends IdTokenResponse {
 }
 
 export async function signInWithEmailLink(
-  auth: Auth,
+  auth: AuthInternal,
   request: SignInWithEmailLinkRequest
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<

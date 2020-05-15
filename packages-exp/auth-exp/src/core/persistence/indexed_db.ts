@@ -16,11 +16,7 @@
  */
 
 import {
-  PersistedBlob,
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+    PersistedBlob, PersistenceInternal, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
 } from './';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
@@ -133,7 +129,7 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
-class IndexedDBLocalPersistence implements Persistence {
+class IndexedDBLocalPersistence implements PersistenceInternal {
   type: PersistenceType = PersistenceType.LOCAL;
   db?: IDBDatabase;
 
@@ -175,4 +171,4 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 }
 
-export const indexedDBLocalPersistence: Persistence = new IndexedDBLocalPersistence();
+export const indexedDBLocalPersistence: PersistenceInternal = new IndexedDBLocalPersistence();

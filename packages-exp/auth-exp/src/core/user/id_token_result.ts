@@ -15,24 +15,26 @@
  * limitations under the License.
  */
 
+import { IdTokenResult, ParsedToken, User } from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
-import { IdTokenResult, ParsedToken } from '../../model/id_token';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
+import { castInternal } from '../util/cast_internal';
 import { _logError } from '../util/log';
 
 export async function getIdTokenResult(
   user: User,
   forceRefresh = false
 ): Promise<IdTokenResult> {
-  const token = await user.getIdToken(forceRefresh);
+  const userInternal: UserInternal = castInternal(user);
+  const token = await userInternal.getIdToken(forceRefresh);
   const claims = parseToken(token);
 
   assert(
     claims && claims.exp && claims.auth_time && claims.iat,
-    user.auth.name
+    userInternal.auth.name
   );
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;
@@ -42,7 +44,7 @@ export async function getIdTokenResult(
   ] as ProviderId;
   assert(
     !signInProvider || Object.values(ProviderId).includes(signInProvider),
-    user.auth.name
+    userInternal.auth.name
   );
 
   return {

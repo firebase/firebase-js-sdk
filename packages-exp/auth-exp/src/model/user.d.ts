@@ -15,17 +15,13 @@
  * limitations under the License.
  */
 
+import { IdTokenResult, UserMetadata } from '@firebase/auth-types-exp';
+
 import { PersistedBlob } from '../core/persistence';
 import { ProviderId } from '../core/providers';
-import { Auth } from './auth';
-import { IdTokenResult } from './id_token';
+import { AuthInternal } from './auth';
 
-export interface UserMetadata {
-  readonly creationTime?: string;
-  readonly lastSignInTime?: string;
-}
-
-export interface UserInfo {
+export interface UserInfoInternal {
   uid: string;
   providerId: ProviderId;
   displayName: string | null;
@@ -34,13 +30,13 @@ export interface UserInfo {
   photoURL: string | null;
 }
 
-export interface User extends UserInfo {
-  auth: Auth;
+export interface UserInternal extends UserInfoInternal {
+  auth: AuthInternal;
   providerId: ProviderId.FIREBASE;
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
-  providerData: UserInfo[];
+  providerData: UserInfoInternal[];
   metadata: UserMetadata;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;

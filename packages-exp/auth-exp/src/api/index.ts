@@ -19,14 +19,9 @@ import { FirebaseError, querystring } from '@firebase/util';
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Delay } from '../core/util/delay';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
-import {
-  JsonError,
-  SERVER_ERROR_MAP,
-  ServerError,
-  ServerErrorMap
-} from './errors';
+import { JsonError, SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -58,7 +53,7 @@ export enum Endpoint {
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export async function _performApiRequest<T, V>(
-  auth: Auth,
+  auth: AuthInternal,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
@@ -98,7 +93,7 @@ export async function _performApiRequest<T, V>(
 }
 
 export async function _performFetchWithErrorHandling<V>(
-  auth: Auth,
+  auth: AuthInternal,
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
@@ -135,7 +130,7 @@ export async function _performFetchWithErrorHandling<V>(
 }
 
 export async function _performSignInRequest<T, V extends IdTokenResponse>(
-  auth: Auth,
+  auth: AuthInternal,
   method: HttpMethod,
   path: Endpoint,
   request?: T,

@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth, testUser } from '../../../test/mock_auth';
+import { mockAuthExternal, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
@@ -44,7 +46,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
     const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
       signinMethods: expectedSignInMethods
     });
-    const response = await fetchSignInMethodsForEmail(mockAuth, email);
+    const response = await fetchSignInMethodsForEmail(mockAuthExternal, email);
     expect(response).to.eql(expectedSignInMethods);
     expect(mock.calls[0].request).to.eql({
       identifier: email,
@@ -68,7 +70,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
         signinMethods: expectedSignInMethods
       });
-      const response = await fetchSignInMethodsForEmail(mockAuth, email);
+      const response = await fetchSignInMethodsForEmail(mockAuthExternal, email);
       expect(response).to.eql(expectedSignInMethods);
       expect(mock.calls[0].request).to.eql({
         identifier: email,
@@ -89,7 +91,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       400
     );
     await expect(
-      fetchSignInMethodsForEmail(mockAuth, email)
+      fetchSignInMethodsForEmail(mockAuthExternal, email)
     ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
@@ -123,7 +125,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email
     });
 
-    await sendEmailVerification(mockAuth, user);
+    await sendEmailVerification(mockAuthExternal, user);
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
@@ -138,7 +140,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email: 'other@email.com'
     });
 
-    await sendEmailVerification(mockAuth, user);
+    await sendEmailVerification(mockAuthExternal, user);
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
@@ -153,7 +155,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(mockAuth, user, {
+      await sendEmailVerification(mockAuthExternal, user, {
         handleCodeInApp: true,
         iOS: {
           bundleId: 'my-bundle',
@@ -181,7 +183,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(mockAuth, user, {
+      await sendEmailVerification(mockAuthExternal, user, {
         handleCodeInApp: true,
         android: {
           installApp: false,

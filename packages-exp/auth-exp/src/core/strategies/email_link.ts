@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
+import { Auth } from '@firebase/auth-types-exp';
+
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import {
-  ActionCodeSettings,
-  setActionCodeSettingsOnRequest
+    ActionCodeSettings, setActionCodeSettingsOnRequest
 } from '../../model/action_code_settings';
 import { ActionCodeURL } from '../action_code_url';
-import { Auth } from '../../model/auth';
+import { castInternal } from '../util/cast_internal';
 
 export async function sendSignInLinkToEmail(
   auth: Auth,
@@ -37,10 +38,10 @@ export async function sendSignInLinkToEmail(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await api.sendSignInLinkToEmail(auth, request);
+  await api.sendSignInLinkToEmail(castInternal(auth), request);
 }
 
 export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
-  const actionCodeUrl = ActionCodeURL._fromLink(auth, emailLink);
+  const actionCodeUrl = ActionCodeURL._fromLink(castInternal(auth), emailLink);
   return actionCodeUrl?.operation === Operation.EMAIL_SIGNIN;
 }

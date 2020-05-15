@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
-import { Auth } from '../../model/auth';
+import { _performSignInRequest, Endpoint, HttpMethod } from '../';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
 export interface SignInWithCustomTokenRequest {
@@ -26,7 +26,7 @@ export interface SignInWithCustomTokenRequest {
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
 
 export async function signInWithCustomToken(
-  auth: Auth,
+  auth: AuthInternal,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
   return _performSignInRequest<

@@ -16,8 +16,9 @@
  */
 
 import { ErrorFactory, ErrorMap } from '@firebase/util';
+
 import { AppName } from '../model/auth';
-import { User } from '../model/user';
+import { UserInternal } from '../model/user';
 
 /*
  * Developer facing Firebase Auth error codes.
@@ -307,7 +308,7 @@ type AuthErrorParams = {
   [key in AuthErrorCode]: {
     appName: AppName;
     serverResponse?: object;
-    user?: User;
+    user?: UserInternal;
   };
 };
 

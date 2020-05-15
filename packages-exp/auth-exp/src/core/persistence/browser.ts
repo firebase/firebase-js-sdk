@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import { PersistenceInternal, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
-class BrowserPersistence implements Persistence {
+class BrowserPersistence implements PersistenceInternal {
   type: PersistenceType = PersistenceType.LOCAL;
 
   constructor(private readonly storage: Storage) {}
@@ -54,9 +49,9 @@ class BrowserPersistence implements Persistence {
   }
 }
 
-export const browserLocalPersistence: Persistence = new BrowserPersistence(
+export const browserLocalPersistence: PersistenceInternal = new BrowserPersistence(
   localStorage
 );
-export const browserSessionPersistence: Persistence = new BrowserPersistence(
+export const browserSessionPersistence: PersistenceInternal = new BrowserPersistence(
   sessionStorage
 );

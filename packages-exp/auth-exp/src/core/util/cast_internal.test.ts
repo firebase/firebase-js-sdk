@@ -15,26 +15,15 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod } from '../';
-import { AuthInternal } from '../../model/auth';
+import { expect } from 'chai';
 
-export interface CreateAuthUriRequest {
-  identifier: string;
-  continueUri: string;
-}
+import { castInternal } from './cast_internal';
 
-export interface CreateAuthUriResponse {
-  signinMethods: string[];
-}
+describe('src/core/cast_internal', () => {
+  it('returns a reference to the same object', () => {
+    const obj = {hi: 'world'};  // This is _clearly_ not a string
+    const str: string = castInternal(obj);
 
-export async function createAuthUri(
-  auth: AuthInternal,
-  request: CreateAuthUriRequest
-): Promise<CreateAuthUriResponse> {
-  return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
-    auth,
-    HttpMethod.POST,
-    Endpoint.CREATE_AUTH_URI,
-    request
-  );
-}
+    expect(obj).to.eq(str);  // Strict === equality
+  });
+});

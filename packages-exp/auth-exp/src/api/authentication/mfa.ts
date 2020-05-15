@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
+import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from './idp';
-import {
-  SignInWithPhoneNumberRequest,
-  SignInWithPhoneNumberResponse
-} from './sms';
+import { SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse } from './sms';
 
 export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;
@@ -39,7 +36,7 @@ export interface StartPhoneMfaSignInResponse {
 }
 
 export function startSignInPhoneMfa(
-  auth: Auth,
+  auth: AuthInternal,
   request: StartPhoneMfaSignInRequest
 ): Promise<StartPhoneMfaSignInResponse> {
   return _performApiRequest<
@@ -56,7 +53,7 @@ export interface FinalizePhoneMfaSignInRequest {
 export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse {}
 
 export function finalizeSignInPhoneMfa(
-  auth: Auth,
+  auth: AuthInternal,
   request: FinalizePhoneMfaSignInRequest
 ): Promise<FinalizePhoneMfaSignInResponse> {
   return _performApiRequest<

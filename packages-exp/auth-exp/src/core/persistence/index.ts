@@ -33,7 +33,7 @@ export type PersistenceValue = PersistedBlob | string;
 
 export const STORAGE_AVAILABLE_KEY = '__sak';
 
-export interface Persistence {
+export interface PersistenceInternal {
   type: PersistenceType;
   isAvailable(): Promise<boolean>;
   set(key: string, value: PersistenceValue): Promise<void>;

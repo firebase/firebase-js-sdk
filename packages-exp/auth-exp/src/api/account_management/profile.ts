@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
+import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
 export interface UpdateProfileRequest {
@@ -31,7 +31,7 @@ export interface UpdateProfileResponse extends IdTokenResponse {
 }
 
 export async function updateProfile(
-  auth: Auth,
+  auth: AuthInternal,
   request: UpdateProfileRequest
 ): Promise<UpdateProfileResponse> {
   return _performApiRequest<UpdateProfileRequest, UpdateProfileResponse>(

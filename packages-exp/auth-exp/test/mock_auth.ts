@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
+import { Auth, User } from '@firebase/auth-types-exp';
+
 import { StsTokenManager } from '../src/core/user/token_manager';
 import { UserImpl } from '../src/core/user/user_impl';
-import { Auth } from '../src/model/auth';
-import { User } from '../src/model/user';
+import { castInternal } from '../src/core/util/cast_internal';
+import { AuthInternal } from '../src/model/auth';
+import { UserInternal } from '../src/model/user';
 
 export const TEST_HOST = 'localhost';
 export const TEST_TOKEN_HOST = 'localhost/token';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
-export const mockAuth: Auth = {
+export const mockAuth: AuthInternal = {
   name: 'test-app',
   config: {
     apiKey: TEST_KEY,
@@ -48,11 +51,13 @@ export const mockAuth: Auth = {
   _notifyStateListeners() {}
 };
 
+export const mockAuthExternal: Auth = castInternal(mockAuth);
+
 export function testUser(
   uid: string,
   email?: string,
   fakeTokens = false
-): User {
+): UserInternal & User {
   // Create a token manager that's valid off the bat to avoid refresh calls
   const stsTokenManager = new StsTokenManager();
   if (fakeTokens) {
@@ -63,10 +68,10 @@ export function testUser(
     });
   }
 
-  return new UserImpl({
+  return castInternal(new UserImpl({
     uid,
     auth: mockAuth,
     stsTokenManager,
     email
-  });
+  }));
 }

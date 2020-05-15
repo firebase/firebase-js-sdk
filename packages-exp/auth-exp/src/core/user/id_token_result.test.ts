@@ -19,11 +19,11 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
+import { User } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/jwt';
 import { testUser } from '../../../test/mock_auth';
-import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { getIdTokenResult } from './id_token_result';
 

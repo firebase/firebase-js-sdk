@@ -17,23 +17,19 @@
 
 import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { Config } from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthInternal, Dependencies, NextOrObserver } from '../../model/auth';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { Persistence } from '../persistence';
+import { PersistenceInternal } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
-import { ClientPlatform, _getClientVersion } from '../util/version';
+import { castInternal } from '../util/cast_internal';
+import { _getClientVersion, ClientPlatform } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -43,12 +39,12 @@ export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
-class AuthImpl implements Auth {
-  currentUser: User | null = null;
+class AuthImpl implements AuthInternal {
+  currentUser: UserInternal | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
-  private authStateSubscription = new Subscription<User>(this);
-  private idTokenSubscription = new Subscription<User>(this);
+  private authStateSubscription = new Subscription<UserInternal>(this);
+  private idTokenSubscription = new Subscription<UserInternal>(this);
   _isInitialized = false;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -58,7 +54,7 @@ class AuthImpl implements Auth {
   constructor(
     public readonly name: string,
     public readonly config: Config,
-    persistenceHierarchy: Persistence[]
+    persistenceHierarchy: PersistenceInternal[]
   ) {
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
@@ -80,22 +76,22 @@ class AuthImpl implements Auth {
     });
   }
 
-  updateCurrentUser(user: User | null): Promise<void> {
-    return this.queue(() => this.directlySetCurrentUser(user));
+  updateCurrentUser(user: UserInternal | null): Promise<void> {
+    return this.queue(() => this.directlySetCurrentUser(castInternal(user)));
   }
 
   signOut(): Promise<void> {
     return this.queue(() => this.directlySetCurrentUser(null));
   }
 
-  setPersistence(persistence: Persistence): Promise<void> {
+  setPersistence(persistence: PersistenceInternal): Promise<void> {
     return this.queue(async () => {
-      await this.assertedPersistence.setPersistence(persistence);
+      await this.assertedPersistence.setPersistence(castInternal(persistence));
     });
   }
 
   onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<UserInternal>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -108,7 +104,7 @@ class AuthImpl implements Auth {
   }
 
   onIdTokenChange(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<UserInternal>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -134,8 +130,8 @@ class AuthImpl implements Auth {
   }
 
   private registerStateListener(
-    subscription: Subscription<User>,
-    nextOrObserver: NextOrObserver<User>,
+    subscription: Subscription<UserInternal>,
+    nextOrObserver: NextOrObserver<UserInternal>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -161,8 +157,8 @@ class AuthImpl implements Auth {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  private async directlySetCurrentUser(user: User | null): Promise<void> {
-    this.currentUser = user;
+  private async directlySetCurrentUser(user: UserInternal | null): Promise<void> {
+    this.currentUser = castInternal(user);
 
     if (user) {
       await this.assertedPersistence.setCurrentUser(user);
@@ -189,7 +185,7 @@ class AuthImpl implements Auth {
 export function initializeAuth(
   app: FirebaseApp = getApp(),
   deps?: Dependencies
-): Auth {
+): AuthInternal {
   const persistence = deps?.persistence || [];
   const hierarchy = Array.isArray(persistence) ? persistence : [persistence];
   const { apiKey, authDomain } = app.options;
@@ -215,7 +211,7 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: Auth) {}
+  constructor(readonly auth: AuthInternal) {}
 
   get next(): NextFn<T | null> {
     assert(this.observer, this.auth.name);
