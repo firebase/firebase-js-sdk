@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import {
-  getAccountInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
-import { User, UserInfo } from '../../model/user';
+import * as externs from '@firebase/auth-types-exp';
+
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 
@@ -52,19 +51,20 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   Object.assign(user, updates);
 }
 
-export async function reload(user: User): Promise<void> {
-  await _reloadWithoutSaving(user);
+export async function reload(user: externs.User): Promise<void> {
+  const userInternal: User = user as User;
+  await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  return user.auth.updateCurrentUser(user);
+  return userInternal.auth.updateCurrentUser(userInternal);
 }
 
 function mergeProviderData(
-  original: UserInfo[],
-  newData: UserInfo[]
-): UserInfo[] {
+  original: externs.UserInfo[],
+  newData: externs.UserInfo[]
+): externs.UserInfo[] {
   const deduped = original.filter(
     o => !newData.some(n => n.providerId === o.providerId)
   );
@@ -74,7 +74,7 @@ function mergeProviderData(
 function extractProviderData(
   providers: ProviderUserInfo[],
   appName: string
-): UserInfo[] {
+): externs.UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
     assert(
       providerId && Object.values<string>(ProviderId).includes(providerId),

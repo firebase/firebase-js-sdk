@@ -42,11 +42,11 @@ export const mockAuth: Auth = {
   onAuthStateChanged() {
     return () => {};
   },
-  onIdTokenChange() {
+  onIdTokenChanged() {
     return () => {};
   },
   _notifyStateListeners() {}
-};
+} as unknown as Auth;
 
 export function testUser(
   uid: string,

@@ -17,14 +17,9 @@
 
 import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
@@ -33,7 +28,7 @@ import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
-import { ClientPlatform, _getClientVersion } from '../util/version';
+import { _getClientVersion, ClientPlatform } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -79,6 +74,13 @@ class AuthImpl implements Auth {
       this._notifyStateListeners();
     });
   }
+  languageCode: string | null = null;
+  tenantId?: string | null | undefined;
+  settings: externs.AuthSettings = {appVerificationDisabledForTesting: false};
+  
+  useDeviceLanguage(): void {
+    throw new Error("Method not implemented.");
+  }
 
   updateCurrentUser(user: User | null): Promise<void> {
     return this.queue(() => this.directlySetCurrentUser(user));
@@ -107,7 +109,7 @@ class AuthImpl implements Auth {
     );
   }
 
-  onIdTokenChange(
+  onIdTokenChanged(
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn

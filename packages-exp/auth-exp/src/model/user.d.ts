@@ -15,36 +15,34 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 import { PersistedBlob } from '../core/persistence';
 import { ProviderId } from '../core/providers';
 import { Auth } from './auth';
-import { IdTokenResult } from './id_token';
 
 export interface UserMetadata {
   readonly creationTime?: string;
   readonly lastSignInTime?: string;
 }
 
-export interface UserInfo {
+export interface User extends externs.User {
   uid: string;
-  providerId: ProviderId;
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
-}
 
-export interface User extends UserInfo {
   auth: Auth;
   providerId: ProviderId.FIREBASE;
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
-  providerData: UserInfo[];
+  providerData: externs.UserInfo[];
   metadata: UserMetadata;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
-  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
+  getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
   toPlainObject(): PersistedBlob;

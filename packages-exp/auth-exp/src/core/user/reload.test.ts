@@ -20,17 +20,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
+import { UserInfo } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import {
-  APIUserInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
-import { UserInfo } from '../../model/user';
+import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { ProviderId } from '../providers';
 import { _reloadWithoutSaving, reload } from './reload';
 

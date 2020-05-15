@@ -15,13 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import * as externs from '@firebase/auth-types-exp';
+import { CompleteFn, ErrorFn, NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 import { Persistence } from '../core/persistence';
 import { User } from './user';
@@ -40,7 +35,7 @@ export interface Config {
   authDomain?: AuthDomain;
 }
 
-export interface Auth {
+export interface Auth extends externs.Auth {
   currentUser: User | null;
   readonly name: AppName;
   readonly config: Config;
@@ -54,7 +49,7 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  onIdTokenChange(
+  onIdTokenChanged(
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn

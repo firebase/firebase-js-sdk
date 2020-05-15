@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { IdTokenResult, ParsedToken } from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
-import { IdTokenResult, ParsedToken } from '../../model/id_token';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
