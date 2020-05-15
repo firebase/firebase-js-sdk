@@ -141,14 +141,15 @@ export class Logger {
    * The log level of the given Logger instance.
    */
   private _logLevel = defaultLogLevel;
-  get logLevel(): LogLevel {
+  get logLevel(): LogLevel | LogLevelString {
     return this._logLevel;
   }
-  set logLevel(val: LogLevel) {
-    if (!(val in LogLevel)) {
-      throw new TypeError('Invalid value assigned to `logLevel`');
+  set logLevel(val: LogLevel | LogLevelString) {
+    const newLevel = typeof val === 'string' ? levelStringToEnum[val] : val;
+    if (!(newLevel in LogLevel)) {
+      throw new TypeError(`Invalid value "${val}" assigned to \`logLevel\``);
     }
-    this._logLevel = val;
+    this._logLevel = newLevel;
   }
 
   /**
@@ -205,9 +206,8 @@ export class Logger {
 }
 
 export function setLogLevel(level: LogLevelString | LogLevel): void {
-  const newLevel = typeof level === 'string' ? levelStringToEnum[level] : level;
   instances.forEach(inst => {
-    inst.logLevel = newLevel;
+    inst.logLevel = level;
   });
 }
 
