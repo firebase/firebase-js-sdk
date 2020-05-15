@@ -102,12 +102,12 @@ export class UserImpl implements User {
 
   async delete(): Promise<void> {
     const idToken = await this.getIdToken();
-    await deleteAccount(this.auth, {idToken});
+    await deleteAccount(this.auth, { idToken });
     this.stsTokenManager.refreshToken = null;
 
     // TODO: Determine if cancellable-promises are necessary to use in this class so that delete()
     //       cancels pending actions...
-    
+
     return this.auth.signOut();
   }
 

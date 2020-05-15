@@ -140,7 +140,7 @@ describe('core/user/user_impl', () => {
 
       await user.delete();
       expect(endpoint.calls[0].request).to.eql({
-        idToken: 'id-token',
+        idToken: 'id-token'
       });
 
       expect(signOut).to.have.been.called;
