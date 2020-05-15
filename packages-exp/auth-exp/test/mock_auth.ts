@@ -25,7 +25,7 @@ export const TEST_TOKEN_HOST = 'localhost/token';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
-export const mockAuth: Auth = {
+export const mockAuth: Auth = ({
   name: 'test-app',
   config: {
     apiKey: TEST_KEY,
@@ -46,7 +46,7 @@ export const mockAuth: Auth = {
     return () => {};
   },
   _notifyStateListeners() {}
-} as unknown as Auth;
+} as unknown) as Auth;
 
 export function testUser(
   uid: string,

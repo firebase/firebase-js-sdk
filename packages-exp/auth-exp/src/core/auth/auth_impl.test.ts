@@ -31,7 +31,10 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);

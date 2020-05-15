@@ -21,7 +21,7 @@ import {
   PersistenceValue,
   STORAGE_AVAILABLE_KEY
 } from './';
-import {ReactNativeAsyncStorage} from '@firebase/auth-types-exp';
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
 /**
  * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
@@ -48,9 +48,7 @@ export class ReactNativePersistence implements Persistence {
     await this.storage.setItem(key, JSON.stringify(value));
   }
 
-  async get<T extends PersistenceValue>(
-    key: string
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const json = await this.storage.getItem(key);
     return json ? JSON.parse(json) : null;
   }

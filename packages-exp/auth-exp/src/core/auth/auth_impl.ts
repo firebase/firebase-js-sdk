@@ -19,7 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
@@ -76,10 +82,10 @@ class AuthImpl implements Auth {
   }
   languageCode: string | null = null;
   tenantId?: string | null | undefined;
-  settings: externs.AuthSettings = {appVerificationDisabledForTesting: false};
-  
+  settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
+
   useDeviceLanguage(): void {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   updateCurrentUser(user: User | null): Promise<void> {
