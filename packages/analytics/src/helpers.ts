@@ -70,6 +70,8 @@ export function insertScriptTag(dataLayerName: string): void {
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
   script.src = `${GTAG_URL}?l=${dataLayerName}`;
   script.async = true;
+  // https://web.dev/uses-rel-preconnect/?utm_source=lighthouse&utm_medium=devtools#improve-page-load-speed-with-preconnect
+  script.rel = 'preconnect'; 
   document.head.appendChild(script);
 }
 
