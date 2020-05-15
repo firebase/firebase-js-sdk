@@ -36,7 +36,9 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope firebase --include-dependencies build",
     "dev": "rollup -c -w",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "test": "echo 'No test suite for firebase wrapper'",
+    "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
