@@ -15,22 +15,9 @@
  * limitations under the License.
  */
 
-import { GetOobCodeRequest } from '../api/authentication/email_and_password';
+import { ActionCodeSettings } from '@firebase/auth-types-exp';
 
-export interface ActionCodeSettings {
-  android?: {
-    installApp?: boolean;
-    minimumVersion?: string;
-    packageName: string;
-  };
-  handleCodeInApp?: boolean;
-  iOS?: {
-    bundleId: string;
-    appStoreId: string;
-  };
-  url: string;
-  dynamicLinkDomain?: string;
-}
+import { GetOobCodeRequest } from '../../api/authentication/email_and_password';
 
 export function setActionCodeSettingsOnRequest(
   request: GetOobCodeRequest,
