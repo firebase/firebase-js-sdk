@@ -142,8 +142,8 @@ describe('core/user/user_impl', () => {
       expect(endpoint.calls[0].request).to.eql({
         idToken: 'id-token'
       });
-
       expect(signOut).to.have.been.called;
+      expect(stsTokenManager.refreshToken).to.be.null;
     });
   });
 
