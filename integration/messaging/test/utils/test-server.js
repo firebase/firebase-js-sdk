@@ -17,7 +17,6 @@
 
 const path = require('path');
 const express = require('express');
-
 const PORT_NUMBER = 3000;
 
 const FIREBASE_HEAD = express.static(
