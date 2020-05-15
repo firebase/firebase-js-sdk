@@ -17,15 +17,21 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
+import { mockEndpoint } from '../../../test/api/helper';
 import { makeJWT } from '../../../test/jwt';
 import { mockAuth } from '../../../test/mock_auth';
+import * as fetch from '../../../test/mock_fetch';
+import { Endpoint } from '../../api';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
 
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('core/user/user_impl', () => {
@@ -33,7 +39,13 @@ describe('core/user/user_impl', () => {
   let stsTokenManager: StsTokenManager;
 
   beforeEach(() => {
+    fetch.setUp();
     stsTokenManager = new StsTokenManager();
+  });
+
+  afterEach(() => {
+    sinon.restore();
+    fetch.tearDown();
   });
 
   describe('.constructor', () => {
@@ -116,9 +128,22 @@ describe('core/user/user_impl', () => {
   });
 
   describe('#delete', () => {
-    it('throws', () => {
+    it('calls delete endpoint', async () => {
+      stsTokenManager.updateFromServerResponse({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token-string',
+        expiresIn: '100000'
+      } as IdTokenResponse);
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
-      expect(() => user.delete()).to.throw();
+      const endpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
+      const signOut = sinon.stub(auth, 'signOut');
+
+      await user.delete();
+      expect(endpoint.calls[0].request).to.eql({
+        idToken: 'id-token',
+      });
+
+      expect(signOut).to.have.been.called;
     });
   });
 
