@@ -17,10 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  getAccountInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
@@ -54,14 +51,14 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   Object.assign(user, updates);
 }
 
-export async function reload(user: externs.User): Promise<void> {
-  const userInternal: User = user as User;
-  await _reloadWithoutSaving(userInternal);
+export async function reload(externUser: externs.User): Promise<void> {
+  const user: User = externUser as User;
+  await _reloadWithoutSaving(user);
 
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  return userInternal.auth.updateCurrentUser(userInternal);
+  return user.auth.updateCurrentUser(user);
 }
 
 function mergeProviderData(
