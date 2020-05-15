@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
 import {
   CompleteFn,
   ErrorFn,
@@ -40,7 +41,7 @@ export interface Config {
   authDomain?: AuthDomain;
 }
 
-export interface Auth {
+export interface Auth extends externs.Auth {
   currentUser: User | null;
   readonly name: AppName;
   readonly config: Config;
@@ -54,7 +55,7 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  onIdTokenChange(
+  onIdTokenChanged(
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn

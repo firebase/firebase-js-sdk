@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import {
   PersistenceValue,
   STORAGE_AVAILABLE_KEY
 } from './';
-import {ReactNativeAsyncStorage} from '@firebase/auth-types-exp';
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
 /**
  * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
@@ -48,9 +48,7 @@ export class ReactNativePersistence implements Persistence {
     await this.storage.setItem(key, JSON.stringify(value));
   }
 
-  async get<T extends PersistenceValue>(
-    key: string
-  ): Promise<T | null> {
+  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const json = await this.storage.getItem(key);
     return json ? JSON.parse(json) : null;
   }
