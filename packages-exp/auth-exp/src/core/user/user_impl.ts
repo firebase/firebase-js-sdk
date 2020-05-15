@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
+import { IdTokenResult } from '@firebase/auth-types-exp';
+
 import { Auth } from '../../model/auth';
-import { IdTokenResult } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
@@ -64,6 +65,7 @@ export class UserImpl implements User {
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
+  isAnonymous = false;
 
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
