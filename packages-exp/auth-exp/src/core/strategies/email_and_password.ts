@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 import { resetPassword } from '../../api/account_management/email_and_password';
 import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeInfo, Operation } from '../../model/action_code_info';
@@ -23,10 +25,10 @@ import {
   setActionCodeSettingsOnRequest
 } from '../../model/action_code_settings';
 import { Auth } from '../../model/auth';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export async function sendPasswordResetEmail(
-  auth: Auth,
+  auth: externs.Auth,
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
@@ -38,15 +40,15 @@ export async function sendPasswordResetEmail(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await api.sendPasswordResetEmail(auth, request);
+  await api.sendPasswordResetEmail(auth as Auth, request);
 }
 
 export async function confirmPasswordReset(
-  auth: Auth,
+  auth: externs.Auth,
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await resetPassword(auth, {
+  await resetPassword(auth as Auth, {
     oobCode,
     newPassword
   });
@@ -54,10 +56,10 @@ export async function confirmPasswordReset(
 }
 
 export async function checkActionCode(
-  auth: Auth,
+  auth: externs.Auth,
   oobCode: string
 ): Promise<ActionCodeInfo> {
-  const response = await resetPassword(auth, {
+  const response = await resetPassword(auth as Auth, {
     oobCode
   });
   if (!response.requestType) {
@@ -76,7 +78,7 @@ export async function checkActionCode(
 }
 
 export async function verifyPasswordResetCode(
-  auth: Auth,
+  auth: externs.Auth,
   code: string
 ): Promise<string> {
   const { data } = await checkActionCode(auth, code);

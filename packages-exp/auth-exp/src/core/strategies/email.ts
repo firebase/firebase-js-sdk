@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 import {
   createAuthUri,
   CreateAuthUriRequest
@@ -30,7 +32,7 @@ import { User } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 
 export async function fetchSignInMethodsForEmail(
-  auth: Auth,
+  auth: externs.Auth,
   email: string
 ): Promise<string[]> {
   // createAuthUri returns an error if continue URI is not http or https.
@@ -42,13 +44,13 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const { signinMethods } = await createAuthUri(auth, request);
+  const { signinMethods } = await createAuthUri(auth as Auth, request);
 
   return signinMethods || [];
 }
 
 export async function sendEmailVerification(
-  auth: Auth,
+  auth: externs.Auth,
   user: User,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
@@ -61,7 +63,7 @@ export async function sendEmailVerification(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  const { email } = await api.sendEmailVerification(auth, request);
+  const { email } = await api.sendEmailVerification(auth as Auth, request);
 
   if (email !== user.email) {
     await user.reload();
