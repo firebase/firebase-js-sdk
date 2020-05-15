@@ -17,8 +17,8 @@
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
-import * as api from '../protos/firestore_proto_api';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
+import * as api from '../protos/firestore_proto_api';
 import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
