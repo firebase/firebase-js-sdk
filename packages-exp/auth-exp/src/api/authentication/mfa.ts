@@ -19,7 +19,10 @@ import { _performApiRequest, Endpoint, HttpMethod } from '../';
 import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from './idp';
-import { SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse } from './sms';
+import {
+  SignInWithPhoneNumberRequest,
+  SignInWithPhoneNumberResponse
+} from './sms';
 
 export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;

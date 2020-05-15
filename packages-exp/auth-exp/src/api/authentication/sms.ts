@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, _performSignInRequest, Endpoint, HttpMethod } from '../';
+import {
+  _performApiRequest,
+  _performSignInRequest,
+  Endpoint,
+  HttpMethod
+} from '../';
 import { AuthErrorCode } from '../../core/errors';
 import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';

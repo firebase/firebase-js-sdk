@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { PersistenceInternal, PersistenceType, PersistenceValue } from '../persistence';
+import {
+  PersistenceInternal,
+  PersistenceType,
+  PersistenceValue
+} from '../persistence';
 
 class InMemoryPersistence implements PersistenceInternal {
   type: PersistenceType = PersistenceType.NONE;

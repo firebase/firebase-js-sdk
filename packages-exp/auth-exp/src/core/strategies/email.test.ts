@@ -70,7 +70,10 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
         signinMethods: expectedSignInMethods
       });
-      const response = await fetchSignInMethodsForEmail(mockAuthExternal, email);
+      const response = await fetchSignInMethodsForEmail(
+        mockAuthExternal,
+        email
+      );
       expect(response).to.eql(expectedSignInMethods);
       expect(mock.calls[0].request).to.eql({
         identifier: email,

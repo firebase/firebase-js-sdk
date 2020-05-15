@@ -26,7 +26,10 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  APIUserInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { UserInfoInternal, UserInternal } from '../../model/user';
 import { ProviderId } from '../providers';
 import { castInternal } from '../util/cast_internal';

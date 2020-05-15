@@ -60,7 +60,9 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       },
       400
     );
-    await expect(sendSignInLinkToEmail(mockAuthExternal, email)).to.be.rejectedWith(
+    await expect(
+      sendSignInLinkToEmail(mockAuthExternal, email)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

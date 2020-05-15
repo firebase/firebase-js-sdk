@@ -68,10 +68,12 @@ export function testUser(
     });
   }
 
-  return castInternal(new UserImpl({
-    uid,
-    auth: mockAuth,
-    stsTokenManager,
-    email
-  }));
+  return castInternal(
+    new UserImpl({
+      uid,
+      auth: mockAuth,
+      stsTokenManager,
+      email
+    })
+  );
 }

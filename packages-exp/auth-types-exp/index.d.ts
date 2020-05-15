@@ -31,12 +31,12 @@ export interface Config {
 }
 
 export interface Persistence {
-  readonly type: 'SESSION'|'LOCAL'|'NONE';
+  readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
 
 export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
- }
+}
 
 export interface Auth {
   readonly name: string;
@@ -46,14 +46,14 @@ export interface Auth {
   tenantId?: string | null;
   readonly settings: AuthSettings;
   onIdTokenChanged(
-  nextOrObserver: ((a: User | null) => any),
-  error?: (a: Error) => any,
-  completed?: Unsubscribe,
+    nextOrObserver: (a: User | null) => any,
+    error?: (a: Error) => any,
+    completed?: Unsubscribe
   ): Unsubscribe;
   onAuthStateChanged(
-  nextOrObserver: ((a: User | null) => any),
-  error?: (a: Error) => any,
-  completed?: Unsubscribe,
+    nextOrObserver: (a: User | null) => any,
+    error?: (a: Error) => any,
+    completed?: Unsubscribe
   ): Unsubscribe;
   readonly currentUser: User | null;
   useDeviceLanguage(): void;
@@ -112,6 +112,5 @@ export interface ParsedToken {
   };
   [key: string]: string | object | undefined;
 }
-
 
 export type Unsubscribe = () => void;

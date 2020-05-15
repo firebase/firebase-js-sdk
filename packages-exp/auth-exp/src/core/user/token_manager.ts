@@ -54,7 +54,10 @@ export class StsTokenManager {
     this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec);
   }
 
-  async getToken(auth: AuthInternal, forceRefresh = false): Promise<Tokens | null> {
+  async getToken(
+    auth: AuthInternal,
+    forceRefresh = false
+  ): Promise<Tokens | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return {
         accessToken: this.accessToken,

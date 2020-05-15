@@ -114,7 +114,10 @@ export class UserImpl implements UserInternal {
     };
   }
 
-  static fromPlainObject(auth: AuthInternal, object: PersistedBlob): UserInternal {
+  static fromPlainObject(
+    auth: AuthInternal,
+    object: PersistedBlob
+  ): UserInternal {
     const {
       uid,
       stsTokenManager: plainObjectTokenManager,

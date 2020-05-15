@@ -20,7 +20,8 @@ import { Auth } from '@firebase/auth-types-exp';
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import {
-    ActionCodeSettings, setActionCodeSettingsOnRequest
+  ActionCodeSettings,
+  setActionCodeSettingsOnRequest
 } from '../../model/action_code_settings';
 import { ActionCodeURL } from '../action_code_url';
 import { castInternal } from '../util/cast_internal';

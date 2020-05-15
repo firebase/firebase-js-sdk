@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { PersistenceInternal, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
+import {
+  PersistenceInternal,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 class BrowserPersistence implements PersistenceInternal {
   type: PersistenceType = PersistenceType.LOCAL;

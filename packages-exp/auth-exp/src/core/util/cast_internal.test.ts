@@ -21,9 +21,9 @@ import { castInternal } from './cast_internal';
 
 describe('src/core/cast_internal', () => {
   it('returns a reference to the same object', () => {
-    const obj = {hi: 'world'};  // This is _clearly_ not a string
+    const obj = { hi: 'world' }; // This is _clearly_ not a string
     const str: string = castInternal(obj);
 
-    expect(obj).to.eq(str);  // Strict === equality
+    expect(obj).to.eq(str); // Strict === equality
   });
 });

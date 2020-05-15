@@ -28,7 +28,10 @@ import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
 import {
-    checkActionCode, confirmPasswordReset, sendPasswordResetEmail, verifyPasswordResetCode
+  checkActionCode,
+  confirmPasswordReset,
+  sendPasswordResetEmail,
+  verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -62,7 +65,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       },
       400
     );
-    await expect(sendPasswordResetEmail(mockAuthExternal, email)).to.be.rejectedWith(
+    await expect(
+      sendPasswordResetEmail(mockAuthExternal, email)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -136,7 +141,11 @@ describe('core/strategies/confirmPasswordReset', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email: 'foo@bar.com'
     });
-    const response = await confirmPasswordReset(mockAuthExternal, oobCode, newPassword);
+    const response = await confirmPasswordReset(
+      mockAuthExternal,
+      oobCode,
+      newPassword
+    );
     expect(response).to.be.undefined;
     expect(mock.calls[0].request).to.eql({
       oobCode,
@@ -263,7 +272,9 @@ describe('core/strategies/verifyPasswordResetCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(verifyPasswordResetCode(mockAuthExternal, oobCode)).to.be.rejectedWith(
+    await expect(
+      verifyPasswordResetCode(mockAuthExternal, oobCode)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
@@ -281,7 +292,9 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       },
       400
     );
-    await expect(verifyPasswordResetCode(mockAuthExternal, oobCode)).to.be.rejectedWith(
+    await expect(
+      verifyPasswordResetCode(mockAuthExternal, oobCode)
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );

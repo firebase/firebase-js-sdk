@@ -19,7 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { Config } from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { AuthInternal, Dependencies, NextOrObserver } from '../../model/auth';
@@ -157,7 +163,9 @@ class AuthImpl implements AuthInternal {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  private async directlySetCurrentUser(user: UserInternal | null): Promise<void> {
+  private async directlySetCurrentUser(
+    user: UserInternal | null
+  ): Promise<void> {
     this.currentUser = castInternal(user);
 
     if (user) {
