@@ -18,7 +18,7 @@
 import * as api from './firestore_proto_api';
 
 /** Properties of a BundledQuery. */
-export interface IBundledQuery {
+export interface BundledQuery {
   /** BundledQuery parent */
   parent?: string | null;
 
@@ -35,19 +35,19 @@ export namespace BundledQuery {
 }
 
 /** Properties of a NamedQuery. */
-export interface INamedQuery {
+export interface NamedQuery {
   /** NamedQuery name */
   name?: string | null;
 
   /** NamedQuery bundledQuery */
-  bundledQuery?: IBundledQuery | null;
+  bundledQuery?: BundledQuery | null;
 
   /** NamedQuery readTime */
   readTime?: api.Timestamp | null;
 }
 
 /** Properties of a BundledDocumentMetadata. */
-export interface IBundledDocumentMetadata {
+export interface BundledDocumentMetadata {
   /** BundledDocumentMetadata name */
   name?: string | null;
 
@@ -59,7 +59,7 @@ export interface IBundledDocumentMetadata {
 }
 
 /** Properties of a BundleMetadata. */
-interface IBundleMetadata {
+interface BundleMetadata {
   /** BundleMetadata id */
   id?: string | null;
 
@@ -71,15 +71,15 @@ interface IBundleMetadata {
 }
 
 /** Properties of a BundleElement. */
-interface IBundleElement {
+interface BundleElement {
   /** BundleElement metadata */
-  metadata?: IBundleMetadata | null;
+  metadata?: BundleMetadata | null;
 
   /** BundleElement namedQuery */
-  namedQuery?: INamedQuery | null;
+  namedQuery?: NamedQuery | null;
 
   /** BundleElement documentMetadata */
-  documentMetadata?: IBundledDocumentMetadata | null;
+  documentMetadata?: BundledDocumentMetadata | null;
 
   /** BundleElement document */
   document?: api.Document | null;

@@ -18,6 +18,7 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
+import { BundledQuery } from '../protos/firestore_bundle_proto';
 import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -34,7 +35,6 @@ import { LocalSerializer } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
-import { IBundledQuery } from '../protos/firestore_bundle_proto';
 
 /**
  * Schema Version for the Web client:
@@ -1125,7 +1125,7 @@ export class DbNamedQueries {
     /** The read time of the results saved in the bundle from the named query. */
     public readTime: DbTimestamp,
     /** The query saved in the bundle. */
-    public bundledQuery: IBundledQuery
+    public bundledQuery: BundledQuery
   ) {}
 }
 
