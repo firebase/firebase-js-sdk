@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ export interface Reference extends Query {
 
 export interface ServerValue {
   TIMESTAMP: Object;
-  increment(delta: number) : Object;
+  increment(delta: number): Object;
 }
 
 export interface ThenableReference extends Reference, Promise<Reference> {}

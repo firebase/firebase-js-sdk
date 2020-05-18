@@ -12,6 +12,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "echo 'No test suite for polyfills'",
+    "test:ci": "echo 'No test suite for polyfills'",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
