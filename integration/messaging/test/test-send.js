@@ -23,7 +23,7 @@ const seleniumAssistant = require('selenium-assistant');
 const clearAppForTest = require('./utils/clearAppForTest');
 const getReceivedMessages = require('./utils/getReceivedMessages');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
-const TEST_SUITE_TIMEOUT_MS = 70000;
+const TEST_SUITE_TIMEOUT_MS = 50000;
 const TEST_DOMAIN = 'valid-vapid-key';
 const TEST_PROJECT_SENDER_ID = '35006771263';
 const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
@@ -65,7 +65,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         await clearAppForTest(globalWebDriver);
       });
 
-      it('Foreground app can receive a {} empty message in onMessage', async function() {
+      it('Background app can receive a {} empty message in onMessage', async function() {
         let token = await retrieveToken(globalWebDriver);
         checkSendResponse(
           await sendMessage({
@@ -80,22 +80,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"notification"} message in onMessage', async function() {
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          globalWebDriver,
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
-          /* expectedDataPayload= */ null
-        );
-      });
-
-      it('Foreground app can receive a {"data"} message in onMessage', async function() {
+      it('Background app can receive a {"data"} message in onMessage', async function() {
         checkSendResponse(
           await sendMessage({
             to: await retrieveToken(globalWebDriver),
@@ -106,22 +91,6 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         await checkMessageReceived(
           globalWebDriver,
           /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ getTestDataPayload()
-        );
-      });
-
-      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function() {
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            data: getTestDataPayload(),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          globalWebDriver,
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
           /* expectedDataPayload= */ getTestDataPayload()
         );
       });
@@ -139,6 +108,7 @@ async function checkMessageReceived(
   expect(receivedMessages.length).to.equal(1);
 
   const message = receivedMessages[0];
+  console.log('??? message 0: ' + JSON.stringify(message));
   expect(message.from).to.equal(TEST_PROJECT_SENDER_ID);
   expect(message.collapse_key).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
 

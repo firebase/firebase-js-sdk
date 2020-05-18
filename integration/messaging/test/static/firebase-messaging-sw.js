@@ -29,19 +29,20 @@ messaging.setBackgroundMessageHandler(payload => {
       '. Routing the message to the test app messages container to be read'
   );
 
-  sendMessageToWindowClients(getClients(), markBackgroundMessage(payload));
+  self.clients
+    .matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    })
+    .then(clients => {
+      sendMessageToWindowClients(clients, markBackgroundMessage(payload));
+    });
 });
 
-function getClients() {
-  return self.clients.matchAll({
-    type: 'window',
-    includeUncontrolled: true
-  });
-}
-
 function sendMessageToWindowClients(clientList, payload) {
+  console.log();
   for (const client of clientList) {
-    client.postMessage({ ...message, 'isBackgroundMessage': true });
+    client.postMessage({ ...payload, 'isBackgroundMessage': true });
   }
 }
 

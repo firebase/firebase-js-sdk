@@ -35,6 +35,7 @@ class DemoApp {
     this._triggerGetToken = this.triggerGetToken;
     this._triggerTimeForward = this.triggerTimeForward;
     this._clearInstanceForTest = this.clearInstanceForTest;
+    this.appendMessage = this.appendMessage;
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -58,8 +59,7 @@ class DemoApp {
     }
 
     this._messaging.onMessage(payload => {
-      console.log(`Message received: `, payload);
-      this._messages.push(payload);
+      appendMessage(payload);
     });
 
     this._messaging.getToken().then(
@@ -73,6 +73,10 @@ class DemoApp {
         this._token = null;
       }
     );
+  }
+
+  appendMessage(payload) {
+    this._messages.push(payload);
   }
 
   async triggerDeleteToken(token) {
