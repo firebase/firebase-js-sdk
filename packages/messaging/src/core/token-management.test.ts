@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import * as apiModule from './api';
 import { Stub } from '../testing/sinon-types';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
-import { arrayToBase64} from '../helpers/array-base64-translator';
+import { arrayToBase64 } from '../helpers/array-base64-translator';
 
 describe('Token Management', () => {
   let tokenDetails: TokenDetails;
