@@ -36,7 +36,7 @@ exports.reinstallDeps = async () => {
 exports.buildPackages = async () => {
   try {
     const spinner = ora(' Building Packages').start();
-    await spawn('yarn', ['build'], {
+    await spawn('yarn', ['build:release'], {
       cwd: root
     });
     spinner.stopAndPersist({
