@@ -75,7 +75,6 @@ import {
 } from './persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
-
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
@@ -146,6 +145,7 @@ async function withUnstartedCustomPersistence(
 function withCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
@@ -155,6 +155,7 @@ function withCustomPersistence(
   return withUnstartedCustomPersistence(
     clientId,
     multiClient,
+    forceOwningTab,
     async (persistence, platform, queue) => {
       await persistence.start();
       await fn(persistence, platform, queue);
@@ -1157,8 +1158,14 @@ describe('IndexedDb: canActAsPrimary', () => {
   });
 
   it('obtains lease if forceOwningTab is set', () => {
-    return withPersistence('clientA', async (persistence, platform, queue) => {
-      await withForcedPersistence('clientB', db2 => Promise.resolve());
+    return withPersistence('clientA', async db => {
+      await withForcedPersistence('clientB', async () => {
+        return expect(
+          db.runTransaction('tx', 'readwrite-primary', () =>
+            PersistencePromise.resolve()
+          )
+        ).to.be.eventually.rejected;
+      });
     });
   });
 });
@@ -1177,6 +1184,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
         await expect(db.start()).to.eventually.be.rejectedWith(
@@ -1191,6 +1199,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ true,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
         await db.start();

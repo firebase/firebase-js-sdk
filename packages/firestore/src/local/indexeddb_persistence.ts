@@ -78,6 +78,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
+import * as assert from 'assert';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -873,8 +874,9 @@ export class IndexedDbPersistence implements Persistence {
 
       if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
         if (
-          !this.allowTabSynchronization ||
-          !currentPrimary!.allowTabSynchronization
+          !this.forceOwningTab &&
+          (!this.allowTabSynchronization ||
+            !currentPrimary!.allowTabSynchronization)
         ) {
           throw new FirestoreError(
             Code.FAILED_PRECONDITION,
@@ -1003,10 +1005,7 @@ export class IndexedDbPersistence implements Persistence {
    * handler.
    */
   private attachWindowUnloadHook(): void {
-    if (!this.window) {
-      return;
-    }
-    if (typeof this.window.addEventListener === 'function') {
+    if (typeof this.window?.addEventListener === 'function') {
       this.windowUnloadHandler = () => {
         // Note: In theory, this should be scheduled on the AsyncQueue since it
         // accesses internal state. We execute this code directly during shutdown
@@ -1024,15 +1023,13 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private detachWindowUnloadHook(): void {
-    if (!this.window) {
-      return;
-    }
     if (this.windowUnloadHandler) {
+      assert(this.window != null, "'window' should be defined");
       debugAssert(
-        typeof this.window.removeEventListener === 'function',
+        typeof this.window!.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
-      this.window.removeEventListener('unload', this.windowUnloadHandler);
+      this.window!.removeEventListener('unload', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
   }
@@ -1043,13 +1040,11 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
-    if (!this.webStorage) {
-      return false;
-    }
     try {
       const isZombied =
-        this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
-        null;
+        this.webStorage?.getItem(
+          this.zombiedClientLocalStorageKey(clientId)
+        ) !== null;
       logDebug(
         LOG_TAG,
         `Client '${clientId}' ${

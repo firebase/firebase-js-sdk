@@ -42,6 +42,8 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
     deleteDatabaseFiles: true
   });
 
+  // 'indexeddbshim' installs IndexedDB onto `globalAny`, which means we don't
+  // have to register it ourselves.
   const fakeWindow = new FakeWindow(
     new SharedFakeWebStorage(),
     globalAny.indexedDB
