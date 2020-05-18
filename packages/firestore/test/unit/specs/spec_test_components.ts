@@ -59,7 +59,7 @@ import { expect } from 'chai';
 export class MockMemoryPersistence extends MemoryPersistence {
   injectFailures?: SpecDatabaseFailures;
 
-  runTransaction<T>(
+  async runTransaction<T>(
     action: string,
     mode: PersistenceTransactionMode,
     transactionOperation: (
@@ -78,7 +78,7 @@ export class MockMemoryPersistence extends MemoryPersistence {
 export class MockIndexedDbPersistence extends IndexedDbPersistence {
   injectFailures?: SpecDatabaseFailures;
 
-  runTransaction<T>(
+  async runTransaction<T>(
     action: string,
     mode: PersistenceTransactionMode,
     transactionOperation: (

@@ -54,6 +54,7 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { ByteString } from '../util/byte_string';
+import { isIndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -448,7 +449,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * `enqueueRetryable()`.
    */
   private async disableNetworkUntilRecovery(e: FirestoreError): Promise<void> {
-    if (e.name === 'IndexedDbTransactionError') {
+    if (isIndexedDbTransactionError(e)) {
       debugAssert(
         !this.indexedDbFailed,
         'Unexpected network event when IndexedDB was marked failed.'

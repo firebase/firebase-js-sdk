@@ -61,10 +61,11 @@ import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
+import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   MOCK_SEQUENCE_NUMBER_SYNCER,
@@ -108,12 +109,12 @@ function withDb(
     });
 }
 
-async function withCustomPersistence(
+async function withUnstartedCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
   forceOwningTab: boolean,
   fn: (
-    persistence: IndexedDbPersistence,
+    persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
@@ -127,7 +128,7 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = new IndexedDbPersistence(
+  const persistence = new MockIndexedDbPersistence(
     multiClient,
     TEST_PERSISTENCE_PREFIX,
     clientId,
@@ -139,15 +140,33 @@ async function withCustomPersistence(
     forceOwningTab
   );
 
-  await persistence.start();
   await fn(persistence, platform, queue);
-  await persistence.shutdown();
+}
+
+function withCustomPersistence(
+  clientId: ClientId,
+  multiClient: boolean,
+  fn: (
+    persistence: MockIndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withUnstartedCustomPersistence(
+    clientId,
+    multiClient,
+    async (persistence, platform, queue) => {
+      await persistence.start();
+      await fn(persistence, platform, queue);
+      await persistence.shutdown();
+    }
+  );
 }
 
 async function withPersistence(
   clientId: ClientId,
   fn: (
-    persistence: IndexedDbPersistence,
+    persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
@@ -163,7 +182,7 @@ async function withPersistence(
 async function withMultiClientPersistence(
   clientId: ClientId,
   fn: (
-    persistence: IndexedDbPersistence,
+    persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
@@ -1074,7 +1093,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     } and ${thatVisibility}`;
 
     it(testName, () => {
-      return withPersistence(
+      return withMultiClientPersistence(
         'thatClient',
         async (thatPersistence, thatPlatform, thatQueue) => {
           thatPlatform.raiseVisibilityEvent(thatVisibility);
@@ -1085,7 +1104,7 @@ describe('IndexedDb: canActAsPrimary', () => {
           // the lease until it expires.
           await clearPrimaryLease();
 
-          await withPersistence(
+          await withMultiClientPersistence(
             'thisClient',
             async (thisPersistence, thisPlatform, thisQueue) => {
               thisPlatform.raiseVisibilityEvent(thisVisibility);
@@ -1154,12 +1173,51 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
+  it('blocks start() on IndexedDbTransactionError when synchronization is disabled ', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      async db => {
+        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        await expect(db.start()).to.eventually.be.rejectedWith(
+          'Failed to obtain exclusive access to the persistence layer.'
+        );
+        await db.shutdown();
+      }
+    );
+  });
+
+  it('allows start() with IndexedDbTransactionError when synchronization is enabled ', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ true,
+      async db => {
+        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        await db.start();
+        await db.shutdown();
+      }
+    );
+  });
+
+  it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
+    await withPersistence('clientA', async (db, _, queue) => {
+      db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+      await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await queue.enqueue(() => {
+        db.injectFailures = undefined;
+        return db.runTransaction('check success', 'readwrite-primary', () =>
+          PersistencePromise.resolve()
+        );
+      });
+    });
+  });
+
   it('rejects access when synchronization is disabled', async () => {
-    await withPersistence('clientA', async db1 => {
+    await withMultiClientPersistence('clientA', async db1 => {
       await expect(
         withPersistence('clientB', db2 => Promise.resolve())
       ).to.eventually.be.rejectedWith(
-        'Another tab has exclusive access to the persistence layer.'
+        'Failed to obtain exclusive access to the persistence layer.'
       );
     });
   });

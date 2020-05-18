@@ -31,6 +31,7 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LruGarbageCollector';
 
@@ -273,7 +274,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
         try {
           await localStore.collectGarbage(this.garbageCollector);
         } catch (e) {
-          if (e.name === 'IndexedDbTransactionError') {
+          if (isIndexedDbTransactionError(e)) {
             logDebug(
               LOG_TAG,
               'Ignoring IndexedDB error during garbage collection: ',

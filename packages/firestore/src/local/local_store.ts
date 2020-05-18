@@ -66,6 +66,7 @@ import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LocalStore';
 
@@ -694,57 +695,71 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
-    return this.persistence
-      .runTransaction('notifyLocalViewChanges', 'readwrite', txn => {
-        return PersistencePromise.forEach(
-          viewChanges,
-          (viewChange: LocalViewChanges) => {
-            return PersistencePromise.forEach(
-              viewChange.addedKeys,
-              (key: DocumentKey) =>
-                this.persistence.referenceDelegate.addReference(
-                  txn,
-                  viewChange.targetId,
-                  key
-                )
-            ).next(() =>
-              PersistencePromise.forEach(
-                viewChange.removedKeys,
+  async notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    try {
+      await this.persistence.runTransaction(
+        'notifyLocalViewChanges',
+        'readwrite',
+        txn => {
+          return PersistencePromise.forEach(
+            viewChanges,
+            (viewChange: LocalViewChanges) => {
+              return PersistencePromise.forEach(
+                viewChange.addedKeys,
                 (key: DocumentKey) =>
-                  this.persistence.referenceDelegate.removeReference(
+                  this.persistence.referenceDelegate.addReference(
                     txn,
                     viewChange.targetId,
                     key
                   )
-              )
-            );
-          }
-        );
-      })
-      .then(() => {
-        for (const viewChange of viewChanges) {
-          const targetId = viewChange.targetId;
-
-          if (!viewChange.fromCache) {
-            const targetData = this.targetDataByTarget.get(targetId);
-            debugAssert(
-              targetData !== null,
-              `Can't set limbo-free snapshot version for unknown target: ${targetId}`
-            );
-
-            // Advance the last limbo free snapshot version
-            const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
-            const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
-              lastLimboFreeSnapshotVersion
-            );
-            this.targetDataByTarget = this.targetDataByTarget.insert(
-              targetId,
-              updatedTargetData
-            );
-          }
+              ).next(() =>
+                PersistencePromise.forEach(
+                  viewChange.removedKeys,
+                  (key: DocumentKey) =>
+                    this.persistence.referenceDelegate.removeReference(
+                      txn,
+                      viewChange.targetId,
+                      key
+                    )
+                )
+              );
+            }
+          );
         }
-      });
+      );
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        // If `notifyLocalViewChanges` fails, we did not advance the sequence
+        // number for the documents that were included in this transaction.
+        // This might trigger them to be deleted earlier than they otherwise
+        // would have, but it should not invalidate the integrity of the data.
+        logDebug(LOG_TAG, 'Failed to update sequence numbers: ' + e);
+      } else {
+        throw e;
+      }
+    }
+
+    for (const viewChange of viewChanges) {
+      const targetId = viewChange.targetId;
+
+      if (!viewChange.fromCache) {
+        const targetData = this.targetDataByTarget.get(targetId);
+        debugAssert(
+          targetData !== null,
+          `Can't set limbo-free snapshot version for unknown target: ${targetId}`
+        );
+
+        // Advance the last limbo free snapshot version
+        const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
+        const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
+          lastLimboFreeSnapshotVersion
+        );
+        this.targetDataByTarget = this.targetDataByTarget.insert(
+          targetId,
+          updatedTargetData
+        );
+      }
+    }
   }
 
   /**

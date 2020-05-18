@@ -21,6 +21,7 @@ import { logDebug, logError } from './log';
 import { CancelablePromise, Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { PlatformSupport } from '../platform/platform';
+import { isIndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -338,7 +339,7 @@ export class AsyncQueue {
           deferred.resolve();
           this.backoff.reset();
         } catch (e) {
-          if (e.name === 'IndexedDbTransactionError') {
+          if (isIndexedDbTransactionError(e)) {
             logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
             this.backoff.backoffAndRun(retryingOp);
           } else {
@@ -499,5 +500,21 @@ export class AsyncQueue {
     const index = this.delayedOperations.indexOf(op);
     debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
+  }
+}
+
+/**
+ * Returns a FirestoreError that can be surfaced to the user if the provided
+ * error is an IndexedDbTransactionError. Re-throws the error otherwise.
+ */
+export function wrapInUserErrorIfRecoverable(
+  e: Error,
+  msg: string
+): FirestoreError {
+  logError(LOG_TAG, `${msg}: ${e}`);
+  if (isIndexedDbTransactionError(e)) {
+    return new FirestoreError(Code.UNAVAILABLE, `${msg}: ${e}`);
+  } else {
+    throw e;
   }
 }
