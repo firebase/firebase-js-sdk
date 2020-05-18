@@ -72,7 +72,12 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {
+  isIndexedDbTransactionError,
+  SimpleDb,
+  SimpleDbStore,
+  SimpleDbTransaction
+} from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -287,7 +292,7 @@ export class IndexedDbPersistence implements Persistence {
         // having the persistence lock), so it's the first thing we should do.
         return this.updateClientMetadataAndTryBecomePrimary();
       })
-      .then(e => {
+      .then(() => {
         if (!this.isPrimary && !this.allowTabSynchronization) {
           // Fail `start()` if `synchronizeTabs` is disabled and we cannot
           // obtain the primary lease.
@@ -423,7 +428,7 @@ export class IndexedDbPersistence implements Persistence {
     )
       .catch(e => {
         if (!this.allowTabSynchronization) {
-          if (e.name === 'IndexedDbTransactionError') {
+          if (isIndexedDbTransactionError(e)) {
             logDebug(LOG_TAG, 'Failed to extend owner lease: ', e);
             // Proceed with the existing state. Any subsequent access to
             // IndexedDB will verify the lease.
