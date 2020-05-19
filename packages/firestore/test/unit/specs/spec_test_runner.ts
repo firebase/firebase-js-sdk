@@ -1215,7 +1215,8 @@ export type PersistenceAction =
   | 'Get target data'
   | 'Get new document changes'
   | 'Synchronize last document change read time'
-  | 'updateClientMetadataAndTryBecomePrimary';
+  | 'updateClientMetadataAndTryBecomePrimary'
+  | 'getHighestListenSequenceNumber';
 
 /** Specifies failure or success for a list of database actions. */
 export type SpecDatabaseFailures = Partial<
