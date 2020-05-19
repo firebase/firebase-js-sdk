@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - release
+      - fei-release
 
 jobs:
   release:
