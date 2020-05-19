@@ -16,13 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { CompleteFn, ErrorFn, NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 import { Persistence } from '../core/persistence';
 import { User } from './user';
@@ -32,19 +26,10 @@ export type ApiKey = string;
 export type AuthDomain = string;
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
-export interface Config {
-  apiKey: ApiKey;
-  apiHost: string;
-  apiScheme: string;
-  tokenApiHost: string;
-  sdkClientVersion: string;
-  authDomain?: AuthDomain;
-}
-
 export interface Auth extends externs.Auth {
   currentUser: User | null;
   readonly name: AppName;
-  readonly config: Config;
+  readonly config: externs.Config;
   _isInitialized: boolean;
 
   setPersistence(persistence: Persistence): Promise<void>;
@@ -64,5 +49,5 @@ export interface Auth extends externs.Auth {
 }
 
 export interface Dependencies {
-  persistence?: Persistence | Persistence[];
+  persistence?: externs.Persistence | externs.Persistence[];
 }

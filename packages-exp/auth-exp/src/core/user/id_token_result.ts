@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { IdTokenResult, ParsedToken } from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
 import { User } from '../../model/user';
@@ -23,10 +23,15 @@ import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 import { _logError } from '../util/log';
 
+export function getIdToken(user: externs.User, forceRefresh = false): Promise<string> {
+  return user.getIdToken(forceRefresh);
+}
+
 export async function getIdTokenResult(
-  user: User,
+  externUser: externs.User,
   forceRefresh = false
-): Promise<IdTokenResult> {
+): Promise<externs.IdTokenResult> {
+  const user = externUser as User;
   const token = await user.getIdToken(forceRefresh);
   const claims = parseToken(token);
 
@@ -79,7 +84,7 @@ function utcTimestampToDateString(timestamp: string | number): string | null {
   return null;
 }
 
-function parseToken(token: string): ParsedToken | null {
+function parseToken(token: string): externs.ParsedToken | null {
   const [algorithm, payload, signature] = token.split('.');
   if (
     algorithm === undefined ||

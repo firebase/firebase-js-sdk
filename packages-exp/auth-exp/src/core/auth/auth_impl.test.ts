@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/mock_auth';
@@ -31,10 +32,7 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -53,8 +51,8 @@ describe('core/auth/auth_impl', () => {
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
   beforeEach(() => {
-    persistenceStub = sinon.stub(inMemoryPersistence);
-    auth = initializeAuth(FAKE_APP, { persistence: inMemoryPersistence });
+    persistenceStub = sinon.stub(inMemoryPersistence as Persistence);
+    auth = initializeAuth(FAKE_APP, { persistence: inMemoryPersistence }) as Auth;
   });
 
   afterEach(sinon.restore);
@@ -104,7 +102,7 @@ describe('core/auth/auth_impl', () => {
 
   describe('#setPersistence', () => {
     it('swaps underlying persistence', async () => {
-      const newPersistence = browserLocalPersistence;
+      const newPersistence = browserLocalPersistence as Persistence;
       const newStub = sinon.stub(newPersistence);
       persistenceStub.get.returns(
         Promise.resolve(testUser('test').toPlainObject())
@@ -276,13 +274,13 @@ describe('core/auth/initializeAuth', () => {
     });
 
     async function initAndWait(
-      persistence: Persistence | Persistence[]
+      persistence: externs.Persistence | externs.Persistence[]
     ): Promise<Auth> {
       const auth = initializeAuth(FAKE_APP, { persistence });
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.
       await auth.setPersistence(inMemoryPersistence);
-      return auth;
+      return auth as Auth;
     }
 
     it('converts single persistence to array', async () => {
@@ -294,7 +292,7 @@ describe('core/auth/initializeAuth', () => {
 
     it('pulls the user from storage', async () => {
       sinon
-        .stub(inMemoryPersistence, 'get')
+        .stub(inMemoryPersistence as Persistence, 'get')
         .returns(Promise.resolve(testUser('uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');

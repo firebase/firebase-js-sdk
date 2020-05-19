@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import * as externs from '@firebase/auth-types-exp';
+
 import { Operation } from '../model/action_code_info';
 import { Auth } from '../model/auth';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
 /**
  * Enums for fields in URL query string.
@@ -64,7 +66,7 @@ function parseDeepLink(url: string): string {
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
 
-export class ActionCodeURL {
+export class ActionCodeURL implements externs.ActionCodeURL {
   readonly apiKey: string;
   readonly code: string;
   readonly continueUrl: string | null;

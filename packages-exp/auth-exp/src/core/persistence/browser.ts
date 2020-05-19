@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import * as externs from '@firebase/auth-types-exp';
+
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 class BrowserPersistence implements Persistence {
   type: PersistenceType = PersistenceType.LOCAL;
@@ -54,9 +51,9 @@ class BrowserPersistence implements Persistence {
   }
 }
 
-export const browserLocalPersistence: Persistence = new BrowserPersistence(
+export const browserLocalPersistence: externs.Persistence = new BrowserPersistence(
   localStorage
 );
-export const browserSessionPersistence: Persistence = new BrowserPersistence(
+export const browserSessionPersistence: externs.Persistence = new BrowserPersistence(
   sessionStorage
 );
