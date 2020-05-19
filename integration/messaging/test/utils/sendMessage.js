@@ -17,7 +17,7 @@
 
 const fetch = require('node-fetch');
 const FCM_SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
-// require('dotenv').config({ path: __dirname + '/.env' });
+require('dotenv').config({ path: __dirname + '/.env' });
 
 module.exports = async payload => {
   let serverKey = process.env.FCM_TEST_PROJECT_SERVER_KEY;
