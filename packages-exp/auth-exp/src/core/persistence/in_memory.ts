@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 class InMemoryPersistence implements Persistence {
@@ -41,4 +43,4 @@ class InMemoryPersistence implements Persistence {
   }
 }
 
-export const inMemoryPersistence: Persistence = new InMemoryPersistence();
+export const inMemoryPersistence: externs.Persistence = new InMemoryPersistence();
