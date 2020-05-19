@@ -58,6 +58,28 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
   );
 
   specTest(
+    'Clients fail to lookup mutations (with recovery)',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .expectPrimaryState(true)
+        .failDatabaseTransactions('Lookup mutation documents')
+        .client(1)
+        .expectPrimaryState(false)
+        .userSets('collection/a', { v: 1 })
+        .failDatabaseTransactions('Lookup mutation documents')
+        .client(0)
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .writeAcks('collection/a', 1, { expectUserCallback: false })
+        .client(1)
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectUserCallbacks({ acknowledged: ['collection/a'] });
+    }
+  );
+
+  specTest(
     'Query raises events in secondary client  (with recovery)',
     ['multi-client'],
     () => {
@@ -111,6 +133,31 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets()
       );
+    }
+  );
+
+  specTest(
+    'Ignores intermittent lease refresh failures (with recovery)',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .client(0)
+        .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .client(1)
+        .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .client(0)
+        .recoverDatabase()
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .client(1)
+        .recoverDatabase()
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(false);
     }
   );
 
