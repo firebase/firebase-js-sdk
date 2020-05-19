@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 import {
-  PersistedBlob,
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+    PersistedBlob, Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
 } from './';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
@@ -175,4 +173,4 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 }
 
-export const indexedDBLocalPersistence: Persistence = new IndexedDBLocalPersistence();
+export const indexedDBLocalPersistence: externs.Persistence = new IndexedDBLocalPersistence();
