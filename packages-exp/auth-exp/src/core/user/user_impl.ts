@@ -17,6 +17,7 @@
 
 import { IdTokenResult } from '@firebase/auth-types-exp';
 
+import { deleteAccount } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
@@ -99,8 +100,15 @@ export class UserImpl implements User {
     return reload(this);
   }
 
-  delete(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(): Promise<void> {
+    const idToken = await this.getIdToken();
+    await deleteAccount(this.auth, { idToken });
+    this.stsTokenManager.clearRefreshToken();
+
+    // TODO: Determine if cancellable-promises are necessary to use in this class so that delete()
+    //       cancels pending actions...
+
+    return this.auth.signOut();
   }
 
   toPlainObject(): PersistedBlob {
