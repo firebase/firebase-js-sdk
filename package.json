@@ -138,7 +138,9 @@
     "typescript": "3.8.3",
     "watch": "1.0.2",
     "webpack": "4.43.0",
-    "yargs": "15.3.1"
+    "yargs": "15.3.1",
+    "@changesets/cli": "2.6.5",
+    "@changesets/changelog-github": "0.2.5"
   },
   "husky": {
     "hooks": {
