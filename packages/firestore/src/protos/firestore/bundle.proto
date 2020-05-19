@@ -91,6 +91,12 @@ message BundleMetadata {
 
   // The schema version of the bundle.
   uint32 version = 3;
+
+  // The number of documents in the bundle.
+  uint32 total_documents = 4;
+
+  // The size of the bundle in bytes, excluding this `BundleMetadata`.
+  uint64 total_bytes = 5;
 }
 
 // A Firestore bundle is a length-prefixed stream of JSON representations of 

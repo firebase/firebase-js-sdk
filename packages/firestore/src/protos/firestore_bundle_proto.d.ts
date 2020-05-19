@@ -68,6 +68,12 @@ interface BundleMetadata {
 
   /** BundleMetadata version */
   version?: number | null;
+
+  /** BundleMetadata totalDocuments */
+  totalDocuments?: number | null;
+
+  /** BundleMetadata totalBytes */
+  totalBytes?: number | null;
 }
 
 /** Properties of a BundleElement. */
