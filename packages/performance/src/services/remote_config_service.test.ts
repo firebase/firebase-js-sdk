@@ -236,5 +236,39 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
+
+    it('gets the config from RC even with deprecated transport flag', async () => {
+      // Expired local config.
+      const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
+      const STRINGIFIED_CUSTOM_CONFIG = `{"entries":{\
+        "fpr_vc_network_request_sampling_rate":"0.250000",\
+        "fpr_log_transport_web_percent":"100.0",\
+        "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+        "state":"UPDATE"}`;
+
+      const { storageGetItemStub: getItemStub } = setup(
+        {
+          expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+          config: STRINGIFIED_CUSTOM_CONFIG
+        },
+        { reject: false, value: new Response(STRINGIFIED_CONFIG) }
+      );
+
+      await getConfig(IID);
+
+      expect(getItemStub).to.be.calledOnce;
+      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+      expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).to.equal(
+        TRANSPORT_KEY
+      );
+      expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(
+        SettingsService.getInstance().networkRequestsSamplingRate
+      ).to.equal(NETWORK_SAMPLIG_RATE);
+      expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
+        TRACE_SAMPLING_RATE
+      );
+    });
   });
 });
