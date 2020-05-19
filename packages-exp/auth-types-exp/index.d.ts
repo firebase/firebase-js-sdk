@@ -23,12 +23,13 @@ export interface ReactNativeAsyncStorage {
 
 export interface Config {
   apiKey: string;
-  authDomain?: string;
-  apiHost?: string;
-  tokenApiHost?: string;
-  apiScheme?: string;
+  apiHost: string;
+  apiScheme: string;
+  tokenApiHost: string;
   sdkClientVersion: string;
+  authDomain?: string;
 }
+
 
 export interface Persistence {
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
@@ -113,3 +114,43 @@ export interface ParsedToken {
 }
 
 export type Unsubscribe = () => void;
+
+export interface ActionCodeInfo {
+  data: {
+    email: string | null;
+    fromEmail: string | null;
+  };
+  operation: string;
+}
+
+export interface ActionCodeSettings {
+  android?: {
+    installApp?: boolean;
+    minimumVersion?: string;
+    packageName: string;
+  };
+  handleCodeInApp?: boolean;
+  iOS?: {
+    bundleId: string;
+    appStoreId: string;
+  };
+  url: string;
+  dynamicLinkDomain?: string;
+}
+
+export interface ActionCodeURL {
+  readonly apiKey?: string;
+  readonly operation?: ActionCodeOperationType;
+  readonly code: string | null;
+  readonly continueUrl: string | null;
+  readonly languageCode: string | null;
+  readonly tenantId: string | null;
+}
+
+type ActionCodeOperationType =
+ 'PASSWORD_RESET'
+ | 'RECOVER_EMAIL'
+ | 'EMAIL_SIGNIN'
+ | 'VERIFY_EMAIL'
+ | 'VERIFY_AND_CHANGE_EMAIL'
+ | 'REVERT_SECOND_FACTOR_ADDITION'

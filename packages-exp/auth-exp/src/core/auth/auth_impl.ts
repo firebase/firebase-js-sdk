@@ -19,16 +19,10 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Config, Dependencies, NextOrObserver } from '../../model/auth';
+import { Auth, Dependencies, NextOrObserver } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
@@ -58,7 +52,7 @@ class AuthImpl implements Auth {
 
   constructor(
     public readonly name: string,
-    public readonly config: Config,
+    public readonly config: externs.Config,
     persistenceHierarchy: Persistence[]
   ) {
     // This promise is intended to float; auth initialization happens in the
@@ -197,14 +191,14 @@ class AuthImpl implements Auth {
 export function initializeAuth(
   app: FirebaseApp = getApp(),
   deps?: Dependencies
-): Auth {
+): externs.Auth {
   const persistence = deps?.persistence || [];
   const hierarchy = Array.isArray(persistence) ? persistence : [persistence];
   const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
   assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
-  const config: Config = {
+  const config: externs.Config = {
     apiKey,
     authDomain,
     apiHost: DEFAULT_API_HOST,
@@ -213,7 +207,7 @@ export function initializeAuth(
     sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
   };
 
-  return new AuthImpl(app.name, config, hierarchy);
+  return new AuthImpl(app.name, config, hierarchy as Persistence[]);
 }
 
 /** Helper class to wrap subscriber logic */
