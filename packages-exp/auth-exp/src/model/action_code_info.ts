@@ -23,11 +23,3 @@ export enum Operation {
   VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
   REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION'
 }
-
-export interface ActionCodeInfo {
-  data: {
-    email: string | null;
-    fromEmail: string | null;
-  };
-  operation: string;
-}
