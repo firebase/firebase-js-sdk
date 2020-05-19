@@ -74,6 +74,14 @@ describe('core/user/token_manager', () => {
     });
   });
 
+  describe('#clearRefreshToken', () => {
+    it('sets refresh token to null', () => {
+      stsTokenManager.refreshToken = 'refresh-token';
+      stsTokenManager.clearRefreshToken();
+      expect(stsTokenManager.refreshToken).to.be.null;
+    });
+  });
+
   describe('#getToken', () => {
     context('with endpoint setup', () => {
       let mock: fetch.Route;
