@@ -269,8 +269,6 @@ describe('core/auth/initializeAuth', () => {
 
   describe('persistence manager creation', () => {
     let createManagerStub: sinon.SinonSpy;
-    // const inMemory = inMemoryPersistence as Persistence;
-    // const browserLocal = browserL
     beforeEach(() => {
       createManagerStub = sinon.spy(PersistenceUserManager, 'create');
     });
