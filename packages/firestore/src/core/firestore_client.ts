@@ -497,7 +497,10 @@ export class FirestoreClient {
     if (this.clientTerminated) {
       return;
     }
-    this.eventMgr.removeSnapshotsInSyncListener(observer);
+    this.asyncQueue.enqueueAndForget(() => {
+      this.eventMgr.removeSnapshotsInSyncListener(observer);
+      return Promise.resolve();
+    });
   }
 
   get clientTerminated(): boolean {
