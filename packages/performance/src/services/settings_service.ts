@@ -47,8 +47,6 @@ export class SettingsService {
 
   transportKey = mergeStrings('AzSC8r6ReiGqFMyfvgow', 'Iayx0u-XT3vksVM-pIV');
 
-  shouldSendToFl = false;
-
   // Source type for performance event logs.
   logSource = 462;
 
