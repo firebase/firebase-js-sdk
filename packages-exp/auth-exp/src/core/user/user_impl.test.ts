@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
-import { FirebaseError } from '@firebase/util';
-
 import { mockEndpoint } from '../../../test/api/helper';
 import { makeJWT } from '../../../test/jwt';
 import { mockAuth } from '../../../test/mock_auth';
@@ -30,6 +28,7 @@ import { Endpoint } from '../../api';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
+import { APIUserInfo } from '../../api/account_management/account';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -209,12 +208,12 @@ describe('core/user/user_impl', () => {
     };
 
     beforeEach(() => {
-      mockFetch.setUp();
+      fetch.setUp();
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [serverUser]
       });
     });
-    afterEach(mockFetch.tearDown);
+    afterEach(fetch.tearDown);
 
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(

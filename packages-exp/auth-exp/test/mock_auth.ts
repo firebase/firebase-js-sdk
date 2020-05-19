@@ -17,7 +17,6 @@
 
 import { AuthImpl } from '../src/core/auth/auth_impl';
 import { StsTokenManager } from '../src/core/user/token_manager';
-import { AuthImpl } from '../src/core/auth/auth_impl';
 import { UserImpl } from '../src/core/user/user_impl';
 import { Auth } from '../src/model/auth';
 import { User } from '../src/model/user';
@@ -35,6 +34,7 @@ export const mockAuth: Auth = new AuthImpl(
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
+    tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
   },
   []
