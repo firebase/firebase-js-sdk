@@ -33,7 +33,7 @@ option java_package = "com.google.firestore.proto";
 option objc_class_prefix = "FSTPB";
 option php_namespace = "Firestore\\Proto";
 
-// Encodes a query saved in the bundle.
+// Describes a query saved in the bundle.
 message BundledQuery {
   // The parent resource name.
   string parent = 1;
@@ -96,8 +96,9 @@ message BundleMetadata {
 // A Firestore bundle is a length-prefixed stream of JSON representations of 
 // `BundleElement`.
 // Only one `BundleMetadata` is expected, and it should be the first element.
-// The named queries follow after `metadata`. Every `document_metadata` is
-// immediately followed by a `document`.
+// The named queries follow after `metadata`. If a document exists when the
+// bundle is built, `document_metadata` is immediately followed by the
+// `document`, otherwise `document_metadata` will present by itself.
 message BundleElement {
   oneof element_type {
     BundleMetadata metadata = 1;
