@@ -156,6 +156,13 @@ export class AuthImplCompat<T extends User> implements Auth {
   }
 
   async updateCurrentUser(user: externs.User | null): Promise<void> {
+    if (user) {
+      assert(
+        this.tenantId === user.tenantId,
+        this.name,
+        AuthErrorCode.TENANT_ID_MISMATCH
+      );
+    }
     return this.queue(async () => {
       await this.directlySetCurrentUser(user as T | null);
       this.notifyAuthListeners();

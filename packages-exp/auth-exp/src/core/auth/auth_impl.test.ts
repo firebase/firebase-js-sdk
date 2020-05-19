@@ -105,6 +105,15 @@ describe('core/auth/auth_impl', () => {
       await auth.updateCurrentUser(null);
       expect(persistenceStub.remove).to.have.been.called;
     });
+
+    it('should throw an error if the user is from a different tenant', async () => {
+      const user = testUser(auth, 'uid');
+      user.tenantId = 'other-tenant-id';
+      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+        FirebaseError,
+        '(auth/tenant-id-mismatch)'
+      );
+    });
   });
 
   describe('#signOut', () => {
