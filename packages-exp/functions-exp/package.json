@@ -5,7 +5,7 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": [
@@ -53,7 +53,7 @@
   "typings": "dist/index.d.ts",
   "dependencies": {
     "@firebase/component": "0.1.10",
-    "@firebase/functions-types": "0.3.16",
+    "@firebase/functions-types-exp": "0.0.800",
     "@firebase/messaging-types": "0.4.4",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.11.1"

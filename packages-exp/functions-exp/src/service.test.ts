@@ -16,12 +16,12 @@
  */
 import { assert } from 'chai';
 import { createTestService } from '../test/utils';
-import { Service } from './service';
+import { FunctionsService, useFunctionsEmulator } from './service';
 
 describe('Firebase Functions > Service', () => {
   describe('simple constructor', () => {
     let app: any;
-    let service: Service;
+    let service: FunctionsService;
 
     beforeEach(() => {
       app = {
@@ -29,10 +29,10 @@ describe('Firebase Functions > Service', () => {
           projectId: 'my-project'
         }
       };
-      service = createTestService(app);
     });
 
     it('has valid urls', () => {
+      service = createTestService(app);
       assert.equal(
         service._url('foo'),
         'https://us-central1-my-project.cloudfunctions.net/foo'
@@ -40,7 +40,8 @@ describe('Firebase Functions > Service', () => {
     });
 
     it('can use emulator', () => {
-      service.useFunctionsEmulator('http://localhost:5005');
+      service = createTestService(app);
+      useFunctionsEmulator(service, 'http://localhost:5005');
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
@@ -48,7 +49,7 @@ describe('Firebase Functions > Service', () => {
     });
 
     it('correctly sets region', () => {
-      service.setRegion('my-region');
+      service = createTestService(app, 'my-region');
       assert.equal(
         service._url('foo'),
         'https://my-region-my-project.cloudfunctions.net/foo'
@@ -56,8 +57,8 @@ describe('Firebase Functions > Service', () => {
     });
 
     it('correctly sets region with emulator', () => {
-      service.useFunctionsEmulator('http://localhost:5005');
-      service.setRegion('my-region');
+      service = createTestService(app, 'my-region');
+      useFunctionsEmulator(service, 'http://localhost:5005');
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/my-region/foo'

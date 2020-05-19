@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
@@ -33,6 +32,9 @@ function mapValues(
   return result;
 }
 
+/**
+ * @internal
+ */
 export class Serializer {
   // Takes data and encodes it in a JSON-friendly way, such that types such as
   // Date are preserved.

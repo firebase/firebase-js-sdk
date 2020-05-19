@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { FunctionsErrorCode } from '@firebase/functions-types';
+import { FunctionsErrorCode } from '@firebase/functions-types-exp';
 import {
   Provider,
   ComponentContainer,
@@ -34,6 +34,7 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { makeFakeApp, createTestService } from '../test/utils';
+import { httpsCallable } from './service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
@@ -85,7 +86,7 @@ describe('Firebase Functions > Call', () => {
       null: null
     };
 
-    const func = functions.httpsCallable('dataTest');
+    const func = httpsCallable(functions, 'dataTest');
     const result = await func(data);
 
     expect(result.data).to.deep.equal({
@@ -97,7 +98,7 @@ describe('Firebase Functions > Call', () => {
 
   it('scalars', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('scalarTest');
+    const func = httpsCallable(functions, 'scalarTest');
     const result = await func(17);
     expect(result.data).to.equal(76);
   });
@@ -119,7 +120,7 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the internals to get an auth token.
     const stub = sinon.stub(authMock, 'getToken').callThrough();
-    const func = functions.httpsCallable('tokenTest');
+    const func = httpsCallable(functions, 'tokenTest');
     const result = await func({});
     expect(result.data).to.deep.equal({});
 
@@ -157,7 +158,7 @@ describe('Firebase Functions > Call', () => {
     const stub = sinon.stub(messagingMock, 'getToken').callThrough();
     sinon.stub(Notification, 'permission').value('granted');
 
-    const func = functions.httpsCallable('instanceIdTest');
+    const func = httpsCallable(functions, 'instanceIdTest');
     const result = await func({});
     expect(result.data).to.deep.equal({});
 
@@ -167,7 +168,7 @@ describe('Firebase Functions > Call', () => {
 
   it('null', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('nullTest');
+    const func = httpsCallable(functions, 'nullTest');
     let result = await func(null);
     expect(result.data).to.be.null;
 
@@ -178,25 +179,25 @@ describe('Firebase Functions > Call', () => {
 
   it('missing result', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('missingResultTest');
+    const func = httpsCallable(functions, 'missingResultTest');
     await expectError(func(), 'internal', 'Response is missing data field.');
   });
 
   it('unhandled error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('unhandledErrorTest');
+    const func = httpsCallable(functions, 'unhandledErrorTest');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('unknown error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('unknownErrorTest');
+    const func = httpsCallable(functions, 'unknownErrorTest');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('explicit error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('explicitErrorTest');
+    const func = httpsCallable(functions, 'explicitErrorTest');
     await expectError(func(), 'out-of-range', 'explicit nope', {
       start: 10,
       end: 20,
@@ -206,13 +207,13 @@ describe('Firebase Functions > Call', () => {
 
   it('http error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('httpErrorTest');
+    const func = httpsCallable(functions, 'httpErrorTest');
     await expectError(func(), 'invalid-argument', 'invalid-argument');
   });
 
   it('timeout', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
+    const func = httpsCallable(functions, 'timeoutTest', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
 });

@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { _registerComponent, _getProvider } from '@firebase/app-exp';
-import { Service } from './service';
+import { _registerComponent } from '@firebase/app-exp';
+import { FunctionsService } from './service';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactory
 } from '@firebase/component';
 
 /**
@@ -28,20 +29,23 @@ import {
  */
 export const FUNCTIONS_TYPE = 'functions';
 
-function factory(container: ComponentContainer): Service {
+const factory: InstanceFactory<'functions'> = (
+  container: ComponentContainer,
+  region?: string
+) => {
   // Dependencies
   const app = container.getProvider('app').getImmediate();
   const authProvider = container.getProvider('auth-internal');
   const messagingProvider = container.getProvider('messaging');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new Service(app, authProvider, messagingProvider);
-}
+  return new FunctionsService(app, authProvider, messagingProvider, region);
+};
 
 export function registerFunctions(): void {
   const namespaceExports = {
     // no-inline
-    Functions: Service
+    Functions: FunctionsService
   };
 
   _registerComponent(

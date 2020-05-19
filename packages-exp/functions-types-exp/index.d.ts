@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FirebaseApp } from '@firebase/app-types-exp';
 
 /**
  * An HttpsCallableResult wraps a single result from a function call.
@@ -38,29 +39,20 @@ export interface HttpsCallableOptions {
 }
 
 /**
- * `FirebaseFunctions` represents a Functions app, and is the entry point for
+ * `Functions` represents a Functions instance, and is a required argument for
  * all Functions operations.
  */
-export class FirebaseFunctions {
-  private constructor();
+export interface Functions {
+  /**
+   * The FirebaseApp this Functions instance is associated with.
+   */
+  app: FirebaseApp;
 
   /**
-   * Gets an `HttpsCallable` instance that refers to the function with the given
-   * name.
-   *
-   * @param name The name of the https callable function.
-   * @return The `HttpsCallable` instance.
+   * The region the callable Cloud Functions are located in.
+   * Default is `us-central-1`.
    */
-  httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
-
-  /**
-   * Changes this instance to point to a Cloud Functions emulator running
-   * locally. See https://firebase.google.com/docs/functions/local-emulator
-   *
-   * @param origin The origin of the local emulator, such as
-   * "http://localhost:5005".
-   */
-  useFunctionsEmulator(origin: string): void;
+  region: string;
 }
 
 /**
@@ -136,6 +128,6 @@ export interface HttpsError extends Error {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'functions': FirebaseFunctions;
+    'functions': Functions;
   }
 }

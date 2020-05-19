@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 import { registerVersion } from '@firebase/app-exp';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { registerFunctions } from './config';
 import 'isomorphic-fetch';
 

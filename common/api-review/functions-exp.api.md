@@ -5,18 +5,18 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseFunctions } from '@firebase/functions-types-exp';
+import { Functions } from '@firebase/functions-types-exp';
 import { HttpsCallable } from '@firebase/functions-types-exp';
 import { HttpsCallableOptions } from '@firebase/functions-types-exp';
 
 // @public
-export function getFunctions(app: FirebaseApp, region?: string): FirebaseFunctions;
+export function getFunctions(app: FirebaseApp, region?: string): Functions;
 
 // @public
-export function httpsCallable(functionsInstance: FirebaseFunctions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
 
 // @public
-export function useFunctionsEmulator(functionsInstance: FirebaseFunctions, origin: string): void;
+export function useFunctionsEmulator(functionsInstance: Functions, origin: string): void;
 
 
 // (No @packageDocumentation comment for this package)

@@ -19,7 +19,8 @@ import { FirebaseOptions, FirebaseApp } from '@firebase/app-types';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
-import { Service } from '../src/service';
+import { FunctionsService } from '../src/service';
+import { useFunctionsEmulator } from '../src/api';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -51,11 +52,17 @@ export function createTestService(
     'messaging',
     new ComponentContainer('test')
   )
-): Service {
-  const functions = new Service(app, authProvider, messagingProvider);
+): FunctionsService {
+  const functions = new FunctionsService(
+    app,
+    authProvider,
+    messagingProvider,
+    region
+  );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
-    functions.useFunctionsEmulator(
+    useFunctionsEmulator(
+      functions,
       process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
     );
   }

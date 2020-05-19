@@ -27,14 +27,16 @@ import { Provider } from '@firebase/component';
 
 /**
  * The metadata that should be supplied with function calls.
+ * @internal
  */
 export interface Context {
   authToken?: string;
-  instanceIdToken?: string;
+  messagingToken?: string;
 }
 
 /**
  * Helper class to get metadata that should be included with a function call.
+ * @internal
  */
 export class ContextProvider {
   private auth: FirebaseAuthInternal | null = null;
@@ -74,17 +76,14 @@ export class ContextProvider {
 
     try {
       const token = await this.auth.getToken();
-      if (!token) {
-        return undefined;
-      }
-      return token.accessToken;
+      return token?.accessToken;
     } catch (e) {
       // If there's any error when trying to get the auth token, leave it off.
       return undefined;
     }
   }
 
-  async getInstanceIdToken(): Promise<string | undefined> {
+  async getMessagingToken(): Promise<string | undefined> {
     if (
       !this.messaging ||
       !('Notification' in self) ||
@@ -106,7 +105,7 @@ export class ContextProvider {
 
   async getContext(): Promise<Context> {
     const authToken = await this.getAuthToken();
-    const instanceIdToken = await this.getInstanceIdToken();
-    return { authToken, instanceIdToken };
+    const messagingToken = await this.getMessagingToken();
+    return { authToken, messagingToken };
   }
 }

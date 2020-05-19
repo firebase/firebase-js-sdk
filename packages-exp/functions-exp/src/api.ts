@@ -15,38 +15,41 @@
  * limitations under the License.
  */
 
-import { _registerComponent, _getProvider } from '@firebase/app-exp';
-import { FirebaseApp, _FirebaseAppInternal } from '@firebase/app-types-exp';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
-import {
-  FirebaseFunctions,
-  HttpsCallable,
-  HttpsCallableOptions
-} from '@firebase/functions-types-exp';
+import { _getProvider } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { FUNCTIONS_TYPE } from './config';
 
-import { Service } from './service';
 import { Provider } from '@firebase/component';
+import {
+  Functions,
+  HttpsCallableOptions,
+  HttpsCallable
+} from '@firebase/functions-types-exp';
+import {
+  FunctionsService,
+  DEFAULT_REGION,
+  useFunctionsEmulator as _useFunctionsEmulator,
+  httpsCallable as _httpsCallable
+} from './service';
 
 /**
  * Returns a Functions instance for the given app.
  * @param app - The FirebaseApp to use.
- * @param region - The region to call functions in.
+ * @param region - The region the callable functions are located in.
  * @public
  */
 export function getFunctions(
   app: FirebaseApp,
-  region?: string
-): FirebaseFunctions {
+  region: string = DEFAULT_REGION
+): Functions {
   // Dependencies
   const functionsProvider: Provider<'functions'> = _getProvider(
     app,
     FUNCTIONS_TYPE
   );
-  const functionsInstance = functionsProvider.getImmediate();
-  if (region) {
-    (functionsInstance as Service).setRegion(region);
-  }
+  const functionsInstance = functionsProvider.getImmediate({
+    identifier: region
+  });
   return functionsInstance;
 }
 
@@ -59,10 +62,10 @@ export function getFunctions(
  * @public
  */
 export function useFunctionsEmulator(
-  functionsInstance: FirebaseFunctions,
+  functionsInstance: Functions,
   origin: string
 ): void {
-  return functionsInstance.useFunctionsEmulator(origin);
+  _useFunctionsEmulator(functionsInstance as FunctionsService, origin);
 }
 
 /**
@@ -71,9 +74,9 @@ export function useFunctionsEmulator(
  * @public
  */
 export function httpsCallable(
-  functionsInstance: FirebaseFunctions,
+  functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable {
-  return functionsInstance.httpsCallable(name, options);
+  return _httpsCallable(functionsInstance as FunctionsService, name, options);
 }
