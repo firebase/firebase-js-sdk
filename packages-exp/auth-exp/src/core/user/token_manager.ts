@@ -81,6 +81,10 @@ export class StsTokenManager {
     };
   }
 
+  clearRefreshToken(): void {
+    this.refreshToken = null;
+  }
+
   toPlainObject(): object {
     return {
       refreshToken: this.refreshToken,
