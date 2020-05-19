@@ -88,7 +88,7 @@ export class PersistenceUserManager {
     userKey = _AUTH_USER_KEY_NAME
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {
-      return new PersistenceUserManager(inMemoryPersistence, auth, userKey);
+      return new PersistenceUserManager(inMemoryPersistence as Persistence, auth, userKey);
     }
 
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);

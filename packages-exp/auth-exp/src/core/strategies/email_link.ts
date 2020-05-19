@@ -19,17 +19,14 @@ import * as externs from '@firebase/auth-types-exp';
 
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
-import {
-  ActionCodeSettings,
-  setActionCodeSettingsOnRequest
-} from '../../model/action_code_settings';
 import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
+import { setActionCodeSettingsOnRequest } from './action_code_settings';
 
 export async function sendSignInLinkToEmail(
   auth: externs.Auth,
   email: string,
-  actionCodeSettings?: ActionCodeSettings
+  actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
   const request: api.EmailSignInRequest = {
     requestType: Operation.EMAIL_SIGNIN,

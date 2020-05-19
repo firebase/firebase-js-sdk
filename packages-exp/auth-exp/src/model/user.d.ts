@@ -21,11 +21,6 @@ import { PersistedBlob } from '../core/persistence';
 import { ProviderId } from '../core/providers';
 import { Auth } from './auth';
 
-export interface UserMetadata {
-  readonly creationTime?: string;
-  readonly lastSignInTime?: string;
-}
-
 export interface User extends externs.User {
   uid: string;
   displayName: string | null;
@@ -39,7 +34,7 @@ export interface User extends externs.User {
   emailVerified: boolean;
   tenantId: string | null;
   providerData: externs.UserInfo[];
-  metadata: UserMetadata;
+  metadata: externs.UserMetadata;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
