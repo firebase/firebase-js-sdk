@@ -46,9 +46,15 @@ import {
 import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
-import { DocumentReference } from './database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
+
+export class DocumentKeyReference {
+  constructor(
+    public readonly _databaseId: DatabaseId,
+    public readonly _key: DocumentKey
+  ) {}
+}
 
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
@@ -643,9 +649,9 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
     };
   } else if (value instanceof Blob) {
     return { bytesValue: context.serializer.toBytes(value) };
-  } else if (value instanceof DocumentReference) {
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
-    const otherDb = value.firestore._databaseId;
+    const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -656,7 +662,7 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
     return {
       referenceValue: context.serializer.toResourceName(
         value._key.path,
-        value.firestore._databaseId
+        value._databaseId
       )
     };
   } else {
@@ -682,7 +688,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
-    !(input instanceof DocumentReference) &&
+    !(input instanceof DocumentKeyReference) &&
     !(input instanceof FieldValueImpl)
   );
 }

@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { makeConstructorPrivate } from '../../../src/util/api';
+import { makeConstructorPrivate } from '../../../src/api/public_wrappers';
 
 describe('makeConstructorPrivate', () => {
   class PrivateClass {
