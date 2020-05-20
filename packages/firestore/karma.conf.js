@@ -40,7 +40,6 @@ module.exports = function(config) {
  * --unit and --integration command-line arguments.
  */
 function getTestFiles(argv) {
-  console.log(argv);
   const unitTests = 'test/unit/bootstrap.ts';
   const integrationTests = 'test/integration/bootstrap.ts';
   if (argv.unit) {

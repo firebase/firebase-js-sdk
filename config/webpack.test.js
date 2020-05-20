@@ -60,7 +60,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        include: [/node_modules\/chai-as-promised/, /webchannel-wrapper/],
+        include: [/node_modules\/chai-as-promised/],
         use: {
           loader: 'babel-loader',
           options: {
