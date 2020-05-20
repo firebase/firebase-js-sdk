@@ -7746,10 +7746,9 @@ declare namespace firebase.firestore {
 
     /**
      * Whether to skip nested properties that are set to `undefined` during
-     * object serialization. If set to `true`, these properties will be skipped
-     * and are not be written to Firestore. If it is set `false` or omitted,
-     * the SDK will throw an exception when it encounters properties of type
-     * `undefined`.
+     * object serialization. If set to `true`, these properties are skipped
+     * and not written to Firestore. If set `false` or omitted, the SDK throws
+     * an exception when it encounters properties of type `undefined`.
      */
     ignoreUndefinedProperties?: boolean;
   }
