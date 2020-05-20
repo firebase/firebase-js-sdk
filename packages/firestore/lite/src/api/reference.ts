@@ -135,7 +135,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   }
 }
 
-export async function getDocument<T>(
+export async function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot> {
   const firestore = reference.firestore;
@@ -152,7 +152,7 @@ export async function getDocument<T>(
   );
 }
 
-export async function setDocument<T>(
+export async function setDoc<T>(
   reference: DocumentReference<T>,
   data: T,
   options: firestore.SetOptions = {}
@@ -175,9 +175,7 @@ export async function setDocument<T>(
   );
 }
 
-export async function deleteDocument(
-  reference: DocumentReference
-): Promise<void> {
+export async function deleteDoc(reference: DocumentReference): Promise<void> {
   const firestore = reference.firestore;
   await firestore._ensureClientConfigured();
   await invokeCommitRpc(firestore._datastore!, [
@@ -185,7 +183,7 @@ export async function deleteDocument(
   ]);
 }
 
-export async function updateDocument(
+export async function updateDoc(
   reference: DocumentReference,
   fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
   value?: unknown,

@@ -18,62 +18,62 @@
 import { expect } from 'chai';
 import { withTestCollection, withTestDoc } from './helpers';
 import {
-  getDocument,
+  getDoc,
   getQuery,
-  setDocument,
-  deleteDocument,
-  updateDocument
+  setDoc,
+  deleteDoc,
+  updateDoc
 } from '../src/api/reference';
 
 describe('Database', () => {
   it('can get a document', () => {
     return withTestDoc(async docRef => {
-      const docSnap = await getDocument(docRef);
+      const docSnap = await getDoc(docRef);
       expect(docSnap.exists).to.be.false;
     });
   });
 
   it('can set a document', () => {
     return withTestDoc(async docRef => {
-      await setDocument(docRef, { foo: 'bar' });
-      const docSnap = await getDocument(docRef);
+      await setDoc(docRef, { foo: 'bar' });
+      const docSnap = await getDoc(docRef);
       expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
     });
   });
 
   it('can merge a document', () => {
     return withTestDoc(async docRef => {
-      await setDocument(docRef, { foo: 'foo' });
-      await setDocument(docRef, { bar: 'bar' }, { merge: true });
-      const docSnap = await getDocument(docRef);
+      await setDoc(docRef, { foo: 'foo' });
+      await setDoc(docRef, { bar: 'bar' }, { merge: true });
+      const docSnap = await getDoc(docRef);
       expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'bar' });
     });
   });
 
   it('can update a document', () => {
     return withTestDoc(async docRef => {
-      await setDocument(docRef, { foo: 'foo' });
-      await updateDocument(docRef, 'bar', 'bar');
-      const docSnap = await getDocument(docRef);
+      await setDoc(docRef, { foo: 'foo' });
+      await updateDoc(docRef, 'bar', 'bar');
+      const docSnap = await getDoc(docRef);
       expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'bar' });
     });
   });
 
   it('can delete a document', () => {
     return withTestDoc(async docRef => {
-      await setDocument(docRef, { foo: 'foo' });
-      let docSnap = await getDocument(docRef);
+      await setDoc(docRef, { foo: 'foo' });
+      let docSnap = await getDoc(docRef);
       expect(docSnap.exists).to.be.true;
 
-      await deleteDocument(docRef);
-      docSnap = await getDocument(docRef);
+      await deleteDoc(docRef);
+      docSnap = await getDoc(docRef);
       expect(docSnap.exists).to.be.false;
     });
   });
 
   it('can query a document', () => {
     return withTestCollection(async ref => {
-      await setDocument(ref.doc(), { foo: 'bar' });
+      await setDoc(ref.doc(), { foo: 'bar' });
       const docSnap = await getQuery(ref);
       expect(docSnap.docs[0].data()).to.deep.equal({ foo: 'bar' });
     });

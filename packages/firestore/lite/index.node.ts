@@ -17,7 +17,12 @@
 
 export {
   Firestore as FirebaseFirestore,
-  initializeFirestore
+  initializeFirestore,
+  getFirestore,
+  setLogLevel,
+  writeBatch,
+  runTransaction,
+  terminate
 } from './src/api/database';
 
 export { FieldPath } from '../src/api/field_path';
@@ -25,21 +30,30 @@ export { FieldPath } from '../src/api/field_path';
 export {
   collection,
   doc,
-  getDocument,
-  setDocument,
-  updateDocument,
-  deleteDocument,
+  parent,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
   getQuery,
   Query,
   DocumentReference,
-  CollectionReference
+  CollectionReference,
+  refEqual,
+  queryEqual
 } from './src/api/reference';
 
 export {
   DocumentSnapshot,
   QueryDocumentSnapshot,
-  QuerySnapshot
+  QuerySnapshot,
+  snapshotEqual
 } from './src/api/snapshot';
+
+export { Transaction } from './src/api/transaction';
+
+export { WriteBatch } from './src/api/batch';
 
 export {
   FieldValue,
@@ -49,3 +63,11 @@ export {
   arrayUnion,
   arrayRemove
 } from './src/api/field_value';
+
+export { FieldPath, documentId } from './src/api/field_path';
+
+export { Timestamp } from '../src/api/timestamp';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Blob } from '../src/api/blob';
