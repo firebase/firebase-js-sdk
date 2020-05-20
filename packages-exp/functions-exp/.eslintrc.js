@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const path = require('path');
 
 module.exports = {
   extends: '../../config/.eslintrc.js',
@@ -23,5 +24,15 @@ module.exports = {
     // to make vscode-eslint work with monorepo
     // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
     tsconfigRootDir: __dirname
+  },
+  rules: {
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        'packageDir': [path.resolve(__dirname, '../../'), './'],
+        devDependencies: true,
+        peerDependencies: true
+      }
+    ]
   }
 };

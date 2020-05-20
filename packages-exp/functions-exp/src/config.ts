@@ -16,7 +16,6 @@
  */
 
 import { _registerComponent } from '@firebase/app-exp';
-import * as functionsTypes from '@firebase/functions-types-exp';
 import { FunctionsService } from './service';
 import {
   Component,
