@@ -6920,15 +6920,15 @@ declare namespace firebase.database.ServerValue {
    * ```
    */
   var TIMESTAMP: Object;
-  
+
   /**
-   * Returns a placeholder value that can be used to atomically increment the 
+   * Returns a placeholder value that can be used to atomically increment the
    * current database value by the provided delta.
    *
    * @param delta the amount to modify the current value atomically.
    * @return a placeholder value for modifying data atomically server-side.
    */
-  function increment(delta: number) : Object;
+  function increment(delta: number): Object;
 }
 
 /**
@@ -7743,6 +7743,14 @@ declare namespace firebase.firestore {
      * @webonly
      */
     experimentalForceLongPolling?: boolean;
+
+    /**
+     * Whether to skip nested properties that are set to `undefined` during
+     * object serialization. If set to `true`, these properties are skipped
+     * and not written to Firestore. If set `false` or omitted, the SDK throws
+     * an exception when it encounters properties of type `undefined`.
+     */
+    ignoreUndefinedProperties?: boolean;
   }
 
   /**

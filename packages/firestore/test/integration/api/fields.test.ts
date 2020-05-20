@@ -23,7 +23,8 @@ import {
   toDataArray,
   withTestCollection,
   withTestCollectionSettings,
-  withTestDoc
+  withTestDoc,
+  withTestDocAndSettings
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore!.FieldPath;
@@ -431,5 +432,62 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
           ).to.be.an.instanceof(Date);
         });
     });
+  });
+});
+
+apiDescribe('`undefined` properties', (persistence: boolean) => {
+  const settings = { ...DEFAULT_SETTINGS };
+  settings.ignoreUndefinedProperties = true;
+
+  it('are ignored in set()', () => {
+    return withTestDocAndSettings(persistence, settings, async doc => {
+      await doc.set({ foo: 'foo', 'bar': undefined });
+      const docSnap = await doc.get();
+      expect(docSnap.data()).to.deep.equal({ foo: 'foo' });
+    });
+  });
+
+  it('are ignored in update()', () => {
+    return withTestDocAndSettings(persistence, settings, async doc => {
+      await doc.set({});
+      await doc.update({ a: { foo: 'foo', 'bar': undefined } });
+      await doc.update('b', { foo: 'foo', 'bar': undefined });
+      const docSnap = await doc.get();
+      expect(docSnap.data()).to.deep.equal({
+        a: { foo: 'foo' },
+        b: { foo: 'foo' }
+      });
+    });
+  });
+
+  it('are ignored in Query.where()', () => {
+    return withTestCollectionSettings(
+      persistence,
+      settings,
+      { 'doc1': { nested: { foo: 'foo' } } },
+      async coll => {
+        const query = coll.where('nested', '==', {
+          foo: 'foo',
+          'bar': undefined
+        });
+        const querySnap = await query.get();
+        expect(querySnap.size).to.equal(1);
+      }
+    );
+  });
+
+  it('are ignored in Query.startAt()', () => {
+    return withTestCollectionSettings(
+      persistence,
+      settings,
+      { 'doc1': { nested: { foo: 'foo' } } },
+      async coll => {
+        const query = coll
+          .orderBy('nested')
+          .startAt({ foo: 'foo', 'bar': undefined });
+        const querySnap = await query.get();
+        expect(querySnap.size).to.equal(1);
+      }
+    );
   });
 });
