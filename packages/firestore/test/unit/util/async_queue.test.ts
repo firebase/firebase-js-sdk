@@ -143,7 +143,8 @@ describe('AsyncQueue', () => {
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
-    const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
+    // Flaky on Safari, increasing delay to 1000ms to try to increase reliability.
+    const last = queue.enqueueAfterDelay(timerId1, 1000, () => doStep(4));
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId2, 1, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));

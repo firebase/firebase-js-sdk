@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,9 @@ const { configFiles } = yargs
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
-  : glob
-      .sync(`{packages,integration}/*/karma.conf.js`)
-      // Automated tests in integration/firestore are currently disabled.
-      // .filter(name => !name.includes('integration/firestore'));
+  : glob.sync(`{packages,integration}/*/karma.conf.js`);
+// Automated tests in integration/firestore are currently disabled.
+// .filter(name => !name.includes('integration/firestore'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
@@ -68,7 +67,9 @@ async function runTest(testFile) {
   }
   if (testFile.includes('integration/firestore')) {
     console.log('Generating memory build.');
-    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], { stdio: 'inherit' });
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
+      stdio: 'inherit'
+    });
     console.log('Running tests on memory build.');
     const exitCode1 = await runKarma(testFile);
     // console.log('Generating persistence build.');

@@ -360,7 +360,7 @@ export class AsyncQueue {
         .catch((error: FirestoreError) => {
           this.failure = error;
           this.operationInProgress = false;
-          const message = error.stack || error.message || '';
+          const message = getMessageOrStack(error);
           logError('INTERNAL UNHANDLED ERROR: ', message);
 
           // Re-throw the error so that this.tail becomes a rejected Promise and
@@ -413,10 +413,7 @@ export class AsyncQueue {
 
   private verifyNotFailed(): void {
     if (this.failure) {
-      fail(
-        'AsyncQueue is already failed: ' +
-          (this.failure.stack || this.failure.message)
-      );
+      fail('AsyncQueue is already failed: ' + getMessageOrStack(this.failure));
     }
   }
 
@@ -517,4 +514,21 @@ export function wrapInUserErrorIfRecoverable(
   } else {
     throw e;
   }
+}
+
+/**
+ * Chrome includes Error.message in Error.stack. Other browsers do not.
+ * This returns expected output of message + stack when available.
+ * @param error Error or FirestoreError
+ */
+function getMessageOrStack(error: Error): string {
+  let message = error.message || '';
+  if (error.stack) {
+    if (error.stack.includes(error.message)) {
+      message = error.stack;
+    } else {
+      message = error.message + '\n' + error.stack;
+    }
+  }
+  return message;
 }
