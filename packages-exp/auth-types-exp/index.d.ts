@@ -97,7 +97,7 @@ export interface IdTokenResult {
   authTime: string | null;
   expirationTime: string | null;
   issuedAtTime: string | null;
-  signInProvider: string | null;
+  signInProvider: ProviderId | null;
   signInSecondFactor: string | null;
   claims: ParsedToken;
 }
@@ -154,3 +154,52 @@ type ActionCodeOperationType =
  | 'VERIFY_EMAIL'
  | 'VERIFY_AND_CHANGE_EMAIL'
  | 'REVERT_SECOND_FACTOR_ADDITION'
+ 
+/**
+ * Supported providers
+ */
+export const enum ProviderId {
+  ANONYMOUS = 'anonymous',
+  CUSTOM = 'custom',
+  FACEBOOK = 'facebook.com',
+  FIREBASE = 'firebase',
+  GITHUB = 'github.com',
+  GOOGLE = 'google.com',
+  PASSWORD = 'password',
+  PHONE = 'phone',
+  TWITTER = 'twitter.com'
+}
+
+/**
+ * Supported sign in methods
+ */
+export const enum SignInMethod {
+  ANONYMOUS = 'anonymous',
+  EMAIL_LINK = 'emailLink',
+  EMAIL_PASSWORD = 'password',
+  FACEBOOK = 'facebook.com',
+  GITHUB = 'github.com',
+  GOOGLE = 'google.com',
+  PHONE = 'phone',
+  TWITTER = 'twitter.com'
+}
+ 
+export interface AuthCredential {
+  readonly providerId: ProviderId;
+  readonly signInMethod: SignInMethod;
+  toJSON(): object;
+  fromJSON(json: object | string): AuthCredential | null;
+}
+
+export class OAuthCredential implements AuthCredential {
+  readonly accessToken?: string;
+  readonly idToken?: string;
+  readonly secret?: string;
+  readonly providerId: ProviderId;
+  readonly signInMethod: SignInMethod;
+
+  constructor();
+
+  toJSON(): object;
+  fromJSON(json: object | string): OAuthCredential | null;
+}

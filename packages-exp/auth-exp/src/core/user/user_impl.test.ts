@@ -208,12 +208,10 @@ describe('core/user/user_impl', () => {
     };
 
     beforeEach(() => {
-      fetch.setUp();
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [serverUser]
       });
     });
-    afterEach(fetch.tearDown);
 
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(

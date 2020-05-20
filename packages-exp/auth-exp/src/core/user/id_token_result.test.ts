@@ -20,11 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
+import { ProviderId } from '@firebase/auth-types-exp';
 
 import { makeJWT } from '../../../test/jwt';
 import { testUser } from '../../../test/mock_auth';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { getIdTokenResult } from './id_token_result';
 
 use(chaiAsPromised);
@@ -62,6 +62,16 @@ describe('/core/user/id_token_result', () => {
     const encodedStr = makeJWT(token);
     setup(encodedStr);
     const result = await getIdTokenResult(user);
+    console.log(JSON.stringify(result));
+    console.log(JSON.stringify({
+      claims: token,
+      token: encodedStr,
+      issuedAtTime: MAY_1.toUTCString(),
+      authTime: MAY_2.toUTCString(),
+      expirationTime: MAY_3.toUTCString(),
+      signInProvider: null,
+      signInSecondFactor: null
+    }));
     expect(result).to.eql({
       claims: token,
       token: encodedStr,

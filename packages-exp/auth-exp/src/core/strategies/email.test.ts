@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -26,7 +27,6 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
-import { ProviderId } from '../providers';
 import * as location from '../util/location';
 import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
 

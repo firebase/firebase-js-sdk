@@ -20,8 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { UserInfo } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
+import { UserInfo, ProviderId } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { testUser } from '../../../test/mock_auth';
@@ -31,7 +30,6 @@ import {
   APIUserInfo,
   ProviderUserInfo
 } from '../../api/account_management/account';
-import { ProviderId } from '../providers';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
@@ -145,27 +143,6 @@ describe('core/user/reload', () => {
         uid: 'new-uid'
       }
     ]);
-  });
-
-  it('throws an error if the providerData providerId is invalid', async () => {
-    const user = testUser('abc', '', true);
-    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [
-        {
-          providerUserInfo: [
-            {
-              ...BASIC_USER_INFO,
-              providerId: 'naaaah'
-            }
-          ]
-        }
-      ]
-    });
-
-    await expect(_reloadWithoutSaving(user)).to.be.rejectedWith(
-      FirebaseError,
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
-    );
   });
 
   it('reload calls auth.updateCurrentUser after completion', async () => {

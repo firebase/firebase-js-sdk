@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
@@ -28,7 +29,6 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { OperationType } from '../../model/user_credential';
-import { ProviderId, SignInMethod } from '../providers';
 import { UserCredentialImpl } from './user_credential_impl';
 
 use(chaiAsPromised);

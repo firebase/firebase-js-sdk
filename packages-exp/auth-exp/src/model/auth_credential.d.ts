@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '../core/providers';
+import * as externs from '@firebase/auth-types-exp';
+
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';
 import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 
-export interface AuthCredential {
-  readonly providerId: ProviderId;
-  readonly signInMethod: SignInMethod;
+export interface AuthCredential extends externs.AuthCredential {
+  readonly providerId: externs.ProviderId;
+  readonly signInMethod: externs.SignInMethod;
   toJSON(): object;
   _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse>;
   _matchIdTokenWithUid(auth: Auth, uid: string): Promise<IdTokenResponse>;
 }
 
-export interface OAuthCredential extends AuthCredential {
+export interface OAuthCredential extends externs.AuthCredential {
   readonly idToken?: string;
   readonly accessToken?: string;
   readonly secret?: string;

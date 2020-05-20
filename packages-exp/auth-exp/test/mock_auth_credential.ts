@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
-import { ProviderId, SignInMethod } from '../src/core/providers';
 import { Auth } from '../src/model/auth';
 import { AuthCredential } from '../src/model/auth_credential';
 import { IdTokenResponse } from '../src/model/id_token';
@@ -30,6 +30,10 @@ export class MockAuthCredential implements AuthCredential {
   ) {}
 
   toJSON(): object {
+    throw new Error('Method not implemented.');
+  }
+
+  fromJSON(_json: string | object): AuthCredential | null {
     throw new Error('Method not implemented.');
   }
 

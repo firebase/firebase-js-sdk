@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from '@firebase/auth-types-exp';
+import { IdTokenResult, ProviderId } from '@firebase/auth-types-exp';
 import { deleteAccount } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
-import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { reload, _reloadWithoutSaving } from './reload';

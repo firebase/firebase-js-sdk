@@ -18,7 +18,6 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { PersistedBlob } from '../core/persistence';
-import { ProviderId } from '../core/providers';
 import { Auth } from './auth';
 
 export interface User extends externs.User {
@@ -29,7 +28,7 @@ export interface User extends externs.User {
   photoURL: string | null;
 
   auth: Auth;
-  providerId: ProviderId.FIREBASE;
+  providerId: externs.ProviderId.FIREBASE;
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
