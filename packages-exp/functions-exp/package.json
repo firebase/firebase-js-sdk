@@ -32,12 +32,11 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app-exp": "0.x",
     "@firebase/app-exp-types": "0.x"
   },
   "devDependencies": {
     "@firebase/app-exp": "0.x",
-    "@firebase/messaging": "0.6.14",
+    "@firebase/messaging": "0.6.15",
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.8.3"
@@ -52,7 +51,7 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.10",
+    "@firebase/component": "0.1.11",
     "@firebase/functions-types-exp": "0.0.800",
     "@firebase/messaging-types": "0.4.4",
     "isomorphic-fetch": "2.2.1",

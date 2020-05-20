@@ -16,6 +16,7 @@
  */
 
 import { _registerComponent } from '@firebase/app-exp';
+import * as functionsTypes from '@firebase/functions-types-exp';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -28,6 +29,8 @@ import {
  * Type constant for Firebase Functions.
  */
 export const FUNCTIONS_TYPE = 'functions';
+
+export const DEFAULT_REGION = 'us-central1';
 
 const factory: InstanceFactory<'functions'> = (
   container: ComponentContainer,
