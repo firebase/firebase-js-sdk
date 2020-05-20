@@ -36,9 +36,10 @@ const { configFiles } = yargs
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
-  : glob.sync(`{packages,integration}/*/karma.conf.js`);
-// Automated tests in integration/firestore are currently disabled.
-// .filter(name => !name.includes('integration/firestore'));
+  : glob
+      .sync(`{packages,integration}/*/karma.conf.js`)
+      // Automated tests in integration/firestore are currently disabled.
+      .filter(name => !name.includes('integration/firestore'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
@@ -64,20 +65,6 @@ async function runTest(testFile) {
         stdio: 'inherit'
       });
     }
-  }
-  if (testFile.includes('integration/firestore')) {
-    console.log('Generating memory build.');
-    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
-      stdio: 'inherit'
-    });
-    console.log('Running tests on memory build.');
-    const exitCode1 = await runKarma(testFile);
-    // console.log('Generating persistence build.');
-    // await spawn('yarn', ['--cwd', 'integration/firestore', 'build:persistence'], { stdio: 'inherit' });
-    // console.log('Running tests on persistence build.');
-    // const exitCode2 = await runKarma(testFile);
-    // return Math.max(exitCode1, exitCode2);
-    return exitCode1;
   }
   return runKarma(testFile);
 }
