@@ -145,22 +145,12 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
-    if (typeof indexedDB !== 'undefined') {
-      return true;
-    }
-    if (typeof window === 'undefined' || window.indexedDB == null) {
+    if (typeof indexedDB === 'undefined') {
       return false;
     }
 
     if (SimpleDb.isMockPersistence()) {
       return true;
-    }
-
-    // In some Node environments, `window` is defined, but `window.navigator` is
-    // not. We don't support IndexedDB persistence in Node if the
-    // isMockPersistence() check above returns false.
-    if (window.navigator === undefined) {
-      return false;
     }
 
     // We extensively use indexed array values and compound keys,

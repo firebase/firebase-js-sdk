@@ -1158,10 +1158,10 @@ describe('IndexedDb: canActAsPrimary', () => {
   });
 
   it('obtains lease if forceOwningTab is set', () => {
-    return withPersistence('clientA', async db => {
+    return withPersistence('clientA', async clientA => {
       await withForcedPersistence('clientB', async () => {
         return expect(
-          db.runTransaction('tx', 'readwrite-primary', () =>
+          clientA.runTransaction('tx', 'readwrite-primary', () =>
             PersistencePromise.resolve()
           )
         ).to.be.eventually.rejected;

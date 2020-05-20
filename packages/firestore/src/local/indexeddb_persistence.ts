@@ -78,7 +78,6 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
-import * as assert from 'assert';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -235,7 +234,12 @@ export class IndexedDbPersistence implements Persistence {
   readonly referenceDelegate: IndexedDbLruDelegate;
 
   constructor(
+    /**
+     * Whether to synchronize the in-memory state of multiple tabs and share
+     * access to local persistence.
+     */
     private readonly allowTabSynchronization: boolean,
+
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
@@ -243,6 +247,10 @@ export class IndexedDbPersistence implements Persistence {
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
+
+    /**
+     * Whether to force enable persistence for the client.
+     */
     private readonly forceOwningTab: boolean
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
@@ -602,9 +610,6 @@ export class IndexedDbPersistence implements Persistence {
           }
 
           if (!this.isLocalClient(currentPrimary)) {
-            if (this.forceOwningTab) {
-              return true;
-            }
             if (!currentPrimary!.allowTabSynchronization) {
               // Fail the `canActAsPrimary` check if the current leaseholder has
               // not opted into multi-tab synchronization. If this happens at
@@ -1024,9 +1029,8 @@ export class IndexedDbPersistence implements Persistence {
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
-      assert(this.window != null, "'window' should be defined");
       debugAssert(
-        typeof this.window!.removeEventListener === 'function',
+        typeof this.window?.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
       this.window!.removeEventListener('unload', this.windowUnloadHandler);
