@@ -72,7 +72,7 @@ export function getConfig(iid: string): Promise<void> {
   }
 
   return getRemoteConfig(iid)
-    .then(config => processConfig(config))
+    .then(processConfig)
     .then(
       config => storeConfig(config),
       /** Do nothing for error, use defaults set in settings service. */
@@ -162,7 +162,7 @@ function getRemoteConfig(
  * is valid.
  */
 function processConfig(
-  config: RemoteConfigResponse | undefined
+  config?: RemoteConfigResponse
 ): RemoteConfigResponse | undefined {
   if (!config) {
     return config;
