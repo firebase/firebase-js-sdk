@@ -81,10 +81,6 @@ async function runKarma(testFile) {
     buildNumber
   ];
 
-  if (testFile.includes('packages/firestore')) {
-    // Firestore requires this flag to run unit tests only.
-    karmaArgs.push('--unit');
-  }
   const promise = spawn('npx', karmaArgs, { stdio: 'inherit' });
   const childProcess = promise.childProcess;
   let exitCode = 0;
