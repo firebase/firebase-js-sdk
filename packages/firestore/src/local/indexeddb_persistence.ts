@@ -50,7 +50,6 @@ import {
 } from './indexeddb_schema';
 import {
   documentTargetStore,
-  getHighestListenSequenceNumber,
   IndexedDbTargetCache
 } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
@@ -308,10 +307,7 @@ export class IndexedDbPersistence implements Persistence {
         return this.runTransaction(
           'getHighestListenSequenceNumber',
           'readonly',
-          txn =>
-            getHighestListenSequenceNumber(
-              (txn as IndexedDbTransaction).simpleDbTransaction
-            )
+          txn => this.targetCache.getHighestSequenceNumber(txn)
         );
       })
       .then(highestListenSequenceNumber => {
