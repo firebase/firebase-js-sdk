@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import { Bundle, toReadableStream } from '../../../src/util/bundle';
+import { isNode } from '../../util/test_platform';
 
 const encoder = new TextEncoder();
 
@@ -32,7 +33,8 @@ function lengthPrefixedString(o: {}): string {
   return `${l}${str}`;
 }
 
-describe('readableStreamFromString()', () => {
+// eslint-disable-next-line no-restricted-properties
+(isNode() ? describe.skip : describe)('readableStreamFromString()', () => {
   it('returns stepping readable stream', async () => {
     const encoder = new TextEncoder();
     const s = readableStreamFromString('0123456789', 4);
@@ -56,7 +58,8 @@ describe('readableStreamFromString()', () => {
   });
 });
 
-describe.only('Bundle ', () => {
+// eslint-disable-next-line no-restricted-properties
+(isNode() ? describe.skip : describe)('Bundle ', () => {
   genericBundleReadingTests(1);
   genericBundleReadingTests(4);
   genericBundleReadingTests(64);
