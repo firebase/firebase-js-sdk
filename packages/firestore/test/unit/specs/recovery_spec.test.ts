@@ -61,21 +61,29 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     'Clients fail to lookup mutations (with recovery)',
     ['multi-client'],
     () => {
-      return client(0)
-        .expectPrimaryState(true)
-        .failDatabaseTransactions('Lookup mutation documents')
-        .client(1)
-        .expectPrimaryState(false)
-        .userSets('collection/a', { v: 1 })
-        .failDatabaseTransactions('Lookup mutation documents')
-        .client(0)
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .writeAcks('collection/a', 1, { expectUserCallback: false })
-        .client(1)
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectUserCallbacks({ acknowledged: ['collection/a'] });
+      // Multi-Tab uses a Local Storage notification to inform all tabs about
+      // changes to a mutation tab. To act upon these changes, the tabs read
+      // the mutated document from IndexedDB. This test verifies that mutations
+      // are applied even if the lookup fails temporarily.
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // All tabs fail to act upon the Local Storage notifications
+          .failDatabaseTransactions('Lookup mutation documents')
+          .client(1)
+          .expectPrimaryState(false)
+          .userSets('collection/a', { v: 1 })
+          .failDatabaseTransactions('Lookup mutation documents')
+          // All tabs recover and the notifications are processed
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .writeAcks('collection/a', 1, { expectUserCallback: false })
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectUserCallbacks({ acknowledged: ['collection/a'] })
+      );
     }
   );
 
@@ -140,24 +148,48 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     'Ignores intermittent lease refresh failures (with recovery)',
     ['multi-client'],
     () => {
-      return client(0)
-        .expectPrimaryState(true)
-        .client(1)
-        .expectPrimaryState(false)
-        .client(0)
-        .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
-        .runTimer(TimerId.ClientMetadataRefresh)
-        .client(1)
-        .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
-        .runTimer(TimerId.ClientMetadataRefresh)
-        .client(0)
-        .recoverDatabase()
-        .runTimer(TimerId.ClientMetadataRefresh)
-        .expectPrimaryState(true)
-        .client(1)
-        .recoverDatabase()
-        .runTimer(TimerId.ClientMetadataRefresh)
-        .expectPrimaryState(false);
+      // This test verifies that an IndexedDB failure during a lease refresh
+      // does not impact client functionality. Lease refresh failures are
+      // ignored, as the lease is also verified each time an operation is
+      // run.
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .client(1)
+          .expectPrimaryState(false)
+          // Run the initial sequence: The primary client fails its lease refresh
+          // before the secondary client.
+          .client(0)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(1)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          // Run the opposite sequence: The secondary client fails its lease
+          // refresh before the primary client.
+          .client(1)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(0)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+      );
     }
   );
 
