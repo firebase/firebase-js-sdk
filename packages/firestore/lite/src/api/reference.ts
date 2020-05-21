@@ -33,18 +33,12 @@ import {
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import {
   DocumentKeyReference,
-  fieldPathFromArgument,
-  UserDataReader
+  ParsedUpdateData
 } from '../../../src/api/user_data_reader';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import { Query as InternalQuery } from '../../../src/core/query';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import {
-  validateArgType,
-  validateExactNumberOfArgs
-} from '../../../src/util/input_validation';
-import { FirebaseFirestore } from '../../';
+import { isMerge, isMergeFields } from './write_batch';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -135,90 +129,95 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   }
 }
 
-export async function getDoc<T>(
+export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot> {
   const firestore = reference.firestore;
-  await firestore._ensureClientConfigured();
-  const result = await invokeBatchGetDocumentsRpc(firestore._datastore!, [
-    reference._key
-  ]);
-  hardAssert(result.length == 1, 'Expected a single document result');
-  const maybeDocument = result[0];
-  return new DocumentSnapshot<firestore.DocumentData>(
-    firestore,
-    reference._key,
-    maybeDocument instanceof Document ? maybeDocument : null
-  );
+  return firestore._ensureClientConfigured().then(async datastore => {
+    const result = await invokeBatchGetDocumentsRpc(datastore, [
+      reference._key
+    ]);
+    hardAssert(result.length == 1, 'Expected a single document result');
+    const maybeDocument = result[0];
+    return new DocumentSnapshot<firestore.DocumentData>(
+      firestore,
+      reference._key,
+      maybeDocument instanceof Document ? maybeDocument : null
+    );
+  });
 }
 
-export async function setDoc<T>(
+export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T,
-  options: firestore.SetOptions = {}
+  options?: firestore.SetOptions
 ): Promise<void> {
   const firestore = reference.firestore;
-  await firestore._ensureClientConfigured();
+  const dataReader = firestore._dataReader;
   const convertedValue = data; // TODO(support converter)
-  const dataReader = new UserDataReader(firestore._databaseId);
-  const parsed =
-    options.merge || options.mergeFields
-      ? dataReader.parseMergeData(
-          'setDocument',
-          convertedValue,
-          options.mergeFields
-        )
-      : dataReader.parseSetData('setDocument', convertedValue);
-  await invokeCommitRpc(
-    firestore._datastore!,
-    parsed.toMutations(reference._key, Precondition.none())
-  );
+  const parsed = isMerge(options)
+    ? dataReader.parseMergeData('setDoc', convertedValue)
+    : isMergeFields(options)
+    ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
+    : dataReader.parseSetData('setDoc', convertedValue);
+  return firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(reference._key, Precondition.none())
+      )
+    );
 }
 
-export async function deleteDoc(reference: DocumentReference): Promise<void> {
-  const firestore = reference.firestore;
-  await firestore._ensureClientConfigured();
-  await invokeCommitRpc(firestore._datastore!, [
-    new DeleteMutation(reference._key, Precondition.none())
-  ]);
+export function deleteDoc(reference: DocumentReference): Promise<void> {
+  return reference.firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(datastore, [
+        new DeleteMutation(reference._key, Precondition.none())
+      ])
+    );
 }
 
-export async function updateDoc(
+export function updateDoc(
   reference: DocumentReference,
   fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   const firestore = reference.firestore;
-  await firestore._ensureClientConfigured();
-  const dataReader = new UserDataReader(firestore._databaseId);
+  const dataReader = firestore._dataReader;
 
-  let ref;
-  let parsed;
-
+  let parsed: ParsedUpdateData;
   if (
     typeof fieldOrUpdateData === 'string' ||
     fieldOrUpdateData instanceof ExternalFieldPath
   ) {
     parsed = dataReader.parseUpdateVarargs(
-      'updateDocument',
+      'updateDoc',
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData('WriteBatch.update', fieldOrUpdateData);
+    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
   }
 
-  await invokeCommitRpc(
-    firestore._datastore!,
-    parsed.toMutations(reference._key, Precondition.exists(true))
-  );
+  return firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(reference._key, Precondition.exists(true))
+      )
+    );
 }
 
-export async function getQuery<T>(query: Query<T>): Promise<QuerySnapshot> {
+export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot> {
   const firestore = query.firestore;
-  await firestore._ensureClientConfigured();
-  const result = await invokeRunQueryRpc(firestore._datastore!, query._query);
-  return new QuerySnapshot<T>(firestore, query._query, result);
+  return firestore._ensureClientConfigured().then(async datastore => {
+    const result = await invokeRunQueryRpc(datastore, query._query);
+    return new QuerySnapshot<T>(firestore, query._query, result);
+  });
 }

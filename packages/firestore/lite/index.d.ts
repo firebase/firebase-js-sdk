@@ -24,6 +24,7 @@ export type UpdateData = { [fieldPath: string]: any };
 export interface Settings {
   host?: string;
   ssl?: boolean;
+  ignoreUndefinedProperties?: boolean;
 }
 
 export type LogLevel = 'debug' | 'error' | 'silent';
@@ -118,24 +119,24 @@ export class Blob {
 
 export class Transaction {
   private constructor();
-
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
-  ): Transaction;
-
-  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
-  update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Transaction;
-
-  delete(documentRef: DocumentReference<any>): Transaction;
+  //
+  // get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+  //
+  // set<T>(
+  //   documentRef: DocumentReference<T>,
+  //   data: T,
+  //   options?: SetOptions
+  // ): Transaction;
+  //
+  // update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
+  // update(
+  //   documentRef: DocumentReference<any>,
+  //   field: string | FieldPath,
+  //   value: any,
+  //   ...moreFieldsAndValues: any[]
+  // ): Transaction;
+  //
+  // delete(documentRef: DocumentReference<any>): Transaction;
 }
 
 export class WriteBatch {
@@ -166,24 +167,24 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
-  readonly id: string;
-  readonly firestore: FirebaseFirestore;
-  readonly path: string;
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  // readonly id: string;
+  // readonly firestore: FirebaseFirestore;
+  // readonly path: string;
+  // withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
 export class DocumentSnapshot<T = DocumentData> {
-  readonly ref: DocumentReference<T>;
-  readonly id: string;
-  exists(): this is QueryDocumentSnapshot<T>;
-  data(): T | undefined;
-  get(fieldPath: string | FieldPath): any;
+  // readonly ref: DocumentReference<T>;
+  // readonly id: string;
+  // exists(): this is QueryDocumentSnapshot<T>;
+  // data(): T | undefined;
+  // get(fieldPath: string | FieldPath): any;
 }
 
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
-  data(): T;
+  // data(): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
@@ -200,56 +201,56 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
-  readonly firestore: FirebaseFirestore;
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query<T>;
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: OrderByDirection
-  ): Query<T>;
-  limit(limit: number): Query<T>;
-  limitToLast(limit: number): Query<T>;
-  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAt(...fieldValues: any[]): Query<T>;
-  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAfter(...fieldValues: any[]): Query<T>;
-  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-  endBefore(...fieldValues: any[]): Query<T>;
-  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  endAt(...fieldValues: any[]): Query<T>;
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+  // readonly firestore: FirebaseFirestore;
+  // where(
+  //   fieldPath: string | FieldPath,
+  //   opStr: WhereFilterOp,
+  //   value: any
+  // ): Query<T>;
+  // orderBy(
+  //   fieldPath: string | FieldPath,
+  //   directionStr?: OrderByDirection
+  // ): Query<T>;
+  // limit(limit: number): Query<T>;
+  // limitToLast(limit: number): Query<T>;
+  // startAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  // startAt(...fieldValues: any[]): Query<T>;
+  // startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
+  // startAfter(...fieldValues: any[]): Query<T>;
+  // endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
+  // endBefore(...fieldValues: any[]): Query<T>;
+  // endAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  // endAt(...fieldValues: any[]): Query<T>;
+  // withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
 export class QuerySnapshot<T = DocumentData> {
-  readonly query: Query<T>;
-  readonly docs: Array<QueryDocumentSnapshot<T>>;
-  readonly size: number;
-  readonly empty: boolean;
-  forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
-    thisArg?: any
-  ): void;
+  // readonly query: Query<T>;
+  // readonly docs: Array<QueryDocumentSnapshot<T>>;
+  // readonly size: number;
+  // readonly empty: boolean;
+  // forEach(
+  //   callback: (result: QueryDocumentSnapshot<T>) => void,
+  //   thisArg?: any
+  // ): void;
 }
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
-  readonly id: string;
-  readonly path: string;
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
+  // readonly id: string;
+  // readonly path: string;
+  // withConverter<U>(
+  //   converter: FirestoreDataConverter<U>
+  // ): CollectionReference<U>;
 }
 
 export class FieldValue {
   private constructor();
-  isEqual(other: FieldValue): boolean;
+  // isEqual(other: FieldValue): boolean;
 }
 
 export class FieldPath {
   constructor(...fieldNames: string[]);
-  isEqual(other: FieldPath): boolean;
+  // isEqual(other: FieldPath): boolean;
 }
 
 // MARK: Firestore methods

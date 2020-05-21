@@ -18,7 +18,7 @@
 import * as firestore from '../../';
 import { _getProvider } from '@firebase/app-exp';
 import { LogLevel } from '@firebase/logger';
-import { Provider, ComponentContainer } from '@firebase/component';
+import { Provider } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { FirebaseService } from '@firebase/app-types/private';
@@ -31,6 +31,7 @@ import {
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
 import { setLogLevel as _setLogLevel } from '../../../src/util/log';
+import { UserDataReader } from '../../../src/api/user_data_reader';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -84,7 +85,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  _datastore: Datastore | undefined;
+  private _datastore: Datastore | undefined;
+  private _userDataReader: UserDataReader | undefined;
 
   constructor(
     app: FirebaseApp,
@@ -103,18 +105,25 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this._settings = settings;
   }
 
-  async _ensureClientConfigured(): Promise<void> {
+  get _dataReader(): UserDataReader {
+    if (!this._userDataReader) {
+      this._userDataReader = new UserDataReader(this._databaseId);
+    }
+    return this._userDataReader;
+  }
+
+  async _ensureClientConfigured(): Promise<Datastore> {
     if (!this._datastore) {
       const databaseInfo = this._makeDatabaseInfo();
-
-      const conenction = await PlatformSupport.getPlatform().loadConnection(
-        databaseInfo
-      );
       const serializer = PlatformSupport.getPlatform().newSerializer(
         databaseInfo.databaseId
       );
-      this._datastore = newDatastore(conenction, this._credentials, serializer);
+      const connection = await PlatformSupport.getPlatform().loadConnection(
+        databaseInfo
+      );
+      this._datastore = newDatastore(connection, this._credentials, serializer);
     }
+    return this._datastore;
   }
 
   private _makeDatabaseInfo(): DatabaseInfo {
@@ -139,18 +148,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 }
 
-export interface Settings {
-  host?: string;
-  ssl?: boolean;
-}
-
 export function getFirestore(app: FirebaseApp): Firestore {
-  return _getProvider(app, 'firestore').getImmediate();
+  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }
 
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: Settings
+  settings: firestore.Settings
 ): Firestore {
   const firestore = getFirestore(app);
   firestore._configureClient(new FirestoreSettings(settings));
