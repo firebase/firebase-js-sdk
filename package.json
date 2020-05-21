@@ -67,6 +67,7 @@
     "@types/chai": "4.2.11",
     "@types/chai-as-promised": "7.1.2",
     "@types/child-process-promise": "2.2.1",
+    "@types/clone": "0.1.30",
     "@types/inquirer": "6.5.0",
     "@types/long": "4.0.1",
     "@types/mocha": "7.0.2",

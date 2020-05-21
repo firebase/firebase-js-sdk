@@ -16,7 +16,7 @@
  */
 
 import { spawn } from 'child-process-promise';
-const { projectRoot: root } = require('../../utils');
+import { projectRoot as root } from '../../utils';
 
 export async function publish() {
   await spawn('yarn', ['changeset', 'publish'], {

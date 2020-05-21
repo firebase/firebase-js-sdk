@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { getCurrentSha } from './utils/git';
+import {
+  getAllPackages,
+  mapPkgNameToPkgJson,
+  updateWorkspaceVersions
+} from './utils/workspace';
+
 /**
  * Don't do the following for canary releases:
  * - Rerun tests (this is supposed to be a representation of the sha)
@@ -23,8 +30,6 @@
  * - Push updates to github (no updates to push)
  */
 export async function runCanaryRelease(): Promise<void> {
-  let versions;
-
   /**
    * Set the canary version following the pattern below:
    *
@@ -34,20 +39,22 @@ export async function runCanaryRelease(): Promise<void> {
    *
    * $ npm install @firebase/app@0.0.0-canary.0000000
    */
-  let updates;
   const sha = await getCurrentSha();
-  updates = await getAllPackages();
+  const updates = await getAllPackages();
   const pkgJsons = await Promise.all(
     updates.map(pkg => mapPkgNameToPkgJson(pkg))
   );
-  versions = updates.reduce((map, pkg, idx) => {
-    const { version } = pkgJsons[idx];
-    map[pkg] = `${version}-canary.${sha}`;
-    return map;
-  }, {});
+  const versions = pkgJsons.reduce<{ [key: string]: string }>(
+    (map, pkgJson) => {
+      const { version, name } = pkgJson;
+      map[name] = `${version}-canary.${sha}`;
+      return map;
+    },
+    {}
+  );
 
   /**
    * Update the package.json dependencies throughout the SDK
    */
-  await updateWorkspaceVersions(versions, argv.canary);
+  await updateWorkspaceVersions(versions, true);
 }

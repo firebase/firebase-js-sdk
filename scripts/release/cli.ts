@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node-script
 /**
  * @license
  * Copyright 2018 Google LLC
@@ -79,7 +80,7 @@ const { bannerText } = require('./utils/banner');
     })();
 
     if (releaseType === ReleaseType.Canary) {
-      await runCanaryRelease();
+      // await runCanaryRelease();
     } else if (releaseType === ReleaseType.Staging) {
       // TODO: check if changeset is in the pre mode. Throw, if not.
     }
@@ -117,12 +118,12 @@ const { bannerText } = require('./utils/banner');
      * Release new versions to NPM using changeset
      * It will also create tags
      */
-    await publish();
+    //  await publish();
 
     /**
      * Push release tags created by changeset in publish() to Github
      */
-    await pushReleaseTagsToGithub();
+    //  await pushReleaseTagsToGithub();
   } catch (err) {
     /**
      * Log any errors that happened during the process

@@ -15,19 +15,26 @@
  * limitations under the License.
  */
 
-const glob = require('glob');
-const { projectRoot: root } = require('../../utils');
-const { workspaces: rawWorkspaces } = require(`${root}/package.json`);
-const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
-const { DepGraph } = require('dependency-graph');
-const { getUpdatedPackages } = require('./lerna');
-const { promisify } = require('util');
-const { writeFile: _writeFile, existsSync } = require('fs');
-const writeFile = promisify(_writeFile);
-const clone = require('clone');
+import glob from 'glob';
+import { projectRoot as root } from '../../utils';
 
-function mapWorkspaceToPackages(workspaces) {
-  return Promise.all(
+import { DepGraph } from 'dependency-graph';
+import { getUpdatedPackages } from './lerna';
+import { promisify } from 'util';
+import { writeFile as _writeFile, existsSync } from 'fs';
+import clone from 'clone';
+
+const writeFile = promisify(_writeFile);
+
+const {
+  workspaces: rawWorkspaces
+}: { workspaces: string[] } = require(`${root}/package.json`);
+const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
+
+export function mapWorkspaceToPackages(
+  workspaces: string[]
+): Promise<string[]> {
+  return Promise.all<string[]>(
     workspaces.map(
       workspace =>
         new Promise(resolve => {
@@ -39,9 +46,8 @@ function mapWorkspaceToPackages(workspaces) {
     )
   ).then(paths => paths.reduce((arr, val) => arr.concat(val), []));
 }
-exports.mapWorkspaceToPackages = mapWorkspaceToPackages;
 
-function mapPackagestoPkgJson(packagePaths) {
+function mapPackagestoPkgJson(packagePaths: string[]) {
   return packagePaths
     .map(path => {
       try {
@@ -53,7 +59,7 @@ function mapPackagestoPkgJson(packagePaths) {
     .filter(Boolean);
 }
 
-function mapPackagesToDepGraph(packagePaths) {
+function mapPackagesToDepGraph(packagePaths: string[]) {
   const graph = new DepGraph();
   const packages = mapPackagestoPkgJson(packagePaths);
 
@@ -67,7 +73,7 @@ function mapPackagesToDepGraph(packagePaths) {
   return graph;
 }
 
-exports.mapPkgNameToPkgPath = async pkgName => {
+export async function mapPkgNameToPkgPath(pkgName: string) {
   const packages = await mapWorkspaceToPackages(workspaces);
   return packages
     .filter(path => {
@@ -79,36 +85,37 @@ exports.mapPkgNameToPkgPath = async pkgName => {
       }
     })
     .reduce(val => val);
-};
+}
 
-exports.getAllPackages = async () => {
+export async function getAllPackages() {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
   return dependencies.overallOrder();
-};
+}
 
-exports.getOrderedUpdates = async () => {
+export async function getOrderedUpdates() {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
   const processingOrder = dependencies.overallOrder();
   const updated = await getUpdatedPackages();
 
   return processingOrder.filter(pkg => updated.includes(pkg));
-};
+}
 
-exports.mapPkgNameToPkgJson = async packageName => {
+export async function mapPkgNameToPkgJson(packageName: string) {
   const packages = await mapWorkspaceToPackages(workspaces);
   return mapPackagestoPkgJson(packages)
     .filter(pkg => pkg.name === packageName)
     .reduce(val => val);
-};
+}
 
-exports.updateWorkspaceVersions = async (newVersionObj, includePeerDeps) => {
+export async function updateWorkspaceVersions(
+  newVersionObj: { [pkgName: string]: string },
+  includePeerDeps: boolean
+) {
   try {
     let packages = await mapWorkspaceToPackages(workspaces);
-    packages = packages.filter(package =>
-      existsSync(`${package}/package.json`)
-    );
+    packages = packages.filter(pkg => existsSync(`${pkg}/package.json`));
 
     const pkgJsons = mapPackagestoPkgJson(packages);
 
@@ -153,4 +160,4 @@ exports.updateWorkspaceVersions = async (newVersionObj, includePeerDeps) => {
   } catch (err) {
     console.log(err);
   }
-};
+}
