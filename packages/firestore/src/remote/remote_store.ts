@@ -16,7 +16,6 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -757,10 +756,6 @@ export class RemoteStore implements TargetMetadataProvider {
     } else {
       // Transient error, just let the retry logic kick in.
     }
-  }
-
-  createTransaction(): Transaction {
-    return new Transaction(this.datastore);
   }
 
   private async restartNetwork(): Promise<void> {

@@ -88,7 +88,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
+import {
+  DocumentKeyReference,
+  fieldPathFromArgument,
+  UserDataReader
+} from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -607,9 +611,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   batch(): firestore.WriteBatch {
-    this.ensureClientConfigured();
+    const firestoreClient = this.ensureClientConfigured();
 
-    return new WriteBatch(this);
+    return new WriteBatch(this, this._dataReader, mutations =>
+      firestoreClient.write(mutations)
+    );
   }
 
   static get logLevel(): firestore.LogLevel {
@@ -653,61 +659,20 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 }
 
 /**
- * A reference to a transaction.
+ * Transaction class that supports all write operations, but is missing
+ * `Transaction.get()`. Subclasses must provide their own implementation.
  */
-export class Transaction implements firestore.Transaction {
+export abstract class TransactionWriter {
   constructor(
-    private _firestore: Firestore,
-    private _transaction: InternalTransaction
+    protected _firestore: Firestore,
+    protected _transaction: InternalTransaction
   ) {}
-
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
-    validateExactNumberOfArgs('Transaction.get', arguments, 1);
-    const ref = validateReference(
-      'Transaction.get',
-      documentRef,
-      this._firestore
-    );
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            null,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            doc,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
-        }
-      });
-  }
 
   set<T>(
     documentRef: firestore.DocumentReference<T>,
     value: T,
     options?: firestore.SetOptions
-  ): Transaction {
+  ): this {
     validateBetweenNumberOfArgs('Transaction.set', arguments, 2, 3);
     const ref = validateReference(
       'Transaction.set',
@@ -738,19 +703,19 @@ export class Transaction implements firestore.Transaction {
   update(
     documentRef: firestore.DocumentReference<unknown>,
     value: firestore.UpdateData
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction {
+  ): this {
     let ref;
     let parsed;
 
@@ -787,7 +752,7 @@ export class Transaction implements firestore.Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): Transaction {
+  delete(documentRef: firestore.DocumentReference<unknown>): this {
     validateExactNumberOfArgs('Transaction.delete', arguments, 1);
     const ref = validateReference(
       'Transaction.delete',
@@ -799,11 +764,61 @@ export class Transaction implements firestore.Transaction {
   }
 }
 
+/** The Transaction class for the legacy SDK. */
+export class Transaction extends TransactionWriter
+  implements firestore.Transaction {
+  get<T>(
+    documentRef: firestore.DocumentReference<T>
+  ): Promise<DocumentSnapshot<T>> {
+    const ref = validateReference(
+      'Transaction.get',
+      documentRef,
+      this._firestore
+    );
+    return this._transaction
+      .lookup([ref._key])
+      .then((docs: MaybeDocument[]) => {
+        if (!docs || docs.length !== 1) {
+          return fail('Mismatch in docs returned from document lookup.');
+        }
+        const doc = docs[0];
+        if (doc instanceof NoDocument) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            ref._key,
+            null,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            doc.key,
+            doc,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else {
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+          );
+        }
+      });
+  }
+}
+
+/** The WriteBatch class used by the lite, full and legacy API. */
 export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private _firestore: Firestore) {}
+  constructor(
+    private _firestore: Firestore,
+    private _dataReader: UserDataReader,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {}
 
   set<T>(
     documentRef: firestore.DocumentReference<T>,
@@ -935,6 +950,7 @@ export class WriteBatch implements firestore.WriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = firestore.DocumentData>
+  extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -943,6 +959,7 @@ export class DocumentReference<T = firestore.DocumentData>
     readonly firestore: Firestore,
     readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
+    super(firestore._databaseId, _key, _converter);
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 
@@ -1347,10 +1364,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         return this._converter.fromFirestore(snapshot, options);
       } else {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          /* converter= */ undefined
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1369,10 +1386,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          this._converter
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore, this._converter)
         );
         return userDataWriter.convertValue(value);
       }
@@ -2425,8 +2442,8 @@ function validateReference<T>(
   methodName: string,
   documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
-): DocumentReference<T> {
-  if (!(documentRef instanceof DocumentReference)) {
+): DocumentKeyReference<T> {
+  if (!(documentRef instanceof DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
