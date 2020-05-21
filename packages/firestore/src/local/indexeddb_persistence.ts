@@ -435,7 +435,7 @@ export class IndexedDbPersistence implements Persistence {
               });
             }
           })
-          .next(() => (forceOwningTab ? true : this.canActAsPrimary(txn)))
+          .next(() => this.canActAsPrimary(txn))
           .next(canActAsPrimary => {
             if (this.isPrimary && !canActAsPrimary) {
               return this.releasePrimaryLeaseIfHeld(txn).next(() => false);
@@ -604,12 +604,16 @@ export class IndexedDbPersistence implements Persistence {
         //   foreground.
         // - every clients network is disabled and no other client's tab is in
         //   the foreground.
+        // - the `forceOwningTab` setting was passed in.
         if (currentLeaseIsValid) {
           if (this.isLocalClient(currentPrimary) && this.networkEnabled) {
             return true;
           }
 
           if (!this.isLocalClient(currentPrimary)) {
+            if (this.forceOwningTab) {
+              return true;
+            }
             if (!currentPrimary!.allowTabSynchronization) {
               // Fail the `canActAsPrimary` check if the current leaseholder has
               // not opted into multi-tab synchronization. If this happens at
