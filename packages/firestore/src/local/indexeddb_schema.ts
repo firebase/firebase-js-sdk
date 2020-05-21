@@ -17,6 +17,7 @@
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
+import { BundledQuery } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { hardAssert, debugAssert } from '../util/assert';
 
@@ -51,8 +52,9 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 9.  Change RemoteDocumentChanges store to be keyed by readTime rather than
  *     an auto-incrementing ID. This is required for Index-Free queries.
  * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
+ * 11. Add bundles and named_queries for bundle support.
  */
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -152,6 +154,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 10 && toVersion >= 10) {
       p = p.next(() => this.rewriteCanonicalIds(simpleDbTransaction));
+    }
+
+    if (fromVersion < 11 && toVersion >= 11) {
+      p = p.next(() => {
+        createBundlesStore(db);
+        createNamedQueriesStore(db);
+      });
     }
     return p;
   }
@@ -1078,6 +1087,60 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
+export type DbBundlesKey = string;
+
+/**
+ * A object representing a bundle loaded by the SDK.
+ */
+export class DbBundles {
+  /** Name of the IndexedDb object store. */
+  static store = 'bundles';
+
+  static keyPath = ['bundleId'];
+
+  constructor(
+    /** The ID of the loaded bundle. */
+    public bundleId: string,
+    /** The create time of the loaded bundle. */
+    public createTime: DbTimestamp,
+    /** The schema version of the loaded bundle. */
+    public version: number
+  ) {}
+}
+
+function createBundlesStore(db: IDBDatabase): void {
+  db.createObjectStore(DbBundles.store, {
+    keyPath: DbBundles.keyPath
+  });
+}
+
+export type DbNamedQueriesKey = string;
+
+/**
+ * A object representing a named query loaded by the SDK via a bundle.
+ */
+export class DbNamedQueries {
+  /** Name of the IndexedDb object store. */
+  static store = 'namedQueries';
+
+  static keyPath = ['name'];
+
+  constructor(
+    /** The name of the query. */
+    public name: string,
+    /** The read time of the results saved in the bundle from the named query. */
+    public readTime: DbTimestamp,
+    /** The query saved in the bundle. */
+    public bundledQuery: BundledQuery
+  ) {}
+}
+
+function createNamedQueriesStore(db: IDBDatabase): void {
+  db.createObjectStore(DbNamedQueries.store, {
+    keyPath: DbNamedQueries.keyPath
+  });
+}
+
 // Visible for testing
 export const V1_STORES = [
   DbMutationQueue.store,
@@ -1111,9 +1174,11 @@ export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 // V10 does not change the set of stores.
 
+export const V11_STORES = [...V8_STORES, DbCollectionParent.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V8_STORES;
+export const ALL_STORES = V11_STORES;
