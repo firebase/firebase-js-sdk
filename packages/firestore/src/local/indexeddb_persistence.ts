@@ -45,13 +45,11 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTargetDocument,
-  DbTargetGlobal,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
 import {
   documentTargetStore,
-  getHighestListenSequenceNumber,
   IndexedDbTargetCache
 } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
@@ -306,10 +304,10 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.simpleDb.runTransaction(
+        return this.runTransaction(
+          'getHighestListenSequenceNumber',
           'readonly',
-          [DbTargetGlobal.store],
-          txn => getHighestListenSequenceNumber(txn)
+          txn => this.targetCache.getHighestSequenceNumber(txn)
         );
       })
       .then(highestListenSequenceNumber => {

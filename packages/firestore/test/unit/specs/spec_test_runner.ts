@@ -1225,7 +1225,8 @@ export type PersistenceAction =
   | 'Get target data'
   | 'Get new document changes'
   | 'Synchronize last document change read time'
-  | 'updateClientMetadataAndTryBecomePrimary';
+  | 'updateClientMetadataAndTryBecomePrimary'
+  | 'getHighestListenSequenceNumber';
 
 /**
  * Union type for each step. The step consists of exactly one `field`
