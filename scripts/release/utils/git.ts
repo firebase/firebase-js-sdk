@@ -21,7 +21,7 @@ const git = simpleGit(root);
 const { exec } = require('child-process-promise');
 const ora = require('ora');
 
-exports.cleanTree = async () => {
+export async function cleanTree() {
   const spinner = ora(' Cleaning git tree').start();
   await exec('git clean -xdf', {
     cwd: root
@@ -29,7 +29,7 @@ exports.cleanTree = async () => {
   spinner.stopAndPersist({
     symbol: '✅'
   });
-};
+}
 
 /**
  * Commits the current state of the repository and tags it with the appropriate
@@ -37,14 +37,16 @@ exports.cleanTree = async () => {
  *
  * Returns the tagged commits
  */
-exports.commitAndTag = async updatedVersions => {
+export async function commitAndTag(updatedVersions: {
+  [packageName: string]: string;
+}) {
   await exec('git add */package.json yarn.lock');
 
   let result = await exec(
     `git commit -m "Publish firebase@${updatedVersions.firebase}"`
   );
 
-  const tags = [];
+  const tags: string[] = [];
   await Promise.all(
     Object.keys(updatedVersions)
       .map(name => ({ name, version: updatedVersions[name] }))
@@ -55,9 +57,9 @@ exports.commitAndTag = async updatedVersions => {
       })
   );
   return tags;
-};
+}
 
-exports.pushUpdatesToGithub = async tags => {
+export async function pushUpdatesToGithub(tags: string[]) {
   let { stdout: currentBranch, stderr } = await exec(
     `git rev-parse --abbrev-ref HEAD`
   );
@@ -65,32 +67,30 @@ exports.pushUpdatesToGithub = async tags => {
 
   await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
   await exec(`git push origin ${tags.join(' ')} --no-verify`, { cwd: root });
-};
+}
 
-exports.resetWorkingTree = async () => {
+export async function resetWorkingTree() {
   await git.checkout('.');
-};
+}
 
-exports.getCurrentSha = async () => {
+export async function getCurrentSha() {
   return (await git.revparse(['--short', 'HEAD'])).trim();
-};
+}
 
-exports.hasDiff = async () => {
+export async function hasDiff() {
   const diff = await git.diff();
   console.log(diff);
   return !!diff;
-};
+}
 
 export async function pushReleaseTagsToGithub() {
   // Get tags pointing to HEAD
   // When running the release script, these tags should be release tags created by changeset
-  const { stdout: rawTags, stderr } = await exec(`git tag --points-at HEAD`);
+  const { stdout: rawTags } = await exec(`git tag --points-at HEAD`);
 
   const tags = rawTags.split('\r\n');
 
-  let { stdout: currentBranch, stderr } = await exec(
-    `git rev-parse --abbrev-ref HEAD`
-  );
+  let { stdout: currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
   currentBranch = currentBranch.trim();
 
   await exec(`git push origin ${tags.join(' ')} --no-verify`, { cwd: root });

@@ -18,36 +18,18 @@
 import { runCanaryRelease } from './canary';
 import { ReleaseType } from './utils/enums';
 import { publish } from './utils/publish';
-import { pushReleaseTagsToGithub } from './utils/git';
+import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
 
-const { exec } = require('child-process-promise');
-const { createPromptModule } = require('inquirer');
+import { exec } from 'child-process-promise';
+import { createPromptModule } from 'inquirer';
 const prompt = createPromptModule();
-const { hasUpdatedPackages } = require('./utils/lerna');
-const {
-  getAllPackages,
-  getOrderedUpdates,
-  mapPkgNameToPkgJson,
-  updateWorkspaceVersions
-} = require('./utils/workspace');
-const {
-  cleanTree,
-  commitAndTag,
-  getCurrentSha,
-  hasDiff,
-  pushUpdatesToGithub,
-  resetWorkingTree
-} = require('./utils/git');
-const {
-  packageVersionUpdate,
-  releaseType: releaseTypePrompt,
-  validateVersions
-} = require('./utils/inquirer');
-const { reinstallDeps, buildPackages } = require('./utils/yarn');
-const { runTests, setupTestDeps } = require('./utils/tests');
-const { publishToNpm } = require('./utils/npm');
+
+import { releaseType as releaseTypePrompt } from './utils/inquirer';
+import { reinstallDeps, buildPackages } from './utils/yarn';
+import { runTests, setupTestDeps } from './utils/tests';
+import { argv } from 'yargs';
+
 const { bannerText } = require('./utils/banner');
-const { argv } = require('yargs');
 
 (async () => {
   try {
