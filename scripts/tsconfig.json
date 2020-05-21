@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "lib": [
+      "ESNext"
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es5",
+    "typeRoots": [
+      "../node_modules/@types"
+    ],
+    "allowJs": true
+  }
+}

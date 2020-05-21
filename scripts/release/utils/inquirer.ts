@@ -15,21 +15,12 @@
  * limitations under the License.
  */
 
-const { spawn } = require('child-process-promise');
-const { projectRoot: root } = require('../../utils');
-const ora = require('ora');
+import { ReleaseType } from './enums';
 
-exports.runTests = async () => {
-  try {
-    await spawn('yarn', ['test'], {
-      cwd: root,
-      stdio: 'inherit'
-    });
-  } catch (err) {
-    throw err;
-  }
-};
-
-exports.setupTestDeps = async () => {
-  await spawn('yarn', ['test:setup'], { stdio: 'inherit' });
+export const releaseType = {
+  type: 'list',
+  name: 'releaseType',
+  message: 'Is this a staging, or a production release?',
+  choices: [ReleaseType.Staging, ReleaseType.Production],
+  default: ReleaseType.Staging
 };

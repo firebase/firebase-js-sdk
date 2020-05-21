@@ -60,6 +60,8 @@
     "integration/*"
   ],
   "devDependencies": {
+    "@changesets/changelog-github": "0.2.5",
+    "@changesets/cli": "2.6.5",
     "@microsoft/api-documenter": "7.7.20",
     "@microsoft/api-extractor": "7.7.13",
     "@types/chai": "4.2.11",
@@ -71,6 +73,7 @@
     "@types/sinon-chai": "3.2.4",
     "@types/tmp": "0.2.0",
     "@types/yargs": "15.0.4",
+    "@types/child-process-promise": "2.2.1",
     "@typescript-eslint/eslint-plugin": "2.30.0",
     "@typescript-eslint/eslint-plugin-tslint": "2.30.0",
     "@typescript-eslint/parser": "2.30.0",
@@ -138,9 +141,7 @@
     "typescript": "3.8.3",
     "watch": "1.0.2",
     "webpack": "4.43.0",
-    "yargs": "15.3.1",
-    "@changesets/cli": "2.6.5",
-    "@changesets/changelog-github": "0.2.5"
+    "yargs": "15.3.1"
   },
   "husky": {
     "hooks": {

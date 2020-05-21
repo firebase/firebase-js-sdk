@@ -80,3 +80,18 @@ exports.hasDiff = async () => {
   console.log(diff);
   return !!diff;
 };
+
+export async function pushReleaseTagsToGithub() {
+  // Get tags pointing to HEAD
+  // When running the release script, these tags should be release tags created by changeset
+  const { stdout: rawTags, stderr } = await exec(`git tag --points-at HEAD`);
+
+  const tags = rawTags.split('\r\n');
+
+  let { stdout: currentBranch, stderr } = await exec(
+    `git rev-parse --abbrev-ref HEAD`
+  );
+  currentBranch = currentBranch.trim();
+
+  await exec(`git push origin ${tags.join(' ')} --no-verify`, { cwd: root });
+}
