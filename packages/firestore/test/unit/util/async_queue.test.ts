@@ -24,15 +24,9 @@ import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { isSafari } from '../../util/test_platform';
 
 use(chaiAsPromised);
-
-function isSafari(): boolean {
-  return (
-    navigator.userAgent.includes('Safari') &&
-    !navigator.userAgent.includes('Chrome')
-  );
-}
 
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
@@ -147,12 +141,6 @@ describe('AsyncQueue', () => {
   // Flaky on Safari.
   // eslint-disable-next-line no-restricted-properties
   (isSafari() ? it.skip : it)('can schedule ops in the future', async () => {
-    if (
-      navigator.userAgent.includes('Safari') &&
-      !navigator.userAgent.includes('Chrome')
-    ) {
-      return;
-    }
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
