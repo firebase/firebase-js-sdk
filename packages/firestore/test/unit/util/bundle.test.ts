@@ -18,18 +18,16 @@ import { expect } from 'chai';
 import { Bundle, toReadableStream } from '../../../src/util/bundle';
 import { isNode } from '../../util/test_platform';
 
-const encoder = new TextEncoder();
-
 function readableStreamFromString(
   content: string,
   bytesPerRead: number
 ): ReadableStream {
-  return toReadableStream(encoder.encode(content), bytesPerRead);
+  return toReadableStream(new TextEncoder().encode(content), bytesPerRead);
 }
 
 function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
-  const l = encoder.encode(str).byteLength;
+  const l = new TextEncoder().encode(str).byteLength;
   return `${l}${str}`;
 }
 
