@@ -1478,7 +1478,6 @@
                 "binaryStringFromUint8Array",
                 "debugAssert",
                 "debugCast",
-                "documentVersionMap",
                 "fail",
                 "forEach",
                 "formatPlural",
@@ -1541,8 +1540,6 @@
                 "FieldPath$1",
                 "FirestoreError",
                 "GeoPoint",
-                "LLRBEmptyNode",
-                "LLRBNode",
                 "MaybeDocument",
                 "Mutation",
                 "NoDocument",
@@ -1550,8 +1547,6 @@
                 "Precondition",
                 "ResourcePath",
                 "SnapshotVersion",
-                "SortedMap",
-                "SortedMapIterator",
                 "Timestamp",
                 "Transaction",
                 "Transaction$1",
@@ -1562,7 +1557,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52938
+        "sizeInBytes": 46054
     },
     "serverTimestamp": {
         "dependencies": {

@@ -20,9 +20,8 @@ export {
   initializeFirestore,
   getFirestore,
   setLogLevel,
-  writeBatch
-} from // terminate
-'./src/api/database';
+  writeBatch // terminate
+} from './src/api/database';
 
 export {
   collection,
@@ -36,17 +35,15 @@ export {
   getQuery,
   Query,
   DocumentReference,
-  CollectionReference
-} from // refEqual,
-// queryEqual
+  CollectionReference // refEqual,
+} from // queryEqual
 './src/api/reference';
 
 export {
   DocumentSnapshot,
   QueryDocumentSnapshot,
-  QuerySnapshot
-} from // snapshotEqual
-'./src/api/snapshot';
+  QuerySnapshot // snapshotEqual
+} from './src/api/snapshot';
 
 export { Transaction, runTransaction } from './src/api/transaction';
 export { WriteBatch } from '../src/api/database';
@@ -60,8 +57,9 @@ export {
   arrayRemove
 } from './src/api/field_value';
 
-export { FieldPath } from //documentId
-'../src/api/field_path';
+export {
+  FieldPath //documentId
+} from '../src/api/field_path';
 
 export { Timestamp } from '../src/api/timestamp';
 
