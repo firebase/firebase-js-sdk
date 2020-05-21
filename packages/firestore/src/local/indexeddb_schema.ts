@@ -235,6 +235,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     );
 
     return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
+      debugAssert(
+        !!metadata,
+        'Metadata should have been written during the version 3 migration'
+      );
       const writeSentinelKey = (
         path: ResourcePath
       ): PersistencePromise<void> => {
