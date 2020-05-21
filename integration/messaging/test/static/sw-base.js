@@ -51,29 +51,21 @@ function addPayloadToDb(payload) {
 
     addPayloadToDbInternal(db, {
       ...payload,
+      // ndx is required as the primary key of the store
       ndx: BACKGROUND_MESSAGES_OBJECT_STORE_DEFAULT_NDX
     });
   };
 }
 
 function addPayloadToDbInternal(db, payload) {
-  let tx = null;
   let isStoreCreated = false;
-  let counter = 100000;
 
-  while (!isStoreCreated) {
-    if (counter <= 0) {
-      break;
-    }
+  tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readwrite');
 
-    try {
-      tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readwrite');
-      console.log('adding message payload to db');
-      tx.objectStore(BACKGROUND_MESSAGES_OBJECT_STORE).add(payload);
-      isStoreCreated = true;
-    } catch (err) {
-      console.log('waiting for store to be created');
-      counter = counter - 1;
-    }
-  }
+  console.log('adding message payload to db: ' + JSON.stringify(payload));
+  addReq = tx.objectStore(BACKGROUND_MESSAGES_OBJECT_STORE).add(payload);
+
+  addReq.onsuccess = () => {
+    isStoreCreated = true;
+  };
 }

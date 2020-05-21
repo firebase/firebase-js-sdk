@@ -63,14 +63,14 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      // after(async function() {
-      //   await seleniumAssistant.killWebDriver(globalWebDriver);
-      // });
+      after(async function() {
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+      });
 
       afterEach(async function() {
-        console.log('???: clearing');
         await clearBackgroundMessages(globalWebDriver);
-        // Specifically clears errors and received foreground messages
+
+        // clears errors and received foreground messages
         await clearAppForTest(globalWebDriver);
       });
 
