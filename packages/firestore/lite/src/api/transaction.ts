@@ -19,14 +19,23 @@ import * as firestore from '../../';
 
 import { UserDataReader } from '../../../src/api/user_data_reader';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
-import { Document, NoDocument } from '../../../src/model/document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument
+} from '../../../src/model/document';
 import { fail } from '../../../src/util/assert';
-import { BaseTransaction, validateReference } from '../../../src/api/database';
+import {
+  TransactionWriter,
+  validateReference
+} from '../../../src/api/database';
 import { DocumentSnapshot } from './snapshot';
 import { Firestore } from './database';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { Deferred } from '../../../src/util/promise';
 
-export class Transaction extends BaseTransaction
+export class Transaction extends TransactionWriter
   implements firestore.Transaction {
   constructor(
     protected _firestore: Firestore,
@@ -44,17 +53,23 @@ export class Transaction extends BaseTransaction
       documentRef,
       this._firestore
     );
-    return super._get(ref).then(doc => {
-      if (doc instanceof NoDocument) {
-        return new DocumentSnapshot<T>(this._firestore, ref._key, null);
-      } else if (doc instanceof Document) {
-        return new DocumentSnapshot<T>(this._firestore, doc.key, doc);
-      } else {
-        throw fail(
-          `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-        );
-      }
-    });
+    return this._transaction
+      .lookup([ref._key])
+      .then((docs: MaybeDocument[]) => {
+        if (!docs || docs.length !== 1) {
+          return fail('Mismatch in docs returned from document lookup.');
+        }
+        const doc = docs[0];
+        if (doc instanceof NoDocument) {
+          return new DocumentSnapshot<T>(this._firestore, ref._key, null);
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot<T>(this._firestore, doc.key, doc);
+        } else {
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+          );
+        }
+      });
   }
 }
 
@@ -63,17 +78,17 @@ export function runTransaction<T>(
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   return firestore._getDatastore().then(async datastore => {
+    const deferred = new Deferred<T>();
+    const internalTransaction = new InternalTransaction(datastore);
     new TransactionRunner<T>(
-      asyncQueue,
-      this.remoteStore,
-      updateFunction,
+      new AsyncQueue(),
+      datastore,
+      () =>
+        updateFunction(
+          new Transaction(firestore, firestore._dataReader, internalTransaction)
+        ),
       deferred
     ).run();
-
-    return new Transaction(
-      firestore,
-      firestore._dataReader,
-      new InternalTransaction(datastore)
-    );
+    return deferred.promise;
   });
 }

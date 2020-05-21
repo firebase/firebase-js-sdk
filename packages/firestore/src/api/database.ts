@@ -636,25 +636,19 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 }
 
 /**
- * A reference to a transaction.
+ * Transaction class that supports all write operations, but is missing
+ * `Transaction.get()`. Subclasses must provide their own implementation.
  */
-export class BaseTransaction {
+export abstract class TransactionWriter {
   constructor(
     protected _firestore: firestoreLite.FirebaseFirestore,
     private _dataReader: UserDataReader,
-    private _transaction: InternalTransaction
+    protected _transaction: InternalTransaction
   ) {}
 
-  protected _get<T>(ref: DocumentKeyReference<T>): Promise<MaybeDocument> {
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        return docs[0];
-      });
-  }
+  abstract get<T>(
+    documentRef: firestoreLite.DocumentReference<T>
+  ): Promise<unknown>;
 
   set<T>(
     documentRef: firestoreLite.DocumentReference<T>,
@@ -749,7 +743,7 @@ export class BaseTransaction {
   }
 }
 
-export class Transaction extends BaseTransaction
+export class Transaction extends TransactionWriter
   implements firestore.Transaction {
   constructor(
     protected _firestore: Firestore,
@@ -767,31 +761,37 @@ export class Transaction extends BaseTransaction
       documentRef,
       this._firestore
     );
-    return super._get(ref).then(doc => {
-      if (doc instanceof NoDocument) {
-        return new DocumentSnapshot<T>(
-          this._firestore,
-          ref._key,
-          null,
-          /* fromCache= */ false,
-          /* hasPendingWrites= */ false,
-          ref._converter
-        );
-      } else if (doc instanceof Document) {
-        return new DocumentSnapshot<T>(
-          this._firestore,
-          doc.key,
-          doc,
-          /* fromCache= */ false,
-          /* hasPendingWrites= */ false,
-          ref._converter
-        );
-      } else {
-        throw fail(
-          `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-        );
-      }
-    });
+    return this._transaction
+      .lookup([ref._key])
+      .then((docs: MaybeDocument[]) => {
+        if (!docs || docs.length !== 1) {
+          return fail('Mismatch in docs returned from document lookup.');
+        }
+        const doc = docs[0];
+        if (doc instanceof NoDocument) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            ref._key,
+            null,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            doc.key,
+            doc,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else {
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+          );
+        }
+      });
   }
 }
 
@@ -932,6 +932,7 @@ export class WriteBatch implements firestore.WriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = firestore.DocumentData>
+  extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -940,6 +941,7 @@ export class DocumentReference<T = firestore.DocumentData>
     readonly firestore: Firestore,
     readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
+    super(firestore._databaseId, _key, _converter);
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 

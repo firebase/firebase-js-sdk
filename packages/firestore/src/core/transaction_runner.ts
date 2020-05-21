@@ -16,13 +16,14 @@
  */
 
 import { Deferred } from '../util/promise';
-import { TimerId, AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ExponentialBackoff } from '../remote/backoff';
 import { Transaction } from './transaction';
 import { RemoteStore } from '../remote/remote_store';
 import { isNullOrUndefined } from '../util/types';
 import { isPermanentError } from '../remote/rpc_error';
 import { FirestoreError } from '../util/error';
+import { Datastore } from '../remote/datastore';
 
 const RETRY_COUNT = 5;
 
@@ -36,7 +37,7 @@ export class TransactionRunner<T> {
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
-    private readonly remoteStore: RemoteStore,
+    private readonly datastore: Datastore,
     private readonly updateFunction: (transaction: Transaction) => Promise<T>,
     private readonly deferred: Deferred<T>
   ) {
@@ -53,7 +54,7 @@ export class TransactionRunner<T> {
 
   private runWithBackOff(): void {
     this.backoff.backoffAndRun(async () => {
-      const transaction = this.remoteStore.createTransaction();
+      const transaction = new Transaction(this.datastore);
       const userPromise = this.tryRunUpdateFunction(transaction);
       if (userPromise) {
         userPromise

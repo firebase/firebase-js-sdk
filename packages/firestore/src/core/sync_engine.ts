@@ -74,6 +74,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -185,6 +186,7 @@ export class SyncEngine implements RemoteSyncer {
   constructor(
     protected localStore: LocalStore,
     protected remoteStore: RemoteStore,
+    protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     protected sharedClientState: SharedClientState,
     private currentUser: User,
@@ -390,7 +392,7 @@ export class SyncEngine implements RemoteSyncer {
   ): void {
     new TransactionRunner<T>(
       asyncQueue,
-      this.remoteStore,
+      this.datastore,
       updateFunction,
       deferred
     ).run();
@@ -924,6 +926,7 @@ export class MultiTabSyncEngine extends SyncEngine
   constructor(
     protected localStore: MultiTabLocalStore,
     remoteStore: RemoteStore,
+    datastore: Datastore,
     sharedClientState: SharedClientState,
     currentUser: User,
     maxConcurrentLimboResolutions: number
@@ -931,6 +934,7 @@ export class MultiTabSyncEngine extends SyncEngine
     super(
       localStore,
       remoteStore,
+      datastore,
       sharedClientState,
       currentUser,
       maxConcurrentLimboResolutions
