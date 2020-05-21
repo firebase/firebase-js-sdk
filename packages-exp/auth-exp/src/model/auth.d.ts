@@ -52,6 +52,7 @@ export interface Auth extends externs.Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   _notifyStateListeners(): void;
+  _persistAndNotifyIfCurrent(user: User): Promise<void>;
 }
 
 export interface Dependencies {

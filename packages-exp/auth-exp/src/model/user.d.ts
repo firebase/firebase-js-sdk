@@ -19,6 +19,11 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
+import { IdTokenResponse } from './id_token';
+
+type ModifiableUserInfo = {
+  -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
+};
 
 export interface User extends externs.User {
   uid: string;
@@ -32,8 +37,9 @@ export interface User extends externs.User {
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
-  providerData: externs.UserInfo[];
+  providerData: ModifiableUserInfo[];
   metadata: externs.UserMetadata;
+  _updateTokensIfNecessary(response: IdTokenResponse): void;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;

@@ -51,7 +51,6 @@ export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
-  refreshToken = '';
 
   uid: string;
   auth: Auth;
@@ -81,11 +80,10 @@ export class UserImpl implements User {
     const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
     assert(tokens, this.auth.name);
 
-    const { refreshToken, accessToken, wasRefreshed } = tokens;
-    this.refreshToken = refreshToken || '';
+    const { accessToken, wasRefreshed } = tokens;
 
-    if (wasRefreshed && this.auth.currentUser === this) {
-      this.auth._notifyStateListeners();
+    if (wasRefreshed) {
+      await this.auth._persistAndNotifyIfCurrent(this);
     }
 
     return accessToken;
@@ -97,6 +95,12 @@ export class UserImpl implements User {
 
   reload(): Promise<void> {
     return reload(this);
+  }
+
+  _updateTokensIfNecessary(response: IdTokenResponse): void {
+    if (response.idToken && response.idToken !== this.stsTokenManager.accessToken) {
+      this.stsTokenManager.updateFromServerResponse(response);
+    }
   }
 
   async delete(): Promise<void> {
@@ -119,6 +123,10 @@ export class UserImpl implements User {
       phoneNumber: this.phoneNumber || undefined,
       photoURL: this.phoneNumber || undefined
     };
+  }
+
+  get refreshToken(): string {
+    return this.stsTokenManager.refreshToken || '';
   }
 
   static fromPlainObject(auth: Auth, object: PersistedBlob): User {

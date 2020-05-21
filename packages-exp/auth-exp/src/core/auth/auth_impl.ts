@@ -129,6 +129,12 @@ export class AuthImpl implements Auth {
     );
   }
 
+  async _persistAndNotifyIfCurrent(user: User): Promise<void> {
+    if (user === this.currentUser) {
+      return this.updateCurrentUser(user);
+    }
+  }
+
   _notifyStateListeners(): void {
     if (!this._isInitialized) {
       return;
