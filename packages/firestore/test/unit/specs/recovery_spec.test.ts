@@ -464,12 +464,12 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           fromCache: true,
           hasPendingWrites: true
         })
-        .failDatabaseTransactions({ 'Handle user change': true })
+        .failDatabaseTransactions('Handle user change')
         .changeUser('user2')
         .recoverDatabase()
         .runTimer(TimerId.AsyncQueueRetry)
         .expectEvents(query, { removed: [doc1], fromCache: true })
-        .failDatabaseTransactions({ 'Handle user change': true })
+        .failDatabaseTransactions('Handle user change')
         .changeUser('user1')
         .recoverDatabase()
         .runTimer(TimerId.AsyncQueueRetry)
