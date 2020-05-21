@@ -15,37 +15,4 @@
  * limitations under the License.
  */
 
-importScripts('../constants.js');
-importScripts('/firebase-app.js');
-importScripts('/firebase-messaging.js');
-
-firebase.initializeApp(FIREBASE_CONFIG);
-const messaging = firebase.messaging();
-
-messaging.setBackgroundMessageHandler(payload => {
-  console.log(
-    'Received a background message: ' +
-      JSON.stringify(payload) +
-      '. Routing the message to the test app messages container to be read'
-  );
-
-  self.clients
-    .matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(clients => {
-      sendMessageToWindowClients(clients, markBackgroundMessage(payload));
-    });
-});
-
-function sendMessageToWindowClients(clientList, payload) {
-  console.log();
-  for (const client of clientList) {
-    client.postMessage({ ...payload, 'isBackgroundMessage': true });
-  }
-}
-
-function markBackgroundMessage(payload) {
-  return { ...payload, 'isBackgroundMessage': true };
-}
+importScripts('../sw-base.js');

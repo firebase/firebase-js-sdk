@@ -16,6 +16,7 @@
     "chromedriver": "80.0.1",
     "eslint": "^6.8.0",
     "express": "4.17.1",
+    "idb": "^5.0.3",
     "karma": "^4.4.1",
     "karma-babel-preprocessor": "8.0.1",
     "karma-browserify": "^7.0.0",

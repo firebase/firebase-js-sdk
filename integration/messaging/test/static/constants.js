@@ -17,10 +17,16 @@
 
 const EIGHT_DAYS_IN_MS = 8 * 86400000;
 const PUBLIC_VAPID_KEY =
-  'BAN_2QvaSnxnjz-2y1sARN1ErEpZhcb8kaSI08pLxiAtQPB4ja3wg_1T0cGBMpt-vRd_6G1LZeVcVYlQeSPlbt8';
+  'BGd9sBCP946DS7oAP8XzhvbC261tTjasifBcPhsMeUFsMVH3BNW0p8l3dL0Y8OiL5db5EGru54olDK8jPXAT098';
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyA0p3wZ05sigxv1UtmLxMWP6iML_K0B-uE',
   projectId: 'android-gcm-test-519bd',
   messagingSenderId: '35006771263',
   appId: '1:35006771263:web:18cc19582bf589e8c9c88a'
 };
+const TAG = 'FCM_INTEGRATION_TEST: ';
+const TEST_DB = 'FCM_INTEGRATION_TEST_DB';
+const TEST_DB_VERSION = 1;
+const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
+const BACKGROUND_MESSAGES_OBJECT_STORE_PRIMARY_KEY = 'ndx';
+const BACKGROUND_MESSAGES_OBJECT_STORE_DEFAULT_NDX = 'default_ndx';

@@ -58,8 +58,8 @@ class DemoApp {
       );
     }
 
-    this._messaging.onMessage(payload => {
-      appendMessage(payload);
+    this._messaging.onMessage(message => {
+      this.appendMessage(message);
     });
 
     this._messaging.getToken().then(
@@ -102,11 +102,11 @@ class DemoApp {
     return this._token;
   }
 
-  async triggerTimeForward() {
+  triggerTimeForward() {
     this._clock.tick(EIGHT_DAYS_IN_MS);
   }
 
-  async clearInstanceForTest() {
+  clearInstanceForTest() {
     this._errors = [];
     this._messages = [];
   }

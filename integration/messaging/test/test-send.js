@@ -21,12 +21,18 @@ const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const clearAppForTest = require('./utils/clearAppForTest');
-const getReceivedMessages = require('./utils/getReceivedMessages');
+const getReceivedBackgroundMessages = require('./utils/getReceivedBackgroundMessages');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
+const clearBackgroundMessages = require('./utils/clearBackgroundMessages');
+
 const TEST_SUITE_TIMEOUT_MS = 50000;
 const TEST_DOMAIN = 'valid-vapid-key';
 const TEST_PROJECT_SENDER_ID = '35006771263';
 const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
+const FIELD_FROM = 'from';
+const FIELD_COLLAPSE_KEY = 'collapse_key';
+const FIELD_DATA = 'data';
+const FIELD_NOTIFICATION = 'notification';
 
 describe('Starting Integration Test > Sending and Receiving ', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
@@ -57,30 +63,32 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      after(async function() {
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-      });
+      // after(async function() {
+      //   await seleniumAssistant.killWebDriver(globalWebDriver);
+      // });
 
       afterEach(async function() {
+        console.log('???: clearing');
+        await clearBackgroundMessages(globalWebDriver);
+        // Specifically clears errors and received foreground messages
         await clearAppForTest(globalWebDriver);
       });
 
-      it('Background app can receive a {} empty message in onMessage', async function() {
-        let token = await retrieveToken(globalWebDriver);
+      it('Background app can receive a {} empty message from sw', async function() {
         checkSendResponse(
           await sendMessage({
-            to: token
+            to: await retrieveToken(globalWebDriver)
           })
         );
 
-        await checkMessageReceived(
-          globalWebDriver,
+        checkMessageReceived(
+          await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
           /* expectedDataPayload= */ null
         );
       });
 
-      it('Background app can receive a {"data"} message in onMessage', async function() {
+      it('Background app can receive a {"data"} message frow sw', async function() {
         checkSendResponse(
           await sendMessage({
             to: await retrieveToken(globalWebDriver),
@@ -88,8 +96,8 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
           })
         );
 
-        await checkMessageReceived(
-          globalWebDriver,
+        checkMessageReceived(
+          await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
           /* expectedDataPayload= */ getTestDataPayload()
         );
@@ -98,26 +106,27 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
   });
 });
 
-async function checkMessageReceived(
-  webDriver,
+function checkMessageReceived(
+  receivedMessages,
   expectedNotificationPayload,
   expectedDataPayload
 ) {
-  let receivedMessages = await getReceivedMessages(webDriver);
   expect(receivedMessages).to.exist;
-  expect(receivedMessages.length).to.equal(1);
 
   const message = receivedMessages[0];
-  console.log('??? message 0: ' + JSON.stringify(message));
-  expect(message.from).to.equal(TEST_PROJECT_SENDER_ID);
-  expect(message.collapse_key).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
+  console.log('??? message: ' + JSON.stringify(message));
+
+  expect(message[FIELD_FROM]).to.equal(TEST_PROJECT_SENDER_ID);
+  expect(message[FIELD_COLLAPSE_KEY]).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
 
   if (expectedNotificationPayload) {
-    expect(message.notification).to.deep.equal(getTestNotificationPayload());
+    expect(message[FIELD_NOTIFICATION]).to.deep.equal(
+      getTestNotificationPayload()
+    );
   }
 
   if (expectedDataPayload) {
-    expect(message.data).to.deep.equal(getTestDataPayload());
+    expect(message[FIELD_DATA]).to.deep.equal(getTestDataPayload());
   }
 }
 

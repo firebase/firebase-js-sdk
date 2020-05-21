@@ -23,16 +23,6 @@
         .catch(error => {
           console.log('Error registering FCM SW: ' + error);
         });
-
-      navigator.serviceWorker.addEventListener('message', e => {
-        messagePayload = e.data;
-        console.log(
-          'App received a message payload from sw: ' +
-            JSON.stringify(messagePayload)
-        );
-
-        window.__test.appendMessage(messagePayload);
-      });
     </script>
   </body>
 </html>

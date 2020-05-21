@@ -15,16 +15,37 @@
  * limitations under the License.
  */
 
+const TEST_DB = 'FCM_INTEGRATION_TEST_DB';
+const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
+
 module.exports = async webdriver => {
-  console.log('Waiting for received message.');
+  console.log('Getting received background messages from idb: ');
+
+  await webdriver.executeScript(() => {
+    window.backgroundMessages = [];
+
+    const dbOpenReq = indexedDB.open(TEST_DB);
+
+    dbOpenReq.onsuccess = e => {
+      const db = dbOpenReq.result;
+      const tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readonly');
+
+      tx
+        .objectStore(BACKGROUND_MESSAGES_OBJECT_STORE)
+        .getAll().onsuccess = e => {
+        window.backgroundMessages = e.target.result;
+      };
+    };
+  });
+
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
-      return window.__test.messages.length > 0;
+      return window.backgroundMessages.length > 0;
     });
   });
 
-  console.log('Found message.');
+  console.log('Found background messages');
   return webdriver.executeScript(() => {
-    return window.__test.messages;
+    return window.backgroundMessages;
   });
 };
