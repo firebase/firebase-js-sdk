@@ -158,6 +158,8 @@ export class ParseContext {
    * @param settings The settings for the parser.
    * @param databaseId The database ID of the Firestore instance.
    * @param serializer The serializer to use to generate the Value proto.
+   * @param ignoreUndefinedProperties Whether to ignore undefined properties
+   * rather than throw.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
    * @param fieldMask A mutable list of field paths encountered while parsing
@@ -172,6 +174,7 @@ export class ParseContext {
     readonly settings: ContextSettings,
     readonly databaseId: DatabaseId,
     readonly serializer: JsonProtoSerializer,
+    readonly ignoreUndefinedProperties: boolean,
     fieldTransforms?: FieldTransform[],
     fieldMask?: FieldPath[]
   ) {
@@ -198,6 +201,7 @@ export class ParseContext {
       { ...this.settings, ...configuration },
       this.databaseId,
       this.serializer,
+      this.ignoreUndefinedProperties,
       this.fieldTransforms,
       this.fieldMask
     );
@@ -276,6 +280,7 @@ export class UserDataReader {
 
   constructor(
     private readonly databaseId: DatabaseId,
+    private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
     this.serializer =
@@ -458,7 +463,8 @@ export class UserDataReader {
         arrayElement: false
       },
       this.databaseId,
-      this.serializer
+      this.serializer,
+      this.ignoreUndefinedProperties
     );
   }
 
@@ -613,7 +619,10 @@ function parseSentinelFieldValue(
  *
  * @return The parsed value
  */
-function parseScalarValue(value: unknown, context: ParseContext): api.Value {
+function parseScalarValue(
+  value: unknown,
+  context: ParseContext
+): api.Value | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
@@ -659,6 +668,8 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
         value.firestore._databaseId
       )
     };
+  } else if (value === undefined && context.ignoreUndefinedProperties) {
+    return null;
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`

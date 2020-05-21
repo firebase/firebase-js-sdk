@@ -1148,7 +1148,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       'clientA',
       /* multiClient= */ false,
       async db => {
-        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await expect(db.start()).to.eventually.be.rejectedWith(
           'Failed to obtain exclusive access to the persistence layer.'
         );
@@ -1162,10 +1162,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       'clientA',
       /* multiClient= */ true,
       async db => {
-        db.injectFailures = {
-          updateClientMetadataAndTryBecomePrimary: true,
-          getHighestListenSequenceNumber: false
-        };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
         await db.shutdown();
       }
@@ -1177,10 +1174,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       'clientA',
       /* multiClient= */ false,
       async db1 => {
-        db1.injectFailures = {
-          updateClientMetadataAndTryBecomePrimary: false,
-          getHighestListenSequenceNumber: true
-        };
+        db1.injectFailures = ['getHighestListenSequenceNumber'];
         await expect(db1.start()).to.eventually.be.rejectedWith(
           'IndexedDB transaction failed'
         );
@@ -1190,10 +1184,10 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
-      db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+      db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
       await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
-        db.injectFailures = undefined;
+        db.injectFailures = [];
         return db.runTransaction('check success', 'readwrite-primary', () =>
           PersistencePromise.resolve()
         );

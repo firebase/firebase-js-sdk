@@ -371,7 +371,7 @@ abstract class TestRunner {
     await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
     if (targetFailed) {
-      expect(this.persistence.injectFailures?.['Allocate target']).to.be.true;
+      expect(this.persistence.injectFailures).contains('Allocate target');
     } else {
       // Skip the backoff that may have been triggered by a previous call to
       // `watchStreamCloses()`.
@@ -446,7 +446,9 @@ abstract class TestRunner {
       () => this.rejectedDocs.push(...documentKeys)
     );
 
-    if (this.persistence.injectFailures?.['Locally write mutations'] !== true) {
+    if (
+      this.persistence.injectFailures.indexOf('Locally write mutations') === -1
+    ) {
       this.sharedWrites.push(mutations);
     }
 
@@ -710,21 +712,29 @@ abstract class TestRunner {
     return Promise.resolve();
   }
 
-  private doChangeUser(user: string | null): Promise<void> {
+  private async doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.enqueue(() =>
-      this.syncEngine.handleCredentialChange(this.user)
-    );
+    const deferred = new Deferred<void>();
+    await this.queue.enqueueRetryable(async () => {
+      try {
+        await this.syncEngine.handleCredentialChange(this.user);
+      } finally {
+        // Resolve the deferred Promise even if the operation failed. This allows
+        // the spec tests to manually retry the failed user change.
+        deferred.resolve();
+      }
+    });
+    return deferred.promise;
   }
 
   private async doFailDatabase(
-    failActions: SpecDatabaseFailures
+    failActions: PersistenceAction[]
   ): Promise<void> {
     this.persistence.injectFailures = failActions;
   }
 
   private async doRecoverDatabase(): Promise<void> {
-    this.persistence.injectFailures = undefined;
+    this.persistence.injectFailures = [];
   }
 
   private validateExpectedSnapshotEvents(
@@ -1218,13 +1228,6 @@ export type PersistenceAction =
   | 'updateClientMetadataAndTryBecomePrimary'
   | 'getHighestListenSequenceNumber';
 
-/** Specifies failure or success for a list of database actions. */
-export type SpecDatabaseFailures = Partial<
-  {
-    readonly [key in PersistenceAction]: boolean;
-  }
->;
-
 /**
  * Union type for each step. The step consists of exactly one `field`
  * set and optionally expected events in the `expect` field.
@@ -1270,7 +1273,7 @@ export interface SpecStep {
   failWrite?: SpecWriteFailure;
 
   /** Fails the listed database actions. */
-  failDatabase?: false | SpecDatabaseFailures;
+  failDatabase?: false | PersistenceAction[];
 
   /**
    * Run a queued timer task (without waiting for the delay to expire). See
