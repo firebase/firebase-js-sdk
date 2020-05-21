@@ -17,9 +17,15 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export type DocumentData = { [field: string]: any };
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type UpdateData = { [fieldPath: string]: any };
+export interface DocumentData {
+  [field: string]: any;
+}
+
+export interface UpdateData {
+  [fieldPath: string]: any;
+}
 
 export interface Settings {
   host?: string;
@@ -116,9 +122,9 @@ export class Blob {
 
   static fromUint8Array(array: Uint8Array): Blob;
 
-  public toBase64(): string;
+  toBase64(): string;
 
-  public toUint8Array(): Uint8Array;
+  toUint8Array(): Uint8Array;
 
   isEqual(other: Blob): boolean;
 }
