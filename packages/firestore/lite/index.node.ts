@@ -19,7 +19,9 @@ export {
   Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
-  setLogLevel // writeBatch, // runTransaction, // terminate
+  setLogLevel,
+  writeBatch,
+  runTransaction // terminate
 } from './src/api/database';
 
 export {
@@ -45,7 +47,7 @@ export {
 
 // export { Transaction } from './src/api/transaction';
 
-export { WriteBatch } from './src/api/write_batch';
+export { WriteBatch, Transaction } from '../src/api/database';
 
 export {
   FieldValue,

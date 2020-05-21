@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+import * as firestoreLite from '../../lite/index';
 
 import * as api from '../protos/firestore_proto_api';
 
@@ -88,7 +89,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
+import {
+  DocumentKeyReference,
+  fieldPathFromArgument,
+  UserDataReader
+} from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -575,7 +580,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateArgType('Firestore.runTransaction', 'function', 1, updateFunction);
     return this.ensureClientConfigured().transaction(
       (transaction: InternalTransaction) => {
-        return updateFunction(new Transaction(this, transaction));
+        return updateFunction(
+          new Transaction(this, this._dataReader, transaction)
+        );
       }
     );
   }
@@ -583,7 +590,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   batch(): firestore.WriteBatch {
     this.ensureClientConfigured();
 
-    return new WriteBatch(this);
+    return new WriteBatch(this, this._dataReader, m =>
+      this.ensureClientConfigured().write(m)
+    );
   }
 
   static get logLevel(): firestore.LogLevel {
@@ -629,59 +638,29 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 /**
  * A reference to a transaction.
  */
-export class Transaction implements firestore.Transaction {
+export class BaseTransaction {
   constructor(
-    private _firestore: Firestore,
+    protected _firestore: firestoreLite.FirebaseFirestore,
+    private _dataReader: UserDataReader,
     private _transaction: InternalTransaction
   ) {}
 
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
-    validateExactNumberOfArgs('Transaction.get', arguments, 1);
-    const ref = validateReference(
-      'Transaction.get',
-      documentRef,
-      this._firestore
-    );
+  protected _get<T>(ref: DocumentKeyReference<T>): Promise<MaybeDocument> {
     return this._transaction
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
         if (!docs || docs.length !== 1) {
           return fail('Mismatch in docs returned from document lookup.');
         }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            null,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            doc,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
-        }
+        return docs[0];
       });
   }
 
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: firestoreLite.DocumentReference<T>,
     value: T,
     options?: firestore.SetOptions
-  ): Transaction {
+  ): this {
     validateBetweenNumberOfArgs('Transaction.set', arguments, 2, 3);
     const ref = validateReference(
       'Transaction.set',
@@ -696,35 +675,32 @@ export class Transaction implements firestore.Transaction {
     );
     const parsed =
       options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
+        ? this._dataReader.parseMergeData(
             functionName,
             convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+        : this._dataReader.parseSetData(functionName, convertedValue);
     this._transaction.set(ref._key, parsed);
     return this;
   }
 
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     value: firestore.UpdateData
-  ): Transaction;
+  ): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction;
+  ): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction {
+  ): this {
     let ref;
     let parsed;
 
@@ -738,7 +714,7 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = this._dataReader.parseUpdateVarargs(
         'Transaction.update',
         fieldOrUpdateData,
         value,
@@ -751,7 +727,7 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = this._dataReader.parseUpdateData(
         'Transaction.update',
         fieldOrUpdateData
       );
@@ -761,7 +737,7 @@ export class Transaction implements firestore.Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): Transaction {
+  delete(documentRef: firestore.DocumentReference<unknown>): this {
     validateExactNumberOfArgs('Transaction.delete', arguments, 1);
     const ref = validateReference(
       'Transaction.delete',
@@ -773,14 +749,64 @@ export class Transaction implements firestore.Transaction {
   }
 }
 
+export class Transaction extends BaseTransaction
+  implements firestore.Transaction {
+  constructor(
+    protected _firestore: Firestore,
+    _dataReader: UserDataReader,
+    _transaction: InternalTransaction
+  ) {
+    super(_firestore, _dataReader, _transaction);
+  }
+
+  get<T>(
+    documentRef: firestore.DocumentReference<T>
+  ): Promise<DocumentSnapshot<T>> {
+    const ref = validateReference(
+      'Transaction.get',
+      documentRef,
+      this._firestore
+    );
+    return super._get(ref).then(doc => {
+      if (doc instanceof NoDocument) {
+        return new DocumentSnapshot<T>(
+          this._firestore,
+          ref._key,
+          null,
+          /* fromCache= */ false,
+          /* hasPendingWrites= */ false,
+          ref._converter
+        );
+      } else if (doc instanceof Document) {
+        return new DocumentSnapshot<T>(
+          this._firestore,
+          doc.key,
+          doc,
+          /* fromCache= */ false,
+          /* hasPendingWrites= */ false,
+          ref._converter
+        );
+      } else {
+        throw fail(
+          `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+        );
+      }
+    });
+  }
+}
+
 export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private _firestore: Firestore) {}
+  constructor(
+    private _firestore: firestoreLite.FirebaseFirestore,
+    private _dataReader: UserDataReader,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {}
 
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: firestoreLite.DocumentReference<T>,
     value: T,
     options?: firestore.SetOptions
   ): WriteBatch {
@@ -799,15 +825,12 @@ export class WriteBatch implements firestore.WriteBatch {
     );
     const parsed =
       options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
+        ? this._dataReader.parseMergeData(
             functionName,
             convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+        : this._dataReader.parseSetData(functionName, convertedValue);
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -815,17 +838,17 @@ export class WriteBatch implements firestore.WriteBatch {
   }
 
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     value: firestore.UpdateData
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestoreLite.DocumentReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -845,7 +868,7 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = this._dataReader.parseUpdateVarargs(
         'WriteBatch.update',
         fieldOrUpdateData,
         value,
@@ -858,7 +881,7 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = this._dataReader.parseUpdateData(
         'WriteBatch.update',
         fieldOrUpdateData
       );
@@ -870,7 +893,7 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
+  delete(documentRef: firestoreLite.DocumentReference<unknown>): WriteBatch {
     validateExactNumberOfArgs('WriteBatch.delete', arguments, 1);
     this.verifyNotCommitted();
     const ref = validateReference(
@@ -888,7 +911,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore.ensureClientConfigured().write(this._mutations);
+      return this._commitHandler(this._mutations);
     }
 
     return Promise.resolve();
@@ -2397,10 +2420,10 @@ function validateGetOptions(
 
 function validateReference<T>(
   methodName: string,
-  documentRef: firestore.DocumentReference<T>,
-  firestore: Firestore
-): DocumentReference<T> {
-  if (!(documentRef instanceof DocumentReference)) {
+  documentRef: firestoreLite.DocumentReference<T>,
+  firestore: firestoreLite.FirebaseFirestore
+): DocumentKeyReference<T> {
+  if (!(documentRef instanceof DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(

@@ -168,7 +168,7 @@ export type SetOptions =
 export class DocumentReference<T = DocumentData> {
   private constructor();
   // readonly id: string;
-  // readonly firestore: FirebaseFirestore;
+  readonly firestore: FirebaseFirestore;
   // readonly path: string;
   // withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }

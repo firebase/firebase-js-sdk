@@ -22,7 +22,11 @@ import { Provider } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { FirebaseService } from '@firebase/app-types/private';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import {
+  Datastore,
+  invokeCommitRpc,
+  newDatastore
+} from '../../../src/remote/datastore';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -32,6 +36,8 @@ import {
 } from '../../../src/api/credentials';
 import { setLogLevel as _setLogLevel } from '../../../src/util/log';
 import { UserDataReader } from '../../../src/api/user_data_reader';
+import { WriteBatch, Transaction } from '../../../src/api/database';
+import { FirebaseFirestore } from '../../';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -112,7 +118,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._userDataReader;
   }
 
-  async _ensureClientConfigured(): Promise<Datastore> {
+  async _getDatastore(): Promise<Datastore> {
     if (!this._datastore) {
       const databaseInfo = this._makeDatabaseInfo();
       const serializer = PlatformSupport.getPlatform().newSerializer(
@@ -178,4 +184,19 @@ export function setLogLevel(level: firestore.LogLevel): void {
         'Invalid log level: ' + level
       );
   }
+}
+
+export function writeBatch(firestore: Firestore): WriteBatch {
+  return new WriteBatch(firestore, firestore._dataReader, mutations =>
+    firestore
+      ._getDatastore()
+      .then(datastore => invokeCommitRpc(datastore, mutations))
+  );
+}
+
+export function runTransaction<T>(
+  firestore: FirebaseFirestore,
+  updateFunction: (transaction: Transaction) => Promise<T>
+): Promise<T> {
+  return new Transaction();
 }

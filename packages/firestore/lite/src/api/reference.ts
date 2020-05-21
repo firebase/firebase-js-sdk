@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../index';
 
 import { hardAssert } from '../../../src/util/assert';
 
@@ -35,26 +35,33 @@ import {
   DocumentKeyReference,
   ParsedUpdateData
 } from '../../../src/api/user_data_reader';
-import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
+import {
+  FieldPath,
+  FieldPath as ExternalFieldPath
+} from '../../../src/api/field_path';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import { Query as InternalQuery } from '../../../src/core/query';
-import { isMerge, isMergeFields } from './write_batch';
+import { DocumentData, SetOptions } from '../../';
 
 /**
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = firestore.DocumentData>
-  extends DocumentKeyReference
+  extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
-  constructor(key: DocumentKey, readonly firestore: Firestore) {
-    super(firestore._databaseId, key);
+  constructor(
+    key: DocumentKey,
+    readonly firestore: Firestore,
+    readonly _converter?: firestore.FirestoreDataConverter<T>
+  ) {
+    super(firestore._databaseId, key, _converter);
   }
 }
 
 export function collection(
-  parent: Firestore | DocumentReference,
+  parent: Firestore | DocumentReference<unknown>,
   relativePath: string
-): CollectionReference {
+): CollectionReference<DocumentData> {
   if (relativePath.length == 0) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -75,8 +82,8 @@ export function collection(
   }
 }
 
-export function doc(
-  parent: CollectionReference,
+export function doc<T>(
+  parent: CollectionReference<T>,
   relativePath?: string
 ): DocumentReference {
   if (relativePath && relativePath.length == 0) {
@@ -87,20 +94,25 @@ export function doc(
   }
   return new DocumentReference(
     new DocumentKey(parent._path.child(relativePath || AutoId.newId())),
-    parent.firestore
+    parent.firestore,
+    parent._converter
   );
 }
 
-export function parent(
-  child: CollectionReference | DocumentReference
-): DocumentReference | CollectionReference {
+export function parent<T>(
+  child: CollectionReference<unknown> | DocumentReference<T>
+): DocumentReference<DocumentData> | CollectionReference<T> {
   if (child instanceof CollectionReference) {
     return new DocumentReference(
       new DocumentKey(child._path.popLast()),
       child.firestore
     );
   } else {
-    return new CollectionReference(child._key.path.popLast(), child.firestore);
+    return new CollectionReference<T>(
+      child._key.path.popLast(),
+      child.firestore,
+      child._converter
+    );
   }
 }
 
@@ -110,7 +122,11 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
-  constructor(readonly _path: ResourcePath, readonly firestore: Firestore) {
+  constructor(
+    readonly _path: ResourcePath,
+    readonly firestore: Firestore,
+    readonly _converter?: firestore.FirestoreDataConverter<T>
+  ) {
     super(InternalQuery.atPath(_path), firestore);
   }
 
@@ -124,7 +140,8 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     const path = ResourcePath.fromString(pathString || AutoId.newId());
     return new DocumentReference<T>(
       new DocumentKey(this._path.child(path)),
-      this.firestore
+      this.firestore,
+      this._converter
     );
   }
 }
@@ -133,7 +150,7 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot> {
   const firestore = reference.firestore;
-  return firestore._ensureClientConfigured().then(async datastore => {
+  return firestore._getDatastore().then(async datastore => {
     const result = await invokeBatchGetDocumentsRpc(datastore, [
       reference._key
     ]);
@@ -161,7 +178,7 @@ export function setDoc<T>(
     ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
     : dataReader.parseSetData('setDoc', convertedValue);
   return firestore
-    ._ensureClientConfigured()
+    ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(
         datastore,
@@ -172,7 +189,7 @@ export function setDoc<T>(
 
 export function deleteDoc(reference: DocumentReference): Promise<void> {
   return reference.firestore
-    ._ensureClientConfigured()
+    ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(datastore, [
         new DeleteMutation(reference._key, Precondition.none())
@@ -205,7 +222,7 @@ export function updateDoc(
   }
 
   return firestore
-    ._ensureClientConfigured()
+    ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(
         datastore,
@@ -216,8 +233,21 @@ export function updateDoc(
 
 export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot> {
   const firestore = query.firestore;
-  return firestore._ensureClientConfigured().then(async datastore => {
+  return firestore._getDatastore().then(async datastore => {
     const result = await invokeRunQueryRpc(datastore, query._query);
     return new QuerySnapshot<T>(firestore, query._query, result);
   });
+}
+
+export function isMerge(options?: SetOptions): options is { merge: true } {
+  return !!options && (options as { merge: true }).merge;
+}
+
+export function isMergeFields(
+  options?: SetOptions
+): options is { mergeFields: Array<string | FieldPath> } {
+  return (
+    !!options &&
+    !!(options as { mergeFields: Array<string | FieldPath> }).mergeFields
+  );
 }

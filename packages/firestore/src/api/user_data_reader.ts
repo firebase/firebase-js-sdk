@@ -49,10 +49,11 @@ import { PlatformSupport } from '../platform/platform';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
-export class DocumentKeyReference {
+export class DocumentKeyReference<T> {
   constructor(
     public readonly _databaseId: DatabaseId,
-    public readonly _key: DocumentKey
+    public readonly _key: DocumentKey,
+    public readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {}
 }
 
