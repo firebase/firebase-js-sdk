@@ -762,7 +762,7 @@ export class Transaction extends BaseTransaction
   get<T>(
     documentRef: firestore.DocumentReference<T>
   ): Promise<DocumentSnapshot<T>> {
-    const ref = validateReference(
+    const ref = validateReference<T>(
       'Transaction.get',
       documentRef,
       this._firestore
@@ -2418,7 +2418,7 @@ function validateGetOptions(
   }
 }
 
-function validateReference<T>(
+export function validateReference<T>(
   methodName: string,
   documentRef: firestoreLite.DocumentReference<T>,
   firestore: firestoreLite.FirebaseFirestore

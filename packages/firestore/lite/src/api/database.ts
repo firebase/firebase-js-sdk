@@ -193,10 +193,3 @@ export function writeBatch(firestore: Firestore): WriteBatch {
       .then(datastore => invokeCommitRpc(datastore, mutations))
   );
 }
-
-export function runTransaction<T>(
-  firestore: FirebaseFirestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
-): Promise<T> {
-  return new Transaction();
-}
