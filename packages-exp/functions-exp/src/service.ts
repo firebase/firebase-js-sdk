@@ -29,6 +29,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 export const DEFAULT_REGION = 'us-central1';
+const serializer = new Serializer();
 
 /**
  * The response to an http request.
@@ -72,7 +73,6 @@ function failAfter(millis: number): Promise<never> {
  */
 export class FunctionsService {
   readonly contextProvider: ContextProvider;
-  readonly serializer = new Serializer();
   emulatorOrigin: string | null = null;
   cancelAllRequests: Promise<void>;
   deleteService!: Function;
@@ -205,7 +205,7 @@ async function call(
   const url = functionsInstance._url(name);
 
   // Encode any special types, such as dates, in the input data.
-  data = functionsInstance.serializer.encode(data);
+  data = serializer.encode(data);
   const body = { data };
 
   // Add a header for the authToken.
@@ -236,11 +236,7 @@ async function call(
   }
 
   // Check for an error status, regardless of http status.
-  const error = _errorForResponse(
-    response.status,
-    response.json,
-    functionsInstance.serializer
-  );
+  const error = _errorForResponse(response.status, response.json, serializer);
   if (error) {
     throw error;
   }
@@ -261,9 +257,7 @@ async function call(
   }
 
   // Decode any special types, such as dates, in the returned data.
-  const decodedData = functionsInstance.serializer.decode(
-    responseData as {} | null
-  );
+  const decodedData = serializer.decode(responseData as {} | null);
 
   return { data: decodedData };
 }

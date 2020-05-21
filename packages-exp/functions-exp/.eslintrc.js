@@ -29,7 +29,7 @@ module.exports = {
     'import/no-extraneous-dependencies': [
       'error',
       {
-        'packageDir': [path.resolve(__dirname, '../../'), './'],
+        'packageDir': [path.resolve(__dirname, '../../'), __dirname],
         devDependencies: true,
         peerDependencies: true
       }

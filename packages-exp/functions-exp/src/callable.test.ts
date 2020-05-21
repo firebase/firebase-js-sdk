@@ -16,8 +16,7 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp } from '@firebase/app-types/private';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { FunctionsErrorCode } from '@firebase/functions-types-exp';
 import {
   Provider,
