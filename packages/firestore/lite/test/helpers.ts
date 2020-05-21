@@ -89,11 +89,7 @@ export async function withTestDbSettings(
     'test-app-' + appCount++
   );
 
-  const firestore = new Firestore(
-    app,
-    new Provider('auth-internal', new ComponentContainer('default'))
-  );
-  initializeFirestore(firestore, settings);
+  const firestore = initializeFirestore(app, settings);
   return fn(firestore);
 }
 

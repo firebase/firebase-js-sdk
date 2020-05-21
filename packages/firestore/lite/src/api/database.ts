@@ -16,8 +16,9 @@
  */
 
 import * as firestore from '../../';
-
-import { Provider } from '@firebase/component';
+import { _getProvider } from '@firebase/app-exp';
+import { LogLevel } from '@firebase/logger';
+import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { FirebaseService } from '@firebase/app-types/private';
@@ -29,9 +30,7 @@ import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { CollectionReference, DocumentReference } from './reference';
-import { ResourcePath } from '../../../src/model/path';
-import { DocumentKey } from '../../../src/model/document_key';
+import { setLogLevel as _setLogLevel } from '../../../src/util/log';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -145,9 +144,34 @@ export interface Settings {
   ssl?: boolean;
 }
 
+export function getFirestore(app: FirebaseApp): Firestore {
+  return _getProvider(app, 'firestore').getImmediate();
+}
+
 export function initializeFirestore(
-  firstore: Firestore,
-  settings?: Settings
-): void {
-  firstore._configureClient(new FirestoreSettings(settings ?? {}));
+  app: FirebaseApp,
+  settings: Settings
+): Firestore {
+  const firestore = getFirestore(app);
+  firestore._configureClient(new FirestoreSettings(settings));
+  return firestore;
+}
+
+export function setLogLevel(level: firestore.LogLevel): void {
+  switch (level) {
+    case 'debug':
+      _setLogLevel(LogLevel.DEBUG);
+      break;
+    case 'error':
+      _setLogLevel(LogLevel.ERROR);
+      break;
+    case 'silent':
+      _setLogLevel(LogLevel.SILENT);
+      break;
+    default:
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid log level: ' + level
+      );
+  }
 }

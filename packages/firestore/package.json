@@ -55,6 +55,7 @@
     "@firebase/firestore-types": "1.10.1",
     "@firebase/logger": "0.2.3",
     "@firebase/util": "0.2.46",
+    "@firebase/app-exp": "0.0.800",
     "@firebase/webchannel-wrapper": "0.2.40",
     "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.0",
