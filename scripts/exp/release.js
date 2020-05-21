@@ -102,7 +102,7 @@ async function publishExpPackages() {
 
 async function buildPackages() {
   const spinner = ora(' Building Packages').start();
-  await spawn('yarn', ['build:exp'], {
+  await spawn('yarn', ['build:exp:release'], {
     cwd: projectRoot
   });
   spinner.stopAndPersist({

@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -73,6 +75,8 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+
+use(chaiAsPromised);
 
 /* eslint-disable no-restricted-globals */
 
@@ -1161,6 +1165,19 @@ describe('IndexedDb: allowTabSynchronization', () => {
         db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
         await db.shutdown();
+      }
+    );
+  });
+
+  it('blocks start() when getHighestListenSequenceNumber() fails', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      async db1 => {
+        db1.injectFailures = ['getHighestListenSequenceNumber'];
+        await expect(db1.start()).to.eventually.be.rejectedWith(
+          'IndexedDB transaction failed'
+        );
       }
     );
   });

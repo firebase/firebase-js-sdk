@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -16,16 +17,23 @@
  */
 
 const { writeFileSync } = require('fs');
+const { argv } = require('yargs');
+
+const path = require('path');
+const packageJsonPath = path.resolve(__dirname, './package.json');
 
 // point typings field to the public d.ts file in package.json
-const PUBLIC_TYPINGS_PATH = './dist/app-exp-public.d.ts';
+const TYPINGS_PATH = argv.public
+  ? './dist/app-exp-public.d.ts'
+  : './dist/app-exp.d.ts';
 console.log(
-  `Updating the typings field to the public d.ts file ${PUBLIC_TYPINGS_PATH}`
+  `Updating the packages-exp/app-exp typings field to the ${
+    argv.public ? 'public' : 'internal'
+  } d.ts file ${TYPINGS_PATH}`
 );
+const packageJson = require(packageJsonPath);
+packageJson.typings = TYPINGS_PATH;
 
-const packageJson = require('./package.json');
-packageJson.typings = PUBLIC_TYPINGS_PATH;
-
-writeFileSync('./package.json', `${JSON.stringify(packageJson, null, 2)}\n`, {
+writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, {
   encoding: 'utf-8'
 });

@@ -490,4 +490,41 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         removed: [doc1]
       });
   });
+
+  specTest(
+    'User change handles transaction failures (with recovery)',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc(
+        'collection/key1',
+        0,
+        { foo: 'a' },
+        { hasLocalMutations: true }
+      );
+      return spec()
+        .changeUser('user1')
+        .userSets('collection/key1', { foo: 'a' })
+        .userListens(query)
+        .expectEvents(query, {
+          added: [doc1],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .failDatabaseTransactions('Handle user change')
+        .changeUser('user2')
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectEvents(query, { removed: [doc1], fromCache: true })
+        .failDatabaseTransactions('Handle user change')
+        .changeUser('user1')
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectEvents(query, {
+          added: [doc1],
+          fromCache: true,
+          hasPendingWrites: true
+        });
+    }
+  );
 });

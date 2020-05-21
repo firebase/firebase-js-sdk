@@ -860,15 +860,15 @@ export class SyncEngine implements RemoteSyncer {
 
   async handleCredentialChange(user: User): Promise<void> {
     const userChanged = !this.currentUser.isEqual(user);
-    this.currentUser = user;
 
     if (userChanged) {
+      const result = await this.localStore.handleUserChange(user);
+      this.currentUser = user;
+
       // Fails tasks waiting for pending writes requested by previous user.
       this.rejectOutstandingPendingWritesCallbacks(
         "'waitForPendingWrites' promise is rejected due to a user change."
       );
-
-      const result = await this.localStore.handleUserChange(user);
       // TODO(b/114226417): Consider calling this only in the primary tab.
       this.sharedClientState.handleUserChange(
         user,
