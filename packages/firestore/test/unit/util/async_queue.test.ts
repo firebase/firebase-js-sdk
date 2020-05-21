@@ -27,6 +27,13 @@ import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 
 use(chaiAsPromised);
 
+function isSafari(): boolean {
+  return (
+    navigator.userAgent.includes('Safari') &&
+    !navigator.userAgent.includes('Chrome')
+  );
+}
+
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
   const timerId1 = TimerId.ListenStreamConnectionBackoff;
@@ -137,14 +144,21 @@ describe('AsyncQueue', () => {
     });
   });
 
-  it('can schedule ops in the future', async () => {
+  // Flaky on Safari.
+  // eslint-disable-next-line no-restricted-properties
+  (isSafari() ? it.skip : it)('can schedule ops in the future', async () => {
+    if (
+      navigator.userAgent.includes('Safari') &&
+      !navigator.userAgent.includes('Chrome')
+    ) {
+      return;
+    }
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
-    // Flaky on Safari, increasing delay to 1000ms to try to increase reliability.
-    const last = queue.enqueueAfterDelay(timerId1, 1000, () => doStep(4));
+    const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId2, 1, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
