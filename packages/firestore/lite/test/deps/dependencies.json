@@ -1,4 +1,42 @@
 {
+    "Blob": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
+                "binaryStringFromUint8Array",
+                "debugAssert",
+                "fail",
+                "formatPlural",
+                "invalidClassError",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "Blob",
+                "ByteString",
+                "DocumentKey",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "PlatformSupport",
+                "ResourcePath"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 13680
+    },
     "CollectionReference": {
         "dependencies": {
             "functions": [
@@ -87,7 +125,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39700
+        "sizeInBytes": 39890
     },
     "DocumentReference": {
         "dependencies": {
@@ -119,7 +157,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10992
+        "sizeInBytes": 11128
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -174,7 +212,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22220
+        "sizeInBytes": 22356
     },
     "FieldPath": {
         "dependencies": {
@@ -204,7 +242,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10758
+        "sizeInBytes": 10807
     },
     "FieldValue": {
         "dependencies": {
@@ -235,49 +273,141 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10762
+        "sizeInBytes": 10811
     },
     "FirebaseFirestore": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "arrayEquals",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
+                "binaryStringFromUint8Array",
+                "blobEquals",
+                "debugAssert",
+                "errorMessage",
+                "fail",
+                "fieldMaskContains",
+                "fieldPathFromArgument",
+                "fieldPathFromDotSeparatedString",
+                "forEach",
+                "formatPlural",
+                "fromDotSeparatedString",
+                "geoPointEquals",
+                "getLocalWriteTime",
+                "hardAssert",
+                "invalidClassError",
+                "isEmpty",
+                "isMapValue",
+                "isNegativeZero",
+                "isPlainObject",
+                "isServerTimestamp",
+                "isWrite",
+                "logError",
+                "looksLikeJsonObject",
+                "newDatastore",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "numberEquals",
+                "objectEquals",
+                "objectSize",
+                "ordinal",
+                "parseArray",
+                "parseData",
+                "parseObject",
+                "parseScalarValue",
+                "parseSentinelFieldValue",
+                "primitiveComparator",
+                "timestampEquals",
+                "tryGetCustomObjectType",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validatePlainObject",
+                "validateType",
+                "valueDescription",
+                "valueEquals"
+            ],
+            "classes": [
+                "BasePath",
+                "Blob",
+                "ByteString",
+                "DatabaseId",
+                "DatabaseInfo",
+                "Datastore",
+                "DatastoreImpl",
+                "DeleteFieldValueImpl",
+                "Document",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "FieldMask",
+                "FieldPath",
+                "FieldPath$1",
+                "FieldValueImpl",
+                "FirebaseCredentialsProvider",
+                "Firestore",
+                "FirestoreError",
+                "FirestoreSettings",
+                "GeoPoint",
+                "MaybeDocument",
+                "Mutation",
+                "OAuthToken",
+                "ObjectValue",
+                "ObjectValueBuilder",
+                "ParseContext",
+                "ParsedSetData",
+                "ParsedUpdateData",
+                "PatchMutation",
+                "PlatformSupport",
+                "Precondition",
+                "ResourcePath",
+                "SetMutation",
+                "SnapshotVersion",
+                "Timestamp",
+                "TransformMutation",
+                "UnknownDocument",
+                "User",
+                "UserDataReader"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 51354
+    },
+    "GeoPoint": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "debugAssert",
                 "fail",
                 "formatPlural",
-                "hardAssert",
                 "invalidClassError",
                 "isPlainObject",
                 "logError",
-                "newDatastore",
                 "ordinal",
                 "primitiveComparator",
                 "tryGetCustomObjectType",
                 "validateArgType",
+                "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
                 "BasePath",
-                "DatabaseId",
-                "DatabaseInfo",
-                "Datastore",
-                "DatastoreImpl",
                 "DocumentKey",
                 "FieldPath",
                 "FieldPath$1",
-                "FirebaseCredentialsProvider",
-                "Firestore",
                 "FirestoreError",
-                "FirestoreSettings",
-                "OAuthToken",
+                "GeoPoint",
                 "PlatformSupport",
-                "ResourcePath",
-                "User"
+                "ResourcePath"
             ],
             "variables": []
         },
-        "sizeInBytes": 16516
+        "sizeInBytes": 12004
     },
     "Query": {
         "dependencies": {
@@ -308,7 +438,63 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10839
+        "sizeInBytes": 10888
+    },
+    "QueryDocumentSnapshot": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
+                "binaryStringFromUint8Array",
+                "debugAssert",
+                "fail",
+                "forEach",
+                "formatPlural",
+                "getLocalWriteTime",
+                "getPreviousValue",
+                "hardAssert",
+                "invalidClassError",
+                "isPlainObject",
+                "isServerTimestamp",
+                "isValidResourceName",
+                "logError",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "Blob",
+                "ByteString",
+                "DatabaseId",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
+                "DocumentSnapshot",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "GeoPoint",
+                "PlatformSupport",
+                "QueryDocumentSnapshot",
+                "ResourcePath",
+                "Timestamp",
+                "UserDataWriter"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 22442
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -366,7 +552,162 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22951
+        "sizeInBytes": 23087
+    },
+    "Timestamp": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "debugAssert",
+                "fail",
+                "formatPlural",
+                "invalidClassError",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "validateArgType",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "DocumentKey",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "PlatformSupport",
+                "ResourcePath",
+                "Timestamp"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 12447
+    },
+    "Transaction": {
+        "dependencies": {
+            "functions": [
+                "applyFirestoreDataConverter",
+                "argToString",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
+                "binaryStringFromUint8Array",
+                "debugAssert",
+                "fail",
+                "forEach",
+                "formatPlural",
+                "getLocalWriteTime",
+                "getPreviousValue",
+                "hardAssert",
+                "invalidClassError",
+                "isPlainObject",
+                "isServerTimestamp",
+                "isValidResourceName",
+                "logError",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateArrayElements",
+                "validateAtLeastNumberOfArgs",
+                "validateBetweenNumberOfArgs",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateNamedOptionalType",
+                "validateNamedType",
+                "validateOptionNames",
+                "validateOptionalArrayElements",
+                "validateReference",
+                "validateSetOptions",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "Blob",
+                "ByteString",
+                "DatabaseId",
+                "Document",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
+                "DocumentSnapshot",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "GeoPoint",
+                "MaybeDocument",
+                "NoDocument",
+                "PlatformSupport",
+                "ResourcePath",
+                "Timestamp",
+                "Transaction$1",
+                "TransactionWriter",
+                "UserDataWriter"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 29394
+    },
+    "WriteBatch": {
+        "dependencies": {
+            "functions": [
+                "applyFirestoreDataConverter",
+                "argToString",
+                "debugAssert",
+                "fail",
+                "forEach",
+                "formatPlural",
+                "invalidClassError",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "validateArgType",
+                "validateArrayElements",
+                "validateAtLeastNumberOfArgs",
+                "validateBetweenNumberOfArgs",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateNamedOptionalType",
+                "validateNamedType",
+                "validateOptionNames",
+                "validateOptionalArrayElements",
+                "validateReference",
+                "validateSetOptions",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "DeleteMutation",
+                "Document",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "MaybeDocument",
+                "Mutation",
+                "NoDocument",
+                "PlatformSupport",
+                "Precondition",
+                "ResourcePath",
+                "SnapshotVersion",
+                "Timestamp",
+                "WriteBatch"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 22460
     },
     "arrayRemove": {
         "dependencies": {
@@ -442,7 +783,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28897
+        "sizeInBytes": 28984
     },
     "arrayUnion": {
         "dependencies": {
@@ -518,7 +859,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28905
+        "sizeInBytes": 28992
     },
     "collection": {
         "dependencies": {
@@ -526,6 +867,8 @@
                 "argToString",
                 "arrayEquals",
                 "arrayValueContains",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "canonicalId",
@@ -546,13 +889,21 @@
                 "compareReferences",
                 "compareTimestamps",
                 "debugAssert",
+                "errorMessage",
                 "fail",
+                "fieldMaskContains",
+                "fieldPathFromArgument",
+                "fieldPathFromDotSeparatedString",
+                "forEach",
                 "formatPlural",
+                "fromDotSeparatedString",
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isEmpty",
+                "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
@@ -560,7 +911,9 @@
                 "isPlainObject",
                 "isReferenceValue",
                 "isServerTimestamp",
+                "isWrite",
                 "logError",
+                "looksLikeJsonObject",
                 "newDatastore",
                 "normalizeByteString",
                 "normalizeNumber",
@@ -569,13 +922,20 @@
                 "objectEquals",
                 "objectSize",
                 "ordinal",
+                "parseArray",
+                "parseData",
+                "parseObject",
+                "parseScalarValue",
+                "parseSentinelFieldValue",
                 "primitiveComparator",
                 "timestampEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validatePlainObject",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -586,6 +946,7 @@
                 "ArrayContainsFilter",
                 "AutoId",
                 "BasePath",
+                "Blob",
                 "Bound",
                 "ByteString",
                 "CollectionReference",
@@ -593,41 +954,60 @@
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
+                "DeleteFieldValueImpl",
+                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldFilter",
+                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValueImpl",
                 "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "FirestoreSettings",
+                "GeoPoint",
                 "InFilter",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
+                "MaybeDocument",
+                "Mutation",
                 "OAuthToken",
+                "ObjectValue",
+                "ObjectValueBuilder",
                 "OrderBy",
+                "ParseContext",
+                "ParsedSetData",
+                "ParsedUpdateData",
+                "PatchMutation",
                 "PlatformSupport",
+                "Precondition",
                 "Query",
                 "Query$1",
                 "ResourcePath",
+                "SetMutation",
+                "SnapshotVersion",
                 "Target",
                 "Timestamp",
-                "User"
+                "TransformMutation",
+                "UnknownDocument",
+                "User",
+                "UserDataReader"
             ],
             "variables": []
         },
-        "sizeInBytes": 45652
+        "sizeInBytes": 73123
     },
-    "deleteDocument": {
+    "deleteDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "debugAssert",
                 "debugCast",
-                "deleteDocument",
+                "deleteDoc",
                 "fail",
                 "formatPlural",
                 "invalidClassError",
@@ -663,7 +1043,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17874
+        "sizeInBytes": 17765
     },
     "deleteField": {
         "dependencies": {
@@ -696,7 +1076,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11490
+        "sizeInBytes": 11539
     },
     "doc": {
         "dependencies": {
@@ -730,9 +1110,9 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11876
+        "sizeInBytes": 12030
     },
-    "getDocument": {
+    "getDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
@@ -744,7 +1124,7 @@
                 "fail",
                 "forEach",
                 "formatPlural",
-                "getDocument",
+                "getDoc",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
@@ -792,7 +1172,38 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 25084
+        "sizeInBytes": 25209
+    },
+    "getFirestore": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "debugAssert",
+                "fail",
+                "formatPlural",
+                "getFirestore",
+                "invalidClassError",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "tryGetCustomObjectType",
+                "validateArgType",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "DocumentKey",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "PlatformSupport",
+                "ResourcePath"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 10897
     },
     "getQuery": {
         "dependencies": {
@@ -855,7 +1266,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24547
+        "sizeInBytes": 24682
     },
     "increment": {
         "dependencies": {
@@ -931,7 +1342,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28843
+        "sizeInBytes": 28930
     },
     "initializeFirestore": {
         "dependencies": {
@@ -940,6 +1351,7 @@
                 "debugAssert",
                 "fail",
                 "formatPlural",
+                "getFirestore",
                 "initializeFirestore",
                 "invalidClassError",
                 "isPlainObject",
@@ -963,7 +1375,194 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11384
+        "sizeInBytes": 11544
+    },
+    "parent": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "arrayEquals",
+                "arrayValueContains",
+                "binaryStringFromUint8Array",
+                "blobEquals",
+                "canonicalId",
+                "canonifyArray",
+                "canonifyByteString",
+                "canonifyGeoPoint",
+                "canonifyMap",
+                "canonifyReference",
+                "canonifyTimestamp",
+                "canonifyValue",
+                "compareArrays",
+                "compareBlobs",
+                "compareDocumentsByField",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
+                "debugAssert",
+                "fail",
+                "formatPlural",
+                "geoPointEquals",
+                "getLocalWriteTime",
+                "hardAssert",
+                "invalidClassError",
+                "isArray",
+                "isNanValue",
+                "isNegativeZero",
+                "isNullOrUndefined",
+                "isNullValue",
+                "isPlainObject",
+                "isReferenceValue",
+                "isServerTimestamp",
+                "logError",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "numberEquals",
+                "objectEquals",
+                "objectSize",
+                "ordinal",
+                "parent",
+                "primitiveComparator",
+                "timestampEquals",
+                "tryGetCustomObjectType",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueCompare",
+                "valueDescription",
+                "valueEquals"
+            ],
+            "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
+                "AutoId",
+                "BasePath",
+                "Bound",
+                "ByteString",
+                "CollectionReference",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
+                "FieldFilter",
+                "FieldPath",
+                "FieldPath$1",
+                "Filter",
+                "FirestoreError",
+                "InFilter",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
+                "OrderBy",
+                "PlatformSupport",
+                "Query",
+                "Query$1",
+                "ResourcePath",
+                "Target",
+                "Timestamp"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 40123
+    },
+    "runTransaction": {
+        "dependencies": {
+            "functions": [
+                "applyFirestoreDataConverter",
+                "argToString",
+                "assertBase64Available",
+                "assertUint8ArrayAvailable",
+                "binaryStringFromUint8Array",
+                "debugAssert",
+                "debugCast",
+                "documentVersionMap",
+                "fail",
+                "forEach",
+                "formatPlural",
+                "getLocalWriteTime",
+                "getPreviousValue",
+                "hardAssert",
+                "invalidClassError",
+                "invokeBatchGetDocumentsRpc",
+                "invokeCommitRpc",
+                "isIndexedDbTransactionError",
+                "isNullOrUndefined",
+                "isPermanentError",
+                "isPlainObject",
+                "isServerTimestamp",
+                "isValidResourceName",
+                "logDebug",
+                "logError",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "ordinal",
+                "primitiveComparator",
+                "runTransaction",
+                "tryGetCustomObjectType",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "validateArgType",
+                "validateArrayElements",
+                "validateAtLeastNumberOfArgs",
+                "validateBetweenNumberOfArgs",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateNamedOptionalType",
+                "validateNamedType",
+                "validateOptionNames",
+                "validateOptionalArrayElements",
+                "validateReference",
+                "validateSetOptions",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "AsyncQueue",
+                "BasePath",
+                "Blob",
+                "ByteString",
+                "DatabaseId",
+                "Datastore",
+                "DatastoreImpl",
+                "Deferred",
+                "DelayedOperation",
+                "DeleteMutation",
+                "Document",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
+                "DocumentSnapshot",
+                "ExponentialBackoff",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "GeoPoint",
+                "LLRBEmptyNode",
+                "LLRBNode",
+                "MaybeDocument",
+                "Mutation",
+                "NoDocument",
+                "PlatformSupport",
+                "Precondition",
+                "ResourcePath",
+                "SnapshotVersion",
+                "SortedMap",
+                "SortedMapIterator",
+                "Timestamp",
+                "Transaction",
+                "Transaction$1",
+                "TransactionRunner",
+                "TransactionWriter",
+                "UserDataWriter",
+                "VerifyMutation"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 52938
     },
     "serverTimestamp": {
         "dependencies": {
@@ -999,198 +1598,174 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 12282
+        "sizeInBytes": 12331
     },
-    "setDocument": {
+    "setDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "arrayEquals",
-                "assertBase64Available",
-                "assertUint8ArrayAvailable",
-                "binaryStringFromUint8Array",
-                "blobEquals",
                 "debugAssert",
                 "debugCast",
-                "errorMessage",
                 "fail",
-                "fieldMaskContains",
-                "fieldPathFromArgument",
-                "fieldPathFromDotSeparatedString",
-                "forEach",
                 "formatPlural",
-                "fromDotSeparatedString",
-                "geoPointEquals",
-                "getLocalWriteTime",
-                "hardAssert",
                 "invalidClassError",
                 "invokeCommitRpc",
-                "isEmpty",
-                "isMapValue",
-                "isNegativeZero",
+                "isMerge",
+                "isMergeFields",
                 "isPlainObject",
-                "isServerTimestamp",
-                "isWrite",
                 "logError",
-                "looksLikeJsonObject",
-                "normalizeByteString",
-                "normalizeNumber",
-                "normalizeTimestamp",
-                "numberEquals",
-                "objectEquals",
-                "objectSize",
                 "ordinal",
-                "parseArray",
-                "parseData",
-                "parseObject",
-                "parseScalarValue",
-                "parseSentinelFieldValue",
-                "primitiveComparator",
-                "setDocument",
-                "timestampEquals",
+                "setDoc",
                 "tryGetCustomObjectType",
-                "typeOrder",
-                "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validatePlainObject",
                 "validateType",
-                "valueDescription",
-                "valueEquals"
+                "valueDescription"
             ],
             "classes": [
                 "BasePath",
-                "Blob",
-                "ByteString",
                 "Datastore",
                 "DatastoreImpl",
-                "DeleteFieldValueImpl",
                 "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldValueImpl",
                 "FirestoreError",
-                "GeoPoint",
                 "MaybeDocument",
-                "Mutation",
-                "ObjectValue",
-                "ObjectValueBuilder",
-                "ParseContext",
-                "ParsedSetData",
-                "ParsedUpdateData",
-                "PatchMutation",
                 "PlatformSupport",
                 "Precondition",
-                "ResourcePath",
-                "SetMutation",
-                "SnapshotVersion",
-                "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
-                "UserDataReader"
+                "ResourcePath"
             ],
             "variables": []
         },
-        "sizeInBytes": 47260
+        "sizeInBytes": 14431
     },
-    "updateDocument": {
+    "setLogLevel": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "arrayEquals",
-                "assertBase64Available",
-                "assertUint8ArrayAvailable",
-                "binaryStringFromUint8Array",
-                "blobEquals",
                 "debugAssert",
-                "debugCast",
-                "errorMessage",
                 "fail",
-                "fieldMaskContains",
-                "fieldPathFromArgument",
-                "fieldPathFromDotSeparatedString",
-                "forEach",
                 "formatPlural",
-                "fromDotSeparatedString",
-                "geoPointEquals",
-                "getLocalWriteTime",
-                "hardAssert",
                 "invalidClassError",
-                "invokeCommitRpc",
-                "isEmpty",
-                "isMapValue",
-                "isNegativeZero",
                 "isPlainObject",
-                "isServerTimestamp",
-                "isWrite",
                 "logError",
-                "looksLikeJsonObject",
-                "normalizeByteString",
-                "normalizeNumber",
-                "normalizeTimestamp",
-                "numberEquals",
-                "objectEquals",
-                "objectSize",
                 "ordinal",
-                "parseArray",
-                "parseData",
-                "parseObject",
-                "parseScalarValue",
-                "parseSentinelFieldValue",
-                "primitiveComparator",
-                "timestampEquals",
+                "setLogLevel",
+                "setLogLevel$1",
                 "tryGetCustomObjectType",
-                "typeOrder",
-                "uint8ArrayFromBinaryString",
-                "updateDocument",
                 "validateArgType",
-                "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validatePlainObject",
                 "validateType",
-                "valueDescription",
-                "valueEquals"
+                "valueDescription"
             ],
             "classes": [
                 "BasePath",
-                "Blob",
-                "ByteString",
-                "Datastore",
-                "DatastoreImpl",
-                "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldValueImpl",
                 "FirestoreError",
-                "GeoPoint",
-                "MaybeDocument",
-                "Mutation",
-                "ObjectValue",
-                "ObjectValueBuilder",
-                "ParseContext",
-                "ParsedSetData",
-                "ParsedUpdateData",
-                "PatchMutation",
                 "PlatformSupport",
-                "Precondition",
-                "ResourcePath",
-                "SetMutation",
-                "SnapshotVersion",
-                "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
-                "UserDataReader"
+                "ResourcePath"
             ],
             "variables": []
         },
-        "sizeInBytes": 47369
+        "sizeInBytes": 11139
+    },
+    "updateDoc": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "debugAssert",
+                "debugCast",
+                "fail",
+                "formatPlural",
+                "invalidClassError",
+                "invokeCommitRpc",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "tryGetCustomObjectType",
+                "updateDoc",
+                "validateArgType",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateType",
+                "valueDescription"
+            ],
+            "classes": [
+                "BasePath",
+                "Datastore",
+                "DatastoreImpl",
+                "Document",
+                "DocumentKey",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "MaybeDocument",
+                "PlatformSupport",
+                "Precondition",
+                "ResourcePath"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 14356
+    },
+    "writeBatch": {
+        "dependencies": {
+            "functions": [
+                "applyFirestoreDataConverter",
+                "argToString",
+                "debugAssert",
+                "debugCast",
+                "fail",
+                "forEach",
+                "formatPlural",
+                "invalidClassError",
+                "invokeCommitRpc",
+                "isPlainObject",
+                "logError",
+                "ordinal",
+                "primitiveComparator",
+                "tryGetCustomObjectType",
+                "validateArgType",
+                "validateArrayElements",
+                "validateAtLeastNumberOfArgs",
+                "validateBetweenNumberOfArgs",
+                "validateExactNumberOfArgs",
+                "validateNamedArrayAtLeastNumberOfElements",
+                "validateNamedOptionalType",
+                "validateNamedType",
+                "validateOptionNames",
+                "validateOptionalArrayElements",
+                "validateReference",
+                "validateSetOptions",
+                "validateType",
+                "valueDescription",
+                "writeBatch"
+            ],
+            "classes": [
+                "BasePath",
+                "Datastore",
+                "DatastoreImpl",
+                "DeleteMutation",
+                "Document",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "FieldPath",
+                "FieldPath$1",
+                "FirestoreError",
+                "MaybeDocument",
+                "Mutation",
+                "NoDocument",
+                "PlatformSupport",
+                "Precondition",
+                "ResourcePath",
+                "SnapshotVersion",
+                "Timestamp",
+                "WriteBatch"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 23775
     }
 }
