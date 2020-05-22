@@ -463,23 +463,21 @@ export class AsyncQueue {
   }
 
   /**
-   * For Tests: Runs some or all delayed operations early.
+   * Runs some or all delayed operations early.
    *
-   * @param lastTimerId Delayed operations up to and including this TimerId will
-   *  be drained. Throws if no such operation exists. Pass TimerId.All to run
-   *  all delayed operations.
+   * @param timerId Delayed operations to run. Pass TimerId.All to run all
+   * delayed operations.
    * @returns a Promise that resolves once all operations have been run.
    */
-  runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
+  runDelayedOperationsEarly(timerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
       // Run ops in the same order they'd run if they ran naturally.
       this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
 
       for (const op of this.delayedOperations) {
-        op.skipDelay();
-        if (lastTimerId !== TimerId.All && op.timerId === lastTimerId) {
-          break;
+        if (timerId === TimerId.All || op.timerId === timerId) {
+          op.skipDelay();
         }
       }
 

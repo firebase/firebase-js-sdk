@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
+import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
@@ -206,7 +206,13 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.runDelayedOperationsEarly(timerId3);
-    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+    expect(completedSteps).to.deep.equal([1, 2, 4]);
+
+    await queue.runDelayedOperationsEarly(timerId2);
+    expect(completedSteps).to.deep.equal([1, 2, 4, 3]);
+
+    await queue.runDelayedOperationsEarly(timerId1);
+    expect(completedSteps).to.deep.equal([1, 2, 4, 3, 5]);
   });
 
   it('Retries retryable operations', async () => {
