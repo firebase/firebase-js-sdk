@@ -16,7 +16,12 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
+import {
+  ByteStreamReader,
+  ByteStreamReadResult,
+  Platform,
+  toByteStreamReader
+} from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
@@ -92,5 +97,25 @@ export class BrowserPlatform implements Platform {
       }
     }
     return bytes;
+  }
+
+  toByteStreamReader(source: unknown): ByteStreamReader {
+    if (source instanceof Uint8Array) {
+      return toByteStreamReader(source);
+    }
+    if (source instanceof ArrayBuffer) {
+      return toByteStreamReader(new Uint8Array(source));
+    }
+    if (source instanceof ReadableStream) {
+      const reader = source.getReader();
+      return new (class implements ByteStreamReader {
+        read(): Promise<ByteStreamReadResult> {
+          return reader.read();
+        }
+      })();
+    }
+    throw new Error(
+      'Source of `toByteStreamReader` has to be Uint8Array, ArrayBuffer or ReadableStream'
+    );
   }
 }

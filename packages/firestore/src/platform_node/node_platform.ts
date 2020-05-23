@@ -19,7 +19,11 @@ import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
+import {
+  ByteStreamReader,
+  Platform,
+  toByteStreamReader
+} from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
@@ -82,5 +86,12 @@ export class NodePlatform implements Platform {
     debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
 
     return randomBytes(nBytes);
+  }
+
+  toByteStreamReader(source: unknown): ByteStreamReader {
+    if (source instanceof Uint8Array) {
+      return toByteStreamReader(source);
+    }
+    throw new Error('Source of `toByteStreamReader` has to be Uint8Array');
   }
 }

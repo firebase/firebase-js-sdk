@@ -16,7 +16,7 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { Platform } from '../../src/platform/platform';
+import { ByteStreamReader, Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { debugAssert, fail } from '../../src/util/assert';
@@ -269,6 +269,10 @@ export class TestPlatform implements Platform {
 
   randomBytes(nBytes: number): Uint8Array {
     return this.basePlatform.randomBytes(nBytes);
+  }
+
+  toByteStreamReader(source: unknown): ByteStreamReader {
+    return this.basePlatform.toByteStreamReader(source);
   }
 }
 

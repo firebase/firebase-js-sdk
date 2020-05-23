@@ -50,6 +50,8 @@ export interface Platform {
    */
   randomBytes(nBytes: number): Uint8Array;
 
+  toByteStreamReader(source: unknown): ByteStreamReader;
+
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
 
@@ -58,6 +60,36 @@ export interface Platform {
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;
+}
+
+export interface ByteStreamReader {
+  read(): Promise<ByteStreamReadResult>;
+}
+
+export interface ByteStreamReadResult {
+  done: boolean;
+  value: Uint8Array;
+}
+
+export function toByteStreamReader(
+  source: Uint8Array,
+  bytesPerRead = 10240
+): ByteStreamReader {
+  let readFrom = 0;
+  return new (class implements ByteStreamReader {
+    async read(): Promise<ByteStreamReadResult> {
+      if (readFrom < source.byteLength) {
+        const result = {
+          value: source.slice(readFrom, readFrom + bytesPerRead),
+          done: false
+        };
+        readFrom += bytesPerRead;
+        return result;
+      }
+
+      return { value: new Uint8Array(), done: true };
+    }
+  })();
 }
 
 /**
