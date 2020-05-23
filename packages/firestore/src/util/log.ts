@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Logger, LogLevel } from '@firebase/logger';
+import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';
 
-export { LogLevel };
+export { LogLevel, LogLevelString };
 
 const logClient = new Logger('@firebase/firestore');
 
@@ -28,8 +28,8 @@ export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevel): void {
-  logClient.logLevel = newLevel;
+export function setLogLevel(newLevel: LogLevel | LogLevelString): void {
+  logClient.setLogLevel(newLevel);
 }
 
 export function logDebug(msg: string, ...obj: unknown[]): void {

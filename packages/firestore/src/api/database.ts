@@ -68,7 +68,13 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import {
+  getLogLevel,
+  logError,
+  LogLevel,
+  LogLevelString,
+  setLogLevel
+} from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -612,37 +618,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return new WriteBatch(this);
   }
 
-  static get logLevel(): firestore.LogLevel {
-    switch (getLogLevel()) {
-      case LogLevel.DEBUG:
-        return 'debug';
-      case LogLevel.SILENT:
-        return 'silent';
-      default:
-        // The default log level is error
-        return 'error';
-    }
+  static get logLevel(): LogLevel {
+    return getLogLevel();
   }
 
-  static setLogLevel(level: firestore.LogLevel): void {
+  static setLogLevel(level: LogLevelString): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
     validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
-    switch (level) {
-      case 'debug':
-        setLogLevel(LogLevel.DEBUG);
-        break;
-      case 'error':
-        setLogLevel(LogLevel.ERROR);
-        break;
-      case 'silent':
-        setLogLevel(LogLevel.SILENT);
-        break;
-      default:
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid log level: ' + level
-        );
-    }
+    setLogLevel(level);
   }
 
   // Note: this is not a property because the minifier can't work correctly with

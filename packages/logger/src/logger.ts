@@ -151,6 +151,11 @@ export class Logger {
     this._logLevel = val;
   }
 
+  setLogLevel(level: LogLevelString | LogLevel): void {
+    const newLevel = typeof level === 'string' ? levelStringToEnum[level] : level;
+    this.logLevel = newLevel;
+  }
+
   /**
    * The main (internal) log handler for the Logger instance.
    * Can be set to a new function in internal package code but not by user.
@@ -205,9 +210,8 @@ export class Logger {
 }
 
 export function setLogLevel(level: LogLevelString | LogLevel): void {
-  const newLevel = typeof level === 'string' ? levelStringToEnum[level] : level;
   instances.forEach(inst => {
-    inst.logLevel = newLevel;
+    inst.setLogLevel(level);
   });
 }
 
