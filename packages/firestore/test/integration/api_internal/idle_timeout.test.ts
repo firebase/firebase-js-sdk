@@ -27,7 +27,7 @@ apiDescribe('Idle Timeout', (persistence: boolean) => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
+          return asyncQueue(db).runAllDelayedOperationsUntil(
             TimerId.WriteStreamIdle
           );
         })
@@ -53,7 +53,7 @@ apiDescribe('Idle Timeout', (persistence: boolean) => {
 
       return awaitOnlineSnapshot()
         .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
+          return asyncQueue(db).runAllDelayedOperationsUntil(
             TimerId.ListenStreamIdle
           );
         })

@@ -206,7 +206,7 @@ describe('Write Stream', () => {
           expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
             .true;
           return Promise.all([
-            queue.runDelayedOperationsEarly(TimerId.WriteStreamIdle),
+            queue.runAllDelayedOperationsUntil(TimerId.WriteStreamIdle),
             streamListener.awaitCallback('close')
           ]);
         })
@@ -229,7 +229,7 @@ describe('Write Stream', () => {
       writeStream.writeMutations(SINGLE_MUTATION);
       await streamListener.awaitCallback('mutationResult');
 
-      await queue.runDelayedOperationsEarly(TimerId.All);
+      await queue.runAllDelayedOperationsUntil(TimerId.All);
       expect(writeStream.isOpen()).to.be.true;
     });
   });
