@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.14.5",
+  "version": "0.14.6",
   "main": "dist/auth.js",
   "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
@@ -21,7 +21,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.10.0"
+    "@firebase/auth-types": "0.10.1"
   },
   "devDependencies": {
     "google-closure-compiler": "20200112.0.0",
