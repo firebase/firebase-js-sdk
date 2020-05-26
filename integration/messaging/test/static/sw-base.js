@@ -41,7 +41,7 @@ async function addPayloadToDb(payload) {
   dbOpenReq.onupgradeneeded = () => {
     const db = dbOpenReq.result;
 
-    // store creation is synchronized
+    // store creation is a synchronized call
     console.log('creating object store...');
     db.createObjectStore(BACKGROUND_MESSAGES_OBJECT_STORE, {
       keyPath: BACKGROUND_MESSAGES_OBJECT_STORE_PRIMARY_KEY
@@ -60,7 +60,7 @@ async function addPayloadToDb(payload) {
 }
 
 async function addPayloadToDbInternal(db, payload) {
-  // onsuccess might race with onupgradeneeded. Consequently causing " object stores was not found" error. Wait briefly for db.createObjectStore to complete
+  // onsuccess might race with onupgradeneeded. Consequently causing " object stores was not found" error. Therefore, wait briefly for db.createObjectStore to complete
   const delay = ms => new Promise(res => setTimeout(res, ms));
   await delay(/* milliseconds= */ 1000);
 

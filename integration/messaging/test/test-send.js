@@ -34,6 +34,8 @@ const FIELD_COLLAPSE_KEY = 'collapse_key';
 const FIELD_DATA = 'data';
 const FIELD_NOTIFICATION = 'notification';
 
+const wait = ms => new Promise(res => setTimeout(res, ms));
+
 describe('Starting Integration Test > Sending and Receiving ', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
   let globalWebDriver;
@@ -63,9 +65,9 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      after(async function() {
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-      });
+      // after(async function() {
+      //   await seleniumAssistant.killWebDriver(globalWebDriver);
+      // });
 
       afterEach(async function() {
         await clearBackgroundMessages(globalWebDriver);
@@ -81,6 +83,9 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
           })
         );
 
+        // Wait briefly for object store to be created and received message to be stored in idb
+        await wait(3000);
+
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
@@ -95,6 +100,9 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
             data: getTestDataPayload()
           })
         );
+
+        // Wait briefly for object store to be created and received message to be stored in idb
+        await wait(3000);
 
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
@@ -114,7 +122,6 @@ function checkMessageReceived(
   expect(receivedMessages).to.exist;
 
   const message = receivedMessages[0];
-  console.log('??? message: ' + JSON.stringify(message));
 
   expect(message[FIELD_FROM]).to.equal(TEST_PROJECT_SENDER_ID);
   expect(message[FIELD_COLLAPSE_KEY]).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
