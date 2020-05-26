@@ -262,9 +262,18 @@ class FirestoreSettings {
 }
 
 /**
+ * Interface that denotes properties shared by the Firestore instance
+ * of the lite, full and legacy SDK.
+ */
+export interface InternalFirestore {
+  readonly _dataReader: UserDataReader;
+}
+
+/**
  * The root reference to the database.
  */
-export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
+export class Firestore
+  implements firestore.FirebaseFirestore, FirebaseService, InternalFirestore {
   // The objects that are a part of this API are exposed to third-parties as
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
@@ -607,9 +616,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   batch(): firestore.WriteBatch {
-    this.ensureClientConfigured();
+    const firestoreClient = this.ensureClientConfigured();
 
-    return new WriteBatch(this);
+    return new WriteBatch(this, mutations => firestoreClient.write(mutations));
   }
 
   static get logLevel(): firestore.LogLevel {
@@ -803,7 +812,10 @@ export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private _firestore: Firestore) {}
+  constructor(
+    private _firestore: InternalFirestore,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {}
 
   set<T>(
     documentRef: firestore.DocumentReference<T>,
@@ -914,7 +926,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore.ensureClientConfigured().write(this._mutations);
+      return this._commitHandler(this._mutations);
     }
 
     return Promise.resolve();
@@ -2424,7 +2436,7 @@ function validateGetOptions(
 function validateReference<T>(
   methodName: string,
   documentRef: firestore.DocumentReference<T>,
-  firestore: Firestore
+  firestore: InternalFirestore
 ): DocumentReference<T> {
   if (!(documentRef instanceof DocumentReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
