@@ -65,9 +65,9 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      // after(async function() {
-      //   await seleniumAssistant.killWebDriver(globalWebDriver);
-      // });
+      after(async function() {
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+      });
 
       afterEach(async function() {
         await clearBackgroundMessages(globalWebDriver);
