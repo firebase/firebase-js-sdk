@@ -171,7 +171,7 @@ describe('AsyncQueue', () => {
       err => expect(err.code === Code.CANCELLED)
     );
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1]);
   });
 
@@ -187,7 +187,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
@@ -205,13 +205,13 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(timerId3);
+    await queue.runAllDelayedOperationsUntil(timerId3);
     expect(completedSteps).to.deep.equal([1, 2, 4]);
 
-    await queue.runDelayedOperationsEarly(timerId2);
+    await queue.runAllDelayedOperationsUntil(timerId2);
     expect(completedSteps).to.deep.equal([1, 2, 4, 3]);
 
-    await queue.runDelayedOperationsEarly(timerId1);
+    await queue.runAllDelayedOperationsUntil(timerId1);
     expect(completedSteps).to.deep.equal([1, 2, 4, 3, 5]);
   });
 
@@ -229,7 +229,7 @@ describe('AsyncQueue', () => {
         );
       }
     });
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 
@@ -285,7 +285,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1]);
 
     // Fast forward all operations
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 
