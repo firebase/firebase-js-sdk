@@ -46,9 +46,22 @@ import {
 import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
-import { DocumentReference } from './database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
+
+/**
+ * A reference to a document in a Firebase project.
+ *
+ * This class serves as a common base class for the public DocumentReferences
+ * exposed in the lite, full and legacy SDK.
+ */
+export class DocumentKeyReference<T> {
+  constructor(
+    public readonly _databaseId: DatabaseId,
+    public readonly _key: DocumentKey,
+    public readonly _converter?: firestore.FirestoreDataConverter<T>
+  ) {}
+}
 
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
@@ -652,9 +665,9 @@ function parseScalarValue(
     };
   } else if (value instanceof Blob) {
     return { bytesValue: context.serializer.toBytes(value) };
-  } else if (value instanceof DocumentReference) {
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
-    const otherDb = value.firestore._databaseId;
+    const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -665,7 +678,7 @@ function parseScalarValue(
     return {
       referenceValue: context.serializer.toResourceName(
         value._key.path,
-        value.firestore._databaseId
+        value._databaseId
       )
     };
   } else if (value === undefined && context.ignoreUndefinedProperties) {
@@ -693,7 +706,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
-    !(input instanceof DocumentReference) &&
+    !(input instanceof DocumentKeyReference) &&
     !(input instanceof FieldValueImpl)
   );
 }
