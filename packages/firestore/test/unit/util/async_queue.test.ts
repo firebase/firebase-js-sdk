@@ -206,13 +206,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.runAllDelayedOperationsUntil(timerId3);
-    expect(completedSteps).to.deep.equal([1, 2, 4]);
-
-    await queue.runAllDelayedOperationsUntil(timerId2);
-    expect(completedSteps).to.deep.equal([1, 2, 4, 3]);
-
-    await queue.runAllDelayedOperationsUntil(timerId1);
-    expect(completedSteps).to.deep.equal([1, 2, 4, 3, 5]);
+    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
   it('Retries retryable operations', async () => {
