@@ -84,7 +84,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
 
         // Wait briefly for object store to be created and received message to be stored in idb
-        await wait(3000);
+        await wait(8000);
 
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
@@ -102,7 +102,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
 
         // Wait briefly for object store to be created and received message to be stored in idb
-        await wait(3000);
+        await wait(8000);
 
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
