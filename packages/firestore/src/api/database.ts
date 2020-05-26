@@ -662,61 +662,20 @@ export class Firestore
 }
 
 /**
- * A reference to a transaction.
+ * Transaction class that supports all write operations, but is missing
+ * `Transaction.get()`. Subclasses must provide their own implementation.
  */
-export class Transaction implements firestore.Transaction {
+export class TransactionWriter {
   constructor(
-    private _firestore: Firestore,
-    private _transaction: InternalTransaction
+    protected _firestore: InternalFirestore,
+    protected _transaction: InternalTransaction
   ) {}
-
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
-    validateExactNumberOfArgs('Transaction.get', arguments, 1);
-    const ref = validateReference(
-      'Transaction.get',
-      documentRef,
-      this._firestore
-    );
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            null,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            doc,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
-        }
-      });
-  }
 
   set<T>(
     documentRef: firestore.DocumentReference<T>,
     value: T,
     options?: firestore.SetOptions
-  ): Transaction {
+  ): this {
     validateBetweenNumberOfArgs('Transaction.set', arguments, 2, 3);
     const ref = validateReference(
       'Transaction.set',
@@ -747,19 +706,19 @@ export class Transaction implements firestore.Transaction {
   update(
     documentRef: firestore.DocumentReference<unknown>,
     value: firestore.UpdateData
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction {
+  ): this {
     let ref;
     let parsed;
 
@@ -796,7 +755,7 @@ export class Transaction implements firestore.Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): Transaction {
+  delete(documentRef: firestore.DocumentReference<unknown>): this {
     validateExactNumberOfArgs('Transaction.delete', arguments, 1);
     const ref = validateReference(
       'Transaction.delete',
@@ -808,6 +767,59 @@ export class Transaction implements firestore.Transaction {
   }
 }
 
+/** The Transaction class for the legacy SDK. */
+export class Transaction extends TransactionWriter
+  implements firestore.Transaction {
+  constructor(
+    protected _firestore: Firestore,
+    _transaction: InternalTransaction
+  ) {
+    super(_firestore, _transaction);
+  }
+
+  get<T>(
+    documentRef: firestore.DocumentReference<T>
+  ): Promise<DocumentSnapshot<T>> {
+    const ref = validateReference(
+      'Transaction.get',
+      documentRef,
+      this._firestore
+    );
+    return this._transaction
+      .lookup([ref._key])
+      .then((docs: MaybeDocument[]) => {
+        if (!docs || docs.length !== 1) {
+          return fail('Mismatch in docs returned from document lookup.');
+        }
+        const doc = docs[0];
+        if (doc instanceof NoDocument) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            ref._key,
+            null,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            doc.key,
+            doc,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false,
+            ref._converter
+          );
+        } else {
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+          );
+        }
+      });
+  }
+}
+
+/** The WriteBatch class used by the lite, full and legacy API. */
 export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
