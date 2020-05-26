@@ -26,7 +26,7 @@ module.exports = async webdriver => {
 
     const dbOpenReq = indexedDB.open(TEST_DB);
 
-    dbOpenReq.onsuccess = e => {
+    dbOpenReq.onsuccess = () => {
       const db = dbOpenReq.result;
       const tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readwrite');
 

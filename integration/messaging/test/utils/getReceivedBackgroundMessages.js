@@ -21,12 +21,21 @@ const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
 module.exports = async webdriver => {
   console.log('Getting received background messages from idb: ');
 
+  webdriver
+    .executeAsyncScript(
+      // The callback down below is required and injected into window and is referred as arguments[arguments.length - 1]
+      'window.setTimeout(arguments[arguments.length - 1], 2000);'
+    )
+    .then(() =>
+      console.log('Waiting briefly for idb object store to be created.')
+    );
+
   await webdriver.executeScript(() => {
     window.backgroundMessages = [];
 
     const dbOpenReq = indexedDB.open(TEST_DB);
 
-    dbOpenReq.onsuccess = e => {
+    dbOpenReq.onsuccess = () => {
       const db = dbOpenReq.result;
       const tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readonly');
 
