@@ -24,13 +24,13 @@ import { UserInfo } from '@firebase/auth-types-exp';
 
 // import { UserInfo } from '@firebase/auth-types-exp';
 import { mockEndpoint } from '../../../test/api/helper';
-import { testUser } from '../../../test/mock_auth';
+import { testPersistence, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
+import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { ProviderId } from '../providers';
-// import { ProviderId } from '../providers';
-import { updateProfile } from './account_info';
+import { updateEmail, updatePassword, updateProfile } from './account_info';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -49,83 +49,194 @@ describe('core/user/profile', () => {
 
   beforeEach(() => {
     user = testUser('uid', '', true);
+    fetch.setUp();
   });
 
   afterEach(() => {
     sinon.restore();
+    fetch.tearDown();
   });
 
-  beforeEach(fetch.setUp);
-  afterEach(fetch.tearDown);
+  describe('#updateProfile', () => {
+    it('returns immediately if profile object is empty', async () => {
+      const ep = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
+      await updateProfile(user, {});
+      expect(ep.calls).to.be.empty;
+    });
 
-  it('returns immediately if profile object is empty', async () => {
-    const ep = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
-    await updateProfile(user, {});
-    expect(ep.calls).to.be.empty;
-  });
+    it('calls the setAccountInfo endpoint', async () => {
+      const ep =mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
 
-  it('calls the setAccountInfo endpoint', async () => {
-    const ep =mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
+      await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
+      expect(ep.calls[0].request).to.eql({
+        idToken: 'access-token',
+        displayName: 'displayname',
+        photoUrl: 'photo',
+      });
+    });
 
-    await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
-    expect(ep.calls[0].request).to.eql({
-      idToken: 'access-token',
-      displayName: 'displayname',
-      photoUrl: 'photo',
+    it('sets the fields on the user based on the response', async () => {
+      mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+        displayName: 'response-name',
+        photoUrl: 'response-photo',
+      });
+
+      await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
+      expect(user.displayName).to.eq('response-name');
+      expect(user.photoURL).to.eq('response-photo');
+    });
+
+    it('sets the fields on the password provider', async () => {
+      mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+        displayName: 'response-name',
+        photoUrl: 'response-photo',
+      });
+      user.providerData = [{...PASSWORD_PROVIDER}];
+
+      await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
+      const provider = user.providerData[0];
+      expect(provider.displayName).to.eq('response-name');
+      expect(provider.photoURL).to.eq('response-photo');
     });
   });
 
-  it('sets the fields on the user based on the response', async () => {
-    mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-      displayName: 'response-name',
-      photoUrl: 'response-photo',
-    });
+  describe('#updateEmail', () => {
+    it('calls the setAccountInfo endpoint and reloads the user', async () => {
+      const set = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {users: [
+        {localId: 'new-uid-to-prove-refresh-got-called'},
+      ]});
 
-    await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
-    expect(user.displayName).to.eq('response-name');
-    expect(user.photoURL).to.eq('response-photo');
+      await updateEmail(user, 'hello@test.com');
+      expect(set.calls[0].request).to.eql({
+        idToken: 'access-token',
+        email: 'hello@test.com',
+      });
+
+      expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');
+    });
   });
 
-  it('sets the fields on the passwd provider', async () => {
-    mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-      displayName: 'response-name',
-      photoUrl: 'response-photo',
-    });
-    user.providerData = [{...PASSWORD_PROVIDER}];
+  describe('#updatePassword', () => {
+    it('calls the setAccountInfo endpoint and reloads the user', async () => {
+      const set = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {users: [
+        {localId: 'new-uid-to-prove-refresh-got-called'},
+      ]});
 
-    await updateProfile(user, {displayName: 'displayname', photoURL: 'photo'});
-    const provider = user.providerData[0];
-    expect(provider.displayName).to.eq('response-name');
-    expect(provider.photoURL).to.eq('response-photo');
+      await updatePassword(user, 'pass');
+      expect(set.calls[0].request).to.eql({
+        idToken: 'access-token',
+        password: 'pass',
+      });
+
+      expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');
+    });
   });
 
   describe('notifications', () => {
-    beforeEach(() => {
-      user.auth.currentUser = user;
+    let auth: Auth;
+    let idTokenChange: sinon.SinonStub;
+
+    beforeEach(async () => {
+      auth = user.auth;
+      idTokenChange = sinon.stub();
+      auth.onIdTokenChanged(idTokenChange);
+
+      // Flush token change promises which are floating
+      await auth.updateCurrentUser(user);
+      auth._isInitialized = true;
+      idTokenChange.resetHistory();
     });
 
-    it('triggers a token update if necessary', async () => {
-      mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-        idToken: 'new-id-token',
-        refreshToken: 'new-refresh-token',
-        expiresIn: 300,
+    describe('#updateProfile', () => {
+      it('triggers a token update if necessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'new-id-token',
+          refreshToken: 'new-refresh-token',
+          expiresIn: 300,
+        });
+
+        await updateProfile(user, {displayName: 'd'});
+        expect(idTokenChange).to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
       });
 
-      const notifySpy = sinon.stub(user.auth, '_notifyStateListeners');
-      await updateProfile(user, {displayName: 'd'});
-      expect(notifySpy).to.have.been.called;
+      it('does NOT trigger a token update if unnecessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'access-token',
+          refreshToken: 'refresh-token',
+          expiresIn: 300,
+        });
+
+        await updateProfile(user, {displayName: 'd'});
+        expect(idTokenChange).not.to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+      });
     });
 
-    it('does NOT trigger a token update if unnecessary', async () => {
-      mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-        idToken: 'access-token',
-        refreshToken: 'refresh-token',
-        expiresIn: 300,
+    describe('#updateEmail', () => {
+      beforeEach(() => {
+        // This is necessary because this method calls reload; we don't care about that though,
+        // for these tests we're looking at the change listeners
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {users: [{}]});
       });
 
-      const notifySpy = sinon.stub(user.auth, '_notifyStateListeners');
-      await updateProfile(user, {displayName: 'd'});
-      expect(notifySpy).not.to.have.been.called;
+      it('triggers a token update if necessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'new-id-token',
+          refreshToken: 'new-refresh-token',
+          expiresIn: 300,
+        });
+
+        await updatePassword(user, 'email@test.com');
+        expect(idTokenChange).to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+      });
+
+      it('does NOT trigger a token update if unnecessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'access-token',
+          refreshToken: 'refresh-token',
+          expiresIn: 300,
+        });
+
+        await updateEmail(user, 'email@test.com');
+        expect(idTokenChange).not.to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+      });
+    });
+
+    describe('#updatePassword', () => {
+      beforeEach(() => {
+        // This is necessary because this method calls reload; we don't care about that though,
+        // for these tests we're looking at the change listeners
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {users: [{}]});
+      });
+
+      it('triggers a token update if necessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'new-id-token',
+          refreshToken: 'new-refresh-token',
+          expiresIn: 300,
+        });
+
+        await updatePassword(user, 'pass');
+        expect(idTokenChange).to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+      });
+
+      it('does NOT trigger a token update if unnecessary', async () => {
+        mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'access-token',
+          refreshToken: 'refresh-token',
+          expiresIn: 300,
+        });
+
+        await updatePassword(user, 'pass');
+        expect(idTokenChange).not.to.have.been.called;
+        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+      });
     });
   });
 });

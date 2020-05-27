@@ -81,7 +81,7 @@ export class AuthImpl implements Auth {
       }
 
       this._isInitialized = true;
-      this._notifyStateListeners();
+      this.notifyAuthListeners();
     });
   }
 
@@ -89,12 +89,15 @@ export class AuthImpl implements Auth {
     throw new Error('Method not implemented.');
   }
 
-  updateCurrentUser(user: User | null): Promise<void> {
-    return this.queue(() => this.directlySetCurrentUser(user));
+  async updateCurrentUser(user: User | null): Promise<void> {
+    return this.queue(async () => {
+      await this.directlySetCurrentUser(user);
+      this.notifyAuthListeners();
+    });
   }
 
-  signOut(): Promise<void> {
-    return this.queue(() => this.directlySetCurrentUser(null));
+  async signOut(): Promise<void> {
+    return this.updateCurrentUser(null);
   }
 
   setPersistence(persistence: Persistence): Promise<void> {
@@ -129,13 +132,20 @@ export class AuthImpl implements Auth {
     );
   }
 
-  async _persistAndNotifyIfCurrent(user: User): Promise<void> {
+  async _persistUserIfCurrent(user: User): Promise<void> {
     if (user === this.currentUser) {
-      return this.updateCurrentUser(user);
+      return this.queue(async () => this.directlySetCurrentUser(user));
     }
   }
 
-  _notifyStateListeners(): void {
+  /** Notifies listeners only if the user is current */
+  _notifyListenersIfCurrent(user: User): void {
+    if (user === this.currentUser) {
+      this.notifyAuthListeners();
+    }
+  }
+
+  private notifyAuthListeners(): void {
     if (!this._isInitialized) {
       return;
     }
@@ -184,8 +194,6 @@ export class AuthImpl implements Auth {
     } else {
       await this.assertedPersistence.removeCurrentUser();
     }
-
-    this._notifyStateListeners();
   }
 
   private queue(action: AsyncAction): Promise<void> {

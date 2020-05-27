@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
@@ -25,10 +26,7 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import {
-  APIUserInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
@@ -150,13 +148,19 @@ describe('core/user/reload', () => {
     ]);
   });
 
-  it('reload triggers a persistence change after completion', async () => {
+  it('reload persists the object and notifies listeners', async () => {
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [{}]
     });
 
     const user = testUser(auth, 'user', '', true);
+    user.auth.currentUser = user;
+
+    const cb = sinon.stub();
+    user.auth.onIdTokenChanged(cb);
+
     await reload(user);
+    expect(cb).to.have.been.calledWith(user);
     expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
   });
 });

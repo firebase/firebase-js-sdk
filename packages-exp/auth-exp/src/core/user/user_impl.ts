@@ -83,7 +83,8 @@ export class UserImpl implements User {
     const { accessToken, wasRefreshed } = tokens;
 
     if (wasRefreshed) {
-      await this.auth._persistAndNotifyIfCurrent(this);
+      await this.auth._persistUserIfCurrent(this);
+      this.auth._notifyListenersIfCurrent(this);
     }
 
     return accessToken;
@@ -97,10 +98,13 @@ export class UserImpl implements User {
     return reload(this);
   }
 
-  _updateTokensIfNecessary(response: IdTokenResponse): void {
+  _updateTokensIfNecessary(response: IdTokenResponse): boolean {
     if (response.idToken && response.idToken !== this.stsTokenManager.accessToken) {
       this.stsTokenManager.updateFromServerResponse(response);
+      return true;
     }
+
+    return false;
   }
 
   async delete(): Promise<void> {

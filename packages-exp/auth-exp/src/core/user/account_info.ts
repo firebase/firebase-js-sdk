@@ -18,7 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-    updateEmailPassword as apiUpdateEmailPassword
+    updateEmailPassword as apiUpdateEmailPassword, UpdateEmailPasswordRequest
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
@@ -36,6 +36,7 @@ export async function updateProfile(externUser: externs.User, {displayName, phot
   }
 
   const user = externUser as User;
+  const {auth} = user;
   const idToken = await user.getIdToken();
   const profileRequest = {idToken, displayName, photoUrl};
   const response = await apiUpdateProfile(user.auth, profileRequest);
@@ -50,18 +51,42 @@ export async function updateProfile(externUser: externs.User, {displayName, phot
     passwordProvider.photoURL = user.photoURL;
   }
 
-  user._updateTokensIfNecessary(response);
-  return user.auth._persistAndNotifyIfCurrent(user);
+  const tokensRefreshed = user._updateTokensIfNecessary(response);
+  await auth._persistUserIfCurrent(user);
+  if (tokensRefreshed) {
+    auth._notifyListenersIfCurrent(user);
+  }
 }
 
-export async function updateEmail(externUser: externs.User, newEmail: string): Promise<void> {
+export function updateEmail(externUser: externs.User, newEmail: string): Promise<void> {
   const user = externUser as User;
+  return updateEmailOrPassword(user, newEmail, null);
+}
+
+export function updatePassword(externUser: externs.User, newPassword: string): Promise<void> {
+  const user = externUser as User;
+  return updateEmailOrPassword(user, null, newPassword);
+}
+
+async function updateEmailOrPassword(user: User, email: string|null, password: string|null): Promise<void> {
   const {auth} = user;
   const idToken = await user.getIdToken();
-  const response = await apiUpdateEmailPassword(auth, {idToken, email: newEmail});
-  user._updateTokensIfNecessary(response);
+  const request: UpdateEmailPasswordRequest = {idToken};
 
-  // To update 
+  if (email) {
+    request.email = email;
+  }
+  
+  if (password) {
+    request.password = password;
+  }
+
+  const response = await apiUpdateEmailPassword(auth, request);
+  
+  const tokensRefreshed = user._updateTokensIfNecessary(response);
   await _reloadWithoutSaving(user);
-  return auth._persistAndNotifyIfCurrent(user);
+  await auth._persistUserIfCurrent(user);
+  if (tokensRefreshed) {
+    auth._notifyListenersIfCurrent(user);
+  }
 }
