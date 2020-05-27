@@ -22,12 +22,19 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { Deferred } from '../../../src/util/promise';
+
+// settings() defaults:
+const DEFAULT_HOST = 'firestore.googleapis.com';
+const DEFAULT_SSL = true;
 
 // TODO(firestorelite): Depend on FirebaseService once #3112 is merged
 
@@ -38,7 +45,12 @@ export class Firestore implements firestore.FirebaseFirestore {
   readonly _databaseId: DatabaseId;
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;
-  private _settings?: firestore.Settings;
+
+  private readonly _initializationDone = new Deferred<Firestore>();
+
+  // Assigned via _configureClient()
+  _datastore!: Datastore;
+  _settings!: firestore.Settings;
 
   constructor(
     app: FirebaseApp,
@@ -58,17 +70,45 @@ export class Firestore implements firestore.FirebaseFirestore {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. initializeFirestore() cannot be called after calling ' +
-          'getFirestore().'
+          'be changed. initializeFirestore() cannot be called after starting ' +
+          'Firestore.'
       );
     }
     this._settings = settings;
+
+    const databaseInfo = this._makeDatabaseInfo();
+
+    PlatformSupport.getPlatform()
+      .loadConnection(databaseInfo)
+      .then(connection => {
+        const databaseInfo = this._makeDatabaseInfo();
+        const serializer = PlatformSupport.getPlatform().newSerializer(
+          databaseInfo.databaseId
+        );
+        this._datastore = newDatastore(
+          connection,
+          this._credentials,
+          serializer
+        );
+        this._initializationDone.resolve(this);
+      });
   }
 
-  _ensureClientConfigured(): void {
+  _ensureClientConfigured(): Promise<Firestore> {
     if (!this._settings) {
       this._settings = {};
     }
+    return this._initializationDone.promise;
+  }
+
+  private _makeDatabaseInfo(): DatabaseInfo {
+    return new DatabaseInfo(
+      this._databaseId,
+      /* persistenceKey= */ 'invalid',
+      this._settings.host ?? DEFAULT_HOST,
+      this._settings.ssl ?? DEFAULT_SSL,
+      /* forceLongPolling= */ false
+    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -96,10 +136,5 @@ export function initializeFirestore(
 }
 
 export function getFirestore(app: FirebaseApp): Firestore {
-  const firestore = _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as Firestore;
-  firestore._ensureClientConfigured();
-  return firestore;
+  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }

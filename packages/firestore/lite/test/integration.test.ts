@@ -19,6 +19,9 @@ import { expect } from 'chai';
 
 import { initializeApp } from '@firebase/app-exp';
 import { getFirestore, initializeFirestore } from '../src/api/database';
+import { DocumentReference, getDoc } from '../src/api/reference';
+import { withTestDoc } from './helpers';
+import { key } from '../../test/util/helpers';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -39,16 +42,27 @@ describe('Firestore', () => {
     expect(fs1 === fs2).to.be.true;
   });
 
-  it('cannot call initializeFirestore() after getFirestore()', () => {
+  it('cannot call initializeFirestore() after starting firestore', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore-initializeFirestore'
     );
-    getFirestore(app);
+    const firestore = getFirestore(app);
+    // TODO(firestorelite): Replace with doc()
+    getDoc(new DocumentReference(key('coll/doc'), firestore));
     expect(() => initializeFirestore(app, {})).to.throw(
       'Firestore has already been started and its settings can no longer ' +
-        'be changed. initializeFirestore() cannot be called after calling ' +
-        'getFirestore().'
+        'be changed. initializeFirestore() cannot be called after starting ' +
+        'Firestore.'
     );
+  });
+});
+
+describe('getDocument()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.false;
+    });
   });
 });

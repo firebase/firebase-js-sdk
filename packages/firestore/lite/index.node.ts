@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as firestore from './index';
+
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import {
   Firestore,
@@ -24,17 +26,40 @@ import {
 import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
 
-import { makeConstructorPrivate } from '../src/util/api';
+import '../src/platform_node/node_init';
+import { DocumentReference, getDoc } from './src/api/reference';
+import { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
-export const PublicFirestore = makeConstructorPrivate(
+// TODO(firestorelite): Figure out a way to use `makeConstructorPrivate`
+// without breaking tree-shaking
+// export const PublicFirestore = makeConstructorPrivate(
+//   Firestore,
+//   'Use getFirestore() instead.'
+// );
+
+interface FirestoreNamespace {
+  // TODO(firestorelite): Find a way to reference the public types for classes.
+  Firestore: typeof Firestore;
+  DocumentReference: typeof DocumentReference;
+  DocumentSnapshot: typeof DocumentSnapshot;
+  QueryDocumentSnapshot: typeof QueryDocumentSnapshot;
+
+  // For free-standing functions, use the types from the .d.ts file as we
+  // otherwise have no enforcement that our implementation matches our public
+  // files.
+  initializeFirestore: typeof firestore.initializeFirestore;
+  getFirestore: typeof firestore.getFirestore;
+  getDoc: typeof firestore.getDoc;
+}
+
+const firestoreNamespace: FirestoreNamespace = {
   Firestore,
-  'Use getFirestore() instead.'
-);
-
-const firestoreNamespace = {
-  Firestore: PublicFirestore,
+  DocumentReference,
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  getDoc
 };
 
 export function registerFirestore(): void {

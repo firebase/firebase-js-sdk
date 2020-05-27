@@ -86,3 +86,25 @@ export function debugCast<T>(
   );
   return obj as T;
 }
+
+/**
+ * Casts `obj` to `T` and throws if  `obj` is not an instance of `T` before
+ * casting.
+ *
+ * This cast is used in the Lite and Full SDK to verify instance types for
+ * arguments passed to the public API.
+ */
+export function hardCast<T>(
+  obj: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor: { new (...args: any[]): T }
+): T {
+  hardAssert(
+    obj instanceof constructor,
+    constructor.name === obj.constructor.name
+      ? 'Type does not match the expected instance. Did you pass ' +
+          `'${constructor.name}' from a different Firestore SDK?`
+      : `Expected type '${constructor.name}', but was '${obj.constructor.name}'`
+  );
+  return obj as T;
+}
