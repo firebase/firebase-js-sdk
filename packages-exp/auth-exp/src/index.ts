@@ -23,9 +23,6 @@ export {browserLocalPersistence, browserSessionPersistence} from './core/persist
 export {inMemoryPersistence} from './core/persistence/in_memory';
 export {indexedDBLocalPersistence} from './core/persistence/indexed_db';
 
-// core/providers
-export {ProviderId} from './core/providers';
-
 // core/strategies
 export {sendPasswordResetEmail, confirmPasswordReset, checkActionCode, verifyPasswordResetCode} from './core/strategies/email_and_password';
 export {sendSignInLinkToEmail, isSignInWithEmailLink} from './core/strategies/email_link';
