@@ -24,7 +24,7 @@ import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
-import { isSafari } from '../../util/test_platform';
+import { isSafari } from '@firebase/util';
 
 use(chaiAsPromised);
 

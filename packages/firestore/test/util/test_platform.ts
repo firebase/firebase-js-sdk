@@ -22,7 +22,6 @@ import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
-import { isNode } from '@firebase/util';
 
 /* eslint-disable no-restricted-globals */
 
@@ -271,13 +270,4 @@ export class TestPlatform implements Platform {
   randomBytes(nBytes: number): Uint8Array {
     return this.basePlatform.randomBytes(nBytes);
   }
-}
-
-/** Returns true if we are running in Safari. */
-export function isSafari(): boolean {
-  return (
-    !isNode() &&
-    navigator.userAgent.includes('Safari') &&
-    !navigator.userAgent.includes('Chrome')
-  );
 }
