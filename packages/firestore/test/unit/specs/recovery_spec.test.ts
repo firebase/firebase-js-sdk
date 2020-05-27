@@ -88,7 +88,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
   );
 
   specTest(
-    'Query raises events in secondary client  (with recovery)',
+    'Query raises events in secondary client (with recovery)',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -140,6 +140,84 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets()
+      );
+    }
+  );
+
+  specTest(
+    'Query with active view recovers after primary tab failover (with recovery)',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      return (
+        client(0, false)
+          .expectPrimaryState(true)
+          .client(1)
+          // Register a query in the secondary client
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          // Shutdown the primary client to release its lease
+          .shutdown()
+          .client(1)
+          .expectEvents(query, { added: [docA] })
+          // Run the lease refresh to attempt taking over the primary lease. The
+          // first lease refresh fails with a simulated transaction failure.
+          .failDatabaseTransactions('Allocate target')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docB)
+          .expectEvents(query, { added: [docB] })
+      );
+    }
+  );
+
+  specTest(
+    'Query without active view recovers after primary tab failover (with recovery)',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      return (
+        client(0, false)
+          .expectPrimaryState(true)
+          // Initialize a second client that doesn't have any active targets
+          .client(1)
+          .client(2)
+          // Register a query in the third client
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          .client(2)
+          .expectEvents(query, { added: [docA] })
+          .client(0)
+          // Shutdown the primary client to release its lease
+          .shutdown()
+          .client(1)
+          // Run the lease refresh in the second client, which does not yet have
+          // an active view for the third client's query. The lease refresh fails
+          // at first, but then recovers and initializes the view.
+          .failDatabaseTransactions('Allocate target')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docB)
+          .client(2)
+          .expectEvents(query, { added: [docB] })
       );
     }
   );
