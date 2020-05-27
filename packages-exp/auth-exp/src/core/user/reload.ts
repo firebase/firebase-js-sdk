@@ -22,7 +22,6 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 
 export async function _reloadWithoutSaving(user: User): Promise<void> {
@@ -34,7 +33,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 
   const coreAccount = response.users[0];
   const newProviderData = coreAccount.providerUserInfo?.length
-    ? extractProviderData(coreAccount.providerUserInfo, auth.name)
+    ? extractProviderData(coreAccount.providerUserInfo)
     : [];
   const updates: Partial<User> = {
     uid: coreAccount.localId,
@@ -75,20 +74,15 @@ function mergeProviderData(
 }
 
 function extractProviderData(
-  providers: ProviderUserInfo[],
-  appName: string
+  providers: ProviderUserInfo[]
 ): externs.UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
-    assert(
-      providerId && Object.values<string>(ProviderId).includes(providerId),
-      appName
-    );
     return {
       uid: provider.rawId || '',
       displayName: provider.displayName || null,
       email: provider.email || null,
       phoneNumber: provider.phoneNumber || null,
-      providerId: providerId as ProviderId,
+      providerId: providerId as externs.ProviderId,
       photoURL: provider.photoUrl || null
     };
   });
