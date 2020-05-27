@@ -153,7 +153,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const docB = doc('collection/b', 2000, { key: 'b' });
 
       return (
-        client(0, false)
+        client(0)
           .expectPrimaryState(true)
           .client(1)
           // Register a query in the secondary client
@@ -189,7 +189,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const docB = doc('collection/b', 2000, { key: 'b' });
 
       return (
-        client(0, false)
+        client(0)
           .expectPrimaryState(true)
           // Initialize a second client that doesn't have any active targets
           .client(1)
