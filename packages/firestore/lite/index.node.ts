@@ -16,26 +16,15 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import {
+import { Firestore } from './src/api/database';
+import { version } from '../package.json';
+import { Component, ComponentType } from '@firebase/component';
+
+export {
   Firestore,
   initializeFirestore,
   getFirestore
 } from './src/api/database';
-import { version } from '../package.json';
-import { Component, ComponentType } from '@firebase/component';
-
-import { makeConstructorPrivate } from '../src/util/api';
-
-export const PublicFirestore = makeConstructorPrivate(
-  Firestore,
-  'Use getFirestore() instead.'
-);
-
-const firestoreNamespace = {
-  Firestore: PublicFirestore,
-  initializeFirestore,
-  getFirestore
-};
 
 export function registerFirestore(): void {
   _registerComponent(
@@ -49,7 +38,7 @@ export function registerFirestore(): void {
         );
       },
       ComponentType.PUBLIC
-    ).setServiceProps({ ...firestoreNamespace })
+    )
   );
   registerVersion('firestore-lite', version, 'node');
 }

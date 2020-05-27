@@ -96,10 +96,5 @@ export function initializeFirestore(
 }
 
 export function getFirestore(app: FirebaseApp): Firestore {
-  const firestore = _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as Firestore;
-  firestore._ensureClientConfigured();
-  return firestore;
+  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }
