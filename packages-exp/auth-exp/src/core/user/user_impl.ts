@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from '@firebase/auth-types-exp';
-
+import { IdTokenResult, ProviderId } from '@firebase/auth-types-exp';
 import { deleteAccount } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
+import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
-import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
-import { reload } from './reload';
+import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -153,5 +152,29 @@ export class UserImpl implements User {
       phoneNumber,
       photoURL
     });
+  }
+
+  /**
+   * Initialize a User from an idToken server response
+   * @param auth
+   * @param idTokenResponse
+   */
+  static async _fromIdTokenResponse(
+    auth: Auth,
+    idTokenResponse: IdTokenResponse
+  ): Promise<User> {
+    const stsTokenManager = new StsTokenManager();
+    stsTokenManager.updateFromServerResponse(idTokenResponse);
+
+    // Initialize the Firebase Auth user.
+    const user = new UserImpl({
+      uid: idTokenResponse.localId,
+      auth,
+      stsTokenManager
+    });
+
+    // Updates the user info and data and resolves with a user instance.
+    await _reloadWithoutSaving(user);
+    return user;
   }
 }

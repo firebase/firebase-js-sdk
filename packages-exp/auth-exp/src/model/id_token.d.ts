@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '../core/providers/index';
+import { ProviderId } from '@firebase/auth-types-exp';
 
 /**
  * Raw encoded JWT
