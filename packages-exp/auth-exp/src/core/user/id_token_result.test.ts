@@ -20,11 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
+import { ProviderId } from '@firebase/auth-types-exp';
 
 import { makeJWT } from '../../../test/jwt';
 import { testUser } from '../../../test/mock_auth';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { getIdTokenResult } from './id_token_result';
 
 use(chaiAsPromised);
