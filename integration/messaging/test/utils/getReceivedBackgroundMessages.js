@@ -18,6 +18,8 @@
 const TEST_DB = 'FCM_INTEGRATION_TEST_DB';
 const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
 
+/** Getting received background messages are trickier than getting foreground messages from app. It requires idb object store creation with the service worker. Idb operations are fired as async events. This method needs to be called after the idb operations inside sw is done. In tests, consider adding a brief timeout before calling the method to give sw some time to work.
+ */
 module.exports = async webdriver => {
   console.log('Getting received background messages from idb: ');
 

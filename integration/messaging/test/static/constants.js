@@ -28,5 +28,6 @@ const TAG = 'FCM_INTEGRATION_TEST: ';
 const TEST_DB = 'FCM_INTEGRATION_TEST_DB';
 const TEST_DB_VERSION = 1;
 const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
+// indexDb object store creation require a "primary key", "ndx" is used.
 const BACKGROUND_MESSAGES_OBJECT_STORE_PRIMARY_KEY = 'ndx';
 const BACKGROUND_MESSAGES_OBJECT_STORE_DEFAULT_NDX = 'default_ndx';

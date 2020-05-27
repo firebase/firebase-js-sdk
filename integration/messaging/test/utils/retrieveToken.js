@@ -17,6 +17,7 @@
 
 module.exports = async webdriver => {
   console.log('retrieving token from test app');
+
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
       return !!window.__test && !!window.__test.token;

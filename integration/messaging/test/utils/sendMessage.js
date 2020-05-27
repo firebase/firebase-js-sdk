@@ -26,6 +26,8 @@ module.exports = async payload => {
     throw 'Fail to send a message: process.env has no server key';
   }
 
+  console.log('???: ' + serverKey);
+
   console.log(
     'Requesting to send an FCM message with payload: ' + JSON.stringify(payload)
   );
