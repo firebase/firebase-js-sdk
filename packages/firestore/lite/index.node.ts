@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
+import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import {
   Firestore,
   initializeFirestore,
@@ -23,7 +23,7 @@ import {
 } from './src/api/database';
 import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
-import { _registerComponent } from '@firebase/app-exp';
+
 import { makeConstructorPrivate } from '../src/util/api';
 
 export const PublicFirestore = makeConstructorPrivate(
