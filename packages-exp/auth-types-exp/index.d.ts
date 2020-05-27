@@ -191,7 +191,7 @@ export interface AuthCredential {
   fromJSON(json: object | string): AuthCredential | null;
 }
 
-export class OAuthCredential implements AuthCredential {
+export abstract class OAuthCredential implements AuthCredential {
   readonly accessToken?: string;
   readonly idToken?: string;
   readonly secret?: string;
