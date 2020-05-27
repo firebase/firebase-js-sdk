@@ -50,6 +50,29 @@ import { DocumentReference } from './database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
+/**
+ * An untyped Firestore Data Converter interface that is shared between the
+ * lite, full and legacy SDK.
+ */
+export interface UntypedFirestoreDataConverter<T> {
+  toFirestore(modelObject: T): firestore.DocumentData;
+  fromFirestore(snapshot: unknown, options?: unknown): T;
+}
+
+/**
+ * A reference to a document in a Firebase project.
+ *
+ * This class serves as a common base class for the public DocumentReferences
+ * exposed in the lite, full and legacy SDK.
+ */
+export class DocumentKeyReference<T> {
+  constructor(
+    public readonly _databaseId: DatabaseId,
+    public readonly _key: DocumentKey,
+    public readonly _converter?: UntypedFirestoreDataConverter<T>
+  ) {}
+}
+
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
   constructor(

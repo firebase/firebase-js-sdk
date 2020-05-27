@@ -26,6 +26,8 @@ export {
   getFirestore
 } from './src/api/database';
 
+export { DocumentReference } from './src/api/reference';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(
