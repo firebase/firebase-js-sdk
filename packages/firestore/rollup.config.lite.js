@@ -23,7 +23,6 @@ import { resolveNodeExterns } from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
-import memoryPkg from './memory/package.json';
 
 const defaultPlugins = [
   typescriptPlugin({
