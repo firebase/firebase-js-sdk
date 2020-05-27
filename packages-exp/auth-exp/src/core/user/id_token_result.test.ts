@@ -62,16 +62,6 @@ describe('/core/user/id_token_result', () => {
     const encodedStr = makeJWT(token);
     setup(encodedStr);
     const result = await getIdTokenResult(user);
-    console.log(JSON.stringify(result));
-    console.log(JSON.stringify({
-      claims: token,
-      token: encodedStr,
-      issuedAtTime: MAY_1.toUTCString(),
-      authTime: MAY_2.toUTCString(),
-      expirationTime: MAY_3.toUTCString(),
-      signInProvider: null,
-      signInSecondFactor: null
-    }));
     expect(result).to.eql({
       claims: token,
       token: encodedStr,

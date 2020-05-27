@@ -148,12 +148,12 @@ export interface ActionCodeURL {
 }
 
 type ActionCodeOperationType =
- 'PASSWORD_RESET'
- | 'RECOVER_EMAIL'
- | 'EMAIL_SIGNIN'
- | 'VERIFY_EMAIL'
- | 'VERIFY_AND_CHANGE_EMAIL'
- | 'REVERT_SECOND_FACTOR_ADDITION'
+  'PASSWORD_RESET'
+  | 'RECOVER_EMAIL'
+  | 'EMAIL_SIGNIN'
+  | 'VERIFY_EMAIL'
+  | 'VERIFY_AND_CHANGE_EMAIL'
+  | 'REVERT_SECOND_FACTOR_ADDITION';
  
 /**
  * Supported providers
@@ -202,4 +202,16 @@ export class OAuthCredential implements AuthCredential {
 
   toJSON(): object;
   fromJSON(json: object | string): OAuthCredential | null;
+}
+
+export const enum OperationType {
+  LINK = 'link',
+  REAUTHENTICATE = 'reauthenticate',
+  SIGN_IN = 'signIn'
+}
+
+export interface UserCredential {
+  user: User;
+  credential: AuthCredential | null;
+  operationType: OperationType;
 }

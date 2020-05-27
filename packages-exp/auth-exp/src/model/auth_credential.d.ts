@@ -29,9 +29,3 @@ export interface AuthCredential extends externs.AuthCredential {
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse>;
   _matchIdTokenWithUid(auth: Auth, uid: string): Promise<IdTokenResponse>;
 }
-
-export interface OAuthCredential extends externs.AuthCredential {
-  readonly idToken?: string;
-  readonly accessToken?: string;
-  readonly secret?: string;
-}

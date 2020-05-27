@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { mockEndpoint } from '../../../test/api/helper';
 import { mockAuth } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse } from '../../model/id_token';
 import { signInWithCredential } from './credential';
-import { mockEndpoint } from '../../../test/api/helper';
-import { Endpoint } from '../../api';
-import { OperationType } from '../../model/user_credential';
 
 use(chaiAsPromised);
 

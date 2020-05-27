@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
+import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
-import { OperationType, UserCredential } from '../../model/user_credential';
+import { User } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
 export async function signInWithCredential(
@@ -32,6 +33,6 @@ export async function signInWithCredential(
     OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
+  await auth.updateCurrentUser(userCredential.user as User);
   return userCredential;
 }

@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { OperationType, UserCredential } from '../../model/user_credential';
 import { UserImpl } from './user_impl';
 
 export class UserCredentialImpl implements UserCredential {
