@@ -19,7 +19,6 @@ import * as externs from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
 import { _logError } from '../util/log';
 
@@ -42,14 +41,10 @@ export async function getIdTokenResult(
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;
 
-  const signInProvider: ProviderId | undefined = firebase?.[
+  const signInProvider: externs.ProviderId | undefined = firebase?.[
     'sign_in_provider'
-  ] as ProviderId;
-  assert(
-    !signInProvider || Object.values(ProviderId).includes(signInProvider),
-    user.auth.name
-  );
-
+  ] as externs.ProviderId;
+ 
   return {
     claims,
     token,
