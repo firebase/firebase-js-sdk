@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@
 import * as firestore from '../../';
 
 import { _getProvider } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
 
 import { Code, FirestoreError } from '../../../src/util/error';
 import { DatabaseId } from '../../../src/core/database_info';
@@ -30,10 +29,12 @@ import {
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
 
+// TODO(firestorelite): Depend on FirebaseService once #3112 is merged
+
 /**
  * The root reference to the Firestore Lite database.
  */
-export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
+export class Firestore implements firestore.FirebaseFirestore {
   readonly _databaseId: DatabaseId;
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;

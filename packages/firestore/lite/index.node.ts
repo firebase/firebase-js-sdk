@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { FirebaseNamespace } from '@firebase/app-types';
+import { registerVersion } from '@firebase/app-exp';
 import {
   Firestore,
   initializeFirestore,
@@ -24,7 +23,7 @@ import {
 } from './src/api/database';
 import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { _registerComponent } from '@firebase/app-exp';
 import { makeConstructorPrivate } from '../src/util/api';
 
 export const PublicFirestore = makeConstructorPrivate(
@@ -38,12 +37,12 @@ const firestoreNamespace = {
   getFirestore
 };
 
-export function registerFirestore(instance: FirebaseNamespace): void {
-  (instance as _FirebaseNamespace).INTERNAL.registerComponent(
+export function registerFirestore(): void {
+  _registerComponent(
     new Component(
       'firestore/lite',
       container => {
-        const app = container.getProvider('app').getImmediate()!;
+        const app = container.getProvider('app-exp').getImmediate()!;
         return ((app, auth) => new Firestore(app, auth))(
           app,
           container.getProvider('auth-internal')
@@ -52,7 +51,7 @@ export function registerFirestore(instance: FirebaseNamespace): void {
       ComponentType.PUBLIC
     ).setServiceProps({ ...firestoreNamespace })
   );
-  instance.registerVersion('@firebase/firestore/lite', version, 'node');
+  registerVersion('firestore-lite', version, 'node');
 }
 
-registerFirestore(firebase);
+registerFirestore();

@@ -21,7 +21,7 @@ import typescript from 'typescript';
 
 import { resolveNodeExterns } from './rollup.shared';
 
-import pkg from './package.json';
+import pkg from './lite/package.json';
 
 const defaultPlugins = [
   typescriptPlugin({
@@ -40,7 +40,7 @@ const nodeBuilds = [
   {
     input: 'lite/index.node.ts',
     output: {
-      file: pkg.lite,
+      file: pkg.main,
       format: 'es'
     },
     plugins: defaultPlugins,
@@ -50,5 +50,7 @@ const nodeBuilds = [
     }
   }
 ];
+
+// TODO(firestorelite): Add browser builds
 
 export default [...nodeBuilds];

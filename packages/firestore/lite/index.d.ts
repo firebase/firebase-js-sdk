@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

@@ -17,12 +17,12 @@
 
 import { expect } from 'chai';
 
-import firebase from '../../test/integration/util/firebase_export';
+import { initializeApp } from '@firebase/app-exp';
 import { getFirestore, initializeFirestore } from '../src/api/database';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
-    const app = firebase.initializeApp(
+    const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore'
     );
@@ -30,7 +30,7 @@ describe('Firestore', () => {
   });
 
   it('returns same instance', () => {
-    const app = firebase.initializeApp(
+    const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );

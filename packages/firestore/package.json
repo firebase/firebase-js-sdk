@@ -37,7 +37,6 @@
     "test:lite":  "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.node.ts --config ../../config/mocharc.node.js",
     "prepare": "yarn build"
   },
-  "lite": "dist/lite/index.node.cjs.js",
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
   "browser": "dist/index.cjs.js",
@@ -61,7 +60,8 @@
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-types": "0.x",
+    "@firebase/app-types-ext": "0.x"
   },
   "devDependencies": {
     "@types/json-stable-stringify": "1.0.32",
