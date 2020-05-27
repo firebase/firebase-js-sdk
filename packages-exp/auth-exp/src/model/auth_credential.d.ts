@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-/**
- * Supported providers
- */
-export enum ProviderId {
-  ANONYMOUS = 'anonymous',
-  CUSTOM = 'custom',
-  FACEBOOK = 'facebook.com',
-  FIREBASE = 'firebase',
-  GITHUB = 'github.com',
-  GOOGLE = 'google.com',
-  PASSWORD = 'password',
-  PHONE = 'phone',
-  TWITTER = 'twitter.com'
+import * as externs from '@firebase/auth-types-exp';
+
+import { Auth } from './auth';
+import { IdTokenResponse } from './id_token';
+import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
+
+export interface AuthCredential extends externs.AuthCredential {
+  readonly providerId: externs.ProviderId;
+  readonly signInMethod: externs.SignInMethod;
+  toJSON(): object;
+  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
+  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse>;
+  _matchIdTokenWithUid(auth: Auth, uid: string): Promise<IdTokenResponse>;
 }
