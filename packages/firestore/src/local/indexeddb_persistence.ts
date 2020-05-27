@@ -585,6 +585,9 @@ export class IndexedDbPersistence implements Persistence {
   private canActAsPrimary(
     txn: PersistenceTransaction
   ): PersistencePromise<boolean> {
+    if (this.forceOwningTab) {
+      return PersistencePromise.resolve<boolean>(true);
+    }
     const store = primaryClientStore(txn);
     return store
       .get(DbPrimaryClient.key)
@@ -612,9 +615,6 @@ export class IndexedDbPersistence implements Persistence {
           }
 
           if (!this.isLocalClient(currentPrimary)) {
-            if (this.forceOwningTab) {
-              return true;
-            }
             if (!currentPrimary!.allowTabSynchronization) {
               // Fail the `canActAsPrimary` check if the current leaseholder has
               // not opted into multi-tab synchronization. If this happens at
