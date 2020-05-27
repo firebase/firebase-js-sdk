@@ -249,7 +249,8 @@ export class IndexedDbPersistence implements Persistence {
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
     /**
-     * Whether to force enable persistence for the client.
+     * If set to true, forcefully obtains database access. Existing tabs will
+     * no longer be able to access IndexedDB.
      */
     private readonly forceOwningTab: boolean
   ) {
