@@ -16,7 +16,6 @@
  */
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
-import { documentVersionMap } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 
 import { DocumentKey } from '../model/document_key';
@@ -34,6 +33,7 @@ import {
 import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
+import { ResourcePath } from '../model/path';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to
@@ -41,7 +41,7 @@ import { SnapshotVersion } from './snapshot_version';
  */
 export class Transaction {
   // The version of each document that was read during this transaction.
-  private readVersions = documentVersionMap();
+  private readVersions = new Map</* path */ string, SnapshotVersion>();
   private mutations: Mutation[] = [];
   private committed = false;
 
@@ -106,14 +106,15 @@ export class Transaction {
     if (this.lastWriteError) {
       throw this.lastWriteError;
     }
-    let unwritten = this.readVersions;
+    const unwritten = this.readVersions;
     // For each mutation, note that the doc was written.
     this.mutations.forEach(mutation => {
-      unwritten = unwritten.remove(mutation.key);
+      unwritten.delete(mutation.key.toString());
     });
     // For each document that was read but not written to, we want to perform
     // a `verify` operation.
-    unwritten.forEach((key, _version) => {
+    unwritten.forEach((_, path) => {
+      const key = new DocumentKey(ResourcePath.fromString(path));
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
     await invokeCommitRpc(this.datastore, this.mutations);
@@ -132,8 +133,8 @@ export class Transaction {
       throw fail('Document in a transaction was a ' + doc.constructor.name);
     }
 
-    const existingVersion = this.readVersions.get(doc.key);
-    if (existingVersion !== null) {
+    const existingVersion = this.readVersions.get(doc.key.toString());
+    if (existingVersion) {
       if (!docVersion.isEqual(existingVersion)) {
         // This transaction will fail no matter what.
         throw new FirestoreError(
@@ -142,7 +143,7 @@ export class Transaction {
         );
       }
     } else {
-      this.readVersions = this.readVersions.insert(doc.key, docVersion);
+      this.readVersions.set(doc.key.toString(), docVersion);
     }
   }
 
@@ -151,7 +152,7 @@ export class Transaction {
    * as a precondition, or no precondition if it was not read.
    */
   private precondition(key: DocumentKey): Precondition {
-    const version = this.readVersions.get(key);
+    const version = this.readVersions.get(key.toString());
     if (!this.writtenDocs.has(key) && version) {
       return Precondition.updateTime(version);
     } else {
@@ -163,7 +164,7 @@ export class Transaction {
    * Returns the precondition for a document if the operation is an update.
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
-    const version = this.readVersions.get(key);
+    const version = this.readVersions.get(key.toString());
     // The first time a document is written, we want to take into account the
     // read time and existence
     if (!this.writtenDocs.has(key) && version) {
