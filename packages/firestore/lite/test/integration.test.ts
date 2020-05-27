@@ -38,4 +38,17 @@ describe('Firestore', () => {
     const fs2 = getFirestore(app);
     expect(fs1 === fs2).to.be.true;
   });
+
+  it('cannot call initializeFirestore() after getFirestore()', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-initializeFirestore'
+    );
+    getFirestore(app);
+    expect(() => initializeFirestore(app, {})).to.throw(
+      'Firestore has already been started and its settings can no longer ' +
+        'be changed. initializeFirestore() cannot be called after calling ' +
+        'getFirestore().'
+    );
+  });
 });

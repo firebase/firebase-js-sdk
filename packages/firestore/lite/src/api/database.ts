@@ -58,7 +58,7 @@ export class Firestore implements firestore.FirebaseFirestore {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. initializeFirestore() can only be called before calling ' +
+          'be changed. initializeFirestore() cannot be called after calling ' +
           'getFirestore().'
       );
     }
