@@ -88,7 +88,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
+import {
+  DocumentKeyReference,
+  fieldPathFromArgument,
+  UserDataReader
+} from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -266,6 +270,7 @@ class FirestoreSettings {
  * of the lite, full and legacy SDK.
  */
 export interface InternalFirestore {
+  readonly _databaseId: DatabaseId;
   readonly _dataReader: UserDataReader;
 }
 
@@ -808,27 +813,25 @@ export class Transaction implements firestore.Transaction {
   }
 }
 
-export class WriteBatch implements firestore.WriteBatch {
+/**
+ * The WriteBatch implementation that is shared between the lite, full and
+ * legacy SDK.
+ */
+export class InternalWriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
   constructor(
-    private _firestore: InternalFirestore,
+    protected _firestore: InternalFirestore,
     private readonly _commitHandler: (m: Mutation[]) => Promise<void>
   ) {}
 
-  set<T>(
-    documentRef: firestore.DocumentReference<T>,
+  protected _set<T>(
+    ref: DocumentKeyReference<T>,
     value: T,
     options?: firestore.SetOptions
-  ): WriteBatch {
-    validateBetweenNumberOfArgs('WriteBatch.set', arguments, 2, 3);
+  ): this {
     this.verifyNotCommitted();
-    const ref = validateReference(
-      'WriteBatch.set',
-      documentRef,
-      this._firestore
-    );
     options = validateSetOptions('WriteBatch.set', options);
     const [convertedValue, functionName] = applyFirestoreDataConverter(
       ref._converter,
@@ -852,25 +855,14 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  update(
-    documentRef: firestore.DocumentReference<unknown>,
-    value: firestore.UpdateData
-  ): WriteBatch;
-  update(
-    documentRef: firestore.DocumentReference<unknown>,
-    field: string | ExternalFieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): WriteBatch;
-  update(
-    documentRef: firestore.DocumentReference<unknown>,
+  protected _update(
+    ref: DocumentKeyReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): WriteBatch {
+  ): this {
     this.verifyNotCommitted();
 
-    let ref;
     let parsed;
 
     if (
@@ -878,11 +870,6 @@ export class WriteBatch implements firestore.WriteBatch {
       fieldOrUpdateData instanceof ExternalFieldPath
     ) {
       validateAtLeastNumberOfArgs('WriteBatch.update', arguments, 3);
-      ref = validateReference(
-        'WriteBatch.update',
-        documentRef,
-        this._firestore
-      );
       parsed = this._firestore._dataReader.parseUpdateVarargs(
         'WriteBatch.update',
         fieldOrUpdateData,
@@ -891,11 +878,6 @@ export class WriteBatch implements firestore.WriteBatch {
       );
     } else {
       validateExactNumberOfArgs('WriteBatch.update', arguments, 2);
-      ref = validateReference(
-        'WriteBatch.update',
-        documentRef,
-        this._firestore
-      );
       parsed = this._firestore._dataReader.parseUpdateData(
         'WriteBatch.update',
         fieldOrUpdateData
@@ -908,16 +890,10 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
-    validateExactNumberOfArgs('WriteBatch.delete', arguments, 1);
+  protected _delete(documentRef: DocumentKeyReference<unknown>): this {
     this.verifyNotCommitted();
-    const ref = validateReference(
-      'WriteBatch.delete',
-      documentRef,
-      this._firestore
-    );
     this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.none())
+      new DeleteMutation(documentRef._key, Precondition.none())
     );
     return this;
   }
@@ -943,10 +919,62 @@ export class WriteBatch implements firestore.WriteBatch {
   }
 }
 
+export class WriteBatch extends InternalWriteBatch
+  implements firestore.WriteBatch {
+  set<T>(
+    documentRef: firestore.DocumentReference<T>,
+    value: T,
+    options?: firestore.SetOptions
+  ): WriteBatch {
+    validateBetweenNumberOfArgs('WriteBatch.set', arguments, 2, 3);
+    const ref = validateReference(
+      'WriteBatch.set',
+      documentRef,
+      this._firestore
+    );
+    return super._set(ref, value, options);
+  }
+
+  update(
+    documentRef: firestore.DocumentReference<unknown>,
+    value: firestore.UpdateData
+  ): WriteBatch;
+  update(
+    documentRef: firestore.DocumentReference<unknown>,
+    field: string | ExternalFieldPath,
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
+  ): WriteBatch;
+  update(
+    documentRef: firestore.DocumentReference<unknown>,
+    fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
+  ): WriteBatch {
+    let ref = validateReference(
+      'WriteBatch.update',
+      documentRef,
+      this._firestore
+    );
+    return super._update(ref, fieldOrUpdateData, value, ...moreFieldsAndValues);
+  }
+
+  delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
+    validateExactNumberOfArgs('WriteBatch.delete', arguments, 1);
+    let ref = validateReference(
+      'WriteBatch.delete',
+      documentRef,
+      this._firestore
+    );
+    return super._delete(ref);
+  }
+}
+
 /**
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = firestore.DocumentData>
+  extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -955,6 +983,7 @@ export class DocumentReference<T = firestore.DocumentData>
     readonly firestore: Firestore,
     readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
+    super(firestore, _key, _converter);
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 
@@ -1359,10 +1388,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         return this._converter.fromFirestore(snapshot, options);
       } else {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          /* converter= */ undefined
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1381,10 +1410,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          this._converter
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore, this._converter)
         );
         return userDataWriter.convertValue(value);
       }
@@ -2437,8 +2466,8 @@ function validateReference<T>(
   methodName: string,
   documentRef: firestore.DocumentReference<T>,
   firestore: InternalFirestore
-): DocumentReference<T> {
-  if (!(documentRef instanceof DocumentReference)) {
+): DocumentKeyReference<T> {
+  if (!(documentRef instanceof DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
