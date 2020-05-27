@@ -22,6 +22,8 @@ import typescript from 'typescript';
 import { resolveNodeExterns } from './rollup.shared';
 
 import pkg from './lite/package.json';
+import path from 'path';
+import memoryPkg from './memory/package.json';
 
 const defaultPlugins = [
   typescriptPlugin({
@@ -40,7 +42,7 @@ const nodeBuilds = [
   {
     input: 'lite/index.node.ts',
     output: {
-      file: pkg.main,
+      file: path.resolve('./lite', pkg.main),
       format: 'es'
     },
     plugins: defaultPlugins,
