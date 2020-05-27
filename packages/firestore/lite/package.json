@@ -1,0 +1,6 @@
+{
+  "name": "@firebase/firestore/lite",
+  "description": "A lite version of the Firestore SDK",
+  "main": "../dist/list/index.node.cjs.js",
+  "private": true
+}
