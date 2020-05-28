@@ -199,7 +199,11 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
-      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
+      try {
+        this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
+      } catch (e) {
+        return this.disableNetworkUntilRecovery(e);
+      }
 
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
@@ -667,7 +671,12 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(ignoreIfPrimaryLeaseLoss);
+      .catch(ignoreIfPrimaryLeaseLoss)
+      .catch(e =>
+        this.disableNetworkUntilRecovery(e, () =>
+          this.localStore.setLastStreamToken(this.writeStream.lastStreamToken)
+        )
+      );
   }
 
   private async onMutationResult(
@@ -744,7 +753,12 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
-        .catch(ignoreIfPrimaryLeaseLoss);
+        .catch(ignoreIfPrimaryLeaseLoss)
+        .catch(e =>
+          this.disableNetworkUntilRecovery(e, () =>
+            this.localStore.setLastStreamToken(ByteString.EMPTY_BYTE_STRING)
+          )
+        );
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
