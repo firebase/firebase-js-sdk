@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { enrollPhoneMfa, startEnrollPhoneMfa, withdrawMfa } from './mfa';
 
@@ -36,7 +39,13 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
     }
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -46,7 +55,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
       }
     });
 
-    const response = await startEnrollPhoneMfa(mockAuth, request);
+    const response = await startEnrollPhoneMfa(auth, request);
     expect(response.phoneSessionInfo.sessionInfo).to.eq('session-info');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -73,7 +82,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
       400
     );
 
-    await expect(startEnrollPhoneMfa(mockAuth, request)).to.be.rejectedWith(
+    await expect(startEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
@@ -91,7 +100,13 @@ describe('api/account_management/enrollPhoneMfa', () => {
     }
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -100,7 +115,7 @@ describe('api/account_management/enrollPhoneMfa', () => {
       idToken: 'id-token'
     });
 
-    const response = await enrollPhoneMfa(mockAuth, request);
+    const response = await enrollPhoneMfa(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
@@ -128,7 +143,7 @@ describe('api/account_management/enrollPhoneMfa', () => {
       400
     );
 
-    await expect(enrollPhoneMfa(mockAuth, request)).to.be.rejectedWith(
+    await expect(enrollPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The verification ID used to create the phone auth credential is invalid. (auth/invalid-verification-id).'
     );
@@ -142,7 +157,13 @@ describe('api/account_management/withdrawMfa', () => {
     mfaEnrollmentId: 'mfa-enrollment-id'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -151,7 +172,7 @@ describe('api/account_management/withdrawMfa', () => {
       idToken: 'id-token'
     });
 
-    const response = await withdrawMfa(mockAuth, request);
+    const response = await withdrawMfa(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
@@ -179,7 +200,7 @@ describe('api/account_management/withdrawMfa', () => {
       400
     );
 
-    await expect(withdrawMfa(mockAuth, request)).to.be.rejectedWith(
+    await expect(withdrawMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );

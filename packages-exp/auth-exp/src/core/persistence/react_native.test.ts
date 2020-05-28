@@ -17,10 +17,11 @@
 
 import { expect } from 'chai';
 
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
+
 import { testUser } from '../../../test/mock_auth';
 import { PersistedBlob, PersistenceType } from './';
 import { ReactNativePersistence } from './react_native';
-import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
 /**
  * Wraps in-memory storage with the react native AsyncStorage API.
@@ -66,7 +67,7 @@ describe('core/persistence/react', () => {
 
   it('should return persistedblob from user', async () => {
     const key = 'my-super-special-user';
-    const value = testUser('some-uid');
+    const value = testUser({}, 'some-uid');
 
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value.toPlainObject());
