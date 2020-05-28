@@ -44,7 +44,7 @@ import {
 } from '../local/memory_persistence';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'You ARE using the memory-only build of Firestore. Persistence support is ' +
   'only available via the @firebase/firestore bundle or the ' +
   'firebase-firestore.js build.';
 
