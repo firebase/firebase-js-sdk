@@ -46,7 +46,6 @@ import {
 import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
-import { DocumentReference } from './database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -675,9 +674,9 @@ function parseScalarValue(
     };
   } else if (value instanceof Blob) {
     return { bytesValue: context.serializer.toBytes(value) };
-  } else if (value instanceof DocumentReference) {
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
-    const otherDb = value.firestore._databaseId;
+    const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -688,7 +687,7 @@ function parseScalarValue(
     return {
       referenceValue: context.serializer.toResourceName(
         value._key.path,
-        value.firestore._databaseId
+        value._databaseId
       )
     };
   } else if (value === undefined && context.ignoreUndefinedProperties) {
@@ -716,7 +715,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
-    !(input instanceof DocumentReference) &&
+    !(input instanceof DocumentKeyReference) &&
     !(input instanceof FieldValueImpl)
   );
 }

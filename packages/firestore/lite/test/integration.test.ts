@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@
 import { expect } from 'chai';
 
 import { initializeApp } from '@firebase/app-exp';
-import { getFirestore, initializeFirestore } from '../src/api/database';
+import {
+  Firestore,
+  getFirestore,
+  initializeFirestore
+} from '../src/api/database';
 import { withTestDb } from './helpers';
 import {
   parent,
@@ -34,7 +38,8 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore'
     );
-    initializeFirestore(app, { host: 'localhost', ssl: false });
+    const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
+    expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
   it('returns same instance', () => {
@@ -45,6 +50,19 @@ describe('Firestore', () => {
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
     expect(fs1 === fs2).to.be.true;
+  });
+
+  it('cannot call initializeFirestore() twice', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-initializeFirestore-twice'
+    );
+    initializeFirestore(app, { host: 'localhost', ssl: false });
+    expect(() => {
+      initializeFirestore(app, { host: 'localhost', ssl: false });
+    }).to.throw(
+      'Firestore has already been started and its settings can no longer be changed.'
+    );
   });
 });
 
