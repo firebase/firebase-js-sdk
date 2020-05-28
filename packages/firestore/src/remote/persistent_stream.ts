@@ -669,7 +669,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
+  lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and

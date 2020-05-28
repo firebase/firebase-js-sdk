@@ -60,6 +60,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
+import { ByteString } from '../util/byte_string';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
@@ -377,11 +378,11 @@ export class LocalStore {
         const documentBuffer = this.remoteDocuments.newChangeBuffer({
           trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
         });
-        return this.applyWriteToRemoteDocuments(
-          txn,
-          batchResult,
-          documentBuffer
-        )
+        return this.mutationQueue
+          .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
+          .next(() =>
+            this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
+          )
           .next(() => documentBuffer.apply(txn))
           .next(() => this.mutationQueue.performConsistencyCheck(txn))
           .next(() => this.localDocuments.getDocuments(txn, affected));
@@ -428,6 +429,32 @@ export class LocalStore {
       'readonly',
       txn => {
         return this.mutationQueue.getHighestUnacknowledgedBatchId(txn);
+      }
+    );
+  }
+
+  /** Returns the last recorded stream token for the current user. */
+  getLastStreamToken(): Promise<ByteString> {
+    return this.persistence.runTransaction(
+      'Get last stream token',
+      'readonly',
+      txn => {
+        return this.mutationQueue.getLastStreamToken(txn);
+      }
+    );
+  }
+
+  /**
+   * Sets the stream token for the current user without acknowledging any
+   * mutation batch. This is usually only useful after a stream handshake or in
+   * response to an error that requires clearing the stream token.
+   */
+  setLastStreamToken(streamToken: ByteString): Promise<void> {
+    return this.persistence.runTransaction(
+      'Set last stream token',
+      'readwrite-primary',
+      txn => {
+        return this.mutationQueue.setLastStreamToken(txn, streamToken);
       }
     );
   }
