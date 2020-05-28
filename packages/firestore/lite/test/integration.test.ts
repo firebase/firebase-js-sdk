@@ -18,7 +18,11 @@
 import { expect } from 'chai';
 
 import { initializeApp } from '@firebase/app-exp';
-import { getFirestore, initializeFirestore } from '../src/api/database';
+import {
+  Firestore,
+  getFirestore,
+  initializeFirestore
+} from '../src/api/database';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -26,7 +30,8 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore'
     );
-    initializeFirestore(app, { host: 'localhost', ssl: false });
+    const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
+    expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
   it('returns same instance', () => {
