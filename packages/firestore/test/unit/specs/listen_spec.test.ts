@@ -17,7 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
+import { deletedDoc, doc, filter, orderBy, path } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';

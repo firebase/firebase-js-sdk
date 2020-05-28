@@ -404,7 +404,7 @@ export class IndexedDbPersistence implements Persistence {
               return this.verifyPrimaryLease(txn).next(success => {
                 if (!success) {
                   this.isPrimary = false;
-                  this.queue.enqueueAndForget(() =>
+                  this.queue.enqueueRetryable(() =>
                     this.primaryStateListener(false)
                   );
                 }
@@ -444,7 +444,7 @@ export class IndexedDbPersistence implements Persistence {
       })
       .then(isPrimary => {
         if (this.isPrimary !== isPrimary) {
-          this.queue.enqueueAndForget(() =>
+          this.queue.enqueueRetryable(() =>
             this.primaryStateListener(isPrimary)
           );
         }
@@ -805,7 +805,7 @@ export class IndexedDbPersistence implements Persistence {
                   `Failed to obtain primary lease for action '${action}'.`
                 );
                 this.isPrimary = false;
-                this.queue.enqueueAndForget(() =>
+                this.queue.enqueueRetryable(() =>
                   this.primaryStateListener(false)
                 );
                 throw new FirestoreError(
