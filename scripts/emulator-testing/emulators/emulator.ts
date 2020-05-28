@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ export abstract class Emulator {
 
   download(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      tmp.dir((err: Error, dir: string) => {
+      tmp.dir((err: Error | null, dir: string) => {
         if (err) reject(err);
 
         console.log(`Created temporary directory at [${dir}].`);

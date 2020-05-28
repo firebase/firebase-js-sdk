@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ export const parseRepoInfo = function(
   const parsedUrl = parseDatabaseURL(dataURL),
     namespace = parsedUrl.namespace;
 
-  if (parsedUrl.domain === 'firebase') {
+  if (parsedUrl.domain === 'firebase.com') {
     fatal(
       parsedUrl.host +
         ' is no longer supported. ' +
@@ -171,20 +171,21 @@ export const parseDatabaseURL = function(
       secure = scheme === 'https' || scheme === 'wss';
       port = parseInt(host.substring(colonInd + 1), 10);
     } else {
-      colonInd = dataURL.length;
+      colonInd = host.length;
     }
 
-    const parts = host.split('.');
-    if (parts.length === 3) {
-      // Normalize namespaces to lowercase to share storage / connection.
-      domain = parts[1];
-      subdomain = parts[0].toLowerCase();
-      // We interpret the subdomain of a 3 component URL as the namespace name.
-      namespace = subdomain;
-    } else if (parts.length === 2) {
-      domain = parts[0];
-    } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
+    const hostWithoutPort = host.slice(0, colonInd);
+    if (hostWithoutPort.toLowerCase() === 'localhost') {
       domain = 'localhost';
+    } else if (hostWithoutPort.split('.').length <= 2) {
+      domain = hostWithoutPort;
+    } else {
+      // Interpret the subdomain of a 3 or more component URL as the namespace name.
+      const dotInd = host.indexOf('.');
+      subdomain = host.substring(0, dotInd).toLowerCase();
+      domain = host.substring(dotInd + 1);
+      // Normalize namespaces to lowercase to share storage / connection.
+      namespace = subdomain;
     }
     // Always treat the value of the `ns` as the namespace name if it is present.
     if ('ns' in queryParams) {

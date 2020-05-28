@@ -23,10 +23,9 @@ import { DocumentKey } from '../model/document_key';
 import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-import { CancelablePromise } from '../util/promise';
 import {
   decodeResourcePath,
   EncodedResourcePath,
@@ -45,13 +44,11 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTargetDocument,
-  DbTargetGlobal,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
 import {
   documentTargetStore,
-  getHighestListenSequenceNumber,
   IndexedDbTargetCache
 } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
@@ -70,10 +67,14 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { TargetData } from './target_data';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {
+  isIndexedDbTransactionError,
+  SimpleDb,
+  SimpleDbStore,
+  SimpleDbTransaction
+} from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -101,7 +102,7 @@ const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
 const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 /** User-facing error when the primary lease is required but not available. */
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
-  'Another tab has exclusive access to the persistence layer. ' +
+  'Failed to obtain exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
   '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
@@ -191,11 +192,12 @@ export class IndexedDbPersistence implements Persistence {
   private readonly document: Document | null;
   private readonly window: Window;
 
-  // Technically these types should be `| undefined` because they are
+  // Technically `simpleDb` should be `| undefined` because it is
   // initialized asynchronously by start(), but that would be more misleading
   // than useful.
   private simpleDb!: SimpleDb;
-  private listenSequence!: ListenSequence;
+
+  private listenSequence: ListenSequence | null = null;
 
   private _started = false;
   private isPrimary = false;
@@ -212,7 +214,7 @@ export class IndexedDbPersistence implements Persistence {
   private documentVisibilityHandler: ((e?: Event) => void) | null = null;
 
   /** The client metadata refresh task. */
-  private clientMetadataRefresher: CancelablePromise<void> | null = null;
+  private clientMetadataRefresher: DelayedOperation<void> | null = null;
 
   /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
@@ -288,15 +290,23 @@ export class IndexedDbPersistence implements Persistence {
         return this.updateClientMetadataAndTryBecomePrimary();
       })
       .then(() => {
+        if (!this.isPrimary && !this.allowTabSynchronization) {
+          // Fail `start()` if `synchronizeTabs` is disabled and we cannot
+          // obtain the primary lease.
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+          );
+        }
         this.attachVisibilityHandler();
         this.attachWindowUnloadHook();
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.simpleDb.runTransaction(
+        return this.runTransaction(
+          'getHighestListenSequenceNumber',
           'readonly',
-          [DbTargetGlobal.store],
-          txn => getHighestListenSequenceNumber(txn)
+          txn => this.targetCache.getHighestSequenceNumber(txn)
         );
       })
       .then(highestListenSequenceNumber => {
@@ -375,8 +385,10 @@ export class IndexedDbPersistence implements Persistence {
    * primary lease.
    */
   private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
-    return this.simpleDb
-      .runTransaction('readwrite', ALL_STORES, txn => {
+    return this.runTransaction(
+      'updateClientMetadataAndTryBecomePrimary',
+      'readwrite',
+      txn => {
         const metadataStore = clientMetadataStore(txn);
         return metadataStore
           .put(
@@ -392,7 +404,7 @@ export class IndexedDbPersistence implements Persistence {
               return this.verifyPrimaryLease(txn).next(success => {
                 if (!success) {
                   this.isPrimary = false;
-                  this.queue.enqueueAndForget(() =>
+                  this.queue.enqueueRetryable(() =>
                     this.primaryStateListener(false)
                   );
                 }
@@ -409,10 +421,18 @@ export class IndexedDbPersistence implements Persistence {
               return /* canActAsPrimary= */ false;
             }
           });
-      })
+      }
+    )
       .catch(e => {
         if (!this.allowTabSynchronization) {
-          throw e;
+          if (isIndexedDbTransactionError(e)) {
+            logDebug(LOG_TAG, 'Failed to extend owner lease: ', e);
+            // Proceed with the existing state. Any subsequent access to
+            // IndexedDB will verify the lease.
+            return this.isPrimary;
+          } else {
+            throw e;
+          }
         }
 
         logDebug(
@@ -424,7 +444,7 @@ export class IndexedDbPersistence implements Persistence {
       })
       .then(isPrimary => {
         if (this.isPrimary !== isPrimary) {
-          this.queue.enqueueAndForget(() =>
+          this.queue.enqueueRetryable(() =>
             this.primaryStateListener(isPrimary)
           );
         }
@@ -433,7 +453,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private verifyPrimaryLease(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<boolean> {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
@@ -442,7 +462,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private removeClientMetadata(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const metadataStore = clientMetadataStore(txn);
     return metadataStore.delete(this.clientId);
@@ -536,7 +556,7 @@ export class IndexedDbPersistence implements Persistence {
    * (foreground) client should become leaseholder instead.
    */
   private canActAsPrimary(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<boolean> {
     const store = primaryClientStore(txn);
     return store
@@ -645,15 +665,13 @@ export class IndexedDbPersistence implements Persistence {
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.simpleDb.runTransaction(
-      'readwrite',
-      [DbPrimaryClient.store, DbClientMetadata.store],
-      txn => {
-        return this.releasePrimaryLeaseIfHeld(txn).next(() =>
-          this.removeClientMetadata(txn)
-        );
-      }
-    );
+    await this.runTransaction('shutdown', 'readwrite', txn => {
+      return this.releasePrimaryLeaseIfHeld(txn).next(() =>
+        this.removeClientMetadata(txn)
+      );
+    }).catch(e => {
+      logDebug(LOG_TAG, 'Proceeding with shutdown despite failure: ', e);
+    });
     this.simpleDb.close();
 
     // Remove the entry marking the client as zombied from LocalStorage since
@@ -684,19 +702,15 @@ export class IndexedDbPersistence implements Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   getActiveClients(): Promise<ClientId[]> {
-    return this.simpleDb.runTransaction(
-      'readonly',
-      [DbClientMetadata.store],
-      txn => {
-        return clientMetadataStore(txn)
-          .loadAll()
-          .next(clients =>
-            this.filterActiveClients(clients, MAX_CLIENT_AGE_MS).map(
-              clientMetadata => clientMetadata.clientId
-            )
-          );
-      }
-    );
+    return this.runTransaction('getActiveClients', 'readonly', txn => {
+      return clientMetadataStore(txn)
+        .loadAll()
+        .next(clients =>
+          this.filterActiveClients(clients, MAX_CLIENT_AGE_MS).map(
+            clientMetadata => clientMetadata.clientId
+          )
+        );
+    });
   }
 
   static async clearPersistence(persistenceKey: string): Promise<void> {
@@ -767,7 +781,9 @@ export class IndexedDbPersistence implements Persistence {
       .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
         persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
-          this.listenSequence.next()
+          this.listenSequence
+            ? this.listenSequence.next()
+            : ListenSequence.INVALID
         );
 
         if (mode === 'readwrite-primary') {
@@ -776,12 +792,12 @@ export class IndexedDbPersistence implements Persistence {
           // executing transactionOperation(). This ensures that even if the
           // transactionOperation takes a long time, we'll use a recent
           // leaseTimestampMs in the extended (or newly acquired) lease.
-          return this.verifyPrimaryLease(simpleDbTxn)
+          return this.verifyPrimaryLease(persistenceTransaction)
             .next(holdsPrimaryLease => {
               if (holdsPrimaryLease) {
                 return /* holdsPrimaryLease= */ true;
               }
-              return this.canActAsPrimary(simpleDbTxn);
+              return this.canActAsPrimary(persistenceTransaction);
             })
             .next(holdsPrimaryLease => {
               if (!holdsPrimaryLease) {
@@ -789,7 +805,7 @@ export class IndexedDbPersistence implements Persistence {
                   `Failed to obtain primary lease for action '${action}'.`
                 );
                 this.isPrimary = false;
-                this.queue.enqueueAndForget(() =>
+                this.queue.enqueueRetryable(() =>
                   this.primaryStateListener(false)
                 );
                 throw new FirestoreError(
@@ -800,14 +816,14 @@ export class IndexedDbPersistence implements Persistence {
               return transactionOperation(persistenceTransaction);
             })
             .next(result => {
-              return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
-                () => result
-              );
+              return this.acquireOrExtendPrimaryLease(
+                persistenceTransaction
+              ).next(() => result);
             });
         } else {
-          return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(persistenceTransaction)
-          );
+          return this.verifyAllowTabSynchronization(
+            persistenceTransaction
+          ).next(() => transactionOperation(persistenceTransaction));
         }
       })
       .then(result => {
@@ -823,7 +839,7 @@ export class IndexedDbPersistence implements Persistence {
   // TODO(b/114226234): Remove this check when `synchronizeTabs` can no longer
   // be turned off.
   private verifyAllowTabSynchronization(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(currentPrimary => {
@@ -836,7 +852,10 @@ export class IndexedDbPersistence implements Persistence {
         !this.isClientZombied(currentPrimary.ownerId);
 
       if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
-        if (!currentPrimary!.allowTabSynchronization) {
+        if (
+          !this.allowTabSynchronization ||
+          !currentPrimary!.allowTabSynchronization
+        ) {
           throw new FirestoreError(
             Code.FAILED_PRECONDITION,
             PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
@@ -851,7 +870,7 @@ export class IndexedDbPersistence implements Persistence {
    * method does not verify that the client is eligible for this lease.
    */
   private acquireOrExtendPrimaryLease(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const newPrimary = new DbPrimaryClient(
       this.clientId,
@@ -887,7 +906,7 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Checks the primary lease and removes it if we are the current primary. */
   private releasePrimaryLeaseIfHeld(
-    txn: SimpleDbTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
@@ -1052,26 +1071,28 @@ export class IndexedDbPersistence implements Persistence {
  * Helper to get a typed SimpleDbStore for the primary client object store.
  */
 function primaryClientStore(
-  txn: SimpleDbTransaction
+  txn: PersistenceTransaction
 ): SimpleDbStore<DbPrimaryClientKey, DbPrimaryClient> {
-  return txn.store<DbPrimaryClientKey, DbPrimaryClient>(DbPrimaryClient.store);
+  return IndexedDbPersistence.getStore<DbPrimaryClientKey, DbPrimaryClient>(
+    txn,
+    DbPrimaryClient.store
+  );
 }
 
 /**
  * Helper to get a typed SimpleDbStore for the client metadata object store.
  */
 function clientMetadataStore(
-  txn: SimpleDbTransaction
+  txn: PersistenceTransaction
 ): SimpleDbStore<DbClientMetadataKey, DbClientMetadata> {
-  return txn.store<DbClientMetadataKey, DbClientMetadata>(
+  return IndexedDbPersistence.getStore<DbClientMetadataKey, DbClientMetadata>(
+    txn,
     DbClientMetadata.store
   );
 }
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
-
   readonly garbageCollector: LruGarbageCollector;
 
   constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
@@ -1081,14 +1102,14 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   getSequenceNumberCount(
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
-    const docCountPromise = this.orphanedDocmentCount(txn);
+    const docCountPromise = this.orphanedDocumentCount(txn);
     const targetCountPromise = this.db.getTargetCache().getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
   }
 
-  private orphanedDocmentCount(
+  private orphanedDocumentCount(
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
     let orphanedCount = 0;
@@ -1113,12 +1134,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     );
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     return writeSentinelKey(txn, key);
@@ -1126,6 +1144,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     return writeSentinelKey(txn, key);
@@ -1141,7 +1160,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -1158,11 +1177,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
-    if (this.inMemoryPins!.containsKey(docKey)) {
-      return PersistencePromise.resolve<boolean>(true);
-    } else {
-      return mutationQueuesContainKey(txn, docKey);
-    }
+    return mutationQueuesContainKey(txn, docKey);
   }
 
   removeOrphanedDocuments(

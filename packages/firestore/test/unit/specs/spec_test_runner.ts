@@ -341,8 +341,8 @@ abstract class TestRunner {
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else if ('failDatabase' in step) {
-      return step.failDatabase!
-        ? this.doFailDatabase()
+      return step.failDatabase
+        ? this.doFailDatabase(step.failDatabase!)
         : this.doRecoverDatabase();
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
@@ -371,7 +371,7 @@ abstract class TestRunner {
     await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
     if (targetFailed) {
-      expect(this.persistence.injectFailures).to.be.true;
+      expect(this.persistence.injectFailures).contains('Allocate target');
     } else {
       // Skip the backoff that may have been triggered by a previous call to
       // `watchStreamCloses()`.
@@ -380,7 +380,7 @@ abstract class TestRunner {
           TimerId.ListenStreamConnectionBackoff
         )
       ) {
-        await this.queue.runDelayedOperationsEarly(
+        await this.queue.runAllDelayedOperationsUntil(
           TimerId.ListenStreamConnectionBackoff
         );
       }
@@ -446,7 +446,9 @@ abstract class TestRunner {
       () => this.rejectedDocs.push(...documentKeys)
     );
 
-    if (!this.persistence.injectFailures) {
+    if (
+      this.persistence.injectFailures.indexOf('Locally write mutations') === -1
+    ) {
       this.sharedWrites.push(mutations);
     }
 
@@ -603,7 +605,7 @@ abstract class TestRunner {
     );
     // The watch stream should re-open if we have active listeners.
     if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
-      await this.queue.runDelayedOperationsEarly(
+      await this.queue.runAllDelayedOperationsUntil(
         TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
@@ -654,7 +656,7 @@ abstract class TestRunner {
     // not, then there won't be a matching item on the queue and
     // runDelayedOperationsEarly() will throw.
     const timerId = timer as TimerId;
-    await this.queue.runDelayedOperationsEarly(timerId);
+    await this.queue.runAllDelayedOperationsUntil(timerId);
   }
 
   private async doDisableNetwork(): Promise<void> {
@@ -704,25 +706,37 @@ abstract class TestRunner {
 
     if (state.primary) {
       await clearCurrentPrimaryLease();
-      await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await this.queue.runAllDelayedOperationsUntil(
+        TimerId.ClientMetadataRefresh
+      );
     }
 
     return Promise.resolve();
   }
 
-  private doChangeUser(user: string | null): Promise<void> {
+  private async doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.enqueue(() =>
-      this.syncEngine.handleCredentialChange(this.user)
-    );
+    const deferred = new Deferred<void>();
+    await this.queue.enqueueRetryable(async () => {
+      try {
+        await this.syncEngine.handleCredentialChange(this.user);
+      } finally {
+        // Resolve the deferred Promise even if the operation failed. This allows
+        // the spec tests to manually retry the failed user change.
+        deferred.resolve();
+      }
+    });
+    return deferred.promise;
   }
 
-  private async doFailDatabase(): Promise<void> {
-    this.persistence.injectFailures = true;
+  private async doFailDatabase(
+    failActions: PersistenceAction[]
+  ): Promise<void> {
+    this.persistence.injectFailures = failActions;
   }
 
   private async doRecoverDatabase(): Promise<void> {
-    this.persistence.injectFailures = false;
+    this.persistence.injectFailures = [];
   }
 
   private validateExpectedSnapshotEvents(
@@ -845,18 +859,22 @@ abstract class TestRunner {
 
   private validateActiveLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
-    // Validate that each active limbo doc has an expected active target
-    actualLimboDocs.forEach((key, targetId) => {
-      const targetIds = new Array(this.expectedActiveTargets.keys()).map(
-        n => '' + n
-      );
-      expect(this.expectedActiveTargets.has(targetId)).to.equal(
-        true,
-        `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
-          `was not in the set of expected active target IDs ` +
-          `(${targetIds.join(', ')})`
-      );
-    });
+
+    if (this.connection.isWatchOpen) {
+      // Validate that each active limbo doc has an expected active target
+      actualLimboDocs.forEach((key, targetId) => {
+        const targetIds = new Array(this.expectedActiveTargets.keys()).map(
+          n => '' + n
+        );
+        expect(this.expectedActiveTargets.has(targetId)).to.equal(
+          true,
+          `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
+            `was not in the set of expected active target IDs ` +
+            `(${targetIds.join(', ')})`
+        );
+      });
+    }
+
     for (const expectedLimboDoc of this.expectedActiveLimboDocs) {
       expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
         null,
@@ -1182,6 +1200,37 @@ export interface SpecConfig {
 }
 
 /**
+ * The cumulative list of actions run against Persistence. This is used by the
+ * Spec tests to fail specific types of actions.
+ */
+export type PersistenceAction =
+  | 'Get next mutation batch'
+  | 'read document'
+  | 'Allocate target'
+  | 'Release target'
+  | 'Execute query'
+  | 'Handle user change'
+  | 'Locally write mutations'
+  | 'Acknowledge batch'
+  | 'Reject batch'
+  | 'Get highest unacknowledged batch id'
+  | 'Get last stream token'
+  | 'Set last stream token'
+  | 'Get last remote snapshot version'
+  | 'Set last remote snapshot version'
+  | 'Apply remote event'
+  | 'notifyLocalViewChanges'
+  | 'Remote document keys'
+  | 'Collect garbage'
+  | 'maybeGarbageCollectMultiClientState'
+  | 'Lookup mutation documents'
+  | 'Get target data'
+  | 'Get new document changes'
+  | 'Synchronize last document change read time'
+  | 'updateClientMetadataAndTryBecomePrimary'
+  | 'getHighestListenSequenceNumber';
+
+/**
  * Union type for each step. The step consists of exactly one `field`
  * set and optionally expected events in the `expect` field.
  */
@@ -1225,8 +1274,8 @@ export interface SpecStep {
   /** Fail a write */
   failWrite?: SpecWriteFailure;
 
-  /** Fail all database transactions. */
-  failDatabase?: boolean;
+  /** Fails the listed database actions. */
+  failDatabase?: false | PersistenceAction[];
 
   /**
    * Run a queued timer task (without waiting for the delay to expire). See

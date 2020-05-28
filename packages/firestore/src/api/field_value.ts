@@ -102,12 +102,18 @@ export class ArrayUnionFieldValueImpl extends FieldValueImpl {
     // Although array transforms are used with writes, the actual elements
     // being uniomed or removed are not considered writes since they cannot
     // contain any FieldValue sentinels, etc.
-    const parseContext = context.contextWith({
-      dataSource: UserDataSource.Argument,
-      methodName: this._methodName
-    });
+    const parseContext = new ParseContext(
+      {
+        dataSource: UserDataSource.Argument,
+        methodName: this._methodName,
+        arrayElement: true
+      },
+      context.databaseId,
+      context.serializer,
+      context.ignoreUndefinedProperties
+    );
     const parsedElements = this._elements.map(
-      (element, i) => parseData(element, parseContext.childContextForArray(i))!
+      element => parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -128,12 +134,18 @@ export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
     // Although array transforms are used with writes, the actual elements
     // being unioned or removed are not considered writes since they cannot
     // contain any FieldValue sentinels, etc.
-    const parseContext = context.contextWith({
-      dataSource: UserDataSource.Argument,
-      methodName: this._methodName
-    });
+    const parseContext = new ParseContext(
+      {
+        dataSource: UserDataSource.Argument,
+        methodName: this._methodName,
+        arrayElement: true
+      },
+      context.databaseId,
+      context.serializer,
+      context.ignoreUndefinedProperties
+    );
     const parsedElements = this._elements.map(
-      (element, i) => parseData(element, parseContext.childContextForArray(i))!
+      element => parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayRemoveTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -151,8 +163,16 @@ export class NumericIncrementFieldValueImpl extends FieldValueImpl {
   }
 
   toFieldTransform(context: ParseContext): FieldTransform {
-    context.contextWith({ methodName: this._methodName });
-    const operand = parseData(this._operand, context)!;
+    const parseContext = new ParseContext(
+      {
+        dataSource: UserDataSource.Argument,
+        methodName: this._methodName
+      },
+      context.databaseId,
+      context.serializer,
+      context.ignoreUndefinedProperties
+    );
+    const operand = parseData(this._operand, parseContext)!;
     const numericIncrement = new NumericIncrementTransformOperation(
       context.serializer,
       operand

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -29,10 +29,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-types": "0.6.0",
-    "@firebase/util": "0.2.46",
-    "@firebase/logger": "0.2.3",
-    "@firebase/component": "0.1.11",
+    "@firebase/app-types": "0.6.1",
+    "@firebase/util": "0.2.47",
+    "@firebase/logger": "0.2.4",
+    "@firebase/component": "0.1.12",
     "tslib": "1.11.1",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"

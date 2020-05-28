@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
+import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
@@ -171,7 +171,7 @@ describe('AsyncQueue', () => {
       err => expect(err.code === Code.CANCELLED)
     );
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1]);
   });
 
@@ -187,7 +187,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
@@ -205,7 +205,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(timerId3);
+    await queue.runAllDelayedOperationsUntil(timerId3);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
@@ -223,7 +223,7 @@ describe('AsyncQueue', () => {
         );
       }
     });
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 
@@ -279,7 +279,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1]);
 
     // Fast forward all operations
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 

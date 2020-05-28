@@ -22,11 +22,10 @@ import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { hardAssert, debugAssert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
 
-import { CancelablePromise } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
@@ -164,7 +163,7 @@ export abstract class PersistentStream<
    */
   private closeCount = 0;
 
-  private idleTimer: CancelablePromise<void> | null = null;
+  private idleTimer: DelayedOperation<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;

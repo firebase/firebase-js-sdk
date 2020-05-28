@@ -252,7 +252,7 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.forEach(batch.mutations, (mutation: Mutation) => {
       const ref = new DocReference(mutation.key, batch.batchId);
       references = references.delete(ref);
-      return this.referenceDelegate.removeMutationReference(
+      return this.referenceDelegate.markPotentiallyOrphaned(
         transaction,
         mutation.key
       );

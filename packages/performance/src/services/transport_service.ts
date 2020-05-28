@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ function dispatchQueueEvents(): void {
   };
   /* eslint-enable camelcase */
 
-  postToEndpoint(data, staged).catch(() => {
+  sendEventsToFl(data, staged).catch(() => {
     // If the request fails for some reason, add the events that were attempted
     // back to the primary queue to retry later.
     queue = [...staged, ...queue];
@@ -120,18 +120,6 @@ function dispatchQueueEvents(): void {
     consoleLogger.info(`Tries left: ${remainingTries}.`);
     processQueue(DEFAULT_SEND_INTERVAL_MS);
   });
-}
-
-function postToEndpoint(
-  data: TransportBatchLogFormat,
-  staged: BatchEvent[]
-): Promise<void> {
-  // Gradually rollout traffic from cc to transport using remote config.
-  if (SettingsService.getInstance().shouldSendToFl) {
-    return sendEventsToFl(data, staged);
-  } else {
-    return sendEventsToCc(data);
-  }
 }
 
 function sendEventsToFl(
@@ -165,29 +153,6 @@ function sendEventsToFl(
         consoleLogger.info(`Retry transport request later.`);
       }
 
-      remainingTries = DEFAULT_REMAINING_TRIES;
-      // Schedule the next process.
-      processQueue(requestOffset);
-    });
-}
-
-function sendEventsToCc(data: TransportBatchLogFormat): Promise<void> {
-  return fetch(SettingsService.getInstance().logEndPointUrl, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  })
-    .then(res => {
-      if (!res.ok) {
-        consoleLogger.info('Call to Firebase backend failed.');
-      }
-      return res.json();
-    })
-    .then(res => {
-      const wait = Number(res.next_request_wait_millis);
-      // Find the next call wait time from the response.
-      const requestOffset = isNaN(wait)
-        ? DEFAULT_SEND_INTERVAL_MS
-        : Math.max(DEFAULT_SEND_INTERVAL_MS, wait);
       remainingTries = DEFAULT_REMAINING_TRIES;
       // Schedule the next process.
       processQueue(requestOffset);

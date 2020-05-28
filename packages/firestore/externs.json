@@ -23,8 +23,8 @@
     "packages/webchannel-wrapper/src/index.d.ts",
     "packages/util/dist/src/environment.d.ts",
     "packages/firestore/src/protos/firestore_proto_api.d.ts",
-    "packages/firestore/dist/lib/src/util/error.d.ts",
-    "packages/firestore/dist/lib/src/local/indexeddb_schema.d.ts",
-    "packages/firestore/dist/lib/src/local/shared_client_state_schema.d.ts"
+    "packages/firestore/src/util/error.ts",
+    "packages/firestore/src/local/indexeddb_schema.ts",
+    "packages/firestore/src/local/shared_client_state_schema.ts"
   ]
 }

@@ -1,11 +1,12 @@
 {
   "name": "@firebase/remote-config-types",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "@firebase/remote-config Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "files": [
     "index.d.ts"

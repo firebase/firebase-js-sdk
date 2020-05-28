@@ -43,6 +43,7 @@ import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
 import {
   parseQuery,
+  PersistenceAction,
   runSpec,
   SpecConfig,
   SpecDocument,
@@ -435,12 +436,15 @@ export class SpecBuilder {
     return this;
   }
 
-  /** Fails all database operations until `recoverDatabase()` is called. */
-  failDatabase(): this {
+  /**
+   * Fails the specified database transaction until `recoverDatabase()` is
+   * called.
+   */
+  failDatabaseTransactions(...actions: PersistenceAction[]): this {
     this.nextStep();
     this.injectFailures = true;
     this.currentStep = {
-      failDatabase: true
+      failDatabase: actions
     };
     return this;
   }

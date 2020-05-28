@@ -19,13 +19,13 @@ import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -178,7 +178,7 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueAndForget(() => {
+        this.asyncQueue.enqueueRetryable(() => {
           return this.handleCredentialChange(user);
         });
       }
@@ -408,43 +408,66 @@ export class FirestoreClient {
     });
   }
 
-  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
+  async getDocumentFromLocalCache(
+    docKey: DocumentKey
+  ): Promise<Document | null> {
     this.verifyNotTerminated();
-    return this.asyncQueue
-      .enqueue(() => {
-        return this.localStore.readDocument(docKey);
-      })
-      .then((maybeDoc: MaybeDocument | null) => {
+    const deferred = new Deferred<Document | null>();
+    await this.asyncQueue.enqueue(async () => {
+      try {
+        const maybeDoc = await this.localStore.readDocument(docKey);
         if (maybeDoc instanceof Document) {
-          return maybeDoc;
+          deferred.resolve(maybeDoc);
         } else if (maybeDoc instanceof NoDocument) {
-          return null;
+          deferred.resolve(null);
         } else {
-          throw new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get document from cache. (However, this document may ' +
-              "exist on the server. Run again without setting 'source' in " +
-              'the GetOptions to attempt to retrieve the document from the ' +
-              'server.)'
+          deferred.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from cache. (However, this document may ' +
+                "exist on the server. Run again without setting 'source' in " +
+                'the GetOptions to attempt to retrieve the document from the ' +
+                'server.)'
+            )
           );
         }
-      });
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Failed to get document '${docKey} from cache`
+        );
+        deferred.reject(firestoreError);
+      }
+    });
+
+    return deferred.promise;
   }
 
-  getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
+  async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    return this.asyncQueue.enqueue(async () => {
-      const queryResult = await this.localStore.executeQuery(
-        query,
-        /* usePreviousResults= */ true
-      );
-      const view = new View(query, queryResult.remoteKeys);
-      const viewDocChanges = view.computeDocChanges(queryResult.documents);
-      return view.applyChanges(
-        viewDocChanges,
-        /* updateLimboDocuments= */ false
-      ).snapshot!;
+    const deferred = new Deferred<ViewSnapshot>();
+    await this.asyncQueue.enqueue(async () => {
+      try {
+        const queryResult = await this.localStore.executeQuery(
+          query,
+          /* usePreviousResults= */ true
+        );
+        const view = new View(query, queryResult.remoteKeys);
+        const viewDocChanges = view.computeDocChanges(queryResult.documents);
+        const viewChange = view.applyChanges(
+          viewDocChanges,
+          /* updateLimboDocuments= */ false
+        );
+        deferred.resolve(viewChange.snapshot!);
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Failed to execute query '${query} against cache`
+        );
+        deferred.reject(firestoreError);
+      }
     });
+    return deferred.promise;
   }
 
   write(mutations: Mutation[]): Promise<void> {
@@ -474,7 +497,10 @@ export class FirestoreClient {
     if (this.clientTerminated) {
       return;
     }
-    this.eventMgr.removeSnapshotsInSyncListener(observer);
+    this.asyncQueue.enqueueAndForget(() => {
+      this.eventMgr.removeSnapshotsInSyncListener(observer);
+      return Promise.resolve();
+    });
   }
 
   get clientTerminated(): boolean {

@@ -22,10 +22,7 @@ import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
-import { logError } from '../util/log';
-import { Code, FirestoreError } from '../util/error';
-
-const LOG_TAG = 'EventManager';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -76,13 +73,11 @@ export class EventManager implements SyncEngineListener {
       try {
         queryInfo.viewSnap = await this.syncEngine.listen(query);
       } catch (e) {
-        const msg = `Initialization of query '${query}' failed: ${e}`;
-        logError(LOG_TAG, msg);
-        if (e.name === 'IndexedDbTransactionError') {
-          listener.onError(new FirestoreError(Code.UNAVAILABLE, msg));
-        } else {
-          throw e;
-        }
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Initialization of query '${listener.query}' failed`
+        );
+        listener.onError(firestoreError);
         return;
       }
     }

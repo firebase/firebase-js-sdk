@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ apiDescribe('Idle Timeout', (persistence: boolean) => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
+          return asyncQueue(db).runAllDelayedOperationsUntil(
             TimerId.WriteStreamIdle
           );
         })
@@ -53,7 +53,7 @@ apiDescribe('Idle Timeout', (persistence: boolean) => {
 
       return awaitOnlineSnapshot()
         .then(() => {
-          return asyncQueue(db).runDelayedOperationsEarly(
+          return asyncQueue(db).runAllDelayedOperationsUntil(
             TimerId.ListenStreamIdle
           );
         })

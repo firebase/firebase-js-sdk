@@ -846,69 +846,50 @@ apiDescribe('Database', (persistence: boolean) => {
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
-  describe.skip('Listens are rejected remotely:', () => {
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryForRejection: firestore.Query = null as any;
-
+  describe('Listens are rejected remotely:', () => {
     it('will reject listens', () => {
-      const deferred = new Deferred();
-      queryForRejection.onSnapshot(
-        () => {},
-        (err: Error) => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-          deferred.resolve();
-        }
-      );
-      return deferred.promise;
+      return withTestDb(persistence, async db => {
+        const deferred = new Deferred();
+        const queryForRejection = db.collection('a/__badpath__/b');
+        queryForRejection.onSnapshot(
+          () => {},
+          (err: Error) => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+            deferred.resolve();
+          }
+        );
+        await deferred.promise;
+      });
     });
 
     it('will reject same listens twice in a row', () => {
-      const deferred = new Deferred();
-      queryForRejection.onSnapshot(
-        () => {},
-        (err: Error) => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-          queryForRejection.onSnapshot(
-            () => {},
-            (err2: Error) => {
-              expect(err2.name).to.exist;
-              expect(err2.message).to.exist;
-              deferred.resolve();
-            }
-          );
-        }
-      );
-      return deferred.promise;
+      return withTestDb(persistence, async db => {
+        const deferred = new Deferred();
+        const queryForRejection = db.collection('a/__badpath__/b');
+        queryForRejection.onSnapshot(
+          () => {},
+          (err: Error) => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+            queryForRejection.onSnapshot(
+              () => {},
+              (err2: Error) => {
+                expect(err2.name).to.exist;
+                expect(err2.message).to.exist;
+                deferred.resolve();
+              }
+            );
+          }
+        );
+        await deferred.promise;
+      });
     });
 
     it('will reject gets', () => {
-      return queryForRejection.get().then(
-        () => {
-          expect.fail('Promise resolved even though error was expected.');
-        },
-        err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-        }
-      );
-    });
-
-    it('will reject gets twice in a row', () => {
-      return queryForRejection
-        .get()
-        .then(
-          () => {
-            expect.fail('Promise resolved even though error was expected.');
-          },
-          err => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-          }
-        )
-        .then(() => queryForRejection.get())
-        .then(
+      return withTestDb(persistence, async db => {
+        const queryForRejection = db.collection('a/__badpath__/b');
+        await queryForRejection.get().then(
           () => {
             expect.fail('Promise resolved even though error was expected.');
           },
@@ -917,6 +898,34 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(err.message).to.exist;
           }
         );
+      });
+    });
+
+    it('will reject gets twice in a row', () => {
+      return withTestDb(persistence, async db => {
+        const queryForRejection = db.collection('a/__badpath__/b');
+        return queryForRejection
+          .get()
+          .then(
+            () => {
+              expect.fail('Promise resolved even though error was expected.');
+            },
+            err => {
+              expect(err.name).to.exist;
+              expect(err.message).to.exist;
+            }
+          )
+          .then(() => queryForRejection.get())
+          .then(
+            () => {
+              expect.fail('Promise resolved even though error was expected.');
+            },
+            err => {
+              expect(err.name).to.exist;
+              expect(err.message).to.exist;
+            }
+          );
+      });
     });
   });
 

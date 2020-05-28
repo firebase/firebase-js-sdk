@@ -56,7 +56,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
-import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
@@ -66,6 +65,7 @@ import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LocalStore';
 
@@ -164,11 +164,6 @@ export class LocalStore {
    */
   protected localDocuments: LocalDocumentsView;
 
-  /**
-   * The set of document references maintained by any local views.
-   */
-  private localViewReferences = new ReferenceSet();
-
   /** Maps a target to its `TargetData`. */
   protected targetCache: TargetCache;
 
@@ -204,9 +199,6 @@ export class LocalStore {
     debugAssert(
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
-    );
-    this.persistence.referenceDelegate.setInMemoryPins(
-      this.localViewReferences
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
@@ -676,15 +668,52 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+  async notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    try {
+      await this.persistence.runTransaction(
+        'notifyLocalViewChanges',
+        'readwrite',
+        txn => {
+          return PersistencePromise.forEach(
+            viewChanges,
+            (viewChange: LocalViewChanges) => {
+              return PersistencePromise.forEach(
+                viewChange.addedKeys,
+                (key: DocumentKey) =>
+                  this.persistence.referenceDelegate.addReference(
+                    txn,
+                    viewChange.targetId,
+                    key
+                  )
+              ).next(() =>
+                PersistencePromise.forEach(
+                  viewChange.removedKeys,
+                  (key: DocumentKey) =>
+                    this.persistence.referenceDelegate.removeReference(
+                      txn,
+                      viewChange.targetId,
+                      key
+                    )
+                )
+              );
+            }
+          );
+        }
+      );
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        // If `notifyLocalViewChanges` fails, we did not advance the sequence
+        // number for the documents that were included in this transaction.
+        // This might trigger them to be deleted earlier than they otherwise
+        // would have, but it should not invalidate the integrity of the data.
+        logDebug(LOG_TAG, 'Failed to update sequence numbers: ' + e);
+      } else {
+        throw e;
+      }
+    }
+
     for (const viewChange of viewChanges) {
       const targetId = viewChange.targetId;
-
-      this.localViewReferences.addReferences(viewChange.addedKeys, targetId);
-      this.localViewReferences.removeReferences(
-        viewChange.removedKeys,
-        targetId
-      );
 
       if (!viewChange.fromCache) {
         const targetData = this.targetDataByTarget.get(targetId);
@@ -704,22 +733,6 @@ export class LocalStore {
         );
       }
     }
-    return this.persistence.runTransaction(
-      'notifyLocalViewChanges',
-      'readwrite',
-      txn => {
-        return PersistencePromise.forEach(
-          viewChanges,
-          (viewChange: LocalViewChanges) => {
-            return PersistencePromise.forEach(
-              viewChange.removedKeys,
-              (key: DocumentKey) =>
-                this.persistence.referenceDelegate.removeReference(txn, key)
-            );
-          }
-        );
-      }
-    );
   }
 
   /**
@@ -791,7 +804,17 @@ export class LocalStore {
           });
       })
       .then(targetData => {
-        if (this.targetDataByTarget.get(targetData.targetId) === null) {
+        // If Multi-Tab is enabled, the existing target data may be newer than
+        // the in-memory data
+        const cachedTargetData = this.targetDataByTarget.get(
+          targetData.targetId
+        );
+        if (
+          cachedTargetData === null ||
+          targetData.snapshotVersion.compareTo(
+            cachedTargetData.snapshotVersion
+          ) > 0
+        ) {
           this.targetDataByTarget = this.targetDataByTarget.insert(
             targetData.targetId,
             targetData
@@ -842,26 +865,11 @@ export class LocalStore {
     const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
     return this.persistence
       .runTransaction('Release target', mode, txn => {
-        // References for documents sent via Watch are automatically removed
-        // when we delete a target's data from the reference delegate.
-        // Since this does not remove references for locally mutated documents,
-        // we have to remove the target associations for these documents
-        // manually.
-        // This operation needs to be run inside the transaction since EagerGC
-        // uses the local view references during the transaction's commit.
-        // Fortunately, the operation is safe to be re-run in case the
-        // transaction fails since there are no side effects if the target has
-        // already been removed.
-        const removed = this.localViewReferences.removeReferencesForId(
-          targetId
-        );
-
         if (!keepPersistedTargetData) {
-          return PersistencePromise.forEach(removed, (key: DocumentKey) =>
-            this.persistence.referenceDelegate.removeReference(txn, key)
-          ).next(() => {
-            this.persistence.referenceDelegate.removeTarget(txn, targetData!);
-          });
+          return this.persistence.referenceDelegate.removeTarget(
+            txn,
+            targetData!
+          );
         } else {
           return PersistencePromise.resolve();
         }

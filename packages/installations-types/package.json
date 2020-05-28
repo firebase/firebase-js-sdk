@@ -1,11 +1,12 @@
 {
   "name": "@firebase/installations-types",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "@firebase/installations Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "files": [
     "index.d.ts"

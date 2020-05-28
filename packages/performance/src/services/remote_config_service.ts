@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ interface SecondaryConfig {
   logSource?: number;
   logEndPointUrl?: string;
   transportKey?: string;
-  shouldSendToFl?: boolean;
   tracesSamplingRate?: number;
   networkRequestsSamplingRate?: number;
 }
@@ -42,14 +41,7 @@ interface SecondaryConfig {
 // These values will be used if the remote config object is successfully
 // retrieved, but the template does not have these fields.
 const DEFAULT_CONFIGS: SecondaryConfig = {
-  loggingEnabled: true,
-  shouldSendToFl: true
-};
-
-// These values will be used if the remote config object is successfully
-// retrieved, but the config object state shows unspecified or no template.
-const NO_TEMPLATE_CONFIGS: SecondaryConfig = {
-  shouldSendToFl: false
+  loggingEnabled: true
 };
 
 /* eslint-disable camelcase */
@@ -75,12 +67,12 @@ const FIS_AUTH_PREFIX = 'FIREBASE_INSTALLATIONS_AUTH';
 export function getConfig(iid: string): Promise<void> {
   const config = getStoredConfig();
   if (config) {
-    processConfig(iid, config);
+    processConfig(config);
     return Promise.resolve();
   }
 
   return getRemoteConfig(iid)
-    .then(config => processConfig(iid, config))
+    .then(processConfig)
     .then(
       config => storeConfig(config),
       /** Do nothing for error, use defaults set in settings service. */
@@ -170,15 +162,13 @@ function getRemoteConfig(
  * is valid.
  */
 function processConfig(
-  iid: string,
-  config: RemoteConfigResponse | undefined
+  config?: RemoteConfigResponse
 ): RemoteConfigResponse | undefined {
   if (!config) {
     return config;
   }
   const settingsServiceInstance = SettingsService.getInstance();
   const entries = config.entries || {};
-  const state = config.state;
   if (entries.fpr_enabled !== undefined) {
     // TODO: Change the assignment of loggingEnabled once the received type is
     // known.
@@ -206,32 +196,6 @@ function processConfig(
     settingsServiceInstance.transportKey = entries.fpr_log_transport_key;
   } else if (DEFAULT_CONFIGS.transportKey) {
     settingsServiceInstance.transportKey = DEFAULT_CONFIGS.transportKey;
-  }
-
-  // If config object state indicates that no template has been set, that means it is new user of
-  // Performance Monitoring and should use the old log endpoint, because it is guaranteed to work.
-  if (
-    state === undefined ||
-    state === 'INSTANCE_STATE_UNSPECIFIED' ||
-    state === 'NO_TEMPLATE'
-  ) {
-    if (NO_TEMPLATE_CONFIGS.shouldSendToFl !== undefined) {
-      settingsServiceInstance.shouldSendToFl =
-        NO_TEMPLATE_CONFIGS.shouldSendToFl;
-    }
-  } else if (entries.fpr_log_transport_web_percent) {
-    // If config object state doesn't indicate no template, it can only be UPDATE for now.
-    // - Performance Monitoring doesn't set etag in request, therefore state cannot be NO_CHANGE.
-    // - Sampling rate flags and master flag are required, therefore state cannot be EMPTY_CONFIG.
-    // If config object state is UPDATE and rollout flag is present, determine endpoint by iid.
-    settingsServiceInstance.shouldSendToFl = isDestFl(
-      iid,
-      Number(entries.fpr_log_transport_web_percent)
-    );
-  } else if (DEFAULT_CONFIGS.shouldSendToFl !== undefined) {
-    // If config object state is UPDATE and rollout flag is not present, that means rollout is
-    // complete and rollout flag is deprecated, therefore dispatch events to new transport endpoint.
-    settingsServiceInstance.shouldSendToFl = DEFAULT_CONFIGS.shouldSendToFl;
   }
 
   if (entries.fpr_vc_network_request_sampling_rate !== undefined) {
@@ -266,31 +230,4 @@ function configValid(expiry: string): boolean {
 
 function shouldLogAfterSampling(samplingRate: number): boolean {
   return Math.random() <= samplingRate;
-}
-
-/**
- * True if event should be sent to Fl transport endpoint rather than CC transport endpoint.
- * rolloutPercent is in range [0.0, 100.0].
- * @param iid Installation ID which identifies a web app installed on client.
- * @param rolloutPercent the possibility of this app sending events to Fl endpoint.
- * @return true if this installation should send events to Fl endpoint.
- */
-export function isDestFl(iid: string, rolloutPercent: number): boolean {
-  if (iid.length === 0) {
-    return false;
-  }
-  return getHashPercent(iid) < rolloutPercent;
-}
-/**
- * Generate integer value range in [0, 99]. Implementation from String.hashCode() in Java.
- * @param seed Same seed will generate consistent hash value using this algorithm.
- * @return Hash value in range [0, 99], generated from seed and hash algorithm.
- */
-function getHashPercent(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 3) + hash - seed.charCodeAt(i);
-  }
-  hash = Math.abs(hash % 100);
-  return hash;
 }

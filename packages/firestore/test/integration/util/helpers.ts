@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,7 +233,6 @@ export async function withTestDbsSettings(
   try {
     await fn(dbs);
   } finally {
-    await wipeDb(dbs[0]);
     for (const db of dbs) {
       await db.terminate();
       if (persistence) {
@@ -250,6 +249,22 @@ export function withTestDoc(
   return withTestDb(persistence, db => {
     return fn(db.collection('test-collection').doc());
   });
+}
+
+export function withTestDocAndSettings(
+  persistence: boolean,
+  settings: firestore.Settings,
+  fn: (doc: firestore.DocumentReference) => Promise<void>
+): Promise<void> {
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    settings,
+    1,
+    ([db]) => {
+      return fn(db.collection('test-collection').doc());
+    }
+  );
 }
 
 // TODO(rsgowman): Modify withTestDoc to take in (an optional) initialData and
@@ -309,10 +324,4 @@ export function withTestCollectionSettings(
       });
     }
   );
-}
-
-function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
-  // TODO(dimond): actually wipe DB and assert or listenables have been turned
-  // off. We probably need deep queries for this.
-  return Promise.resolve(undefined);
 }

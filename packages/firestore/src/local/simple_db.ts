@@ -418,6 +418,13 @@ export class IndexedDbTransactionError extends FirestoreError {
   }
 }
 
+/** Verifies whether `e` is an IndexedDbTransactionError. */
+export function isIndexedDbTransactionError(e: Error): boolean {
+  // Use name equality, as instanceof checks on errors don't work with errors
+  // that wrap other errors.
+  return e.name === 'IndexedDbTransactionError';
+}
+
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.

@@ -30,7 +30,9 @@
     "build": "rollup -c && gulp firebase-js",
     "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
     "dev": "rollup -c -w",
-    "prepare": "yarn build:release"
+    "prepare": "yarn build:release",
+    "test": "echo 'No test suite for firebase wrapper'",
+    "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800"

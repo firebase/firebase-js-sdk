@@ -16,14 +16,13 @@
  */
 
 import { User } from '../auth/user';
-import { ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
-import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetData } from './target_data';
 
@@ -85,21 +84,17 @@ export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
  * generate sequence numbers (getCurrentSequenceNumber()).
  */
 export interface ReferenceDelegate {
-  /**
-   * Registers a ReferenceSet of documents that should be considered 'referenced' and not eligible
-   * for removal during garbage collection.
-   */
-  setInMemoryPins(pins: ReferenceSet): void;
-
   /** Notify the delegate that the given document was added to a target. */
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     doc: DocumentKey
   ): PersistencePromise<void>;
 
   /** Notify the delegate that the given document was removed from a target. */
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     doc: DocumentKey
   ): PersistencePromise<void>;
 
@@ -112,8 +107,11 @@ export interface ReferenceDelegate {
     targetData: TargetData
   ): PersistencePromise<void>;
 
-  /** Notify the delegate that a document is no longer being mutated by the user. */
-  removeMutationReference(
+  /**
+   * Notify the delegate that a document may no longer be part of any views or
+   * have any mutations associated.
+   */
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     doc: DocumentKey
   ): PersistencePromise<void>;

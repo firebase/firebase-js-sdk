@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ describe('Write Stream', () => {
           expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
             .true;
           return Promise.all([
-            queue.runDelayedOperationsEarly(TimerId.WriteStreamIdle),
+            queue.runAllDelayedOperationsUntil(TimerId.WriteStreamIdle),
             streamListener.awaitCallback('close')
           ]);
         })
@@ -229,7 +229,7 @@ describe('Write Stream', () => {
       writeStream.writeMutations(SINGLE_MUTATION);
       await streamListener.awaitCallback('mutationResult');
 
-      await queue.runDelayedOperationsEarly(TimerId.All);
+      await queue.runAllDelayedOperationsUntil(TimerId.All);
       expect(writeStream.isOpen()).to.be.true;
     });
   });

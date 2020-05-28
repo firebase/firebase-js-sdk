@@ -29,7 +29,7 @@ import {
   LruParams
 } from './lru_garbage_collector';
 import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
@@ -184,7 +184,9 @@ export interface MemoryReferenceDelegate extends ReferenceDelegate {
 }
 
 export class MemoryEagerDelegate implements MemoryReferenceDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
+  /** Tracks all documents that are active in Query views. */
+  private localViewReferences: ReferenceSet = new ReferenceSet();
+  /** The list of documents that are potentially GCed after each transaction. */
   private _orphanedDocuments: Set<DocumentKey> | null = null;
 
   private constructor(private readonly persistence: MemoryPersistence) {}
@@ -201,27 +203,27 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     }
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
+    this.localViewReferences.addReference(key, targetId);
     this.orphanedDocuments.delete(key);
     return PersistencePromise.resolve();
   }
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
+    this.localViewReferences.removeReference(key, targetId);
     this.orphanedDocuments.add(key);
     return PersistencePromise.resolve();
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -233,6 +235,10 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     txn: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
+    const orphaned = this.localViewReferences.removeReferencesForId(
+      targetData.targetId
+    );
+    orphaned.forEach(key => this.orphanedDocuments.add(key));
     const cache = this.persistence.getTargetCache();
     return cache
       .getMatchingKeysForTargetId(txn, targetData.targetId)
@@ -290,15 +296,15 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
+      () =>
+        PersistencePromise.resolve(this.localViewReferences.containsKey(key)),
       () => this.persistence.getTargetCache().containsKey(txn, key),
-      () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key))
+      () => this.persistence.mutationQueuesContainKey(txn, key)
     ]);
   }
 }
 
 export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
@@ -371,10 +377,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     );
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
@@ -403,7 +405,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return p.next(() => changeBuffer.apply(txn)).next(() => count);
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -421,6 +423,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
@@ -429,6 +432,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
@@ -458,7 +462,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
       () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key)),
       () => this.persistence.getTargetCache().containsKey(txn, key),
       () => {
         const orphanedAt = this.orphanedSequenceNumbers.get(key);

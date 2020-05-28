@@ -46,9 +46,22 @@ import {
 import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
-import { DocumentReference } from './database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
+
+/**
+ * A reference to a document in a Firebase project.
+ *
+ * This class serves as a common base class for the public DocumentReferences
+ * exposed in the lite, full and legacy SDK.
+ */
+export class DocumentKeyReference<T> {
+  constructor(
+    public readonly _databaseId: DatabaseId,
+    public readonly _key: DocumentKey,
+    public readonly _converter?: firestore.FirestoreDataConverter<T>
+  ) {}
+}
 
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
@@ -140,9 +153,12 @@ interface ContextSettings {
    * nonempty path (indicating the context represents a nested location within
    * the data).
    */
-  readonly path: FieldPath | null;
-  /** Whether or not this context corresponds to an element of an array. */
-  readonly arrayElement: boolean;
+  readonly path?: FieldPath;
+  /**
+   * Whether or not this context corresponds to an element of an array.
+   * If not set, elements are treated as if they were outside of arrays.
+   */
+  readonly arrayElement?: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -155,6 +171,8 @@ export class ParseContext {
    * @param settings The settings for the parser.
    * @param databaseId The database ID of the Firestore instance.
    * @param serializer The serializer to use to generate the Value proto.
+   * @param ignoreUndefinedProperties Whether to ignore undefined properties
+   * rather than throw.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
    * @param fieldMask A mutable list of field paths encountered while parsing
@@ -169,6 +187,7 @@ export class ParseContext {
     readonly settings: ContextSettings,
     readonly databaseId: DatabaseId,
     readonly serializer: JsonProtoSerializer,
+    readonly ignoreUndefinedProperties: boolean,
     fieldTransforms?: FieldTransform[],
     fieldMask?: FieldPath[]
   ) {
@@ -181,7 +200,7 @@ export class ParseContext {
     this.fieldMask = fieldMask || [];
   }
 
-  get path(): FieldPath | null {
+  get path(): FieldPath | undefined {
     return this.settings.path;
   }
 
@@ -195,20 +214,21 @@ export class ParseContext {
       { ...this.settings, ...configuration },
       this.databaseId,
       this.serializer,
+      this.ignoreUndefinedProperties,
       this.fieldTransforms,
       this.fieldMask
     );
   }
 
   childContextForField(field: string): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
+    const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePathSegment(field);
     return context;
   }
 
   childContextForFieldPath(field: FieldPath): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
+    const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePath();
     return context;
@@ -216,13 +236,13 @@ export class ParseContext {
 
   childContextForArray(index: number): ParseContext {
     // TODO(b/34871131): We don't support array paths right now; so make path
-    // null.
-    return this.contextWith({ path: null, arrayElement: true });
+    // undefined.
+    return this.contextWith({ path: undefined, arrayElement: true });
   }
 
   createError(reason: string): Error {
     const fieldDescription =
-      this.path === null || this.path.isEmpty()
+      !this.path || this.path.isEmpty()
         ? ''
         : ` (found in field ${this.path.toString()})`;
     return new FirestoreError(
@@ -246,7 +266,7 @@ export class ParseContext {
   private validatePath(): void {
     // TODO(b/34871131): Remove null check once we have proper paths for fields
     // within arrays.
-    if (this.path === null) {
+    if (!this.path) {
       return;
     }
     for (let i = 0; i < this.path.length; i++) {
@@ -273,6 +293,7 @@ export class UserDataReader {
 
   constructor(
     private readonly databaseId: DatabaseId,
+    private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
     this.serializer =
@@ -455,7 +476,8 @@ export class UserDataReader {
         arrayElement: false
       },
       this.databaseId,
-      this.serializer
+      this.serializer,
+      this.ignoreUndefinedProperties
     );
   }
 
@@ -610,7 +632,10 @@ function parseSentinelFieldValue(
  *
  * @return The parsed value
  */
-function parseScalarValue(value: unknown, context: ParseContext): api.Value {
+function parseScalarValue(
+  value: unknown,
+  context: ParseContext
+): api.Value | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
@@ -640,9 +665,9 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
     };
   } else if (value instanceof Blob) {
     return { bytesValue: context.serializer.toBytes(value) };
-  } else if (value instanceof DocumentReference) {
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
-    const otherDb = value.firestore._databaseId;
+    const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -653,9 +678,11 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
     return {
       referenceValue: context.serializer.toResourceName(
         value._key.path,
-        value.firestore._databaseId
+        value._databaseId
       )
     };
+  } else if (value === undefined && context.ignoreUndefinedProperties) {
+    return null;
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -679,7 +706,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
-    !(input instanceof DocumentReference) &&
+    !(input instanceof DocumentKeyReference) &&
     !(input instanceof FieldValueImpl)
   );
 }
