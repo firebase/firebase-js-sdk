@@ -24,10 +24,9 @@ import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
 // import { UserInfo } from '@firebase/auth-types-exp';
 import { mockEndpoint } from '../../../test/api/helper';
-import { testPersistence, testUser } from '../../../test/mock_auth';
+import { TestAuth, testAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { updateEmail, updatePassword, updateProfile } from './account_info';
 
@@ -45,9 +44,11 @@ const PASSWORD_PROVIDER: UserInfo = {
 
 describe('core/user/profile', () => {
   let user: User;
+  let auth: TestAuth;
 
-  beforeEach(() => {
-    user = testUser('uid', '', true);
+  beforeEach(async () => {
+    auth = await testAuth();
+    user = testUser(auth, 'uid', '', true);
     fetch.setUp();
   });
 
@@ -134,11 +135,9 @@ describe('core/user/profile', () => {
   });
 
   describe('notifications', () => {
-    let auth: Auth;
     let idTokenChange: sinon.SinonStub;
 
     beforeEach(async () => {
-      auth = user.auth;
       idTokenChange = sinon.stub();
       auth.onIdTokenChanged(idTokenChange);
 
@@ -158,7 +157,7 @@ describe('core/user/profile', () => {
 
         await updateProfile(user, {displayName: 'd'});
         expect(idTokenChange).to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -170,7 +169,7 @@ describe('core/user/profile', () => {
 
         await updateProfile(user, {displayName: 'd'});
         expect(idTokenChange).not.to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
     });
 
@@ -190,7 +189,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'email@test.com');
         expect(idTokenChange).to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -202,7 +201,7 @@ describe('core/user/profile', () => {
 
         await updateEmail(user, 'email@test.com');
         expect(idTokenChange).not.to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
     });
 
@@ -222,7 +221,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'pass');
         expect(idTokenChange).to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -234,7 +233,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'pass');
         expect(idTokenChange).not.to.have.been.called;
-        expect(testPersistence.lastPersistedBlob).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
       });
     });
   });
