@@ -44,7 +44,11 @@ export {
 } from './core/strategies/email';
 
 // core/user
-export { updateProfile, updateEmail, updatePassword } from './core/user/account_info';
+export {
+  updateProfile,
+  updateEmail,
+  updatePassword
+} from './core/user/account_info';
 export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
 export { reload } from './core/user/reload';
 

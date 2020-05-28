@@ -99,7 +99,10 @@ export class UserImpl implements User {
   }
 
   _updateTokensIfNecessary(response: IdTokenResponse): boolean {
-    if (response.idToken && response.idToken !== this.stsTokenManager.accessToken) {
+    if (
+      response.idToken &&
+      response.idToken !== this.stsTokenManager.accessToken
+    ) {
       this.stsTokenManager.updateFromServerResponse(response);
       return true;
     }
