@@ -293,7 +293,7 @@ describe('core/auth/initializeAuth', () => {
     it('pulls the user from storage', async () => {
       sinon
         .stub(inMemoryPersistence as Persistence, 'get')
-        .returns(Promise.resolve(testUser({} as any, 'uid').toPlainObject()));
+        .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
     });

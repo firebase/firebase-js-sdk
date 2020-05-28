@@ -23,7 +23,7 @@ import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/jwt';
-import { testEnvironment, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import { User } from '../../model/user';
 import { getIdTokenResult } from './id_token_result';
 
@@ -37,7 +37,7 @@ describe('/core/user/id_token_result', () => {
   let user: User;
 
   beforeEach(async () => {
-    user = testUser((await testEnvironment()).auth, 'uid');
+    user = testUser(await testAuth(), 'uid');
   });
 
   function setup(token: string): void {

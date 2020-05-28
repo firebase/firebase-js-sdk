@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
@@ -52,7 +52,7 @@ describe('core/user/user_credential_impl', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]

@@ -22,11 +22,10 @@ import * as sinonChai from 'sinon-chai';
 import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { MockPersistenceLayer, testEnvironment, testUser } from '../../../test/mock_auth';
+import { testAuth, TestAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
@@ -51,14 +50,10 @@ const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
 };
 
 describe('core/user/reload', () => {
-  let auth: Auth;
-  let persistence: MockPersistenceLayer;
+  let auth: TestAuth;
   
   beforeEach(async () => {
-    const env = await testEnvironment();
-    auth = env.auth;
-    persistence = env.persistence;
-
+    auth = await testAuth();
     fetch.setUp();
   });
   
@@ -159,6 +154,6 @@ describe('core/user/reload', () => {
 
     const user = testUser(auth, 'user', '', true);
     await reload(user);
-    expect(persistence.lastObjectSet).to.eql(user.toPlainObject());
+    expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
   });
 });

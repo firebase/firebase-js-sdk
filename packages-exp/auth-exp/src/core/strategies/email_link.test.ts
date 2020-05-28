@@ -22,7 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
@@ -39,7 +39,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   
@@ -134,7 +134,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
   });
   
   context('simple links', () => {

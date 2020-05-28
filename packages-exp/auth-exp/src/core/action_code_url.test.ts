@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { testEnvironment } from '../../test/mock_auth';
+import { testAuth } from '../../test/mock_auth';
 import { Operation } from '../model/action_code_info';
 import { Auth } from '../model/auth';
 import { ActionCodeURL } from './action_code_url';
@@ -25,7 +25,7 @@ import { ActionCodeURL } from './action_code_url';
 describe('core/action_code_url', () => {
   let auth: Auth;
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
   });
 
   describe('._fromLink', () => {

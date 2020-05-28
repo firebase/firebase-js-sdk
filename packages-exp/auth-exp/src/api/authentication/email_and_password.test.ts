@@ -22,7 +22,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
@@ -44,7 +44,7 @@ describe('api/authentication/signInWithPassword', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   
@@ -101,7 +101,7 @@ describe('api/authentication/sendEmailVerification', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   
@@ -156,7 +156,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   
@@ -211,7 +211,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   

@@ -24,7 +24,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { makeJWT } from '../../../test/jwt';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
@@ -42,7 +42,7 @@ describe('core/user/user_impl', () => {
   let stsTokenManager: StsTokenManager;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     fetch.setUp();
     stsTokenManager = new StsTokenManager();
   });

@@ -24,7 +24,7 @@ import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
@@ -44,7 +44,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   
@@ -117,7 +117,7 @@ describe('core/strategies/sendEmailVerification', () => {
   let reloadStub: SinonStub;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     user = testUser(auth, 'my-user-uid', email);
     mockFetch.setUp();
     idTokenStub = stub(user, 'getIdToken');

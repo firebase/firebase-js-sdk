@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError, querystringDecode } from '@firebase/util';
 
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
@@ -33,7 +33,7 @@ describe('requestStsToken', () => {
   let endpoint: string;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     const { apiKey, tokenApiHost, apiScheme } = auth.config;
     endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
     fetch.setUp();

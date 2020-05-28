@@ -29,12 +29,11 @@ export const TEST_AUTH_DOMAIN = 'localhost';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
-export interface TestEnvironment {
-  auth: Auth,
-  persistence: MockPersistenceLayer,
+export interface TestAuth extends AuthImpl {
+  persistenceLayer: MockPersistenceLayer,
 }
 
-export class MockPersistenceLayer extends InMemoryPersistence {
+class MockPersistenceLayer extends InMemoryPersistence {
   lastObjectSet: PersistedBlob | null = null;
 
   set(key: string, object: PersistedBlob): Promise<void> {
@@ -48,9 +47,9 @@ export class MockPersistenceLayer extends InMemoryPersistence {
   }
 }
 
-export async function testEnvironment(): Promise<TestEnvironment> {
+export async function testAuth(): Promise<TestAuth> {
   const persistence = new MockPersistenceLayer();
-  const auth = new AuthImpl(
+  const auth: TestAuth = new AuthImpl(
     'test-app',
   {
     apiKey: TEST_KEY,
@@ -60,17 +59,15 @@ export async function testEnvironment(): Promise<TestEnvironment> {
     tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
   },
-  );
+  ) as TestAuth;
 
   await auth._initializeWithPersistence([persistence]);
-  return {
-    auth,
-    persistence,
-  };
+  auth.persistenceLayer = persistence;
+  return auth;
 }
 
 export function testUser(
-  auth: Auth,
+  auth: Auth | {},
   uid: string,
   email?: string,
   fakeTokens = false
@@ -87,7 +84,7 @@ export function testUser(
 
   return new UserImpl({
     uid,
-    auth,
+    auth: auth as Auth,
     stsTokenManager,
     email
   });

@@ -21,7 +21,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
@@ -61,7 +61,7 @@ describe('core/strategies/signInWithCredential', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
     authCredential._setIdTokenResponse(idTokenResponse);
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {

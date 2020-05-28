@@ -22,7 +22,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
@@ -39,7 +39,7 @@ describe('api/account_management/resetPassword', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
 
@@ -96,7 +96,7 @@ describe('api/account_management/updateEmailPassword', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     mockFetch.setUp();
   });
   

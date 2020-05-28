@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { testEnvironment, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { UserImpl } from '../user/user_impl';
 import { Persistence, PersistenceType } from './';
@@ -53,7 +53,7 @@ describe('core/persistence/persistence_user_manager', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
   });
   
   describe('.create', () => {
@@ -67,7 +67,7 @@ describe('core/persistence/persistence_user_manager', () => {
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
-      b.stub.get.returns(Promise.resolve(testUser({} as any, 'uid').toPlainObject()));
+      b.stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
 
       const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(b.persistence);
@@ -170,7 +170,7 @@ describe('core/persistence/persistence_user_manager', () => {
           persistence: nextPersistence,
           stub: nextStub
         } = makePersistence();
-        const user = testUser({} as any, 'uid');
+        const user = testUser({}, 'uid');
         persistenceStub.get.returns(Promise.resolve(user.toPlainObject()));
 
         await manager.setPersistence(nextPersistence);

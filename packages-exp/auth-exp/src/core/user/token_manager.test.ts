@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testEnvironment } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { _ENDPOINT } from '../../api/authentication/token';
 import { Auth } from '../../model/auth';
@@ -36,7 +36,7 @@ describe('core/user/token_manager', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
     stsTokenManager = new StsTokenManager();
     now = Date.now();
     sinon.stub(Date, 'now').returns(now);

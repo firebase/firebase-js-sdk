@@ -22,7 +22,7 @@ import { SinonStub, stub, useFakeTimers } from 'sinon';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/api/helper';
-import { testEnvironment } from '../../test/mock_auth';
+import { testAuth } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { Auth } from '../model/auth';
@@ -43,7 +43,7 @@ describe('api/_performApiRequest', () => {
   let auth: Auth;
 
   beforeEach(async () => {
-    auth = (await testEnvironment()).auth;
+    auth = await testAuth();
   });
 
   context('with regular requests', () => {
