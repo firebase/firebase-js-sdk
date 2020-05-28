@@ -23,13 +23,14 @@ import {
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
-import { withTestDb } from './helpers';
+import { withTestDb, withTestDoc } from './helpers';
 import {
   parent,
   collection,
   CollectionReference,
   doc,
-  DocumentReference
+  DocumentReference,
+  getDoc
 } from '../src/api/reference';
 
 describe('Firestore', () => {
@@ -153,4 +154,15 @@ describe('parent', () => {
       expect(result).to.be.null;
     });
   });
+});
+
+describe('getDoc()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.false;
+    });
+  });
+
+  // TODO(firestorelite): Expand test coverage once we can write docs
 });

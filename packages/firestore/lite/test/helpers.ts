@@ -17,23 +17,41 @@
 
 import { initializeApp } from '@firebase/app-exp';
 
-import { Firestore, getFirestore } from '../src/api/database';
+import * as firestore from '../index';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
-
-export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
+import { initializeFirestore } from '../src/api/database';
+import { doc, collection } from '../src/api/reference';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
 
 let appCount = 0;
 
-export async function withTestDb(
-  fn: (db: Firestore) => void | Promise<void>
+export async function withTestDbSettings(
+  projectId: string,
+  settings: firestore.Settings,
+  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
 ): Promise<void> {
   const app = initializeApp(
-    { apiKey: 'fake-api-key', projectId: DEFAULT_PROJECT_ID },
+    { apiKey: 'fake-api-key', projectId },
     'test-app-' + appCount++
   );
 
-  const firestore = getFirestore(app);
+  const firestore = initializeFirestore(app, settings);
   return fn(firestore);
+}
+
+export function withTestDb(
+  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
+): Promise<void> {
+  return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
+}
+
+export function withTestDoc(
+  fn: (doc: firestore.DocumentReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(db => {
+    return fn(doc(collection(db, 'test-collection')));
+  });
 }

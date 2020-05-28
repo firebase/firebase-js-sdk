@@ -17,6 +17,7 @@
 
 import * as firestore from '../../index';
 
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
 import { DocumentKeyReference } from '../../../src/api/user_data_reader';
@@ -26,6 +27,9 @@ import { ResourcePath } from '../../../src/model/path';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { tryCast } from './util';
+import { DocumentSnapshot } from './snapshot';
+import { invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import { hardAssert } from '../../../src/util/assert';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -273,4 +277,22 @@ export function parent<T>(
       doc._converter
     );
   }
+}
+
+export function getDoc<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = tryCast(reference, DocumentReference);
+  return ref.firestore._ensureClientConfigured().then(async () => {
+    const result = await invokeBatchGetDocumentsRpc(ref.firestore._datastore, [
+      ref._key
+    ]);
+    hardAssert(result.length === 1, 'Expected a single document result');
+    const maybeDocument = result[0];
+    return new DocumentSnapshot<T>(
+      ref.firestore,
+      ref._key,
+      maybeDocument instanceof Document ? maybeDocument : null
+    );
+  });
 }
