@@ -74,6 +74,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -185,6 +186,7 @@ export class SyncEngine implements RemoteSyncer {
   constructor(
     protected localStore: LocalStore,
     protected remoteStore: RemoteStore,
+    protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     protected sharedClientState: SharedClientState,
     private currentUser: User,
@@ -390,7 +392,7 @@ export class SyncEngine implements RemoteSyncer {
   ): void {
     new TransactionRunner<T>(
       asyncQueue,
-      this.remoteStore,
+      this.datastore,
       updateFunction,
       deferred
     ).run();
@@ -924,6 +926,7 @@ export class MultiTabSyncEngine extends SyncEngine
   constructor(
     protected localStore: MultiTabLocalStore,
     remoteStore: RemoteStore,
+    datastore: Datastore,
     sharedClientState: SharedClientState,
     currentUser: User,
     maxConcurrentLimboResolutions: number
@@ -931,6 +934,7 @@ export class MultiTabSyncEngine extends SyncEngine
     super(
       localStore,
       remoteStore,
+      datastore,
       sharedClientState,
       currentUser,
       maxConcurrentLimboResolutions
@@ -1110,14 +1114,10 @@ export class MultiTabSyncEngine extends SyncEngine
       const queries = this.queriesByTarget.get(targetId);
 
       if (queries && queries.length !== 0) {
-        // For queries that have a local View, we need to update their state
-        // in LocalStore (as the resume token and the snapshot version
+        // For queries that have a local View, we fetch their current state
+        // from LocalStore (as the resume token and the snapshot version
         // might have changed) and reconcile their views with the persisted
         // state (the list of syncedDocuments may have gotten out of sync).
-        await this.localStore.releaseTarget(
-          targetId,
-          /*keepPersistedTargetData=*/ true
-        );
         targetData = await this.localStore.allocateTarget(
           queries[0].toTarget()
         );
@@ -1136,7 +1136,7 @@ export class MultiTabSyncEngine extends SyncEngine
       } else {
         debugAssert(
           transitionToPrimary,
-          'A secondary tab should never have an active target without an active query.'
+          'A secondary tab should never have an active view without an active target.'
         );
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.
