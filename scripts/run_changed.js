@@ -96,18 +96,14 @@ async function getChangedPackages() {
       return { testAll: true };
     }
     // Files outside a package dir that should trigger its tests.
-    console.log(filename);
     const matchingSpecialPaths = Object.keys(specialPaths).filter(path =>
       filename.startsWith(path)
     );
-    console.log(matchingSpecialPaths);
     for (const matchingSpecialPath of matchingSpecialPaths) {
       for (const targetPackage of specialPaths[matchingSpecialPath]) {
         changedPackages[targetPackage] = 'dependency';
       }
     }
-    console.log(changedPackages);
-    throw new Error('foo');
     // Check for changed files inside package dirs.
     const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
