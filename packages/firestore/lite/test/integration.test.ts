@@ -43,4 +43,17 @@ describe('Firestore', () => {
     const fs2 = getFirestore(app);
     expect(fs1 === fs2).to.be.true;
   });
+
+  it('cannot call initializeFirestore() twice', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-initializeFirestore-twice'
+    );
+    initializeFirestore(app, { host: 'localhost', ssl: false });
+    expect(() => {
+      initializeFirestore(app, { host: 'localhost', ssl: false });
+    }).to.throw(
+      'Firestore has already been started and its settings can no longer be changed.'
+    );
+  });
 });
