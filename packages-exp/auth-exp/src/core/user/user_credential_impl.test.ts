@@ -15,17 +15,24 @@
  * limitations under the License.
  */
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from './user_credential_impl';
@@ -46,7 +53,10 @@ describe('core/user/user_credential_impl', () => {
     lastLoginAt: 456
   };
 
-  beforeEach(() => {
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
     mockFetch.setUp();
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
@@ -70,7 +80,7 @@ describe('core/user/user_credential_impl', () => {
 
     it('should initialize a UserCredential', async () => {
       const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-        mockAuth,
+        auth,
         credential,
         OperationType.SIGN_IN,
         idTokenResponse
@@ -82,12 +92,12 @@ describe('core/user/user_credential_impl', () => {
 
     it('should not trigger callbacks', async () => {
       const cb = sinon.spy();
-      mockAuth.onAuthStateChanged(cb);
-      await mockAuth.updateCurrentUser(null);
+      auth.onAuthStateChanged(cb);
+      await auth.updateCurrentUser(null);
       cb.resetHistory();
 
       await UserCredentialImpl._fromIdTokenResponse(
-        mockAuth,
+        auth,
         credential,
         OperationType.SIGN_IN,
         idTokenResponse

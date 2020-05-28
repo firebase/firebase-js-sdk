@@ -15,15 +15,22 @@
  * limitations under the License.
  */
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { signInWithCredential } from './credential';
 
@@ -55,7 +62,10 @@ describe('core/strategies/signInWithCredential', () => {
     SignInMethod.EMAIL_LINK
   );
 
-  beforeEach(() => {
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
     mockFetch.setUp();
     authCredential._setIdTokenResponse(idTokenResponse);
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -66,7 +76,7 @@ describe('core/strategies/signInWithCredential', () => {
 
   it('should return a valid user credential', async () => {
     const { credential, user, operationType } = await signInWithCredential(
-      mockAuth,
+      auth,
       authCredential
     );
     expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
@@ -78,7 +88,7 @@ describe('core/strategies/signInWithCredential', () => {
   });
 
   it('should update the current user', async () => {
-    const { user } = await signInWithCredential(mockAuth, authCredential);
-    expect(mockAuth.currentUser).to.eq(user);
+    const { user } = await signInWithCredential(auth, authCredential);
+    expect(auth.currentUser).to.eq(user);
   });
 });

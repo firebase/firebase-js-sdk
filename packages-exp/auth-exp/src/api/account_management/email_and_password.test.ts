@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { resetPassword, updateEmailPassword } from './email_and_password';
 
@@ -33,7 +36,13 @@ describe('api/account_management/resetPassword', () => {
     newPassword: 'new-password'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -41,7 +50,7 @@ describe('api/account_management/resetPassword', () => {
       email: 'test@foo.com'
     });
 
-    const response = await resetPassword(mockAuth, request);
+    const response = await resetPassword(auth, request);
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -68,7 +77,7 @@ describe('api/account_management/resetPassword', () => {
       400
     );
 
-    await expect(resetPassword(mockAuth, request)).to.be.rejectedWith(
+    await expect(resetPassword(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
@@ -84,7 +93,13 @@ describe('api/account_management/updateEmailPassword', () => {
     password: 'new-password'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -92,7 +107,7 @@ describe('api/account_management/updateEmailPassword', () => {
       idToken: 'id-token'
     });
 
-    const response = await updateEmailPassword(mockAuth, request);
+    const response = await updateEmailPassword(auth, request);
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -119,7 +134,7 @@ describe('api/account_management/updateEmailPassword', () => {
       400
     );
 
-    await expect(updateEmailPassword(mockAuth, request)).to.be.rejectedWith(
+    await expect(updateEmailPassword(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
