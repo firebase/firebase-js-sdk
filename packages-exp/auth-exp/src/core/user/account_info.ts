@@ -22,7 +22,6 @@ import {
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { _reloadWithoutSaving } from './reload';
 
 interface Profile {
@@ -45,7 +44,7 @@ export async function updateProfile(externUser: externs.User, {displayName, phot
   user.photoURL = response.photoUrl || null;
 
   // Update the password provider as well
-  const passwordProvider = user.providerData.find(p => p.providerId === ProviderId.PASSWORD);
+  const passwordProvider = user.providerData.find(p => p.providerId === externs.ProviderId.PASSWORD);
   if (passwordProvider) {
     passwordProvider.displayName = user.displayName;
     passwordProvider.photoURL = user.photoURL;

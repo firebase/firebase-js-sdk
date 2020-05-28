@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { UserInfo } from '@firebase/auth-types-exp';
+import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
 // import { UserInfo } from '@firebase/auth-types-exp';
 import { mockEndpoint } from '../../../test/api/helper';
@@ -29,7 +29,6 @@ import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { ProviderId } from '../providers';
 import { updateEmail, updatePassword, updateProfile } from './account_info';
 
 use(chaiAsPromised);
