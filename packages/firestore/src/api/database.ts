@@ -68,13 +68,7 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import {
-  getLogLevel,
-  logError,
-  LogLevel,
-  LogLevelString,
-  setLogLevel
-} from '../util/log';
+import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -618,13 +612,30 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return new WriteBatch(this);
   }
 
-  static get logLevel(): LogLevel {
-    return getLogLevel();
+  static get logLevel(): firestore.LogLevel {
+    switch (getLogLevel()) {
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.ERROR:
+        return 'error';
+      case LogLevel.SILENT:
+        return 'silent';
+      case LogLevel.WARN:
+        return 'warn';
+      default:
+        // The default log level is error
+        return 'error';
+    }
   }
 
-  static setLogLevel(level: LogLevelString): void {
+  static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
+    validateStringEnum(
+      'setLogLevel',
+      ['debug', 'error', 'silent', 'warn'],
+      1,
+      level
+    );
     setLogLevel(level);
   }
 

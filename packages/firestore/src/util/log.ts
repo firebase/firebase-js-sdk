@@ -19,7 +19,7 @@ import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';
 
-export { LogLevel, LogLevelString };
+export { LogLevel };
 
 const logClient = new Logger('@firebase/firestore');
 
@@ -28,7 +28,7 @@ export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevel | LogLevelString): void {
+export function setLogLevel(newLevel: LogLevelString | LogLevel): void {
   logClient.setLogLevel(newLevel);
 }
 

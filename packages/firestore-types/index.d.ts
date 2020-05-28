@@ -37,7 +37,7 @@ export interface PersistenceSettings {
   experimentalTabSynchronization?: boolean;
 }
 
-export type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel = 'debug' | 'error' | 'silent' | 'warn';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
