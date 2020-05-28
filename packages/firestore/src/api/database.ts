@@ -2322,12 +2322,6 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
       1,
       pathString
     );
-    if (pathString === '') {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Document path must be a non-empty string'
-      );
-    }
     const path = ResourcePath.fromString(pathString!);
     return DocumentReference.forPath<T>(
       this._query.path.child(path),
