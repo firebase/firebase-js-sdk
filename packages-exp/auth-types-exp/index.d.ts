@@ -30,7 +30,6 @@ export interface Config {
   authDomain?: string;
 }
 
-
 export interface Persistence {
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
@@ -148,13 +147,13 @@ export interface ActionCodeURL {
 }
 
 type ActionCodeOperationType =
-  'PASSWORD_RESET'
+  | 'PASSWORD_RESET'
   | 'RECOVER_EMAIL'
   | 'EMAIL_SIGNIN'
   | 'VERIFY_EMAIL'
   | 'VERIFY_AND_CHANGE_EMAIL'
   | 'REVERT_SECOND_FACTOR_ADDITION';
- 
+
 /**
  * Supported providers
  */
@@ -183,7 +182,7 @@ export const enum SignInMethod {
   PHONE = 'phone',
   TWITTER = 'twitter.com'
 }
- 
+
 export interface AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: SignInMethod;

@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
+import { Auth } from '../../model/auth';
 import {
   checkActionCode,
   confirmPasswordReset,
@@ -38,14 +41,20 @@ use(sinonChai);
 describe('core/strategies/sendPasswordResetEmail', () => {
   const email = 'foo@bar.com';
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should send a password reset email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email
     });
-    await sendPasswordResetEmail(mockAuth, email);
+    await sendPasswordResetEmail(auth, email);
     expect(mock.calls[0].request).to.eql({
       requestType: Operation.PASSWORD_RESET,
       email
@@ -63,7 +72,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       },
       400
     );
-    await expect(sendPasswordResetEmail(mockAuth, email)).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(auth, email)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -75,7 +84,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      await sendPasswordResetEmail(mockAuth, email, {
+      await sendPasswordResetEmail(auth, email, {
         handleCodeInApp: true,
         iOS: {
           bundleId: 'my-bundle',
@@ -102,7 +111,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      await sendPasswordResetEmail(mockAuth, email, {
+      await sendPasswordResetEmail(auth, email, {
         handleCodeInApp: true,
         android: {
           installApp: false,
@@ -130,14 +139,20 @@ describe('core/strategies/confirmPasswordReset', () => {
   const oobCode = 'oob-code';
   const newPassword = 'new-password';
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should confirm the password reset and not return the email', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email: 'foo@bar.com'
     });
-    const response = await confirmPasswordReset(mockAuth, oobCode, newPassword);
+    const response = await confirmPasswordReset(auth, oobCode, newPassword);
     expect(response).to.be.undefined;
     expect(mock.calls[0].request).to.eql({
       oobCode,
@@ -157,7 +172,7 @@ describe('core/strategies/confirmPasswordReset', () => {
       400
     );
     await expect(
-      confirmPasswordReset(mockAuth, oobCode, newPassword)
+      confirmPasswordReset(auth, oobCode, newPassword)
     ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
@@ -171,7 +186,13 @@ describe('core/strategies/checkActionCode', () => {
   const email = 'foo@bar.com';
   const newEmail = 'new@email.com';
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should verify the oob code', async () => {
@@ -179,7 +200,7 @@ describe('core/strategies/checkActionCode', () => {
       requestType: Operation.PASSWORD_RESET,
       email: 'foo@bar.com'
     });
-    const response = await checkActionCode(mockAuth, oobCode);
+    const response = await checkActionCode(auth, oobCode);
     expect(response).to.eql({
       data: {
         email,
@@ -198,7 +219,7 @@ describe('core/strategies/checkActionCode', () => {
       email,
       newEmail
     });
-    const response = await checkActionCode(mockAuth, oobCode);
+    const response = await checkActionCode(auth, oobCode);
     expect(response).to.eql({
       data: {
         email,
@@ -215,7 +236,7 @@ describe('core/strategies/checkActionCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(checkActionCode(mockAuth, oobCode)).to.be.rejectedWith(
+    await expect(checkActionCode(auth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
@@ -233,7 +254,7 @@ describe('core/strategies/checkActionCode', () => {
       },
       400
     );
-    await expect(checkActionCode(mockAuth, oobCode)).to.be.rejectedWith(
+    await expect(checkActionCode(auth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
@@ -245,7 +266,13 @@ describe('core/strategies/verifyPasswordResetCode', () => {
   const oobCode = 'oob-code';
   const email = 'foo@bar.com';
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should verify the oob code', async () => {
@@ -253,7 +280,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       requestType: Operation.PASSWORD_RESET,
       email: 'foo@bar.com'
     });
-    const response = await verifyPasswordResetCode(mockAuth, oobCode);
+    const response = await verifyPasswordResetCode(auth, oobCode);
     expect(response).to.eq(email);
     expect(mock.calls[0].request).to.eql({
       oobCode
@@ -264,7 +291,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(verifyPasswordResetCode(mockAuth, oobCode)).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(auth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
@@ -282,7 +309,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       },
       400
     );
-    await expect(verifyPasswordResetCode(mockAuth, oobCode)).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(auth, oobCode)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
