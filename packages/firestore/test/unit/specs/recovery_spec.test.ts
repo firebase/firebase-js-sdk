@@ -23,6 +23,10 @@ import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 import { RpcError } from './spec_rpc_error';
 
+// The IndexedDB action that the Watch stream uses to detect if IndexedDB access
+// is available again.
+const ASYNC_QUEUE_PROBER = 'Get last remote snapshot version';
+
 describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
   specTest(
     'Write is acknowledged by primary client (with recovery)',
@@ -34,11 +38,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .client(1)
           .expectPrimaryState(false)
           .userSets('collection/a', { v: 1 })
-          .failDatabaseTransactions({
-            'Locally write mutations': true,
-            'Synchronize last document change read time': true,
-            'Lookup mutation documents': true
-          })
+          .failDatabaseTransactions('Lookup mutation documents')
           .client(0)
           .writeAcks('collection/a', 1, { expectUserCallback: false })
           .client(1)
@@ -58,28 +58,55 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
   );
 
   specTest(
-    'Query raises events in secondary client  (with recovery)',
+    'Clients fail to lookup mutations (with recovery)',
+    ['multi-client'],
+    () => {
+      // Multi-Tab uses a Local Storage notification to inform all tabs about
+      // changes to a mutation tab. To act upon these changes, the tabs read
+      // the mutated document from IndexedDB. This test verifies that mutations
+      // are applied even if the lookup fails temporarily.
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // All tabs fail to act upon the Local Storage notifications
+          .failDatabaseTransactions('Lookup mutation documents')
+          .client(1)
+          .expectPrimaryState(false)
+          .userSets('collection/a', { v: 1 })
+          .failDatabaseTransactions('Lookup mutation documents')
+          // All tabs recover and the notifications are processed
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .writeAcks('collection/a', 1, { expectUserCallback: false })
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectUserCallbacks({ acknowledged: ['collection/a'] })
+      );
+    }
+  );
+
+  specTest(
+    'Query raises events in secondary client (with recovery)',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
+      const doc1 = doc('collection/doc', 1, { foo: 'a' });
 
       return client(0)
         .expectPrimaryState(true)
         .client(1)
         .expectPrimaryState(false)
         .userListens(query)
-        .failDatabaseTransactions({
-          'Allocate target': true,
-          'Lookup mutation documents': true,
-          'Get new document changes': true
-        })
+        .failDatabaseTransactions('Get new document changes')
         .client(0)
         .expectListen(query)
-        .watchAcksFull(query, 1000)
+        .watchAcksFull(query, 1000, doc1)
         .client(1)
         .recoverDatabase()
         .runTimer(TimerId.AsyncQueueRetry)
-        .expectEvents(query, {});
+        .expectEvents(query, { added: [doc1] });
     }
   );
 
@@ -92,10 +119,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       return (
         client(0)
           .expectPrimaryState(true)
-          .failDatabaseTransactions({
-            'Allocate target': true,
-            'Get target data': true
-          })
+          .failDatabaseTransactions('Allocate target', 'Get target data')
           .client(1)
           .userListens(query)
           .client(0)
@@ -105,10 +129,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectListen(query)
-          .failDatabaseTransactions({
-            'Allocate target': true,
-            'Release target': true
-          })
+          .failDatabaseTransactions('Release target')
           .client(1)
           .userUnlistens(query)
           .client(0)
@@ -123,6 +144,133 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     }
   );
 
+  specTest(
+    'Query with active view recovers after primary tab failover (with recovery)',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .client(1)
+          // Register a query in the secondary client
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          // Shutdown the primary client to release its lease
+          .shutdown()
+          .client(1)
+          .expectEvents(query, { added: [docA] })
+          // Run the lease refresh to attempt taking over the primary lease. The
+          // first lease refresh fails with a simulated transaction failure.
+          .failDatabaseTransactions('Allocate target')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docB)
+          .expectEvents(query, { added: [docB] })
+      );
+    }
+  );
+
+  specTest(
+    'Query without active view recovers after primary tab failover (with recovery)',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Initialize a second client that doesn't have any active targets
+          .client(1)
+          .client(2)
+          // Register a query in the third client
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          .client(2)
+          .expectEvents(query, { added: [docA] })
+          .client(0)
+          // Shutdown the primary client to release its lease
+          .shutdown()
+          .client(1)
+          // Run the lease refresh in the second client, which does not yet have
+          // an active view for the third client's query. The lease refresh fails
+          // at first, but then recovers and initializes the view.
+          .failDatabaseTransactions('Allocate target')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docB)
+          .client(2)
+          .expectEvents(query, { added: [docB] })
+      );
+    }
+  );
+
+  specTest(
+    'Ignores intermittent lease refresh failures (with recovery)',
+    ['multi-client'],
+    () => {
+      // This test verifies that an IndexedDB failure during a lease refresh
+      // does not impact client functionality. Lease refresh failures are
+      // ignored, as the lease is also verified each time an operation is
+      // run.
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .client(1)
+          .expectPrimaryState(false)
+          // Run the initial sequence: The primary client fails its lease refresh
+          // before the secondary client.
+          .client(0)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(1)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          // Run the opposite sequence: The secondary client fails its lease
+          // refresh before the primary client.
+          .client(1)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(0)
+          .failDatabaseTransactions('updateClientMetadataAndTryBecomePrimary')
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .client(1)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .client(0)
+          .recoverDatabase()
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+      );
+    }
+  );
+
   specTest('Recovers when write cannot be persisted', [], () => {
     return (
       spec()
@@ -130,18 +278,12 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .expectNumOutstandingWrites(1)
         // We fail the write if we cannot persist the local mutation (via
         // 'Locally write mutations').
-        .failDatabaseTransactions({
-          'Locally write mutations': true
-        })
+        .failDatabaseTransactions('Locally write mutations')
         .userSets('collection/key2', { bar: 'b' })
         .expectUserCallbacks({ rejected: ['collection/key2'] })
         // The write is considered successful if we can persist the local mutation
         // but fail to update view assignments (via 'notifyLocalViewChanges').
-        .failDatabaseTransactions({
-          'Locally write mutations': false,
-          notifyLocalViewChanges: true,
-          'Get next mutation batch': false
-        })
+        .failDatabaseTransactions('notifyLocalViewChanges')
         .userSets('collection/key3', { bar: 'b' })
         .recoverDatabase()
         .expectNumOutstandingWrites(2)
@@ -178,11 +320,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         fromCache: true,
         hasPendingWrites: true
       })
-      .failDatabaseTransactions({
-        'Locally write mutations': true,
-        notifyLocalViewChanges: true,
-        'Get next mutation batch': true
-      })
+      .failDatabaseTransactions('Locally write mutations')
       .userSets('collection/key2', { foo: 'b' })
       .expectUserCallbacks({ rejected: ['collection/key2'] })
       .recoverDatabase()
@@ -213,12 +351,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const doc2 = doc('collection/key2', 2, { foo: 'b' });
       return spec()
         .userListens(query)
-        .failDatabaseTransactions({
-          'Locally write mutations': false,
-          notifyLocalViewChanges: true,
-          'Get next mutation batch': false,
-          'Set last stream token': false
-        })
+        .failDatabaseTransactions('notifyLocalViewChanges')
         .userSets('collection/key1', { foo: 'a' })
         .expectEvents(query, {
           added: [doc1Local],
@@ -228,11 +361,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .recoverDatabase()
         .runTimer(TimerId.AsyncQueueRetry)
         .writeAcks('collection/key1', 1)
-        .failDatabaseTransactions({
-          'Apply remote event': false,
-          notifyLocalViewChanges: true,
-          'Get last remote snapshot version': false
-        })
+        .failDatabaseTransactions('notifyLocalViewChanges')
         .watchAcksFull(query, 1000, doc1, doc2)
         .expectEvents(query, {
           metadata: [doc1],
@@ -256,11 +385,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectEvents(query, {
             added: [doc1]
           })
-          .failDatabaseTransactions({
-            'Apply remote event': false,
-            notifyLocalViewChanges: true,
-            'Get last remote snapshot version': false
-          })
+          .failDatabaseTransactions('notifyLocalViewChanges')
           .watchSends({ removed: [query] }, deletedDoc1)
           .watchSnapshots(2000)
           .expectEvents(query, {
@@ -282,7 +407,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabaseTransactions({ 'Allocate target': true })
+      .failDatabaseTransactions('Allocate target')
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -298,7 +423,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userListens(query1)
       .watchAcksFull(query1, 1)
       .expectEvents(query1, {})
-      .failDatabaseTransactions({ 'Allocate target': true })
+      .failDatabaseTransactions('Allocate target')
       .userListens(query2)
       .expectEvents(query2, { errorCode: Code.UNAVAILABLE })
       .recoverDatabase()
@@ -320,12 +445,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           added: [doc1]
         })
         .watchSends({ affects: [query] }, doc2)
-        .failDatabaseTransactions({
-          'Get last remote snapshot version': true,
-          'Release target': true
-        })
+        .failDatabaseTransactions('Get last remote snapshot version')
         .watchSnapshots(1500)
-        // `failDatabase()` causes us to go offline.
+        // `failDatabaseTransactions()` causes us to go offline.
         .expectActiveTargets()
         .expectEvents(query, { fromCache: true })
         .recoverDatabase()
@@ -357,15 +479,12 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .expectEvents(doc2Query, {
           added: [doc2]
         })
-        .failDatabaseTransactions({
-          'Get last remote snapshot version': true,
-          'Release target': true
-        })
+        .failDatabaseTransactions('Release target', ASYNC_QUEUE_PROBER)
         .watchRemoves(
           doc1Query,
           new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
         )
-        // `failDatabase()` causes us to go offline.
+        // `failDatabaseTransactions()` causes us to go offline.
         .expectActiveTargets()
         .expectEvents(doc1Query, { fromCache: true })
         .expectEvents(doc2Query, { fromCache: true })
@@ -416,7 +535,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         })
         .watchAcksFull(filteredQuery, 2000)
         .expectLimboDocs(doc1a.key)
-        .failDatabaseTransactions({ 'Get last remote snapshot version': true })
+        .failDatabaseTransactions('Get last remote snapshot version')
         .watchAcksFull(limboQuery, 3000, doc1b)
         .expectActiveTargets()
         .recoverDatabase()
@@ -459,10 +578,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       })
       .watchAcksFull(filteredQuery, 2000)
       .expectLimboDocs(doc1.key)
-      .failDatabaseTransactions({
-        'Apply remote event': true,
-        'Get last remote snapshot version': true
-      })
+      .failDatabaseTransactions('Apply remote event', ASYNC_QUEUE_PROBER)
       .watchRemoves(
         limboQuery,
         new RpcError(Code.PERMISSION_DENIED, 'Test error')
@@ -484,4 +600,41 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         removed: [doc1]
       });
   });
+
+  specTest(
+    'User change handles transaction failures (with recovery)',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc(
+        'collection/key1',
+        0,
+        { foo: 'a' },
+        { hasLocalMutations: true }
+      );
+      return spec()
+        .changeUser('user1')
+        .userSets('collection/key1', { foo: 'a' })
+        .userListens(query)
+        .expectEvents(query, {
+          added: [doc1],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .failDatabaseTransactions('Handle user change')
+        .changeUser('user2')
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectEvents(query, { removed: [doc1], fromCache: true })
+        .failDatabaseTransactions('Handle user change')
+        .changeUser('user1')
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectEvents(query, {
+          added: [doc1],
+          fromCache: true,
+          hasPendingWrites: true
+        });
+    }
+  );
 });

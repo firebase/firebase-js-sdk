@@ -1,4 +1,11 @@
 # Unreleased
+- [fixed] Fixed an issue that could cause Firestore to temporarily go 
+  offline when a Window visibility event occurred.
+- [feature] Added support for calling  `FirebaseFiresore.settings` with 
+  `{ ignoreUndefinedProperties: true }`. When set, Firestore ignores 
+  undefined properties inside objects rather than rejecting the API call.
+
+# Released
 - [fixed] Fixed a regression introduced in v7.14.2 that incorrectly applied
   a `FieldValue.increment` in combination with `set({...}, {merge: true})`.
 - [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be

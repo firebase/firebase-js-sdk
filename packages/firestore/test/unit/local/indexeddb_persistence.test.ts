@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -73,6 +75,8 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+
+use(chaiAsPromised);
 
 /* eslint-disable no-restricted-globals */
 function withDb(
@@ -1186,7 +1190,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       /* multiClient= */ false,
       /* forceOwningTab= */ false,
       async db => {
-        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await expect(db.start()).to.eventually.be.rejectedWith(
           'Failed to obtain exclusive access to the persistence layer.'
         );
@@ -1201,19 +1205,32 @@ describe('IndexedDb: allowTabSynchronization', () => {
       /* multiClient= */ true,
       /* forceOwningTab= */ false,
       async db => {
-        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
         await db.shutdown();
       }
     );
   });
 
+  it('blocks start() when getHighestListenSequenceNumber() fails', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      async db1 => {
+        db1.injectFailures = ['getHighestListenSequenceNumber'];
+        await expect(db1.start()).to.eventually.be.rejectedWith(
+          'IndexedDB transaction failed'
+        );
+      }
+    );
+  });
+
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
-      db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
-      await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
+      await queue.runAllDelayedOperationsUntil(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
-        db.injectFailures = undefined;
+        db.injectFailures = [];
         return db.runTransaction('check success', 'readwrite-primary', () =>
           PersistencePromise.resolve()
         );

@@ -162,6 +162,7 @@ export class MemoryComponentProvider implements ComponentProvider {
     return new SyncEngine(
       this.localStore,
       this.remoteStore,
+      cfg.datastore,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions
@@ -219,6 +220,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     const syncEngine = new MultiTabSyncEngine(
       this.localStore,
       this.remoteStore,
+      cfg.datastore,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions

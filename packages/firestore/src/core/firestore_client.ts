@@ -179,7 +179,7 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueAndForget(() => {
+        this.asyncQueue.enqueueRetryable(() => {
           return this.handleCredentialChange(user);
         });
       }
@@ -498,7 +498,10 @@ export class FirestoreClient {
     if (this.clientTerminated) {
       return;
     }
-    this.eventMgr.removeSnapshotsInSyncListener(observer);
+    this.asyncQueue.enqueueAndForget(() => {
+      this.eventMgr.removeSnapshotsInSyncListener(observer);
+      return Promise.resolve();
+    });
   }
 
   get clientTerminated(): boolean {

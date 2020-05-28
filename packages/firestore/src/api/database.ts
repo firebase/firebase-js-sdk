@@ -98,6 +98,7 @@ const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 const DEFAULT_FORCE_LONG_POLLING = false;
+const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -142,6 +143,8 @@ class FirestoreSettings {
 
   readonly forceLongPolling: boolean;
 
+  readonly ignoreUndefinedProperties: boolean;
+
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   credentials?: any;
@@ -169,7 +172,8 @@ class FirestoreSettings {
       'credentials',
       'timestampsInSnapshots',
       'cacheSizeBytes',
-      'experimentalForceLongPolling'
+      'experimentalForceLongPolling',
+      'ignoreUndefinedProperties'
     ]);
 
     validateNamedOptionalType(
@@ -187,6 +191,13 @@ class FirestoreSettings {
       settings.timestampsInSnapshots
     );
 
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'ignoreUndefinedProperties',
+      settings.ignoreUndefinedProperties
+    );
+
     // Nobody should set timestampsInSnapshots anymore, but the error depends on
     // whether they set it to true or false...
     if (settings.timestampsInSnapshots === true) {
@@ -202,6 +213,8 @@ class FirestoreSettings {
     }
     this.timestampsInSnapshots =
       settings.timestampsInSnapshots ?? DEFAULT_TIMESTAMPS_IN_SNAPSHOTS;
+    this.ignoreUndefinedProperties =
+      settings.ignoreUndefinedProperties ?? DEFAULT_IGNORE_UNDEFINED_PROPERTIES;
 
     validateNamedOptionalType(
       'settings',
@@ -232,9 +245,7 @@ class FirestoreSettings {
       settings.experimentalForceLongPolling
     );
     this.forceLongPolling =
-      settings.experimentalForceLongPolling === undefined
-        ? DEFAULT_FORCE_LONG_POLLING
-        : settings.experimentalForceLongPolling;
+      settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -244,7 +255,8 @@ class FirestoreSettings {
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
-      this.forceLongPolling === other.forceLongPolling
+      this.forceLongPolling === other.forceLongPolling &&
+      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
 }
@@ -275,7 +287,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  readonly _dataReader: UserDataReader;
+  _userDataReader: UserDataReader | undefined;
 
   // Note: We are using `MemoryComponentProvider` as a default
   // ComponentProvider to ensure backwards compatibility with the format
@@ -310,7 +322,21 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
-    this._dataReader = new UserDataReader(this._databaseId);
+  }
+
+  get _dataReader(): UserDataReader {
+    debugAssert(
+      !!this._firestoreClient,
+      'Cannot obtain UserDataReader before instance is intitialized'
+    );
+    if (!this._userDataReader) {
+      // Lazy initialize UserDataReader once the settings are frozen
+      this._userDataReader = new UserDataReader(
+        this._databaseId,
+        this._settings.ignoreUndefinedProperties
+      );
+    }
+    return this._userDataReader;
   }
 
   settings(settingsLiteral: firestore.Settings): void {

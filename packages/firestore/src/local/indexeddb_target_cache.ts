@@ -29,8 +29,7 @@ import {
 } from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
-  IndexedDbPersistence,
-  IndexedDbTransaction
+  IndexedDbPersistence
 } from './indexeddb_persistence';
 import {
   DbTarget,
@@ -46,7 +45,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore } from './simple_db';
 import { Target } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
@@ -90,8 +89,8 @@ export class IndexedDbTargetCache implements TargetCache {
   getHighestSequenceNumber(
     transaction: PersistenceTransaction
   ): PersistencePromise<ListenSequenceNumber> {
-    return getHighestListenSequenceNumber(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
+    return this.retrieveMetadata(transaction).next(
+      targetGlobal => targetGlobal.highestListenSequenceNumber
     );
   }
 
@@ -192,9 +191,12 @@ export class IndexedDbTargetCache implements TargetCache {
   private retrieveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
-    return retrieveMetadata(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
-    );
+    return globalTargetStore(transaction)
+      .get(DbTargetGlobal.key)
+      .next(metadata => {
+        hardAssert(metadata !== null, 'Missing metadata row.');
+        return metadata;
+      });
   }
 
   private saveMetadata(
@@ -419,27 +421,6 @@ function globalTargetStore(
   return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
     txn,
     DbTargetGlobal.store
-  );
-}
-
-function retrieveMetadata(
-  txn: SimpleDbTransaction
-): PersistencePromise<DbTargetGlobal> {
-  const globalStore = SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
-    DbTargetGlobal.store
-  );
-  return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    hardAssert(metadata !== null, 'Missing metadata row.');
-    return metadata;
-  });
-}
-
-export function getHighestListenSequenceNumber(
-  txn: SimpleDbTransaction
-): PersistencePromise<ListenSequenceNumber> {
-  return retrieveMetadata(txn).next(
-    targetGlobal => targetGlobal.highestListenSequenceNumber
   );
 }
 

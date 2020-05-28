@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.14.3",
+  "version": "1.14.5",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -20,7 +20,7 @@
     "pregendeps:exp": "yarn build:exp",
     "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
-    "test:exp":  "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'exp/test/**/*.test.ts' --file exp/index.node.ts --config ../../config/mocharc.node.js",
+    "test:exp": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'exp/test/**/*.test.ts' --file exp/index.node.ts --config ../../config/mocharc.node.js",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:all": "run-p test:browser test:travis test:minified",
@@ -46,11 +46,11 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.11",
-    "@firebase/firestore-types": "1.10.1",
-    "@firebase/logger": "0.2.3",
-    "@firebase/util": "0.2.46",
-    "@firebase/webchannel-wrapper": "0.2.40",
+    "@firebase/component": "0.1.12",
+    "@firebase/firestore-types": "1.10.2",
+    "@firebase/logger": "0.2.4",
+    "@firebase/util": "0.2.47",
+    "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.0",
     "tslib": "1.11.1"

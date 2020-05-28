@@ -831,7 +831,17 @@ export class LocalStore {
           });
       })
       .then(targetData => {
-        if (this.targetDataByTarget.get(targetData.targetId) === null) {
+        // If Multi-Tab is enabled, the existing target data may be newer than
+        // the in-memory data
+        const cachedTargetData = this.targetDataByTarget.get(
+          targetData.targetId
+        );
+        if (
+          cachedTargetData === null ||
+          targetData.snapshotVersion.compareTo(
+            cachedTargetData.snapshotVersion
+          ) > 0
+        ) {
           this.targetDataByTarget = this.targetDataByTarget.insert(
             targetData.targetId,
             targetData

@@ -371,7 +371,7 @@ abstract class TestRunner {
     await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
     if (targetFailed) {
-      expect(this.persistence.injectFailures?.['Allocate target']).to.be.true;
+      expect(this.persistence.injectFailures).contains('Allocate target');
     } else {
       // Skip the backoff that may have been triggered by a previous call to
       // `watchStreamCloses()`.
@@ -380,7 +380,7 @@ abstract class TestRunner {
           TimerId.ListenStreamConnectionBackoff
         )
       ) {
-        await this.queue.runDelayedOperationsEarly(
+        await this.queue.runAllDelayedOperationsUntil(
           TimerId.ListenStreamConnectionBackoff
         );
       }
@@ -446,7 +446,9 @@ abstract class TestRunner {
       () => this.rejectedDocs.push(...documentKeys)
     );
 
-    if (this.persistence.injectFailures?.['Locally write mutations'] !== true) {
+    if (
+      this.persistence.injectFailures.indexOf('Locally write mutations') === -1
+    ) {
       this.sharedWrites.push(mutations);
     }
 
@@ -603,7 +605,7 @@ abstract class TestRunner {
     );
     // The watch stream should re-open if we have active listeners.
     if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
-      await this.queue.runDelayedOperationsEarly(
+      await this.queue.runAllDelayedOperationsUntil(
         TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
@@ -654,7 +656,7 @@ abstract class TestRunner {
     // not, then there won't be a matching item on the queue and
     // runDelayedOperationsEarly() will throw.
     const timerId = timer as TimerId;
-    await this.queue.runDelayedOperationsEarly(timerId);
+    await this.queue.runAllDelayedOperationsUntil(timerId);
   }
 
   private async doDisableNetwork(): Promise<void> {
@@ -704,27 +706,37 @@ abstract class TestRunner {
 
     if (state.primary) {
       await clearCurrentPrimaryLease();
-      await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await this.queue.runAllDelayedOperationsUntil(
+        TimerId.ClientMetadataRefresh
+      );
     }
 
     return Promise.resolve();
   }
 
-  private doChangeUser(user: string | null): Promise<void> {
+  private async doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.enqueue(() =>
-      this.syncEngine.handleCredentialChange(this.user)
-    );
+    const deferred = new Deferred<void>();
+    await this.queue.enqueueRetryable(async () => {
+      try {
+        await this.syncEngine.handleCredentialChange(this.user);
+      } finally {
+        // Resolve the deferred Promise even if the operation failed. This allows
+        // the spec tests to manually retry the failed user change.
+        deferred.resolve();
+      }
+    });
+    return deferred.promise;
   }
 
   private async doFailDatabase(
-    failActions: SpecDatabaseFailures
+    failActions: PersistenceAction[]
   ): Promise<void> {
     this.persistence.injectFailures = failActions;
   }
 
   private async doRecoverDatabase(): Promise<void> {
-    this.persistence.injectFailures = undefined;
+    this.persistence.injectFailures = [];
   }
 
   private validateExpectedSnapshotEvents(
@@ -1216,14 +1228,8 @@ export type PersistenceAction =
   | 'Get target data'
   | 'Get new document changes'
   | 'Synchronize last document change read time'
-  | 'updateClientMetadataAndTryBecomePrimary';
-
-/** Specifies failure or success for a list of database actions. */
-export type SpecDatabaseFailures = Partial<
-  {
-    readonly [key in PersistenceAction]: boolean;
-  }
->;
+  | 'updateClientMetadataAndTryBecomePrimary'
+  | 'getHighestListenSequenceNumber';
 
 /**
  * Union type for each step. The step consists of exactly one `field`
@@ -1270,7 +1276,7 @@ export interface SpecStep {
   failWrite?: SpecWriteFailure;
 
   /** Fails the listed database actions. */
-  failDatabase?: false | SpecDatabaseFailures;
+  failDatabase?: false | PersistenceAction[];
 
   /**
    * Run a queued timer task (without waiting for the delay to expire). See

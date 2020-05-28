@@ -461,7 +461,7 @@ export function validatePositiveNumber(
   if (n <= 0) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function "${functionName}()" requires its ${ordinal(
+      `Function ${functionName}() requires its ${ordinal(
         position
       )} argument to be a positive number, but it was: ${n}.`
     );
