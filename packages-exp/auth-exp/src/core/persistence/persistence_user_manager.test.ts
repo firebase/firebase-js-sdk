@@ -55,7 +55,7 @@ describe('core/persistence/persistence_user_manager', () => {
   beforeEach(async () => {
     auth = await testAuth();
   });
-  
+
   describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
       const manager = await PersistenceUserManager.create(auth, []);
@@ -86,11 +86,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('uses user key if provided', async () => {
       const { stub, persistence } = makePersistence();
-      await PersistenceUserManager.create(
-        auth,
-        [persistence],
-        'redirectUser'
-      );
+      await PersistenceUserManager.create(auth, [persistence], 'redirectUser');
       expect(stub.get).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app'
       );

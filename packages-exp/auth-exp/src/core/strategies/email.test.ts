@@ -47,7 +47,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should return the sign in methods', async () => {
@@ -98,9 +98,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       },
       400
     );
-    await expect(
-      fetchSignInMethodsForEmail(auth, email)
-    ).to.be.rejectedWith(
+    await expect(fetchSignInMethodsForEmail(auth, email)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

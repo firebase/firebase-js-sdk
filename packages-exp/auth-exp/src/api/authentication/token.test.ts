@@ -38,8 +38,7 @@ describe('requestStsToken', () => {
     endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
     fetch.setUp();
   });
-  
-  
+
   afterEach(fetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {

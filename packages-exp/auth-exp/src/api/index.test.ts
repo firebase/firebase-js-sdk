@@ -26,7 +26,12 @@ import { testAuth } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { Auth } from '../model/auth';
-import { _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpMethod } from './';
+import {
+  _performApiRequest,
+  DEFAULT_API_TIMEOUT_MS,
+  Endpoint,
+  HttpMethod
+} from './';
 import { ServerError } from './errors';
 
 use(chaiAsPromised);

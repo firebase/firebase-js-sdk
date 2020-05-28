@@ -43,7 +43,7 @@ describe('api/authentication/signUp', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {

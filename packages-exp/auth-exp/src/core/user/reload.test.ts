@@ -25,7 +25,10 @@ import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  APIUserInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
@@ -51,12 +54,12 @@ const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
 
 describe('core/user/reload', () => {
   let auth: TestAuth;
-  
+
   beforeEach(async () => {
     auth = await testAuth();
     fetch.setUp();
   });
-  
+
   afterEach(fetch.tearDown);
 
   it('sets all the new properties', async () => {

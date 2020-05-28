@@ -156,9 +156,10 @@ describe('core/user/user_impl', () => {
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws an error if uid is not present', () => {
-      expect(() =>
-        UserImpl.fromPlainObject(auth, { name: 'foo' })
-      ).to.throw(FirebaseError, errorString);
+      expect(() => UserImpl.fromPlainObject(auth, { name: 'foo' })).to.throw(
+        FirebaseError,
+        errorString
+      );
     });
 
     it('throws if a key is not undefined or string', () => {
@@ -218,20 +219,14 @@ describe('core/user/user_impl', () => {
     });
 
     it('should initialize a user', async () => {
-      const user = await UserImpl._fromIdTokenResponse(
-        auth,
-        idTokenResponse
-      );
+      const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
       expect(user.uid).to.eq(idTokenResponse.localId);
       expect(await user.getIdToken()).to.eq('my-id-token');
       expect(user.refreshToken).to.eq('my-refresh-token');
     });
 
     it('should pull additional user info on the user', async () => {
-      const user = await UserImpl._fromIdTokenResponse(
-        auth,
-        idTokenResponse
-      );
+      const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
       expect(user.displayName).to.eq('display-name');
       expect(user.phoneNumber).to.eq('phone-number');
     });

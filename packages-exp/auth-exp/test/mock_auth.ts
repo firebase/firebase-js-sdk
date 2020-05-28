@@ -30,7 +30,7 @@ export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
 export interface TestAuth extends AuthImpl {
-  persistenceLayer: MockPersistenceLayer,
+  persistenceLayer: MockPersistenceLayer;
 }
 
 class MockPersistenceLayer extends InMemoryPersistence {
@@ -49,17 +49,14 @@ class MockPersistenceLayer extends InMemoryPersistence {
 
 export async function testAuth(): Promise<TestAuth> {
   const persistence = new MockPersistenceLayer();
-  const auth: TestAuth = new AuthImpl(
-    'test-app',
-  {
+  const auth: TestAuth = new AuthImpl('test-app', {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
     tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
-  },
-  ) as TestAuth;
+  }) as TestAuth;
 
   await auth._initializeWithPersistence([persistence]);
   auth.persistenceLayer = persistence;

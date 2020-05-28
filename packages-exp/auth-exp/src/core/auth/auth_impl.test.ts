@@ -32,7 +32,10 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -52,7 +55,9 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(() => {
     persistenceStub = sinon.stub(inMemoryPersistence as Persistence);
-    auth = initializeAuth(FAKE_APP, { persistence: inMemoryPersistence }) as Auth;
+    auth = initializeAuth(FAKE_APP, {
+      persistence: inMemoryPersistence
+    }) as Auth;
   });
 
   afterEach(sinon.restore);

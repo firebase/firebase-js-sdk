@@ -28,8 +28,13 @@ import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-    EmailSignInRequest, PasswordResetRequest, sendEmailVerification, sendPasswordResetEmail,
-    sendSignInLinkToEmail, signInWithPassword, VerifyEmailRequest
+  EmailSignInRequest,
+  PasswordResetRequest,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  sendSignInLinkToEmail,
+  signInWithPassword,
+  VerifyEmailRequest
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -47,7 +52,7 @@ describe('api/authentication/signInWithPassword', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -104,7 +109,7 @@ describe('api/authentication/sendEmailVerification', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -159,7 +164,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -214,7 +219,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {

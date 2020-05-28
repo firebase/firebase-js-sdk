@@ -37,7 +37,7 @@ describe('api/authentication/getRecaptchaParams', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should GET to the correct endpoint', async () => {

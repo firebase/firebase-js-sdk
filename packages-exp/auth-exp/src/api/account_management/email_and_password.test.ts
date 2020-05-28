@@ -35,7 +35,7 @@ describe('api/account_management/resetPassword', () => {
     oobCode: 'oob-code',
     newPassword: 'new-password'
   };
-  
+
   let auth: Auth;
 
   beforeEach(async () => {
@@ -99,7 +99,7 @@ describe('api/account_management/updateEmailPassword', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {

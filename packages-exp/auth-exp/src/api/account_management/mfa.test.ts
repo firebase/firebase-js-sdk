@@ -45,7 +45,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -106,7 +106,7 @@ describe('api/account_management/enrollPhoneMfa', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {

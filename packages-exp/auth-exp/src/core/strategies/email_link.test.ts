@@ -42,7 +42,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should send a sign in link via email', async () => {
@@ -136,7 +136,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
   beforeEach(async () => {
     auth = await testAuth();
   });
-  
+
   context('simple links', () => {
     it('should recognize sign in links', () => {
       const link =

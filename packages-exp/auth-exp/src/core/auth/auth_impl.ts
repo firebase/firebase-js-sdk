@@ -19,7 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies, NextOrObserver } from '../../model/auth';
@@ -56,11 +62,12 @@ export class AuthImpl implements Auth {
 
   constructor(
     public readonly name: string,
-    public readonly config: externs.Config,
-  ) {
-  }
+    public readonly config: externs.Config
+  ) {}
 
-  _initializeWithPersistence(persistenceHierarchy: Persistence[]): Promise<void> {
+  _initializeWithPersistence(
+    persistenceHierarchy: Persistence[]
+  ): Promise<void> {
     return this.queue(async () => {
       this.persistenceManager = await PersistenceUserManager.create(
         this,

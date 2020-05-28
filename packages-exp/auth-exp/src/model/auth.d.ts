@@ -16,7 +16,13 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { CompleteFn, ErrorFn, NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 import { Persistence } from '../core/persistence';
 import { User } from './user';

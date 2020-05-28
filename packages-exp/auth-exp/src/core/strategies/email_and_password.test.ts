@@ -29,7 +29,10 @@ import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import {
-    checkActionCode, confirmPasswordReset, sendPasswordResetEmail, verifyPasswordResetCode
+  checkActionCode,
+  confirmPasswordReset,
+  sendPasswordResetEmail,
+  verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -44,7 +47,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should send a password reset email', async () => {
@@ -269,7 +272,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should verify the oob code', async () => {

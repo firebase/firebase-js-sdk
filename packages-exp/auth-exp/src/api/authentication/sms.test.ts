@@ -28,8 +28,10 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-    linkWithPhoneNumber, sendPhoneVerificationCode, signInWithPhoneNumber,
-    verifyPhoneNumberForExisting
+  linkWithPhoneNumber,
+  sendPhoneVerificationCode,
+  signInWithPhoneNumber,
+  verifyPhoneNumberForExisting
 } from './sms';
 
 use(chaiAsPromised);
@@ -46,7 +48,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -81,9 +83,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
       400
     );
 
-    await expect(
-      sendPhoneVerificationCode(auth, request)
-    ).to.be.rejectedWith(
+    await expect(sendPhoneVerificationCode(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. (auth/invalid-phone-number).'
     );
@@ -105,7 +105,7 @@ describe('api/authentication/signInWithPhoneNumber', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -170,7 +170,7 @@ describe('api/authentication/linkWithPhoneNumber', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -234,7 +234,7 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
     auth = await testAuth();
     mockFetch.setUp();
   });
-  
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
