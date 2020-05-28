@@ -37,6 +37,10 @@ export {
   parent
 } from './src/api/reference';
 
+export { FieldPath } from './src/api/field_path';
+
+export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(
