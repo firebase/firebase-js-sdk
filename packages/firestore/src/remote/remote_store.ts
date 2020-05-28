@@ -719,22 +719,25 @@ export class RemoteStore implements TargetMetadataProvider {
         'Write stream was stopped gracefully while still needed.'
       );
     }
-    // An error that occurs after the write handshake completes is an indication
-    // that the write operation itself failed.
-    if (error && this.writeStream.handshakeComplete) {
-      // This error affects the actual write.
-      await this.handleWriteError(error!);
-    } else if (error) {
-      // If there was an error before the handshake has finished, it's
-      // possible that the server is unable to process the stream token
-      // we're sending. (Perhaps it's too old?)
-      await this.handleHandshakeError(error!);
-    }
 
-    // The write stream might have been started by refilling the write
-    // pipeline for failed writes
-    if (this.shouldStartWriteStream()) {
-      this.startWriteStream();
+    // If the write stream closed due to an error, invoke the error callbacks if
+    // there are pending writes.
+    if (error && this.writePipeline.length > 0) {
+      if (this.writeStream.handshakeComplete) {
+        // This error affects the actual write.
+        await this.handleWriteError(error!);
+      } else {
+        // If there was an error before the handshake has finished, it's
+        // possible that the server is unable to process the stream token
+        // we're sending. (Perhaps it's too old?)
+        await this.handleHandshakeError(error!);
+      }
+
+      // The write stream might have been started by refilling the write
+      // pipeline for failed writes
+      if (this.shouldStartWriteStream()) {
+        this.startWriteStream();
+      }
     }
     // No pending writes, nothing to do
   }
