@@ -21,9 +21,10 @@ import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { _ENDPOINT } from '../../api/authentication/token';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
 
@@ -32,8 +33,10 @@ use(chaiAsPromised);
 describe('core/user/token_manager', () => {
   let stsTokenManager: StsTokenManager;
   let now: number;
+  let auth: Auth;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    auth = await testAuth();
     stsTokenManager = new StsTokenManager();
     now = Date.now();
     sinon.stub(Date, 'now').returns(now);
@@ -86,7 +89,7 @@ describe('core/user/token_manager', () => {
     context('with endpoint setup', () => {
       let mock: fetch.Route;
       beforeEach(() => {
-        const { apiKey, tokenApiHost, apiScheme } = mockAuth.config;
+        const { apiKey, tokenApiHost, apiScheme } = auth.config;
         const endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
         mock = fetch.mock(endpoint, {
           'access_token': 'new-access-token',
@@ -102,7 +105,7 @@ describe('core/user/token_manager', () => {
           expirationTime: now + 100_000
         });
 
-        const tokens = await stsTokenManager.getToken(mockAuth, true);
+        const tokens = await stsTokenManager.getToken(auth, true);
         expect(mock.calls[0].request).to.contain('old-refresh-token');
         expect(stsTokenManager.accessToken).to.eq('new-access-token');
         expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
@@ -122,7 +125,7 @@ describe('core/user/token_manager', () => {
           expirationTime: now - 1
         });
 
-        const tokens = await stsTokenManager.getToken(mockAuth, false);
+        const tokens = await stsTokenManager.getToken(auth, false);
         expect(mock.calls[0].request).to.contain('old-refresh-token');
         expect(stsTokenManager.accessToken).to.eq('new-access-token');
         expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
@@ -137,7 +140,7 @@ describe('core/user/token_manager', () => {
     });
 
     it('returns null if the refresh token is missing', async () => {
-      expect(await stsTokenManager.getToken(mockAuth)).to.be.null;
+      expect(await stsTokenManager.getToken(auth)).to.be.null;
     });
 
     it('throws an error if expired but refresh token is missing', async () => {
@@ -146,7 +149,7 @@ describe('core/user/token_manager', () => {
         expirationTime: now - 1
       });
 
-      await expect(stsTokenManager.getToken(mockAuth)).to.be.rejectedWith(
+      await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
         FirebaseError,
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
@@ -159,7 +162,7 @@ describe('core/user/token_manager', () => {
         expirationTime: now + 100_000
       });
 
-      const tokens = (await stsTokenManager.getToken(mockAuth))!;
+      const tokens = (await stsTokenManager.getToken(auth))!;
       expect(tokens).to.eql({
         accessToken: 'token',
         refreshToken: 'refresh',

@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { signUp } from './sign_up';
 
@@ -34,7 +37,13 @@ describe('api/authentication/signUp', () => {
     password: 'my-password'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -43,7 +52,7 @@ describe('api/authentication/signUp', () => {
       email: 'test@foo.com'
     });
 
-    const response = await signUp(mockAuth, request);
+    const response = await signUp(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -71,7 +80,7 @@ describe('api/authentication/signUp', () => {
       400
     );
 
-    await expect(signUp(mockAuth, request)).to.be.rejectedWith(
+    await expect(signUp(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
