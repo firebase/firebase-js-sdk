@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { createAuthUri } from './create_auth_uri';
 
@@ -33,7 +36,13 @@ describe('api/authentication/createAuthUri', () => {
     continueUri: 'example.com/redirectUri'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -41,7 +50,7 @@ describe('api/authentication/createAuthUri', () => {
       signinMethods: ['email']
     });
 
-    const response = await createAuthUri(mockAuth, request);
+    const response = await createAuthUri(auth, request);
     expect(response.signinMethods).to.include('email');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -68,7 +77,7 @@ describe('api/authentication/createAuthUri', () => {
       400
     );
 
-    await expect(createAuthUri(mockAuth, request)).to.be.rejectedWith(
+    await expect(createAuthUri(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );

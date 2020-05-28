@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { signInWithCustomToken } from './custom_token';
 
@@ -33,7 +36,13 @@ describe('api/authentication/signInWithCustomToken', () => {
     token: 'my-token'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -44,7 +53,7 @@ describe('api/authentication/signInWithCustomToken', () => {
       localId: '1234'
     });
 
-    const response = await signInWithCustomToken(mockAuth, request);
+    const response = await signInWithCustomToken(auth, request);
     expect(response.providerId).to.eq(ProviderId.CUSTOM);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
@@ -74,7 +83,7 @@ describe('api/authentication/signInWithCustomToken', () => {
       400
     );
 
-    await expect(signInWithCustomToken(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithCustomToken(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The custom token format is incorrect. Please check the documentation. (auth/invalid-custom-token).'
     );

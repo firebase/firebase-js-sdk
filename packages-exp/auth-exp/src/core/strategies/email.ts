@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 import { ActionCodeSettings } from '@firebase/auth-types-exp';
 
-import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
+import {
+  createAuthUri,
+  CreateAuthUriRequest
+} from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';

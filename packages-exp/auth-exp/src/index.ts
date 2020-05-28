@@ -16,21 +16,35 @@
  */
 
 // core/auth
-export {initializeAuth} from './core/auth/auth_impl';
+export { initializeAuth } from './core/auth/auth_impl';
 
 // core/persistence
-export {browserLocalPersistence, browserSessionPersistence} from './core/persistence/browser';
-export {inMemoryPersistence} from './core/persistence/in_memory';
-export {indexedDBLocalPersistence} from './core/persistence/indexed_db';
+export {
+  browserLocalPersistence,
+  browserSessionPersistence
+} from './core/persistence/browser';
+export { inMemoryPersistence } from './core/persistence/in_memory';
+export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 // core/strategies
-export {sendPasswordResetEmail, confirmPasswordReset, checkActionCode, verifyPasswordResetCode} from './core/strategies/email_and_password';
-export {sendSignInLinkToEmail, isSignInWithEmailLink} from './core/strategies/email_link';
-export {fetchSignInMethodsForEmail, sendEmailVerification} from './core/strategies/email';
+export {
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  checkActionCode,
+  verifyPasswordResetCode
+} from './core/strategies/email_and_password';
+export {
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink
+} from './core/strategies/email_link';
+export {
+  fetchSignInMethodsForEmail,
+  sendEmailVerification
+} from './core/strategies/email';
 
 // core/user
-export {getIdToken, getIdTokenResult} from './core/user/id_token_result';
-export {reload} from './core/user/reload';
+export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
+export { reload } from './core/user/reload';
 
 // model
-export {Operation as ActionCodeOperationType} from './model/action_code_info';
+export { Operation as ActionCodeOperationType } from './model/action_code_info';

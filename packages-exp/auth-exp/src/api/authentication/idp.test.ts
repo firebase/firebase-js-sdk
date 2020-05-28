@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { signInWithIdp } from './idp';
 
@@ -34,7 +37,13 @@ describe('api/authentication/signInWithIdp', () => {
     postBody: null
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -43,7 +52,7 @@ describe('api/authentication/signInWithIdp', () => {
       idToken: 'id-token'
     });
 
-    const response = await signInWithIdp(mockAuth, request);
+    const response = await signInWithIdp(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
@@ -71,7 +80,7 @@ describe('api/authentication/signInWithIdp', () => {
       400
     );
 
-    await expect(signInWithIdp(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithIdp(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The supplied auth credential is malformed or has expired. (auth/invalid-credential).'
     );

@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
+import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import * as location from '../util/location';
 import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
 
@@ -37,14 +41,20 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
   const email = 'foo@bar.com';
   const expectedSignInMethods = [ProviderId.PASSWORD, ProviderId.GOOGLE];
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should return the sign in methods', async () => {
     const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
       signinMethods: expectedSignInMethods
     });
-    const response = await fetchSignInMethodsForEmail(mockAuth, email);
+    const response = await fetchSignInMethodsForEmail(auth, email);
     expect(response).to.eql(expectedSignInMethods);
     expect(mock.calls[0].request).to.eql({
       identifier: email,
@@ -68,7 +78,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
         signinMethods: expectedSignInMethods
       });
-      const response = await fetchSignInMethodsForEmail(mockAuth, email);
+      const response = await fetchSignInMethodsForEmail(auth, email);
       expect(response).to.eql(expectedSignInMethods);
       expect(mock.calls[0].request).to.eql({
         identifier: email,
@@ -88,9 +98,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       },
       400
     );
-    await expect(
-      fetchSignInMethodsForEmail(mockAuth, email)
-    ).to.be.rejectedWith(
+    await expect(fetchSignInMethodsForEmail(auth, email)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -100,12 +108,15 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
 
 describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
-  const user = testUser('my-user-uid', email);
   const idToken = 'id-token';
+  let user: User;
+  let auth: Auth;
   let idTokenStub: SinonStub;
   let reloadStub: SinonStub;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    auth = await testAuth();
+    user = testUser(auth, 'my-user-uid', email);
     mockFetch.setUp();
     idTokenStub = stub(user, 'getIdToken');
     idTokenStub.callsFake(async () => idToken);
@@ -123,7 +134,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email
     });
 
-    await sendEmailVerification(mockAuth, user);
+    await sendEmailVerification(auth, user);
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
@@ -138,7 +149,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email: 'other@email.com'
     });
 
-    await sendEmailVerification(mockAuth, user);
+    await sendEmailVerification(auth, user);
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
@@ -153,7 +164,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(mockAuth, user, {
+      await sendEmailVerification(auth, user, {
         handleCodeInApp: true,
         iOS: {
           bundleId: 'my-bundle',
@@ -181,7 +192,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(mockAuth, user, {
+      await sendEmailVerification(auth, user, {
         handleCodeInApp: true,
         android: {
           installApp: false,
