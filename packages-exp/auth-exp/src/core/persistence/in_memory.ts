@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
-class InMemoryPersistence implements Persistence {
+export class InMemoryPersistence implements Persistence {
   type: PersistenceType = PersistenceType.NONE;
   storage: {
     [key: string]: PersistenceValue;
