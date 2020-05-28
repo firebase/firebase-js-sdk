@@ -19,7 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
 
-import { DocumentReference, Firestore } from './database';
+import { DocumentKeyReference } from './user_data_reader';
 import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
@@ -48,12 +48,14 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
  * Converts Firestore's internal types to the JavaScript types that we expose
  * to the user.
  */
-export class UserDataWriter<T = firestore.DocumentData> {
+export class UserDataWriter {
   constructor(
-    private readonly firestore: Firestore,
+    private readonly databaseId: DatabaseId,
     private readonly timestampsInSnapshots: boolean,
-    private readonly serverTimestampBehavior?: ServerTimestampBehavior,
-    private readonly converter?: firestore.FirestoreDataConverter<T>
+    private readonly serverTimestampBehavior: ServerTimestampBehavior,
+    private readonly referenceFactory: (
+      key: DocumentKey
+    ) => DocumentKeyReference<firestore.DocumentData>
   ) {}
 
   convertValue(value: api.Value): unknown {
@@ -132,7 +134,9 @@ export class UserDataWriter<T = firestore.DocumentData> {
     }
   }
 
-  private convertReference(name: string): DocumentReference<T> {
+  private convertReference(
+    name: string
+  ): DocumentKeyReference<firestore.DocumentData> {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),
@@ -141,18 +145,18 @@ export class UserDataWriter<T = firestore.DocumentData> {
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
 
-    if (!databaseId.isEqual(this.firestore._databaseId)) {
+    if (!databaseId.isEqual(this.databaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
       logError(
         `Document ${key} contains a document ` +
           `reference within a different database (` +
           `${databaseId.projectId}/${databaseId.database}) which is not ` +
           `supported. It will be treated as a reference in the current ` +
-          `database (${this.firestore._databaseId.projectId}/${this.firestore._databaseId.database}) ` +
+          `database (${this.databaseId.projectId}/${this.databaseId.database}) ` +
           `instead.`
       );
     }
 
-    return new DocumentReference(key, this.firestore, this.converter);
+    return this.referenceFactory(key);
   }
 }
