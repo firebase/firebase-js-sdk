@@ -1216,6 +1216,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db1 => {
         db1.injectFailures = ['getHighestListenSequenceNumber'];
         await expect(db1.start()).to.eventually.be.rejectedWith(
