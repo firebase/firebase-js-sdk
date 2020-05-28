@@ -763,7 +763,7 @@ export function fieldPathFromArgument(
  * @param path The dot-separated string form of a field path which will be split
  * on dots.
  */
-function fieldPathFromDotSeparatedString(
+export function fieldPathFromDotSeparatedString(
   methodName: string,
   path: string
 ): FieldPath {
