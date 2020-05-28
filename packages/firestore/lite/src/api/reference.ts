@@ -28,8 +28,8 @@ export class DocumentReference<T = firestore.DocumentData>
   extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
   constructor(
-    key: DocumentKey,
     readonly firestore: Firestore,
+    key: DocumentKey,
     readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
     super(firestore._databaseId, key, _converter);
@@ -45,7 +45,7 @@ export class DocumentReference<T = firestore.DocumentData>
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
-  ): DocumentReference<U> {
-    return new DocumentReference<U>(this._key, this.firestore, converter);
+  ): firestore.DocumentReference<U> {
+    return new DocumentReference<U>(this.firestore, this._key, converter);
   }
 }
