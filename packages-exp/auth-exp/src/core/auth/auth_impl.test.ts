@@ -59,14 +59,14 @@ describe('core/auth/auth_impl', () => {
 
   describe('#updateCurrentUser', () => {
     it('sets the field on the auth object', async () => {
-      const user = testUser('uid');
+      const user = testUser(auth, 'uid');
       await auth.updateCurrentUser(user);
       expect(auth.currentUser).to.eql(user);
     });
 
     it('orders async operations correctly', async () => {
       const users = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => {
-        return testUser(`${n}`);
+        return testUser(auth, `${n}`);
       });
 
       persistenceStub.set.callsFake(() => {
@@ -93,7 +93,7 @@ describe('core/auth/auth_impl', () => {
 
   describe('#signOut', () => {
     it('sets currentUser to null, calls remove', async () => {
-      await auth.updateCurrentUser(testUser('test'));
+      await auth.updateCurrentUser(testUser(auth, 'test'));
       await auth.signOut();
       expect(persistenceStub.remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
@@ -105,7 +105,7 @@ describe('core/auth/auth_impl', () => {
       const newPersistence = browserLocalPersistence as Persistence;
       const newStub = sinon.stub(newPersistence);
       persistenceStub.get.returns(
-        Promise.resolve(testUser('test').toPlainObject())
+        Promise.resolve(testUser(auth, 'test').toPlainObject())
       );
 
       await auth.setPersistence(newPersistence);
@@ -113,7 +113,7 @@ describe('core/auth/auth_impl', () => {
       expect(persistenceStub.remove).to.have.been.called;
       expect(newStub.set).to.have.been.calledWith(
         sinon.match.any,
-        testUser('test').toPlainObject()
+        testUser(auth, 'test').toPlainObject()
       );
     });
   });
@@ -123,7 +123,7 @@ describe('core/auth/auth_impl', () => {
     // function onAuthStateChange(callback: NextFn<User|null>)
 
     it('immediately calls authStateChange if initialization finished', done => {
-      const user = testUser('uid');
+      const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = true;
       auth.onAuthStateChanged(user => {
@@ -133,7 +133,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('immediately calls idTokenChange if initialization finished', done => {
-      const user = testUser('uid');
+      const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = true;
       auth.onIdTokenChanged(user => {
@@ -158,7 +158,7 @@ describe('core/auth/auth_impl', () => {
       let idTokenCallback: sinon.SinonSpy;
 
       beforeEach(() => {
-        user = testUser('uid');
+        user = testUser(auth, 'uid');
         authStateCallback = sinon.spy();
         idTokenCallback = sinon.spy();
       });
@@ -215,7 +215,7 @@ describe('core/auth/auth_impl', () => {
         });
 
         it('onAuthStateChange triggers if uid changes', async () => {
-          const newUser = testUser('different-uid');
+          const newUser = testUser(auth, 'different-uid');
           await auth.updateCurrentUser(newUser);
           expect(authStateCallback).to.have.been.calledWith(newUser);
         });
@@ -293,7 +293,7 @@ describe('core/auth/initializeAuth', () => {
     it('pulls the user from storage', async () => {
       sinon
         .stub(inMemoryPersistence as Persistence, 'get')
-        .returns(Promise.resolve(testUser('uid').toPlainObject()));
+        .returns(Promise.resolve(testUser({} as any, 'uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
     });

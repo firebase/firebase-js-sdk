@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
-import {
-  DEFAULT_API_TIMEOUT_MS,
-  Endpoint,
-  HttpMethod,
-  _performApiRequest
-} from '.';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../test/api/helper';
-import { mockAuth } from '../../test/mock_auth';
+import { testEnvironment } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
-import { ServerError } from './errors';
 import { AuthErrorCode } from '../core/errors';
+import { Auth } from '../model/auth';
+import { _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpMethod } from './';
+import { ServerError } from './errors';
 
 use(chaiAsPromised);
 
@@ -42,6 +40,12 @@ describe('api/_performApiRequest', () => {
     responseKey: 'response-value'
   };
 
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+  });
+
   context('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
@@ -51,7 +55,7 @@ describe('api/_performApiRequest', () => {
       const response = await _performApiRequest<
         typeof request,
         typeof serverResponse
-      >(mockAuth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
       expect(response).to.eql(serverResponse);
       expect(mock.calls.length).to.eq(1);
       expect(mock.calls[0].method).to.eq(HttpMethod.POST);
@@ -79,7 +83,7 @@ describe('api/_performApiRequest', () => {
         400
       );
       const promise = _performApiRequest<typeof request, typeof serverResponse>(
-        mockAuth,
+        auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request
@@ -108,7 +112,7 @@ describe('api/_performApiRequest', () => {
         400
       );
       const promise = _performApiRequest<typeof request, typeof serverResponse>(
-        mockAuth,
+        auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request
@@ -137,7 +141,7 @@ describe('api/_performApiRequest', () => {
         400
       );
       const promise = _performApiRequest<typeof request, typeof serverResponse>(
-        mockAuth,
+        auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request,
@@ -170,7 +174,7 @@ describe('api/_performApiRequest', () => {
         return new Promise<never>(() => null);
       });
       const promise = _performApiRequest<typeof request, never>(
-        mockAuth,
+        auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request
@@ -190,7 +194,7 @@ describe('api/_performApiRequest', () => {
         );
       });
       const promise = _performApiRequest<typeof request, never>(
-        mockAuth,
+        auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request

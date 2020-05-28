@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Operation } from '../../model/action_code_info';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-  EmailSignInRequest,
-  PasswordResetRequest,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  sendSignInLinkToEmail,
-  signInWithPassword,
-  VerifyEmailRequest
+    EmailSignInRequest, PasswordResetRequest, sendEmailVerification, sendPasswordResetEmail,
+    sendSignInLinkToEmail, signInWithPassword, VerifyEmailRequest
 } from './email_and_password';
-import { Operation } from '../../model/action_code_info';
 
 use(chaiAsPromised);
 
@@ -43,7 +41,13 @@ describe('api/authentication/signInWithPassword', () => {
     password: 'my-password'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -52,7 +56,7 @@ describe('api/authentication/signInWithPassword', () => {
       email: 'test@foo.com'
     });
 
-    const response = await signInWithPassword(mockAuth, request);
+    const response = await signInWithPassword(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -80,7 +84,7 @@ describe('api/authentication/signInWithPassword', () => {
       400
     );
 
-    await expect(signInWithPassword(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The password is invalid or the user does not have a password. (auth/wrong-password).'
     );
@@ -94,7 +98,13 @@ describe('api/authentication/sendEmailVerification', () => {
     idToken: 'my-token'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -102,7 +112,7 @@ describe('api/authentication/sendEmailVerification', () => {
       email: 'test@foo.com'
     });
 
-    const response = await sendEmailVerification(mockAuth, request);
+    const response = await sendEmailVerification(auth, request);
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -129,7 +139,7 @@ describe('api/authentication/sendEmailVerification', () => {
       400
     );
 
-    await expect(sendEmailVerification(mockAuth, request)).to.be.rejectedWith(
+    await expect(sendEmailVerification(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -143,7 +153,13 @@ describe('api/authentication/sendPasswordResetEmail', () => {
     email: 'test@foo.com'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -151,7 +167,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
       email: 'test@foo.com'
     });
 
-    const response = await sendPasswordResetEmail(mockAuth, request);
+    const response = await sendPasswordResetEmail(auth, request);
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -178,7 +194,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
       400
     );
 
-    await expect(sendPasswordResetEmail(mockAuth, request)).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
@@ -192,7 +208,13 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
     email: 'test@foo.com'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -200,7 +222,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
       email: 'test@foo.com'
     });
 
-    const response = await sendSignInLinkToEmail(mockAuth, request);
+    const response = await sendSignInLinkToEmail(auth, request);
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -227,7 +249,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
       400
     );
 
-    await expect(sendSignInLinkToEmail(mockAuth, request)).to.be.rejectedWith(
+    await expect(sendSignInLinkToEmail(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { signInWithEmailLink } from './email_link';
 
@@ -33,7 +36,13 @@ describe('api/authentication/signInWithEmailLink', () => {
     oobCode: 'my-code'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -42,7 +51,7 @@ describe('api/authentication/signInWithEmailLink', () => {
       email: 'test@foo.com'
     });
 
-    const response = await signInWithEmailLink(mockAuth, request);
+    const response = await signInWithEmailLink(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -70,7 +79,7 @@ describe('api/authentication/signInWithEmailLink', () => {
       400
     );
 
-    await expect(signInWithEmailLink(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithEmailLink(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

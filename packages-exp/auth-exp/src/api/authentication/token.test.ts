@@ -20,17 +20,26 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError, querystringDecode } from '@firebase/util';
 
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { _ENDPOINT, requestStsToken } from './token';
 
 use(chaiAsPromised);
 
 describe('requestStsToken', () => {
-  const { apiKey, tokenApiHost, apiScheme } = mockAuth.config;
-  const endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
-  beforeEach(fetch.setUp);
+  let auth: Auth;
+  let endpoint: string;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    const { apiKey, tokenApiHost, apiScheme } = auth.config;
+    endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
+    fetch.setUp();
+  });
+  
+  
   afterEach(fetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -40,7 +49,7 @@ describe('requestStsToken', () => {
       'refresh_token': 'new-refresh-token'
     });
 
-    const response = await requestStsToken(mockAuth, 'old-refresh-token');
+    const response = await requestStsToken(auth, 'old-refresh-token');
     expect(response.accessToken).to.eq('new-access-token');
     expect(response.expiresIn).to.eq('3600');
     expect(response.refreshToken).to.eq('new-refresh-token');
@@ -73,7 +82,7 @@ describe('requestStsToken', () => {
       400
     );
 
-    await expect(requestStsToken(mockAuth, 'old-token')).to.be.rejectedWith(
+    await expect(requestStsToken(auth, 'old-token')).to.be.rejectedWith(
       FirebaseError,
       "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
     );

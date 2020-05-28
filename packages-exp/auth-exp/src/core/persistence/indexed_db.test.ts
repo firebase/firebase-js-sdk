@@ -40,7 +40,7 @@ describe('core/persistence/indexed_db', () => {
 
   it('should return blobified user value', async () => {
     const key = 'my-super-special-user';
-    const value = testUser('some-uid');
+    const value = testUser({} as any, 'some-uid');
 
     expect(await persistence.get(key)).to.be.null;
     await persistence.set(key, value.toPlainObject());

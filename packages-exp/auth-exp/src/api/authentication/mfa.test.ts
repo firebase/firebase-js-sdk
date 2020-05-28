@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { finalizeSignInPhoneMfa, startSignInPhoneMfa } from './mfa';
 
@@ -36,7 +39,13 @@ describe('api/authentication/startSignInPhoneMfa', () => {
     }
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -46,7 +55,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
       }
     });
 
-    const response = await startSignInPhoneMfa(mockAuth, request);
+    const response = await startSignInPhoneMfa(auth, request);
     expect(response.phoneResponseInfo.sessionInfo).to.eq('session-info');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -73,7 +82,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
       400
     );
 
-    await expect(startSignInPhoneMfa(mockAuth, request)).to.be.rejectedWith(
+    await expect(startSignInPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The supplied auth credential is malformed or has expired. (auth/invalid-credential).'
     );
@@ -92,7 +101,13 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
     }
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -101,7 +116,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
       idToken: 'id-token'
     });
 
-    const response = await finalizeSignInPhoneMfa(mockAuth, request);
+    const response = await finalizeSignInPhoneMfa(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
@@ -129,7 +144,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
       400
     );
 
-    await expect(finalizeSignInPhoneMfa(mockAuth, request)).to.be.rejectedWith(
+    await expect(finalizeSignInPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user. (auth/invalid-verification-code).'
     );

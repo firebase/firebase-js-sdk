@@ -15,20 +15,21 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-  linkWithPhoneNumber,
-  sendPhoneVerificationCode,
-  signInWithPhoneNumber,
-  verifyPhoneNumberForExisting
+    linkWithPhoneNumber, sendPhoneVerificationCode, signInWithPhoneNumber,
+    verifyPhoneNumberForExisting
 } from './sms';
 
 use(chaiAsPromised);
@@ -39,7 +40,13 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
     recaptchaToken: 'captchad'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -47,7 +54,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
       sessionInfo: 'my-session'
     });
 
-    const response = await sendPhoneVerificationCode(mockAuth, request);
+    const response = await sendPhoneVerificationCode(auth, request);
     expect(response.sessionInfo).to.eq('my-session');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -75,7 +82,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
     );
 
     await expect(
-      sendPhoneVerificationCode(mockAuth, request)
+      sendPhoneVerificationCode(auth, request)
     ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. (auth/invalid-phone-number).'
@@ -92,7 +99,13 @@ describe('api/authentication/signInWithPhoneNumber', () => {
     code: 'my-code'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -104,7 +117,7 @@ describe('api/authentication/signInWithPhoneNumber', () => {
       localId: '1234'
     });
 
-    const response = await signInWithPhoneNumber(mockAuth, request);
+    const response = await signInWithPhoneNumber(auth, request);
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
@@ -134,7 +147,7 @@ describe('api/authentication/signInWithPhoneNumber', () => {
       400
     );
 
-    await expect(signInWithPhoneNumber(mockAuth, request)).to.be.rejectedWith(
+    await expect(signInWithPhoneNumber(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user. (auth/invalid-verification-code).'
     );
@@ -151,7 +164,13 @@ describe('api/authentication/linkWithPhoneNumber', () => {
     code: 'my-code'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -163,7 +182,7 @@ describe('api/authentication/linkWithPhoneNumber', () => {
       localId: '1234'
     });
 
-    const response = await linkWithPhoneNumber(mockAuth, request);
+    const response = await linkWithPhoneNumber(auth, request);
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
@@ -193,7 +212,7 @@ describe('api/authentication/linkWithPhoneNumber', () => {
       400
     );
 
-    await expect(linkWithPhoneNumber(mockAuth, request)).to.be.rejectedWith(
+    await expect(linkWithPhoneNumber(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user. (auth/invalid-verification-code).'
     );
@@ -209,7 +228,13 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
     code: 'my-code'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -221,7 +246,7 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
       localId: '1234'
     });
 
-    const response = await verifyPhoneNumberForExisting(mockAuth, request);
+    const response = await verifyPhoneNumberForExisting(auth, request);
     expect(response.providerId).to.eq(ProviderId.PHONE);
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
@@ -255,7 +280,7 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
     );
 
     await expect(
-      verifyPhoneNumberForExisting(mockAuth, request)
+      verifyPhoneNumberForExisting(auth, request)
     ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).'

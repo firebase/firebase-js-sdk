@@ -17,19 +17,16 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { UserInfo, ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testUser } from '../../../test/mock_auth';
+import { MockPersistenceLayer, testEnvironment, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
-import {
-  APIUserInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { APIUserInfo, ProviderUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
 import { _reloadWithoutSaving, reload } from './reload';
 
 use(chaiAsPromised);
@@ -54,7 +51,17 @@ const BASIC_PROVIDER_USER_INFO: ProviderUserInfo = {
 };
 
 describe('core/user/reload', () => {
-  beforeEach(fetch.setUp);
+  let auth: Auth;
+  let persistence: MockPersistenceLayer;
+  
+  beforeEach(async () => {
+    const env = await testEnvironment();
+    auth = env.auth;
+    persistence = env.persistence;
+
+    fetch.setUp();
+  });
+  
   afterEach(fetch.tearDown);
 
   it('sets all the new properties', async () => {
@@ -74,7 +81,7 @@ describe('core/user/reload', () => {
       users: [serverUser]
     });
 
-    const user = testUser('abc', '', true);
+    const user = testUser(auth, 'abc', '', true);
     await _reloadWithoutSaving(user);
     expect(user.uid).to.eq('local-id');
     expect(user.displayName).to.eq('display-name');
@@ -90,7 +97,7 @@ describe('core/user/reload', () => {
   });
 
   it('adds missing provider data', async () => {
-    const user = testUser('abc', '', true);
+    const user = testUser(auth, 'abc', '', true);
     user.providerData = [{ ...BASIC_USER_INFO }];
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [
@@ -109,7 +116,7 @@ describe('core/user/reload', () => {
   });
 
   it('merges provider data, using the new data for overlaps', async () => {
-    const user = testUser('abc', '', true);
+    const user = testUser(auth, 'abc', '', true);
     user.providerData = [
       {
         ...BASIC_USER_INFO,
@@ -145,14 +152,13 @@ describe('core/user/reload', () => {
     ]);
   });
 
-  it('reload calls auth.updateCurrentUser after completion', async () => {
+  it('reload triggers a persistence change after completion', async () => {
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [{}]
     });
 
-    const user = testUser('user', '', true);
-    const spy = sinon.spy(user.auth, 'updateCurrentUser');
+    const user = testUser(auth, 'user', '', true);
     await reload(user);
-    expect(spy).to.have.been.calledWith(user);
+    expect(persistence.lastObjectSet).to.eql(user.toPlainObject());
   });
 });

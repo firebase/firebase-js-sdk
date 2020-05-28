@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
 
@@ -33,13 +36,19 @@ describe('api/account_management/deleteAccount', () => {
     idToken: 'id-token'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
 
-    await deleteAccount(mockAuth, request);
+    await deleteAccount(auth, request);
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers).to.eql({
@@ -65,7 +74,7 @@ describe('api/account_management/deleteAccount', () => {
       400
     );
 
-    await expect(deleteAccount(mockAuth, request)).to.be.rejectedWith(
+    await expect(deleteAccount(auth, request)).to.be.rejectedWith(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
@@ -79,7 +88,13 @@ describe('api/account_management/deleteLinkedAccounts', () => {
     deleteProvider: [ProviderId.GOOGLE]
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -92,7 +107,7 @@ describe('api/account_management/deleteLinkedAccounts', () => {
       ]
     });
 
-    const response = await deleteLinkedAccounts(mockAuth, request);
+    const response = await deleteLinkedAccounts(auth, request);
     expect(response.providerUserInfo[0].providerId).to.eq('google.com');
     expect(response.providerUserInfo[0].email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -120,7 +135,7 @@ describe('api/account_management/deleteLinkedAccounts', () => {
       400
     );
 
-    await expect(deleteLinkedAccounts(mockAuth, request)).to.be.rejectedWith(
+    await expect(deleteLinkedAccounts(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
@@ -133,7 +148,13 @@ describe('api/account_management/getAccountInfo', () => {
     idToken: 'id-token'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -146,7 +167,7 @@ describe('api/account_management/getAccountInfo', () => {
       ]
     });
 
-    const response = await getAccountInfo(mockAuth, request);
+    const response = await getAccountInfo(auth, request);
     expect(response.users[0].displayName).to.eq('my-name');
     expect(response.users[0].email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
@@ -174,7 +195,7 @@ describe('api/account_management/getAccountInfo', () => {
       400
     );
 
-    await expect(getAccountInfo(mockAuth, request)).to.be.rejectedWith(
+    await expect(getAccountInfo(auth, request)).to.be.rejectedWith(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );

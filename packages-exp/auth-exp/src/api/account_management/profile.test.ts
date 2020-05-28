@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { updateProfile } from './profile';
 
@@ -34,7 +37,13 @@ describe('api/account_management/updateProfile', () => {
     password: 'my-password'
   };
 
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
@@ -43,7 +52,7 @@ describe('api/account_management/updateProfile', () => {
       email: 'test@foo.com'
     });
 
-    const response = await updateProfile(mockAuth, request);
+    const response = await updateProfile(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
@@ -70,7 +79,7 @@ describe('api/account_management/updateProfile', () => {
       400
     );
 
-    await expect(updateProfile(mockAuth, request)).to.be.rejectedWith(
+    await expect(updateProfile(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );

@@ -20,7 +20,8 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { mockAuth, testUser } from '../../../test/mock_auth';
+import { testEnvironment, testUser } from '../../../test/mock_auth';
+import { Auth } from '../../model/auth';
 import { UserImpl } from '../user/user_impl';
 import { Persistence, PersistenceType } from './';
 import { inMemoryPersistence } from './in_memory';
@@ -49,9 +50,15 @@ function makePersistence(
 }
 
 describe('core/persistence/persistence_user_manager', () => {
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+  });
+  
   describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
-      const manager = await PersistenceUserManager.create(mockAuth, []);
+      const manager = await PersistenceUserManager.create(auth, []);
       expect(manager.persistence).to.eq(inMemoryPersistence);
     });
 
@@ -60,9 +67,9 @@ describe('core/persistence/persistence_user_manager', () => {
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
-      b.stub.get.returns(Promise.resolve(testUser('uid').toPlainObject()));
+      b.stub.get.returns(Promise.resolve(testUser({} as any, 'uid').toPlainObject()));
 
-      const out = await PersistenceUserManager.create(mockAuth, search);
+      const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(b.persistence);
       expect(a.stub.get).to.have.been.calledOnce;
       expect(b.stub.get).to.have.been.calledOnce;
@@ -71,7 +78,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('uses default user key if none provided', async () => {
       const { stub, persistence } = makePersistence();
-      await PersistenceUserManager.create(mockAuth, [persistence]);
+      await PersistenceUserManager.create(auth, [persistence]);
       expect(stub.get).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app'
       );
@@ -80,7 +87,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('uses user key if provided', async () => {
       const { stub, persistence } = makePersistence();
       await PersistenceUserManager.create(
-        mockAuth,
+        auth,
         [persistence],
         'redirectUser'
       );
@@ -94,7 +101,7 @@ describe('core/persistence/persistence_user_manager', () => {
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
-      const out = await PersistenceUserManager.create(mockAuth, search);
+      const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(a.persistence);
       expect(a.stub.get).to.have.been.calledOnce;
       expect(b.stub.get).to.have.been.calledOnce;
@@ -109,11 +116,11 @@ describe('core/persistence/persistence_user_manager', () => {
     beforeEach(async () => {
       const { persistence, stub } = makePersistence(PersistenceType.SESSION);
       persistenceStub = stub;
-      manager = await PersistenceUserManager.create(mockAuth, [persistence]);
+      manager = await PersistenceUserManager.create(auth, [persistence]);
     });
 
     it('#setCurrentUser calls underlying persistence w/ key', async () => {
-      const user = testUser('uid');
+      const user = testUser(auth, 'uid');
       await manager.setCurrentUser(user);
       expect(persistenceStub.set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
@@ -134,7 +141,7 @@ describe('core/persistence/persistence_user_manager', () => {
       persistenceStub.get.returns(Promise.resolve(rawObject));
 
       await manager.getCurrentUser();
-      expect(userImplStub).to.have.been.calledWith(mockAuth, rawObject);
+      expect(userImplStub).to.have.been.calledWith(auth, rawObject);
 
       userImplStub.restore();
     });
@@ -163,7 +170,7 @@ describe('core/persistence/persistence_user_manager', () => {
           persistence: nextPersistence,
           stub: nextStub
         } = makePersistence();
-        const user = testUser('uid');
+        const user = testUser({} as any, 'uid');
         persistenceStub.get.returns(Promise.resolve(user.toPlainObject()));
 
         await manager.setPersistence(nextPersistence);

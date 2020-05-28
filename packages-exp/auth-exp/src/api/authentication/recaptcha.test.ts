@@ -15,20 +15,29 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Endpoint } from '..';
+
+import { FirebaseError } from '@firebase/util';
+
+import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
+import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { getRecaptchaParams } from './recaptcha';
 
 use(chaiAsPromised);
 
 describe('api/authentication/getRecaptchaParams', () => {
-  beforeEach(mockFetch.setUp);
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+    mockFetch.setUp();
+  });
+  
   afterEach(mockFetch.tearDown);
 
   it('should GET to the correct endpoint', async () => {
@@ -36,7 +45,7 @@ describe('api/authentication/getRecaptchaParams', () => {
       recaptchaSiteKey: 'site-key'
     });
 
-    const response = await getRecaptchaParams(mockAuth);
+    const response = await getRecaptchaParams(auth);
     expect(response).to.eq('site-key');
     expect(mock.calls[0].request).to.be.undefined;
     expect(mock.calls[0].method).to.eq('GET');
@@ -63,7 +72,7 @@ describe('api/authentication/getRecaptchaParams', () => {
       400
     );
 
-    await expect(getRecaptchaParams(mockAuth)).to.be.rejectedWith(
+    await expect(getRecaptchaParams(auth)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );

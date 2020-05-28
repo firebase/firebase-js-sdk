@@ -50,15 +50,18 @@ export class AuthImpl implements Auth {
   // repeated calls to the callbacks
   private lastNotifiedUid: string | undefined = undefined;
 
+  languageCode: string | null = null;
+  tenantId?: string | null | undefined;
+  settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
+
   constructor(
     public readonly name: string,
     public readonly config: externs.Config,
-    persistenceHierarchy: Persistence[]
   ) {
-    // This promise is intended to float; auth initialization happens in the
-    // background, meanwhile the auth object may be used by the app.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.queue(async () => {
+  }
+
+  _initializeWithPersistence(persistenceHierarchy: Persistence[]): Promise<void> {
+    return this.queue(async () => {
       this.persistenceManager = await PersistenceUserManager.create(
         this,
         persistenceHierarchy
@@ -74,9 +77,6 @@ export class AuthImpl implements Auth {
       this._notifyStateListeners();
     });
   }
-  languageCode: string | null = null;
-  tenantId?: string | null | undefined;
-  settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
 
   useDeviceLanguage(): void {
     throw new Error('Method not implemented.');
@@ -207,7 +207,14 @@ export function initializeAuth(
     sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
   };
 
-  return new AuthImpl(app.name, config, hierarchy as Persistence[]);
+  const auth = new AuthImpl(app.name, config);
+
+  // This promise is intended to float; auth initialization happens in the
+  // background, meanwhile the auth object may be used by the app.
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  auth._initializeWithPersistence(hierarchy as Persistence[]);
+
+  return auth;
 }
 
 /** Helper class to wrap subscriber logic */

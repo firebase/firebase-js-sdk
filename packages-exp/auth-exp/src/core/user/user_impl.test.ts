@@ -15,30 +15,34 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
 import { makeJWT } from '../../../test/jwt';
-import { mockAuth } from '../../../test/mock_auth';
+import { testEnvironment } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
-import { APIUserInfo } from '../../api/account_management/account';
 
 use(sinonChai);
 use(chaiAsPromised);
 use(sinonChai);
 
 describe('core/user/user_impl', () => {
-  const auth = mockAuth;
+  let auth: Auth;
   let stsTokenManager: StsTokenManager;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
     fetch.setUp();
     stsTokenManager = new StsTokenManager();
   });
@@ -153,13 +157,13 @@ describe('core/user/user_impl', () => {
 
     it('throws an error if uid is not present', () => {
       expect(() =>
-        UserImpl.fromPlainObject(mockAuth, { name: 'foo' })
+        UserImpl.fromPlainObject(auth, { name: 'foo' })
       ).to.throw(FirebaseError, errorString);
     });
 
     it('throws if a key is not undefined or string', () => {
       expect(() =>
-        UserImpl.fromPlainObject(mockAuth, { uid: 'foo', displayName: 3 })
+        UserImpl.fromPlainObject(auth, { uid: 'foo', displayName: 3 })
       ).to.throw(FirebaseError, errorString);
     });
 
@@ -177,7 +181,7 @@ describe('core/user/user_impl', () => {
         photoURL: 'photo'
       };
 
-      const user = UserImpl.fromPlainObject(mockAuth, params);
+      const user = UserImpl.fromPlainObject(auth, params);
       expect(user.uid).to.eq(params.uid);
       expect(user.displayName).to.eq(params.displayName);
       expect(user.email).to.eq(params.email);
@@ -215,7 +219,7 @@ describe('core/user/user_impl', () => {
 
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(
-        mockAuth,
+        auth,
         idTokenResponse
       );
       expect(user.uid).to.eq(idTokenResponse.localId);
@@ -225,7 +229,7 @@ describe('core/user/user_impl', () => {
 
     it('should pull additional user info on the user', async () => {
       const user = await UserImpl._fromIdTokenResponse(
-        mockAuth,
+        auth,
         idTokenResponse
       );
       expect(user.displayName).to.eq('display-name');
@@ -238,7 +242,7 @@ describe('core/user/user_impl', () => {
       await auth.updateCurrentUser(null);
       cb.resetHistory();
 
-      await UserImpl._fromIdTokenResponse(mockAuth, idTokenResponse);
+      await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
       expect(cb).not.to.have.been.called;
     });
   });

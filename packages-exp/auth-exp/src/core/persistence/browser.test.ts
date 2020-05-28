@@ -46,7 +46,7 @@ describe('core/persistence/browser', () => {
 
     it('should return persistedblob from user', async () => {
       const key = 'my-super-special-user';
-      const value = testUser('some-uid');
+      const value = testUser({} as any, 'some-uid');
 
       expect(await persistence.get(key)).to.be.null;
       await persistence.set(key, value.toPlainObject());
@@ -89,7 +89,7 @@ describe('core/persistence/browser', () => {
 
     it('should emit blobified persisted user', async () => {
       const key = 'my-super-special-user';
-      const value = testUser('some-uid');
+      const value = testUser({} as any, 'some-uid');
 
       expect(await persistence.get(key)).to.be.null;
       await persistence.set(key, value.toPlainObject());

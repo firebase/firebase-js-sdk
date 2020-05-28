@@ -16,11 +16,18 @@
  */
 
 import { expect } from 'chai';
-import { ActionCodeURL } from './action_code_url';
-import { mockAuth } from '../../test/mock_auth';
+
+import { testEnvironment } from '../../test/mock_auth';
 import { Operation } from '../model/action_code_info';
+import { Auth } from '../model/auth';
+import { ActionCodeURL } from './action_code_url';
 
 describe('core/action_code_url', () => {
+  let auth: Auth;
+  beforeEach(async () => {
+    auth = (await testEnvironment()).auth;
+  });
+
   describe('._fromLink', () => {
     it('should parse correctly formatted links', () => {
       const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
@@ -30,7 +37,7 @@ describe('core/action_code_url', () => {
         'continueUrl=' +
         encodeURIComponent(continueUrl) +
         '&languageCode=en&tenantId=TENANT_ID&state=bla';
-      const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+      const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
       expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY');
@@ -46,7 +53,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
       });
 
@@ -55,7 +62,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyAndChangeEmail&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           Operation.VERIFY_AND_CHANGE_EMAIL
         );
@@ -66,7 +73,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(Operation.VERIFY_EMAIL);
       });
 
@@ -75,7 +82,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(Operation.RECOVER_EMAIL);
       });
 
@@ -84,7 +91,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(Operation.PASSWORD_RESET);
       });
 
@@ -93,7 +100,7 @@ describe('core/action_code_url', () => {
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=revertSecondFactorAddition&apiKey=API_KEY&' +
           'languageCode=en';
-        const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+        const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           Operation.REVERT_SECOND_FACTOR_ADDITION
         );
@@ -104,7 +111,7 @@ describe('core/action_code_url', () => {
       const actionLink =
         'https://www.example.com:8080/finishSignIn?' +
         'oobCode=CODE&mode=signIn&apiKey=API_KEY&state=bla';
-      const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+      const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
       expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY');
@@ -118,7 +125,7 @@ describe('core/action_code_url', () => {
         'https://www.example.com/finishSignIn?' +
         'oobCode=CODE1&mode=signIn&apiKey=API_KEY1&state=bla' +
         '#oobCode=CODE2&mode=signIn&apiKey=API_KEY2&state=bla';
-      const actionCodeUrl = ActionCodeURL._fromLink(mockAuth, actionLink);
+      const actionCodeUrl = ActionCodeURL._fromLink(auth, actionLink);
       expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE1');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY1');
@@ -130,31 +137,31 @@ describe('core/action_code_url', () => {
     context('invalid links', () => {
       it('should handle missing API key, code & mode', () => {
         const actionLink = 'https://www.example.com/finishSignIn';
-        expect(ActionCodeURL._fromLink(mockAuth, actionLink)).to.be.null;
+        expect(ActionCodeURL._fromLink(auth, actionLink)).to.be.null;
       });
 
       it('should handle invalid mode', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?oobCode=CODE&mode=INVALID_MODE&apiKey=API_KEY';
-        expect(ActionCodeURL._fromLink(mockAuth, actionLink)).to.be.null;
+        expect(ActionCodeURL._fromLink(auth, actionLink)).to.be.null;
       });
 
       it('should handle missing code', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?mode=signIn&apiKey=API_KEY';
-        expect(ActionCodeURL._fromLink(mockAuth, actionLink)).to.be.null;
+        expect(ActionCodeURL._fromLink(auth, actionLink)).to.be.null;
       });
 
       it('should handle missing API key', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?oobCode=CODE&mode=signIn';
-        expect(ActionCodeURL._fromLink(mockAuth, actionLink)).to.be.null;
+        expect(ActionCodeURL._fromLink(auth, actionLink)).to.be.null;
       });
 
       it('should handle missing mode', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?oobCode=CODE&apiKey=API_KEY';
-        expect(ActionCodeURL._fromLink(mockAuth, actionLink)).to.be.null;
+        expect(ActionCodeURL._fromLink(auth, actionLink)).to.be.null;
       });
     });
   });
