@@ -18,8 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-  updateEmailPassword as apiUpdateEmailPassword,
-  UpdateEmailPasswordRequest
+    updateEmailPassword as apiUpdateEmailPassword, UpdateEmailPasswordRequest
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
@@ -49,7 +48,7 @@ export async function updateProfile(
 
   // Update the password provider as well
   const passwordProvider = user.providerData.find(
-    p => p.providerId === externs.ProviderId.PASSWORD
+    ({providerId}) => providerId === externs.ProviderId.PASSWORD
   );
   if (passwordProvider) {
     passwordProvider.displayName = user.displayName;
