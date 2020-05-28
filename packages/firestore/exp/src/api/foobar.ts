@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// TODO(firestorexp): Replace with actual implementation
+
 export function foo(): string {
   return bar();
 }

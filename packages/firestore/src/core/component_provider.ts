@@ -133,10 +133,12 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
-    debugAssert(
-      !cfg.persistenceSettings.durable,
-      'Can only start memory persistence'
-    );
+    if (cfg.persistenceSettings.durable) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+      );
+    }
     return new MemoryPersistence(MemoryEagerDelegate.factory);
   }
 

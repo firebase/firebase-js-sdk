@@ -88,7 +88,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
+import {
+  DocumentKeyReference,
+  fieldPathFromArgument,
+  UserDataReader
+} from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -948,6 +952,7 @@ export class WriteBatch implements firestore.WriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = firestore.DocumentData>
+  extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -956,6 +961,7 @@ export class DocumentReference<T = firestore.DocumentData>
     readonly firestore: Firestore,
     readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {
+    super(firestore._databaseId, _key, _converter);
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 
@@ -1360,10 +1366,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         return this._converter.fromFirestore(snapshot, options);
       } else {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          /* converter= */ undefined
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1382,10 +1388,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
-          this._firestore,
+          this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
-          options.serverTimestamps,
-          this._converter
+          options.serverTimestamps || 'none',
+          key => new DocumentReference(key, this._firestore, this._converter)
         );
         return userDataWriter.convertValue(value);
       }
@@ -2335,12 +2341,6 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
       1,
       pathString
     );
-    if (pathString === '') {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Document path must be a non-empty string'
-      );
-    }
     const path = ResourcePath.fromString(pathString!);
     return DocumentReference.forPath<T>(
       this._query.path.child(path),
@@ -2438,8 +2438,8 @@ function validateReference<T>(
   methodName: string,
   documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
-): DocumentReference<T> {
-  if (!(documentRef instanceof DocumentReference)) {
+): DocumentKeyReference<T> {
+  if (!(documentRef instanceof DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
