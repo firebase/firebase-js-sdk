@@ -196,7 +196,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
         'IndexFreeQueryEngine',
-        'Using full collection scan to execute query: %s',
+        'Using full collection scan to execute query:',
         query.toString()
       );
     }

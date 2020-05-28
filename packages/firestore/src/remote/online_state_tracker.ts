@@ -17,10 +17,9 @@
 
 import { OnlineState } from '../core/types';
 import { debugAssert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
-import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
 
@@ -64,7 +63,7 @@ export class OnlineStateTracker {
    * transition from OnlineState.Unknown to OnlineState.Offline without waiting
    * for the stream to actually fail (MAX_WATCH_STREAM_FAILURES times).
    */
-  private onlineStateTimer: CancelablePromise<void> | null = null;
+  private onlineStateTimer: DelayedOperation<void> | null = null;
 
   /**
    * Whether the client should log a warning message if it fails to connect to

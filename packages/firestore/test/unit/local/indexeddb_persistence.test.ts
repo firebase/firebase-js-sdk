@@ -1185,7 +1185,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
       db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
-      await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await queue.runAllDelayedOperationsUntil(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
         db.injectFailures = [];
         return db.runTransaction('check success', 'readwrite-primary', () =>

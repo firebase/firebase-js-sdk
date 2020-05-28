@@ -380,7 +380,7 @@ abstract class TestRunner {
           TimerId.ListenStreamConnectionBackoff
         )
       ) {
-        await this.queue.runDelayedOperationsEarly(
+        await this.queue.runAllDelayedOperationsUntil(
           TimerId.ListenStreamConnectionBackoff
         );
       }
@@ -605,7 +605,7 @@ abstract class TestRunner {
     );
     // The watch stream should re-open if we have active listeners.
     if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
-      await this.queue.runDelayedOperationsEarly(
+      await this.queue.runAllDelayedOperationsUntil(
         TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
@@ -656,7 +656,7 @@ abstract class TestRunner {
     // not, then there won't be a matching item on the queue and
     // runDelayedOperationsEarly() will throw.
     const timerId = timer as TimerId;
-    await this.queue.runDelayedOperationsEarly(timerId);
+    await this.queue.runAllDelayedOperationsUntil(timerId);
   }
 
   private async doDisableNetwork(): Promise<void> {
@@ -706,7 +706,9 @@ abstract class TestRunner {
 
     if (state.primary) {
       await clearCurrentPrimaryLease();
-      await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await this.queue.runAllDelayedOperationsUntil(
+        TimerId.ClientMetadataRefresh
+      );
     }
 
     return Promise.resolve();
