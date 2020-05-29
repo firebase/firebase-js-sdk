@@ -37,11 +37,11 @@ import { debugAssert } from '../util/assert';
  * is shared between the full, lite and legacy SDK.
  */
 export abstract class SerializableFieldValue {
-  /** A pointer to the implementing class. */
-  abstract readonly _delegate: SerializableFieldValue;
-
   /** The public API endpoint that returns this class. */
   abstract readonly _methodName: string;
+
+  /** A pointer to the implementing class. */
+  readonly _delegate: SerializableFieldValue = this;
 
   abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 
@@ -49,8 +49,6 @@ export abstract class SerializableFieldValue {
 }
 
 export class DeleteFieldValueImpl extends SerializableFieldValue {
-  _delegate = this;
-
   constructor(readonly _methodName: string) {
     super();
   }
@@ -63,17 +61,17 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
     } else if (context.dataSource === UserDataSource.Update) {
       debugAssert(
         context.path!.length > 0,
-        'FieldValue.delete() at the top level should have already' +
-          ' been handled.'
+        `${this._methodName}  at the top level should have already ` +
+          'been handled.'
       );
       throw context.createError(
-        'FieldValue.delete() can only appear at the top level ' +
+        `${this._methodName} can only appear at the top level ` +
           'of your update data'
       );
     } else {
       // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
       throw context.createError(
-        'FieldValue.delete() cannot be used with set() unless you pass ' +
+        `${this._methodName} cannot be used with set() unless you pass ` +
           '{merge:true}'
       );
     }
@@ -86,8 +84,6 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
 }
 
 export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
-  _delegate = this;
-
   constructor(readonly _methodName: string) {
     super();
   }
@@ -102,8 +98,6 @@ export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
 }
 
 export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
-  _delegate = this;
-
   constructor(
     readonly _methodName: string,
     private readonly _elements: unknown[]
@@ -139,8 +133,6 @@ export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
 }
 
 export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
-  _delegate = this;
-
   constructor(readonly _methodName: string, readonly _elements: unknown[]) {
     super();
   }
@@ -173,8 +165,6 @@ export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
 }
 
 export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
-  _delegate = this;
-
   constructor(readonly _methodName: string, private readonly _operand: number) {
     super();
   }
