@@ -30,7 +30,12 @@ export async function signInWithCustomToken(
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
     token: customToken
   });
-  const cred = await UserCredentialImpl._fromIdTokenResponse(auth, null, externs.OperationType.SIGN_IN, response);
+  const cred = await UserCredentialImpl._fromIdTokenResponse(
+    auth,
+    null,
+    externs.OperationType.SIGN_IN,
+    response
+  );
   await auth.updateCurrentUser(cred.user);
   return cred;
 }
