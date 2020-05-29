@@ -211,7 +211,7 @@ describe('setDoc()', () => {
     return withTestDocAndInitialData({ foo: 1 }, async docRef => {
       await setDoc(
         docRef,
-        { foo: 2, bar: 2, baz: { foobar: 3 } },
+        { foo: 'ignored', bar: 2, baz: { foobar: 3 } },
         { mergeFields: ['bar', new FieldPath('baz', 'foobar')] }
       );
       const docSnap = await getDoc(docRef);

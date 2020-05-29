@@ -59,6 +59,7 @@ export abstract class BaseFieldPath {
     this._internalPath = new InternalFieldPath(fieldNames);
   }
 }
+
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single
  * field name (referring to a top-level field in the document), or a list of
