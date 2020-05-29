@@ -622,6 +622,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         return 'silent';
       case LogLevel.WARN:
         return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.VERBOSE:
+        return 'verbose';
       default:
         // The default log level is error
         return 'error';
