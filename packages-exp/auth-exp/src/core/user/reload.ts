@@ -17,7 +17,10 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  getAccountInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { User } from '../../model/user';
 import { assert } from '../util/assert';
 
