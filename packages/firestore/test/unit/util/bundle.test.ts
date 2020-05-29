@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { Bundle, toReadableStream } from '../../../src/util/bundle';
+import {
+  BundleReader,
+  SizedBundleElement,
+  toReadableStream
+} from '../../../src/util/bundle_reader';
 import { isNode } from '../../util/test_platform';
 
 function readableStreamFromString(
@@ -65,6 +69,7 @@ function lengthPrefixedString(o: {}): string {
 });
 
 function genericBundleReadingTests(bytesPerRead: number): void {
+  const encoder = new TextEncoder();
   // Setting up test data.
   const meta = {
     metadata: {
@@ -160,13 +165,41 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   };
   const limitToLastQueryString = lengthPrefixedString(limitToLastQuery);
 
-  async function expectErrorFromBundle(
+  async function getAllElement(
+    bundle: BundleReader
+  ): Promise<SizedBundleElement[]> {
+    const result: SizedBundleElement[] = [];
+    while (true) {
+      const sizedElement = await bundle.nextElement();
+      if (sizedElement === null) {
+        break;
+      }
+      if (!sizedElement.isBundleMetadata()) {
+        result.push(sizedElement);
+      }
+    }
+
+    return Promise.resolve(result);
+  }
+
+  function verifySizedElement(
+    element: SizedBundleElement,
+    payload: unknown,
+    payloadString: string
+  ): void {
+    expect(element.payload).to.deep.equal(payload);
+    expect(element.byteLength).to.equal(
+      encoder.encode(payloadString).byteLength
+    );
+  }
+
+  async function parseThroughBundle(
     bundleString: string,
     bytesPerRead: number,
     validMeta = false
   ): Promise<void> {
     const bundleStream = readableStreamFromString(bundleString, bytesPerRead);
-    const bundle = new Bundle(bundleStream);
+    const bundle = new BundleReader(bundleStream);
 
     if (!validMeta) {
       await expect(await bundle.getMetadata()).should.be.rejected;
@@ -174,10 +207,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
     }
 
-    const actual = [];
-    for await (const sizedElement of bundle.elements()) {
-      actual.push(sizedElement);
-    }
+    await getAllElement(bundle);
   }
 
   it('reads with query and doc with bytesPerRead ' + bytesPerRead, async () => {
@@ -189,31 +219,16 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         doc1String,
       bytesPerRead
     );
-    const bundle = new Bundle(bundleStream);
+    const bundle = new BundleReader(bundleStream);
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-    const actual = [];
-    for await (const sizedElement of bundle.elements()) {
-      actual.push(sizedElement);
-    }
+    const actual = await getAllElement(bundle);
     expect(actual.length).to.equal(4);
-    expect(actual[0]).to.deep.equal({
-      payload: limitQuery,
-      byteLength: encoder.encode(limitQueryString).byteLength
-    });
-    expect(actual[1]).to.deep.equal({
-      payload: limitToLastQuery,
-      byteLength: encoder.encode(limitToLastQueryString).byteLength
-    });
-    expect(actual[2]).to.deep.equal({
-      payload: doc1Meta,
-      byteLength: encoder.encode(doc1MetaString).byteLength
-    });
-    expect(actual[3]).to.deep.equal({
-      payload: doc1,
-      byteLength: encoder.encode(doc1String).byteLength
-    });
+    verifySizedElement(actual[0], limitQuery, limitQueryString);
+    verifySizedElement(actual[1], limitToLastQuery, limitToLastQueryString);
+    verifySizedElement(actual[2], doc1Meta, doc1MetaString);
+    verifySizedElement(actual[3], doc1, doc1String);
   });
 
   it(
@@ -228,33 +243,15 @@ function genericBundleReadingTests(bytesPerRead: number): void {
           doc2String,
         bytesPerRead
       );
-      const bundle = new Bundle(bundleStream);
+      const bundle = new BundleReader(bundleStream);
 
-      const actual = [];
-      for await (const sizedElement of bundle.elements()) {
-        actual.push(sizedElement);
-      }
+      const actual = await getAllElement(bundle);
       expect(actual.length).to.equal(5);
-      expect(actual[0]).to.deep.equal({
-        payload: doc1Meta,
-        byteLength: encoder.encode(doc1MetaString).byteLength
-      });
-      expect(actual[1]).to.deep.equal({
-        payload: doc1,
-        byteLength: encoder.encode(doc1String).byteLength
-      });
-      expect(actual[2]).to.deep.equal({
-        payload: limitQuery,
-        byteLength: encoder.encode(limitQueryString).byteLength
-      });
-      expect(actual[3]).to.deep.equal({
-        payload: doc2Meta,
-        byteLength: encoder.encode(doc2MetaString).byteLength
-      });
-      expect(actual[4]).to.deep.equal({
-        payload: doc2,
-        byteLength: encoder.encode(doc2String).byteLength
-      });
+      verifySizedElement(actual[0], doc1Meta, doc1MetaString);
+      verifySizedElement(actual[1], doc1, doc1String);
+      verifySizedElement(actual[2], limitQuery, limitQueryString);
+      verifySizedElement(actual[3], doc2Meta, doc2MetaString);
+      verifySizedElement(actual[4], doc2, doc2String);
 
       // Reading metadata after other elements should also work.
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
@@ -268,23 +265,14 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         metaString + doc1MetaString + doc1String,
         bytesPerRead
       );
-      const bundle = new Bundle(bundleStream);
+      const bundle = new BundleReader(bundleStream);
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-      const actual = [];
-      for await (const sizedElement of bundle.elements()) {
-        actual.push(sizedElement);
-      }
+      const actual = await getAllElement(bundle);
       expect(actual.length).to.equal(2);
-      expect(actual[0]).to.deep.equal({
-        payload: doc1Meta,
-        byteLength: encoder.encode(doc1MetaString).byteLength
-      });
-      expect(actual[1]).to.deep.equal({
-        payload: doc1,
-        byteLength: encoder.encode(doc1String).byteLength
-      });
+      verifySizedElement(actual[0], doc1Meta, doc1MetaString);
+      verifySizedElement(actual[1], doc1, doc1String);
     }
   );
 
@@ -293,41 +281,26 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       metaString + noDocMetaString + doc1MetaString + doc1String,
       bytesPerRead
     );
-    const bundle = new Bundle(bundleStream);
+    const bundle = new BundleReader(bundleStream);
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-    const actual = [];
-    for await (const sizedElement of bundle.elements()) {
-      actual.push(sizedElement);
-    }
+    const actual = await getAllElement(bundle);
     expect(actual.length).to.equal(3);
-    expect(actual[0]).to.deep.equal({
-      payload: noDocMeta,
-      byteLength: encoder.encode(noDocMetaString).byteLength
-    });
-    expect(actual[1]).to.deep.equal({
-      payload: doc1Meta,
-      byteLength: encoder.encode(doc1MetaString).byteLength
-    });
-    expect(actual[2]).to.deep.equal({
-      payload: doc1,
-      byteLength: encoder.encode(doc1String).byteLength
-    });
+    verifySizedElement(actual[0], noDocMeta, noDocMetaString);
+    verifySizedElement(actual[1], doc1Meta, doc1MetaString);
+    verifySizedElement(actual[2], doc1, doc1String);
   });
 
   it(
     'reads without documents or query with bytesPerRead ' + bytesPerRead,
     async () => {
       const bundleStream = readableStreamFromString(metaString, bytesPerRead);
-      const bundle = new Bundle(bundleStream);
+      const bundle = new BundleReader(bundleStream);
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-      const actual = [];
-      for await (const sizedElement of bundle.elements()) {
-        actual.push(sizedElement);
-      }
+      const actual = await getAllElement(bundle);
       expect(actual.length).to.equal(0);
     }
   );
@@ -336,19 +309,24 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     'throws with ill-formatted bundle with bytesPerRead ' + bytesPerRead,
     async () => {
       await expect(
-        expectErrorFromBundle('metadata: "no length prefix"', bytesPerRead)
+        parseThroughBundle('metadata: "no length prefix"', bytesPerRead)
       ).to.be.rejected;
 
       await expect(
-        expectErrorFromBundle('{metadata: "no length prefix"}', bytesPerRead)
+        parseThroughBundle('{metadata: "no length prefix"}', bytesPerRead)
       ).to.be.rejected;
 
       await expect(
-        expectErrorFromBundle(metaString + 'invalid-string', bytesPerRead, true)
+        parseThroughBundle(metaString + 'invalid-string', bytesPerRead, true)
       ).to.be.rejected;
 
-      await expect(expectErrorFromBundle('1' + metaString, bytesPerRead)).to.be
+      await expect(parseThroughBundle('1' + metaString, bytesPerRead)).to.be
         .rejected;
+
+      // First element is not BundleMetadata.
+      await expect(
+        parseThroughBundle(doc1MetaString + doc1String, bytesPerRead)
+      ).to.be.rejected;
     }
   );
 }

@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import {
-  BundledDocumentMetadata,
-  BundledQuery,
   BundleElement,
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
@@ -29,9 +26,14 @@ import {
  */
 export class SizedBundleElement {
   constructor(
-    public payload: BundledQuery | api.Document | BundledDocumentMetadata,
-    public byteLength: number
+    public readonly payload: BundleElement,
+    // How many bytes this element takes to store in the bundle.
+    public readonly byteLength: number
   ) {}
+
+  isBundleMetadata(): boolean {
+    return 'metadata' in this.payload;
+  }
 }
 
 /**
@@ -63,7 +65,7 @@ export function toReadableStream(
  * Takes a bundle stream or buffer, and presents abstractions to read bundled
  * elements out of the underlying content.
  */
-export class Bundle {
+export class BundleReader {
   // Cached bundle metadata.
   private metadata?: BundleMetadata | null;
   // The reader instance of the given ReadableStream.
@@ -92,87 +94,91 @@ export class Bundle {
    */
   async getMetadata(): Promise<BundleMetadata> {
     if (!this.metadata) {
-      const result = await this.nextElement();
-      if (result === null || result instanceof SizedBundleElement) {
-        throw new Error(`The first element is not metadata, it is ${result}`);
-      }
-      this.metadata = (result as BundleElement).metadata;
+      await this.nextElement();
     }
 
     return this.metadata!;
   }
 
   /**
-   * Asynchronously iterate through all bundle elements (except bundle metadata).
+   * Returns the next BundleElement (together with its byte size in the bundle)
+   * that has not been read from underlying ReadableStream. Returns null if we
+   * have reached the end of the stream.
+   *
+   * Throws an error if the first element is not a BundleMetadata.
    */
-  async *elements(): AsyncIterableIterator<SizedBundleElement> {
-    let element = await this.nextElement();
-    while (element !== null) {
-      if (element instanceof SizedBundleElement) {
-        yield element;
-      } else {
-        this.metadata = element.metadata;
-      }
-      element = await this.nextElement();
+  async nextElement(): Promise<SizedBundleElement | null> {
+    const element = await this.readNextElement();
+    if (!element) {
+      return element;
     }
+
+    if (!this.metadata) {
+      if (element.isBundleMetadata()) {
+        this.metadata = element.payload.metadata;
+      } else {
+        this.raiseError(
+          `The first element of the bundle is not a metadata, it is ${JSON.stringify(
+            element.payload
+          )}`
+        );
+      }
+    }
+
+    return element;
   }
 
-  // Reads from the head of internal buffer, and pulling more data from underlying stream if a complete element
-  // cannot be found, until an element(including the prefixed length and the JSON string) is found.
-  //
-  // Once a complete element is read, it is dropped from internal buffer.
-  //
-  // Returns either the bundled element, or null if we have reached the end of the stream.
-  private async nextElement(): Promise<
-    BundleElement | SizedBundleElement | null
-  > {
+  /**
+   * Reads from the head of internal buffer, and pulling more data from underlying stream if a complete element
+   * cannot be found, until an element(including the prefixed length and the JSON string) is found.
+   *
+   * Once a complete element is read, it is dropped from internal buffer.
+   *
+   * Returns either the bundled element, or null if we have reached the end of the stream.
+   */
+  private async readNextElement(): Promise<SizedBundleElement | null> {
     const lengthBuffer = await this.readLength();
     if (lengthBuffer === null) {
       return null;
     }
 
     const lengthString = this.textDecoder.decode(lengthBuffer);
-    const length = parseInt(lengthString, 10);
+    const length = Number(lengthString);
     if (isNaN(length)) {
-      throw new Error(`length string (${lengthString}) is not valid number`);
+      this.raiseError(`length string (${lengthString}) is not valid number`);
     }
 
     const jsonString = await this.readJsonString(lengthBuffer.length, length);
     // Update the internal buffer to drop the read length and json string.
     this.buffer = this.buffer.slice(lengthBuffer.length + length);
 
-    if (!this.metadata) {
-      const element = JSON.parse(jsonString) as BundleElement;
-      return element;
-    } else {
-      return new SizedBundleElement(
-        JSON.parse(jsonString),
-        lengthBuffer.length + length
-      );
-    }
+    return new SizedBundleElement(
+      JSON.parse(jsonString),
+      lengthBuffer.length + length
+    );
   }
 
   // First index of '{' from the underlying buffer.
   private indexOfOpenBracket(): number {
-    return this.buffer.findIndex(v => v === 123);
+    return this.buffer.findIndex(v => v === '{'.charCodeAt(0));
   }
 
-  // Reads from the beginning of the inernal buffer, until the first '{', and return
+  // Reads from the beginning of the internal buffer, until the first '{', and return
   // the content.
   // If reached end of the stream, returns a null.
   private async readLength(): Promise<Uint8Array | null> {
     let position = this.indexOfOpenBracket();
     while (position < 0) {
-      const done = await this.pullMoreDataToBuffer();
-      if (done) {
+      const bytesRead = await this.pullMoreDataToBuffer();
+      if (bytesRead < 0) {
         if (this.buffer.length === 0) {
           return null;
         }
         position = this.indexOfOpenBracket();
         // Underlying stream is closed, and we still cannot find a '{'.
         if (position < 0) {
-          throw new Error(
-            'Reach to the end of bundle when a length string is expected.'
+          this.raiseError(
+            'Reached the end of bundle when a length string is expected.'
           );
         }
       } else {
@@ -189,20 +195,28 @@ export class Bundle {
   // Returns a string decoded from the read bytes.
   private async readJsonString(start: number, length: number): Promise<string> {
     while (this.buffer.length < start + length) {
-      const done = await this.pullMoreDataToBuffer();
-      if (done) {
-        throw new Error('Reach to the end of bundle when more is expected.');
+      const bytesRead = await this.pullMoreDataToBuffer();
+      if (bytesRead < 0) {
+        this.raiseError('Reached the end of bundle when more is expected.');
       }
     }
 
     return this.textDecoder.decode(this.buffer.slice(start, start + length));
   }
 
+  private raiseError(message: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.reader.cancel('Invalid bundle format.');
+    throw new Error(message);
+  }
+
   // Pulls more data from underlying stream to internal buffer.
   // Returns a boolean indicating whether the stream is finished.
-  private async pullMoreDataToBuffer(): Promise<boolean> {
+  private async pullMoreDataToBuffer(): Promise<number> {
     const result = await this.reader.read();
+    let bytesRead = -1;
     if (!result.done) {
+      bytesRead = result.value.length;
       const newBuffer = new Uint8Array(
         this.buffer.length + result.value.length
       );
@@ -210,6 +224,6 @@ export class Bundle {
       newBuffer.set(result.value, this.buffer.length);
       this.buffer = newBuffer;
     }
-    return result.done;
+    return bytesRead;
   }
 }
