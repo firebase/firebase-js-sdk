@@ -70,7 +70,7 @@ function readableStreamFromString(
   });
 });
 
-describe.only('Bundle ', () => {
+describe('Bundle ', () => {
   if (!isNode()) {
     genericBundleReadingTests(1);
     genericBundleReadingTests(4);
