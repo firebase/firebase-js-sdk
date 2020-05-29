@@ -20,7 +20,10 @@ import * as firestore from '../../index';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
-import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import {
+  DocumentKeyReference,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
@@ -34,6 +37,8 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { applyFirestoreDataConverter } from '../../../src/api/database';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -301,6 +306,34 @@ export function getDoc<T>(
   });
 }
 
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T,
+  options?: firestore.SetOptions
+): Promise<void> {
+  const ref = tryCast(reference, DocumentReference);
+  return ref.firestore._ensureClientConfigured().then(firestore => {
+    const dataReader = newUserDataReader(firestore);
+
+    const [convertedValue] = applyFirestoreDataConverter(
+      ref._converter,
+      data,
+      'setDoc'
+    );
+
+    const parsed = isMerge(options)
+      ? dataReader.parseMergeData('setDoc', convertedValue)
+      : isMergeFields(options)
+      ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
+      : dataReader.parseSetData('setDoc', convertedValue);
+
+    return invokeCommitRpc(
+      firestore._datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    );
+  });
+}
+
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
@@ -312,4 +345,31 @@ export function deleteDoc(
         new DeleteMutation(ref._key, Precondition.none())
       ])
     );
+}
+
+/** Returns true if options.merge is true. */
+function isMerge(options?: firestore.SetOptions): options is { merge: true } {
+  return !!options && (options as { merge: true }).merge;
+}
+
+/** Returns true if options.mergeFields is set. */
+function isMergeFields(
+  options?: firestore.SetOptions
+): options is { mergeFields: Array<string | firestore.FieldPath> } {
+  return (
+    !!options &&
+    !!(options as { mergeFields: Array<string | firestore.FieldPath> })
+      .mergeFields
+  );
+}
+
+function newUserDataReader(firestore: Required<Firestore>): UserDataReader {
+  const serializer = PlatformSupport.getPlatform().newSerializer(
+    firestore._databaseId
+  );
+  return new UserDataReader(
+    firestore._databaseId,
+    !!firestore._settings.ignoreUndefinedProperties,
+    serializer
+  );
 }

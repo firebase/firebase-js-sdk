@@ -91,6 +91,7 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
@@ -2535,8 +2536,8 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
  */
-function applyFirestoreDataConverter<T>(
-  converter: firestore.FirestoreDataConverter<T> | undefined,
+export function applyFirestoreDataConverter<T>(
+  converter: UntypedFirestoreDataConverter<T> | undefined,
   value: T,
   functionName: string
 ): [firestore.DocumentData, string] {

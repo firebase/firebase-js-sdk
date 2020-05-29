@@ -39,10 +39,7 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Blob } from './blob';
-import {
-  FieldPath as ExternalFieldPath,
-  fromDotSeparatedString
-} from './field_path';
+import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
@@ -344,7 +341,7 @@ export class UserDataReader {
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
 
-        if (stringOrFieldPath instanceof ExternalFieldPath) {
+        if (stringOrFieldPath instanceof BaseFieldPath) {
           fieldPath = stringOrFieldPath._internalPath;
         } else if (typeof stringOrFieldPath === 'string') {
           fieldPath = fieldPathFromDotSeparatedString(
@@ -415,7 +412,7 @@ export class UserDataReader {
   /** Parse update data from a list of field/value arguments. */
   parseUpdateVarargs(
     methodName: string,
-    field: string | ExternalFieldPath,
+    field: string | BaseFieldPath,
     value: unknown,
     moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
@@ -435,7 +432,7 @@ export class UserDataReader {
       keys.push(
         fieldPathFromArgument(
           methodName,
-          moreFieldsAndValues[i] as string | ExternalFieldPath
+          moreFieldsAndValues[i] as string | BaseFieldPath
         )
       );
       values.push(moreFieldsAndValues[i + 1]);
@@ -741,9 +738,9 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | ExternalFieldPath
+  path: string | BaseFieldPath
 ): FieldPath {
-  if (path instanceof ExternalFieldPath) {
+  if (path instanceof BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
