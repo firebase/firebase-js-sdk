@@ -46,11 +46,11 @@ export class Firestore implements firestore.FirebaseFirestore {
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;
 
-  private readonly _initializationDone = new Deferred<Firestore>();
+  private readonly _initializationDone = new Deferred<Required<Firestore>>();
 
   // Assigned via _configureClient()
-  _datastore!: Datastore;
-  _settings!: firestore.Settings;
+  _datastore?: Datastore;
+  _settings?: firestore.Settings;
 
   constructor(
     app: FirebaseApp,
@@ -76,14 +76,13 @@ export class Firestore implements firestore.FirebaseFirestore {
     }
     this._settings = settings;
 
-    const databaseInfo = this._makeDatabaseInfo();
+    const databaseInfo = this._makeDatabaseInfo(settings);
 
     // Kick off initializing the datastore but don't actually wait for it.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     PlatformSupport.getPlatform()
       .loadConnection(databaseInfo)
       .then(connection => {
-        const databaseInfo = this._makeDatabaseInfo();
         const serializer = PlatformSupport.getPlatform().newSerializer(
           databaseInfo.databaseId
         );
@@ -92,23 +91,25 @@ export class Firestore implements firestore.FirebaseFirestore {
           this._credentials,
           serializer
         );
-        this._initializationDone.resolve(this);
+        // Return a Firestore type that marks both `_datastore` and `_settings`
+        // as available.
+        this._initializationDone.resolve(this as Required<Firestore>);
       });
   }
 
-  _ensureClientConfigured(): Promise<Firestore> {
+  _ensureClientConfigured(): Promise<Required<Firestore>> {
     if (!this._settings) {
       this._settings = {};
     }
     return this._initializationDone.promise;
   }
 
-  private _makeDatabaseInfo(): DatabaseInfo {
+  private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       /* persistenceKey= */ 'unsupported',
-      this._settings.host ?? DEFAULT_HOST,
-      this._settings.ssl ?? DEFAULT_SSL,
+      settings.host ?? DEFAULT_HOST,
+      settings.ssl ?? DEFAULT_SSL,
       /* forceLongPolling= */ false
     );
   }

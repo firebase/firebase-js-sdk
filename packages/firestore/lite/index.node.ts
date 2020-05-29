@@ -34,7 +34,9 @@ export {
   CollectionReference,
   collection,
   doc,
-  parent
+  parent,
+  getDoc,
+  deleteDoc
 } from './src/api/reference';
 
 export { FieldPath } from './src/api/field_path';

@@ -106,20 +106,13 @@ export function newDatastore(
 export async function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
-): Promise<MutationResult[]> {
+): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
     database: datastoreImpl.serializer.encodedDatabaseId,
     writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
   };
-  const response = await datastoreImpl.invokeRPC<
-    api.CommitRequest,
-    api.CommitResponse
-  >('Commit', params);
-  return datastoreImpl.serializer.fromWriteResults(
-    response.writeResults,
-    response.commitTime
-  );
+  await datastoreImpl.invokeRPC('Commit', params);
 }
 
 export async function invokeBatchGetDocumentsRpc(

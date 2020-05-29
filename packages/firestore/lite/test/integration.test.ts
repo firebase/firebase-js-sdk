@@ -30,7 +30,8 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  getDoc
+  getDoc,
+  deleteDoc
 } from '../src/api/reference';
 
 describe('Firestore', () => {
@@ -162,6 +163,14 @@ describe('getDoc()', () => {
       const docSnap = await getDoc(docRef);
       expect(docSnap.exists()).to.be.false;
     });
+  });
+
+  // TODO(firestorelite): Expand test coverage once we can write docs
+});
+
+describe('deleteDoc()', () => {
+  it('can delete a non-existing document', () => {
+    return withTestDoc(docRef => deleteDoc(docRef));
   });
 
   // TODO(firestorelite): Expand test coverage once we can write docs

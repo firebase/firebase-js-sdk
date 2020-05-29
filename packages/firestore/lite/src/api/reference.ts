@@ -28,8 +28,12 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { tryCast } from './util';
 import { DocumentSnapshot } from './snapshot';
-import { invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import {
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -283,8 +287,8 @@ export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = tryCast(reference, DocumentReference);
-  return ref.firestore._ensureClientConfigured().then(async () => {
-    const result = await invokeBatchGetDocumentsRpc(ref.firestore._datastore, [
+  return ref.firestore._ensureClientConfigured().then(async firestore => {
+    const result = await invokeBatchGetDocumentsRpc(firestore._datastore, [
       ref._key
     ]);
     hardAssert(result.length === 1, 'Expected a single document result');
@@ -295,4 +299,17 @@ export function getDoc<T>(
       maybeDocument instanceof Document ? maybeDocument : null
     );
   });
+}
+
+export function deleteDoc(
+  reference: firestore.DocumentReference
+): Promise<void> {
+  const ref = tryCast(reference, DocumentReference);
+  return ref.firestore
+    ._ensureClientConfigured()
+    .then(firestore =>
+      invokeCommitRpc(firestore._datastore, [
+        new DeleteMutation(ref._key, Precondition.none())
+      ])
+    );
 }
