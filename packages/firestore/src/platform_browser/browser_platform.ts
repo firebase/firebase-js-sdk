@@ -112,6 +112,10 @@ export class BrowserPlatform implements Platform {
         read(): Promise<ByteStreamReadResult> {
           return reader.read();
         }
+
+        cancel(reason?: string): Promise<void> {
+          return reader.cancel(reason);
+        }
       })();
     }
     throw new Error(

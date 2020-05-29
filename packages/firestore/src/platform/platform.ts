@@ -64,6 +64,7 @@ export interface Platform {
 
 export interface ByteStreamReader {
   read(): Promise<ByteStreamReadResult>;
+  cancel(reason?: string): Promise<void>;
 }
 
 export interface ByteStreamReadResult {
@@ -89,6 +90,8 @@ export function toByteStreamReader(
 
       return { value: new Uint8Array(), done: true };
     }
+
+    async cancel(reason?: string): Promise<void> {}
   })();
 }
 
