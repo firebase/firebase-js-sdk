@@ -26,6 +26,7 @@ export {
   getFirestore
 } from './src/api/database';
 
+// TOOD(firestorelite): Add tests when setDoc() is available
 export {
   FieldValue,
   deleteField,
