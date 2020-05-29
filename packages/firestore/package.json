@@ -8,10 +8,11 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "prebuild": "tsc -m es2015 --moduleResolution node scripts/*.ts ",
-    "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
+    "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
+    "build:lite": "rollup -c rollup.config.lite.js",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -32,6 +33,8 @@
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --config ../../config/mocharc.node.js",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
+    "pretest:lite": "yarn build:lite",
+    "test:lite":  "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.node.ts --config ../../config/mocharc.node.js",
     "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
@@ -60,6 +63,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.9.0",
