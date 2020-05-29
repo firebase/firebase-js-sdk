@@ -688,6 +688,7 @@ export class PersistentWriteStream extends PersistentStream<
   protected tearDown(): void {
     if (this.handshakeComplete_) {
       this.writeMutations([]);
+      this.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
     }
   }
 
