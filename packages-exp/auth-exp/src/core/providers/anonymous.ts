@@ -29,7 +29,7 @@ export class AnonymousCredential implements AuthCredential {
     debugFail('Method not implemented.');
   }
 
-  fromJSON(): never {
+  static fromJSON(): never {
     debugFail('Method not implemented');
   }
 

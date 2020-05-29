@@ -183,10 +183,6 @@ export const enum SignInMethod {
   TWITTER = 'twitter.com'
 }
 
-export interface AuthProvider {
-  readonly providerId: string;
-}
-
 export abstract class AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: SignInMethod;

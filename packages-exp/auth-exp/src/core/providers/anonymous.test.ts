@@ -18,12 +18,19 @@
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { testAuth } from '../../../test/mock_auth';
+import { Auth } from '../../model/auth';
 import { AnonymousCredential, AnonymousProvider } from './anonymous';
-import { mockAuth } from '../../../test/mock_auth';
 
 use(chaiAsPromised);
 
 describe('core/providers/anonymous', () => {
+  let auth: Auth;
+  
+  beforeEach(async () => {
+    auth = await testAuth();
+  });
+  
   describe('AnonymousCredential', () => {
     const credential = new AnonymousCredential();
 
@@ -44,7 +51,7 @@ describe('core/providers/anonymous', () => {
     describe('#_getIdTokenResponse', () => {
       it('throws', async () => {
         await expect(
-          credential._getIdTokenResponse(mockAuth)
+          credential._getIdTokenResponse(auth)
         ).to.be.rejectedWith(Error);
       });
     });
@@ -52,7 +59,7 @@ describe('core/providers/anonymous', () => {
     describe('#_linkToIdToken', () => {
       it('throws', async () => {
         await expect(
-          credential._linkToIdToken(mockAuth, 'id-token')
+          credential._linkToIdToken(auth, 'id-token')
         ).to.be.rejectedWith(Error);
       });
     });
@@ -60,7 +67,7 @@ describe('core/providers/anonymous', () => {
     describe('#_matchIdTokenWithUid', () => {
       it('throws', () => {
         expect(() =>
-          credential._matchIdTokenWithUid(mockAuth, 'other-uid')
+          credential._matchIdTokenWithUid(auth, 'other-uid')
         ).to.throw(Error);
       });
     });

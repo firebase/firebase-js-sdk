@@ -22,18 +22,21 @@ import {
 } from '@firebase/auth-types-exp';
 import { expect } from 'chai';
 import { mockEndpoint } from '../../../test/api/helper';
-import { mockAuth, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
 import { signInAnonymously } from './anonymous';
 
 describe('core/strategies/anonymous', () => {
+  let auth: Auth;
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };
-
-  beforeEach(() => {
+  
+  beforeEach(async () => {
+    auth = await testAuth();
     mockFetch.setUp();
     mockEndpoint(Endpoint.SIGN_UP, {
       idToken: 'id-token',
@@ -50,7 +53,7 @@ describe('core/strategies/anonymous', () => {
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
       const { credential, user, operationType } = await signInAnonymously(
-        mockAuth
+        auth
       );
       expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
       expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
@@ -61,11 +64,11 @@ describe('core/strategies/anonymous', () => {
 
     context('already signed in anonymously', () => {
       it('should return the current user', async () => {
-        const userCredential = await signInAnonymously(mockAuth);
+        const userCredential = await signInAnonymously(auth);
         expect(userCredential.user.isAnonymous).to.be.true;
 
         const { credential, user, operationType } = await signInAnonymously(
-          mockAuth
+          auth
         );
         expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
         expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
@@ -77,12 +80,12 @@ describe('core/strategies/anonymous', () => {
 
     context('already signed in with a non-anonymous account', () => {
       it('should sign in as a new user user', async () => {
-        const fakeUser = testUser('other-uid');
-        await mockAuth.updateCurrentUser(fakeUser);
+        const fakeUser = testUser(auth, 'other-uid');
+        await auth.updateCurrentUser(fakeUser);
         expect(fakeUser.isAnonymous).to.be.false;
 
         const { credential, user, operationType } = await signInAnonymously(
-          mockAuth
+          auth
         );
         expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
         expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
