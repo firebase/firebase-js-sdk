@@ -682,13 +682,13 @@ export class PersistentWriteStream extends PersistentStream<
   // Override of PersistentStream.start
   start(): void {
     this.handshakeComplete_ = false;
+    this.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
     super.start();
   }
 
   protected tearDown(): void {
     if (this.handshakeComplete_) {
       this.writeMutations([]);
-      this.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
     }
   }
 
@@ -742,6 +742,10 @@ export class PersistentWriteStream extends PersistentStream<
   writeHandshake(): void {
     debugAssert(this.isOpen(), 'Writing handshake requires an opened stream');
     debugAssert(!this.handshakeComplete_, 'Handshake already completed');
+    debugAssert(
+      this.lastStreamToken.isEqual(ByteString.EMPTY_BYTE_STRING),
+      'Stream token should be empty during handshake'
+    );
     // TODO(dimond): Support stream resumption. We intentionally do not set the
     // stream token on the handshake, ignoring any stream token we might have.
     const request: WriteRequest = {};
