@@ -25,13 +25,13 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  DEFAULT_SETTINGS,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
+import { DEFAULT_SETTINGS } from '../util/settings';
 
 // tslint:disable:no-floating-promises
 
