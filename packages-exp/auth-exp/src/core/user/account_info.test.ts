@@ -22,7 +22,6 @@ import * as sinonChai from 'sinon-chai';
 
 import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
-// import { UserInfo } from '@firebase/auth-types-exp';
 import { mockEndpoint } from '../../../test/api/helper';
 import { TestAuth, testAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';

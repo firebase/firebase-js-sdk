@@ -21,7 +21,7 @@ import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';
 
-type ModifiableUserInfo = {
+type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 
@@ -37,7 +37,7 @@ export interface User extends externs.User {
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
-  providerData: ModifiableUserInfo[];
+  providerData: MutableUserInfo[];
   metadata: externs.UserMetadata;
   _updateTokensIfNecessary(response: IdTokenResponse): boolean;
 
