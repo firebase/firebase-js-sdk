@@ -30,8 +30,7 @@ module.exports = {
       'error',
       {
         'packageDir': [path.resolve(__dirname, '../../'), __dirname],
-        devDependencies: true,
-        peerDependencies: true
+        devDependencies: true
       }
     ]
   }

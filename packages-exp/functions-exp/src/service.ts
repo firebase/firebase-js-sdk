@@ -21,15 +21,14 @@ import {
   HttpsCallableResult,
   HttpsCallableOptions
 } from '@firebase/functions-types-exp';
-import { _errorForResponse, HttpsErrorImpl } from './error';
+import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
-import { Serializer } from './serializer';
+import { encode, decode } from './serializer';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 export const DEFAULT_REGION = 'us-central1';
-const serializer = new Serializer();
 
 /**
  * The response to an http request.
@@ -55,14 +54,14 @@ export interface HttpResponseBody {
 
 /**
  * Returns a Promise that will be rejected after the given duration.
- * The error will be of type HttpsErrorImpl.
+ * The error will be of type FunctionsError.
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
 function failAfter(millis: number): Promise<never> {
   return new Promise((_, reject) => {
     setTimeout(() => {
-      reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
+      reject(new FunctionsError('deadline-exceeded', 'deadline-exceeded'));
     }, millis);
   });
 }
@@ -205,7 +204,7 @@ async function call(
   const url = functionsInstance._url(name);
 
   // Encode any special types, such as dates, in the input data.
-  data = serializer.encode(data);
+  data = encode(data);
   const body = { data };
 
   // Add a header for the authToken.
@@ -229,20 +228,20 @@ async function call(
 
   // If service was deleted, interrupted response throws an error.
   if (!response) {
-    throw new HttpsErrorImpl(
+    throw new FunctionsError(
       'cancelled',
       'Firebase Functions instance was deleted.'
     );
   }
 
   // Check for an error status, regardless of http status.
-  const error = _errorForResponse(response.status, response.json, serializer);
+  const error = _errorForResponse(response.status, response.json);
   if (error) {
     throw error;
   }
 
   if (!response.json) {
-    throw new HttpsErrorImpl('internal', 'Response is not valid JSON object.');
+    throw new FunctionsError('internal', 'Response is not valid JSON object.');
   }
 
   let responseData = response.json.data;
@@ -253,11 +252,11 @@ async function call(
   }
   if (typeof responseData === 'undefined') {
     // Consider the response malformed.
-    throw new HttpsErrorImpl('internal', 'Response is missing data field.');
+    throw new FunctionsError('internal', 'Response is missing data field.');
   }
 
   // Decode any special types, such as dates, in the returned data.
-  const decodedData = serializer.decode(responseData as {} | null);
+  const decodedData = decode(responseData as {} | null);
 
   return { data: decodedData };
 }

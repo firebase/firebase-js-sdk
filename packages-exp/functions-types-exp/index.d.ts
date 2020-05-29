@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseError } from '@firebase/util';
 
 /**
  * An HttpsCallableResult wraps a single result from a function call.
@@ -113,7 +114,7 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
-export interface HttpsError extends Error {
+export interface FunctionsError extends FirebaseError {
   /**
    * A standard error code that will be returned to the client. This also
    * determines the HTTP status code of the response, as defined in code.proto.

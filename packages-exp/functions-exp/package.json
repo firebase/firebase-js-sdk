@@ -33,7 +33,7 @@
   "license": "Apache-2.0",
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
-    "@firebase/app-exp-types": "0.x"
+    "@firebase/app-types-exp": "0.x"
   },
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",

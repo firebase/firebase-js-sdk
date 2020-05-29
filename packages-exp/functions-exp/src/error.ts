@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types-exp';
-import { Serializer } from './serializer';
+import { FunctionsErrorCode } from '@firebase/functions-types-exp';
+import { decode } from './serializer';
 import { HttpResponseBody } from './service';
+import { FirebaseError } from '@firebase/util';
 
 /**
  * Standard error codes for different ways a request can fail, as defined by:
@@ -50,28 +51,20 @@ const errorCodeMap: { [name: string]: FunctionsErrorCode } = {
  * An explicit error that can be thrown from a handler to send an error to the
  * client that called the function.
  */
-export class HttpsErrorImpl extends Error implements HttpsError {
-  /**
-   * A standard error code that will be returned to the client. This also
-   * determines the HTTP status code of the response, as defined in code.proto.
-   */
-  readonly code: FunctionsErrorCode;
-
-  /**
-   * Extra data to be converted to JSON and included in the error response.
-   */
-  readonly details?: unknown;
-
-  constructor(code: FunctionsErrorCode, message?: string, details?: unknown) {
-    super(message);
-
-    // This is a workaround for a bug in TypeScript when extending Error:
-    // tslint:disable-next-line
-    // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, HttpsErrorImpl.prototype);
-
-    this.code = code;
-    this.details = details;
+export class FunctionsError extends FirebaseError {
+  constructor(
+    /**
+     * A standard error code that will be returned to the client. This also
+     * determines the HTTP status code of the response, as defined in code.proto.
+     */
+    readonly code: FunctionsErrorCode,
+    message?: string,
+    /**
+     * Extra data to be converted to JSON and included in the error response.
+     */
+    readonly details?: unknown
+  ) {
+    super(code, message || '');
   }
 }
 
@@ -124,8 +117,7 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
  */
 export function _errorForResponse(
   status: number,
-  bodyJSON: HttpResponseBody | null,
-  serializer: Serializer
+  bodyJSON: HttpResponseBody | null
 ): Error | null {
   let code = codeForHTTPStatus(status);
 
@@ -142,7 +134,7 @@ export function _errorForResponse(
       if (typeof status === 'string') {
         if (!errorCodeMap[status]) {
           // They must've included an unknown error code in the body.
-          return new HttpsErrorImpl('internal', 'internal');
+          return new FunctionsError('internal', 'internal');
         }
         code = errorCodeMap[status];
 
@@ -158,7 +150,7 @@ export function _errorForResponse(
 
       details = errorJSON.details;
       if (details !== undefined) {
-        details = serializer.decode(details as {} | null);
+        details = decode(details as {} | null);
       }
     }
   } catch (e) {
@@ -172,5 +164,5 @@ export function _errorForResponse(
     return null;
   }
 
-  return new HttpsErrorImpl(code, description, details);
+  return new FunctionsError(code, description, details);
 }

@@ -15,42 +15,38 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { Serializer } from './serializer';
+import { encode, decode } from './serializer';
 
 describe('Serializer', () => {
-  const serializer = new Serializer();
-
   it('encodes null', () => {
-    expect(serializer.encode(null)).to.be.null;
-    expect(serializer.encode(undefined)).to.be.null;
+    expect(encode(null)).to.be.null;
+    expect(encode(undefined)).to.be.null;
   });
 
   it('decodes null', () => {
-    expect(serializer.decode(null)).to.be.null;
+    expect(decode(null)).to.be.null;
   });
 
   it('encodes int', () => {
-    expect(serializer.encode(1)).to.equal(1);
+    expect(encode(1)).to.equal(1);
     // Number isn't allowed in our own codebase, but we need to test it, in case
     // a user passes one in. There's no reason not to support it, and we don't
     // want to unintentionally encode them as {}.
     // eslint-disable-next-line no-new-wrappers
-    expect(serializer.encode(new Number(1))).to.equal(1);
+    expect(encode(new Number(1))).to.equal(1);
   });
 
   it('decodes int', () => {
-    expect(serializer.decode(1)).to.equal(1);
+    expect(decode(1)).to.equal(1);
   });
 
   it('encodes long', () => {
-    expect(serializer.encode(-9223372036854775000)).to.equal(
-      -9223372036854775000
-    );
+    expect(encode(-9223372036854775000)).to.equal(-9223372036854775000);
   });
 
   it('decodes long', () => {
     expect(
-      serializer.decode({
+      decode({
         '@type': 'type.googleapis.com/google.protobuf.Int64Value',
         value: '-9223372036854775000'
       })
@@ -58,14 +54,12 @@ describe('Serializer', () => {
   });
 
   it('encodes unsigned long', () => {
-    expect(serializer.encode(9223372036854800000)).to.equal(
-      9223372036854800000
-    );
+    expect(encode(9223372036854800000)).to.equal(9223372036854800000);
   });
 
   it('decodes unsigned long', () => {
     expect(
-      serializer.decode({
+      decode({
         '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
         value: '9223372036854800000'
       })
@@ -73,30 +67,30 @@ describe('Serializer', () => {
   });
 
   it('encodes double', () => {
-    expect(serializer.encode(1.2)).to.equal(1.2);
+    expect(encode(1.2)).to.equal(1.2);
   });
 
   it('decodes double', () => {
-    expect(serializer.decode(1.2)).to.equal(1.2);
+    expect(decode(1.2)).to.equal(1.2);
   });
 
   it('encodes string', () => {
-    expect(serializer.encode('hello')).to.equal('hello');
+    expect(encode('hello')).to.equal('hello');
   });
 
   it('decodes string', () => {
-    expect(serializer.decode('hello')).to.equal('hello');
+    expect(decode('hello')).to.equal('hello');
   });
 
   // TODO(klimt): Make this test more interesting once we have a complex type
   // that can be created in JavaScript.
   it('encodes array', () => {
-    expect(serializer.encode([1, '2', [3, 4]])).to.deep.equal([1, '2', [3, 4]]);
+    expect(encode([1, '2', [3, 4]])).to.deep.equal([1, '2', [3, 4]]);
   });
 
   it('decodes array', () => {
     expect(
-      serializer.decode([
+      decode([
         1,
         '2',
         [
@@ -114,7 +108,7 @@ describe('Serializer', () => {
   // that can be created in JavaScript.
   it('encodes object', () => {
     expect(
-      serializer.encode({
+      encode({
         foo: 1,
         bar: 'hello',
         baz: [1, 2, 3]
@@ -128,7 +122,7 @@ describe('Serializer', () => {
 
   it('decodes object', () => {
     expect(
-      serializer.decode({
+      decode({
         foo: 1,
         bar: 'hello',
         baz: [
@@ -148,12 +142,12 @@ describe('Serializer', () => {
   });
 
   it('fails to encode NaN', () => {
-    expect(() => serializer.encode(NaN)).to.throw();
+    expect(() => encode(NaN)).to.throw();
   });
 
   it('fails to decode unknown type', () => {
     expect(() =>
-      serializer.decode({
+      decode({
         '@type': 'unknown',
         value: 'should be ignored'
       })
