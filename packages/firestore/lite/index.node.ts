@@ -26,6 +26,15 @@ export {
   getFirestore
 } from './src/api/database';
 
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(
