@@ -61,17 +61,17 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
     } else if (context.dataSource === UserDataSource.Update) {
       debugAssert(
         context.path!.length > 0,
-        `${this._methodName}  at the top level should have already ` +
+        `${this._methodName}() at the top level should have already ` +
           'been handled.'
       );
       throw context.createError(
-        `${this._methodName} can only appear at the top level ` +
+        `${this._methodName}() can only appear at the top level ` +
           'of your update data'
       );
     } else {
       // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
       throw context.createError(
-        `${this._methodName} cannot be used with set() unless you pass ` +
+        `${this._methodName}() cannot be used with set() unless you pass ` +
           '{merge:true}'
       );
     }
