@@ -16,10 +16,10 @@
  */
 
 import { AuthCredential, ProviderId, SignInMethod, AuthProvider } from "@firebase/auth-types-exp";
-import { signUp } from '../src/api/authentication/sign_up';
-import { debugFail } from '../src/core/util/assert';
-import { Auth } from '../src/model/auth';
-import { IdTokenResponse } from "../src/model/id_token";
+import { signUp } from '../../api/authentication/sign_up';
+import { Auth } from '../../model/auth';
+import { IdTokenResponse } from "../../model/id_token";
+import { debugFail } from '../util/assert';
 
 export class AnonymousCredential implements AuthCredential {
   providerId = ProviderId.ANONYMOUS;

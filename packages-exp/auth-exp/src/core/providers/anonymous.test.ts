@@ -19,7 +19,7 @@ import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { AnonymousCredential, AnonymousProvider } from './anonymous';
-import { mockAuth } from './mock_auth';
+import { mockAuth } from '../../../test/mock_auth';
 
 use(chaiAsPromised);
 

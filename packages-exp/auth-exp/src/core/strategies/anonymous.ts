@@ -16,10 +16,10 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { AnonymousProvider } from '../../../test/anonymous';
+import { Auth } from '../../model/auth';
+import { AnonymousProvider } from '../providers/anonymous';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signInWithCredential } from './credential';
-import { Auth } from '../../model/auth';
 
 export async function signInAnonymously(externAuth: externs.Auth): Promise<externs.UserCredential> {
   const auth = externAuth as Auth;
@@ -34,3 +34,4 @@ export async function signInAnonymously(externAuth: externs.Auth): Promise<exter
   }
   return signInWithCredential(auth, credential);
 }
+
