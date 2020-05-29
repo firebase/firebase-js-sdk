@@ -15,22 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { readFile as _readFile, existsSync } from 'fs';
+import { promisify } from 'util';
+import { exec } from 'child-process-promise';
+import { createPromptModule } from 'inquirer';
+import { argv } from 'yargs';
 
 import { runCanaryRelease } from './canary';
 import { ReleaseType } from './utils/enums';
 import { publish } from './utils/publish';
 import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
-
-import { exec } from 'child-process-promise';
-import { createPromptModule } from 'inquirer';
-const prompt = createPromptModule();
-
 import { releaseType as releaseTypePrompt } from './utils/inquirer';
 import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
-import { argv } from 'yargs';
+import { projectRoot } from '../utils';
 
 const { bannerText } = require('./utils/banner');
+const prompt = createPromptModule();
+const readFile = promisify(_readFile);
 
 (async () => {
   try {
@@ -42,11 +44,11 @@ const { bannerText } = require('./utils/banner');
     /**
      * If there are unstaged changes, error
      */
-    if (await hasDiff()) {
-      throw new Error(
-        'You have unstaged changes, stash your changes before attempting to publish'
-      );
-    }
+    // if (await hasDiff()) {
+    //   throw new Error(
+    //     'You have unstaged changes, stash your changes before attempting to publish'
+    //   );
+    // }
 
     /**
      * Log the user who will be publishing the packages
@@ -80,9 +82,23 @@ const { bannerText } = require('./utils/banner');
     })();
 
     if (releaseType === ReleaseType.Canary) {
-      // await runCanaryRelease();
+      await runCanaryRelease();
     } else if (releaseType === ReleaseType.Staging) {
-      // TODO: check if changeset is in the pre mode. Throw, if not.
+      const message = `
+        It looks like you are trying to do a staging release while the repo is not in the pre mode.
+        Do you mean to make a regular release?
+        To enter the pre mode, please run \`yarn changeset pre enter next\`.
+      `;
+      // Check if changeset is in the pre mode. Throw, if not.
+      const preFilePath = `${projectRoot}/.changeset/pre.json`;
+      if (!existsSync(preFilePath)) {
+        throw new Error(message);
+      } else {
+        const preState = JSON.parse(await readFile(preFilePath, 'utf8'));
+        if (preState.mode !== 'pre') {
+          throw new Error(message);
+        }
+      }
     }
 
     /**
@@ -118,12 +134,12 @@ const { bannerText } = require('./utils/banner');
      * Release new versions to NPM using changeset
      * It will also create tags
      */
-    //  await publish();
+    await publish();
 
     /**
      * Push release tags created by changeset in publish() to Github
      */
-    //  await pushReleaseTagsToGithub();
+    await pushReleaseTagsToGithub();
   } catch (err) {
     /**
      * Log any errors that happened during the process

@@ -16,7 +16,7 @@
  */
 
 import { dirname, resolve } from 'path';
-import * as simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git/promise';
 import { exec } from 'child-process-promise';
 
 export const projectRoot = dirname(resolve(__dirname, '../package.json'));

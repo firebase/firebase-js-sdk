@@ -19,7 +19,6 @@ import glob from 'glob';
 import { projectRoot as root } from '../../utils';
 
 import { DepGraph } from 'dependency-graph';
-import { getUpdatedPackages } from './lerna';
 import { promisify } from 'util';
 import { writeFile as _writeFile, existsSync } from 'fs';
 import clone from 'clone';
@@ -91,15 +90,6 @@ export async function getAllPackages() {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
   return dependencies.overallOrder();
-}
-
-export async function getOrderedUpdates() {
-  const packages = await mapWorkspaceToPackages(workspaces);
-  const dependencies = mapPackagesToDepGraph(packages);
-  const processingOrder = dependencies.overallOrder();
-  const updated = await getUpdatedPackages();
-
-  return processingOrder.filter(pkg => updated.includes(pkg));
 }
 
 export async function mapPkgNameToPkgJson(packageName: string) {
