@@ -332,9 +332,9 @@ export function setDoc<T>(
     ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
     : dataReader.parseSetData('setDoc', convertedValue);
 
-  return configureClient.then(firestore =>
+  return configureClient.then(datastore =>
     invokeCommitRpc(
-      firestore._datastore,
+      datastore,
       parsed.toMutations(ref._key, Precondition.none())
     )
   );
