@@ -363,7 +363,7 @@ export function addDoc<T>(
   const [convertedValue] = applyFirestoreDataConverter(
     collRef._converter,
     data,
-    'setDoc'
+    'addDoc'
   );
 
   // Kick off configuring the client, which freezes the settings.
