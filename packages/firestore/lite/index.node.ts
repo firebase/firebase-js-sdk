@@ -37,7 +37,8 @@ export {
   parent,
   getDoc,
   deleteDoc,
-  setDoc
+  setDoc,
+  addDoc
 } from './src/api/reference';
 
 export { FieldPath } from './src/api/field_path';

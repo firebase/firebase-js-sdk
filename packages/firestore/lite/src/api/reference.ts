@@ -347,6 +347,32 @@ export function deleteDoc(
     );
 }
 
+export function addDoc<T>(
+  reference: firestore.CollectionReference<T>,
+  data: T
+): Promise<firestore.DocumentReference<T>> {
+  const collRef = tryCast(reference, CollectionReference);
+  const docRef = doc(collRef);
+
+  return collRef.firestore
+    ._ensureClientConfigured()
+    .then(firestore => {
+      const dataReader = newUserDataReader(firestore);
+      const [convertedValue] = applyFirestoreDataConverter(
+        collRef._converter,
+        data,
+        'addDoc'
+      );
+      const parsed = dataReader.parseSetData('setDoc', convertedValue);
+
+      return invokeCommitRpc(
+        firestore._datastore,
+        parsed.toMutations(docRef._key, Precondition.exists(false))
+      );
+    })
+    .then(() => docRef);
+}
+
 /** Returns true if options.merge is true. */
 function isMerge(options?: firestore.SetOptions): options is { merge: true } {
   return !!options && (options as { merge: true }).merge;

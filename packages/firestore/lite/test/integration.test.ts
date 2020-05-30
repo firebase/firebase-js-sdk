@@ -23,7 +23,12 @@ import {
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
-import { withTestDb, withTestDoc, withTestDocAndInitialData } from './helpers';
+import {
+  withTestCollection,
+  withTestDb,
+  withTestDoc,
+  withTestDocAndInitialData
+} from './helpers';
 import {
   parent,
   collection,
@@ -32,7 +37,8 @@ import {
   DocumentReference,
   getDoc,
   deleteDoc,
-  setDoc
+  setDoc,
+  addDoc
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 
@@ -224,6 +230,16 @@ describe('setDoc()', () => {
   });
 });
 
+describe('addDoc()', () => {
+  it('can add a document', () => {
+    return withTestCollection(async collRef => {
+      const docRef = await addDoc(collRef, { val: 1 });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ val: 1 });
+    });
+  });
+});
+
 describe('DocumentSnapshot', () => {
   it('can represent missing data', () => {
     return withTestDoc(async docRef => {
@@ -268,3 +284,5 @@ describe('DocumentSnapshot', () => {
     });
   });
 });
+
+// TODO(firestorelite): Add converter tests
