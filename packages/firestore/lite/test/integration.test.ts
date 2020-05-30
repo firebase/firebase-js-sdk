@@ -232,7 +232,7 @@ describe('setDoc()', () => {
     });
   });
 
-  it("rejects 'undefined' by default", () => {
+  it('throws when user input fails validation', () => {
     return withTestDoc(async docRef => {
       expect(() => {
         setDoc(docRef, { val: undefined });
@@ -242,7 +242,7 @@ describe('setDoc()', () => {
     });
   });
 
-  it("ignores 'undefined' when enabled", () => {
+  it("can ignore 'undefined'", () => {
     return withTestDbSettings(
       DEFAULT_PROJECT_ID,
       { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
