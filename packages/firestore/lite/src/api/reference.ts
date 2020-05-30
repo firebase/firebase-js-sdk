@@ -283,10 +283,8 @@ export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = tryCast(reference, DocumentReference) as DocumentReference<T>;
-  return ref.firestore._ensureClientConfigured().then(async firestore => {
-    const result = await invokeBatchGetDocumentsRpc(firestore._datastore, [
-      ref._key
-    ]);
+  return ref.firestore._ensureClientConfigured().then(async datastore => {
+    const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
     hardAssert(result.length === 1, 'Expected a single document result');
     const maybeDocument = result[0];
     return new DocumentSnapshot<T>(
