@@ -361,22 +361,27 @@ export function addDoc<T>(
   const collRef = tryCast(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  return collRef.firestore
-    ._ensureClientConfigured()
-    .then(firestore => {
-      const dataReader = newUserDataReader(firestore);
-      const [convertedValue] = applyFirestoreDataConverter(
-        collRef._converter,
-        data,
-        'addDoc'
-      );
-      const parsed = dataReader.parseSetData('setDoc', convertedValue);
+  const [convertedValue] = applyFirestoreDataConverter(
+    collRef._converter,
+    data,
+    'setDoc'
+  );
 
-      return invokeCommitRpc(
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = collRef.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    collRef.firestore._databaseId,
+    collRef.firestore._settings!
+  );
+  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+
+  return configureClient
+    .then(firestore =>
+      invokeCommitRpc(
         firestore._datastore,
         parsed.toMutations(docRef._key, Precondition.exists(false))
-      );
-    })
+      )
+    )
     .then(() => docRef);
 }
 
