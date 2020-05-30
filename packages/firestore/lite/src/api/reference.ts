@@ -375,9 +375,9 @@ export function addDoc<T>(
   const parsed = dataReader.parseSetData('addDoc', convertedValue);
 
   return configureClient
-    .then(firestore =>
+    .then(datastore =>
       invokeCommitRpc(
-        firestore._datastore,
+        datastore,
         parsed.toMutations(docRef._key, Precondition.exists(false))
       )
     )
