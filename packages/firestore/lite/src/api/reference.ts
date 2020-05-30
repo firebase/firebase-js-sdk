@@ -282,7 +282,7 @@ export function parent<T>(
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = tryCast(reference, DocumentReference);
+  const ref = tryCast(reference, DocumentReference) as DocumentReference<T>;
   return ref.firestore._ensureClientConfigured().then(async firestore => {
     const result = await invokeBatchGetDocumentsRpc(firestore._datastore, [
       ref._key
@@ -292,7 +292,8 @@ export function getDoc<T>(
     return new DocumentSnapshot<T>(
       ref.firestore,
       ref._key,
-      maybeDocument instanceof Document ? maybeDocument : null
+      maybeDocument instanceof Document ? maybeDocument : null,
+      ref._converter
     );
   });
 }
