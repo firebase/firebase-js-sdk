@@ -39,6 +39,7 @@ import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -312,26 +313,32 @@ export function setDoc<T>(
   options?: firestore.SetOptions
 ): Promise<void> {
   const ref = tryCast(reference, DocumentReference);
-  return ref.firestore._ensureClientConfigured().then(firestore => {
-    const dataReader = newUserDataReader(firestore);
 
-    const [convertedValue] = applyFirestoreDataConverter(
-      ref._converter,
-      data,
-      'setDoc'
-    );
+  const [convertedValue] = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    'setDoc'
+  );
 
-    const parsed = isMerge(options)
-      ? dataReader.parseMergeData('setDoc', convertedValue)
-      : isMergeFields(options)
-      ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
-      : dataReader.parseSetData('setDoc', convertedValue);
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = ref.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    ref.firestore._databaseId,
+    ref.firestore._settings!
+  );
 
-    return invokeCommitRpc(
+  const parsed = isMerge(options)
+    ? dataReader.parseMergeData('setDoc', convertedValue)
+    : isMergeFields(options)
+    ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
+    : dataReader.parseSetData('setDoc', convertedValue);
+
+  return configureClient.then(firestore =>
+    invokeCommitRpc(
       firestore._datastore,
       parsed.toMutations(ref._key, Precondition.none())
-    );
-  });
+    )
+  );
 }
 
 export function deleteDoc(
@@ -389,13 +396,14 @@ function isMergeFields(
   );
 }
 
-function newUserDataReader(firestore: Required<Firestore>): UserDataReader {
-  const serializer = PlatformSupport.getPlatform().newSerializer(
-    firestore._databaseId
-  );
+function newUserDataReader(
+  databaseId: DatabaseId,
+  settings: firestore.Settings
+): UserDataReader {
+  const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
   return new UserDataReader(
-    firestore._databaseId,
-    !!firestore._settings.ignoreUndefinedProperties,
+    databaseId,
+    !!settings.ignoreUndefinedProperties,
     serializer
   );
 }

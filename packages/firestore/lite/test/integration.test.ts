@@ -26,6 +26,7 @@ import {
 import {
   withTestCollection,
   withTestDb,
+  withTestDbSettings,
   withTestDoc,
   withTestDocAndInitialData
 } from './helpers';
@@ -41,6 +42,10 @@ import {
   addDoc
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -227,6 +232,29 @@ describe('setDoc()', () => {
         baz: { foobar: 3 }
       });
     });
+  });
+
+  it("rejects 'undefined' by default", () => {
+    return withTestDoc(async docRef => {
+      expect(() => {
+        setDoc(docRef, { val: undefined });
+      }).to.throw(
+        'Function setDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+      );
+    });
+  });
+
+  it("ignores 'undefined' when enabled", () => {
+    return withTestDbSettings(
+      DEFAULT_PROJECT_ID,
+      { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
+      async db => {
+        const docRef = doc(collection(db, 'test-collection'));
+        await setDoc(docRef, { val: undefined });
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({});
+      }
+    );
   });
 });
 
