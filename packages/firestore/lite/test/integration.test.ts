@@ -244,7 +244,7 @@ describe('setDoc()', () => {
     });
   });
 
-  it("ignores 'undefined' when enabled", () => {
+  it("can ignore 'undefined'", () => {
     return withTestDbSettings(
       DEFAULT_PROJECT_ID,
       { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
