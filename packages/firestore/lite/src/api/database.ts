@@ -46,11 +46,9 @@ export class Firestore implements firestore.FirebaseFirestore {
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;
 
-  private readonly _initializationDone = new Deferred<Required<Firestore>>();
-
-  // Assigned via _configureClient()
-  _datastore?: Datastore;
+  // Assigned via _configureClient()/_ensureClientConfigured()
   _settings?: firestore.Settings;
+  private readonly _datastoreDeferred = new Deferred<Datastore>();
 
   constructor(
     app: FirebaseApp,
@@ -86,22 +84,20 @@ export class Firestore implements firestore.FirebaseFirestore {
         const serializer = PlatformSupport.getPlatform().newSerializer(
           databaseInfo.databaseId
         );
-        this._datastore = newDatastore(
+        const datastore = newDatastore(
           connection,
           this._credentials,
           serializer
         );
-        // Return a Firestore type that marks both `_datastore` and `_settings`
-        // as available.
-        this._initializationDone.resolve(this as Required<Firestore>);
+        this._datastoreDeferred.resolve(datastore);
       });
   }
 
-  _ensureClientConfigured(): Promise<Required<Firestore>> {
+  _ensureClientConfigured(): Promise<Datastore> {
     if (!this._settings) {
       this._settings = {};
     }
-    return this._initializationDone.promise;
+    return this._datastoreDeferred.promise;
   }
 
   private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
