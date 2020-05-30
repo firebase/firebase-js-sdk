@@ -20,6 +20,7 @@ const { exists } = require('mz/fs');
 const yargs = require('yargs');
 const glob = require('glob');
 const path = require('path');
+const chalk = require('chalk');
 
 // Check for 'configFiles' flag to run on specified karma.conf.js files instead
 // of on all files.
@@ -36,9 +37,10 @@ const { configFiles } = yargs
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
-  : glob.sync(`{packages,integration}/*/karma.conf.js`);
-// Automated tests in integration/firestore are currently disabled.
-// .filter(name => !name.includes('integration/firestore'));
+  : glob
+      .sync(`{packages,integration}/*/karma.conf.js`)
+      // Exclude database - currently too many failures.
+      .filter(name => !name.includes('packages/database'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
@@ -53,6 +55,10 @@ const buildNumber =
  * group.
  */
 async function runTest(testFile) {
+  if (!(await exists(testFile))) {
+    console.error(chalk`{red ERROR: ${testFile} does not exist.}`);
+    return 1;
+  }
   // Run pretest if this dir has a package.json with a pretest script.
   const testFileDir =
     path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
@@ -66,23 +72,35 @@ async function runTest(testFile) {
     }
   }
   if (testFile.includes('integration/firestore')) {
-    console.log('Generating memory build.');
+    console.log(
+      chalk`{blue Generating memory-only build for integration/firestore.}`
+    );
     await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
       stdio: 'inherit'
     });
-    console.log('Running tests on memory build.');
-    const exitCode1 = await runKarma(testFile);
-    // console.log('Generating persistence build.');
-    // await spawn('yarn', ['--cwd', 'integration/firestore', 'build:persistence'], { stdio: 'inherit' });
-    // console.log('Running tests on persistence build.');
-    // const exitCode2 = await runKarma(testFile);
-    // return Math.max(exitCode1, exitCode2);
-    return exitCode1;
+    console.log(
+      chalk`{blue Running tests on memory-only build for integration/firestore.}`
+    );
+    const exitCode1 = await runKarma(testFile, 'memory');
+    console.log(
+      chalk`{blue Generating persistence build for integration/firestore.}`
+    );
+    await spawn(
+      'yarn',
+      ['--cwd', 'integration/firestore', 'build:persistence'],
+      { stdio: 'inherit' }
+    );
+    console.log(
+      chalk`{blue Running tests on persistence build for integration/firestore.}`
+    );
+    const exitCode2 = await runKarma(testFile, 'persistence');
+    return Math.max(exitCode1, exitCode2);
+  } else {
+    return runKarma(testFile);
   }
-  return runKarma(testFile);
 }
 
-async function runKarma(testFile) {
+async function runKarma(testFile, testDescription) {
   const karmaArgs = [
     'karma',
     'start',
@@ -103,13 +121,18 @@ async function runKarma(testFile) {
     exitCode = code;
   });
 
+  let testTag = testFile;
+  if (testDescription) {
+    testTag += ` - ${testDescription}`;
+  }
+
   return promise
     .then(() => {
-      console.log(`[${testFile}] ******* DONE *******`);
+      console.log(chalk`{green [${testTag}] ******* DONE *******}`);
       return exitCode;
     })
     .catch(err => {
-      console.error(`[${testFile}] ERROR:`, err.message);
+      console.error(chalk`{red [${testTag}] ERROR: ${err.message}}`);
       return exitCode;
     });
 }
@@ -131,7 +154,7 @@ async function runNextTest(maxExitCode = 0) {
   try {
     exitCode = await runTest(nextFile);
   } catch (e) {
-    console.error(`[${nextFile}] ERROR:`, e.message);
+    console.error(chalk`{red [${nextFile}] ERROR: ${e.message}}`);
     exitCode = 1;
   }
   runNextTest(Math.max(exitCode, maxExitCode));

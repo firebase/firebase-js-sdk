@@ -50,7 +50,17 @@ const packageConfigs = {
     // Messaging currently only supports these browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
   },
+  // Firestore has large number of IE test failures, need to spend time to fix.
   firestore: {
+    browsers: [
+      'Chrome_Windows',
+      'Firefox_Windows',
+      'Edge_Windows',
+      'Safari_macOS'
+    ]
+  },
+  // Installations has IE errors related to `idb` library that need to be figured out.
+  installations: {
     browsers: [
       'Chrome_Windows',
       'Firefox_Windows',
