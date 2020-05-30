@@ -234,7 +234,7 @@ describe('setDoc()', () => {
     });
   });
 
-  it("rejects 'undefined' by default", () => {
+  it('throws when user input fails validation', () => {
     return withTestDoc(async docRef => {
       expect(() => {
         setDoc(docRef, { val: undefined });
@@ -264,6 +264,16 @@ describe('addDoc()', () => {
       const docRef = await addDoc(collRef, { val: 1 });
       const docSnap = await getDoc(docRef);
       expect(docSnap.data()).to.deep.equal({ val: 1 });
+    });
+  });
+
+  it('throws when user input fails validation', () => {
+    return withTestCollection(async collRef => {
+      expect(() => {
+        addDoc(collRef, { val: undefined });
+      }).to.throw(
+        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+      );
     });
   });
 });
