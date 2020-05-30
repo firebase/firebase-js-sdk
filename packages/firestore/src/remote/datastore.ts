@@ -18,7 +18,7 @@
 import { CredentialsProvider } from '../api/credentials';
 import { MaybeDocument, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation, MutationResult } from '../model/mutation';
+import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
