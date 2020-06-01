@@ -620,8 +620,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     switch (getLogLevel()) {
       case LogLevel.DEBUG:
         return 'debug';
+      case LogLevel.ERROR:
+        return 'error';
       case LogLevel.SILENT:
         return 'silent';
+      case LogLevel.WARN:
+        return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.VERBOSE:
+        return 'verbose';
       default:
         // The default log level is error
         return 'error';
@@ -630,23 +638,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
-    switch (level) {
-      case 'debug':
-        setLogLevel(LogLevel.DEBUG);
-        break;
-      case 'error':
-        setLogLevel(LogLevel.ERROR);
-        break;
-      case 'silent':
-        setLogLevel(LogLevel.SILENT);
-        break;
-      default:
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid log level: ' + level
-        );
-    }
+    validateStringEnum(
+      'setLogLevel',
+      ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
+      1,
+      level
+    );
+    setLogLevel(level);
   }
 
   // Note: this is not a property because the minifier can't work correctly with
