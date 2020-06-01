@@ -578,12 +578,12 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts the write stream if necessary.
    */
   async fillWritePipeline(): Promise<void> {
-    while (this.canAddToWritePipeline()) {
-      const lastBatchIdRetrieved =
-        this.writePipeline.length > 0
-          ? this.writePipeline[this.writePipeline.length - 1].batchId
-          : BATCHID_UNKNOWN;
+    let lastBatchIdRetrieved =
+      this.writePipeline.length > 0
+        ? this.writePipeline[this.writePipeline.length - 1].batchId
+        : BATCHID_UNKNOWN;
 
+    while (this.canAddToWritePipeline()) {
       try {
         const batch = await this.localStore.nextMutationBatch(
           lastBatchIdRetrieved
@@ -595,8 +595,8 @@ export class RemoteStore implements TargetMetadataProvider {
           }
           break;
         } else {
+          lastBatchIdRetrieved = batch.batchId;
           this.addToWritePipeline(batch);
-          await this.fillWritePipeline();
         }
       } catch (e) {
         await this.disableNetworkUntilRecovery(e);
