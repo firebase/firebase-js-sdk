@@ -445,19 +445,19 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         primitiveComparator(l.canonicalString(), r.canonicalString())
       );
 
-      this.changes.forEach((key, maybeDocument) => {
+      this.changes.forEach((key, documentChange) => {
         const previousSize = this.documentSizes.get(key);
         debugAssert(
           previousSize !== undefined,
           `Cannot modify a document that wasn't read (for ${key})`
         );
-        if (maybeDocument) {
+        if (documentChange.maybeDoc) {
           debugAssert(
             !this.getReadTime(key).isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
-            maybeDocument.maybeDoc!,
+            documentChange.maybeDoc!,
             this.getReadTime(key)
           );
           collectionParents = collectionParents.add(key.path.popLast());

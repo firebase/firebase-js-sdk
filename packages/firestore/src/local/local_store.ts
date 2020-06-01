@@ -69,9 +69,15 @@ import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache'
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
-import { BundledDocumentMetadata } from '../protos/firestore_bundle_proto';
+import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
-import { BundleConverter } from '../core/bundle';
+import {
+  Bundle,
+  BundleConverter,
+  BundledDocuments,
+  NamedQuery
+} from '../core/bundle';
+import { BundleCache } from './bundle_cache';
 
 const LOG_TAG = 'LocalStore';
 
@@ -173,6 +179,9 @@ export class LocalStore {
   /** Maps a target to its `TargetData`. */
   protected targetCache: TargetCache;
 
+  /** The set of all cached bundle metadata and named queries. */
+  protected bundleCache: BundleCache;
+
   /**
    * Maps a targetID to data about its target.
    *
@@ -210,6 +219,7 @@ export class LocalStore {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
+    this.bundleCache = persistence.getBundleCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
@@ -611,7 +621,7 @@ export class LocalStore {
   }
 
   applyBundledDocuments(
-    documents: Array<[BundledDocumentMetadata, api.Document | undefined]>
+    documents: BundledDocuments
   ): Promise<MaybeDocumentMap> {
     let updatedKeys = documentKeySet();
     let documentMap = maybeDocumentMap();
@@ -716,6 +726,46 @@ export class LocalStore {
       });
       return changedDocs;
     });
+  }
+
+  getBundle(bundleId: string): Promise<Bundle | undefined> {
+    return this.persistence.runTransaction(
+      'Get bundle',
+      'readonly',
+      transaction => {
+        return this.bundleCache.getBundle(transaction, bundleId);
+      }
+    );
+  }
+
+  saveBundle(bundleMetadata: bundleProto.BundleMetadata): Promise<void> {
+    return this.persistence.runTransaction(
+      'Save bundle',
+      'readwrite',
+      transaction => {
+        return this.bundleCache.saveBundleMetadata(transaction, bundleMetadata);
+      }
+    );
+  }
+
+  getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
+    return this.persistence.runTransaction(
+      'Get named query',
+      'readonly',
+      transaction => {
+        return this.bundleCache.getNamedQuery(transaction, queryName);
+      }
+    );
+  }
+
+  saveNamedQuery(query: bundleProto.NamedQuery): Promise<void> {
+    return this.persistence.runTransaction(
+      'Save named query',
+      'readwrite',
+      transaction => {
+        return this.bundleCache.saveNamedQuery(transaction, query);
+      }
+    );
   }
 
   /**

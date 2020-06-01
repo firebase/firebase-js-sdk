@@ -85,7 +85,7 @@ import {
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundleConverter } from '../../../src/core/bundle';
+import { BundleConverter, BundledDocuments } from '../../../src/core/bundle';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { BundledDocumentMetadata } from '../../../src/protos/firestore_bundle_proto';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
@@ -167,9 +167,7 @@ class LocalStoreTester {
     return this;
   }
 
-  afterBundleDocuments(
-    documents: Array<[BundledDocumentMetadata, Document | undefined]>
-  ): LocalStoreTester {
+  afterBundleDocuments(documents: BundledDocuments): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain

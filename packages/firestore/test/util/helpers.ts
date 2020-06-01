@@ -94,6 +94,7 @@ import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import { BundledDocumentMetadata } from '../../src/protos/firestore_bundle_proto';
 import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
+import { BundledDocuments } from '../../src/core/bundle';
 
 /* eslint-disable no-restricted-globals */
 
@@ -404,13 +405,13 @@ export function docUpdateRemoteEvent(
 }
 
 export class TestBundledDocuments {
-  constructor(
-    public documents: Array<[BundledDocumentMetadata, api.Document | undefined]>
-  ) {}
+  constructor(public documents: BundledDocuments) {}
 }
 
-export function bundledDocuments(documents: MaybeDocument[]) {
-  let result: Array<[BundledDocumentMetadata, api.Document | undefined]> = [];
+export function bundledDocuments(
+  documents: MaybeDocument[]
+): TestBundledDocuments {
+  let result: BundledDocuments = [];
   for (const d of documents) {
     if (d instanceof NoDocument) {
       result.push([

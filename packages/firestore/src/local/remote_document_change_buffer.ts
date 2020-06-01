@@ -28,7 +28,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 class RemoteDocumentChange {
   constructor(
     readonly maybeDoc: MaybeDocument | null,
-    readonly readTime: SnapshotVersion
+    readonly readTime?: SnapshotVersion
   ) {}
 }
 
@@ -51,7 +51,7 @@ export abstract class RemoteDocumentChangeBuffer {
   // existing cache entry should be removed).
   protected changes: ObjectMap<
     DocumentKey,
-    RemoteDocumentChange | null
+    RemoteDocumentChange
   > = new ObjectMap(key => key.toString());
 
   private changesApplied = false;
@@ -71,8 +71,8 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<void>;
 
   protected getReadTime(key: DocumentKey): SnapshotVersion {
-    if (this.changes.get(key)) {
-      return this.changes.get(key)!.readTime;
+    if (this.changes.get(key) && this.changes.get(key)!.readTime) {
+      return this.changes.get(key)!.readTime!;
     }
     return SnapshotVersion.min();
   }
@@ -99,7 +99,7 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
     this.assertNotApplied();
-    this.changes.set(key, null);
+    this.changes.set(key, new RemoteDocumentChange(null, readTime));
   }
 
   /**

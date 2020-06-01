@@ -18,14 +18,10 @@
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { JsonProtoSerializer } from '../remote/serializer';
-import {
-  firestoreV1ApiClientInterfaces,
-  Timestamp
-} from '../protos/firestore_proto_api';
-import Document = firestoreV1ApiClientInterfaces.Document;
+import * as bundleProto from '../protos/firestore_bundle_proto';
+import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { BundledDocumentMetadata } from '../protos/firestore_bundle_proto';
 import { debugAssert } from '../util/assert';
 
 /**
@@ -48,6 +44,10 @@ export interface NamedQuery {
   readonly readTime: SnapshotVersion;
 }
 
+export type BundledDocuments = Array<
+  [bundleProto.BundledDocumentMetadata, api.Document | undefined]
+>;
+
 export class BundleConverter {
   constructor(private serializer: JsonProtoSerializer) {}
 
@@ -56,8 +56,8 @@ export class BundleConverter {
   }
 
   toMaybeDocument(
-    metadata: BundledDocumentMetadata,
-    doc: Document | undefined
+    metadata: bundleProto.BundledDocumentMetadata,
+    doc: api.Document | undefined
   ): MaybeDocument {
     if (metadata.exists) {
       debugAssert(!!doc, 'Document is undefined when metadata.exist is true.');
@@ -70,7 +70,7 @@ export class BundleConverter {
     }
   }
 
-  toSnapshotVersion(time: Timestamp): SnapshotVersion {
+  toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
     return this.serializer.fromVersion(time);
   }
 }
