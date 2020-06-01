@@ -636,7 +636,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
     validateStringEnum(
       'setLogLevel',
-      ['debug', 'error', 'silent', 'warn'],
+      ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
       1,
       level
     );
