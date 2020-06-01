@@ -60,7 +60,8 @@ export async function reload(externUser: externs.User): Promise<void> {
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  return user.auth.updateCurrentUser(user);
+  await user.auth._persistUserIfCurrent(user);
+  user.auth._notifyListenersIfCurrent(user);
 }
 
 function mergeProviderData(
