@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import { FieldValue } from '../../../src/api/field_value';
+import { FieldPath } from '../../../src/api/field_path';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldValue', () => {
@@ -24,6 +25,7 @@ describe('FieldValue', () => {
     expectEqual(FieldValue.delete(), FieldValue.delete());
     expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
     expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+    expectNotEqual(FieldValue.delete(), FieldPath.documentId());
   });
 
   it('support instanceof checks', () => {

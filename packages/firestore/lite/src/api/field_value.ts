@@ -75,7 +75,7 @@ export function serverTimestamp(): firestore.FieldValue {
 export function arrayUnion(...elements: unknown[]): firestore.FieldValue {
   validateAtLeastNumberOfArgs('arrayUnion()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
-  // update() since we need access to the Firestore instance.
+  // update() since we'd need the Firestore instance to do this.
   return new FieldValueDelegate(
     new ArrayUnionFieldValueImpl('arrayUnion', elements)
   );
@@ -84,7 +84,7 @@ export function arrayUnion(...elements: unknown[]): firestore.FieldValue {
 export function arrayRemove(...elements: unknown[]): firestore.FieldValue {
   validateAtLeastNumberOfArgs('arrayRemove()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
-  // update() since we need access to the Firestore instance.
+  // update() since we'd need the Firestore instance to do this.
   return new FieldValueDelegate(
     new ArrayRemoveFieldValueImpl('arrayRemove', elements)
   );

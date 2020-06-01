@@ -65,6 +65,8 @@ describe('FieldValue', () => {
     expectEqual(FieldValue.delete(), FieldValue.delete());
     expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
     expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+    // TODO(firestorelite): Add test when field value is available
+    //expectNotEqual(FieldValue.delete(), documentId());
   });
 
   it('support instanceof checks', () => {

@@ -213,7 +213,7 @@ export abstract class FieldValue extends SerializableFieldValue
   static arrayUnion(...elements: unknown[]): firestore.FieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
-    // update() since we need access to the Firestore instance.
+    // update() since we'd need the Firestore instance to do this.
     return new FieldValueDelegate(
       new ArrayUnionFieldValueImpl('FieldValue.arrayUnion', elements)
     );
@@ -222,7 +222,7 @@ export abstract class FieldValue extends SerializableFieldValue
   static arrayRemove(...elements: unknown[]): firestore.FieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
-    // update() since we need access to the Firestore instance.
+    // update() since we'd need the Firestore instance to do this.
     return new FieldValueDelegate(
       new ArrayRemoveFieldValueImpl('FieldValue.arrayRemove', elements)
     );
