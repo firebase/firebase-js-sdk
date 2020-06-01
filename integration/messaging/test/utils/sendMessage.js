@@ -26,8 +26,6 @@ module.exports = async payload => {
     throw 'Fail to send a message: process.env has no server key';
   }
 
-  console.log('??: ' + serverKey);
-
   console.log(
     'Requesting to send an FCM message with payload: ' + JSON.stringify(payload)
   );
@@ -43,6 +41,5 @@ module.exports = async payload => {
 
   // Note that FCM Send API responses are in HTML format
   let res = await response.text();
-  console.log('???: ' + res);
-  return JSON.parse(await response.text());
+  return JSON.parse(res);
 };
