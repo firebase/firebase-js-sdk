@@ -446,6 +446,9 @@ export class RemoteStore implements TargetMetadataProvider {
    * `op` succeeds. Retries are scheduled with backoff using
    * `enqueueRetryable()`. If `op()` is not provided, IndexedDB access is
    * validated via a generic operation.
+   *
+   * The returned Promise is resolved once the network is disabled and before
+   * any retry attempt.
    */
   private async disableNetworkUntilRecovery(
     e: FirestoreError,
@@ -585,18 +588,19 @@ export class RemoteStore implements TargetMetadataProvider {
         const batch = await this.localStore.nextMutationBatch(
           lastBatchIdRetrieved
         );
-        if (batch !== null) {
-          this.addToWritePipeline(batch);
-        } else {
+
+        if (batch === null) {
+          if (this.writePipeline.length === 0) {
+            this.writeStream.markIdle();
+          }
           break;
+        } else {
+          this.addToWritePipeline(batch);
+          await this.fillWritePipeline();
         }
       } catch (e) {
         await this.disableNetworkUntilRecovery(e);
       }
-    }
-
-    if (this.writePipeline.length === 0) {
-      this.writeStream.markIdle();
     }
 
     if (this.shouldStartWriteStream()) {
@@ -655,12 +659,11 @@ export class RemoteStore implements TargetMetadataProvider {
     this.writeStream.writeHandshake();
   }
 
-  private onWriteHandshakeComplete(): Promise<void> {
+  private async onWriteHandshakeComplete(): Promise<void> {
     // Send the write pipeline now that the stream is established.
     for (const batch of this.writePipeline) {
       this.writeStream.writeMutations(batch.mutations);
     }
-    return Promise.resolve();
   }
 
   private async onMutationResult(
@@ -681,7 +684,6 @@ export class RemoteStore implements TargetMetadataProvider {
       await this.disableNetworkUntilRecovery(e, () =>
         this.syncEngine.applySuccessfulWrite(success)
       );
-      return;
     }
 
     // It's possible that with the completion of this mutation another
@@ -699,8 +701,8 @@ export class RemoteStore implements TargetMetadataProvider {
       );
     }
 
-    // An error that occurs after the write handshake completes is an indication
-    // that the write operation itself failed.
+    // If the write stream closed after the write handshake completes, a write
+    // operation failed and we fail the pending operation.
     if (error && this.writeStream.handshakeComplete) {
       // This error affects the actual write.
       await this.handleWriteError(error!);
@@ -732,7 +734,6 @@ export class RemoteStore implements TargetMetadataProvider {
         await this.disableNetworkUntilRecovery(e, () =>
           this.syncEngine.rejectFailedWrite(batch.batchId, error)
         );
-        return;
       }
 
       // It's possible that with the completion of this mutation
