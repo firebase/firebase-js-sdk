@@ -1,0 +1,9 @@
+ {
+  apiKey: "AIzaSyAcq_4hUMM1efxxUne3DhlpxTo_o6YZ-pg",
+  authDomain: "chenbrian-new1.firebaseapp.com",
+  databaseURL: "https://chenbrian-new1.firebaseio.com",
+  projectId: "chenbrian-new1",
+  storageBucket: "chenbrian-new1.appspot.com",
+  messagingSenderId: "555886180858",
+  appId: "1:555886180858:web:996ec38e22d1250d4ecc43"
+}

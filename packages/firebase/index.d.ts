@@ -7760,7 +7760,7 @@ declare namespace firebase.firestore {
   export interface PersistenceSettings {
     /**
      * Whether to synchronize the in-memory state of multiple tabs. Setting this
-     * to 'true' in all open tabs enables shared access to local persistence,
+     * to `true` in all open tabs enables shared access to local persistence,
      * shared execution of queries and latency-compensated local document updates
      * across all connected instances.
      *
@@ -7772,7 +7772,7 @@ declare namespace firebase.firestore {
 
     /**
      * Whether to synchronize the in-memory state of multiple tabs. Setting this
-     * to 'true' in all open tabs enables shared access to local persistence,
+     * to `true` in all open tabs enables shared access to local persistence,
      * shared execution of queries and latency-compensated local document updates
      * across all connected instances.
      *
@@ -7784,7 +7784,7 @@ declare namespace firebase.firestore {
     /**
      * Whether to force enable persistence for the client. This cannot be used
      * with `synchronizeTabs:true` and is primarily intended for use with Web
-     * Workers. Setting this to 'true' will enable persistence, but cause other
+     * Workers. Setting this to `true` will enable persistence, but cause other
      * tabs using persistence to fail.
      *
      * This setting may be removed in a future release. If you find yourself
