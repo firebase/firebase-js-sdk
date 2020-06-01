@@ -23,6 +23,8 @@ import {
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { FieldValue } from '../../src/api/field_value';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -55,5 +57,21 @@ describe('Firestore', () => {
     }).to.throw(
       'Firestore has already been started and its settings can no longer be changed.'
     );
+  });
+});
+
+describe('FieldValue', () => {
+  it('support equality checking with isEqual()', () => {
+    expectEqual(FieldValue.delete(), FieldValue.delete());
+    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
+    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+  });
+
+  it('support instanceof checks', () => {
+    expect(FieldValue.delete()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.serverTimestamp()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
   });
 });
