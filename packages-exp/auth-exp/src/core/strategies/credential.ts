@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
 import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+
 import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
 import { User } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
 export async function signInWithCredential(
-  auth: Auth,
-  credential: AuthCredential
+  authExtern: externs.Auth,
+  credentialExtern: externs.AuthCredential
 ): Promise<UserCredential> {
+  const auth = authExtern as Auth;
+  const credential = credentialExtern as AuthCredential;
   // TODO: handle mfa by wrapping with callApiWithMfaContext
   const response = await credential._getIdTokenResponse(auth);
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(

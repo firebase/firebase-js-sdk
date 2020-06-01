@@ -27,6 +27,7 @@ export { inMemoryPersistence } from './core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 // core/strategies
+export { signInWithCredential } from './core/strategies/credential';
 export {
   sendPasswordResetEmail,
   confirmPasswordReset,
@@ -43,6 +44,11 @@ export {
 } from './core/strategies/email';
 
 // core/user
+export {
+  updateProfile,
+  updateEmail,
+  updatePassword
+} from './core/user/account_info';
 export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
 export { reload } from './core/user/reload';
 
