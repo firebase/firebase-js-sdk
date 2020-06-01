@@ -1086,7 +1086,8 @@ class IndexedDbTestRunner extends TestRunner {
       {
         durable: true,
         cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
-        synchronizeTabs: true
+        synchronizeTabs: true,
+        forceOwningTab: false
       },
       clientIndex,
       config

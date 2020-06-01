@@ -35,6 +35,7 @@ export interface Settings {
 export interface PersistenceSettings {
   synchronizeTabs?: boolean;
   experimentalTabSynchronization?: boolean;
+  experimentalForceOwningTab?: boolean;
 }
 
 export type LogLevel =
