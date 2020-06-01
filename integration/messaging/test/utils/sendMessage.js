@@ -42,7 +42,6 @@ module.exports = async payload => {
   });
 
   // Note that FCM Send API responses are in HTML format
-  let response = await response.text();
-  console.log('???: ' + response);
+  console.log('???: ' + response.text());
   return JSON.parse(await response.text());
 };
