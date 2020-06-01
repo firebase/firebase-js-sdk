@@ -208,13 +208,13 @@ describe('core/auth/auth_impl', () => {
         });
 
         it('onAuthStateChange does not trigger for user props change', async () => {
-          user.refreshToken = 'hey look I changed';
+          user.photoURL = 'blah';
           await auth.updateCurrentUser(user);
           expect(authStateCallback).not.to.have.been.called;
         });
 
         it('onIdTokenChange triggers for user props change', async () => {
-          user.refreshToken = 'hey look I changed';
+          user.photoURL = 'hey look I changed';
           await auth.updateCurrentUser(user);
           expect(idTokenCallback).to.have.been.calledWith(user);
         });
