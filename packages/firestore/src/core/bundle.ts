@@ -17,6 +17,16 @@
 
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
+import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  firestoreV1ApiClientInterfaces,
+  Timestamp
+} from '../protos/firestore_proto_api';
+import Document = firestoreV1ApiClientInterfaces.Document;
+import { DocumentKey } from '../model/document_key';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { BundledDocumentMetadata } from '../protos/firestore_bundle_proto';
+import { debugAssert } from '../util/assert';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -36,4 +46,31 @@ export interface NamedQuery {
   readonly query: Query;
   // When the results for this query are read to the saved bundle.
   readonly readTime: SnapshotVersion;
+}
+
+export class BundleConverter {
+  constructor(private serializer: JsonProtoSerializer) {}
+
+  toDocumentKey(name: string): DocumentKey {
+    return this.serializer.fromName(name);
+  }
+
+  toMaybeDocument(
+    metadata: BundledDocumentMetadata,
+    doc: Document | undefined
+  ): MaybeDocument {
+    if (metadata.exists) {
+      debugAssert(!!doc, 'Document is undefined when metadata.exist is true.');
+      return this.serializer.fromDocument(doc!, false);
+    } else {
+      return new NoDocument(
+        this.toDocumentKey(metadata.name!),
+        this.toSnapshotVersion(metadata.readTime!)
+      );
+    }
+  }
+
+  toSnapshotVersion(time: Timestamp): SnapshotVersion {
+    return this.serializer.fromVersion(time);
+  }
 }

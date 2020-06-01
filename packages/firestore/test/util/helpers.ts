@@ -92,6 +92,8 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference, Firestore } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
+import { BundledDocumentMetadata } from '../../src/protos/firestore_bundle_proto';
+import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 
@@ -399,6 +401,39 @@ export function docUpdateRemoteEvent(
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
+}
+
+export class TestBundledDocuments {
+  constructor(
+    public documents: Array<[BundledDocumentMetadata, api.Document | undefined]>
+  ) {}
+}
+
+export function bundledDocuments(documents: MaybeDocument[]) {
+  let result: Array<[BundledDocumentMetadata, api.Document | undefined]> = [];
+  for (const d of documents) {
+    if (d instanceof NoDocument) {
+      result.push([
+        {
+          name: JSON_SERIALIZER.toName(d.key),
+          readTime: JSON_SERIALIZER.toVersion(d.version),
+          exists: false
+        },
+        undefined
+      ]);
+    } else if (d instanceof Document) {
+      result.push([
+        {
+          name: JSON_SERIALIZER.toName(d.key),
+          readTime: JSON_SERIALIZER.toVersion(d.version),
+          exists: true
+        },
+        JSON_SERIALIZER.toDocument(d)
+      ]);
+    }
+  }
+
+  return new TestBundledDocuments(result);
 }
 
 export function updateMapping(

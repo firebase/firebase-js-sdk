@@ -25,6 +25,8 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
+  documentVersionMap,
+  DocumentVersionMap,
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
@@ -67,6 +69,9 @@ import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache'
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
+import { BundledDocumentMetadata } from '../protos/firestore_bundle_proto';
+import * as api from '../protos/firestore_proto_api';
+import { BundleConverter } from '../core/bundle';
 
 const LOG_TAG = 'LocalStore';
 
@@ -195,7 +200,8 @@ export class LocalStore {
     /** Manages our in-memory or durable persistence. */
     protected persistence: Persistence,
     private queryEngine: QueryEngine,
-    initialUser: User
+    initialUser: User,
+    private bundleConverter: BundleConverter
   ) {
     debugAssert(
       persistence.started,
@@ -485,10 +491,6 @@ export class LocalStore {
 
     return this.persistence
       .runTransaction('Apply remote event', 'readwrite-primary', txn => {
-        const documentBuffer = this.remoteDocuments.newChangeBuffer({
-          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-        });
-
         // Reset newTargetDataByTargetMap in case this transaction gets re-run.
         newTargetDataByTargetMap = this.targetDataByTarget;
 
@@ -541,65 +543,31 @@ export class LocalStore {
           }
         });
 
+        const documentBuffer = this.remoteDocuments.newChangeBuffer({
+          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+        });
         let changedDocs = maybeDocumentMap();
         let updatedKeys = documentKeySet();
         remoteEvent.documentUpdates.forEach((key, doc) => {
           updatedKeys = updatedKeys.add(key);
+          if (remoteEvent.resolvedLimboDocuments.has(key)) {
+            promises.push(
+              this.persistence.referenceDelegate.updateLimboDocument(txn, key)
+            );
+          }
         });
 
         // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
         // documents in advance in a single call.
         promises.push(
-          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-            remoteEvent.documentUpdates.forEach((key, doc) => {
-              const existingDoc = existingDocs.get(key);
-
-              // Note: The order of the steps below is important, since we want
-              // to ensure that rejected limbo resolutions (which fabricate
-              // NoDocuments with SnapshotVersion.min()) never add documents to
-              // cache.
-              if (
-                doc instanceof NoDocument &&
-                doc.version.isEqual(SnapshotVersion.min())
-              ) {
-                // NoDocuments with SnapshotVersion.min() are used in manufactured
-                // events. We remove these documents from cache since we lost
-                // access.
-                documentBuffer.removeEntry(key, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else if (
-                existingDoc == null ||
-                doc.version.compareTo(existingDoc.version) > 0 ||
-                (doc.version.compareTo(existingDoc.version) === 0 &&
-                  existingDoc.hasPendingWrites)
-              ) {
-                debugAssert(
-                  !SnapshotVersion.min().isEqual(remoteVersion),
-                  'Cannot add a document when the remote version is zero'
-                );
-                documentBuffer.addEntry(doc, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else {
-                logDebug(
-                  LOG_TAG,
-                  'Ignoring outdated watch update for ',
-                  key,
-                  '. Current version:',
-                  existingDoc.version,
-                  ' Watch version:',
-                  doc.version
-                );
-              }
-
-              if (remoteEvent.resolvedLimboDocuments.has(key)) {
-                promises.push(
-                  this.persistence.referenceDelegate.updateLimboDocument(
-                    txn,
-                    key
-                  )
-                );
-              }
-            });
+          this.applyDocuments(
+            documentBuffer,
+            txn,
+            updatedKeys,
+            remoteEvent.documentUpdates,
+            remoteVersion
+          ).next(result => {
+            changedDocs = result;
           })
         );
 
@@ -640,6 +608,114 @@ export class LocalStore {
         this.targetDataByTarget = newTargetDataByTargetMap;
         return changedDocs;
       });
+  }
+
+  applyBundledDocuments(
+    documents: Array<[BundledDocumentMetadata, api.Document | undefined]>
+  ): Promise<MaybeDocumentMap> {
+    let updatedKeys = documentKeySet();
+    let documentMap = maybeDocumentMap();
+    let versionMap = documentVersionMap();
+    for (const [metadata, doc] of documents) {
+      const documentKey = this.bundleConverter.toDocumentKey(metadata.name!);
+      updatedKeys = updatedKeys.add(documentKey);
+      documentMap = documentMap.insert(
+        documentKey,
+        this.bundleConverter.toMaybeDocument(metadata, doc)
+      );
+      versionMap = versionMap.insert(
+        documentKey,
+        this.bundleConverter.toSnapshotVersion(metadata.readTime!)
+      );
+    }
+
+    const documentBuffer = this.remoteDocuments.newChangeBuffer({
+      trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+    });
+    return this.persistence.runTransaction(
+      'Apply bundle documents',
+      'readwrite-primary',
+      txn => {
+        return this.applyDocuments(
+          documentBuffer,
+          txn,
+          updatedKeys,
+          documentMap,
+          versionMap
+        )
+          .next(changedDocs => {
+            documentBuffer.apply(txn);
+            return changedDocs;
+          })
+          .next(changedDocs => {
+            return this.localDocuments.getLocalViewOfDocuments(
+              txn,
+              changedDocs
+            );
+          });
+      }
+    );
+  }
+
+  private applyDocuments(
+    documentBuffer: RemoteDocumentChangeBuffer,
+    txn: PersistenceTransaction,
+    updatedKeys: DocumentKeySet,
+    documents: MaybeDocumentMap,
+    remoteVersion: SnapshotVersion | DocumentVersionMap
+  ): PersistencePromise<MaybeDocumentMap> {
+    const universalReadTime = remoteVersion instanceof SnapshotVersion;
+    return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+      let changedDocs = maybeDocumentMap();
+      documents.forEach((key, doc) => {
+        const existingDoc = existingDocs.get(key);
+        let docReadVersion: SnapshotVersion | null = null;
+        if (universalReadTime) {
+          docReadVersion = remoteVersion as SnapshotVersion;
+        } else {
+          docReadVersion = (remoteVersion as DocumentVersionMap).get(key);
+        }
+        debugAssert(!!docReadVersion, 'Document read version must exist');
+
+        // Note: The order of the steps below is important, since we want
+        // to ensure that rejected limbo resolutions (which fabricate
+        // NoDocuments with SnapshotVersion.min()) never add documents to
+        // cache.
+        if (
+          doc instanceof NoDocument &&
+          doc.version.isEqual(SnapshotVersion.min())
+        ) {
+          // NoDocuments with SnapshotVersion.min() are used in manufactured
+          // events. We remove these documents from cache since we lost
+          // access.
+          documentBuffer.removeEntry(key, docReadVersion!);
+          changedDocs = changedDocs.insert(key, doc);
+        } else if (
+          existingDoc == null ||
+          doc.version.compareTo(existingDoc.version) > 0 ||
+          (doc.version.compareTo(existingDoc.version) === 0 &&
+            existingDoc.hasPendingWrites)
+        ) {
+          debugAssert(
+            !SnapshotVersion.min().isEqual(docReadVersion!),
+            'Cannot add a document when the remote version is zero'
+          );
+          documentBuffer.addEntry(doc, docReadVersion!);
+          changedDocs = changedDocs.insert(key, doc);
+        } else {
+          logDebug(
+            LOG_TAG,
+            'Ignoring outdated watch update for ',
+            key,
+            '. Current version:',
+            existingDoc.version,
+            ' Watch version:',
+            doc.version
+          );
+        }
+      });
+      return changedDocs;
+    });
   }
 
   /**
@@ -1008,9 +1084,10 @@ export class MultiTabLocalStore extends LocalStore {
   constructor(
     protected persistence: IndexedDbPersistence,
     queryEngine: QueryEngine,
-    initialUser: User
+    initialUser: User,
+    bundleConverter: BundleConverter
   ) {
-    super(persistence, queryEngine, initialUser);
+    super(persistence, queryEngine, initialUser, bundleConverter);
 
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();

@@ -202,7 +202,11 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       this.changes.forEach((key, doc) => {
         if (doc) {
           promises.push(
-            this.documentCache.addEntry(transaction, doc, this.readTime)
+            this.documentCache.addEntry(
+              transaction,
+              doc.maybeDoc!,
+              doc.readTime!
+            )
           );
         } else {
           this.documentCache.removeEntry(key);

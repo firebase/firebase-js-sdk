@@ -42,6 +42,7 @@ import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
+import { BundleConverter } from './bundle';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -125,10 +126,12 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
     return new LocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      cfg.initialUser
+      cfg.initialUser,
+      new BundleConverter(serializer)
     );
   }
 
@@ -209,10 +212,12 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
     return new MultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      cfg.initialUser
+      cfg.initialUser,
+      new BundleConverter(serializer)
     );
   }
 

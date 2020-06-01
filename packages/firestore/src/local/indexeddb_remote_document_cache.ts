@@ -453,12 +453,12 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         );
         if (maybeDocument) {
           debugAssert(
-            !this.readTime.isEqual(SnapshotVersion.min()),
+            !this.getReadTime(key).isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
-            maybeDocument,
-            this.readTime
+            maybeDocument.maybeDoc!,
+            this.getReadTime(key)
           );
           collectionParents = collectionParents.add(key.path.popLast());
 
@@ -474,7 +474,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
               new NoDocument(key, SnapshotVersion.min()),
-              this.readTime
+              this.getReadTime(key)
             );
             promises.push(
               this.documentCache.addEntry(transaction, key, deletedDoc)
