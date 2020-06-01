@@ -18,7 +18,10 @@
 import * as firestore from '../../index';
 
 import { tryCast } from './util';
-import { FieldPath as InternalFieldPath } from '../../../src/model/path';
+import {
+  DOCUMENT_KEY_NAME,
+  FieldPath as InternalFieldPath
+} from '../../../src/model/path';
 import { validateNamedArrayAtLeastNumberOfElements } from '../../../src/util/input_validation';
 import { Code, FirestoreError } from '../../../src/util/error';
 
@@ -68,4 +71,8 @@ export class FieldPath implements firestore.FieldPath {
     const path = tryCast(other, FieldPath);
     return this._internalPath.isEqual(path._internalPath);
   }
+}
+
+export function documentId(): firestore.FieldPath {
+  return new FieldPath(DOCUMENT_KEY_NAME);
 }
