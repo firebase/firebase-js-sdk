@@ -42,10 +42,18 @@ export function registerPerformance(instance: FirebaseNamespace): void {
     if (typeof window === 'undefined') {
       throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
     }
+    if (!isSupported()) {
+      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+    }
+
     setupApi(window);
     SettingsService.getInstance().firebaseAppInstance = app;
     SettingsService.getInstance().installationsService = installations;
     return new PerformanceController(app);
+  };
+
+  const NAMESPACE_EXPORTS = {
+    isSupported
   };
 
   // Register performance with firebase-app.
@@ -64,7 +72,7 @@ export function registerPerformance(instance: FirebaseNamespace): void {
         return factoryMethod(app, installations);
       },
       ComponentType.PUBLIC
-    )
+    ).setServiceProps(NAMESPACE_EXPORTS)
   );
 
   instance.registerVersion(name, version);
@@ -76,9 +84,51 @@ declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     performance?: {
       (app?: FirebaseApp): FirebasePerformance;
+      isSupprted(): boolean;
     };
   }
   interface FirebaseApp {
     performance?(): FirebasePerformance;
   }
+}
+
+function isSupported(): boolean {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return isSWControllerSupported();
+  } else {
+    // Assume we are in the window context.
+    return isWindowControllerSupported();
+  }
+}
+
+/**
+ * Checks to see if the required APIs exist.
+ */
+function isWindowControllerSupported(): boolean {
+  return (
+    'indexedDB' in window &&
+    indexedDB !== null &&
+    navigator.cookieEnabled &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
+
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+function isSWControllerSupported(): boolean {
+  return (
+    'indexedDB' in self &&
+    indexedDB !== null &&
+    'PushManager' in self &&
+    'Notification' in self &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }
