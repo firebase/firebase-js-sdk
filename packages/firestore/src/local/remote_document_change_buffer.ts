@@ -71,8 +71,13 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<void>;
 
   protected getReadTime(key: DocumentKey): SnapshotVersion {
-    if (this.changes.get(key) && this.changes.get(key)!.readTime) {
-      return this.changes.get(key)!.readTime!;
+    const change = this.changes.get(key);
+    if (change) {
+      debugAssert(
+        !!change.readTime,
+        `Read time is not set for ${key}. All removeEntry() calls must include a readTime if 'trackRemovals' is used.`
+      );
+      return change.readTime!;
     }
     return SnapshotVersion.min();
   }
@@ -121,7 +126,7 @@ export abstract class RemoteDocumentChangeBuffer {
     const bufferedEntry = this.changes.get(documentKey);
     if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(
-        (bufferedEntry || { maybeDoc: null }).maybeDoc
+        bufferedEntry.maybeDoc
       );
     } else {
       return this.getFromCache(transaction, documentKey);
