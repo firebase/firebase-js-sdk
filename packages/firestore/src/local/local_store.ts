@@ -487,9 +487,10 @@ export class LocalStore {
   }
 
   /**
-   * Update the "ground-state" (remote) documents. We assume that the remote
-   * event reflects any write batches that have been acknowledged or rejected
-   * (i.e. we do not re-apply local mutations to updates from this event).
+   * Applies the documents from a remote event to the "ground-state" (remote)
+   * documents. We assume that the remote event reflects any write batches that
+   * have been acknowledged or rejected (i.e. we do not re-apply local
+   * mutations to updates from this event).
    *
    * LocalDocuments are re-calculated if there are remaining mutations in the
    * queue.
@@ -619,6 +620,13 @@ export class LocalStore {
       });
   }
 
+  /**
+   * Applies the documents from a bundle to the "ground-state" (remote)
+   * documents.
+   *
+   * LocalDocuments are re-calculated if there are remaining mutations in the
+   * queue.
+   */
   applyBundledDocuments(
     documents: BundledDocuments
   ): Promise<MaybeDocumentMap> {
@@ -666,6 +674,16 @@ export class LocalStore {
     );
   }
 
+  /**
+   * Applies documents to remote document cache, returns the document changes
+   * resulting from applying those documents.
+   *
+   * @param updatedKeys Keys of the documents to be applied.
+   * @param documents Documents to be applied.
+   * @param remoteVersion The read time of the documents to be applied, it is
+   * a `SnapshotVersion` if all documents have the same read time, or a `DocumentVersionMap` if
+   * they have different read times.
+   */
   private applyDocuments(
     documentBuffer: RemoteDocumentChangeBuffer,
     txn: PersistenceTransaction,
@@ -727,6 +745,10 @@ export class LocalStore {
     });
   }
 
+  /**
+   * Returns a promise of a `Bundle` associated with given bundle id. Promise
+   * resolves to undefined if no persisted data can be found.
+   */
   getBundle(bundleId: string): Promise<Bundle | undefined> {
     return this.persistence.runTransaction(
       'Get bundle',
@@ -737,6 +759,10 @@ export class LocalStore {
     );
   }
 
+  /**
+   * Saves the given `BundleMetadata` to local persistence.
+   * @param bundleMetadata
+   */
   saveBundle(bundleMetadata: bundleProto.BundleMetadata): Promise<void> {
     return this.persistence.runTransaction(
       'Save bundle',
@@ -747,6 +773,10 @@ export class LocalStore {
     );
   }
 
+  /**
+   * Returns a promise of a `NamedQuery` associated with given query name. Promise
+   * resolves to undefined if no persisted data can be found.
+   */
   getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
     return this.persistence.runTransaction(
       'Get named query',
@@ -757,6 +787,9 @@ export class LocalStore {
     );
   }
 
+  /**
+   * Saves the given `NamedQuery` to local persistence.
+   */
   saveNamedQuery(query: bundleProto.NamedQuery): Promise<void> {
     return this.persistence.runTransaction(
       'Save named query',

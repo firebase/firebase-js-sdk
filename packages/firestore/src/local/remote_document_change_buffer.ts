@@ -25,9 +25,14 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
+/**
+ * Represents a document change to be applied to remote document cache.
+ */
 class RemoteDocumentChange {
   constructor(
+    // The document in this change, null if it is a removal from the cache.
     readonly maybeDoc: MaybeDocument | null,
+    // The timestamp when this change is read.
     readonly readTime?: SnapshotVersion
   ) {}
 }
