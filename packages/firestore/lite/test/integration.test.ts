@@ -206,7 +206,7 @@ interface MutationTester {
     data: firestore.UpdateData
   ): Promise<void>;
   update(
-    documentRef: firestore.DocumentReference<any>,
+    documentRef: firestore.DocumentReference<unknown>,
     field: string | firestore.FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -282,7 +282,7 @@ describe('WriteBatch', () => {
   });
 });
 
-function genericMutationTests(op: MutationTester) {
+function genericMutationTests(op: MutationTester): void {
   const setDoc = op.set;
   const updateDoc = op.update;
   const deleteDoc = op.delete;
