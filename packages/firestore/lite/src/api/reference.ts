@@ -22,10 +22,10 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
 import {
   DocumentKeyReference,
+  ParsedUpdateData,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
-import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
@@ -40,6 +40,7 @@ import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
+import { FieldPath } from './field_path';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -74,7 +75,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     readonly firestore: Firestore,
     readonly _query: InternalQuery,
-    readonly _converter?: FirestoreDataConverter<T>
+    readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {}
 
   where(
@@ -169,11 +170,11 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
 }
 
 export function collection(
-  firestore: FirebaseFirestore,
+  firestore: firestore.FirebaseFirestore,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
-  reference: DocumentReference,
+  reference: firestore.DocumentReference,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
@@ -210,11 +211,11 @@ export function collection(
 }
 
 export function doc(
-  firestore: FirebaseFirestore,
+  firestore: firestore.FirebaseFirestore,
   documentPath: string
 ): DocumentReference<firestore.DocumentData>;
 export function doc<T>(
-  reference: CollectionReference<T>,
+  reference: firestore.CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
 export function doc<T>(
@@ -308,6 +309,15 @@ export function getDoc<T>(
 
 export function setDoc<T>(
   reference: firestore.DocumentReference<T>,
+  data: T
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: Partial<T>,
+  options: firestore.SetOptions
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
@@ -338,6 +348,63 @@ export function setDoc<T>(
       parsed.toMutations(ref._key, Precondition.none())
     )
   );
+}
+
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  data: firestore.UpdateData
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  field: string | firestore.FieldPath,
+  value: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  value?: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void> {
+  const ref = tryCast(reference, DocumentReference);
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = ref.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    ref.firestore._databaseId,
+    ref.firestore._settings!
+  );
+
+  let parsed: ParsedUpdateData;
+  if (
+    typeof fieldOrUpdateData === 'string' ||
+    fieldOrUpdateData instanceof FieldPath
+  ) {
+    parsed = dataReader.parseUpdateVarargs(
+      'updateDoc',
+      fieldOrUpdateData,
+      value,
+      moreFieldsAndValues
+    );
+  } else {
+    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+  }
+
+  return configureClient.then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
+  );
+
+  return ref.firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(ref._key, Precondition.exists(true))
+      )
+    );
 }
 
 export function deleteDoc(

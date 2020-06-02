@@ -38,6 +38,7 @@ export {
   getDoc,
   deleteDoc,
   setDoc,
+  updateDoc,
   addDoc
 } from './src/api/reference';
 

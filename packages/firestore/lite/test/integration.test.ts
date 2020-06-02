@@ -39,7 +39,8 @@ import {
   getDoc,
   deleteDoc,
   setDoc,
-  addDoc
+  addDoc,
+  updateDoc
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -236,9 +237,7 @@ describe('setDoc()', () => {
 
   it('throws when user input fails validation', () => {
     return withTestDoc(async docRef => {
-      expect(() => {
-        setDoc(docRef, { val: undefined });
-      }).to.throw(
+      expect(() => setDoc(docRef, { val: undefined })).to.throw(
         'Function setDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
       );
     });
@@ -258,6 +257,32 @@ describe('setDoc()', () => {
   });
 });
 
+describe('update()', () => {
+  it('can update a document', () => {
+    return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
+      await updateDoc(docRef, { foo: 2, baz: 2 });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+    });
+  });
+
+  it('can update a document (using varargs)', () => {
+    return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
+      await updateDoc(docRef, 'foo', 2, new FieldPath('baz'), 2);
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+    });
+  });
+
+  it('throws when user input fails validation', () => {
+    return withTestDoc(async docRef => {
+      expect(() => updateDoc(docRef, { val: undefined })).to.throw(
+        'Function updateDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+      );
+    });
+  });
+});
+
 describe('addDoc()', () => {
   it('can add a document', () => {
     return withTestCollection(async collRef => {
@@ -269,9 +294,7 @@ describe('addDoc()', () => {
 
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
-      expect(() => {
-        addDoc(collRef, { val: undefined });
-      }).to.throw(
+      expect(() => addDoc(collRef, { val: undefined })).to.throw(
         'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
       );
     });
