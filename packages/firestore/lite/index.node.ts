@@ -20,11 +20,23 @@ import { Firestore } from './src/api/database';
 import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
 
+import '../src/platform_node/node_init';
+
 export {
   Firestore,
   initializeFirestore,
   getFirestore
 } from './src/api/database';
+
+// TOOD(firestorelite): Add tests when setDoc() is available
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
 
 export function registerFirestore(): void {
   _registerComponent(

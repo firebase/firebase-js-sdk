@@ -14,6 +14,9 @@
   in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
   multi-tab notifications while the file system is locked.
+- [feature] Added an `experimentalForceOwningTab` setting that can be used to
+  enable persistence in environments without LocalStorage, which allows
+  persistence to be used in Web Workers (#983).
 
 # 1.10.2
 - [fixed] Temporarily reverted the use of window.crypto to generate document
