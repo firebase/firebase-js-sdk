@@ -351,17 +351,17 @@ export function setDoc<T>(
 }
 
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   data: firestore.UpdateData
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   field: string | firestore.FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
@@ -452,12 +452,14 @@ export function addDoc<T>(
 }
 
 /** Returns true if options.merge is true. */
-function isMerge(options?: firestore.SetOptions): options is { merge: true } {
+export function isMerge(
+  options?: firestore.SetOptions
+): options is { merge: true } {
   return !!options && (options as { merge: true }).merge;
 }
 
 /** Returns true if options.mergeFields is set. */
-function isMergeFields(
+export function isMergeFields(
   options?: firestore.SetOptions
 ): options is { mergeFields: Array<string | firestore.FieldPath> } {
   return (
@@ -467,7 +469,7 @@ function isMergeFields(
   );
 }
 
-function newUserDataReader(
+export function newUserDataReader(
   databaseId: DatabaseId,
   settings: firestore.Settings
 ): UserDataReader {

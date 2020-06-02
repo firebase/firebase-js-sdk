@@ -134,10 +134,11 @@ export class Transaction {
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
@@ -154,10 +155,11 @@ export class Transaction {
 export class WriteBatch {
   private constructor();
 
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
