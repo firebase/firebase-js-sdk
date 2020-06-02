@@ -338,15 +338,16 @@ export function setDoc<T>(
   options: SetOptions
 ): Promise<void>;
 export function updateDoc(
-  reference: DocumentReference,
+  reference: DocumentReference<unknown>,
   data: UpdateData
 ): Promise<void>;
 export function updateDoc(
+  reference: DocumentReference<unknown>,
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
-export function deleteDoc(reference: DocumentReference): Promise<void>;
+export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
