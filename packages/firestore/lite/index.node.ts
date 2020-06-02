@@ -46,7 +46,7 @@ export { FieldPath } from './src/api/field_path';
 
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
-export { WriteBatch } from './src/api/write_batch';
+export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export function registerFirestore(): void {
   _registerComponent(

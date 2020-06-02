@@ -56,6 +56,12 @@ export class WriteBatch implements firestore.WriteBatch {
     );
   }
 
+  set<T>(documentRef: firestore.DocumentReference<T>, value: T): WriteBatch;
+  set<T>(
+    documentRef: firestore.DocumentReference<T>,
+    value: Partial<T>,
+    options: firestore.SetOptions
+  ): WriteBatch;
   set<T>(
     documentRef: firestore.DocumentReference<T>,
     value: T,
