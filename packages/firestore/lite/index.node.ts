@@ -48,6 +48,8 @@ export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
 export { WriteBatch, writeBatch } from './src/api/write_batch';
 
+export { Transaction, runTransaction } from './src/api/transaction';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(
