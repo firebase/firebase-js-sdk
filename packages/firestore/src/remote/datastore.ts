@@ -16,22 +16,22 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { MaybeDocument, Document } from '../model/document';
+import { Query } from '../core/query';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import { JsonProtoSerializer } from './serializer';
 import {
   PersistentListenStream,
   PersistentWriteStream,
   WatchStreamListener,
   WriteStreamListener
 } from './persistent_stream';
-import { AsyncQueue } from '../util/async_queue';
-import { Query } from '../core/query';
+import { JsonProtoSerializer } from './serializer';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google

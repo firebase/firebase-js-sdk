@@ -39,8 +39,8 @@ import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
-import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
+import { RpcError } from './spec_rpc_error';
 import {
   parseQuery,
   PersistenceAction,

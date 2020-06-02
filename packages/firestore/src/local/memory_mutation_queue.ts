@@ -20,7 +20,7 @@ import { Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';

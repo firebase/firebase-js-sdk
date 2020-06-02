@@ -18,13 +18,13 @@
 import { expect } from 'chai';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Document, NoDocument } from '../../../src/model/document';
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { key, setMutation } from '../../util/helpers';
-import { withTestDatastore } from '../util/internal_helpers';
 import {
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc
 } from '../../../src/remote/datastore';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+import { key, setMutation } from '../../util/helpers';
+import { withTestDatastore } from '../util/internal_helpers';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();

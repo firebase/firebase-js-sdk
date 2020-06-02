@@ -45,8 +45,8 @@ import { objectSize } from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
 import {
   clearWebStorage,
-  TEST_PERSISTENCE_PREFIX,
-  populateWebStorage
+  populateWebStorage,
+  TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */

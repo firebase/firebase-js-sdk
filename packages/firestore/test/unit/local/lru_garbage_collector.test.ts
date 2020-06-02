@@ -35,8 +35,8 @@ import {
 } from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { TargetCache } from '../../../src/local/target_cache';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { TargetCache } from '../../../src/local/target_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
@@ -47,10 +47,10 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { key, path, version, wrapObject } from '../../util/helpers';
-import { SortedMap } from '../../../src/util/sorted_map';
-import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
+import { SortedMap } from '../../../src/util/sorted_map';
+import { key, path, version, wrapObject } from '../../util/helpers';
+import * as PersistenceTestHelpers from './persistence_test_helpers';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {

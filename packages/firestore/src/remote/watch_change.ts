@@ -27,6 +27,7 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -34,7 +35,6 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { ByteString } from '../util/byte_string';
 
 /**
  * Internal representation of the watcher API protocol buffers.

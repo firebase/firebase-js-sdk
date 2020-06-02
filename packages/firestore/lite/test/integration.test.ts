@@ -18,13 +18,13 @@
 import { expect } from 'chai';
 
 import { initializeApp } from '@firebase/app-exp';
+import { FieldValue } from '../../src/api/field_value';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import {
   Firestore,
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { FieldValue } from '../../src/api/field_value';
 
 describe('Firestore', () => {
   it('can provide setting', () => {

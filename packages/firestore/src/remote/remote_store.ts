@@ -19,7 +19,9 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
+import { isIndexedDbTransactionError } from '../local/simple_db';
 import { TargetData, TargetPurpose } from '../local/target_data';
+import { DocumentKeySet } from '../model/collections';
 import { MutationResult } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
@@ -27,10 +29,10 @@ import {
   MutationBatchResult
 } from '../model/mutation_batch';
 import { debugAssert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
+import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
-import { DocumentKeySet } from '../model/collections';
-import { AsyncQueue } from '../util/async_queue';
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
 import {
   Datastore,
@@ -53,8 +55,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ByteString } from '../util/byte_string';
-import { isIndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'RemoteStore';
 

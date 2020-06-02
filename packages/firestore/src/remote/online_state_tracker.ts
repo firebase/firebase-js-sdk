@@ -19,7 +19,7 @@ import { OnlineState } from '../core/types';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 
 const LOG_TAG = 'OnlineStateTracker';
 

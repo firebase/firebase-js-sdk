@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import * as fs from 'fs';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as ts from 'typescript';
-import * as fs from 'fs';
 
 function extractIdentifiersFromNodeAndChildren(
   node: ts.Node,

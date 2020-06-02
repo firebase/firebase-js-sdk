@@ -21,13 +21,13 @@ import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
-import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
+import { DatabaseId } from '../../../src/core/database_info';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 // TODO(firestorelite): Depend on FirebaseService once #3112 is merged
 

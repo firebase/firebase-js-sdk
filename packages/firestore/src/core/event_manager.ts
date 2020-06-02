@@ -16,13 +16,13 @@
  */
 
 import { debugAssert } from '../util/assert';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
-import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

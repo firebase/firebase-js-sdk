@@ -32,9 +32,9 @@ import {
 } from '../../util/helpers';
 
 import { Timestamp } from '../../../src/api/timestamp';
+import { Target } from '../../../src/core/target';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestTargetCache } from './test_target_cache';
-import { Target } from '../../../src/core/target';
 
 describe('MemoryTargetCache', () => {
   genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);

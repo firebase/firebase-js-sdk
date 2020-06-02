@@ -39,8 +39,8 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { SDK_VERSION } from '../core/version';
 import { Connection, Stream } from '../remote/connection';
 import {
-  mapCodeFromRpcStatus,
-  mapCodeFromHttpResponseErrorStatus
+  mapCodeFromHttpResponseErrorStatus,
+  mapCodeFromRpcStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { debugAssert, fail, hardAssert } from '../util/assert';

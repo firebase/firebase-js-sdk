@@ -19,9 +19,9 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { expect, use } from 'chai';
 
-import { apiDescribe, withTestDoc } from '../util/helpers';
-import { SimpleDb } from '../../../src/local/simple_db';
 import { User } from '../../../src/auth/user';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { apiDescribe, withTestDoc } from '../util/helpers';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
 
 // tslint:disable:no-floating-promises

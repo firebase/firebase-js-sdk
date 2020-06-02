@@ -18,17 +18,17 @@
 import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
-import { debugAssert } from '../util/assert';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert } from '../util/assert';
+import { arrayEquals } from '../util/misc';
+import { serverTimestamp } from './server_timestamps';
 import {
-  valueEquals,
   isArray,
   isInteger,
   isNumber,
-  normalizeNumber
+  normalizeNumber,
+  valueEquals
 } from './values';
-import { serverTimestamp } from './server_timestamps';
-import { arrayEquals } from '../util/misc';
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {

@@ -23,6 +23,7 @@ import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
+import { Target } from '../core/target';
 import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
@@ -30,7 +31,6 @@ import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { Target } from '../core/target';
 
 export class MemoryTargetCache implements TargetCache {
   /**

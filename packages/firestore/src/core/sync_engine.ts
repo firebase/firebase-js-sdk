@@ -49,6 +49,8 @@ import {
   QueryTargetState,
   SharedClientStateSyncer
 } from '../local/shared_client_state_syncer';
+import { Datastore } from '../remote/datastore';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
 import { LimitType, Query } from './query';
@@ -56,6 +58,7 @@ import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
+import { TransactionRunner } from './transaction_runner';
 import {
   BatchId,
   MutationBatchState,
@@ -72,9 +75,6 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { TransactionRunner } from './transaction_runner';
-import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'SyncEngine';
 

@@ -15,33 +15,33 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
+import { IndexedDbPersistence } from '../local/indexeddb_persistence';
+import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
+import { LocalStore, MultiTabLocalStore } from '../local/local_store';
+import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
+import {
+  MemoryEagerDelegate,
+  MemoryPersistence
+} from '../local/memory_persistence';
+import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import {
   ClientId,
   MemorySharedClientState,
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore, MultiTabLocalStore } from '../local/local_store';
-import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
-import { RemoteStore } from '../remote/remote_store';
-import { EventManager } from './event_manager';
-import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from './database_info';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
-import { User } from '../auth/user';
-import { PersistenceSettings } from './firestore_client';
+import { RemoteStore } from '../remote/remote_store';
 import { debugAssert } from '../util/assert';
-import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
+import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+import { DatabaseInfo } from './database_info';
+import { EventManager } from './event_manager';
+import { PersistenceSettings } from './firestore_client';
+import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
 import { OnlineStateSource } from './types';
-import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
-import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
-import {
-  MemoryEagerDelegate,
-  MemoryPersistence
-} from '../local/memory_persistence';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +

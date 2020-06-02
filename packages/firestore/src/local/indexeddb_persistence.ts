@@ -44,8 +44,8 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTargetDocument,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SchemaConverter,
+  SCHEMA_VERSION
 } from './indexeddb_schema';
 import {
   documentTargetStore,
@@ -62,19 +62,19 @@ import {
   Persistence,
   PersistenceTransaction,
   PersistenceTransactionMode,
-  PRIMARY_LEASE_LOST_ERROR_MSG,
   PrimaryStateListener,
+  PRIMARY_LEASE_LOST_ERROR_MSG,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ClientId } from './shared_client_state';
-import { TargetData } from './target_data';
 import {
   isIndexedDbTransactionError,
   SimpleDb,
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

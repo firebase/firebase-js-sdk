@@ -29,8 +29,8 @@ import {
   PersistenceTransaction
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { TargetData } from './target_data';
 import { isIndexedDbTransactionError } from './simple_db';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'LruGarbageCollector';
 

@@ -18,7 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 import {
   documentKeySet,

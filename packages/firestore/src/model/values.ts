@@ -17,14 +17,14 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { TypeOrder } from './object_value';
+import { DatabaseId } from '../core/database_info';
 import { fail, hardAssert } from '../util/assert';
-import { forEach, objectSize } from '../util/obj';
 import { ByteString } from '../util/byte_string';
+import { arrayEquals, primitiveComparator } from '../util/misc';
+import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 import { DocumentKey } from './document_key';
-import { arrayEquals, primitiveComparator } from '../util/misc';
-import { DatabaseId } from '../core/database_info';
+import { TypeOrder } from './object_value';
 import {
   getLocalWriteTime,
   getPreviousValue,

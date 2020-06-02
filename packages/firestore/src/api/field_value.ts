@@ -16,12 +16,6 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import {
-  validateArgType,
-  validateAtLeastNumberOfArgs,
-  validateExactNumberOfArgs,
-  validateNoArgs
-} from '../util/input_validation';
 import { FieldTransform } from '../model/mutation';
 import {
   ArrayRemoveTransformOperation,
@@ -29,8 +23,14 @@ import {
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
-import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
+import {
+  validateArgType,
+  validateAtLeastNumberOfArgs,
+  validateExactNumberOfArgs,
+  validateNoArgs
+} from '../util/input_validation';
+import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API that

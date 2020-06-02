@@ -17,8 +17,8 @@
 
 import { expect } from 'chai';
 import { Blob } from '../../../src/api/blob';
-import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
 import { Bound, Query } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';

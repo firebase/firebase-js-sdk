@@ -19,25 +19,25 @@ import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { View } from '../../../src/core/view';
+import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
+import { LocalDocumentsView } from '../../../src/local/local_documents_view';
+import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
 import {
   Persistence,
   PersistenceTransaction
 } from '../../../src/local/persistence';
-import { TargetCache } from '../../../src/local/target_cache';
-import { QueryEngine } from '../../../src/local/query_engine';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
-import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { QueryEngine } from '../../../src/local/query_engine';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { TargetCache } from '../../../src/local/target_cache';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
-import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+import { testMemoryEagerPersistence } from './persistence_test_helpers';
 
 const TEST_TARGET_ID = 1;
 

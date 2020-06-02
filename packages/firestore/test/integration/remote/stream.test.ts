@@ -20,6 +20,10 @@ import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
 import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from '../../../src/remote/datastore';
+import {
   PersistentListenStream,
   PersistentWriteStream,
   WatchStreamListener,
@@ -35,10 +39,6 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
-import {
-  newPersistentWatchStream,
-  newPersistentWriteStream
-} from '../../../src/remote/datastore';
 
 /**
  * StreamEventType combines the events that can be observed by the

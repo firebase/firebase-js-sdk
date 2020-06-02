@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { QueryEngine } from './query_engine';
-import { LocalDocumentsView } from './local_documents_view';
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
 import { LimitType, Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
@@ -28,8 +24,12 @@ import {
 } from '../model/collections';
 import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
-import { getLogLevel, LogLevel, logDebug } from '../util/log';
+import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
+import { LocalDocumentsView } from './local_documents_view';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { QueryEngine } from './query_engine';
 
 // TOOD(b/140938512): Drop SimpleQueryEngine and rename IndexFreeQueryEngine.
 

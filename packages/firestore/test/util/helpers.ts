@@ -22,9 +22,12 @@ import * as api from '../../src/protos/firestore_proto_api';
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
+import { DocumentReference, Firestore } from '../../src/api/database';
 import { fromDotSeparatedString } from '../../src/api/field_path';
-import { UserDataWriter } from '../../src/api/user_data_writer';
+import { DeleteFieldValueImpl } from '../../src/api/field_value';
+import { Timestamp } from '../../src/api/timestamp';
 import { UserDataReader } from '../../src/api/user_data_reader';
+import { UserDataWriter } from '../../src/api/user_data_writer';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -61,7 +64,6 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -71,8 +73,11 @@ import {
   SetMutation,
   TransformMutation
 } from '../../src/model/mutation';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
+import { PlatformSupport } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchChangeAggregator,
@@ -80,18 +85,13 @@ import {
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { debugAssert, fail } from '../../src/util/assert';
+import { ByteString } from '../../src/util/byte_string';
+import { Code, FirestoreError } from '../../src/util/error';
 import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
-import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference, Firestore } from '../../src/api/database';
-import { DeleteFieldValueImpl } from '../../src/api/field_value';
-import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
 

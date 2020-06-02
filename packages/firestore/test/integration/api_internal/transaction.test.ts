@@ -17,9 +17,9 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
+import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
 import * as integrationHelpers from '../util/helpers';
-import { TimerId } from '../../../src/util/async_queue';
 import { asyncQueue } from '../util/internal_helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;

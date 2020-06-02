@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+import { Document, NoDocument } from '../../src/model/document';
+import * as api from '../../src/protos/firestore_proto_api';
+import { mapRpcCodeFromCode } from '../../src/remote/rpc_error';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -22,11 +26,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import * as api from '../../src/protos/firestore_proto_api';
-import { Document, NoDocument } from '../../src/model/document';
-import { mapRpcCodeFromCode } from '../../src/remote/rpc_error';
 import { fail } from '../../src/util/assert';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {

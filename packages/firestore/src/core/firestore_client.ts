@@ -40,14 +40,14 @@ import { View } from './view';
 
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
-import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query } from './query';
-import { Transaction } from './transaction';
-import { ViewSnapshot } from './view_snapshot';
 import {
   ComponentProvider,
   MemoryComponentProvider
 } from './component_provider';
+import { DatabaseId, DatabaseInfo } from './database_info';
+import { Query } from './query';
+import { Transaction } from './transaction';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

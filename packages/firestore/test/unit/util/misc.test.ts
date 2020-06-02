@@ -16,8 +16,8 @@
  */
 
 import { expect } from 'chai';
-import { immediateSuccessor } from '../../../src/util/misc';
 import { debugCast } from '../../../src/util/assert';
+import { immediateSuccessor } from '../../../src/util/misc';
 import { mask } from '../../util/helpers';
 
 describe('immediateSuccessor', () => {

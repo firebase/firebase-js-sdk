@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { isIndexedDbTransactionError } from '../local/simple_db';
+import { PlatformSupport } from '../platform/platform';
+import { ExponentialBackoff } from '../remote/backoff';
 import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { logDebug, logError } from './log';
 import { Deferred } from './promise';
-import { ExponentialBackoff } from '../remote/backoff';
-import { PlatformSupport } from '../platform/platform';
-import { isIndexedDbTransactionError } from '../local/simple_db';
 
 const LOG_TAG = 'AsyncQueue';
 

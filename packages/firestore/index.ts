@@ -18,10 +18,10 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
+import { name, version } from './package.json';
 import { Firestore } from './src/api/database';
 import { IndexedDbComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
-import { name, version } from './package.json';
 
 import './register-module';
 import './src/platform_browser/browser_init';

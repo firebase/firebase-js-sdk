@@ -25,6 +25,7 @@ import {
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
+import { PersistenceSettings } from '../../../src/core/firestore_client';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
@@ -33,13 +34,15 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SchemaConverter,
+  SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   ClientId,
   SharedClientState
@@ -48,11 +51,11 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
+import { JsonObject } from '../../../src/model/object_value';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -66,17 +69,18 @@ import {
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { ByteString } from '../../../src/util/byte_string';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
+import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
   deleteMutation,
   doc,
-  validateFirestoreError,
   filter,
   key,
   orderBy,
@@ -85,6 +89,7 @@ import {
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
+  validateFirestoreError,
   version
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
@@ -97,11 +102,7 @@ import {
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 import { MULTI_CLIENT_TAG } from './describe_spec';
-import { ByteString } from '../../../src/util/byte_string';
-import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   EventAggregator,
   MockConnection,
@@ -112,7 +113,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

@@ -25,7 +25,7 @@ import {
   TypeOrder
 } from '../../../src/model/object_value';
 import { typeOrder } from '../../../src/model/values';
-import { wrap, wrapObject, field, mask } from '../../util/helpers';
+import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('ObjectValue', () => {
   it('can extract fields', () => {

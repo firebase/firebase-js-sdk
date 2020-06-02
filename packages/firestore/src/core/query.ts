@@ -19,18 +19,18 @@ import * as api from '../protos/firestore_proto_api';
 
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldPath, ResourcePath } from '../model/path';
 import {
-  canonicalId,
-  valueCompare,
   arrayValueContains,
-  valueEquals,
+  canonicalId,
   isArray,
   isNanValue,
   isNullValue,
   isReferenceValue,
-  typeOrder
+  typeOrder,
+  valueCompare,
+  valueEquals
 } from '../model/values';
-import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';

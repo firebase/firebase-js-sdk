@@ -22,9 +22,9 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
+import { debugAssert } from '../util/assert';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
-import { debugAssert } from '../util/assert';
 
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { GrpcObject, loadPackageDefinition } from '@grpc/grpc-js';
 import { loadSync } from '@grpc/proto-loader';
-import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
-import { join, resolve, isAbsolute } from 'path';
+import { isAbsolute, join, resolve } from 'path';
 // only used in tests
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { IConversionOptions, Root } from 'protobufjs';

@@ -15,42 +15,42 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
   IndexedDbComponentProvider,
   MemoryComponentProvider
 } from '../../../src/core/component_provider';
+import { Observer } from '../../../src/core/event_manager';
+import { Query } from '../../../src/core/query';
+import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
+import {
+  MemoryEagerDelegate,
+  MemoryLruDelegate,
+  MemoryPersistence
+} from '../../../src/local/memory_persistence';
 import {
   GarbageCollectionScheduler,
   Persistence,
   PersistenceTransaction,
   PersistenceTransactionMode
 } from '../../../src/local/persistence';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
-import { debugAssert, fail } from '../../../src/util/assert';
-import {
-  MemoryEagerDelegate,
-  MemoryLruDelegate,
-  MemoryPersistence
-} from '../../../src/local/memory_persistence';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { PersistenceAction } from './spec_test_runner';
-import { Connection, Stream } from '../../../src/remote/connection';
-import { StreamBridge } from '../../../src/remote/stream_bridge';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Deferred } from '../../../src/util/promise';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { WriteRequest } from '../../../src/remote/persistent_stream';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { FirestoreError } from '../../../src/util/error';
-import { Token } from '../../../src/api/credentials';
-import { Observer } from '../../../src/core/event_manager';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import { Query } from '../../../src/core/query';
 import { Mutation } from '../../../src/model/mutation';
-import { expect } from 'chai';
+import { PlatformSupport } from '../../../src/platform/platform';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { Connection, Stream } from '../../../src/remote/connection';
+import { WriteRequest } from '../../../src/remote/persistent_stream';
+import { StreamBridge } from '../../../src/remote/stream_bridge';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { Deferred } from '../../../src/util/promise';
+import { PersistenceAction } from './spec_test_runner';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

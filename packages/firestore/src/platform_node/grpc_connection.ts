@@ -16,9 +16,9 @@
  */
 
 import {
-  Metadata,
-  GrpcObject,
   credentials as GrpcCredentials,
+  GrpcObject,
+  Metadata,
   ServiceError
 } from '@grpc/grpc-js';
 import * as grpcPkgJson from '@grpc/grpc-js/package.json';
@@ -35,7 +35,7 @@ import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logError, logDebug, logWarn } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 

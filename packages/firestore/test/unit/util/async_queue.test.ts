@@ -17,14 +17,14 @@
 
 import * as chaiAsPromised from 'chai-as-promised';
 
+import { isSafari } from '@firebase/util';
 import { expect, use } from 'chai';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
-import { fail } from '../../../src/util/assert';
-import { IndexedDbTransactionError } from '../../../src/local/simple_db';
-import { isSafari } from '@firebase/util';
 
 use(chaiAsPromised);
 

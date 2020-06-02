@@ -25,15 +25,15 @@ import {
   Precondition,
   VerifyMutation
 } from '../model/mutation';
+import { ResourcePath } from '../model/path';
 import {
   Datastore,
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc
 } from '../remote/datastore';
-import { fail, debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
-import { ResourcePath } from '../model/path';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to

@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
 
 import {
   CredentialChangeListener,
@@ -26,6 +26,7 @@ import {
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
+import { User } from '../../../src/auth/user';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import {
@@ -33,7 +34,6 @@ import {
   DEFAULT_SETTINGS,
   withTestDbsSettings
 } from './helpers';
-import { User } from '../../../src/auth/user';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {

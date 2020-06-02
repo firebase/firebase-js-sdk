@@ -36,7 +36,7 @@ import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { IndexManager } from './index_manager';
+import { ObjectMap } from '../util/obj_map';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -44,13 +44,13 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
 } from './indexeddb_schema';
+import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
-import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**

@@ -37,13 +37,18 @@ import {
   MutationBatchResult
 } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 
+import { extractFieldMask } from '../model/object_value';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { IndexedDbPersistence } from './indexeddb_persistence';
+import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
@@ -54,18 +59,13 @@ import {
   PRIMARY_LEASE_LOST_ERROR_MSG
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
-import { TargetData, TargetPurpose } from './target_data';
-import { IndexedDbPersistence } from './indexeddb_persistence';
-import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
-import { IndexedDbTargetCache } from './indexeddb_target_cache';
-import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
+import { TargetCache } from './target_cache';
+import { TargetData, TargetPurpose } from './target_data';
 
 const LOG_TAG = 'LocalStore';
 

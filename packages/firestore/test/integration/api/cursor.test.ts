@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -26,7 +27,6 @@ import {
   withTestDb,
   withTestDbs
 } from '../util/helpers';
-import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;

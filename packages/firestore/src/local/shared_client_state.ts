@@ -26,32 +26,32 @@ import {
 } from '../core/types';
 import { TargetIdSet, targetIdSet } from '../model/collections';
 import { Platform } from '../platform/platform';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
-import { SortedSet } from '../util/sorted_set';
-import { SortedMap } from '../util/sorted_map';
+import { logDebug, logError } from '../util/log';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from './shared_client_state_syncer';
-import {
-  CLIENT_STATE_KEY_PREFIX,
   ClientStateSchema,
+  CLIENT_STATE_KEY_PREFIX,
   createWebStorageClientStateKey,
   createWebStorageMutationBatchKey,
   createWebStorageOnlineStateKey,
   createWebStorageQueryTargetMetadataKey,
   createWebStorageSequenceNumberKey,
-  MUTATION_BATCH_KEY_PREFIX,
   MutationMetadataSchema,
-  QUERY_TARGET_KEY_PREFIX,
+  MUTATION_BATCH_KEY_PREFIX,
   QueryTargetStateSchema,
+  QUERY_TARGET_KEY_PREFIX,
   SharedOnlineStateSchema
 } from './shared_client_state_schema';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from './shared_client_state_syncer';
 
 const LOG_TAG = 'SharedClientState';
 

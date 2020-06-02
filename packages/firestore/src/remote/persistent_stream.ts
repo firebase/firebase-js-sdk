@@ -21,17 +21,17 @@ import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 
+import { ByteString } from '../util/byte_string';
 import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
-import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'PersistentStream';
 

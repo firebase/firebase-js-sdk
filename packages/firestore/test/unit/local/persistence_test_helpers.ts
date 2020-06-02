@@ -20,10 +20,10 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import {
   BatchId,
+  ListenSequenceNumber,
   MutationBatchState,
   OnlineState,
-  TargetId,
-  ListenSequenceNumber
+  TargetId
 } from '../../../src/core/types';
 
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';

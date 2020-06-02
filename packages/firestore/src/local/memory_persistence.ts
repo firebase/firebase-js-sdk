@@ -16,8 +16,11 @@
  */
 
 import { User } from '../auth/user';
+import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { estimateByteSize } from '../model/values';
 import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
@@ -28,9 +31,6 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber, TargetId } from '../core/types';
-import { estimateByteSize } from '../model/values';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';

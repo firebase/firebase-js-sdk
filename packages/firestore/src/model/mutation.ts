@@ -21,6 +21,7 @@ import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 
+import { arrayEquals } from '../util/misc';
 import {
   Document,
   MaybeDocument,
@@ -31,7 +32,6 @@ import { DocumentKey } from './document_key';
 import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import { TransformOperation } from './transform_operation';
-import { arrayEquals } from '../util/misc';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.

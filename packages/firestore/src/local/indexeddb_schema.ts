@@ -18,14 +18,14 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  EncodedResourcePath
+  EncodedResourcePath,
+  encodeResourcePath
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';

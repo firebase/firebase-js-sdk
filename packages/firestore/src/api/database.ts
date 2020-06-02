@@ -20,13 +20,13 @@ import * as firestore from '@firebase/firestore-types';
 import * as api from '../protos/firestore_proto_api';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
-import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { ListenOptions } from '../core/event_manager';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import {
   ComponentProvider,
   MemoryComponentProvider
 } from '../core/component_provider';
+import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import { ListenOptions } from '../core/event_manager';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
@@ -73,6 +73,8 @@ import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 import {
   CredentialsProvider,
   CredentialsSettings,
@@ -94,8 +96,6 @@ import {
   UserDataReader
 } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';

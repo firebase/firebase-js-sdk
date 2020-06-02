@@ -26,9 +26,9 @@ import { Code, FirestoreError } from '../util/error';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
+import { debugAssert } from '../util/assert';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
-import { debugAssert } from '../util/assert';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;

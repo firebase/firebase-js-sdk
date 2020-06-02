@@ -16,27 +16,27 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Component, ComponentType, Provider } from '@firebase/component';
+import { Blob } from '../api/blob';
 import {
   CACHE_SIZE_UNLIMITED,
-  Firestore,
+  CollectionReference,
   DocumentReference,
   DocumentSnapshot,
-  QueryDocumentSnapshot,
+  Firestore,
   Query,
+  QueryDocumentSnapshot,
   QuerySnapshot,
-  CollectionReference,
   Transaction,
   WriteBatch
 } from '../api/database';
-import { Blob } from '../api/blob';
 import { FieldPath } from '../api/field_path';
+import { FieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { makeConstructorPrivate } from '../util/api';
-import { FieldValue } from '../api/field_value';
 
 // Public instance that disallows construction at runtime. Note that this still
 // allows instanceof checks.
