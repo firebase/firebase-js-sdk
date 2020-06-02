@@ -42,10 +42,6 @@ export function registerPerformance(instance: FirebaseNamespace): void {
     if (typeof window === 'undefined') {
       throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
     }
-    if (!isSupported()) {
-      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-    }
-
     setupApi(window);
     SettingsService.getInstance().firebaseAppInstance = app;
     SettingsService.getInstance().installationsService = installations;
@@ -68,6 +64,9 @@ export function registerPerformance(instance: FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
+        if (!isSupported()) {
+          throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+        }
 
         return factoryMethod(app, installations);
       },
