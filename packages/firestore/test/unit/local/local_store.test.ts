@@ -87,9 +87,6 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
 import { BundleConverter, BundledDocuments } from '../../../src/core/bundle';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { BundledDocumentMetadata } from '../../../src/protos/firestore_bundle_proto';
-import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
-import Document = firestoreV1ApiClientInterfaces.Document;
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

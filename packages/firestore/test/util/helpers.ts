@@ -92,7 +92,6 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference, Firestore } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
-import { BundledDocumentMetadata } from '../../src/protos/firestore_bundle_proto';
 import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
 
@@ -411,7 +410,7 @@ export class TestBundledDocuments {
 export function bundledDocuments(
   documents: MaybeDocument[]
 ): TestBundledDocuments {
-  let result: BundledDocuments = [];
+  const result: BundledDocuments = [];
   for (const d of documents) {
     if (d instanceof NoDocument) {
       result.push([

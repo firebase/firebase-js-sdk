@@ -70,7 +70,6 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
 import * as bundleProto from '../protos/firestore_bundle_proto';
-import * as api from '../protos/firestore_proto_api';
 import {
   Bundle,
   BundleConverter,
