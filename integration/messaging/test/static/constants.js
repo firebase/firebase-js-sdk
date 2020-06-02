@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-const EIGHT_DAYS_IN_MS = 8 * 86400000;
+// Test project managed by the FCM team
 const PUBLIC_VAPID_KEY =
-  'BGd9sBCP946DS7oAP8XzhvbC261tTjasifBcPhsMeUFsMVH3BNW0p8l3dL0Y8OiL5db5EGru54olDK8jPXAT098';
+  'BNjjus3nz38aYtbDLVfunY3VULg0Yq5T4GXWd7iDDmeqWCUNqfrK1eiKVdoT0VncLuCjfJ1GmdfmNZz-AjHfkxM';
 const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyA0p3wZ05sigxv1UtmLxMWP6iML_K0B-uE',
-  projectId: 'android-gcm-test-519bd',
-  messagingSenderId: '35006771263',
-  appId: '1:35006771263:web:18cc19582bf589e8c9c88a'
+  apiKey: 'AIzaSyBpIe0xyUNHOwtE_go32NmUJF4acsc6S6c',
+  projectId: 'fcm-web-sdk-test',
+  messagingSenderId: '750970317741',
+  appId: '1:750970317741:web:f382be3155e250906a4f24'
 };
+
 const TAG = 'FCM_INTEGRATION_TEST: ';
+const EIGHT_DAYS_IN_MS = 8 * 86400000;
 const TEST_DB = 'FCM_INTEGRATION_TEST_DB';
 const TEST_DB_VERSION = 1;
 const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';

@@ -11,7 +11,6 @@
     "firebase": "7.14.6"
   },
   "devDependencies": {
-    "browserify": "^16.5.1",
     "chai": "4.2.0",
     "chromedriver": "80.0.2",
     "express": "4.17.1",
