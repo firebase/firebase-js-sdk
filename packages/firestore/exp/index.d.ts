@@ -342,6 +342,7 @@ export function updateDoc(
   data: UpdateData
 ): Promise<void>;
 export function updateDoc(
+  reference: DocumentReference,
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
