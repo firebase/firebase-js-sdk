@@ -351,7 +351,7 @@ describe('Transaction', () => {
     });
   });
 
-  it('retries when ocument is modified', () => {
+  it('retries when document is modified', () => {
     return withTestDoc(async doc => {
       let retryCounter = 0;
       await runTransaction(doc.firestore, async transaction => {
