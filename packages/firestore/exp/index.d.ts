@@ -172,7 +172,11 @@ export class Transaction {
   set<T>(
     documentRef: DocumentReference<T>,
     data: T,
-    options?: SetOptions
+  ): Transaction;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
@@ -192,7 +196,11 @@ export class WriteBatch {
   set<T>(
     documentRef: DocumentReference<T>,
     data: T,
-    options?: SetOptions
+  ): WriteBatch;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
