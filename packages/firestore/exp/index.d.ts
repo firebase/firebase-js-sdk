@@ -172,7 +172,11 @@ export class Transaction {
   set<T>(
     documentRef: DocumentReference<T>,
     data: T,
-    options?: SetOptions
+  ): Transaction;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
@@ -192,7 +196,11 @@ export class WriteBatch {
   set<T>(
     documentRef: DocumentReference<T>,
     data: T,
-    options?: SetOptions
+  ): WriteBatch;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
@@ -338,15 +346,16 @@ export function setDoc<T>(
   options: SetOptions
 ): Promise<void>;
 export function updateDoc(
-  reference: DocumentReference,
+  reference: DocumentReference<unknown>,
   data: UpdateData
 ): Promise<void>;
 export function updateDoc(
+  reference: DocumentReference<unknown>,
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
-export function deleteDoc(reference: DocumentReference): Promise<void>;
+export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
