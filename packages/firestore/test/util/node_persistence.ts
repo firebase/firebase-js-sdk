@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
     deleteDatabaseFiles: true
   });
 
+  // 'indexeddbshim' installs IndexedDB onto `globalAny`, which means we don't
+  // have to register it ourselves.
   const fakeWindow = new FakeWindow(
     new SharedFakeWebStorage(),
     globalAny.indexedDB

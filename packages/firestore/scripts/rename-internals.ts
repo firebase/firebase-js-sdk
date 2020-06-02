@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,9 @@ class RenameInternals {
         !this.publicApi.has(name) &&
         blacklist.indexOf(node.escapedText.toString()) === -1
       ) {
-        return ts.createIdentifier(this.prefix + name);
+        const newIdentifier = ts.createIdentifier(this.prefix + name);
+        ts.setSourceMapRange(newIdentifier, ts.getSourceMapRange(node));
+        return newIdentifier;
       }
     }
 

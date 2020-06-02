@@ -32,9 +32,10 @@ async function getChangedFiles() {
 }
 exports.getChangedFiles = getChangedFiles;
 
-async function getChangedPackages() {
+async function getChangedPackages(changedFiles) {
   const changedPackages = new Set();
-  for (const filename of await getChangedFiles()) {
+  const files = changedFiles || (await getChangedFiles());
+  for (const filename of files) {
     // Check for changed files inside package dirs.
     const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {

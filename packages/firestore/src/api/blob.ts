@@ -16,7 +16,6 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
-import { makeConstructorPrivate } from '../util/api';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
@@ -105,15 +104,3 @@ export class Blob {
     return this._byteString.isEqual(other._byteString);
   }
 }
-
-// Public instance that disallows construction at runtime. This constructor is
-// used when exporting Blob on firebase.firestore.Blob and will be called Blob
-// publicly. Internally we still use Blob which has a type checked private
-// constructor. Note that Blob and PublicBlob can be used interchangeably in
-// instanceof checks.
-// For our internal TypeScript code PublicBlob doesn't exist as a type, and so
-// we need to use Blob as type and export it too.
-export const PublicBlob = makeConstructorPrivate(
-  Blob,
-  'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
-);

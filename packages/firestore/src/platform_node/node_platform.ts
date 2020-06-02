@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
@@ -27,15 +28,16 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
+import { debugAssert } from '../util/assert';
 
 export class NodePlatform implements Platform {
-  readonly useProto3Json = false;
   readonly base64Available = true;
 
   readonly document = null;
 
   get window(): Window | null {
     if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      // eslint-disable-next-line no-restricted-globals
       return window;
     }
 
@@ -74,5 +76,11 @@ export class NodePlatform implements Platform {
 
   btoa(raw: string): string {
     return new Buffer(raw, 'binary').toString('base64');
+  }
+
+  randomBytes(nBytes: number): Uint8Array {
+    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+
+    return randomBytes(nBytes);
   }
 }

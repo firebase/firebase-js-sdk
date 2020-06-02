@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ goog.net.WebChannel.Options.messageHeaders;
 /** @type {Object<string, string>|undefined} */
 goog.net.WebChannel.Options.initMessageHeaders;
 
-/** @type {stringboolean|undefined} */
+/** @type {string|boolean|undefined} */
 goog.net.WebChannel.Options.messageContentType;
 
 /** @type {Object<string, string>|undefined|undefined} */

@@ -18,8 +18,9 @@
     "build:deps": "lerna run --scope @firebase/'{app,template}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
     "type-check": "tsc -p . --noEmit",
     "prepare": "yarn build"
   },
@@ -33,8 +34,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.0.6",
-    "rollup-plugin-typescript2": "0.26.0",
+    "rollup": "2.7.6",
+    "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.8.3"
   },
   "repository": {

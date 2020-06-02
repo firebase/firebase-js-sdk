@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +277,11 @@ describe('SwController', () => {
     });
 
     it('warns if there are more action buttons than the browser limit', async () => {
+      // This doesn't exist on Firefox:
+      // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
+      if (!Notification.maxActions) {
+        return;
+      }
       stub(Notification, 'maxActions').value(1);
 
       const warnStub = stub(console, 'warn');

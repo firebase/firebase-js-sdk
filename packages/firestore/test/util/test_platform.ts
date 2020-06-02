@@ -19,9 +19,11 @@ import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
 import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
+
+/* eslint-disable no-restricted-globals */
 
 /**
  * `Window` fake that implements the event and storage API that is used by
@@ -62,7 +64,9 @@ export class FakeWindow {
         this.storageListeners.push(listener);
         break;
       case 'unload':
-        // The spec tests currently do not rely on 'unload' listeners.
+      case 'visibilitychange':
+        // The spec tests currently do not rely on `unload`/`visibilitychange`
+        // listeners.
         break;
       default:
         fail(`MockWindow doesn't support events of type '${type}'`);
@@ -76,7 +80,7 @@ export class FakeWindow {
         registeredListener => listener !== registeredListener
       );
       const newCount = this.storageListeners.length;
-      assert(
+      debugAssert(
         newCount === oldCount - 1,
         "Listener passed to 'removeEventListener' doesn't match any registered listener."
       );
@@ -96,7 +100,7 @@ export class FakeDocument {
   }
 
   addEventListener(type: string, listener: EventListener): void {
-    assert(
+    debugAssert(
       type === 'visibilitychange',
       "FakeDocument only supports events of type 'visibilitychange'"
     );
@@ -219,10 +223,6 @@ export class TestPlatform implements Platform {
     this.mockWindow = new FakeWindow(this.mockStorage);
   }
 
-  get useProto3Json(): boolean {
-    return this.basePlatform.useProto3Json;
-  }
-
   get document(): Document | null {
     // FakeWindow doesn't support full Document interface.
     return this.mockDocument as any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -266,13 +266,8 @@ export class TestPlatform implements Platform {
   btoa(raw: string): string {
     return this.basePlatform.btoa(raw);
   }
-}
 
-/** Returns true if we are running under Node. */
-export function isNode(): boolean {
-  return (
-    typeof process !== 'undefined' &&
-    process.title !== undefined &&
-    process.title.indexOf('node') !== -1
-  );
+  randomBytes(nBytes: number): Uint8Array {
+    return this.basePlatform.randomBytes(nBytes);
+  }
 }

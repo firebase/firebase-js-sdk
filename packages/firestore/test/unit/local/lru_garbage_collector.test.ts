@@ -36,7 +36,6 @@ import {
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { TargetCache } from '../../../src/local/target_cache';
-import { ReferenceSet } from '../../../src/local/reference_set';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
@@ -122,7 +121,6 @@ function genericLruGarbageCollectorTests(
       txn => PersistencePromise.resolve(txn.currentSequenceNumber)
     );
     const referenceDelegate = persistence.referenceDelegate;
-    referenceDelegate.setInMemoryPins(new ReferenceSet());
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     garbageCollector = ((referenceDelegate as any) as LruDelegate)
       .garbageCollector;
@@ -175,7 +173,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return persistence.referenceDelegate.removeMutationReference(txn, key);
+    return persistence.referenceDelegate.markPotentiallyOrphaned(txn, key);
   }
 
   function markDocumentEligibleForGC(key: DocumentKey): Promise<void> {
@@ -276,7 +274,7 @@ function genericLruGarbageCollectorTests(
     return new SetMutation(
       key,
       wrapObject({ baz: 'hello', world: 2 }),
-      Precondition.NONE
+      Precondition.none()
     );
   }
 

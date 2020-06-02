@@ -25,13 +25,13 @@ import {
   NoDocument
 } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonObject } from '../../../src/model/field_value';
+import { JsonObject } from '../../../src/model/object_value';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
-import { assert, fail } from '../../../src/util/assert';
+import { debugAssert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
@@ -43,6 +43,7 @@ import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
 import {
   parseQuery,
+  PersistenceAction,
   runSpec,
   SpecConfig,
   SpecDocument,
@@ -89,6 +90,7 @@ export class ClientMemoryState {
   limboMapping: LimboMap = {};
 
   limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  injectFailures = false;
 
   constructor() {
     this.reset();
@@ -191,6 +193,14 @@ export class SpecBuilder {
     return this.clientState.activeTargets;
   }
 
+  private get injectFailures(): boolean {
+    return this.clientState.injectFailures;
+  }
+
+  private set injectFailures(injectFailures: boolean) {
+    this.clientState.injectFailures = injectFailures;
+  }
+
   /**
    * Exports the spec steps as a JSON object that be used in the spec runner.
    */
@@ -214,7 +224,7 @@ export class SpecBuilder {
 
   // Configures Garbage Collection behavior (on or off). Default is on.
   withGCEnabled(gcEnabled: boolean): this {
-    assert(
+    debugAssert(
       !this.currentStep,
       'withGCEnabled() must be called before all spec steps.'
     );
@@ -232,18 +242,26 @@ export class SpecBuilder {
 
     const target = query.toTarget();
     let targetId: TargetId = 0;
-    if (this.queryMapping.has(target)) {
-      targetId = this.queryMapping.get(target)!;
-    } else {
-      targetId = this.queryIdGenerator.next(target);
-    }
 
-    this.queryMapping.set(target, targetId);
-    this.addQueryToActiveTargets(targetId, query, resumeToken);
-    this.currentStep = {
-      userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      expectedState: { activeTargets: { ...this.activeTargets } }
-    };
+    if (this.injectFailures) {
+      // Return a `userListens()` step but don't advance the target IDs.
+      this.currentStep = {
+        userListen: [targetId, SpecBuilder.queryToSpec(query)]
+      };
+    } else {
+      if (this.queryMapping.has(target)) {
+        targetId = this.queryMapping.get(target)!;
+      } else {
+        targetId = this.queryIdGenerator.next(target);
+      }
+
+      this.queryMapping.set(target, targetId);
+      this.addQueryToActiveTargets(targetId, query, resumeToken);
+      this.currentStep = {
+        userListen: [targetId, SpecBuilder.queryToSpec(query)],
+        expectedState: { activeTargets: { ...this.activeTargets } }
+      };
+    }
     return this;
   }
 
@@ -418,6 +436,29 @@ export class SpecBuilder {
     return this;
   }
 
+  /**
+   * Fails the specified database transaction until `recoverDatabase()` is
+   * called.
+   */
+  failDatabaseTransactions(...actions: PersistenceAction[]): this {
+    this.nextStep();
+    this.injectFailures = true;
+    this.currentStep = {
+      failDatabase: actions
+    };
+    return this;
+  }
+
+  /** Stops failing database operations. */
+  recoverDatabase(): this {
+    this.nextStep();
+    this.injectFailures = false;
+    this.currentStep = {
+      failDatabase: false
+    };
+    return this;
+  }
+
   expectIsShutdown(): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
@@ -428,7 +469,7 @@ export class SpecBuilder {
 
   /** Overrides the currently expected set of active targets. */
   expectActiveTargets(
-    ...targets: Array<{ query: Query; resumeToken: string }>
+    ...targets: Array<{ query: Query; resumeToken?: string }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
@@ -776,7 +817,7 @@ export class SpecBuilder {
     if (!currentStep.expectedSnapshotEvents) {
       currentStep.expectedSnapshotEvents = [];
     }
-    assert(
+    debugAssert(
       !events.errorCode ||
         !(events.added || events.modified || events.removed || events.metadata),
       "Can't provide both error and events"
@@ -905,7 +946,7 @@ export class SpecBuilder {
           // TODO(dimond): Support non-JSON primitive values?
           return [
             filter.field.canonicalString(),
-            filter.op.name,
+            filter.op,
             userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
@@ -917,7 +958,7 @@ export class SpecBuilder {
       spec.orderBys = query.explicitOrderBy.map(orderBy => {
         return [
           orderBy.field.canonicalString(),
-          orderBy.dir.name
+          orderBy.dir
         ] as SpecQueryOrderBy;
       });
     }
@@ -1019,7 +1060,7 @@ export class SpecBuilder {
       fail('Found both query and limbo doc with target ID, not supported yet');
     }
     const targetId = queryTargetId || limboTargetId;
-    assert(
+    debugAssert(
       !isNullOrUndefined(targetId),
       'No target ID found for query/limbo doc in spec'
     );

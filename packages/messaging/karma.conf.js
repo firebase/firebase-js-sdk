@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
-const FILES = [`src/**/*.test.ts`];
+const files = [`src/**/*.test.ts`];
 
 module.exports = function(config) {
   const karmaConfig = {
     ...karmaBase,
-    files: FILES,
-    preprocessors: { 'src/**/*.test.ts': ['webpack', 'sourcemap'] },
+    files,
     frameworks: ['mocha']
   };
 
   config.set(karmaConfig);
 };
 
-module.exports.files = FILES;
+module.exports.files = files;

@@ -18,7 +18,7 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
@@ -28,7 +28,6 @@ import {
   EncodedResourcePath
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
-import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
@@ -72,7 +71,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    assert(
+    hardAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
@@ -199,7 +198,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             return PersistencePromise.forEach(
               dbBatches,
               (dbBatch: DbMutationBatch) => {
-                assert(
+                hardAssert(
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
@@ -231,8 +230,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
       DbRemoteDocument.store
     );
+    const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+      DbTargetGlobal.store
+    );
 
-    return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
+    return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
+      debugAssert(
+        !!metadata,
+        'Metadata should have been written during the version 3 migration'
+      );
       const writeSentinelKey = (
         path: ResourcePath
       ): PersistencePromise<void> => {
@@ -240,7 +246,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           new DbTargetDocument(
             0,
             encodeResourcePath(path),
-            currentSequenceNumber
+            metadata!.highestListenSequenceNumber!
           )
         );
       };
@@ -417,6 +423,8 @@ export class DbMutationQueue {
      *
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastStreamToken: string
   ) {}
@@ -874,7 +882,7 @@ export class DbTargetDocument {
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
-    assert(
+    debugAssert(
       (targetId === 0) === (sequenceNumber !== undefined),
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );
@@ -1011,7 +1019,7 @@ function writeEmptyTargetGlobalEntry(
   const metadata = new DbTargetGlobal(
     /*highestTargetId=*/ 0,
     /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp(),
+    SnapshotVersion.min().toTimestamp(),
     /*targetCount=*/ 0
   );
   return globalStore.put(DbTargetGlobal.key, metadata);

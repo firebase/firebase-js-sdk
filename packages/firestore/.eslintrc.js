@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 module.exports = {
   extends: '../../config/.eslintrc.js',
   parserOptions: {
@@ -16,6 +33,17 @@ module.exports = {
         varsIgnorePattern: '^_',
         args: 'none'
       }
+    ],
+    'no-restricted-globals': [
+      'error',
+      {
+        'name': 'window',
+        'message': 'Use `PlatformSupport.getPlatform().window` instead.'
+      },
+      {
+        'name': 'document',
+        'message': 'Use `PlatformSupport.getPlatform().document` instead.'
+      }
     ]
   },
   overrides: [
@@ -23,6 +51,13 @@ module.exports = {
       files: ['**/*.test.ts', '**/test/**/*.ts'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'error'
+      }
+    },
+    // TODO(firestorelite): Remove this exception when app-exp is published
+    {
+      files: ['lite/**/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off'
       }
     }
   ]

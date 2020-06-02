@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.6.11",
+  "version": "0.6.16",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -27,17 +27,17 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.4.7",
-    "@firebase/messaging-types": "0.4.4",
-    "@firebase/util": "0.2.44",
-    "@firebase/component": "0.1.9",
+    "@firebase/installations": "0.4.10",
+    "@firebase/messaging-types": "0.4.5",
+    "@firebase/util": "0.2.47",
+    "@firebase/component": "0.1.12",
     "idb": "3.0.2",
     "tslib": "1.11.1"
   },
   "devDependencies": {
-    "rollup": "2.0.6",
-    "rollup-plugin-typescript2": "0.26.0",
-    "ts-essentials": "6.0.2",
+    "rollup": "2.7.6",
+    "rollup-plugin-typescript2": "0.27.0",
+    "ts-essentials": "6.0.4",
     "typescript": "3.8.3"
   },
   "repository": {

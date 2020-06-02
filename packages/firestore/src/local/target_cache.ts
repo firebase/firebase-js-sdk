@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,19 +131,6 @@ export interface TargetCache {
   getTargetData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<TargetData | null>;
-
-  /**
-   * Looks up a TargetData entry by target ID.
-   *
-   * @param targetId The target ID of the TargetData entry to look up.
-   * @return The cached TargetData entry, or null if the cache has no entry for
-   * the target.
-   */
-  // PORTING NOTE: Multi-tab only.
-  getTargetDataForTarget(
-    txn: PersistenceTransaction,
-    targetId: TargetId
   ): PersistencePromise<TargetData | null>;
 
   /**

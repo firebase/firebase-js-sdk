@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,13 +273,13 @@ function getNotificationData(
 async function getWindowClient(url: string): Promise<WindowClient | null> {
   // Use URL to normalize the URL when comparing to windowClients.
   // This at least handles whether to include trailing slashes or not
-  const parsedURL = new URL(url, self.location.href).href;
+  const parsedURL = new URL(url, self.location.href);
 
   const clientList = await getClientList();
 
   for (const client of clientList) {
-    const parsedClientUrl = new URL(client.url, self.location.href).href;
-    if (parsedClientUrl === parsedURL) {
+    const parsedClientUrl = new URL(client.url, self.location.href);
+    if (parsedClientUrl.host === parsedURL.host) {
       return client;
     }
   }
@@ -339,6 +339,8 @@ function showNotification(details: NotificationDetails): Promise<void> {
   const title = details.title ?? '';
 
   const { actions } = details;
+  // Note: Firefox does not support the maxActions property.
+  // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
   const { maxActions } = Notification;
   if (actions && maxActions && actions.length > maxActions) {
     console.warn(

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 
+/* eslint-disable no-restricted-globals */
+
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';
 
@@ -59,11 +61,12 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
 
 /** The Database ID used by most tests that use a serializer. */
 export const TEST_DATABASE_ID = new DatabaseId('test-project');
+export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
 
 /** The DatabaseInfo used by tests that need a serializer. */
 const TEST_DATABASE_INFO = new DatabaseInfo(
   TEST_DATABASE_ID,
-  '[PersistenceTestHelpers]',
+  TEST_PERSISTENCE_KEY,
   'host',
   /*ssl=*/ false,
   /*forceLongPolling=*/ false
@@ -112,30 +115,30 @@ export async function testIndexedDbPersistence(
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
   const platform = PlatformSupport.getPlatform();
-  return IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: !!options.synchronizeTabs,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new IndexedDbPersistence(
+    !!options.synchronizeTabs,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
-    queue,
-    serializer: JSON_SERIALIZER,
     lruParams,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    queue,
+    JSON_SERIALIZER,
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    /** forceOwningTab= */ false
+  );
+  await persistence.start();
+  return persistence;
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return new MemoryPersistence(AutoId.newId(), p => new MemoryEagerDelegate(p));
+  return new MemoryPersistence(MemoryEagerDelegate.factory);
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return new MemoryPersistence(
-    AutoId.newId(),
-    p => new MemoryLruDelegate(p, params)
-  );
+  return new MemoryPersistence(p => new MemoryLruDelegate(p, params));
 }
 
 /** Clears the persistence in tests */

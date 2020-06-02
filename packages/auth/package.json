@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.14.2",
+  "version": "0.14.6",
   "main": "dist/auth.js",
   "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
@@ -16,11 +16,12 @@
     "generate-test-files": "./buildtools/generate_test_files.sh",
     "prepare": "yarn build",
     "serve": "yarn build && yarn generate-test-files && gulp serve",
-    "test": "yarn generate-test-files && ./buildtools/run_tests.sh"
+    "test": "yarn generate-test-files && ./buildtools/run_tests.sh",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.10.0"
+    "@firebase/auth-types": "0.10.1"
   },
   "devDependencies": {
     "google-closure-compiler": "20200112.0.0",

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
@@ -70,7 +70,7 @@ export abstract class RemoteDocumentChangeBuffer {
     // Right now (for simplicity) we just track a single readTime for all the
     // added entries since we expect them to all be the same, but we could
     // rework to store per-entry readTimes if necessary.
-    assert(
+    debugAssert(
       this._readTime === undefined || this._readTime.isEqual(value),
       'All changes in a RemoteDocumentChangeBuffer must have the same read time'
     );
@@ -78,7 +78,7 @@ export abstract class RemoteDocumentChangeBuffer {
   }
 
   protected get readTime(): SnapshotVersion {
-    assert(
+    debugAssert(
       this._readTime !== undefined,
       'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
     );
@@ -165,6 +165,6 @@ export abstract class RemoteDocumentChangeBuffer {
 
   /** Helper to assert this.changes is not null  */
   protected assertNotApplied(): void {
-    assert(!this.changesApplied, 'Changes have already been applied.');
+    debugAssert(!this.changesApplied, 'Changes have already been applied.');
   }
 }

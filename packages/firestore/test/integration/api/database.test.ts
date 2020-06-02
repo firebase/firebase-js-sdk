@@ -531,6 +531,18 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can specify updated field multiple times', () => {
+    return withTestDoc(persistence, doc => {
+      return doc
+        .set({})
+        .then(() => doc.update('field', 100, new FieldPath('field'), 200))
+        .then(() => doc.get())
+        .then(docSnap => {
+          expect(docSnap.data()).to.deep.equal({ field: 200 });
+        });
+    });
+  });
+
   describe('documents: ', () => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
@@ -834,69 +846,50 @@ apiDescribe('Database', (persistence: boolean) => {
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
   // eslint-disable-next-line no-restricted-properties
-  describe.skip('Listens are rejected remotely:', () => {
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryForRejection: firestore.Query = null as any;
-
+  describe('Listens are rejected remotely:', () => {
     it('will reject listens', () => {
-      const deferred = new Deferred();
-      queryForRejection.onSnapshot(
-        () => {},
-        (err: Error) => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-          deferred.resolve();
-        }
-      );
-      return deferred.promise;
+      return withTestDb(persistence, async db => {
+        const deferred = new Deferred();
+        const queryForRejection = db.collection('a/__badpath__/b');
+        queryForRejection.onSnapshot(
+          () => {},
+          (err: Error) => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+            deferred.resolve();
+          }
+        );
+        await deferred.promise;
+      });
     });
 
     it('will reject same listens twice in a row', () => {
-      const deferred = new Deferred();
-      queryForRejection.onSnapshot(
-        () => {},
-        (err: Error) => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-          queryForRejection.onSnapshot(
-            () => {},
-            (err2: Error) => {
-              expect(err2.name).to.exist;
-              expect(err2.message).to.exist;
-              deferred.resolve();
-            }
-          );
-        }
-      );
-      return deferred.promise;
+      return withTestDb(persistence, async db => {
+        const deferred = new Deferred();
+        const queryForRejection = db.collection('a/__badpath__/b');
+        queryForRejection.onSnapshot(
+          () => {},
+          (err: Error) => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+            queryForRejection.onSnapshot(
+              () => {},
+              (err2: Error) => {
+                expect(err2.name).to.exist;
+                expect(err2.message).to.exist;
+                deferred.resolve();
+              }
+            );
+          }
+        );
+        await deferred.promise;
+      });
     });
 
     it('will reject gets', () => {
-      return queryForRejection.get().then(
-        () => {
-          expect.fail('Promise resolved even though error was expected.');
-        },
-        err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
-        }
-      );
-    });
-
-    it('will reject gets twice in a row', () => {
-      return queryForRejection
-        .get()
-        .then(
-          () => {
-            expect.fail('Promise resolved even though error was expected.');
-          },
-          err => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-          }
-        )
-        .then(() => queryForRejection.get())
-        .then(
+      return withTestDb(persistence, async db => {
+        const queryForRejection = db.collection('a/__badpath__/b');
+        await queryForRejection.get().then(
           () => {
             expect.fail('Promise resolved even though error was expected.');
           },
@@ -905,6 +898,34 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(err.message).to.exist;
           }
         );
+      });
+    });
+
+    it('will reject gets twice in a row', () => {
+      return withTestDb(persistence, async db => {
+        const queryForRejection = db.collection('a/__badpath__/b');
+        return queryForRejection
+          .get()
+          .then(
+            () => {
+              expect.fail('Promise resolved even though error was expected.');
+            },
+            err => {
+              expect(err.name).to.exist;
+              expect(err.message).to.exist;
+            }
+          )
+          .then(() => queryForRejection.get())
+          .then(
+            () => {
+              expect.fail('Promise resolved even though error was expected.');
+            },
+            err => {
+              expect(err.name).to.exist;
+              expect(err.message).to.exist;
+            }
+          );
+      });
     });
   });
 
@@ -1074,7 +1095,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
-    'can clear persistence if the client has not been initialized',
+    'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async docRef => {
         const firestore = docRef.firestore;
@@ -1087,6 +1108,29 @@ apiDescribe('Database', (persistence: boolean) => {
         await firestore.clearPersistence();
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(docRef.path);
+        await expect(
+          docRef2.get({ source: 'cache' })
+        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+      });
+    }
+  );
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)(
+    'can clear persistence if the client has not been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        await docRef.set({ foo: 'bar' });
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.clearPersistence();
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         await expect(

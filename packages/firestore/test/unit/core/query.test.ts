@@ -399,7 +399,7 @@ describe('Query', () => {
       doc('collection/1', 0, { sort: 'a' }),
       doc('collection/1', 0, { sort: 'ab' }),
       doc('collection/1', 0, { sort: 'b' }),
-      doc('collection/1', 0, { sort: ref('p', 'collection/id1') })
+      doc('collection/1', 0, { sort: ref('collection/id1') })
     ];
 
     expectCorrectComparisons(docs, query.docComparator.bind(query));
@@ -500,9 +500,8 @@ describe('Query', () => {
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'exclusive');
 
-    const relativeReference = ref('project1/database1', 'col/doc');
+    const relativeReference = ref('col/doc');
     const absoluteReference = ref(
-      'project1/database1',
       'projects/project1/databases/database1/documents/col/doc',
       5
     );
@@ -581,9 +580,7 @@ describe('Query', () => {
       'collection|f:a==NaN|ob:__name__asc'
     );
     assertCanonicalId(
-      baseQuery.addFilter(
-        filter('__name__', '==', ref('test-project', 'collection/id'))
-      ),
+      baseQuery.addFilter(filter('__name__', '==', ref('collection/id'))),
       'collection|f:__name__==collection/id|ob:__name__asc'
     );
     assertCanonicalId(

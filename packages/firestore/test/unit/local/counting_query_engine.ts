@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+
+export enum QueryEngineType {
+  IndexFree,
+  Simple
+}
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
@@ -57,7 +62,10 @@ export class CountingQueryEngine implements QueryEngine {
    */
   documentsReadByKey = 0;
 
-  constructor(private readonly queryEngine: QueryEngine) {}
+  constructor(
+    private readonly queryEngine: QueryEngine,
+    readonly type: QueryEngineType
+  ) {}
 
   resetCounts(): void {
     this.mutationsReadByQuery = 0;
@@ -114,8 +122,6 @@ export class CountingQueryEngine implements QueryEngine {
           return result;
         });
       },
-      getNewDocumentChanges: subject.getNewDocumentChanges,
-      getLastReadTime: subject.getLastReadTime,
       getSize: subject.getSize,
       newChangeBuffer: subject.newChangeBuffer
     };
@@ -123,7 +129,6 @@ export class CountingQueryEngine implements QueryEngine {
 
   private wrapMutationQueue(subject: MutationQueue): MutationQueue {
     return {
-      acknowledgeBatch: subject.acknowledgeBatch,
       addMutationBatch: subject.addMutationBatch,
       checkEmpty: subject.checkEmpty,
       getAllMutationBatches: transaction => {
@@ -160,15 +165,11 @@ export class CountingQueryEngine implements QueryEngine {
           });
       },
       getHighestUnacknowledgedBatchId: subject.getHighestUnacknowledgedBatchId,
-      getLastStreamToken: subject.getLastStreamToken,
       getNextMutationBatchAfterBatchId:
         subject.getNextMutationBatchAfterBatchId,
       lookupMutationBatch: subject.lookupMutationBatch,
-      lookupMutationKeys: subject.lookupMutationKeys,
       performConsistencyCheck: subject.performConsistencyCheck,
-      removeCachedMutationKeys: subject.removeCachedMutationKeys,
-      removeMutationBatch: subject.removeMutationBatch,
-      setLastStreamToken: subject.setLastStreamToken
+      removeMutationBatch: subject.removeMutationBatch
     };
   }
 }

@@ -34,7 +34,7 @@ on port 8080, which is default when running it via CLI.
     ```
   * Run the emulator
     ```
-    firebase serve --only firestore
+    firebase emulators:start --only firestore
     ```
 
 ### Running Firestore Tests

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,8 +167,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       this.docRef = this.db.collection('tester-docref').doc();
       if (this.fromExistingDoc) {
         await this.docRef.set({ foo: 'bar0' });
-        const docSnap = await this.docRef.get();
-        expect(docSnap.exists).to.equal(true);
       }
     }
 

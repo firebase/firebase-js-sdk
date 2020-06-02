@@ -19,7 +19,7 @@ import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { MemoryPersistenceProvider } from './src/local/memory_persistence';
+import { MemoryComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
 
 import './register-module';
@@ -33,7 +33,7 @@ import { name, version } from './package.json';
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    (app, auth) => new Firestore(app, auth, new MemoryPersistenceProvider())
+    (app, auth) => new Firestore(app, auth, new MemoryComponentProvider())
   );
   instance.registerVersion(name, version);
 }

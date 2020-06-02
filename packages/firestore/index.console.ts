@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,16 @@
 
 import './src/platform_browser/browser_init';
 
+export { Firestore, FirestoreDatabase } from './src/api/database';
 export {
-  Firestore,
-  FirestoreDatabase,
   PublicCollectionReference as CollectionReference,
   PublicDocumentReference as DocumentReference,
   PublicDocumentSnapshot as DocumentSnapshot,
-  PublicQuerySnapshot as QuerySnapshot
-} from './src/api/database';
+  PublicQuerySnapshot as QuerySnapshot,
+  PublicFieldValue as FieldValue,
+  PublicBlob as Blob
+} from './src/platform/config';
 export { GeoPoint } from './src/api/geo_point';
-export { PublicBlob as Blob } from './src/api/blob';
 export { FirstPartyCredentialsSettings } from './src/api/credentials';
-export { PublicFieldValue as FieldValue } from './src/api/field_value';
 export { FieldPath } from './src/api/field_path';
 export { Timestamp } from './src/api/timestamp';

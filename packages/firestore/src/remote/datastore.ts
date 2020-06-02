@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,113 +16,49 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { maybeDocumentMap } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { MaybeDocument, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
+import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import {
-  WatchStreamListener,
-  WriteStreamListener,
-  PersistentListenStream,
-  PersistentWriteStream
-} from './persistent_stream';
-
 import { JsonProtoSerializer } from './serializer';
+import {
+  PersistentListenStream,
+  PersistentWriteStream,
+  WatchStreamListener,
+  WriteStreamListener
+} from './persistent_stream';
+import { AsyncQueue } from '../util/async_queue';
+import { Query } from '../core/query';
 
-// The generated proto interfaces for these class are missing the database
-// field. So we add it here.
-// TODO(b/36015800): Remove this once the api generator is fixed.
-interface BatchGetDocumentsRequest extends api.BatchGetDocumentsRequest {
-  database?: string;
-}
-interface CommitRequest extends api.CommitRequest {
-  database?: string;
+/**
+ * Datastore and its related methods are a wrapper around the external Google
+ * Cloud Datastore grpc API, which provides an interface that is more convenient
+ * for the rest of the client SDK architecture to consume.
+ */
+export class Datastore {
+  // Make sure that the structural type of `Datastore` is unique.
+  // See https://github.com/microsoft/TypeScript/issues/5451
+  private _ = undefined;
 }
 
 /**
- * Datastore is a wrapper around the external Google Cloud Datastore grpc API,
- * which provides an interface that is more convenient for the rest of the
- * client SDK architecture to consume.
+ * An implementation of Datastore that exposes additional state for internal
+ * consumption.
  */
-export class Datastore {
+class DatastoreImpl extends Datastore {
   constructor(
-    private queue: AsyncQueue,
-    private connection: Connection,
-    private credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer
-  ) {}
-
-  newPersistentWriteStream(
-    listener: WriteStreamListener
-  ): PersistentWriteStream {
-    return new PersistentWriteStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
-
-  newPersistentWatchStream(
-    listener: WatchStreamListener
-  ): PersistentListenStream {
-    return new PersistentListenStream(
-      this.queue,
-      this.connection,
-      this.credentials,
-      this.serializer,
-      listener
-    );
-  }
-
-  commit(mutations: Mutation[]): Promise<MutationResult[]> {
-    const params: CommitRequest = {
-      database: this.serializer.encodedDatabaseId,
-      writes: mutations.map(m => this.serializer.toMutation(m))
-    };
-    return this.invokeRPC<CommitRequest, api.CommitResponse>(
-      'Commit',
-      params
-    ).then(response => {
-      return this.serializer.fromWriteResults(
-        response.writeResults,
-        response.commitTime
-      );
-    });
-  }
-
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
-    const params: BatchGetDocumentsRequest = {
-      database: this.serializer.encodedDatabaseId,
-      documents: keys.map(k => this.serializer.toName(k))
-    };
-    return this.invokeStreamingRPC<
-      BatchGetDocumentsRequest,
-      api.BatchGetDocumentsResponse
-    >('BatchGetDocuments', params).then(response => {
-      let docs = maybeDocumentMap();
-      response.forEach(proto => {
-        const doc = this.serializer.fromMaybeDocument(proto);
-        docs = docs.insert(doc.key, doc);
-      });
-      const result: MaybeDocument[] = [];
-      keys.forEach(key => {
-        const doc = docs.get(key);
-        assert(!!doc, 'Missing entity in write response for ' + key);
-        result.push(doc);
-      });
-      return result;
-    });
+    public readonly connection: Connection,
+    public readonly credentials: CredentialsProvider,
+    public readonly serializer: JsonProtoSerializer
+  ) {
+    super();
   }
 
   /** Gets an auth token and invokes the provided RPC. */
-  private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
+  invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
     return this.credentials
       .getToken()
       .then(token => {
@@ -137,7 +73,7 @@ export class Datastore {
   }
 
   /** Gets an auth token and invokes the provided RPC with streamed results. */
-  private invokeStreamingRPC<Req, Resp>(
+  invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
@@ -157,4 +93,116 @@ export class Datastore {
         throw error;
       });
   }
+}
+
+export function newDatastore(
+  connection: Connection,
+  credentials: CredentialsProvider,
+  serializer: JsonProtoSerializer
+): Datastore {
+  return new DatastoreImpl(connection, credentials, serializer);
+}
+
+export async function invokeCommitRpc(
+  datastore: Datastore,
+  mutations: Mutation[]
+): Promise<MutationResult[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const params = {
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
+  };
+  const response = await datastoreImpl.invokeRPC<
+    api.CommitRequest,
+    api.CommitResponse
+  >('Commit', params);
+  return datastoreImpl.serializer.fromWriteResults(
+    response.writeResults,
+    response.commitTime
+  );
+}
+
+export async function invokeBatchGetDocumentsRpc(
+  datastore: Datastore,
+  keys: DocumentKey[]
+): Promise<MaybeDocument[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const params = {
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    documents: keys.map(k => datastoreImpl.serializer.toName(k))
+  };
+  const response = await datastoreImpl.invokeStreamingRPC<
+    api.BatchGetDocumentsRequest,
+    api.BatchGetDocumentsResponse
+  >('BatchGetDocuments', params);
+
+  const docs = new Map<string, MaybeDocument>();
+  response.forEach(proto => {
+    const doc = datastoreImpl.serializer.fromMaybeDocument(proto);
+    docs.set(doc.key.toString(), doc);
+  });
+  const result: MaybeDocument[] = [];
+  keys.forEach(key => {
+    const doc = docs.get(key.toString());
+    hardAssert(!!doc, 'Missing entity in write response for ' + key);
+    result.push(doc);
+  });
+  return result;
+}
+
+export async function invokeRunQueryRpc(
+  datastore: Datastore,
+  query: Query
+): Promise<Document[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const { structuredQuery, parent } = datastoreImpl.serializer.toQueryTarget(
+    query.toTarget()
+  );
+  const params = {
+    database: datastoreImpl.serializer.encodedDatabaseId,
+    parent,
+    structuredQuery
+  };
+
+  const response = await datastoreImpl.invokeStreamingRPC<
+    api.RunQueryRequest,
+    api.RunQueryResponse
+  >('RunQuery', params);
+
+  return (
+    response
+      // Omit RunQueryResponses that only contain readTimes.
+      .filter(proto => !!proto.document)
+      .map(proto => datastoreImpl.serializer.fromDocument(proto.document!))
+  );
+}
+
+export function newPersistentWriteStream(
+  datastore: Datastore,
+  queue: AsyncQueue,
+  listener: WriteStreamListener
+): PersistentWriteStream {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  return new PersistentWriteStream(
+    queue,
+    datastoreImpl.connection,
+    datastoreImpl.credentials,
+    datastoreImpl.serializer,
+    listener
+  );
+}
+
+export function newPersistentWatchStream(
+  datastore: Datastore,
+  queue: AsyncQueue,
+  listener: WatchStreamListener
+): PersistentListenStream {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  return new PersistentListenStream(
+    queue,
+    datastoreImpl.connection,
+    datastoreImpl.credentials,
+    datastoreImpl.serializer,
+    listener
+  );
 }

@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
@@ -32,7 +32,6 @@ import {
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
-  DELETE_SENTINEL,
   deletedDoc,
   deleteMutation,
   doc,
@@ -47,6 +46,7 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
+import { ObjectValueBuilder } from '../../../src/model/object_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -95,7 +95,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -116,7 +116,7 @@ describe('Mutation', () => {
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
-      Precondition.NONE
+      Precondition.none()
     );
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -135,7 +135,7 @@ describe('Mutation', () => {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
     const patch = patchMutation('collection/key', {
-      'foo.bar': DELETE_SENTINEL
+      'foo.bar': FieldValue.delete()
     });
 
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -191,11 +191,12 @@ describe('Mutation', () => {
     );
 
     // Server timestamps aren't parsed, so we manually insert it.
-    const data = wrapObject({
-      foo: { bar: '<server-timestamp>' },
-      baz: 'baz-value'
-    })
-      .toBuilder()
+    const data = new ObjectValueBuilder(
+      wrapObject({
+        foo: { bar: '<server-timestamp>' },
+        baz: 'baz-value'
+      })
+    )
       .set(field('foo.bar'), serverTimestamp(timestamp, null))
       .build();
     const expectedDoc = new Document(key('collection/key'), version(0), data, {

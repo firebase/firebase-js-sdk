@@ -17,8 +17,8 @@
 
 import * as api from '../protos/firestore_proto_api';
 
-import { TypeOrder } from './field_value';
-import { assert, fail } from '../util/assert';
+import { TypeOrder } from './object_value';
+import { fail, hardAssert } from '../util/assert';
 import { forEach, objectSize } from '../util/obj';
 import { ByteString } from '../util/byte_string';
 import { isNegativeZero } from '../util/types';
@@ -494,7 +494,7 @@ function estimateArrayByteSize(arrayValue: api.ArrayValue): number {
 export function normalizeTimestamp(
   date: api.Timestamp
 ): { seconds: number; nanos: number } {
-  assert(!!date, 'Cannot normalize null or undefined timestamp.');
+  hardAssert(!!date, 'Cannot normalize null or undefined timestamp.');
 
   // The json interface (for the browser) will return an iso timestamp string,
   // while the proto js library (for node) will return a
@@ -506,7 +506,7 @@ export function normalizeTimestamp(
     // Parse the nanos right out of the string.
     let nanos = 0;
     const fraction = ISO_TIMESTAMP_REG_EXP.exec(date);
-    assert(!!fraction, 'invalid timestamp: ' + date);
+    hardAssert(!!fraction, 'invalid timestamp: ' + date);
     if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction[1];

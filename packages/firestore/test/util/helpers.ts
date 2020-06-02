@@ -23,12 +23,8 @@ import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
-import { FieldValueImpl } from '../../src/api/field_value';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import {
-  DocumentKeyReference,
-  UserDataReader
-} from '../../src/api/user_data_reader';
+import { UserDataReader } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -55,6 +51,7 @@ import {
   maybeDocumentMap
 } from '../../src/model/collections';
 import {
+  compareDocumentsByField,
   Document,
   DocumentOptions,
   MaybeDocument,
@@ -64,7 +61,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/field_value';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -82,9 +79,9 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
-import { assert, fail } from '../../src/util/assert';
+import { debugAssert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
-import { Dict } from '../../src/util/obj';
+import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
@@ -92,37 +89,38 @@ import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
+import { DocumentReference, Firestore } from '../../src/api/database';
+import { DeleteFieldValueImpl } from '../../src/api/field_value';
+import { Code, FirestoreError } from '../../src/util/error';
+
+/* eslint-disable no-restricted-globals */
+
+// A Firestore that can be used in DocumentReferences and UserDataWriter.
+const fakeFirestore: Firestore = {
+  ensureClientConfigured: () => {},
+  _databaseId: new DatabaseId('test-project')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 export type TestSnapshotVersion = number;
 
-/**
- * A string sentinel that can be used with patchMutation() to mark a field for
- * deletion.
- */
-export const DELETE_SENTINEL = '<DELETE>';
-
-const preConverter = (input: unknown): unknown => {
-  return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
-};
-
 export function testUserDataWriter(): UserDataWriter {
-  // We should pass in a proper Firestore instance, but for now, only
-  // `ensureClientConfigured()` and `_databaseId` is used in our test usage of
-  // UserDataWriter.
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const firestore: any = {
-    ensureClientConfigured: () => {},
-    _databaseId: new DatabaseId('test-project')
-  };
-  return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(
+    new DatabaseId('test-project'),
+    /* timestampsInSnapshots= */ false,
+    'none',
+    key => new DocumentReference(key, fakeFirestore)
+  );
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  useProto3Json = useProto3Json ?? PlatformSupport.getPlatform().useProto3Json;
+  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    new JsonProtoSerializer(new DatabaseId('test-project'), { useProto3Json }),
-    preConverter
+    databaseId,
+    /* ignoreUndefinedProperties= */ false,
+    useProto3Json !== undefined
+      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      : undefined
   );
 }
 
@@ -132,14 +130,11 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
   return SnapshotVersion.fromTimestamp(new Timestamp(seconds, nanos));
 }
 
-export function ref(
-  dbIdStr: string,
-  keyStr: string,
-  offset?: number
-): DocumentKeyReference {
-  const [project, database] = dbIdStr.split('/', 2);
-  const dbId = new DatabaseId(project, database);
-  return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
+export function ref(key: string, offset?: number): DocumentReference {
+  return new DocumentReference(
+    new DocumentKey(path(key, offset)),
+    fakeFirestore
+  );
 }
 
 export function doc(
@@ -167,7 +162,7 @@ export function unknownDoc(
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+  return new NoDocument(key(keyStr), SnapshotVersion.min());
 }
 
 export function wrap(value: unknown): api.Value {
@@ -208,11 +203,7 @@ export function field(path: string): FieldPath {
 }
 
 export function mask(...paths: string[]): FieldMask {
-  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const path of paths) {
-    fieldPaths = fieldPaths.add(field(path));
-  }
-  return FieldMask.fromSet(fieldPaths);
+  return new FieldMask(paths.map(v => field(v)));
 }
 
 export function blob(...bytes: number[]): Blob {
@@ -222,7 +213,7 @@ export function blob(...bytes: number[]): Blob {
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
-  const operator = Operator.fromString(op);
+  const operator = op as Operator;
   const filter = FieldFilter.create(field(path), operator, dataValue);
 
   if (filter instanceof FieldFilter) {
@@ -236,7 +227,7 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
+  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
 }
 
 export function patchMutation(
@@ -247,7 +238,12 @@ export function patchMutation(
   if (precondition === undefined) {
     precondition = Precondition.exists(true);
   }
-
+  // Replace '<DELETE>' from JSON with FieldValue
+  forEach(json, (k, v) => {
+    if (v === '<DELETE>') {
+      json[k] = new DeleteFieldValueImpl();
+    }
+  });
   const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
   return new PatchMutation(
     key(keyStr),
@@ -258,7 +254,7 @@ export function patchMutation(
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
-  return new DeleteMutation(key(keyStr), Precondition.NONE);
+  return new DeleteMutation(key(keyStr), Precondition.none());
 }
 
 /**
@@ -338,7 +334,7 @@ export function docAddedRemoteEvent(
   activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-  assert(docs.length !== 0, 'Cannot pass empty docs array');
+  debugAssert(docs.length !== 0, 'Cannot pass empty docs array');
 
   const allTargets = activeTargets
     ? activeTargets
@@ -360,10 +356,10 @@ export function docAddedRemoteEvent(
     }
   });
 
-  let version = SnapshotVersion.MIN;
+  let version = SnapshotVersion.min();
 
   for (const doc of docs) {
-    assert(
+    debugAssert(
       !(doc instanceof Document) || !doc.hasLocalMutations,
       "Docs from remote updates shouldn't have local changes."
     );
@@ -386,7 +382,7 @@ export function docUpdateRemoteEvent(
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
+  debugAssert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
@@ -447,7 +443,7 @@ export function addTargetMapping(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -459,7 +455,7 @@ export function ackTarget(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
   return updateMapping(
-    SnapshotVersion.MIN,
+    SnapshotVersion.min(),
     docsOrKeys,
     [],
     [],
@@ -522,10 +518,8 @@ export function byteStringFromString(value: string): ByteString {
  * by the spec tests. Since the spec tests only use JSON strings, this method
  * throws if an Uint8Array is passed.
  */
-export function stringFromBase64String(
-  value?: string | Uint8Array
-): string {
-  assert(
+export function stringFromBase64String(value?: string | Uint8Array): string {
+  debugAssert(
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
@@ -536,7 +530,7 @@ export function stringFromBase64String(
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ByteString {
-  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+  if (snapshotVersion.isEqual(SnapshotVersion.min())) {
     return ByteString.EMPTY_BYTE_STRING;
   } else {
     return byteStringFromString(snapshotVersion.toString());
@@ -545,7 +539,7 @@ export function resumeTokenForSnapshot(
 
 export function orderBy(path: string, op?: string): OrderBy {
   op = op || 'asc';
-  assert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
+  debugAssert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
   const dir: Direction =
     op === 'asc' ? Direction.ASCENDING : Direction.DESCENDING;
   return new OrderBy(field(path), dir);
@@ -586,7 +580,7 @@ export function documentUpdates(
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+        new NoDocument(docOrKey, SnapshotVersion.min())
       );
     }
   }
@@ -621,7 +615,10 @@ export function documentSet(...args: unknown[]): DocumentSet {
     docSet = new DocumentSet();
   }
   for (const doc of args) {
-    assert(doc instanceof Document, 'Bad argument, expected Document: ' + doc);
+    debugAssert(
+      doc instanceof Document,
+      'Bad argument, expected Document: ' + doc
+    );
     docSet = docSet.add(doc);
   }
   return docSet;
@@ -650,7 +647,7 @@ export function documentSetAsArray(docs: DocumentSet): Document[] {
 export class DocComparator {
   static byField(...fields: string[]): DocumentComparator {
     const path = new FieldPath(fields);
-    return Document.compareByField.bind(this, path);
+    return (doc1, doc2) => compareDocumentsByField(path, doc1, doc2);
   }
 }
 
@@ -814,8 +811,12 @@ export function expectEqualitySets<T>(
   }
 }
 
-export function expectFirestoreError(err: Error): void {
-  expect(err.name).to.equal('FirebaseError');
+export function validateFirestoreError(
+  expectedCode: Code,
+  actualError: Error
+): void {
+  expect(actualError.name).to.equal('FirebaseError');
+  expect((actualError as FirestoreError).code).to.equal(expectedCode);
 }
 
 export function forEachNumber<V>(

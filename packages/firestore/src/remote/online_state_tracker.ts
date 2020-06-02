@@ -16,11 +16,10 @@
  */
 
 import { OnlineState } from '../core/types';
-import { assert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { debugAssert } from '../util/assert';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
-import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
 
@@ -64,7 +63,7 @@ export class OnlineStateTracker {
    * transition from OnlineState.Unknown to OnlineState.Offline without waiting
    * for the stream to actually fail (MAX_WATCH_STREAM_FAILURES times).
    */
-  private onlineStateTimer: CancelablePromise<void> | null = null;
+  private onlineStateTimer: DelayedOperation<void> | null = null;
 
   /**
    * Whether the client should log a warning message if it fails to connect to
@@ -89,7 +88,7 @@ export class OnlineStateTracker {
     if (this.watchStreamFailures === 0) {
       this.setAndBroadcast(OnlineState.Unknown);
 
-      assert(
+      debugAssert(
         this.onlineStateTimer === null,
         `onlineStateTimer shouldn't be started yet`
       );
@@ -98,7 +97,7 @@ export class OnlineStateTracker {
         ONLINE_STATE_TIMEOUT_MS,
         () => {
           this.onlineStateTimer = null;
-          assert(
+          debugAssert(
             this.state === OnlineState.Unknown,
             'Timer should be canceled if we transitioned to a different state.'
           );
@@ -130,8 +129,14 @@ export class OnlineStateTracker {
 
       // To get to OnlineState.Online, set() must have been called which would
       // have reset our heuristics.
-      assert(this.watchStreamFailures === 0, 'watchStreamFailures must be 0');
-      assert(this.onlineStateTimer === null, 'onlineStateTimer must be null');
+      debugAssert(
+        this.watchStreamFailures === 0,
+        'watchStreamFailures must be 0'
+      );
+      debugAssert(
+        this.onlineStateTimer === null,
+        'onlineStateTimer must be null'
+      );
     } else {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {

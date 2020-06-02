@@ -53,6 +53,13 @@ export interface FirebaseOptions {
   storageBucket?: string;
 }
 
+// @internal (undocumented)
+export interface _FirebaseService {
+  // (undocumented)
+  app: FirebaseApp;
+   delete(): Promise<void>;
+}
+
 // @public (undocumented)
 export interface PlatformLoggerService {
   // (undocumented)

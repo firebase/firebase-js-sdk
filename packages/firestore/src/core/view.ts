@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 
 import { Query } from './query';
 import { OnlineState } from './types';
@@ -150,7 +150,7 @@ export class View {
         const oldDoc = oldDocumentSet.get(key);
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
-          assert(
+          debugAssert(
             key.isEqual(newDoc.key),
             'Mismatching keys found in document changes: ' +
               key +
@@ -242,7 +242,7 @@ export class View {
       }
     }
 
-    assert(
+    debugAssert(
       !needsRefill || !previousChanges,
       'View was refilled using docs that themselves needed refilling.'
     );
@@ -288,7 +288,10 @@ export class View {
     updateLimboDocuments: boolean,
     targetChange?: TargetChange
   ): ViewChange {
-    assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
+    debugAssert(
+      !docChanges.needsRefill,
+      'Cannot apply changes that need a refill'
+    );
     const oldDocs = this.documentSet;
     this.documentSet = docChanges.documentSet;
     this.mutatedKeys = docChanges.mutatedKeys;
@@ -389,12 +392,12 @@ export class View {
       targetChange.addedDocuments.forEach(
         key => (this._syncedDocuments = this._syncedDocuments.add(key))
       );
-      targetChange.modifiedDocuments.forEach(key =>
-        assert(
+      targetChange.modifiedDocuments.forEach(key => {
+        debugAssert(
           this._syncedDocuments.has(key),
           `Modified document ${key} not found in view.`
-        )
-      );
+        );
+      });
       targetChange.removedDocuments.forEach(
         key => (this._syncedDocuments = this._syncedDocuments.delete(key))
       );

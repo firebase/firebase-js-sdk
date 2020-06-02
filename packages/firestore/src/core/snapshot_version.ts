@@ -22,14 +22,12 @@ import { Timestamp } from '../api/timestamp';
  * timestamp, such as update_time or read_time.
  */
 export class SnapshotVersion {
-  static readonly MIN = new SnapshotVersion(new Timestamp(0, 0));
-
   static fromTimestamp(value: Timestamp): SnapshotVersion {
     return new SnapshotVersion(value);
   }
 
-  static forDeletedDoc(): SnapshotVersion {
-    return SnapshotVersion.MIN;
+  static min(): SnapshotVersion {
+    return new SnapshotVersion(new Timestamp(0, 0));
   }
 
   private constructor(private timestamp: Timestamp) {}

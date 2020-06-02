@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,11 @@ import { FirebaseApp } from '@firebase/app-types';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
+  const differentBucket = 'c';
   const locationRoot = new Location(normalBucket, '');
   const locationNormal = new Location(normalBucket, 'o');
   const locationNormalUrl = '/b/' + normalBucket + '/o/o';
+  const locationDifferentBucket = new Location(differentBucket, '');
   const locationNormalNoObjUrl = '/b/' + normalBucket + '/o';
   const locationEscapes = new Location('b/', 'o?');
   const locationEscapesUrl = '/b/b%2F/o/o%3F';
@@ -269,11 +271,11 @@ describe('Firebase Storage > Requests', () => {
       items: [
         {
           name: 'a/a',
-          bucket: 'fredzqm-staging'
+          bucket: normalBucket
         },
         {
           name: 'a/b',
-          bucket: 'fredzqm-staging'
+          bucket: normalBucket
         }
       ],
       nextPageToken: pageToken
@@ -284,6 +286,23 @@ describe('Firebase Storage > Requests', () => {
     assert.equal(listResult.items[0].fullPath, 'a/a');
     assert.equal(listResult.items[1].fullPath, 'a/b');
     assert.equal(listResult.nextPageToken, pageToken);
+  });
+
+  it('list handler with custom bucket', () => {
+    const requestInfo = requests.list(authWrapper, locationDifferentBucket);
+    const pageToken = 'YS9mLw==';
+    const listResponse = {
+      items: [
+        {
+          name: 'a/a',
+          bucket: differentBucket
+        }
+      ],
+      nextPageToken: pageToken
+    };
+    const listResponseString = JSON.stringify(listResponse);
+    const listResult = requestInfo.handler(fakeXhrIo({}), listResponseString);
+    assert.equal(listResult.items[0].bucket, differentBucket);
   });
 
   it('getDownloadUrl request info', () => {

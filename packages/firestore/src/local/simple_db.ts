@@ -16,12 +16,15 @@
  */
 
 import { getUA } from '@firebase/util';
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
+
+// References to `window` are guarded by SimpleDb.isAvailable()
+/* eslint-disable no-restricted-globals */
 
 const LOG_TAG = 'SimpleDb';
 
@@ -64,7 +67,7 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    assert(
+    debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
@@ -75,7 +78,7 @@ export class SimpleDb {
       // suggests IE9 and older WebKit browsers handle upgrade
       // differently. They expect setVersion, as described here:
       // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
-      const request = window.indexedDB.open(name, version);
+      const request = indexedDB.open(name, version);
 
       request.onsuccess = (event: Event) => {
         const db = (event.target as IDBOpenDBRequest).result;
@@ -142,19 +145,12 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
-    if (typeof window === 'undefined' || window.indexedDB == null) {
+    if (typeof indexedDB === 'undefined') {
       return false;
     }
 
     if (SimpleDb.isMockPersistence()) {
       return true;
-    }
-
-    // In some Node environments, `window` is defined, but `window.navigator` is
-    // not. We don't support IndexedDB persistence in Node if the
-    // isMockPersistence() check above returns false.
-    if (window.navigator === undefined) {
-      return false;
     }
 
     // We extensively use indexed array values and compound keys,
@@ -406,6 +402,22 @@ export interface IterateOptions {
   reverse?: boolean;
 }
 
+/** An error that wraps exceptions that thrown during IndexedDB execution. */
+export class IndexedDbTransactionError extends FirestoreError {
+  name = 'IndexedDbTransactionError';
+
+  constructor(cause: Error) {
+    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
+  }
+}
+
+/** Verifies whether `e` is an IndexedDbTransactionError. */
+export function isIndexedDbTransactionError(e: Error): boolean {
+  // Use name equality, as instanceof checks on errors don't work with errors
+  // that wrap other errors.
+  return e.name === 'IndexedDbTransactionError';
+}
+
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.
@@ -432,7 +444,9 @@ export class SimpleDbTransaction {
     };
     this.transaction.onabort = () => {
       if (transaction.error) {
-        this.completionDeferred.reject(transaction.error);
+        this.completionDeferred.reject(
+          new IndexedDbTransactionError(transaction.error)
+        );
       } else {
         this.completionDeferred.resolve();
       }
@@ -441,7 +455,7 @@ export class SimpleDbTransaction {
       const error = checkForAndReportiOSError(
         (event.target as IDBRequest).error!
       );
-      this.completionDeferred.reject(error);
+      this.completionDeferred.reject(new IndexedDbTransactionError(error));
     };
   }
 
@@ -478,7 +492,7 @@ export class SimpleDbTransaction {
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
-    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
 }
@@ -738,7 +752,7 @@ export class SimpleDbStore<
       if (typeof indexOrRange === 'string') {
         indexName = indexOrRange;
       } else {
-        assert(
+        debugAssert(
           range === undefined,
           '3rd argument must not be defined if 2nd is a range.'
         );

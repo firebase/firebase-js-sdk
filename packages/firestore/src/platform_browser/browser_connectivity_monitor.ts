@@ -22,6 +22,9 @@ import {
   NetworkStatus
 } from './../remote/connectivity_monitor';
 
+// References to `window` are guarded by BrowserConnectivityMonitor.isAvailable()
+/* eslint-disable no-restricted-globals */
+
 const LOG_TAG = 'ConnectivityMonitor';
 
 /**

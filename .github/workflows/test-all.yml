@@ -24,7 +24,7 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Run unit tests
-      run: xvfb-run yarn test
+      run: xvfb-run yarn test:ci
       env:
         FCM_TEST_PROJECT_SERVER_KEY: $${{secrets.FCM_TEST_PROJECT_SERVER_KEY}}
     - name: Generate coverage file

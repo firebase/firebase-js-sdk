@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +64,7 @@ const plugins = [
   sourcemaps(),
   resolveModule(),
   typescriptPlugin({
-    typescript,
-    // Workaround for typescript plugins that use async functions.
-    // In this case, `rollup-plugin-sourcemaps`.
-    // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-    objectHashIgnoreUnknownHack: true,
-    // For safety, given hack above (see link).
-    clean: true
+    typescript
   }),
   json(),
   commonjs()
@@ -234,13 +228,7 @@ const completeBuilds = [
         mainFields: ['lite', 'module', 'main']
       }),
       typescriptPlugin({
-        typescript,
-        // Workaround for typescript plugins that use async functions.
-        // In this case, `rollup-plugin-sourcemaps`.
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-        objectHashIgnoreUnknownHack: true,
-        // For safety, given hack above (see link).
-        clean: true
+        typescript
       }),
       json(),
       commonjs(),
@@ -265,12 +253,6 @@ const completeBuilds = [
       }),
       typescriptPlugin({
         typescript,
-        // Workaround for typescript plugins that use async functions.
-        // In this case, `rollup-plugin-sourcemaps`.
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/blob/master/README.md
-        objectHashIgnoreUnknownHack: true,
-        // For safety, given hack above (see link).
-        clean: true,
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017'

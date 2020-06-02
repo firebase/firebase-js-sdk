@@ -1,11 +1,12 @@
 {
   "name": "@firebase/storage-types",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "@firebase/storage Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "files": [
     "index.d.ts"

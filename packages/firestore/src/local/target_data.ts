@@ -54,12 +54,12 @@ export class TargetData {
      */
     readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
-    readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    readonly snapshotVersion: SnapshotVersion = SnapshotVersion.min(),
     /**
      * The maximum snapshot version at which the associated view
      * contained no limbo documents.
      */
-    readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.min(),
     /**
      * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that

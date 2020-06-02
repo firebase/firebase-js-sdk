@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,10 +67,15 @@ export function metadataHandler(
 }
 
 export function listHandler(
-  authWrapper: AuthWrapper
+  authWrapper: AuthWrapper,
+  bucket: string
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    const listResult = ListResultUtils.fromResponseString(authWrapper, text);
+    const listResult = ListResultUtils.fromResponseString(
+      authWrapper,
+      bucket,
+      text
+    );
     handlerCheck(listResult !== null);
     return listResult as ListResult;
   }
@@ -190,7 +195,7 @@ export function list(
   const requestInfo = new RequestInfo(
     url,
     method,
-    listHandler(authWrapper),
+    listHandler(authWrapper, location.bucket),
     timeout
   );
   requestInfo.urlParams = urlParams;

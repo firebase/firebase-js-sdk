@@ -49,6 +49,8 @@ import {
   populateWebStorage
 } from './persistence_test_helpers';
 
+/* eslint-disable no-restricted-globals */
+
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 const TEST_ERROR = new FirestoreError('internal', 'Test Error');

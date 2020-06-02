@@ -375,7 +375,7 @@ describeSpec('Limbo Documents:', [], () => {
         .expectLimboDocs(remoteDoc.key)
         // Fail the Limbo resolution which removes the document from the view.
         // This is internally propagated as a NoDocument with
-        // SnapshotVersion.MIN and a read time of zero.
+        // SnapshotVersion.min() and a read time of zero.
         .watchRemoves(
           Query.atPath(path('collection/a')),
           new RpcError(Code.PERMISSION_DENIED, 'Permission denied')

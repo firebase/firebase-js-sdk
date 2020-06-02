@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
+import { deletedDoc, doc, filter, orderBy, path } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
@@ -41,6 +41,40 @@ describeSpec('Listens:', [], () => {
           .userUnlistens(query)
           // should get no events.
           .userListens(query)
+      );
+    }
+  );
+
+  specTest(
+    'Documents outside of view are cleared when listen is removed.',
+    ['eager-gc'],
+    '',
+    () => {
+      const filteredQuery = Query.atPath(path('collection')).addFilter(
+        filter('matches', '==', true)
+      );
+      const unfilteredQuery = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { matches: true });
+      const docB = doc('collection/b', 1000, { matches: true });
+      return (
+        spec()
+          .userSets('collection/a', { matches: false })
+          .userListens(filteredQuery)
+          .watchAcksFull(filteredQuery, 1000, docA, docB)
+          // DocA doesn't match because of a pending mutation
+          .expectEvents(filteredQuery, { added: [docB] })
+          .userSets('collection/b', { matches: false })
+          // DocB doesn't match because of a pending mutation
+          .expectEvents(filteredQuery, { removed: [docB] })
+          .userUnlistens(filteredQuery)
+          // Should get no events since documents are filtered
+          .userListens(filteredQuery)
+          .userUnlistens(filteredQuery)
+          .writeAcks('collection/a', 2000)
+          .writeAcks('collection/b', 3000)
+          // Should get no events since documents were GCed
+          .userListens(unfilteredQuery)
+          .userUnlistens(unfilteredQuery)
       );
     }
   );

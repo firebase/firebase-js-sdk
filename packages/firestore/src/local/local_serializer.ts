@@ -27,7 +27,7 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
 import {
@@ -177,7 +177,7 @@ export class LocalSerializer {
     const lastLimboFreeSnapshotVersion =
       dbTarget.lastLimboFreeSnapshotVersion !== undefined
         ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
-        : SnapshotVersion.MIN;
+        : SnapshotVersion.min();
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
@@ -198,7 +198,7 @@ export class LocalSerializer {
 
   /** Encodes TargetData into a DbTarget for storage locally. */
   toDbTarget(targetData: TargetData): DbTarget {
-    assert(
+    debugAssert(
       TargetPurpose.Listen === targetData.purpose,
       'Only queries with purpose ' +
         TargetPurpose.Listen +

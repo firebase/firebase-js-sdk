@@ -1,14 +1,15 @@
 {
   "name": "@firebase/app-types-exp",
-  "version": "0.800.0",
+  "version": "0.0.800",
   "private": true,
   "description": "@firebase/app Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
     "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove_exp.js temp",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn api-report && yarn doc"
   },

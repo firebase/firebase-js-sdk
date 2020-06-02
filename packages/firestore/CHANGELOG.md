@@ -1,4 +1,26 @@
 # Unreleased
+- [fixed] Fixed an issue that could cause Firestore to temporarily go 
+  offline when a Window visibility event occurred.
+- [feature] Added support for calling  `FirebaseFiresore.settings` with 
+  `{ ignoreUndefinedProperties: true }`. When set, Firestore ignores 
+  undefined properties inside objects rather than rejecting the API call.
+
+# Released
+- [fixed] Fixed a regression introduced in v7.14.2 that incorrectly applied
+  a `FieldValue.increment` in combination with `set({...}, {merge: true})`.
+- [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
+  registered in IndexedDB. Previously, these errors crashed the client.
+- [fixed] Firestore now rejects write operations if they cannot be persisted
+  in IndexedDB. Previously, these errors crashed the client.
+- [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
+  multi-tab notifications while the file system is locked.
+- [feature] Added an `experimentalForceOwningTab` setting that can be used to
+  enable persistence in environments without LocalStorage, which allows
+  persistence to be used in Web Workers (#983).
+
+# 1.10.2
+- [fixed] Temporarily reverted the use of window.crypto to generate document
+  IDs to address compatibility issues with IE 11, WebWorkers, and React Native.
 - [changed] Firestore now limits the number of concurrent document lookups it
   will perform when resolving inconsistencies in the local cache (#2683).
 - [changed] Changed the in-memory representation of Firestore documents to

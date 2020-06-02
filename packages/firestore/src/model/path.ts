@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
 export const DOCUMENT_KEY_NAME = '__name__';
@@ -90,7 +90,10 @@ abstract class BasePath<B extends BasePath<B>> {
 
   popFirst(size?: number): B {
     size = size === undefined ? 1 : size;
-    assert(this.length >= size, "Can't call popFirst() with less segments");
+    debugAssert(
+      this.length >= size,
+      "Can't call popFirst() with less segments"
+    );
     return this.construct(
       this.segments,
       this.offset + size,
@@ -99,12 +102,12 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   popLast(): B {
-    assert(!this.isEmpty(), "Can't call popLast() on empty path");
+    debugAssert(!this.isEmpty(), "Can't call popLast() on empty path");
     return this.construct(this.segments, this.offset, this.length - 1);
   }
 
   firstSegment(): string {
-    assert(!this.isEmpty(), "Can't call firstSegment() on empty path");
+    debugAssert(!this.isEmpty(), "Can't call firstSegment() on empty path");
     return this.segments[this.offset];
   }
 
@@ -113,7 +116,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   get(index: number): string {
-    assert(index < this.length, 'Index out of range');
+    debugAssert(index < this.length, 'Index out of range');
     return this.segments[this.offset + index];
   }
 

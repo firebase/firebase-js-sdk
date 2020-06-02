@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import { SDK_VERSION } from '../constants';
 import * as attributeUtils from '../utils/attributes_utils';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import '../../test/setup';
+import { mergeStrings } from '../utils/string_merger';
 
 describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';
@@ -300,6 +301,83 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_NETWORK_MESSAGE
       );
+    });
+
+    // Performance SDK doesn't instrument requests sent from SDK itself, therefore blacklist
+    // requests sent to cc endpoint.
+    it('skips performance collection if domain is cc', () => {
+      const CC_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+        connectEnd: 0,
+        connectStart: 0,
+        decodedBodySize: 0,
+        domainLookupEnd: 0,
+        domainLookupStart: 0,
+        duration: 39.610000094398856,
+        encodedBodySize: 0,
+        entryType: 'resource',
+        fetchStart: 5645.689999917522,
+        initiatorType: 'fetch',
+        name: 'https://firebaselogging.googleapis.com/v0cc/log?message=a',
+        nextHopProtocol: 'http/2+quic/43',
+        redirectEnd: 0,
+        redirectStart: 0,
+        requestStart: 0,
+        responseEnd: 5685.300000011921,
+        responseStart: 0,
+        secureConnectionStart: 0,
+        startTime: 5645.689999917522,
+        transferSize: 0,
+        workerStart: 0,
+        toJSON: () => {}
+      };
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logNetworkAfterSampling = true;
+      // Calls logNetworkRequest under the hood.
+      createNetworkRequestEntry(CC_NETWORK_PERFORMANCE_ENTRY);
+      clock.tick(1);
+
+      expect(addToQueueStub).not.called;
+    });
+
+    // Performance SDK doesn't instrument requests sent from SDK itself, therefore blacklist
+    // requests sent to fl endpoint.
+    it('skips performance collection if domain is fl', () => {
+      const FL_NETWORK_PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+        connectEnd: 0,
+        connectStart: 0,
+        decodedBodySize: 0,
+        domainLookupEnd: 0,
+        domainLookupStart: 0,
+        duration: 39.610000094398856,
+        encodedBodySize: 0,
+        entryType: 'resource',
+        fetchStart: 5645.689999917522,
+        initiatorType: 'fetch',
+        name: mergeStrings(
+          'hts/frbslgigp.ogepscmv/ieo/eaylg',
+          'tp:/ieaeogn-agolai.o/1frlglgc/o'
+        ),
+        nextHopProtocol: 'http/2+quic/43',
+        redirectEnd: 0,
+        redirectStart: 0,
+        requestStart: 0,
+        responseEnd: 5685.300000011921,
+        responseStart: 0,
+        secureConnectionStart: 0,
+        startTime: 5645.689999917522,
+        transferSize: 0,
+        workerStart: 0,
+        toJSON: () => {}
+      };
+      getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logNetworkAfterSampling = true;
+      // Calls logNetworkRequest under the hood.
+      createNetworkRequestEntry(FL_NETWORK_PERFORMANCE_ENTRY);
+      clock.tick(1);
+
+      expect(addToQueueStub).not.called;
     });
   });
 });

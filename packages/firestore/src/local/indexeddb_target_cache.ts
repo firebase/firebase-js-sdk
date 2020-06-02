@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import {
@@ -29,8 +29,7 @@ import {
 } from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
-  IndexedDbPersistence,
-  IndexedDbTransaction
+  IndexedDbPersistence
 } from './indexeddb_persistence';
 import {
   DbTarget,
@@ -46,7 +45,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore } from './simple_db';
 import { Target } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
@@ -90,8 +89,8 @@ export class IndexedDbTargetCache implements TargetCache {
   getHighestSequenceNumber(
     transaction: PersistenceTransaction
   ): PersistencePromise<ListenSequenceNumber> {
-    return getHighestListenSequenceNumber(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
+    return this.retrieveMetadata(transaction).next(
+      targetGlobal => targetGlobal.highestListenSequenceNumber
     );
   }
 
@@ -140,7 +139,10 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
-        assert(metadata.targetCount > 0, 'Removing from an empty target cache');
+        hardAssert(
+          metadata.targetCount > 0,
+          'Removing from an empty target cache'
+        );
         metadata.targetCount -= 1;
         return this.saveMetadata(transaction, metadata);
       });
@@ -189,9 +191,12 @@ export class IndexedDbTargetCache implements TargetCache {
   private retrieveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
-    return retrieveMetadata(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
-    );
+    return globalTargetStore(transaction)
+      .get(DbTargetGlobal.key)
+      .next(metadata => {
+        hardAssert(metadata !== null, 'Missing metadata row.');
+        return metadata;
+      });
   }
 
   private saveMetadata(
@@ -281,7 +286,7 @@ export class IndexedDbTargetCache implements TargetCache {
     keys.forEach(key => {
       const path = encodeResourcePath(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
-      promises.push(this.referenceDelegate.addReference(txn, key));
+      promises.push(this.referenceDelegate.addReference(txn, targetId, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -298,7 +303,7 @@ export class IndexedDbTargetCache implements TargetCache {
       const path = encodeResourcePath(key.path);
       return PersistencePromise.waitFor([
         store.delete([targetId, path]),
-        this.referenceDelegate.removeReference(txn, key)
+        this.referenceDelegate.removeReference(txn, targetId, key)
       ]);
     });
   }
@@ -371,6 +376,14 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => count > 0);
   }
 
+  /**
+   * Looks up a TargetData entry by target ID.
+   *
+   * @param targetId The target ID of the TargetData entry to look up.
+   * @return The cached TargetData entry, or null if the cache has no entry for
+   * the target.
+   */
+  // PORTING NOTE: Multi-tab only.
   getTargetDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId
@@ -408,27 +421,6 @@ function globalTargetStore(
   return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
     txn,
     DbTargetGlobal.store
-  );
-}
-
-function retrieveMetadata(
-  txn: SimpleDbTransaction
-): PersistencePromise<DbTargetGlobal> {
-  const globalStore = SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
-    DbTargetGlobal.store
-  );
-  return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    assert(metadata !== null, 'Missing metadata row.');
-    return metadata;
-  });
-}
-
-export function getHighestListenSequenceNumber(
-  txn: SimpleDbTransaction
-): PersistencePromise<ListenSequenceNumber> {
-  return retrieveMetadata(txn).next(
-    targetGlobal => targetGlobal.highestListenSequenceNumber
   );
 }
 

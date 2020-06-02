@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ import { dbGet, dbSet, dbRemove } from '../helpers/idb-manager';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
 import { requestUpdateToken, requestGetToken, requestDeleteToken } from './api';
-import { arrayToBase64, base64ToArray} from '../helpers/array-base64-translator';
+import {
+  arrayToBase64,
+  base64ToArray
+} from '../helpers/array-base64-translator';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 /** UpdateRegistration will be called once every week. */

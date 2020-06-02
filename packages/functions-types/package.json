@@ -1,11 +1,12 @@
 {
   "name": "@firebase/functions-types",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "@firebase/functions Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "files": [
     "index.d.ts"

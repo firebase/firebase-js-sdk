@@ -459,7 +459,13 @@ describe('RemoteEvent', () => {
     expect(event.targetMismatches.size).to.equal(1);
     expect(event.targetChanges.size).to.equal(1);
 
-    const expected = updateMapping(SnapshotVersion.MIN, [], [], [doc1], false);
+    const expected = updateMapping(
+      SnapshotVersion.min(),
+      [],
+      [],
+      [doc1],
+      false
+    );
     expectTargetChangeEquals(event.targetChanges.get(1)!, expected);
   });
 

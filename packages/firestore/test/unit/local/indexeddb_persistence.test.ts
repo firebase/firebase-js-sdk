@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -61,10 +63,11 @@ import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
+import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   MOCK_SEQUENCE_NUMBER_SYNCER,
@@ -73,6 +76,9 @@ import {
   TEST_SERIALIZER
 } from './persistence_test_helpers';
 
+use(chaiAsPromised);
+
+/* eslint-disable no-restricted-globals */
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
@@ -106,11 +112,12 @@ function withDb(
     });
 }
 
-async function withCustomPersistence(
+async function withUnstartedCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
-    persistence: IndexedDbPersistence,
+    persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
@@ -124,33 +131,76 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-    allowTabSynchronization: multiClient,
-    persistenceKey: TEST_PERSISTENCE_PREFIX,
+  const persistence = new MockIndexedDbPersistence(
+    multiClient,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
+    LruParams.DEFAULT,
     queue,
     serializer,
-    lruParams: LruParams.DEFAULT,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-  });
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    forceOwningTab
+  );
 
   await fn(persistence, platform, queue);
-  await persistence.shutdown();
+}
+
+function withCustomPersistence(
+  clientId: ClientId,
+  multiClient: boolean,
+  forceOwningTab: boolean,
+  fn: (
+    persistence: MockIndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withUnstartedCustomPersistence(
+    clientId,
+    multiClient,
+    forceOwningTab,
+    async (persistence, platform, queue) => {
+      await persistence.start();
+      await fn(persistence, platform, queue);
+      await persistence.shutdown();
+    }
+  );
 }
 
 async function withPersistence(
   clientId: ClientId,
   fn: (
-    persistence: IndexedDbPersistence,
+    persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ false,
+    fn
+  );
 }
 
 async function withMultiClientPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: MockIndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ true,
+    /* forceOwningTab= */ false,
+    fn
+  );
+}
+
+async function withForcedPersistence(
   clientId: ClientId,
   fn: (
     persistence: IndexedDbPersistence,
@@ -158,7 +208,12 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ true,
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -221,7 +276,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const resetTargetGlobal = new DbTargetGlobal(
       /*highestTargetId=*/ 0,
       /*highestListenSequencNumber=*/ 0,
-      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.MIN.toTimestamp(),
+      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.min().toTimestamp(),
       /*targetCount=*/ 0
     );
 
@@ -1043,7 +1098,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     } and ${thatVisibility}`;
 
     it(testName, () => {
-      return withPersistence(
+      return withMultiClientPersistence(
         'thatClient',
         async (thatPersistence, thatPlatform, thatQueue) => {
           thatPlatform.raiseVisibilityEvent(thatVisibility);
@@ -1054,7 +1109,7 @@ describe('IndexedDb: canActAsPrimary', () => {
           // the lease until it expires.
           await clearPrimaryLease();
 
-          await withPersistence(
+          await withMultiClientPersistence(
             'thisClient',
             async (thisPersistence, thisPlatform, thisQueue) => {
               thisPlatform.raiseVisibilityEvent(thisVisibility);
@@ -1105,6 +1160,18 @@ describe('IndexedDb: canActAsPrimary', () => {
       expect(await getCurrentLeaseOwner()).to.not.be.null;
     });
   });
+
+  it('obtains lease if forceOwningTab is set', () => {
+    return withPersistence('clientA', async clientA => {
+      await withForcedPersistence('clientB', async () => {
+        return expect(
+          clientA.runTransaction('tx', 'readwrite-primary', () =>
+            PersistencePromise.resolve()
+          )
+        ).to.be.eventually.rejected;
+      });
+    });
+  });
 });
 
 describe('IndexedDb: allowTabSynchronization', () => {
@@ -1117,12 +1184,67 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
+  it('blocks start() on IndexedDbTransactionError when synchronization is disabled ', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      /* forceOwningTab= */ false,
+      async db => {
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
+        await expect(db.start()).to.eventually.be.rejectedWith(
+          'Failed to obtain exclusive access to the persistence layer.'
+        );
+        await db.shutdown();
+      }
+    );
+  });
+
+  it('allows start() with IndexedDbTransactionError when synchronization is enabled ', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ true,
+      /* forceOwningTab= */ false,
+      async db => {
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
+        await db.start();
+        await db.shutdown();
+      }
+    );
+  });
+
+  it('blocks start() when getHighestListenSequenceNumber() fails', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      /* forceOwningTab= */ false,
+      async db1 => {
+        db1.injectFailures = ['getHighestListenSequenceNumber'];
+        await expect(db1.start()).to.eventually.be.rejectedWith(
+          'IndexedDB transaction failed'
+        );
+      }
+    );
+  });
+
+  it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
+    await withPersistence('clientA', async (db, _, queue) => {
+      db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
+      await queue.runAllDelayedOperationsUntil(TimerId.ClientMetadataRefresh);
+      await queue.enqueue(() => {
+        db.injectFailures = [];
+        return db.runTransaction('check success', 'readwrite-primary', () =>
+          PersistencePromise.resolve()
+        );
+      });
+    });
+  });
+
   it('rejects access when synchronization is disabled', async () => {
-    await withPersistence('clientA', async db1 => {
+    await withMultiClientPersistence('clientA', async db1 => {
       await expect(
         withPersistence('clientB', db2 => Promise.resolve())
       ).to.eventually.be.rejectedWith(
-        'Another tab has exclusive access to the persistence layer.'
+        'Failed to obtain exclusive access to the persistence layer.'
       );
     });
   });

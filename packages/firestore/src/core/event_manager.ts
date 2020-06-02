@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
-import { OnlineState, TargetId } from './types';
-import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
+import { OnlineState } from './types';
+import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
  * tracked by EventManager.
  */
 class QueryListenersInfo {
-  viewSnap: ViewSnapshot | null = null;
-  targetId: TargetId = 0;
+  viewSnap: ViewSnapshot | undefined = undefined;
   listeners: QueryListener[] = [];
 }
 
@@ -59,7 +59,7 @@ export class EventManager implements SyncEngineListener {
     this.syncEngine.subscribe(this);
   }
 
-  listen(listener: QueryListener): Promise<TargetId> {
+  async listen(listener: QueryListener): Promise<void> {
     const query = listener.query;
     let firstListen = false;
 
@@ -67,13 +67,27 @@ export class EventManager implements SyncEngineListener {
     if (!queryInfo) {
       firstListen = true;
       queryInfo = new QueryListenersInfo();
-      this.queries.set(query, queryInfo);
     }
+
+    if (firstListen) {
+      try {
+        queryInfo.viewSnap = await this.syncEngine.listen(query);
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Initialization of query '${listener.query}' failed`
+        );
+        listener.onError(firestoreError);
+        return;
+      }
+    }
+
+    this.queries.set(query, queryInfo);
     queryInfo.listeners.push(listener);
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.
     const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
-    assert(
+    debugAssert(
       !raisedEvent,
       "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
     );
@@ -83,15 +97,6 @@ export class EventManager implements SyncEngineListener {
       if (raisedEvent) {
         this.raiseSnapshotsInSyncEvent();
       }
-    }
-
-    if (firstListen) {
-      return this.syncEngine.listen(query).then(targetId => {
-        queryInfo!.targetId = targetId;
-        return targetId;
-      });
-    } else {
-      return Promise.resolve(queryInfo.targetId);
     }
   }
 
@@ -226,7 +231,7 @@ export class QueryListener {
    * indeed raised.
    */
   onViewSnapshot(snap: ViewSnapshot): boolean {
-    assert(
+    debugAssert(
       snap.docChanges.length > 0 || snap.syncStateChanged,
       'We got a new snapshot with no changes?'
     );
@@ -288,7 +293,7 @@ export class QueryListener {
     snap: ViewSnapshot,
     onlineState: OnlineState
   ): boolean {
-    assert(
+    debugAssert(
       !this.raisedInitialEvent,
       'Determining whether to raise first event but already had first event'
     );
@@ -304,7 +309,7 @@ export class QueryListener {
     // Don't raise the event if we're online, aren't synced yet (checked
     // above) and are waiting for a sync.
     if (this.options.waitForSyncWhenOnline && maybeOnline) {
-      assert(
+      debugAssert(
         snap.fromCache,
         'Waiting for sync, but snapshot is not from cache'
       );
@@ -337,7 +342,7 @@ export class QueryListener {
   }
 
   private raiseInitialEvent(snap: ViewSnapshot): void {
-    assert(
+    debugAssert(
       !this.raisedInitialEvent,
       'Trying to raise initial events for second time'
     );

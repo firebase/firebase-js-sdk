@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { Deferred } from '../util/promise';
 import { TimerId, AsyncQueue } from '../util/async_queue';
 import { ExponentialBackoff } from '../remote/backoff';
 import { Transaction } from './transaction';
-import { RemoteStore } from '../remote/remote_store';
+import { Datastore } from '../remote/datastore';
 import { isNullOrUndefined } from '../util/types';
 import { isPermanentError } from '../remote/rpc_error';
 import { FirestoreError } from '../util/error';
@@ -36,13 +36,13 @@ export class TransactionRunner<T> {
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
-    private readonly remoteStore: RemoteStore,
+    private readonly datastore: Datastore,
     private readonly updateFunction: (transaction: Transaction) => Promise<T>,
     private readonly deferred: Deferred<T>
   ) {
     this.backoff = new ExponentialBackoff(
       this.asyncQueue,
-      TimerId.RetryTransaction
+      TimerId.TransactionRetry
     );
   }
 
@@ -53,7 +53,7 @@ export class TransactionRunner<T> {
 
   private runWithBackOff(): void {
     this.backoff.backoffAndRun(async () => {
-      const transaction = this.remoteStore.createTransaction();
+      const transaction = new Transaction(this.datastore);
       const userPromise = this.tryRunUpdateFunction(transaction);
       if (userPromise) {
         userPromise

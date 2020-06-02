@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ goog.provide('fireauth.authStorage.Persistence');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.Factory');
+goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.Storage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -106,6 +107,15 @@ fireauth.authStorage.validatePersistenceArgument =
     case fireauth.util.Env.NODE:
       // Only none is supported in Node.js.
       if (arg !== fireauth.authStorage.Persistence.NONE) {
+        throw unsupportedTypeError;
+      }
+      break;
+    case fireauth.util.Env.WORKER:
+      // In a worker environment, either LOCAL or NONE are supported.
+      // If indexedDB not supported and LOCAL provided, throw an error.
+      if (arg === fireauth.authStorage.Persistence.SESSION ||
+          (!fireauth.storage.IndexedDB.isAvailable() &&
+           arg !== fireauth.authStorage.Persistence.NONE)) {
         throw unsupportedTypeError;
       }
       break;

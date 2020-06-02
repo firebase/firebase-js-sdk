@@ -4,12 +4,30 @@
 
 ```ts
 
+import { Component } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAppConfig } from '@firebase/app-types-exp';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevel } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
+import { Name } from '@firebase/component';
+import { Provider } from '@firebase/component';
+
+// @internal (undocumented)
+export function _addComponent(app: FirebaseApp, component: Component): void;
+
+// @internal (undocumented)
+export function _addOrOverwriteComponent(app: FirebaseApp, component: Component): void;
+
+// @internal (undocumented)
+export const _apps: Map<string, FirebaseApp>;
+
+// @internal
+export function _clearComponents(): void;
+
+// @internal
+export const _components: Map<string, Component<any>>;
 
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
@@ -19,6 +37,9 @@ export function getApp(name?: string): FirebaseApp;
 
 // @public
 export function getApps(): FirebaseApp[];
+
+// @internal (undocumented)
+export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
 
 // @public
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
@@ -30,6 +51,9 @@ export { LogLevel }
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
+
+// @internal (undocumented)
+export function _registerComponent(component: Component): boolean;
 
 // @public
 export function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void;

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 const { spawn } = require('child-process-promise');
-const { projectRoot: root } = require('./constants');
+const { projectRoot: root } = require('../../utils');
 const ora = require('ora');
 
 exports.reinstallDeps = async () => {
@@ -36,7 +36,7 @@ exports.reinstallDeps = async () => {
 exports.buildPackages = async () => {
   try {
     const spinner = ora(' Building Packages').start();
-    await spawn('yarn', ['build'], {
+    await spawn('yarn', ['build:release'], {
       cwd: root
     });
     spinner.stopAndPersist({

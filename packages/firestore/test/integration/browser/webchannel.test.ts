@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import { WebChannelConnection } from '../../../src/platform_browser/webchannel_c
 import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/helpers';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
+
+/* eslint-disable no-restricted-globals */
 
 // We need to check both `window` and `window.navigator` to make sure we are
 // not running in Node with IndexedDBShim.

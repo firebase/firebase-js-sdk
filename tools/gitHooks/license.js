@@ -19,6 +19,7 @@ const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const fs = require('mz/fs');
 const ora = require('ora');
+const chalk = require('chalk');
 
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
@@ -75,7 +76,7 @@ function rewriteCopyrightLine(contents) {
   return newLines.join('\n');
 }
 
-async function doLicenseCommit(changedFiles) {
+async function doLicense(changedFiles) {
   const licenseSpinner = ora(' Validating License Headers').start();
 
   const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
@@ -114,20 +115,26 @@ async function doLicenseCommit(changedFiles) {
     symbol: '✅'
   });
 
-  const hasDiff = await git.diff();
+  // Diff unstaged (license writes) against staged.
+  const stageDiff = await git.diff(['--name-only']);
 
-  if (!hasDiff) return;
+  if (!stageDiff) {
+    console.log(chalk`\n{red License pass caused no changes.}\n`);
+    return;
+  } else {
+    console.log(
+      `License script modified ${stageDiff.split('\n').length - 1} files.`
+    );
+  }
 
-  const gitSpinner = ora(' Creating automated license commit').start();
+  const gitSpinner = ora(' Git staging license text modifications.').start();
   await git.add('.');
 
-  await git.commit('[AUTOMATED]: License Headers');
-
   gitSpinner.stopAndPersist({
-    symbol: '✅'
+    symbol: '▶️'
   });
 }
 
 module.exports = {
-  doLicenseCommit
+  doLicense
 };

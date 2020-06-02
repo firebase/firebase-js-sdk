@@ -20,6 +20,7 @@ import * as path from 'path';
 import { externs } from './externs.json';
 import { renameInternals } from './scripts/rename-internals';
 import { extractPublicIdentifiers } from './scripts/extract-api';
+import { removeAsserts } from './scripts/remove-asserts';
 
 import pkg from './package.json';
 
@@ -43,11 +44,13 @@ const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
 /**
- * A transformer that appends a __PRIVATE_ prefix to all internal symbols.
+ * Transformers that remove calls to `debugAssert`, messages for 'fail` and
+ * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-export const appendPrivatePrefixTransformers = [
+export const firestoreTransformers = [
   service => ({
     before: [
+      removeAsserts(service.getProgram()),
       renameInternals(service.getProgram(), {
         publicIdentifiers,
         prefix: '__PRIVATE_'

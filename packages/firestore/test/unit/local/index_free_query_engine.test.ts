@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
-import { assert } from '../../../src/util/assert';
+import { debugAssert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
 
@@ -60,7 +60,7 @@ const MATCHING_DOC_B = doc('coll/b', 1, { matches: true, order: 2 });
 const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
 
 const LAST_LIMBO_FREE_SNAPSHOT = version(10);
-const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.MIN;
+const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
 
 /**
  * A LocalDocumentsView wrapper that inspects the arguments to
@@ -74,7 +74,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
+    const indexFreeExecution = !SnapshotVersion.min().isEqual(sinceReadTime);
 
     expect(indexFreeExecution).to.eq(
       this.expectIndexFreeExecution,
@@ -139,7 +139,7 @@ describe('IndexFreeQueryEngine', () => {
     query: Query,
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
-    assert(
+    debugAssert(
       localDocuments.expectIndexFreeExecution !== undefined,
       'Encountered runQuery() call not wrapped in expectIndexFreeQuery()/expectFullCollectionQuery()'
     );

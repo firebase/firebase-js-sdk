@@ -23,6 +23,9 @@ const simpleGit = require('simple-git/promise');
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
+// use test:ci command in CI
+const testCommand = !!process.env.CI ? 'test:ci' : 'test';
+
 /**
  * Changes to these files warrant running all tests.
  */
@@ -34,7 +37,7 @@ const fullTestTriggerFiles = [
   'config/karma.base.js',
   'config/.eslintrc.js',
   'config/mocha.browser.opts',
-  'config/mocha.node.opts',
+  'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',
@@ -67,7 +70,8 @@ const specialPaths = {
     'packages/database'
   ],
   'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
-  'scripts/emulator-testing/database-test-runner.ts': ['packages/database']
+  'scripts/emulator-testing/database-test-runner.ts': ['packages/database'],
+  'packages/firestore': ['integration/firestore']
 };
 
 /**
@@ -92,8 +96,11 @@ async function getChangedPackages() {
       return { testAll: true };
     }
     // Files outside a package dir that should trigger its tests.
-    if (specialPaths[filename]) {
-      for (const targetPackage of specialPaths[filename]) {
+    const matchingSpecialPaths = Object.keys(specialPaths).filter(path =>
+      filename.startsWith(path)
+    );
+    for (const matchingSpecialPath of matchingSpecialPaths) {
+      for (const targetPackage of specialPaths[matchingSpecialPath]) {
         changedPackages[targetPackage] = 'dependency';
       }
     }
@@ -102,10 +109,8 @@ async function getChangedPackages() {
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {
-        if (changedPackage.scripts.test) {
-          // Add the package itself.
-          changedPackages[match[1]] = 'direct';
-        }
+        // Add the package itself.
+        changedPackages[match[1]] = 'direct';
         // Add packages that depend on it.
         for (const package in depGraph) {
           if (depGraph[package].includes(changedPackage.name)) {
@@ -115,7 +120,7 @@ async function getChangedPackages() {
                 depData.location,
                 'package.json'
               ));
-              if (depPkgJson && depPkgJson.scripts.test) {
+              if (depPkgJson) {
                 const depPath = depData.location.replace(`${root}/`, '');
                 if (!changedPackages[depPath]) {
                   changedPackages[depPath] = 'dependency';
@@ -148,11 +153,11 @@ async function runTests(pathList) {
   if (!pathList) return;
   for (const testPath of pathList) {
     try {
-      await spawn('yarn', ['--cwd', testPath, 'test'], {
+      await spawn('yarn', ['--cwd', testPath, testCommand], {
         stdio: 'inherit'
       });
     } catch (e) {
-      throw new Error(`Error running tests in ${testPath}.`);
+      throw new Error(`Error running "yarn ${testCommand}" in ${testPath}.`);
     }
   }
 }
@@ -161,7 +166,7 @@ async function main() {
   try {
     const { testAll, changedPackages = {} } = await getChangedPackages();
     if (testAll) {
-      await spawn('yarn', ['test'], {
+      await spawn('yarn', [testCommand], {
         stdio: 'inherit'
       });
     } else {
@@ -178,11 +183,13 @@ async function main() {
           console.log(chalk`{yellow ${filename} (depends on modified files)}`);
         }
       }
+
+      changedPackages['packages/app'] = 'direct';
       await runTests(alwaysRunTestPaths);
       await runTests(Object.keys(changedPackages));
     }
   } catch (e) {
-    console.error(e);
+    console.error(chalk`{red ${e}}`);
     process.exit(1);
   }
 }

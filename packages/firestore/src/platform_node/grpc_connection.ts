@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -34,9 +33,9 @@ import { DatabaseInfo } from '../core/database_info';
 import { Connection, Stream } from '../remote/connection';
 import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { assert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logError, logDebug, logWarn } from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 
@@ -51,7 +50,7 @@ function createMetadata(
   databaseInfo: DatabaseInfo,
   token: Token | null
 ): Metadata {
-  assert(
+  hardAssert(
     token === null || token.type === 'OAuth',
     'If provided, token must be OAuth'
   );
@@ -231,7 +230,7 @@ export class GrpcConnection implements Connection {
     });
 
     grpcStream.on('error', (grpcError: ServiceError) => {
-      logDebug(
+      logWarn(
         LOG_TAG,
         'GRPC stream error. Code:',
         grpcError.code,

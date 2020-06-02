@@ -18,8 +18,7 @@
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { assert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';
@@ -29,43 +28,25 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-import { DatabaseInfo } from '../core/database_info';
-import { PersistenceSettings } from '../core/firestore_client';
 import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
-import { AsyncQueue } from '../util/async_queue';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
-  GarbageCollectionScheduler,
   Persistence,
-  PersistenceProvider,
   PersistenceTransaction,
   PersistenceTransactionMode,
-  PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { Platform } from '../platform/platform';
 import { ReferenceSet } from './reference_set';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState
-} from './shared_client_state';
 import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
-
-const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
-
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
@@ -95,7 +76,6 @@ export class MemoryPersistence implements Persistence {
    * checked or asserted on every access.
    */
   constructor(
-    private readonly clientId: ClientId,
     referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
   ) {
     this._started = true;
@@ -110,6 +90,10 @@ export class MemoryPersistence implements Persistence {
     );
   }
 
+  start(): Promise<void> {
+    return Promise.resolve();
+  }
+
   shutdown(): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     this._started = false;
@@ -120,22 +104,7 @@ export class MemoryPersistence implements Persistence {
     return this._started;
   }
 
-  async getActiveClients(): Promise<ClientId[]> {
-    return [this.clientId];
-  }
-
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void> {
-    // All clients using memory persistence act as primary.
-    return primaryStateListener(true);
-  }
-
   setDatabaseDeletedListener(): void {
-    // No op.
-  }
-
-  setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }
 
@@ -215,10 +184,16 @@ export interface MemoryReferenceDelegate extends ReferenceDelegate {
 }
 
 export class MemoryEagerDelegate implements MemoryReferenceDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
+  /** Tracks all documents that are active in Query views. */
+  private localViewReferences: ReferenceSet = new ReferenceSet();
+  /** The list of documents that are potentially GCed after each transaction. */
   private _orphanedDocuments: Set<DocumentKey> | null = null;
 
-  constructor(private readonly persistence: MemoryPersistence) {}
+  private constructor(private readonly persistence: MemoryPersistence) {}
+
+  static factory(persistence: MemoryPersistence): MemoryEagerDelegate {
+    return new MemoryEagerDelegate(persistence);
+  }
 
   private get orphanedDocuments(): Set<DocumentKey> {
     if (!this._orphanedDocuments) {
@@ -228,27 +203,27 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     }
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
+    this.localViewReferences.addReference(key, targetId);
     this.orphanedDocuments.delete(key);
     return PersistencePromise.resolve();
   }
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
+    this.localViewReferences.removeReference(key, targetId);
     this.orphanedDocuments.add(key);
     return PersistencePromise.resolve();
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -260,6 +235,10 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     txn: PersistenceTransaction,
     targetData: TargetData
   ): PersistencePromise<void> {
+    const orphaned = this.localViewReferences.removeReferencesForId(
+      targetData.targetId
+    );
+    orphaned.forEach(key => this.orphanedDocuments.add(key));
     const cache = this.persistence.getTargetCache();
     return cache
       .getMatchingKeysForTargetId(txn, targetData.targetId)
@@ -317,15 +296,15 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
+      () =>
+        PersistencePromise.resolve(this.localViewReferences.containsKey(key)),
       () => this.persistence.getTargetCache().containsKey(txn, key),
-      () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key))
+      () => this.persistence.mutationQueuesContainKey(txn, key)
     ]);
   }
 }
 
 export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null = null;
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
@@ -398,10 +377,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     );
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.inMemoryPins = inMemoryPins;
-  }
-
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
@@ -430,7 +405,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return p.next(() => changeBuffer.apply(txn)).next(() => count);
   }
 
-  removeMutationReference(
+  markPotentiallyOrphaned(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
@@ -448,6 +423,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   addReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
@@ -456,6 +432,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeReference(
     txn: PersistenceTransaction,
+    targetId: TargetId,
     key: DocumentKey
   ): PersistencePromise<void> {
     this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
@@ -485,7 +462,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
       () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key)),
       () => this.persistence.getTargetCache().containsKey(txn, key),
       () => {
         const orphanedAt = this.orphanedSequenceNumbers.get(key);
@@ -498,55 +474,5 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
     return this.persistence.getRemoteDocumentCache().getSize(txn);
-  }
-}
-
-export class MemoryPersistenceProvider implements PersistenceProvider {
-  private clientId: ClientId | undefined;
-
-  initialize(
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    platform: Platform,
-    clientId: ClientId,
-    initialUser: User,
-    settings: PersistenceSettings
-  ): Promise<void> {
-    if (settings.durable) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-      );
-    }
-    this.clientId = clientId;
-    return Promise.resolve();
-  }
-
-  getGarbageCollectionScheduler(): GarbageCollectionScheduler {
-    let started = false;
-    return {
-      started,
-      start: () => (started = true),
-      stop: () => (started = false)
-    };
-  }
-
-  getPersistence(): Persistence {
-    assert(!!this.clientId, 'initialize() not called');
-    return new MemoryPersistence(
-      this.clientId,
-      p => new MemoryEagerDelegate(p)
-    );
-  }
-
-  getSharedClientState(): SharedClientState {
-    return new MemorySharedClientState();
-  }
-
-  clearPersistence(): never {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
   }
 }

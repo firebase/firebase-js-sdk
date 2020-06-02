@@ -3,10 +3,11 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "dependencies": {
-    "firebase": "7.13.2"
+    "firebase": "7.14.6"
   },
   "devDependencies": {
     "typescript": "3.8.3"

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
-import { CancelablePromise } from '../util/promise';
+
 const LOG_TAG = 'ExponentialBackoff';
 
 /**
@@ -42,7 +42,7 @@ const DEFAULT_BACKOFF_MAX_DELAY_MS = 60 * 1000;
  */
 export class ExponentialBackoff {
   private currentBaseMs: number = 0;
-  private timerPromise: CancelablePromise<void> | null = null;
+  private timerPromise: DelayedOperation<void> | null = null;
   /** The last backoff attempt, as epoch milliseconds. */
   private lastAttemptTime = Date.now();
 
@@ -119,7 +119,7 @@ export class ExponentialBackoff {
       desiredDelayWithJitterMs - delaySoFarMs
     );
 
-    if (this.currentBaseMs > 0) {
+    if (remainingDelayMs > 0) {
       logDebug(
         LOG_TAG,
         `Backing off for ${remainingDelayMs} ms ` +
@@ -146,6 +146,13 @@ export class ExponentialBackoff {
     }
     if (this.currentBaseMs > this.maxDelayMs) {
       this.currentBaseMs = this.maxDelayMs;
+    }
+  }
+
+  skipBackoff(): void {
+    if (this.timerPromise !== null) {
+      this.timerPromise.skipDelay();
+      this.timerPromise = null;
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
+import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from '../../../src/remote/datastore';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -124,30 +128,14 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 }
 
 describe('Watch Stream', () => {
-  let streamListener: StreamStatusListener;
-
-  beforeEach(() => {
-    streamListener = new StreamStatusListener();
-  });
-
-  afterEach(() => {
-    streamListener.verifyNoPendingCallbacks();
-  });
-
   /**
    * Verifies that the watch stream issues an onClose callback after a
    * call to stop().
    */
   it('can be stopped before handshake', () => {
-    let watchStream: PersistentListenStream;
-
-    return withTestDatastore(ds => {
-      watchStream = ds.newPersistentWatchStream(streamListener);
-      watchStream.start();
-
+    return withTestWatchStream((watchStream, streamListener) => {
       return streamListener.awaitCallback('open').then(async () => {
         await watchStream.stop();
-
         await streamListener.awaitCallback('close');
       });
     });
@@ -173,68 +161,40 @@ class MockCredentialsProvider extends EmptyCredentialsProvider {
 }
 
 describe('Write Stream', () => {
-  let streamListener: StreamStatusListener;
-
-  beforeEach(() => {
-    streamListener = new StreamStatusListener();
-  });
-
-  afterEach(() => {
-    streamListener.verifyNoPendingCallbacks();
-  });
-
   /**
    * Verifies that the write stream issues an onClose callback after a call to
    * stop().
    */
   it('can be stopped before handshake', () => {
-    let writeStream: PersistentWriteStream;
+    return withTestWriteStream(async (writeStream, streamListener) => {
+      await streamListener.awaitCallback('open');
+      await writeStream.stop();
+      await streamListener.awaitCallback('close');
+    });
+  });
 
-    return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
-      return streamListener.awaitCallback('open');
-    }).then(async () => {
+  it('can be stopped after handshake', () => {
+    return withTestWriteStream(async (writeStream, streamListener) => {
+      await streamListener.awaitCallback('open');
+
+      // Writing before the handshake should throw
+      expect(() => writeStream.writeMutations(SINGLE_MUTATION)).to.throw(
+        'Handshake must be complete before writing mutations'
+      );
+      writeStream.writeHandshake();
+      await streamListener.awaitCallback('handshakeComplete');
+
+      // Now writes should succeed
+      writeStream.writeMutations(SINGLE_MUTATION);
+      await streamListener.awaitCallback('mutationResult');
       await writeStream.stop();
 
       await streamListener.awaitCallback('close');
     });
   });
 
-  it('can be stopped after handshake', () => {
-    let writeStream: PersistentWriteStream;
-
-    return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
-      return streamListener.awaitCallback('open');
-    })
-      .then(() => {
-        // Writing before the handshake should throw
-        expect(() => writeStream.writeMutations(SINGLE_MUTATION)).to.throw(
-          'Handshake must be complete before writing mutations'
-        );
-        writeStream.writeHandshake();
-        return streamListener.awaitCallback('handshakeComplete');
-      })
-      .then(() => {
-        // Now writes should succeed
-        writeStream.writeMutations(SINGLE_MUTATION);
-        return streamListener.awaitCallback('mutationResult');
-      })
-      .then(async () => {
-        await writeStream.stop();
-
-        await streamListener.awaitCallback('close');
-      });
-  });
-
   it('closes when idle', () => {
-    const queue = new AsyncQueue();
-
-    return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
+    return withTestWriteStream((writeStream, streamListener, queue) => {
       return streamListener
         .awaitCallback('open')
         .then(() => {
@@ -246,91 +206,107 @@ describe('Write Stream', () => {
           expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
             .true;
           return Promise.all([
-            queue.runDelayedOperationsEarly(TimerId.WriteStreamIdle),
+            queue.runAllDelayedOperationsUntil(TimerId.WriteStreamIdle),
             streamListener.awaitCallback('close')
           ]);
         })
         .then(() => {
           expect(writeStream.isOpen()).to.be.false;
         });
-    }, queue);
+    });
   });
 
   it('cancels idle on write', () => {
-    const queue = new AsyncQueue();
+    return withTestWriteStream(async (writeStream, streamListener, queue) => {
+      await streamListener.awaitCallback('open');
+      writeStream.writeHandshake();
+      await streamListener.awaitCallback('handshakeComplete');
 
-    return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
-      return streamListener
-        .awaitCallback('open')
-        .then(() => {
-          writeStream.writeHandshake();
-          return streamListener.awaitCallback('handshakeComplete');
-        })
-        .then(() => {
-          // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
-          writeStream.markIdle();
-          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
-            .true;
-          writeStream.writeMutations(SINGLE_MUTATION);
-          return streamListener.awaitCallback('mutationResult');
-        })
-        .then(() => queue.runDelayedOperationsEarly(TimerId.All))
-        .then(() => {
-          expect(writeStream.isOpen()).to.be.true;
-        });
-    }, queue);
+      // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
+      writeStream.markIdle();
+      expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
+        .true;
+      writeStream.writeMutations(SINGLE_MUTATION);
+      await streamListener.awaitCallback('mutationResult');
+
+      await queue.runAllDelayedOperationsUntil(TimerId.All);
+      expect(writeStream.isOpen()).to.be.true;
+    });
   });
 
   it('force refreshes auth token on receiving unauthenticated error', () => {
-    const queue = new AsyncQueue();
     const credentials = new MockCredentialsProvider();
 
-    return withTestDatastore(
-      ds => {
-        const writeStream = ds.newPersistentWriteStream(streamListener);
-        writeStream.start();
-        return streamListener
-          .awaitCallback('open')
-          .then(() => {
-            // Simulate callback from GRPC with an unauthenticated error -- this should invalidate
-            // the token.
-            return writeStream.handleStreamClose(
-              new FirestoreError(Code.UNAUTHENTICATED, '')
-            );
-          })
-          .then(() => {
-            return streamListener.awaitCallback('close');
-          })
-          .then(() => {
-            writeStream.start();
-            return streamListener.awaitCallback('open');
-          })
-          .then(() => {
-            // Simulate a different error -- token should not be invalidated this time.
-            return writeStream.handleStreamClose(
-              new FirestoreError(Code.UNAVAILABLE, '')
-            );
-          })
-          .then(() => {
-            return streamListener.awaitCallback('close');
-          })
-          .then(() => {
-            writeStream.start();
-            return streamListener.awaitCallback('open');
-          })
-          .then(() => {
-            expect(credentials.observedStates).to.deep.equal([
-              'getToken',
-              'invalidateToken',
-              'getToken',
-              'getToken'
-            ]);
-          });
-      },
-      queue,
-      credentials
-    );
+    return withTestWriteStream(async (writeStream, streamListener) => {
+      await streamListener.awaitCallback('open');
+
+      // Simulate callback from GRPC with an unauthenticated error -- this should invalidate
+      // the token.
+      await writeStream.handleStreamClose(
+        new FirestoreError(Code.UNAUTHENTICATED, '')
+      );
+      await streamListener.awaitCallback('close');
+
+      writeStream.start();
+      await streamListener.awaitCallback('open');
+
+      // Simulate a different error -- token should not be invalidated this time.
+      await writeStream.handleStreamClose(
+        new FirestoreError(Code.UNAVAILABLE, '')
+      );
+
+      await streamListener.awaitCallback('close');
+
+      writeStream.start();
+      await streamListener.awaitCallback('open');
+      expect(credentials.observedStates).to.deep.equal([
+        'getToken',
+        'invalidateToken',
+        'getToken',
+        'getToken'
+      ]);
+    }, credentials);
   });
 });
+
+export async function withTestWriteStream(
+  fn: (
+    writeStream: PersistentWriteStream,
+    streamListener: StreamStatusListener,
+    queue: AsyncQueue
+  ) => Promise<void>,
+  credentialsProvider = new EmptyCredentialsProvider()
+): Promise<void> {
+  await withTestDatastore(async datastore => {
+    const queue = new AsyncQueue();
+    const streamListener = new StreamStatusListener();
+    const writeStream = newPersistentWriteStream(
+      datastore,
+      queue,
+      streamListener
+    );
+    await writeStream.start();
+    await fn(writeStream, streamListener, queue);
+    streamListener.verifyNoPendingCallbacks();
+  }, credentialsProvider);
+}
+
+export async function withTestWatchStream(
+  fn: (
+    watchStream: PersistentListenStream,
+    streamListener: StreamStatusListener
+  ) => Promise<void>
+): Promise<void> {
+  await withTestDatastore(async datastore => {
+    const queue = new AsyncQueue();
+    const streamListener = new StreamStatusListener();
+    const watchStream = newPersistentWatchStream(
+      datastore,
+      queue,
+      streamListener
+    );
+    await watchStream.start();
+    await fn(watchStream, streamListener);
+    streamListener.verifyNoPendingCallbacks();
+  });
+}

@@ -27,9 +27,9 @@ import { Document, NoDocument } from '../../src/model/document';
 import { mapRpcCodeFromCode } from '../../src/remote/rpc_error';
 import { fail } from '../../src/util/assert';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { dbId } from './helpers';
+import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
-const serializer = new JsonProtoSerializer(dbId('project'), {
+const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
   useProto3Json: true
 });
 

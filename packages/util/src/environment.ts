@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,4 +124,13 @@ export function isUWP(): boolean {
  */
 export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
+}
+
+/** Returns true if we are running in Safari. */
+export function isSafari(): boolean {
+  return (
+    !isNode() &&
+    navigator.userAgent.includes('Safari') &&
+    !navigator.userAgent.includes('Chrome')
+  );
 }

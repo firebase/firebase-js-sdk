@@ -34,7 +34,7 @@ import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { ObjectValue } from '../model/field_value';
+import { ObjectValue } from '../model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -49,7 +49,7 @@ import {
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
 import {
@@ -77,26 +77,26 @@ import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
-  dirs[Direction.ASCENDING.name] = 'ASCENDING';
-  dirs[Direction.DESCENDING.name] = 'DESCENDING';
+  dirs[Direction.ASCENDING] = 'ASCENDING';
+  dirs[Direction.DESCENDING] = 'DESCENDING';
   return dirs;
 })();
 
 const OPERATORS = (() => {
   const ops: { [op: string]: api.FieldFilterOp } = {};
-  ops[Operator.LESS_THAN.name] = 'LESS_THAN';
-  ops[Operator.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
-  ops[Operator.GREATER_THAN.name] = 'GREATER_THAN';
-  ops[Operator.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
-  ops[Operator.EQUAL.name] = 'EQUAL';
-  ops[Operator.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
-  ops[Operator.IN.name] = 'IN';
-  ops[Operator.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
+  ops[Operator.LESS_THAN] = 'LESS_THAN';
+  ops[Operator.LESS_THAN_OR_EQUAL] = 'LESS_THAN_OR_EQUAL';
+  ops[Operator.GREATER_THAN] = 'GREATER_THAN';
+  ops[Operator.GREATER_THAN_OR_EQUAL] = 'GREATER_THAN_OR_EQUAL';
+  ops[Operator.EQUAL] = 'EQUAL';
+  ops[Operator.ARRAY_CONTAINS] = 'ARRAY_CONTAINS';
+  ops[Operator.IN] = 'IN';
+  ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
 
 function assertPresent(value: unknown, description: string): asserts value {
-  assert(!isNullOrUndefined(value), description + ' is missing');
+  debugAssert(!isNullOrUndefined(value), description + ' is missing');
 }
 
 export interface SerializerOptions {
@@ -241,13 +241,13 @@ export class JsonProtoSerializer {
    */
   fromBytes(value: string | Uint8Array | undefined): ByteString {
     if (this.options.useProto3Json) {
-      assert(
+      hardAssert(
         value === undefined || typeof value === 'string',
         'value must be undefined or a string when using proto3 Json'
       );
       return ByteString.fromBase64String(value ? value : '');
     } else {
-      assert(
+      hardAssert(
         value === undefined || value instanceof Uint8Array,
         'value must be undefined or Uint8Array'
       );
@@ -260,7 +260,7 @@ export class JsonProtoSerializer {
   }
 
   fromVersion(version: api.Timestamp): SnapshotVersion {
-    assert(!!version, "Trying to deserialize version that isn't set");
+    hardAssert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
 
@@ -273,7 +273,7 @@ export class JsonProtoSerializer {
 
   fromResourceName(name: string): ResourcePath {
     const resource = ResourcePath.fromString(name);
-    assert(
+    hardAssert(
       isValidResourceName(resource),
       'Tried to deserialize invalid key ' + resource.toString()
     );
@@ -286,14 +286,14 @@ export class JsonProtoSerializer {
 
   fromName(name: string): DocumentKey {
     const resource = this.fromResourceName(name);
-    assert(
+    hardAssert(
       resource.get(1) === this.databaseId.projectId,
       'Tried to deserialize key from different project: ' +
         resource.get(1) +
         ' vs ' +
         this.databaseId.projectId
     );
-    assert(
+    hardAssert(
       (!resource.get(3) && !this.databaseId.database) ||
         resource.get(3) === this.databaseId.database,
       'Tried to deserialize key from different database: ' +
@@ -342,7 +342,7 @@ export class JsonProtoSerializer {
   private extractLocalPathFromResourceName(
     resourceName: ResourcePath
   ): ResourcePath {
-    assert(
+    hardAssert(
       resourceName.length > 4 && resourceName.get(4) === 'documents',
       'tried to deserialize invalid key ' + resourceName.toString()
     );
@@ -358,7 +358,7 @@ export class JsonProtoSerializer {
   }
 
   toDocument(document: Document): api.Document {
-    assert(
+    debugAssert(
       !document.hasLocalMutations,
       "Can't serialize documents with mutations."
     );
@@ -382,7 +382,7 @@ export class JsonProtoSerializer {
   }
 
   private fromFound(doc: api.BatchGetDocumentsResponse): Document {
-    assert(
+    hardAssert(
       !!doc.found,
       'Tried to deserialize a found document from a missing document.'
     );
@@ -395,11 +395,11 @@ export class JsonProtoSerializer {
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
-    assert(
+    hardAssert(
       !!result.missing,
       'Tried to deserialize a missing document from a found document.'
     );
-    assert(
+    hardAssert(
       !!result.readTime,
       'Tried to deserialize a missing document without a read time.'
     );
@@ -467,7 +467,7 @@ export class JsonProtoSerializer {
       const key = this.fromName(docDelete.document);
       const version = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
-        : SnapshotVersion.forDeletedDoc();
+        : SnapshotVersion.min();
       const doc = new NoDocument(key, version);
       const removedTargetIds = docDelete.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
@@ -516,14 +516,14 @@ export class JsonProtoSerializer {
     // is a read_time set and it applies to all targets (i.e. the list of
     // targets is empty). The backend is guaranteed to send such responses.
     if (!('targetChange' in change)) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     const targetChange = change.targetChange!;
     if (targetChange.targetIds && targetChange.targetIds.length) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     if (!targetChange.readTime) {
-      return SnapshotVersion.MIN;
+      return SnapshotVersion.min();
     }
     return this.fromVersion(targetChange.readTime);
   }
@@ -568,7 +568,7 @@ export class JsonProtoSerializer {
   fromMutation(proto: api.Write): Mutation {
     const precondition = proto.currentDocument
       ? this.fromPrecondition(proto.currentDocument)
-      : Precondition.NONE;
+      : Precondition.none();
 
     if (proto.update) {
       assertPresent(proto.update.name, 'name');
@@ -590,7 +590,7 @@ export class JsonProtoSerializer {
       const fieldTransforms = proto.transform.fieldTransforms!.map(transform =>
         this.fromFieldTransform(transform)
       );
-      assert(
+      hardAssert(
         precondition.exists === true,
         'Transforms only support precondition "exists == true"'
       );
@@ -604,7 +604,7 @@ export class JsonProtoSerializer {
   }
 
   private toPrecondition(precondition: Precondition): api.Precondition {
-    assert(!precondition.isNone, "Can't serialize an empty precondition");
+    debugAssert(!precondition.isNone, "Can't serialize an empty precondition");
     if (precondition.updateTime !== undefined) {
       return {
         updateTime: this.toVersion(precondition.updateTime)
@@ -622,7 +622,7 @@ export class JsonProtoSerializer {
     } else if (precondition.exists !== undefined) {
       return Precondition.exists(precondition.exists);
     } else {
-      return Precondition.NONE;
+      return Precondition.none();
     }
   }
 
@@ -635,7 +635,7 @@ export class JsonProtoSerializer {
       ? this.fromVersion(proto.updateTime)
       : this.fromVersion(commitTime);
 
-    if (version.isEqual(SnapshotVersion.MIN)) {
+    if (version.isEqual(SnapshotVersion.min())) {
       // The Firestore Emulator currently returns an update time of 0 for
       // deletes of non-existing documents (rather than null). This breaks the
       // test "get deleted doc while offline with source=cache" as NoDocuments
@@ -656,7 +656,7 @@ export class JsonProtoSerializer {
     commitTime?: api.Timestamp
   ): MutationResult[] {
     if (protos && protos.length > 0) {
-      assert(
+      hardAssert(
         commitTime !== undefined,
         'Received a write result without a commit time'
       );
@@ -700,7 +700,7 @@ export class JsonProtoSerializer {
   private fromFieldTransform(proto: api.FieldTransform): FieldTransform {
     let transform: TransformOperation | null = null;
     if ('setToServerValue' in proto) {
-      assert(
+      hardAssert(
         proto.setToServerValue === 'REQUEST_TIME',
         'Unknown server value transform proto: ' + JSON.stringify(proto)
       );
@@ -729,7 +729,7 @@ export class JsonProtoSerializer {
 
   fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Target {
     const count = documentsTarget.documents!.length;
-    assert(
+    hardAssert(
       count === 1,
       'DocumentsTarget contained other than 1 document: ' + count
     );
@@ -742,7 +742,7 @@ export class JsonProtoSerializer {
     const result: api.QueryTarget = { structuredQuery: {} };
     const path = target.path;
     if (target.collectionGroup !== null) {
-      assert(
+      debugAssert(
         path.length % 2 === 0,
         'Collection Group queries should be within a document path or root.'
       );
@@ -754,7 +754,7 @@ export class JsonProtoSerializer {
         }
       ];
     } else {
-      assert(
+      debugAssert(
         path.length % 2 !== 0,
         'Document queries with filters are not supported.'
       );
@@ -794,7 +794,7 @@ export class JsonProtoSerializer {
     const fromCount = query.from ? query.from.length : 0;
     let collectionGroup: string | null = null;
     if (fromCount > 0) {
-      assert(
+      hardAssert(
         fromCount === 1,
         'StructuredQuery.from with more than one collection is not supported.'
       );
@@ -947,7 +947,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toDirection(dir: Direction): api.OrderDirection {
-    return DIRECTIONS[dir.name];
+    return DIRECTIONS[dir];
   }
 
   // visible for testing
@@ -964,7 +964,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toOperatorName(op: Operator): api.FieldFilterOp {
-    return OPERATORS[op.name];
+    return OPERATORS[op];
   }
 
   fromOperatorName(op: api.FieldFilterOp): Operator {
@@ -1086,8 +1086,7 @@ export class JsonProtoSerializer {
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
-    const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return FieldMask.fromArray(fields);
+    return new FieldMask(paths.map(path => FieldPath.fromServerFormat(path)));
   }
 }
 

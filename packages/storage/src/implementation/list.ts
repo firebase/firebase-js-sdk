@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import { Location } from './location';
 import * as json from './json';
 import * as type from './type';
 import { ListResult } from '../list';
-import * as errors from './error';
 
 /**
  * Represents the simplified object metadata returned by List API.
@@ -52,6 +51,7 @@ const ITEMS_KEY = 'items';
 
 function fromBackendResponse(
   authWrapper: AuthWrapper,
+  bucket: string,
   resource: ListResultResponse
 ): ListResult {
   const listResult: ListResult = {
@@ -59,10 +59,6 @@ function fromBackendResponse(
     items: [],
     nextPageToken: resource['nextPageToken']
   };
-  const bucket = authWrapper.bucket();
-  if (bucket === null) {
-    throw errors.noDefaultBucket();
-  }
   if (resource[PREFIXES_KEY]) {
     for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
@@ -86,6 +82,7 @@ function fromBackendResponse(
 
 export function fromResponseString(
   authWrapper: AuthWrapper,
+  bucket: string,
   resourceString: string
 ): ListResult | null {
   const obj = json.jsonObjectOrNull(resourceString);
@@ -93,7 +90,7 @@ export function fromResponseString(
     return null;
   }
   const resource = (obj as unknown) as ListResultResponse;
-  return fromBackendResponse(authWrapper, resource);
+  return fromBackendResponse(authWrapper, bucket, resource);
 }
 
 export function listOptionsValidator(p: unknown): void {

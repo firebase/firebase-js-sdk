@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { IndexedDbPersistenceProvider } from './src/local/indexeddb_persistence';
+import { IndexedDbComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
 import { name, version } from './package.json';
 
@@ -33,7 +33,7 @@ import './src/platform_browser/browser_init';
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    (app, auth) => new Firestore(app, auth, new IndexedDbPersistenceProvider())
+    (app, auth) => new Firestore(app, auth, new IndexedDbComponentProvider())
   );
   instance.registerVersion(name, version);
 }

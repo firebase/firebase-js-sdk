@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,9 +224,10 @@ describe('QueryListener', () => {
     const query = Query.atPath(path('rooms/Eros'));
 
     const listener = queryListener(query, [], events);
+    const error = new Error('bad');
 
-    listener.onError(Error('bad'));
-    expect(events[0]).to.deep.equal(new Error('bad'));
+    listener.onError(error);
+    expect(events[0]).to.deep.equal(error);
   });
 
   it('raises event for empty collection after sync', () => {

@@ -43,9 +43,9 @@ import {
   mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { assert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
@@ -352,7 +352,7 @@ export class WebChannelConnection implements Connection {
     unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        logDebug(LOG_TAG, 'WebChannel transport errored:', err);
+        logWarn(LOG_TAG, 'WebChannel transport errored:', err);
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
@@ -374,7 +374,7 @@ export class WebChannelConnection implements Connection {
       msg => {
         if (!closed) {
           const msgData = msg!.data[0];
-          assert(!!msgData, 'Got a webchannel message without data.');
+          hardAssert(!!msgData, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
@@ -423,7 +423,10 @@ export class WebChannelConnection implements Connection {
   // visible for testing
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
-    assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
+    debugAssert(
+      urlRpcName !== undefined,
+      'Unknown REST mapping for: ' + rpcName
+    );
     return (
       this.baseUrl +
       '/' +

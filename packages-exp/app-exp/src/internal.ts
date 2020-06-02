@@ -19,17 +19,25 @@ import { _FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 
-export const apps = new Map<string, FirebaseApp>();
-
-// Registered components. Private Components only. Public components are not needed any more because
-// the public APIs are directly exported from the respective packages.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const components = new Map<string, Component<any>>();
+/**
+ * @internal
+ */
+export const _apps = new Map<string, FirebaseApp>();
 
 /**
- * @param component the component being added to this app's container
+ * Registered components.
+ *
+ * @internal
  */
-export function addComponent(app: FirebaseApp, component: Component): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const _components = new Map<string, Component<any>>();
+
+/**
+ * @param component - the component being added to this app's container
+ *
+ * @internal
+ */
+export function _addComponent(app: FirebaseApp, component: Component): void {
   try {
     (app as _FirebaseAppInternal).container.addComponent(component);
   } catch (e) {
@@ -40,7 +48,11 @@ export function addComponent(app: FirebaseApp, component: Component): void {
   }
 }
 
-export function addOrOverwriteComponent(
+/**
+ *
+ * @internal
+ */
+export function _addOrOverwriteComponent(
   app: FirebaseApp,
   component: Component
 ): void {
@@ -49,12 +61,14 @@ export function addOrOverwriteComponent(
 
 /**
  *
- * @param component
+ * @param component - the component to register
  * @returns whether or not the component is registered successfully
+ *
+ * @internal
  */
-export function registerComponent(component: Component): boolean {
+export function _registerComponent(component: Component): boolean {
   const componentName = component.name;
-  if (components.has(componentName)) {
+  if (_components.has(componentName)) {
     logger.debug(
       `There were multiple attempts to register component ${componentName}.`
     );
@@ -62,17 +76,26 @@ export function registerComponent(component: Component): boolean {
     return false;
   }
 
-  components.set(componentName, component);
+  _components.set(componentName, component);
 
   // add the component to existing app instances
-  for (const app of apps.values()) {
-    addComponent(app as _FirebaseAppInternal, component);
+  for (const app of _apps.values()) {
+    _addComponent(app as _FirebaseAppInternal, component);
   }
 
   return true;
 }
 
-export function getProvider<T extends Name>(
+/**
+ *
+ * @param app - FirebaseApp instance
+ * @param name - service name
+ *
+ * @returns the provider for the service with the matching name
+ *
+ * @internal
+ */
+export function _getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
 ): Provider<T> {
@@ -81,7 +104,9 @@ export function getProvider<T extends Name>(
 
 /**
  * Test only
+ *
+ * @internal
  */
-export function clearComponents(): void {
-  components.clear();
+export function _clearComponents(): void {
+  _components.clear();
 }

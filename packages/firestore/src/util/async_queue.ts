@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
-import { assert, fail } from './assert';
+import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { logError } from './log';
-import { CancelablePromise, Deferred } from './promise';
+import { logDebug, logError } from './log';
+import { Deferred } from './promise';
+import { ExponentialBackoff } from '../remote/backoff';
+import { PlatformSupport } from '../platform/platform';
+import { isIndexedDbTransactionError } from '../local/simple_db';
+
+const LOG_TAG = 'AsyncQueue';
 
 // Accept any return type from setTimeout().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +71,13 @@ export const enum TimerId {
    * A timer used to retry transactions. Since there can be multiple concurrent
    * transactions, multiple of these may be in the queue at a given time.
    */
-  RetryTransaction = 'retry_transaction'
+  TransactionRetry = 'transaction_retry',
+
+  /**
+   * A timer used to retry operations scheduled via retryable AsyncQueue
+   * operations.
+   */
+  AsyncQueueRetry = 'async_queue_retry'
 }
 
 /**
@@ -75,8 +86,12 @@ export const enum TimerId {
  * It is created via DelayedOperation.createAndSchedule().
  *
  * Supports cancellation (via cancel()) and early execution (via skipDelay()).
+ *
+ * Note: We implement `PromiseLike` instead of `Promise`, as the `Promise` type
+ * in newer versions of TypeScript defines `finally`, which is not available in
+ * IE.
  */
-class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
+export class DelayedOperation<T extends unknown> implements PromiseLike<T> {
   // handle for use with clearTimeout(), or null if the operation has been
   // executed or canceled already.
   private timerHandle: TimerHandle | null;
@@ -164,10 +179,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
     }
   }
 
-  // Promise implementation.
-  readonly [Symbol.toStringTag]: 'Promise';
   then = this.deferred.promise.then.bind(this.deferred.promise);
-  catch = this.deferred.promise.catch.bind(this.deferred.promise);
 
   private handleDelayElapsed(): void {
     this.asyncQueue.enqueueAndForget(() => {
@@ -195,6 +207,10 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
+  // The last retryable operation. Retryable operation are run in order and
+  // retried with backoff.
+  private retryableTail: Promise<void> = Promise.resolve();
+
   // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.
   private _isShuttingDown: boolean = false;
@@ -212,6 +228,21 @@ export class AsyncQueue {
 
   // List of TimerIds to fast-forward delays for.
   private timerIdsToSkip: TimerId[] = [];
+
+  // Backoff timer used to schedule retries for retryable operations
+  private backoff = new ExponentialBackoff(this, TimerId.AsyncQueueRetry);
+
+  // Visibility handler that triggers an immediate retry of all retryable
+  // operations. Meant to speed up recovery when we regain file system access
+  // after page comes into foreground.
+  private visibilityHandler = (): void => this.backoff.skipBackoff();
+
+  constructor() {
+    const window = PlatformSupport.getPlatform().window;
+    if (window && typeof window.addEventListener === 'function') {
+      window.addEventListener('visibilitychange', this.visibilityHandler);
+    }
+  }
 
   // Is this AsyncQueue being shut down? If true, this instance will not enqueue
   // any new operations, Promises from enqueue requests will not resolve.
@@ -262,6 +293,10 @@ export class AsyncQueue {
     this.verifyNotFailed();
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
+      const window = PlatformSupport.getPlatform().window;
+      if (window) {
+        window.removeEventListener('visibilitychange', this.visibilityHandler);
+      }
       await this.enqueueEvenAfterShutdown(op);
     }
   }
@@ -279,6 +314,43 @@ export class AsyncQueue {
     return this.enqueueInternal(op);
   }
 
+  /**
+   * Enqueue a retryable operation.
+   *
+   * A retryable operation is rescheduled with backoff if it fails with a
+   * IndexedDbTransactionError (the error type used by SimpleDb). All
+   * retryable operations are executed in order and only run if all prior
+   * operations were retried successfully.
+   */
+  enqueueRetryable(op: () => Promise<void>): void {
+    this.verifyNotFailed();
+
+    if (this._isShuttingDown) {
+      return;
+    }
+
+    this.retryableTail = this.retryableTail.then(() => {
+      const deferred = new Deferred<void>();
+      const retryingOp = async (): Promise<void> => {
+        try {
+          await op();
+          deferred.resolve();
+          this.backoff.reset();
+        } catch (e) {
+          if (isIndexedDbTransactionError(e)) {
+            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+            this.backoff.backoffAndRun(retryingOp);
+          } else {
+            deferred.resolve();
+            throw e; // Failure will be handled by AsyncQueue
+          }
+        }
+      };
+      this.enqueueAndForget(retryingOp);
+      return deferred.promise;
+    });
+  }
+
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
@@ -286,7 +358,7 @@ export class AsyncQueue {
         .catch((error: FirestoreError) => {
           this.failure = error;
           this.operationInProgress = false;
-          const message = error.stack || error.message || '';
+          const message = getMessageOrStack(error);
           logError('INTERNAL UNHANDLED ERROR: ', message);
 
           // Re-throw the error so that this.tail becomes a rejected Promise and
@@ -305,17 +377,17 @@ export class AsyncQueue {
 
   /**
    * Schedules an operation to be queued on the AsyncQueue once the specified
-   * `delayMs` has elapsed. The returned CancelablePromise can be used to cancel
-   * the operation prior to its running.
+   * `delayMs` has elapsed. The returned DelayedOperation can be used to cancel
+   * or fast-forward the operation prior to its running.
    */
   enqueueAfterDelay<T extends unknown>(
     timerId: TimerId,
     delayMs: number,
     op: () => Promise<T>
-  ): CancelablePromise<T> {
+  ): DelayedOperation<T> {
     this.verifyNotFailed();
 
-    assert(
+    debugAssert(
       delayMs >= 0,
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
@@ -339,10 +411,7 @@ export class AsyncQueue {
 
   private verifyNotFailed(): void {
     if (this.failure) {
-      fail(
-        'AsyncQueue is already failed: ' +
-          (this.failure.stack || this.failure.message)
-      );
+      fail('AsyncQueue is already failed: ' + getMessageOrStack(this.failure));
     }
   }
 
@@ -353,7 +422,7 @@ export class AsyncQueue {
    * to catch some bugs.
    */
   verifyOperationInProgress(): void {
-    assert(
+    debugAssert(
       this.operationInProgress,
       'verifyOpInProgress() called when no op in progress on this queue.'
     );
@@ -392,19 +461,12 @@ export class AsyncQueue {
    * For Tests: Runs some or all delayed operations early.
    *
    * @param lastTimerId Delayed operations up to and including this TimerId will
-   *  be drained. Throws if no such operation exists. Pass TimerId.All to run
-   *  all delayed operations.
+   *  be drained. Pass TimerId.All to run all delayed operations.
    * @returns a Promise that resolves once all operations have been run.
    */
-  runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
+  runAllDelayedOperationsUntil(lastTimerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
-      assert(
-        lastTimerId === TimerId.All ||
-          this.containsDelayedOperation(lastTimerId),
-        `Attempted to drain to missing operation ${lastTimerId}`
-      );
-
       // Run ops in the same order they'd run if they ran naturally.
       this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
 
@@ -430,7 +492,40 @@ export class AsyncQueue {
   private removeDelayedOperation(op: DelayedOperation<unknown>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
-    assert(index >= 0, 'Delayed operation not found.');
+    debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
   }
+}
+
+/**
+ * Returns a FirestoreError that can be surfaced to the user if the provided
+ * error is an IndexedDbTransactionError. Re-throws the error otherwise.
+ */
+export function wrapInUserErrorIfRecoverable(
+  e: Error,
+  msg: string
+): FirestoreError {
+  logError(LOG_TAG, `${msg}: ${e}`);
+  if (isIndexedDbTransactionError(e)) {
+    return new FirestoreError(Code.UNAVAILABLE, `${msg}: ${e}`);
+  } else {
+    throw e;
+  }
+}
+
+/**
+ * Chrome includes Error.message in Error.stack. Other browsers do not.
+ * This returns expected output of message + stack when available.
+ * @param error Error or FirestoreError
+ */
+function getMessageOrStack(error: Error): string {
+  let message = error.message || '';
+  if (error.stack) {
+    if (error.stack.includes(error.message)) {
+      message = error.stack;
+    } else {
+      message = error.message + '\n' + error.stack;
+    }
+  }
+  return message;
 }
