@@ -25,7 +25,6 @@ describe('FieldValue', () => {
     expectEqual(FieldValue.delete(), FieldValue.delete());
     expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
     expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
-    expectNotEqual(FieldValue.delete(), FieldPath.documentId());
   });
 
   it('support instanceof checks', () => {
