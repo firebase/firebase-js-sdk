@@ -62,7 +62,7 @@ export class WriteBatch implements firestore.WriteBatch {
     options?: firestore.SetOptions
   ): WriteBatch {
     this.verifyNotCommitted();
-    const ref = tryCast(documentRef, DocumentReference);
+    const ref = validateReference(documentRef, this._firestore);
 
     const [convertedValue] = applyFirestoreDataConverter(
       ref._converter,
@@ -103,7 +103,7 @@ export class WriteBatch implements firestore.WriteBatch {
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
     this.verifyNotCommitted();
-    const ref = tryCast(documentRef, DocumentReference);
+    const ref = validateReference(documentRef, this._firestore);
 
     let parsed;
 
@@ -132,7 +132,7 @@ export class WriteBatch implements firestore.WriteBatch {
 
   delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
     this.verifyNotCommitted();
-    const ref = tryCast(documentRef, DocumentReference);
+    const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
       new DeleteMutation(ref._key, Precondition.none())
     );
@@ -163,7 +163,7 @@ export class WriteBatch implements firestore.WriteBatch {
 }
 
 export function validateReference<T>(
-  documentRef: DocumentReference<T>,
+  documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
 ): DocumentKeyReference<T> {
   if (documentRef.firestore !== firestore) {
@@ -172,7 +172,7 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return documentRef;
+    return tryCast(documentRef, DocumentReference) as DocumentReference<T>;
   }
 }
 
