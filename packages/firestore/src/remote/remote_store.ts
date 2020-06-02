@@ -485,6 +485,14 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
+   * Executes `op`. If `op` fails, takes the network offline until `op`
+   * succeeds. Returns after the first attempt.
+   */
+  private executeWithRecovery(op: () => Promise<void>): Promise<void> {
+    return op().catch(e => this.disableNetworkUntilRecovery(e, op));
+  }
+
+  /**
    * Takes a batch of changes from the Datastore, repackages them as a
    * RemoteEvent, and passes that on to the listener, which is typically the
    * SyncEngine.
@@ -678,13 +686,10 @@ export class RemoteStore implements TargetMetadataProvider {
     );
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(batch, commitVersion, results);
-    try {
-      await this.syncEngine.applySuccessfulWrite(success);
-    } catch (e) {
-      await this.disableNetworkUntilRecovery(e, () =>
-        this.syncEngine.applySuccessfulWrite(success)
-      );
-    }
+
+    await this.executeWithRecovery(() =>
+      this.syncEngine.applySuccessfulWrite(success)
+    );
 
     // It's possible that with the completion of this mutation another
     // slot has freed up.
@@ -728,13 +733,9 @@ export class RemoteStore implements TargetMetadataProvider {
       // restart.
       this.writeStream.inhibitBackoff();
 
-      try {
-        await this.syncEngine.rejectFailedWrite(batch.batchId, error);
-      } catch (e) {
-        await this.disableNetworkUntilRecovery(e, () =>
-          this.syncEngine.rejectFailedWrite(batch.batchId, error)
-        );
-      }
+      await this.executeWithRecovery(() =>
+        this.syncEngine.rejectFailedWrite(batch.batchId, error)
+      );
 
       // It's possible that with the completion of this mutation
       // another slot has freed up.
