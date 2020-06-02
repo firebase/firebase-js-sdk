@@ -79,7 +79,8 @@ import {
   TestSnapshotVersion,
   transformMutation,
   unknownDoc,
-  version
+  version,
+  bundleMetadata
 } from '../../util/helpers';
 
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
@@ -87,6 +88,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
 import { BundleConverter, BundledDocuments } from '../../../src/core/bundle';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { BundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -407,6 +409,25 @@ class LocalStoreTester {
       return this.localStore.getHighestUnacknowledgedBatchId().then(actual => {
         expect(actual).to.equal(expectedId);
       });
+    });
+    return this;
+  }
+
+  toHaveNewerBundle(
+    metadata: BundleMetadata,
+    expected: boolean
+  ): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return this.localStore.isNewerBundleLoaded(metadata).then(actual => {
+        expect(actual).to.equal(expected);
+      });
+    });
+    return this;
+  }
+
+  afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return this.localStore.saveBundle(metadata);
     });
     return this;
   }
@@ -1612,6 +1633,14 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles saving and checking bundle metadata', () => {
+    return expectLocalStore()
+      .toHaveNewerBundle(bundleMetadata('test', 2), false)
+      .afterSavingBundle(bundleMetadata('test', 2))
+      .toHaveNewerBundle(bundleMetadata('test', 1), true)
       .finish();
   });
 

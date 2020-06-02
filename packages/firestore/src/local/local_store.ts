@@ -70,12 +70,7 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
 import * as bundleProto from '../protos/firestore_bundle_proto';
-import {
-  Bundle,
-  BundleConverter,
-  BundledDocuments,
-  NamedQuery
-} from '../core/bundle';
+import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
 
 const LOG_TAG = 'LocalStore';
@@ -746,17 +741,22 @@ export class LocalStore {
   }
 
   /**
-   * Returns a promise of a `Bundle` associated with given bundle id. Promise
-   * resolves to undefined if no persisted data can be found.
+   * Returns a promise of a boolean to indicate if the given bundle has already
+   * been loaded and the create time is newer than the current loading bundle.
    */
-  getBundle(bundleId: string): Promise<Bundle | undefined> {
-    return this.persistence.runTransaction(
-      'Get bundle',
-      'readonly',
-      transaction => {
-        return this.bundleCache.getBundle(transaction, bundleId);
-      }
+  isNewerBundleLoaded(
+    bundleMetadata: bundleProto.BundleMetadata
+  ): Promise<boolean> {
+    const currentReadTime = this.bundleConverter.toSnapshotVersion(
+      bundleMetadata.createTime!
     );
+    return this.persistence
+      .runTransaction('isNewerBundleLoaded', 'readonly', transaction => {
+        return this.bundleCache.getBundle(transaction, bundleMetadata.id!);
+      })
+      .then(cached => {
+        return !!cached && cached!.createTime!.compareTo(currentReadTime) > 0;
+      });
   }
 
   /**

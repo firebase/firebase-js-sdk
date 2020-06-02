@@ -94,6 +94,7 @@ import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
+import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
@@ -434,6 +435,22 @@ export function bundledDocuments(
   }
 
   return new TestBundledDocuments(result);
+}
+
+export function bundleMetadata(
+  id: string,
+  createTime: TestSnapshotVersion,
+  version = 1,
+  totalDocuments = 1,
+  totalBytes = 1000
+): BundleMetadata {
+  return {
+    id,
+    createTime: { seconds: createTime, nanos: 0 },
+    version,
+    totalDocuments,
+    totalBytes
+  };
 }
 
 export function updateMapping(
