@@ -336,6 +336,115 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .expectEvents(query, { metadata: [doc1, doc3] });
   });
 
+  specTest('Recovers when write acknowledgment cannot be persisted', [], () => {
+    return spec()
+      .userSets('collection/a', { v: 1 })
+      .userSets('collection/b', { v: 2 })
+      .userSets('collection/c', { v: 3 })
+      .writeAcks('collection/a', 1)
+      .failDatabaseTransactions('Acknowledge batch')
+      .writeAcks('collection/b', 2, { expectUserCallback: false })
+      .recoverDatabase()
+      .runTimer(TimerId.AsyncQueueRetry)
+      .expectUserCallbacks({ acknowledged: ['collection/b'] })
+      .writeAcks('collection/c', 1);
+  });
+
+  specTest('Recovers when write rejection cannot be persisted', [], () => {
+    return spec()
+      .userPatches('collection/a', { v: 1 })
+      .userPatches('collection/a', { v: 2 })
+      .userPatches('collection/c', { v: 3 })
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'Simulated test error')
+      )
+      .failDatabaseTransactions('Reject batch')
+      .failWrite(
+        'collection/b',
+        new RpcError(Code.FAILED_PRECONDITION, 'Simulated test error'),
+        { expectUserCallback: false }
+      )
+      .recoverDatabase()
+      .runTimer(TimerId.AsyncQueueRetry)
+      .expectUserCallbacks({ rejected: ['collection/a'] })
+      .failWrite(
+        'collection/c',
+        new RpcError(Code.FAILED_PRECONDITION, 'Simulated test error')
+      );
+  });
+
+  specTest(
+    'Recovers when write acknowledgment cannot be persisted (with restart)',
+    ['durable-persistence'],
+    () => {
+      // This test verifies the current behavior of the client, which is not
+      // ideal. Instead of resending the write to 'collection/b' (whose
+      // rejection failed with an IndexedDB failure), the client should drop the
+      // write.
+      return spec()
+        .userSets('collection/a', { v: 1 })
+        .userSets('collection/b', { v: 2 })
+        .userSets('collection/c', { v: 3 })
+        .writeAcks('collection/a', 1)
+        .failDatabaseTransactions('Acknowledge batch')
+        .writeAcks('collection/b', 2, {
+          expectUserCallback: false,
+          keepInQueue: true
+        })
+        .restart()
+        .expectNumOutstandingWrites(2)
+        .writeAcks('collection/b', 2, { expectUserCallback: false })
+        .writeAcks('collection/c', 3, { expectUserCallback: false });
+    }
+  );
+
+  specTest('Writes are pending until acknowledgement is persisted', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1Local = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const doc1 = doc('collection/a', 1001, { v: 1 });
+    const doc2Local = doc(
+      'collection/b',
+      0,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    const doc2 = doc('collection/b', 1002, { v: 2 });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, { added: [doc1Local], hasPendingWrites: true })
+        .userSets('collection/b', { v: 2 })
+        .expectEvents(query, { added: [doc2Local], hasPendingWrites: true })
+        .failDatabaseTransactions('Acknowledge batch')
+        .writeAcks('collection/a', 1, { expectUserCallback: false })
+        // The write ack cannot be persisted and the client goes offline, which
+        // clears all active targets, but doesn't raise a new snapshot since
+        // the document is still marked `hasPendingWrites`.
+        .expectEvents(query, { fromCache: true, hasPendingWrites: true })
+        .expectActiveTargets()
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        // Client is back online
+        .expectActiveTargets({ query, resumeToken: 'resume-token-1000' })
+        .expectUserCallbacks({ acknowledged: ['collection/a'] })
+        .watchAcksFull(query, 1001, doc1)
+        .expectEvents(query, { metadata: [doc1], hasPendingWrites: true })
+        .writeAcks('collection/b', 2)
+        .watchSends({ affects: [query] }, doc2)
+        .watchSnapshots(1002)
+        .expectEvents(query, { metadata: [doc2] })
+    );
+  });
+
   specTest(
     'Surfaces local documents if notifyLocalViewChanges fails',
     [],
