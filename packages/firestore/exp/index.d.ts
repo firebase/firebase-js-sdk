@@ -169,10 +169,11 @@ export class Transaction {
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
@@ -189,10 +190,11 @@ export class Transaction {
 export class WriteBatch {
   private constructor();
 
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
@@ -327,7 +329,7 @@ export function getQueryFromServer<T>(
 export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
-): Promise<DocumentSnapshot<T>>;
+): Promise<DocumentReference<T>>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T
@@ -338,15 +340,16 @@ export function setDoc<T>(
   options: SetOptions
 ): Promise<void>;
 export function updateDoc(
-  reference: DocumentReference,
+  reference: DocumentReference<unknown>,
   data: UpdateData
 ): Promise<void>;
 export function updateDoc(
+  reference: DocumentReference<unknown>,
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
-export function deleteDoc(reference: DocumentReference): Promise<void>;
+export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 export function onSnapshot<T>(
   reference: DocumentReference<T>,

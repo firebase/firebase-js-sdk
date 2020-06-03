@@ -259,7 +259,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
       cfg.asyncQueue,
       serializer,
-      this.sharedClientState
+      this.sharedClientState,
+      cfg.persistenceSettings.forceOwningTab
     );
   }
 

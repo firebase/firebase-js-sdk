@@ -241,7 +241,7 @@ export function patchMutation(
   // Replace '<DELETE>' from JSON with FieldValue
   forEach(json, (k, v) => {
     if (v === '<DELETE>') {
-      json[k] = new DeleteFieldValueImpl();
+      json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
   const parsed = testUserDataReader().parseUpdateData('patchMutation', json);

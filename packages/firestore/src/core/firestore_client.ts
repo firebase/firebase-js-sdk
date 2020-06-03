@@ -65,6 +65,7 @@ export type PersistenceSettings =
       readonly durable: true;
       readonly cacheSizeBytes: number;
       readonly synchronizeTabs: boolean;
+      readonly forceOwningTab: boolean;
     };
 
 /**
