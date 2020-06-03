@@ -59,7 +59,7 @@ class DatastoreImpl extends Datastore {
     super();
   }
 
-  private verifyNotTerminated() {
+  private verifyNotTerminated(): void {
     if (this.terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
