@@ -21,6 +21,7 @@ import {
   toReadableStream
 } from '../../../src/util/bundle_reader';
 import { isNode } from '../../util/test_platform';
+import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
 
 function readableStreamFromString(
   content: string,
@@ -71,7 +72,7 @@ function lengthPrefixedString(o: {}): string {
 function genericBundleReadingTests(bytesPerRead: number): void {
   const encoder = new TextEncoder();
   // Setting up test data.
-  const meta = {
+  const meta: BundleElement = {
     metadata: {
       id: 'test-bundle',
       createTime: { seconds: 1577836805, nanos: 6 },
@@ -82,7 +83,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   };
   const metaString = lengthPrefixedString(meta);
 
-  const doc1Meta = {
+  const doc1Meta: BundleElement = {
     documentMetadata: {
       name:
         'projects/test-project/databases/(default)/documents/collectionId/doc1',
@@ -91,18 +92,18 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     }
   };
   const doc1MetaString = lengthPrefixedString(doc1Meta);
-  const doc1 = {
+  const doc1: BundleElement = {
     document: {
       name:
         'projects/test-project/databases/(default)/documents/collectionId/doc1',
-      createTime: { _seconds: 1, _nanoseconds: 2000000 },
-      updateTime: { _seconds: 3, _nanoseconds: 4000 },
+      createTime: { seconds: 1, nanos: 2000000 },
+      updateTime: { seconds: 3, nanos: 4000 },
       fields: { foo: { stringValue: 'value' }, bar: { integerValue: -42 } }
     }
   };
   const doc1String = lengthPrefixedString(doc1);
 
-  const doc2Meta = {
+  const doc2Meta: BundleElement = {
     documentMetadata: {
       name:
         'projects/test-project/databases/(default)/documents/collectionId/doc2',
@@ -111,18 +112,18 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     }
   };
   const doc2MetaString = lengthPrefixedString(doc2Meta);
-  const doc2 = {
+  const doc2: BundleElement = {
     document: {
       name:
         'projects/test-project/databases/(default)/documents/collectionId/doc2',
-      createTime: { _seconds: 1, _nanoseconds: 2000000 },
-      updateTime: { _seconds: 3, _nanoseconds: 4000 },
+      createTime: { seconds: 1, nanos: 2000000 },
+      updateTime: { seconds: 3, nanos: 4000 },
       fields: { foo: { stringValue: 'value1' }, bar: { integerValue: 42 } }
     }
   };
   const doc2String = lengthPrefixedString(doc2);
 
-  const noDocMeta = {
+  const noDocMeta: BundleElement = {
     documentMetadata: {
       name:
         'projects/test-project/databases/(default)/documents/collectionId/nodoc',
@@ -132,7 +133,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   };
   const noDocMetaString = lengthPrefixedString(noDocMeta);
 
-  const limitQuery = {
+  const limitQuery: BundleElement = {
     namedQuery: {
       name: 'limitQuery',
       bundledQuery: {
@@ -148,7 +149,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     }
   };
   const limitQueryString = lengthPrefixedString(limitQuery);
-  const limitToLastQuery = {
+  const limitToLastQuery: BundleElement = {
     namedQuery: {
       name: 'limitToLastQuery',
       bundledQuery: {
@@ -310,23 +311,28 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     async () => {
       await expect(
         parseThroughBundle('metadata: "no length prefix"', bytesPerRead)
-      ).to.be.rejected;
+      ).to.be.rejectedWith(
+        'Reached the end of bundle when a length string is expected.'
+      );
 
       await expect(
         parseThroughBundle('{metadata: "no length prefix"}', bytesPerRead)
-      ).to.be.rejected;
+      ).to.be.rejectedWith('Unexpected end of JSON input');
 
       await expect(
         parseThroughBundle(metaString + 'invalid-string', bytesPerRead, true)
-      ).to.be.rejected;
+      ).to.be.rejectedWith(
+        'Reached the end of bundle when a length string is expected.'
+      );
 
-      await expect(parseThroughBundle('1' + metaString, bytesPerRead)).to.be
-        .rejected;
+      await expect(
+        parseThroughBundle('1' + metaString, bytesPerRead)
+      ).to.be.rejectedWith('Reached the end of bundle when more is expected.');
 
       // First element is not BundleMetadata.
       await expect(
         parseThroughBundle(doc1MetaString + doc1String, bytesPerRead)
-      ).to.be.rejected;
+      ).to.be.rejectedWith('The first element of the bundle is not a metadata');
     }
   );
 }
