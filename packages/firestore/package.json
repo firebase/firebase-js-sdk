@@ -8,6 +8,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "prebuild": "tsc -m es2015 --moduleResolution node scripts/*.ts ",
+    "prebuild:release": "yarn prebuild",
     "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite",
     "build:release":  "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
