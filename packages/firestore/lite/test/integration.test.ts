@@ -49,7 +49,7 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
-import { writeBatch, WriteBatch } from '../src/api/write_batch';
+import { writeBatch } from '../src/api/write_batch';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -248,6 +248,7 @@ describe('WriteBatch', () => {
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       // TODO(mrschmidt): Find a way to remove the `any` cast here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (batch.update as any).apply(batch, Array.from(arguments));
       return batch.commit();
     }
