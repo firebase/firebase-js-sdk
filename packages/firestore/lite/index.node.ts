@@ -25,7 +25,8 @@ import '../src/platform_node/node_init';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
 export {
@@ -38,10 +39,8 @@ export {
   getDoc
 } from './src/api/reference';
 
-export { FieldPath } from './src/api/field_path';
-
 // TOOD(firestorelite): Add tests when Queries are usable
-export { documentId } from './src/api/field_path';
+export { FieldPath, documentId } from './src/api/field_path';
 
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 

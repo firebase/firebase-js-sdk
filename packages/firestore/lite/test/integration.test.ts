@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { initializeApp } from '@firebase/app-exp';
 import {
   Firestore,
   getFirestore,
-  initializeFirestore
+  initializeFirestore,
+  terminate
 } from '../src/api/database';
 import { withTestDb, withTestDoc } from './helpers';
 import {
@@ -34,6 +36,8 @@ import {
 } from '../src/api/reference';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { FieldValue } from '../../src/api/field_value';
+
+use(chaiAsPromised);
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -66,6 +70,26 @@ describe('Firestore', () => {
     }).to.throw(
       'Firestore has already been started and its settings can no longer be changed.'
     );
+  });
+
+  it('cannot use once terminated', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-terminated'
+    );
+    const firestore = initializeFirestore(app, {
+      host: 'localhost',
+      ssl: false
+    });
+
+    // We don't await the Promise. Any operation enqueued after should be
+    // rejected.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    terminate(firestore);
+
+    return expect(
+      getDoc(doc(firestore, 'coll/doc'))
+    ).to.be.eventually.rejectedWith('The client has already been terminated.');
   });
 });
 
