@@ -41,6 +41,16 @@ export { FieldPath } from './src/api/field_path';
 
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
+// TOOD(firestorelite): Add tests when setDoc() is available
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(

@@ -35,7 +35,7 @@ import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logError, logDebug, logWarn } from '../util/log';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 
@@ -230,7 +230,7 @@ export class GrpcConnection implements Connection {
     });
 
     grpcStream.on('error', (grpcError: ServiceError) => {
-      logDebug(
+      logWarn(
         LOG_TAG,
         'GRPC stream error. Code:',
         grpcError.code,
