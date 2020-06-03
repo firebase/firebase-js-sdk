@@ -9,6 +9,7 @@
   "scripts": {
     "prebuild": "tsc -m es2015 --moduleResolution node scripts/*.ts ",
     "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite",
+    "build:release":  "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
@@ -35,7 +36,7 @@
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "pretest:lite": "yarn build:lite",
     "test:lite":  "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.node.ts --config ../../config/mocharc.node.js",
-    "prepare": "yarn build"
+    "prepare": "yarn build:release"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
