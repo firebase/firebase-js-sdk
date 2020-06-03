@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,7 @@ const testFiles = configFiles.length
 // Get CI build number or generate one if running locally.
 const buildNumber =
   process.env.TRAVIS_BUILD_NUMBER ||
-  // GitHub Actions does not have a build number, but the feature has been requested.
-  process.env.GITHUB_SHA ||
+  process.env.GITHUB_RUN_ID ||
   `local_${process.env.USER}_${new Date().getTime()}`;
 
 /**
@@ -67,25 +66,24 @@ async function runTest(testFile) {
       });
     }
   }
+  return runKarma(testFile);
+}
 
-  const promise = spawn('yarn', [
-    'test:saucelabs:single',
+async function runKarma(testFile) {
+  const karmaArgs = [
+    'karma',
+    'start',
+    'config/karma.saucelabs.js',
+    '--single-run',
     '--testConfigFile',
     testFile,
     '--buildNumber',
     buildNumber
-  ]);
+  ];
+
+  const promise = spawn('npx', karmaArgs, { stdio: 'inherit' });
   const childProcess = promise.childProcess;
   let exitCode = 0;
-
-  childProcess.stdout.on('data', data => {
-    console.log(`[${testFile}]:`, data.toString());
-  });
-
-  // Lerna's normal output goes to stderr for some reason.
-  childProcess.stderr.on('data', data => {
-    console.log(`[${testFile}]:`, data.toString());
-  });
 
   // Capture exit code of this single package test run
   childProcess.on('exit', code => {

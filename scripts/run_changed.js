@@ -70,7 +70,8 @@ const specialPaths = {
     'packages/database'
   ],
   'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
-  'scripts/emulator-testing/database-test-runner.ts': ['packages/database']
+  'scripts/emulator-testing/database-test-runner.ts': ['packages/database'],
+  'packages/firestore': ['integration/firestore']
 };
 
 /**
@@ -95,8 +96,11 @@ async function getChangedPackages() {
       return { testAll: true };
     }
     // Files outside a package dir that should trigger its tests.
-    if (specialPaths[filename]) {
-      for (const targetPackage of specialPaths[filename]) {
+    const matchingSpecialPaths = Object.keys(specialPaths).filter(path =>
+      filename.startsWith(path)
+    );
+    for (const matchingSpecialPath of matchingSpecialPaths) {
+      for (const targetPackage of specialPaths[matchingSpecialPath]) {
         changedPackages[targetPackage] = 'dependency';
       }
     }
