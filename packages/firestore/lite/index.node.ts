@@ -47,6 +47,8 @@ export {
   serverTimestamp
 } from './src/api/field_value';
 
+export { setLogLevel } from '../src/util/log';
+
 export function registerFirestore(): void {
   _registerComponent(
     new Component(

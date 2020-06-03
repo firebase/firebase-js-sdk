@@ -20,12 +20,15 @@ import * as firestore from '../../index';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
 import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+<<<<<<< HEAD
 import { Query as InternalQuery } from '../../../src/core/query';
 import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { tryCast } from './util';
+=======
+>>>>>>> master
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -55,6 +58,7 @@ export class DocumentReference<T = firestore.DocumentData>
     return new DocumentReference<U>(this.firestore, this._key, converter);
   }
 }
+<<<<<<< HEAD
 
 export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
@@ -274,3 +278,5 @@ export function parent<T>(
     );
   }
 }
+=======
+>>>>>>> master
