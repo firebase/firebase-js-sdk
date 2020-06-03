@@ -79,7 +79,6 @@ import {
 use(chaiAsPromised);
 
 /* eslint-disable no-restricted-globals */
-
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
@@ -116,6 +115,7 @@ function withDb(
 async function withUnstartedCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
@@ -139,7 +139,8 @@ async function withUnstartedCustomPersistence(
     LruParams.DEFAULT,
     queue,
     serializer,
-    MOCK_SEQUENCE_NUMBER_SYNCER
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    forceOwningTab
   );
 
   await fn(persistence, platform, queue);
@@ -148,6 +149,7 @@ async function withUnstartedCustomPersistence(
 function withCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
     platform: TestPlatform,
@@ -157,6 +159,7 @@ function withCustomPersistence(
   return withUnstartedCustomPersistence(
     clientId,
     multiClient,
+    forceOwningTab,
     async (persistence, platform, queue) => {
       await persistence.start();
       await fn(persistence, platform, queue);
@@ -173,7 +176,12 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ false,
+    fn
+  );
 }
 
 async function withMultiClientPersistence(
@@ -184,7 +192,28 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ true,
+    /* forceOwningTab= */ false,
+    fn
+  );
+}
+
+async function withForcedPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ true,
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -1131,6 +1160,18 @@ describe('IndexedDb: canActAsPrimary', () => {
       expect(await getCurrentLeaseOwner()).to.not.be.null;
     });
   });
+
+  it('obtains lease if forceOwningTab is set', () => {
+    return withPersistence('clientA', async clientA => {
+      await withForcedPersistence('clientB', async () => {
+        return expect(
+          clientA.runTransaction('tx', 'readwrite-primary', () =>
+            PersistencePromise.resolve()
+          )
+        ).to.be.eventually.rejected;
+      });
+    });
+  });
 });
 
 describe('IndexedDb: allowTabSynchronization', () => {
@@ -1147,6 +1188,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await expect(db.start()).to.eventually.be.rejectedWith(
@@ -1161,6 +1203,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ true,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
@@ -1173,6 +1216,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db1 => {
         db1.injectFailures = ['getHighestListenSequenceNumber'];
         await expect(db1.start()).to.eventually.be.rejectedWith(

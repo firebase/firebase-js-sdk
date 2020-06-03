@@ -24,6 +24,7 @@ import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { isSafari } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -137,7 +138,9 @@ describe('AsyncQueue', () => {
     });
   });
 
-  it('can schedule ops in the future', async () => {
+  // Flaky on Safari.
+  // eslint-disable-next-line no-restricted-properties
+  (isSafari() ? it.skip : it)('can schedule ops in the future', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>

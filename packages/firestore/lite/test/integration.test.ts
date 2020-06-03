@@ -32,6 +32,8 @@ import {
   DocumentReference,
   getDoc
 } from '../src/api/reference';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { FieldValue } from '../../src/api/field_value';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -165,4 +167,22 @@ describe('getDoc()', () => {
   });
 
   // TODO(firestorelite): Expand test coverage once we can write docs
+});
+
+describe('FieldValue', () => {
+  it('support equality checking with isEqual()', () => {
+    expectEqual(FieldValue.delete(), FieldValue.delete());
+    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
+    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+    // TODO(firestorelite): Add test when field value is available
+    //expectNotEqual(FieldValue.delete(), documentId());
+  });
+
+  it('support instanceof checks', () => {
+    expect(FieldValue.delete()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.serverTimestamp()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+  });
 });

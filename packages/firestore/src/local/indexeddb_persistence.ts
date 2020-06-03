@@ -104,7 +104,9 @@ const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Failed to obtain exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
+  '`enablePersistence()` with `synchronizeTabs:true` in all tabs. ' +
+  'If you are using `experimentalForceOwningTab:true`, make sure that only ' +
+  'one tab has persistence enabled at any given time.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
@@ -190,7 +192,7 @@ export class IndexedDbPersistence implements Persistence {
   static MAIN_DATABASE = 'main';
 
   private readonly document: Document | null;
-  private readonly window: Window;
+  private readonly window: Window | null;
 
   // Technically `simpleDb` should be `| undefined` because it is
   // initialized asynchronously by start(), but that would be more misleading
@@ -225,18 +227,29 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
-  private readonly webStorage: Storage;
+  private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
   constructor(
+    /**
+     * Whether to synchronize the in-memory state of multiple tabs and share
+     * access to local persistence.
+     */
     private readonly allowTabSynchronization: boolean,
+
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly sequenceNumberSyncer: SequenceNumberSyncer
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer,
+
+    /**
+     * If set to true, forcefully obtains database access. Existing tabs will
+     * no longer be able to access IndexedDB.
+     */
+    private readonly forceOwningTab: boolean
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -258,14 +271,19 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
+    this.window = platform.window;
     if (platform.window && platform.window.localStorage) {
-      this.window = platform.window;
-      this.webStorage = this.window.localStorage;
+      this.webStorage = platform.window.localStorage;
     } else {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'IndexedDB persistence is only available on platforms that support LocalStorage.'
-      );
+      this.webStorage = null;
+      if (forceOwningTab === false) {
+        logError(
+          LOG_TAG,
+          'LocalStorage is unavailable. As a result, persistence may not work ' +
+            'reliably. In particular enablePersistence() could fail immediately ' +
+            'after refreshing the page.'
+        );
+      }
     }
   }
 
@@ -287,7 +305,9 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb = db;
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary();
+        return this.updateClientMetadataAndTryBecomePrimary(
+          this.forceOwningTab
+        );
       })
       .then(() => {
         if (!this.isPrimary && !this.allowTabSynchronization) {
@@ -384,7 +404,9 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
+  private updateClientMetadataAndTryBecomePrimary(
+    forceOwningTab = false
+  ): Promise<void> {
     return this.runTransaction(
       'updateClientMetadataAndTryBecomePrimary',
       'readwrite',
@@ -519,11 +541,13 @@ export class IndexedDbPersistence implements Persistence {
       // Ideally we'd delete the IndexedDb and LocalStorage zombie entries for
       // the client atomically, but we can't. So we opt to delete the IndexedDb
       // entries first to avoid potentially reviving a zombied client.
-      inactiveClients.forEach(inactiveClient => {
-        this.window.localStorage.removeItem(
-          this.zombiedClientLocalStorageKey(inactiveClient.clientId)
-        );
-      });
+      if (this.webStorage) {
+        for (const inactiveClient of inactiveClients) {
+          this.webStorage.removeItem(
+            this.zombiedClientLocalStorageKey(inactiveClient.clientId)
+          );
+        }
+      }
     }
   }
 
@@ -558,6 +582,9 @@ export class IndexedDbPersistence implements Persistence {
   private canActAsPrimary(
     txn: PersistenceTransaction
   ): PersistencePromise<boolean> {
+    if (this.forceOwningTab) {
+      return PersistencePromise.resolve<boolean>(true);
+    }
     const store = primaryClientStore(txn);
     return store
       .get(DbPrimaryClient.key)
@@ -578,6 +605,7 @@ export class IndexedDbPersistence implements Persistence {
         //   foreground.
         // - every clients network is disabled and no other client's tab is in
         //   the foreground.
+        // - the `forceOwningTab` setting was passed in.
         if (currentLeaseIsValid) {
           if (this.isLocalClient(currentPrimary) && this.networkEnabled) {
             return true;
@@ -853,8 +881,9 @@ export class IndexedDbPersistence implements Persistence {
 
       if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
         if (
-          !this.allowTabSynchronization ||
-          !currentPrimary!.allowTabSynchronization
+          !this.forceOwningTab &&
+          (!this.allowTabSynchronization ||
+            !currentPrimary!.allowTabSynchronization)
         ) {
           throw new FirestoreError(
             Code.FAILED_PRECONDITION,
@@ -983,7 +1012,7 @@ export class IndexedDbPersistence implements Persistence {
    * handler.
    */
   private attachWindowUnloadHook(): void {
-    if (typeof this.window.addEventListener === 'function') {
+    if (typeof this.window?.addEventListener === 'function') {
       this.windowUnloadHandler = () => {
         // Note: In theory, this should be scheduled on the AsyncQueue since it
         // accesses internal state. We execute this code directly during shutdown
@@ -1003,10 +1032,10 @@ export class IndexedDbPersistence implements Persistence {
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
       debugAssert(
-        typeof this.window.removeEventListener === 'function',
+        typeof this.window?.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
-      this.window.removeEventListener('unload', this.windowUnloadHandler);
+      this.window!.removeEventListener('unload', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
   }
@@ -1019,8 +1048,9 @@ export class IndexedDbPersistence implements Persistence {
   private isClientZombied(clientId: ClientId): boolean {
     try {
       const isZombied =
-        this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
-        null;
+        this.webStorage?.getItem(
+          this.zombiedClientLocalStorageKey(clientId)
+        ) !== null;
       logDebug(
         LOG_TAG,
         `Client '${clientId}' ${
@@ -1040,6 +1070,9 @@ export class IndexedDbPersistence implements Persistence {
    * clients are ignored during primary tab selection.
    */
   private markClientZombied(): void {
+    if (!this.webStorage) {
+      return;
+    }
     try {
       this.webStorage.setItem(
         this.zombiedClientLocalStorageKey(this.clientId),
@@ -1053,6 +1086,9 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Removes the zombied client entry if it exists. */
   private removeClientZombiedEntry(): void {
+    if (!this.webStorage) {
+      return;
+    }
     try {
       this.webStorage.removeItem(
         this.zombiedClientLocalStorageKey(this.clientId)

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
 import { FieldValue } from '../../../src/api/field_value';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
@@ -23,5 +24,13 @@ describe('FieldValue', () => {
     expectEqual(FieldValue.delete(), FieldValue.delete());
     expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
     expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+  });
+
+  it('support instanceof checks', () => {
+    expect(FieldValue.delete()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.serverTimestamp()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
   });
 });
