@@ -52,7 +52,13 @@ export interface SnapshotMetadata {
   isEqual(other: SnapshotMetadata): boolean;
 }
 
-export type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel =
+  | 'debug'
+  | 'error'
+  | 'silent'
+  | 'warn'
+  | 'info'
+  | 'verbose';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
@@ -169,10 +175,7 @@ export class Transaction {
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T,
-  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
@@ -193,10 +196,7 @@ export class Transaction {
 export class WriteBatch {
   private constructor();
 
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T,
-  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
