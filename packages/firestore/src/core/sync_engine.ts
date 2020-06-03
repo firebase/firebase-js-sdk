@@ -74,6 +74,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import { BundleReader } from '../util/bundle_reader';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -437,6 +438,31 @@ export class SyncEngine implements RemoteSyncer {
     } catch (error) {
       await ignoreIfPrimaryLeaseLoss(error);
     }
+  }
+
+  async loadBundle(bundleReader: BundleReader): Promise<void> {
+    this.assertSubscribed('loadBundle()');
+    const metadata = await bundleReader.getMetadata();
+
+    const skip = await this.localStore.isNewerBundleLoaded(metadata);
+    if (skip) {
+      return bundleReader.close();
+    }
+
+    while (true) {
+      const e = await bundleReader.nextElement();
+      if (!e) {
+        break;
+      }
+      if (e.payload.namedQuery) {
+        await this.localStore.saveNamedQuery(e.payload.namedQuery);
+      }
+      if (e.payload.documentMetadata) {
+        await this.localStore.applyBundledDocuments();
+      }
+    }
+
+    return this.localStore.saveBundle(metadata);
   }
 
   /**

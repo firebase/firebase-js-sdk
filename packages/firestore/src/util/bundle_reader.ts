@@ -84,6 +84,10 @@ export class BundleReader {
     );
   }
 
+  close(): Promise<void> {
+    return this.reader.cancel();
+  }
+
   /**
    * Returns the metadata of the bundle.
    */
