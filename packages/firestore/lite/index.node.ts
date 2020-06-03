@@ -28,6 +28,8 @@ export {
   getFirestore
 } from './src/api/database';
 
+export { DocumentReference } from './src/api/reference';
+
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
   FieldValue,
