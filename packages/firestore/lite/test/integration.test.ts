@@ -91,6 +91,19 @@ describe('Firestore', () => {
       getDoc(doc(firestore, 'coll/doc'))
     ).to.be.eventually.rejectedWith('The client has already been terminated.');
   });
+
+  it('can call terminate() multiple times', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-multi-terminate'
+    );
+    const firestore = initializeFirestore(app, {
+      host: 'localhost',
+      ssl: false
+    });
+
+    return terminate(firestore).then(() => terminate(firestore));
+  });
 });
 
 describe('doc', () => {
