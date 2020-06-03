@@ -39,6 +39,9 @@ export {
 
 export { FieldPath } from './src/api/field_path';
 
+// TOOD(firestorelite): Add tests when Queries are usable
+export { documentId } from './src/api/field_path';
+
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
