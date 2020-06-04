@@ -17,8 +17,11 @@
 
 import * as firestore from '../../index';
 
-import { tryCast } from './util';
-import { FieldPath as InternalFieldPath } from '../../../src/model/path';
+import { cast } from './util';
+import {
+  DOCUMENT_KEY_NAME,
+  FieldPath as InternalFieldPath
+} from '../../../src/model/path';
 import { validateNamedArrayAtLeastNumberOfElements } from '../../../src/util/input_validation';
 import { Code, FirestoreError } from '../../../src/util/error';
 
@@ -51,21 +54,24 @@ export class FieldPath implements firestore.FieldPath {
       1
     );
 
-    for (let i = 0; i < fieldNames.length; ++i) {
-      if (fieldNames[i].length === 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid field name at argument $(i + 1). ` +
-            'Field names must not be empty.'
-        );
-      }
+    const emptyElement = fieldNames.indexOf('');
+    if (emptyElement !== -1) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid field name at argument $(i + 1). ` +
+          'Field names must not be empty.'
+      );
     }
 
     this._internalPath = new InternalFieldPath(fieldNames);
   }
 
   isEqual(other: firestore.FieldPath): boolean {
-    const path = tryCast(other, FieldPath);
+    const path = cast(other, FieldPath);
     return this._internalPath.isEqual(path._internalPath);
   }
+}
+
+export function documentId(): firestore.FieldPath {
+  return new FieldPath(DOCUMENT_KEY_NAME);
 }
