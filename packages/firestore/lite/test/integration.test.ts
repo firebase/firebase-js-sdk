@@ -234,9 +234,7 @@ describe('setDoc()', () => {
 
   it('throws when user input fails validation', () => {
     return withTestDoc(async docRef => {
-      expect(() => {
-        setDoc(docRef, { val: undefined });
-      }).to.throw(
+      expect(() => setDoc(docRef, { val: undefined })).to.throw(
         'Function setDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
       );
     });

@@ -725,17 +725,11 @@ export class Transaction implements firestore.Transaction {
       value,
       'Transaction.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -828,17 +822,11 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       'WriteBatch.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -1028,14 +1016,11 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       'DocumentReference.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this.firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this.firestore._dataReader.parseSetData(functionName, convertedValue);
+    const parsed = this.firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
     );

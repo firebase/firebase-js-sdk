@@ -306,39 +306,31 @@ export class UserDataReader {
       serializer || PlatformSupport.getPlatform().newSerializer(databaseId);
   }
 
-  /** Parse document data from a non-merge set() call. */
-  parseSetData(methodName: string, input: unknown): ParsedSetData {
-    const context = this.createContext(UserDataSource.Set, methodName);
+  /** Parse document data from a set() call. */
+  parseSetData(
+    methodName: string,
+    input: unknown,
+    options: firestore.SetOptions = {}
+  ): ParsedSetData {
+    const context = this.createContext(
+      options.merge || options.mergeFields
+        ? UserDataSource.MergeSet
+        : UserDataSource.Set,
+      methodName
+    );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
 
-    return new ParsedSetData(
-      new ObjectValue(updateData),
-      /* fieldMask= */ null,
-      context.fieldTransforms
-    );
-  }
-
-  /** Parse document data from a set() call with '{merge:true}'. */
-  parseMergeData(
-    methodName: string,
-    input: unknown,
-    fieldPaths?: Array<string | firestore.FieldPath>
-  ): ParsedSetData {
-    const context = this.createContext(UserDataSource.MergeSet, methodName);
-    validatePlainObject('Data must be an object, but it was:', context, input);
-    const updateData = parseObject(input, context);
-
-    let fieldMask: FieldMask;
+    let fieldMask: FieldMask | null;
     let fieldTransforms: FieldTransform[];
 
-    if (!fieldPaths) {
+    if (options.merge) {
       fieldMask = new FieldMask(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
-    } else {
+    } else if (options.mergeFields) {
       const validatedFieldPaths: FieldPath[] = [];
 
-      for (const stringOrFieldPath of fieldPaths) {
+      for (const stringOrFieldPath of options.mergeFields) {
         let fieldPath: FieldPath;
 
         if (stringOrFieldPath instanceof BaseFieldPath) {
@@ -368,9 +360,13 @@ export class UserDataReader {
 
       fieldMask = new FieldMask(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
-        fieldMask.covers(transform.field)
+        fieldMask!.covers(transform.field)
       );
+    } else {
+      fieldMask = null;
+      fieldTransforms = context.fieldTransforms;
     }
+
     return new ParsedSetData(
       new ObjectValue(updateData),
       fieldMask,

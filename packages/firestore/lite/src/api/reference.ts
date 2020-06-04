@@ -326,11 +326,7 @@ export function setDoc<T>(
     ref.firestore._settings!
   );
 
-  const parsed = isMerge(options)
-    ? dataReader.parseMergeData('setDoc', convertedValue)
-    : isMergeFields(options)
-    ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
-    : dataReader.parseSetData('setDoc', convertedValue);
+  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
 
   return configureClient.then(datastore =>
     invokeCommitRpc(
@@ -351,22 +347,6 @@ export function deleteDoc(
         new DeleteMutation(ref._key, Precondition.none())
       ])
     );
-}
-
-/** Returns true if options.merge is true. */
-function isMerge(options?: firestore.SetOptions): options is { merge: true } {
-  return !!options && (options as { merge: true }).merge;
-}
-
-/** Returns true if options.mergeFields is set. */
-function isMergeFields(
-  options?: firestore.SetOptions
-): options is { mergeFields: Array<string | firestore.FieldPath> } {
-  return (
-    !!options &&
-    !!(options as { mergeFields: Array<string | firestore.FieldPath> })
-      .mergeFields
-  );
 }
 
 function newUserDataReader(
