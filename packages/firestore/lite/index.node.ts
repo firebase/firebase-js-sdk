@@ -47,6 +47,8 @@ export {
   serverTimestamp
 } from './src/api/field_value';
 
+export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
 export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {
