@@ -75,6 +75,8 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
+import { BundleLoader, LoadBundleTask, LoadBundleTaskImpl } from './bundle';
+import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -440,29 +442,55 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  async loadBundle(bundleReader: BundleReader): Promise<void> {
+  loadBundle(bundleReader: BundleReader, task: LoadBundleTaskImpl): void {
     this.assertSubscribed('loadBundle()');
-    const metadata = await bundleReader.getMetadata();
+    let metadata: BundleMetadata;
+    let loader: BundleLoader;
+    bundleReader
+      .getMetadata()
+      .then(m => {
+        metadata = m;
+        return this.localStore.isNewerBundleLoaded(metadata);
+      })
+      .then(skip => {
+        if (skip) {
+          return bundleReader.close().then(() => {
+            // task.completeWith({});
+          });
+        } else {
+          loader = new BundleLoader(metadata, this.localStore);
+          return this.loadRestElements(loader, bundleReader, task)
+            .then(() => this.localStore.saveBundle(metadata))
+            .then(() => loader.complete())
+            .then(progress => task.completeWith(progress));
+        }
+      })
+      .catch(reason => {
+        task.failedWith(new Error(reason));
+      });
+  }
 
-    const skip = await this.localStore.isNewerBundleLoaded(metadata);
-    if (skip) {
-      return bundleReader.close();
+  private async loadRestElements(
+    loader: BundleLoader,
+    reader: BundleReader,
+    task: LoadBundleTaskImpl
+  ): Promise<void> {
+    const element = await reader.nextElement();
+    if (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const result = await loader.addSizedElement(element);
+      if (result) {
+        task.updateProgress(result.progress);
+      }
+      if (result && result.changedDocs) {
+        this.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
+      }
+
+      return this.loadRestElements(loader, reader, task);
     }
-
-    while (true) {
-      const e = await bundleReader.nextElement();
-      if (!e) {
-        break;
-      }
-      if (e.payload.namedQuery) {
-        await this.localStore.saveNamedQuery(e.payload.namedQuery);
-      }
-      if (e.payload.documentMetadata) {
-        await this.localStore.applyBundledDocuments();
-      }
-    }
-
-    return this.localStore.saveBundle(metadata);
   }
 
   /**

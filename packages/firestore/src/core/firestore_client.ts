@@ -48,6 +48,8 @@ import {
   ComponentProvider,
   MemoryComponentProvider
 } from './component_provider';
+import { BundleReader } from '../util/bundle_reader';
+import { LoadBundleTask } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -520,5 +522,9 @@ export class FirestoreClient {
       return Promise.resolve();
     });
     return deferred.promise;
+  }
+
+  loadBundle(bundleReader: BundleReader): LoadBundleTask {
+    this.verifyNotTerminated();
   }
 }
