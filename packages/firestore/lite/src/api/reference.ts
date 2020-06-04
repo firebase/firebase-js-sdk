@@ -23,9 +23,13 @@ import { DocumentKeyReference } from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
-import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { tryCast } from './util';
+import { cast } from './util';
+import {
+  validateArgType,
+  validateCollectionPath,
+  validateDocumentPath
+} from '../../../src/util/input_validation';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -166,31 +170,15 @@ export function collection(
   parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  if (relativePath.length === 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
+  validateArgType('doc', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    if (DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(path);
     return new CollectionReference(parent, path);
   } else {
-    const doc = tryCast(parent, DocumentReference);
+    const doc = cast(parent, DocumentReference);
     const absolutePath = doc._key.path.child(path);
-    if (DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(absolutePath);
     return new CollectionReference(doc.firestore, absolutePath);
   }
 }
@@ -212,32 +200,15 @@ export function doc<T>(
   if (arguments.length === 1) {
     relativePath = AutoId.newId();
   }
-
-  if (!relativePath) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
-  const path = ResourcePath.fromString(relativePath);
+  validateArgType('doc', 'non-empty string', 2, relativePath);
+  const path = ResourcePath.fromString(relativePath!);
   if (parent instanceof Firestore) {
-    if (!DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(path);
     return new DocumentReference(parent, new DocumentKey(path));
   } else {
-    const coll = tryCast(parent, CollectionReference);
+    const coll = cast(parent, CollectionReference);
     const absolutePath = coll._path.child(path);
-    if (!DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(absolutePath);
     return new DocumentReference(
       coll.firestore,
       new DocumentKey(absolutePath),
@@ -266,7 +237,7 @@ export function parent<T>(
       );
     }
   } else {
-    const doc = tryCast(child, DocumentReference) as DocumentReference<T>;
+    const doc = cast<DocumentReference<T>>(child, DocumentReference);
     return new CollectionReference<T>(
       doc.firestore,
       doc._key.path.popLast(),

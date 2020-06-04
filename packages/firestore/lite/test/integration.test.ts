@@ -81,13 +81,13 @@ describe('doc', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => doc(db, 'coll')).to.throw(
-        'Invalid path (coll). Path points to a collection.'
+        'Invalid document path (coll). Path points to a collection.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Invalid path (). Empty paths are not supported.'
+        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
-        'Invalid path (coll/doc/coll). Path points to a collection.'
+        'Invalid document path (coll/doc/coll). Path points to a collection.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
         'Invalid path (coll//doc). Paths must not contain // in them.'
@@ -117,13 +117,15 @@ describe('collection', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
-        'Invalid path (coll/doc). Path points to a document.'
+        'Invalid collection path (coll/doc). Path points to a document.'
       );
+      // TODO(firestorelite): Explore returning a more helpful message
+      // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Invalid path (). Empty paths are not supported.'
+        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
-        'Invalid path (coll/doc/coll/doc). Path points to a document.'
+        'Invalid collection path (coll/doc/coll/doc). Path points to a document.'
       );
     });
   });
