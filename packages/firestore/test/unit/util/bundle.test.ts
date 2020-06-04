@@ -62,7 +62,7 @@ function lengthPrefixedString(o: {}): string {
 });
 
 // eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe.only)('Bundle ', () => {
+(isNode() ? describe.skip : describe)('Bundle ', () => {
   genericBundleReadingTests(1);
   genericBundleReadingTests(4);
   genericBundleReadingTests(64);
