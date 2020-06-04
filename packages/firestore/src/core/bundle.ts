@@ -88,6 +88,7 @@ export interface LoadBundleTaskProgress {
 }
 export type TaskState = 'Error' | 'Running' | 'Success';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface LoadBundleTask {
   onProgress(
     next?: (a: LoadBundleTaskProgress) => any,
@@ -186,6 +187,7 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export class LoadResult {
   constructor(

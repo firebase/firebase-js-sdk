@@ -92,6 +92,7 @@ import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { LoadBundleTask } from '../core/bundle';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -474,6 +475,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       asyncObserver.mute();
       this._firestoreClient!.removeSnapshotsInSyncListener(asyncObserver);
     };
+  }
+
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream /*| string */
+  ): LoadBundleTask {
+    return this._firestoreClient!.loadBundle(bundleData);
   }
 
   ensureClientConfigured(): FirestoreClient {

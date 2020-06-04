@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { LoadBundleTask } from '../firestore/src/core/bundle';
 
 export type DocumentData = { [field: string]: any };
 
@@ -84,6 +85,10 @@ export class FirebaseFirestore {
   onSnapshotsInSync(onSync: () => void): () => void;
 
   terminate(): Promise<void>;
+
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream /*| string */
+  ): LoadBundleTask;
 
   INTERNAL: { delete: () => Promise<void> };
 }

@@ -75,8 +75,7 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
-import { BundleLoader, LoadBundleTask, LoadBundleTaskImpl } from './bundle';
-import { BundleMetadata } from '../protos/firestore_bundle_proto';
+import { BundleLoader, LoadBundleTaskImpl } from './bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -442,41 +441,38 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  loadBundle(bundleReader: BundleReader, task: LoadBundleTaskImpl): void {
+  loadBundle(
+    bundleReader: BundleReader,
+    task: LoadBundleTaskImpl
+  ): Promise<void> {
     this.assertSubscribed('loadBundle()');
-    let metadata: BundleMetadata;
-    let loader: BundleLoader;
-    bundleReader
-      .getMetadata()
-      .then(m => {
-        metadata = m;
-        return this.localStore.isNewerBundleLoaded(metadata);
-      })
-      .then(skip => {
-        if (skip) {
-          return bundleReader.close().then(() => {
-            // task.completeWith({});
-          });
-        } else {
-          loader = new BundleLoader(metadata, this.localStore);
-          return this.loadRestElements(loader, bundleReader, task)
-            .then(() => this.localStore.saveBundle(metadata))
-            .then(() => loader.complete())
-            .then(progress => task.completeWith(progress));
-        }
-      })
-      .catch(reason => {
-        task.failedWith(new Error(reason));
-      });
+
+    return this.loadBundleAsync(bundleReader, task).catch(reason => {
+      task.failedWith(new Error(reason));
+    });
   }
 
-  private async loadRestElements(
-    loader: BundleLoader,
+  private async loadBundleAsync(
     reader: BundleReader,
     task: LoadBundleTaskImpl
   ): Promise<void> {
-    const element = await reader.nextElement();
-    if (element) {
+    const metadata = await reader.getMetadata();
+    const skip = await this.localStore.isNewerBundleLoaded(metadata);
+    if (skip) {
+      await reader.close();
+      task.completeWith({
+        taskState: 'Success',
+        documentsLoaded: 0,
+        bytesLoaded: 0,
+        totalDocuments: metadata.totalDocuments!,
+        totalBytes: metadata.totalBytes!
+      });
+      return;
+    }
+
+    const loader = new BundleLoader(metadata, this.localStore);
+    let element = await reader.nextElement();
+    while (element) {
       debugAssert(
         !element.payload.metadata,
         'Unexpected BundleMetadata element.'
@@ -486,11 +482,17 @@ export class SyncEngine implements RemoteSyncer {
         task.updateProgress(result.progress);
       }
       if (result && result.changedDocs) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
       }
 
-      return this.loadRestElements(loader, reader, task);
+      element = await reader.nextElement();
     }
+
+    await this.localStore.saveBundle(metadata);
+
+    const completeProgress = await loader.complete();
+    task.completeWith(completeProgress);
   }
 
   /**
