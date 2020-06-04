@@ -1,0 +1,39 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { initializeApp } from '@firebase/app-exp';
+
+import { Firestore, getFirestore } from '../src/api/database';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PROJECT_CONFIG = require('../../../../config/project.json');
+
+export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
+
+let appCount = 0;
+
+export async function withTestDb(
+  fn: (db: Firestore) => void | Promise<void>
+): Promise<void> {
+  const app = initializeApp(
+    { apiKey: 'fake-api-key', projectId: DEFAULT_PROJECT_ID },
+    'test-app-' + appCount++
+  );
+
+  const firestore = getFirestore(app);
+  return fn(firestore);
+}
