@@ -85,9 +85,7 @@ export class BundleReader {
     private bundleStream:
       | ReadableStream<Uint8Array | ArrayBuffer>
       | Uint8Array
-      | ArrayBuffer,
-    /** Async queue used to perform bundle reading. */
-    private asyncQueue: AsyncQueue = new AsyncQueue()
+      | ArrayBuffer
   ) {
     if (
       bundleStream instanceof Uint8Array ||
@@ -127,9 +125,7 @@ export class BundleReader {
    * have reached the end of the stream.
    */
   async nextElement(): Promise<SizedBundleElement | null> {
-    // Ensures `nextElementImpl` calls are executed sequentially before they
-    // modifies internal buffer.
-    return this.asyncQueue.enqueue(() => this.nextElementImpl());
+    return this.nextElementImpl();
   }
 
   /**
