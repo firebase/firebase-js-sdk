@@ -45,6 +45,9 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
+const NAMESPACE_EXPORTS = {
+  isSupported
+};
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
@@ -65,7 +68,8 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
       ComponentType.PUBLIC
     ).setServiceProps({
       settings,
-      EventName
+      EventName,
+      NAMESPACE_EXPORTS
     })
   );
 
@@ -109,19 +113,6 @@ declare module '@firebase/app-types' {
 }
 
 function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
-  }
-}
-
-/**
- * Checks to see if the required APIs exist.
- */
-function isWindowControllerSupported(): boolean {
   return (
     'indexedDB' in window &&
     indexedDB !== null &&
@@ -130,20 +121,6 @@ function isWindowControllerSupported(): boolean {
     'PushManager' in window &&
     'Notification' in window &&
     'fetch' in window &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
-}
-
-/**
- * Checks to see if the required APIs exist within SW Context.
- */
-function isSWControllerSupported(): boolean {
-  return (
-    'indexedDB' in self &&
-    indexedDB !== null &&
-    'PushManager' in self &&
-    'Notification' in self &&
     ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
     PushSubscription.prototype.hasOwnProperty('getKey')
   );
