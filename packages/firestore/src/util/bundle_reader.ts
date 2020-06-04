@@ -97,6 +97,7 @@ export class BundleReader {
     }
     this.reader = (this.bundleStream as ReadableStream).getReader();
 
+    // Read the metadata (which is the first element).
     this.nextElement().then(
       element => {
         if (element && element.isBundleMetadata()) {
@@ -109,9 +110,7 @@ export class BundleReader {
           );
         }
       },
-      error => {
-        this.metadata.reject(error);
-      }
+      error => this.metadata.reject(error)
     );
   }
 
@@ -175,23 +174,27 @@ export class BundleReader {
    * If reached end of the stream, returns a null.
    */
   private async readLength(): Promise<Uint8Array | null> {
-    let position = this.indexOfOpenBracket();
-    while (position < 0) {
+    let position: number;
+    while ((position = this.indexOfOpenBracket()) < 0) {
       const done = await this.pullMoreDataToBuffer();
       if (done) {
-        if (this.buffer.length === 0) {
-          return null;
-        }
-        position = this.indexOfOpenBracket();
-        // Underlying stream is closed, and we still cannot find a '{'.
-        if (position < 0) {
-          this.raiseError(
-            'Reached the end of bundle when a length string is expected.'
-          );
-        }
-      } else {
-        position = this.indexOfOpenBracket();
+        break;
       }
+    }
+
+    // Broke out of the loop because underlying stream is closed, and there
+    // happens to be no more data to process.
+    if (this.buffer.length === 0) {
+      return null;
+    }
+
+    position = this.indexOfOpenBracket();
+    // Broke out of the loop because underlying stream is closed, but still
+    // cannot find an open bracket.
+    if (position < 0) {
+      this.raiseError(
+        'Reached the end of bundle when a length string is expected.'
+      );
     }
 
     const result = this.buffer.slice(0, position);

@@ -166,7 +166,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   };
   const limitToLastQueryString = lengthPrefixedString(limitToLastQuery);
 
-  async function getAllElement(
+  async function getAllElements(
     bundle: BundleReader
   ): Promise<SizedBundleElement[]> {
     const result: SizedBundleElement[] = [];
@@ -194,7 +194,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     );
   }
 
-  async function parseThroughBundle(
+  async function generateBundleAndParse(
     bundleString: string,
     bytesPerRead: number,
     validMeta = false
@@ -208,7 +208,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
     }
 
-    await getAllElement(bundle);
+    await getAllElements(bundle);
   }
 
   it('reads with query and doc with bytesPerRead ' + bytesPerRead, async () => {
@@ -224,7 +224,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-    const actual = await getAllElement(bundle);
+    const actual = await getAllElements(bundle);
     expect(actual.length).to.equal(4);
     verifySizedElement(actual[0], limitQuery, limitQueryString);
     verifySizedElement(actual[1], limitToLastQuery, limitToLastQueryString);
@@ -246,7 +246,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       );
       const bundle = new BundleReader(bundleStream);
 
-      const actual = await getAllElement(bundle);
+      const actual = await getAllElements(bundle);
       expect(actual.length).to.equal(5);
       verifySizedElement(actual[0], doc1Meta, doc1MetaString);
       verifySizedElement(actual[1], doc1, doc1String);
@@ -270,7 +270,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-      const actual = await getAllElement(bundle);
+      const actual = await getAllElements(bundle);
       expect(actual.length).to.equal(2);
       verifySizedElement(actual[0], doc1Meta, doc1MetaString);
       verifySizedElement(actual[1], doc1, doc1String);
@@ -286,7 +286,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-    const actual = await getAllElement(bundle);
+    const actual = await getAllElements(bundle);
     expect(actual.length).to.equal(3);
     verifySizedElement(actual[0], noDocMeta, noDocMetaString);
     verifySizedElement(actual[1], doc1Meta, doc1MetaString);
@@ -301,7 +301,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
-      const actual = await getAllElement(bundle);
+      const actual = await getAllElements(bundle);
       expect(actual.length).to.equal(0);
     }
   );
@@ -310,28 +310,32 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     'throws with ill-formatted bundle with bytesPerRead ' + bytesPerRead,
     async () => {
       await expect(
-        parseThroughBundle('metadata: "no length prefix"', bytesPerRead)
+        generateBundleAndParse('metadata: "no length prefix"', bytesPerRead)
       ).to.be.rejectedWith(
         'Reached the end of bundle when a length string is expected.'
       );
 
       await expect(
-        parseThroughBundle('{metadata: "no length prefix"}', bytesPerRead)
+        generateBundleAndParse('{metadata: "no length prefix"}', bytesPerRead)
       ).to.be.rejectedWith('Unexpected end of JSON input');
 
       await expect(
-        parseThroughBundle(metaString + 'invalid-string', bytesPerRead, true)
+        generateBundleAndParse(
+          metaString + 'invalid-string',
+          bytesPerRead,
+          true
+        )
       ).to.be.rejectedWith(
         'Reached the end of bundle when a length string is expected.'
       );
 
       await expect(
-        parseThroughBundle('1' + metaString, bytesPerRead)
+        generateBundleAndParse('1' + metaString, bytesPerRead)
       ).to.be.rejectedWith('Reached the end of bundle when more is expected.');
 
       // First element is not BundleMetadata.
       await expect(
-        parseThroughBundle(doc1MetaString + doc1String, bytesPerRead)
+        generateBundleAndParse(doc1MetaString + doc1String, bytesPerRead)
       ).to.be.rejectedWith('The first element of the bundle is not a metadata');
     }
   );
