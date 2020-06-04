@@ -20,7 +20,7 @@ import * as firestore from '../../index';
 import { Firestore } from './database';
 import { DocumentReference } from './reference';
 import { FieldPath } from './field_path';
-import { tryCast } from './util';
+import { cast } from './util';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
@@ -60,25 +60,23 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   data(): T | undefined {
     if (!this._document) {
       return undefined;
-    } else {
+    } else if (this._converter) {
       // We only want to use the converter and create a new DocumentSnapshot
       // if a converter has been provided.
-      if (this._converter) {
-        const snapshot = new QueryDocumentSnapshot(
-          this._firestore,
-          this._key,
-          this._document
-        );
-        return this._converter.fromFirestore(snapshot);
-      } else {
-        const userDataWriter = new UserDataWriter(
-          this._firestore._databaseId,
-          /* timestampsInSnapshots= */ false,
-          /* serverTimestampBehavior=*/ 'none',
-          key => new DocumentReference(this._firestore, key)
-        );
-        return userDataWriter.convertValue(this._document.toProto()) as T;
-      }
+      const snapshot = new QueryDocumentSnapshot(
+        this._firestore,
+        this._key,
+        this._document
+      );
+      return this._converter.fromFirestore(snapshot);
+    } else {
+      const userDataWriter = new UserDataWriter(
+        this._firestore._databaseId,
+        /* timestampsInSnapshots= */ false,
+        /* serverTimestampBehavior=*/ 'none',
+        key => new DocumentReference(this._firestore, key)
+      );
+      return userDataWriter.convertValue(this._document.toProto()) as T;
     }
   }
 
@@ -119,7 +117,7 @@ export function fieldPathFromArgument(
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
   } else {
-    const path = tryCast(arg, FieldPath);
+    const path = cast(arg, FieldPath);
     return path._internalPath;
   }
 }
