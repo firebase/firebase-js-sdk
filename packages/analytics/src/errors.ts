@@ -22,7 +22,8 @@ export const enum AnalyticsError {
   NO_GA_ID = 'no-ga-id',
   ALREADY_EXISTS = 'already-exists',
   ALREADY_INITIALIZED = 'already-initialized',
-  INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed'
+  INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
+  UNSUPPORTED_BROWSER = 'unsupported-browser'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -39,7 +40,9 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'settings() must be called before initializing any Analytics instance' +
     'or it will have no effect.',
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
-    'Firebase Analytics Interop Component failed to instantiate'
+    'Firebase Analytics Interop Component failed to instantiate',
+  [AnalyticsError.UNSUPPORTED_BROWSER]:
+    "This browser doesn't support the API's required to use the firebase SDK."
 };
 
 interface ErrorParams {
