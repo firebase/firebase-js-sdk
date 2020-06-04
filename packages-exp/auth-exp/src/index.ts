@@ -54,3 +54,6 @@ export { reload } from './core/user/reload';
 
 // model
 export { Operation as ActionCodeOperationType } from './model/action_code_info';
+
+// platform-browser/recaptcha
+export { RecaptchaVerifier } from './platform_browser/recaptcha/recaptcha_verifier';
