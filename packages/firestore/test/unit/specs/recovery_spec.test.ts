@@ -746,4 +746,58 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         });
     }
   );
+
+  specTest('Does not raise events when unlisten fails', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/key1', 1, { foo: 'a' });
+    const doc2 = doc('collection/key2', 2, { foo: 'b' });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, doc1)
+        .expectEvents(query, {
+          added: [doc1]
+        })
+        .failDatabaseTransactions('Release target')
+        .userUnlistens(query)
+        // Target remains active in RemoteStore, but events are suppressed
+        .expectActiveTargets({ query })
+        .watchSends({ affects: [query] }, doc2)
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        .expectActiveTargets()
+    );
+  });
+
+  specTest('Can re-listen to query when unlisten fails', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/key1', 1, { foo: 'a' });
+    const doc2 = doc('collection/key2', 2, { foo: 'b' });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, doc1)
+        .expectEvents(query, {
+          added: [doc1]
+        })
+        .failDatabaseTransactions('Release target')
+        .userUnlistens(query)
+        // Target remains active since 'Release target' failed
+        .expectActiveTargets({ query })
+        .userListens(query)
+        .expectEvents(query, {
+          added: [doc1]
+        })
+        .recoverDatabase()
+        .runTimer(TimerId.AsyncQueueRetry)
+        // Target remains active as it has now been listened to twice and
+        // unsubscribed from only once
+        .watchSends({ affects: [query] }, doc2)
+        .watchSnapshots(2000)
+        .expectEvents(query, {
+          added: [doc2]
+        })
+        .userUnlistens(query)
+    );
+  });
 });

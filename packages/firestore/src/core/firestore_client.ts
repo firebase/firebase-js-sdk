@@ -404,7 +404,7 @@ export class FirestoreClient {
     if (this.clientTerminated) {
       return;
     }
-    this.asyncQueue.enqueueAndForget(() => {
+    this.asyncQueue.enqueueRetryable(() => {
       return this.eventMgr.unlisten(listener);
     });
   }
