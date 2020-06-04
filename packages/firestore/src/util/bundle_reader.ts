@@ -96,7 +96,7 @@ export class BundleReader {
     this.reader = (this.bundleStream as ReadableStream).getReader();
 
     // Read the metadata (which is the first element).
-    this.nextElement().then(
+    this.nextElementImpl().then(
       element => {
         if (element && element.isBundleMetadata()) {
           this.metadata.resolve(element.payload.metadata!);
@@ -125,6 +125,8 @@ export class BundleReader {
    * have reached the end of the stream.
    */
   async nextElement(): Promise<SizedBundleElement | null> {
+    // Makes sure metadata is read before proceeding.
+    await this.getMetadata();
     return this.nextElementImpl();
   }
 
