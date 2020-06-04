@@ -119,6 +119,8 @@ describe('collection', () => {
       expect(() => collection(db, 'coll/doc')).to.throw(
         'Invalid collection path (coll/doc). Path points to a document.'
       );
+      // TODO(firestorelite): Explore returning a more helpful message
+      // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
         'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
       );
