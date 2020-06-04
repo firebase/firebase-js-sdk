@@ -5083,6 +5083,7 @@ declare namespace firebase.analytics {
     id?: string;
     name?: string;
   }
+  function isSupported(): boolean;
 }
 
 declare namespace firebase.auth.Auth {

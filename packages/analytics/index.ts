@@ -56,6 +56,10 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
           .getProvider('installations')
           .getImmediate();
 
+        if (!isSupported()) {
+          throw ERROR_FACTORY.create(AnalyticsError.UNSUPPORTED_BROWSER);
+        }
+
         return factory(app, installations);
       },
       ComponentType.PUBLIC
@@ -97,8 +101,50 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
+    isSupported(): boolean;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
   }
+}
+
+function isSupported(): boolean {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return isSWControllerSupported();
+  } else {
+    // Assume we are in the window context.
+    return isWindowControllerSupported();
+  }
+}
+
+/**
+ * Checks to see if the required APIs exist.
+ */
+function isWindowControllerSupported(): boolean {
+  return (
+    'indexedDB' in window &&
+    indexedDB !== null &&
+    navigator.cookieEnabled &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
+
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+function isSWControllerSupported(): boolean {
+  return (
+    'indexedDB' in self &&
+    indexedDB !== null &&
+    'PushManager' in self &&
+    'Notification' in self &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }
