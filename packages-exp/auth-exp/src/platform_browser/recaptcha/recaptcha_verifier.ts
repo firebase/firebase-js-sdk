@@ -25,7 +25,11 @@ import { _isHttpOrHttps } from '../../core/util/location';
 import { Auth } from '../../model/auth';
 import { AuthWindow } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { MOCK_RECAPTCHA_LOADER, RECAPTCHA_LOADER, ReCaptchaLoader } from './recaptcha_loader';
+import {
+  MOCK_RECAPTCHA_LOADER,
+  RECAPTCHA_LOADER,
+  ReCaptchaLoader
+} from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -57,7 +61,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
     },
     auth?: Auth | null
   ) {
-    this.auth = auth || initializeAuth() as Auth;
+    this.auth = auth || (initializeAuth() as Auth);
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
     const container =
@@ -144,9 +148,17 @@ export class RecaptchaVerifier implements ApplicationVerifier {
   }
 
   private validateStartingState(): void {
-    assert(!this.parameters.sitekey, this.appName, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      !this.parameters.sitekey,
+      this.appName,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     assert(document, this.appName, AuthErrorCode.OPERATION_NOT_SUPPORTED);
-    assert(this.isInvisible || !this.container.hasChildNodes(), this.appName, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      this.isInvisible || !this.container.hasChildNodes(),
+      this.appName,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
   }
 
   private makeTokenCallback(
@@ -193,7 +205,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
       this.auth,
       this.auth.languageCode || undefined
     );
-    
+
     const siteKey = await getRecaptchaParams(this.auth);
     assert(siteKey, this.appName);
     this.parameters.sitekey = siteKey;

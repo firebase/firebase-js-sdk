@@ -35,12 +35,15 @@ describe('platform-browser/load_js', () => {
   describe('_loadJS', () => {
     it('sets the appropriate properties', () => {
       const el = document.createElement('script');
-      sinon.stub(el);  // Prevent actually setting the src attribute
+      sinon.stub(el); // Prevent actually setting the src attribute
       sinon.stub(document, 'createElement').returns(el);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       _loadJS('http://localhost/url');
-      expect(el.setAttribute).to.have.been.calledWith('src', 'http://localhost/url');
+      expect(el.setAttribute).to.have.been.calledWith(
+        'src',
+        'http://localhost/url'
+      );
       expect(el.type).to.eq('text/javascript');
       expect(el.charset).to.eq('UTF-8');
     });

@@ -128,9 +128,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 }
 
 class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
-  async load(
-    auth: Auth,
-  ): Promise<Recaptcha> {
+  async load(auth: Auth): Promise<Recaptcha> {
     return new MockReCaptcha(auth);
   }
 

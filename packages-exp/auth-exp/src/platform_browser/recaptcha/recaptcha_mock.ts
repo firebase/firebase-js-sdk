@@ -36,12 +36,12 @@ export class MockReCaptcha implements Recaptcha {
 
   constructor(private readonly auth: Auth) {}
 
-  render(
-    container: string | HTMLElement,
-    parameters?: Parameters,
-  ): number {
+  render(container: string | HTMLElement, parameters?: Parameters): number {
     const id = this.counter;
-    this._widgets.set(id, new MockWidget(container, this.auth.name, parameters || {}));
+    this._widgets.set(
+      id,
+      new MockWidget(container, this.auth.name, parameters || {})
+    );
     this.counter++;
     return id;
   }
@@ -70,14 +70,14 @@ export class MockWidget {
   private timerId: number | null = null;
   private deleted = false;
   private responseToken: string | null = null;
-  private readonly clickHandler = ():void => {
+  private readonly clickHandler = (): void => {
     this.execute();
   };
 
   constructor(
     containerOrId: string | HTMLElement,
     appName: string,
-    private readonly params: Parameters,
+    private readonly params: Parameters
   ) {
     const container =
       typeof containerOrId === 'string'

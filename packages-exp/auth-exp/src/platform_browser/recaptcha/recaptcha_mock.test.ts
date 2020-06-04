@@ -25,7 +25,12 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import {
-    _EXPIRATION_TIME_MS, _SOLVE_TIME_MS, _WIDGET_ID_START, MockReCaptcha, MockWidget, Widget
+  _EXPIRATION_TIME_MS,
+  _SOLVE_TIME_MS,
+  _WIDGET_ID_START,
+  MockReCaptcha,
+  MockWidget,
+  Widget
 } from './recaptcha_mock';
 
 use(sinonChai);
@@ -53,7 +58,7 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
       widget = {
         getResponse: sinon.stub(),
         delete: sinon.stub(),
-        execute: sinon.stub(),
+        execute: sinon.stub()
       };
     });
 
@@ -69,7 +74,7 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
         const widget2 = {
           getResponse: sinon.stub(),
           delete: sinon.stub(),
-          execute: sinon.stub(),
+          execute: sinon.stub()
         };
         rc._widgets.set(_WIDGET_ID_START, widget);
         rc._widgets.set(_WIDGET_ID_START + 1, widget2);
@@ -85,7 +90,7 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
     context('#render', () => {
       // These tests all use invisible recaptcha to prevent the mock widget
       // from setting timers
-      const params = {size: 'invisible'};
+      const params = { size: 'invisible' };
 
       it('adds a mock widget object to the set and returns the id', () => {
         const id = rc.render(container, params);
@@ -130,12 +135,15 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
     context('#constructor', () => {
       it('errors if a bad container is passed in', () => {
         sinon.stub(document, 'getElementById').returns(null);
-        expect(() => new MockWidget('foo', 'app-name', {})).to.throw(FirebaseError, 'Firebase: Error (auth/argument-error).');
+        expect(() => new MockWidget('foo', 'app-name', {})).to.throw(
+          FirebaseError,
+          'Firebase: Error (auth/argument-error).'
+        );
       });
 
       it('attaches an event listener if invisible', () => {
         sinon.spy(container, 'addEventListener');
-        void new MockWidget(container, 'app-name', {size: 'invisible'});
+        void new MockWidget(container, 'app-name', { size: 'invisible' });
         expect(container.addEventListener).to.have.been.called;
       });
     });
@@ -144,7 +152,7 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
       // Stub out a bunch of stuff on setTimer
       let tripSolveTimer: () => void;
       let tripExpireTimer: () => void;
-      let callbacks: {[key: string]: sinon.SinonSpy};
+      let callbacks: { [key: string]: sinon.SinonSpy };
       let widget: MockWidget;
       let timeoutStub: sinon.SinonStub;
 
@@ -154,23 +162,25 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
       beforeEach(() => {
         callbacks = {
           'callback': sinon.spy(),
-          'expired-callback': sinon.spy(),
+          'expired-callback': sinon.spy()
         };
-        timeoutStub = sinon.stub(window, 'setTimeout').callsFake((cb, duration) => {
-          switch(duration) {
-            case _SOLVE_TIME_MS:
-              tripSolveTimer = cb;
-              // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
-              // which is flat-wrong. This is the easiest way to fix it.
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              return solveTimer as any;
-            case _EXPIRATION_TIME_MS:
-              tripExpireTimer = cb;
-              return expireTimer;
-            default:
-              throw new Error('Requested unknown callback duration');
-          }
-        });
+        timeoutStub = sinon
+          .stub(window, 'setTimeout')
+          .callsFake((cb, duration) => {
+            switch (duration) {
+              case _SOLVE_TIME_MS:
+                tripSolveTimer = cb;
+                // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
+                // which is flat-wrong. This is the easiest way to fix it.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return solveTimer as any;
+              case _EXPIRATION_TIME_MS:
+                tripExpireTimer = cb;
+                return expireTimer;
+              default:
+                throw new Error('Requested unknown callback duration');
+            }
+          });
         widget = new MockWidget(container, auth.name, callbacks);
       });
 
@@ -181,7 +191,9 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
         tripExpireTimer();
 
         expect(callbacks['callback']).to.have.been.calledTwice;
-        expect(callbacks['callback'].getCall(0).args[0]).not.to.eq(callbacks['callback'].getCall(1).args[0]);
+        expect(callbacks['callback'].getCall(0).args[0]).not.to.eq(
+          callbacks['callback'].getCall(1).args[0]
+        );
       });
 
       it('posts callback with a random alphanumeric code', () => {

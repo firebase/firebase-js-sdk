@@ -27,7 +27,10 @@ import { Auth } from '../../model/auth';
 import { AuthWindow } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-    _JSLOAD_CALLBACK, MOCK_RECAPTCHA_LOADER, ReCaptchaLoader, ReCaptchaLoaderImpl
+  _JSLOAD_CALLBACK,
+  MOCK_RECAPTCHA_LOADER,
+  ReCaptchaLoader,
+  ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 
@@ -50,13 +53,15 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
   describe('MockLoader', () => {
     it('returns a MockRecaptcha instance', async () => {
-      expect(await MOCK_RECAPTCHA_LOADER.load(auth)).to.be.instanceOf(MockReCaptcha);
+      expect(await MOCK_RECAPTCHA_LOADER.load(auth)).to.be.instanceOf(
+        MockReCaptcha
+      );
     });
   });
 
   describe('RealLoader', () => {
     let triggerNetworkTimeout: () => void;
-    let jsLoader: {resolve: () => void, reject: () => void};
+    let jsLoader: { resolve: () => void; reject: () => void };
     let loader: ReCaptchaLoader;
     const networkTimeoutId = 123;
 
@@ -71,7 +76,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
       sinon.stub(jsHelpers, '_loadJS').callsFake(() => {
         return new Promise((resolve, reject) => {
-          jsLoader = {resolve, reject};
+          jsLoader = { resolve, reject };
         });
       });
 
@@ -82,13 +87,19 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
       it('rejects if the network times out', async () => {
         const promise = loader.load(auth);
         triggerNetworkTimeout();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+        );
       });
 
       it('rejects with an internal error if the loadJS call fails', async () => {
         const promise = loader.load(auth);
         jsLoader.reject();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+        );
       });
     });
 
@@ -108,20 +119,23 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
       it('rejects if the grecaptcha object is not on the window', async () => {
         const promise = loader.load(auth);
         spoofJsLoad();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+        );
       });
 
       it('overwrites the render method', async () => {
         const promise = loader.load(auth);
         const oldRenderMethod = (): string => 'foo';
-        WINDOW.grecaptcha = {render: oldRenderMethod};
+        WINDOW.grecaptcha = { render: oldRenderMethod };
         spoofJsLoad();
         expect((await promise).render).not.to.eq(oldRenderMethod);
       });
 
       it('returns immediately if the new language code matches the old', async () => {
         const promise = loader.load(auth);
-        WINDOW.grecaptcha = {render: (): string => 'foo'};
+        WINDOW.grecaptcha = { render: (): string => 'foo' };
         spoofJsLoad();
         await promise;
         // Notice no call to spoofJsLoad..
@@ -129,7 +143,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
       });
 
       it('returns immediately if grecaptcha is already set on window', async () => {
-        WINDOW.grecaptcha = {render: (): string => 'foo'};
+        WINDOW.grecaptcha = { render: (): string => 'foo' };
         const loader = new ReCaptchaLoaderImpl();
         expect(await loader.load(auth)).to.eq(WINDOW.grecaptcha);
       });

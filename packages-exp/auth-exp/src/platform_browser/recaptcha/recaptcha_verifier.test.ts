@@ -54,7 +54,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     // The verifier will have set the parameters.callback field to be the wrapped callback
 
     mockEndpoint(Endpoint.GET_RECAPTCHA_PARAM, {
-      recaptchaSiteKey: 'recaptcha-key',
+      recaptchaSiteKey: 'recaptcha-key'
     });
   });
 
@@ -91,9 +91,14 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     it('calls render on the underlying recaptcha widget', async () => {
       const widget = new MockReCaptcha(auth);
       sinon.spy(widget, 'render');
-      sinon.stub(MOCK_RECAPTCHA_LOADER, 'load').returns(Promise.resolve(widget));
+      sinon
+        .stub(MOCK_RECAPTCHA_LOADER, 'load')
+        .returns(Promise.resolve(widget));
       await verifier.render();
-      expect(widget.render).to.have.been.calledWith(container.children[0], parameters);
+      expect(widget.render).to.have.been.calledWith(
+        container.children[0],
+        parameters
+      );
     });
 
     it('in case of error, resets render promise', async () => {
@@ -108,7 +113,9 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     let recaptcha: Recaptcha;
     beforeEach(() => {
       recaptcha = new MockReCaptcha(auth);
-      sinon.stub(MOCK_RECAPTCHA_LOADER, 'load').returns(Promise.resolve(recaptcha));
+      sinon
+        .stub(MOCK_RECAPTCHA_LOADER, 'load')
+        .returns(Promise.resolve(recaptcha));
     });
 
     it('returns immediately if response is available', async () => {
@@ -119,7 +126,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     it('resolves with the token in the callback', async () => {
       sinon.stub(recaptcha, 'getResponse').returns('');
       const promise = verifier.verify();
-      expect(typeof await promise).to.eq('string');
+      expect(typeof (await promise)).to.eq('string');
     });
 
     it('calls existing callback if provided', async () => {
@@ -156,7 +163,9 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   context('#reset', () => {
     it('calls reset on the underlying widget', async () => {
       const recaptcha = new MockReCaptcha(auth);
-      sinon.stub(MOCK_RECAPTCHA_LOADER, 'load').returns(Promise.resolve(recaptcha));
+      sinon
+        .stub(MOCK_RECAPTCHA_LOADER, 'load')
+        .returns(Promise.resolve(recaptcha));
       sinon.spy(recaptcha, 'reset');
       await verifier.render();
       verifier.reset();
@@ -174,10 +183,22 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
 
     it('causes other methods of the verifier to throw if called subsequently', async () => {
       verifier.clear();
-      expect(() => verifier.clear()).to.throw(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
-      expect(() => verifier.reset()).to.throw(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
-      await expect(verifier.render()).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
-      await expect(verifier.verify()).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+      expect(() => verifier.clear()).to.throw(
+        FirebaseError,
+        'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+      );
+      expect(() => verifier.reset()).to.throw(
+        FirebaseError,
+        'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+      );
+      await expect(verifier.render()).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+      );
+      await expect(verifier.verify()).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+      );
     });
   });
 });
