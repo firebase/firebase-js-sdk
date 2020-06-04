@@ -34,7 +34,8 @@ export {
   CollectionReference,
   collection,
   doc,
-  parent
+  parent,
+  getDoc
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when setDoc() is available

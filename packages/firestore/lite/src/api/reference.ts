@@ -17,6 +17,7 @@
 
 import * as firestore from '../../index';
 
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
 import { DocumentKeyReference } from '../../../src/api/user_data_reader';
@@ -24,6 +25,9 @@ import { Query as InternalQuery } from '../../../src/core/query';
 import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
+import { DocumentSnapshot } from './snapshot';
+import { invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import { hardAssert } from '../../../src/util/assert';
 import { cast } from './util';
 import {
   validateArgType,
@@ -244,4 +248,21 @@ export function parent<T>(
       doc._converter
     );
   }
+}
+
+export function getDoc<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = cast(reference, DocumentReference) as DocumentReference<T>;
+  return ref.firestore._ensureClientConfigured().then(async datastore => {
+    const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
+    hardAssert(result.length === 1, 'Expected a single document result');
+    const maybeDocument = result[0];
+    return new DocumentSnapshot<T>(
+      ref.firestore,
+      ref._key,
+      maybeDocument instanceof Document ? maybeDocument : null,
+      ref._converter
+    );
+  });
 }
