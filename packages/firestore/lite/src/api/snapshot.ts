@@ -130,9 +130,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
     callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
     thisArg?: unknown
   ): void {
-    this._docs.forEach(doc => {
-      callback.call(thisArg, doc);
-    });
+    this._docs.forEach(callback, thisArg);
   }
 }
 
