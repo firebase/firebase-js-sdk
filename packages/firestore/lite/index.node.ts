@@ -60,6 +60,8 @@ export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
 export { WriteBatch, writeBatch } from './src/api/write_batch';
 
+export { Transaction, runTransaction } from './src/api/transaction';
+
 export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {

@@ -52,9 +52,9 @@ import {
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
 import { writeBatch } from '../src/api/write_batch';
+import { runTransaction } from '../src/api/transaction';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { FieldValue } from '../../src/api/field_value';
-
 use(chaiAsPromised);
 
 describe('Firestore', () => {
@@ -324,7 +324,95 @@ describe('WriteBatch', () => {
   });
 });
 
-function genericMutationTests(op: MutationTester): void {
+describe('Transaction', () => {
+  class TransactionTester implements MutationTester {
+    delete(ref: firestore.DocumentReference<unknown>): Promise<void> {
+      return runTransaction(ref.firestore, async transaction => {
+        transaction.delete(ref);
+      });
+    }
+
+    set<T>(
+      ref: firestore.DocumentReference<T>,
+      data: T | Partial<T>,
+      options?: firestore.SetOptions
+    ): Promise<void> {
+      const args = Array.from(arguments);
+      return runTransaction(ref.firestore, async transaction => {
+        // TODO(mrschmidt): Find a way to remove the `any` cast here
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (transaction.set as any).apply(transaction, args);
+      });
+    }
+
+    update(
+      ref: firestore.DocumentReference<unknown>,
+      dataOrField: firestore.UpdateData | string | firestore.FieldPath,
+      value?: unknown,
+      ...moreFieldsAndValues: unknown[]
+    ): Promise<void> {
+      const args = Array.from(arguments);
+      return runTransaction(ref.firestore, async transaction => {
+        // TODO(mrschmidt): Find a way to remove the `any` cast here
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (transaction.update as any).apply(transaction, args);
+      });
+    }
+  }
+
+  genericMutationTests(
+    new TransactionTester(),
+    /* validationUsesPromises= */ true
+  );
+
+  it('can read and then write', () => {
+    return withTestDocAndInitialData({ counter: 1 }, async doc => {
+      await runTransaction(doc.firestore, async transaction => {
+        const snap = await transaction.get(doc);
+        transaction.update(doc, 'counter', snap.get('counter') + 1);
+      });
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(2);
+    });
+  });
+
+  it('can read non-existing doc then write', () => {
+    return withTestDoc(async doc => {
+      await runTransaction(doc.firestore, async transaction => {
+        const snap = await transaction.get(doc);
+        expect(snap.exists()).to.be.false;
+        transaction.set(doc, { counter: 1 });
+      });
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(1);
+    });
+  });
+
+  it('retries when document is modified', () => {
+    return withTestDoc(async doc => {
+      let retryCounter = 0;
+      await runTransaction(doc.firestore, async transaction => {
+        ++retryCounter;
+        await transaction.get(doc);
+
+        if (retryCounter === 1) {
+          // Out of band modification that doesn't use the transaction
+          await setDoc(doc, { counter: 'invalid' });
+        }
+
+        transaction.set(doc, { counter: 1 });
+      });
+      expect(retryCounter).to.equal(2);
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(1);
+    });
+  });
+});
+
+function genericMutationTests(
+  op: MutationTester,
+  validationUsesPromises: boolean = false
+): void {
   const setDoc = op.set;
   const updateDoc = op.update;
   const deleteDoc = op.delete;
@@ -379,9 +467,17 @@ function genericMutationTests(op: MutationTester): void {
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
-        expect(() => setDoc(docRef, { val: undefined })).to.throw(
-          /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
-        );
+        if (validationUsesPromises) {
+          return expect(
+            setDoc(docRef, { val: undefined })
+          ).to.eventually.be.rejectedWith(
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+          );
+        } else {
+          expect(() => setDoc(docRef, { val: undefined })).to.throw(
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+          );
+        }
       });
     });
 
@@ -418,9 +514,17 @@ function genericMutationTests(op: MutationTester): void {
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
-        expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-          /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
-        );
+        if (validationUsesPromises) {
+          return expect(
+            updateDoc(docRef, { val: undefined })
+          ).to.eventually.be.rejectedWith(
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+          );
+        } else {
+          expect(() => updateDoc(docRef, { val: undefined })).to.throw(
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+          );
+        }
       });
     });
   });
