@@ -50,6 +50,9 @@ export interface Platform {
    */
   randomBytes(nBytes: number): Uint8Array;
 
+  /**
+   * Builds a `ByteStreamReader` from a data source.
+   */
   toByteStreamReader(source: unknown): ByteStreamReader;
 
   /** The Platform's 'window' implementation or null if not available. */
@@ -62,16 +65,31 @@ export interface Platform {
   readonly base64Available: boolean;
 }
 
+/**
+ * An interface compatible with Web's ReadableStream.getReader() return type.
+ *
+ * This can be used as an abstraction to mimic `ReadableStream` where it is not
+ * available.
+ */
 export interface ByteStreamReader {
   read(): Promise<ByteStreamReadResult>;
   cancel(reason?: string): Promise<void>;
 }
 
+/**
+ * An interface compatible with ReadableStreamReadResult<UInt8Array>.
+ */
 export interface ByteStreamReadResult {
   done: boolean;
-  value: Uint8Array;
+  value?: Uint8Array;
 }
 
+/**
+ * Builds a `ByteStreamReader` from a UInt8Array.
+ * @param source The data source to use.
+ * @param bytesPerRead How many bytes each `read()` from the returned reader
+ *        will read.
+ */
 export function toByteStreamReader(
   source: Uint8Array,
   bytesPerRead = 10240
@@ -88,7 +106,7 @@ export function toByteStreamReader(
         return result;
       }
 
-      return { value: new Uint8Array(), done: true };
+      return { value: undefined, done: true };
     }
 
     async cancel(reason?: string): Promise<void> {}
@@ -109,6 +127,9 @@ export class PlatformSupport {
     PlatformSupport.platform = platform;
   }
 
+  /**
+   * Forcing to set the platform instance, testing only!
+   */
   private static _forceSetPlatform(platform: Platform): void {
     PlatformSupport.platform = platform;
   }

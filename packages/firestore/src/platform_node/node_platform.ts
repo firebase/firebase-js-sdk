@@ -88,6 +88,9 @@ export class NodePlatform implements Platform {
     return randomBytes(nBytes);
   }
 
+  /**
+   * On Node, only supported data source is a `Uint8Array` for now.
+   */
   toByteStreamReader(source: unknown): ByteStreamReader {
     if (source instanceof Uint8Array) {
       return toByteStreamReader(source);

@@ -16,10 +16,34 @@
  */
 
 import { expect } from 'chai';
-import { PlatformSupport } from '../../../src/platform/platform';
+import {
+  PlatformSupport,
+  toByteStreamReader
+} from '../../../src/platform/platform';
 
 describe('Platform', () => {
   it('can load the platform at runtime', () => {
     expect(PlatformSupport.getPlatform()).to.exist;
+  });
+
+  it('toByteStreamReader() steps underlying data', async () => {
+    const encoder = new TextEncoder();
+    const r = toByteStreamReader(encoder.encode('0123456789'), 4);
+
+    let result = await r.read();
+    expect(result.value).to.deep.equal(encoder.encode('0123'));
+    expect(result.done).to.be.false;
+
+    result = await r.read();
+    expect(result.value).to.deep.equal(encoder.encode('4567'));
+    expect(result.done).to.be.false;
+
+    result = await r.read();
+    expect(result.value).to.deep.equal(encoder.encode('89'));
+    expect(result.done).to.be.false;
+
+    result = await r.read();
+    expect(result.value).to.be.undefined;
+    expect(result.done).to.be.true;
   });
 });

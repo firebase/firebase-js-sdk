@@ -99,7 +99,12 @@ export class BrowserPlatform implements Platform {
     return bytes;
   }
 
-  toByteStreamReader(source: unknown): ByteStreamReader {
+  /**
+   * On web, a `ReadableStream` is wrapped around by a `ByteStreamReader`.
+   */
+  toByteStreamReader(
+    source: Uint8Array | ArrayBuffer | ReadableStream<Uint8Array>
+  ): ByteStreamReader {
     if (source instanceof Uint8Array) {
       return toByteStreamReader(source);
     }

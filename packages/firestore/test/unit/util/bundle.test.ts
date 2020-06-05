@@ -57,11 +57,14 @@ function lengthPrefixedString(o: {}): string {
   return `${l}${str}`;
 }
 
-describe('readableStreamFromString()', () => {
+// Testing readableStreamFromString() is working as expected.
+// eslint-disable-next-line no-restricted-properties
+(isNode() ? describe.skip : describe)('readableStreamFromString()', () => {
   it('returns stepping readable stream', async () => {
     const encoder = new TextEncoder();
-    const s = readableStreamFromString('0123456789', 4);
-    const r = s.getReader();
+    const r = PlatformSupport.getPlatform().toByteStreamReader(
+      readableStreamFromString('0123456789', 4)
+    );
 
     let result = await r.read();
     expect(result.value).to.deep.equal(encoder.encode('0123'));
@@ -81,7 +84,7 @@ describe('readableStreamFromString()', () => {
   });
 });
 
-describe.only('Bundle ', () => {
+describe('Bundle ', () => {
   genericBundleReadingTests(1);
   genericBundleReadingTests(4);
   genericBundleReadingTests(64);
@@ -89,6 +92,7 @@ describe.only('Bundle ', () => {
 });
 
 function genericBundleReadingTests(bytesPerRead: number): void {
+  // On Node, we need to override `bytesPerRead` from it's platform's `toByteStreamReader` call.
   if (isNode()) {
     const platform = PlatformSupport.getPlatform();
     platform.toByteStreamReader = source =>

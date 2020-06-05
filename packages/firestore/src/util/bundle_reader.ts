@@ -21,6 +21,7 @@ import {
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
 import { ByteStreamReader, PlatformSupport } from '../platform/platform';
+import { debugAssert } from './assert';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -204,11 +205,12 @@ export class BundleReader {
   private async pullMoreDataToBuffer(): Promise<boolean> {
     const result = await this.reader.read();
     if (!result.done) {
+      debugAssert(!!result.value, 'Read undefined when "done" is false.');
       const newBuffer = new Uint8Array(
-        this.buffer.length + result.value.length
+        this.buffer.length + result.value!.length
       );
       newBuffer.set(this.buffer);
-      newBuffer.set(result.value, this.buffer.length);
+      newBuffer.set(result.value!, this.buffer.length);
       this.buffer = newBuffer;
     }
     return result.done;
