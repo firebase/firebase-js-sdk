@@ -20,16 +20,31 @@ import * as firestore from '../../index';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
-import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import {
+  DocumentKeyReference,
+  ParsedUpdateData,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
-import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
-import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { tryCast } from './util';
 import { DocumentSnapshot } from './snapshot';
-import { invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import {
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { applyFirestoreDataConverter } from '../../../src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
+import { FieldPath } from './field_path';
+import { cast } from './util';
+import {
+  validateArgType,
+  validateCollectionPath,
+  validateDocumentPath
+} from '../../../src/util/input_validation';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -64,7 +79,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     readonly firestore: Firestore,
     readonly _query: InternalQuery,
-    readonly _converter?: FirestoreDataConverter<T>
+    readonly _converter?: firestore.FirestoreDataConverter<T>
   ) {}
 
   where(
@@ -159,52 +174,36 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
 }
 
 export function collection(
-  firestore: FirebaseFirestore,
+  firestore: firestore.FirebaseFirestore,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
-  reference: DocumentReference,
+  reference: firestore.DocumentReference,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
   parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  if (relativePath.length === 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
+  validateArgType('doc', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    if (DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(path);
     return new CollectionReference(parent, path);
   } else {
-    const doc = tryCast(parent, DocumentReference);
+    const doc = cast(parent, DocumentReference);
     const absolutePath = doc._key.path.child(path);
-    if (DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(absolutePath);
     return new CollectionReference(doc.firestore, absolutePath);
   }
 }
 
 export function doc(
-  firestore: FirebaseFirestore,
+  firestore: firestore.FirebaseFirestore,
   documentPath: string
 ): DocumentReference<firestore.DocumentData>;
 export function doc<T>(
-  reference: CollectionReference<T>,
+  reference: firestore.CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
 export function doc<T>(
@@ -216,32 +215,15 @@ export function doc<T>(
   if (arguments.length === 1) {
     relativePath = AutoId.newId();
   }
-
-  if (!relativePath) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
-  const path = ResourcePath.fromString(relativePath);
+  validateArgType('doc', 'non-empty string', 2, relativePath);
+  const path = ResourcePath.fromString(relativePath!);
   if (parent instanceof Firestore) {
-    if (!DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(path);
     return new DocumentReference(parent, new DocumentKey(path));
   } else {
-    const coll = tryCast(parent, CollectionReference);
+    const coll = cast(parent, CollectionReference);
     const absolutePath = coll._path.child(path);
-    if (!DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(absolutePath);
     return new DocumentReference(
       coll.firestore,
       new DocumentKey(absolutePath),
@@ -270,7 +252,7 @@ export function parent<T>(
       );
     }
   } else {
-    const doc = tryCast(child, DocumentReference) as DocumentReference<T>;
+    const doc = cast<DocumentReference<T>>(child, DocumentReference);
     return new CollectionReference<T>(
       doc.firestore,
       doc._key.path.popLast(),
@@ -282,7 +264,7 @@ export function parent<T>(
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = tryCast(reference, DocumentReference) as DocumentReference<T>;
+  const ref = cast(reference, DocumentReference) as DocumentReference<T>;
   return ref.firestore._ensureClientConfigured().then(async datastore => {
     const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
     hardAssert(result.length === 1, 'Expected a single document result');
@@ -294,4 +276,156 @@ export function getDoc<T>(
       ref._converter
     );
   });
+}
+
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: Partial<T>,
+  options: firestore.SetOptions
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T,
+  options?: firestore.SetOptions
+): Promise<void> {
+  const ref = cast(reference, DocumentReference);
+
+  const [convertedValue] = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    'setDoc'
+  );
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = ref.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    ref.firestore._databaseId,
+    ref.firestore._settings!
+  );
+
+  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+
+  return configureClient.then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
+  );
+}
+
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  data: firestore.UpdateData
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  field: string | firestore.FieldPath,
+  value: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference,
+  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  value?: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void> {
+  const ref = cast(reference, DocumentReference);
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = ref.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    ref.firestore._databaseId,
+    ref.firestore._settings!
+  );
+
+  let parsed: ParsedUpdateData;
+  if (
+    typeof fieldOrUpdateData === 'string' ||
+    fieldOrUpdateData instanceof FieldPath
+  ) {
+    parsed = dataReader.parseUpdateVarargs(
+      'updateDoc',
+      fieldOrUpdateData,
+      value,
+      moreFieldsAndValues
+    );
+  } else {
+    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+  }
+
+  return configureClient.then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
+  );
+
+  return ref.firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(ref._key, Precondition.exists(true))
+      )
+    );
+}
+
+export function deleteDoc(
+  reference: firestore.DocumentReference
+): Promise<void> {
+  const ref = cast(reference, DocumentReference);
+  return ref.firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(datastore, [
+        new DeleteMutation(ref._key, Precondition.none())
+      ])
+    );
+}
+
+export function addDoc<T>(
+  reference: firestore.CollectionReference<T>,
+  data: T
+): Promise<firestore.DocumentReference<T>> {
+  const collRef = cast(reference, CollectionReference);
+  const docRef = doc(collRef);
+
+  const [convertedValue] = applyFirestoreDataConverter(
+    collRef._converter,
+    data,
+    'addDoc'
+  );
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = collRef.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    collRef.firestore._databaseId,
+    collRef.firestore._settings!
+  );
+  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+
+  return configureClient
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(docRef._key, Precondition.exists(false))
+      )
+    )
+    .then(() => docRef);
+}
+
+function newUserDataReader(
+  databaseId: DatabaseId,
+  settings: firestore.Settings
+): UserDataReader {
+  const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
+  return new UserDataReader(
+    databaseId,
+    !!settings.ignoreUndefinedProperties,
+    serializer
+  );
 }

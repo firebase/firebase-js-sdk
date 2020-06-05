@@ -36,13 +36,15 @@ export {
   collection,
   doc,
   parent,
-  getDoc
+  getDoc,
+  deleteDoc,
+  setDoc,
+  updateDoc,
+  addDoc
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from './src/api/field_path';
-
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
@@ -53,6 +55,10 @@ export {
   arrayUnion,
   serverTimestamp
 } from './src/api/field_value';
+
+export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
+export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {
   _registerComponent(

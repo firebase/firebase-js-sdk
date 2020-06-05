@@ -20,11 +20,12 @@ import { initializeApp } from '@firebase/app-exp';
 import * as firestore from '../index';
 
 import { initializeFirestore } from '../src/api/database';
-import { doc, collection } from '../src/api/reference';
+import { doc, collection, setDoc } from '../src/api/reference';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
+import { AutoId } from '../../src/util/misc';
 
 let appCount = 0;
 
@@ -53,5 +54,24 @@ export function withTestDoc(
 ): Promise<void> {
   return withTestDb(db => {
     return fn(doc(collection(db, 'test-collection')));
+  });
+}
+
+export function withTestDocAndInitialData(
+  data: firestore.DocumentData,
+  fn: (doc: firestore.DocumentReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(async db => {
+    const ref = doc(collection(db, 'test-collection'));
+    await setDoc(ref, data);
+    return fn(ref);
+  });
+}
+
+export function withTestCollection(
+  fn: (doc: firestore.CollectionReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(db => {
+    return fn(collection(db, AutoId.newId()));
   });
 }
