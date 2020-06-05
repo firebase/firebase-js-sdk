@@ -20,7 +20,7 @@ import { querystring } from '@firebase/util';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
 import { Auth } from '../../model/auth';
-import { AuthWindow } from '../auth_window';
+import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import { Recaptcha } from './recaptcha';
 import { MockReCaptcha } from './recaptcha_mock';
@@ -36,26 +36,20 @@ export interface ReCaptchaLoader {
   clearedOneInstance(): void;
 }
 
-function pullGrecaptcha(): Recaptcha | undefined {
-  return (window as AuthWindow).grecaptcha;
-}
-
-const WINDOW = window as AuthWindow;
-
 /**
  * Loader for the GReCaptcha library. There should only ever be one of this.
  */
 export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
-  private hl = '';
+  private hostLanguage = '';
   private counter = 0;
-  private readonly librarySeparatelyLoaded = !!pullGrecaptcha();
+  private readonly librarySeparatelyLoaded = !!AUTH_WINDOW.grecaptcha;
 
   load(auth: Auth, hl = ''): Promise<Recaptcha> {
     if (this.shouldResolveImmediately(hl)) {
-      return Promise.resolve(pullGrecaptcha()!);
+      return Promise.resolve(AUTH_WINDOW.grecaptcha!);
     }
     return new Promise<Recaptcha>((resolve, reject) => {
-      const networkTimeout = WINDOW.setTimeout(() => {
+      const networkTimeout = AUTH_WINDOW.setTimeout(() => {
         reject(
           AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
             appName: auth.name
@@ -63,11 +57,11 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         );
       }, NETWORK_TIMEOUT_DELAY.get());
 
-      WINDOW[_JSLOAD_CALLBACK] = () => {
-        WINDOW.clearTimeout(networkTimeout);
-        delete WINDOW[_JSLOAD_CALLBACK];
+      AUTH_WINDOW[_JSLOAD_CALLBACK] = () => {
+        AUTH_WINDOW.clearTimeout(networkTimeout);
+        delete AUTH_WINDOW[_JSLOAD_CALLBACK];
 
-        const recaptcha = pullGrecaptcha();
+        const recaptcha = AUTH_WINDOW.grecaptcha;
 
         if (!recaptcha) {
           reject(
@@ -87,7 +81,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
           return widgetId;
         };
 
-        this.hl = hl;
+        this.hostLanguage = hl;
         resolve(recaptcha);
       };
 
@@ -121,8 +115,8 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     // In cases (2) and (3), we _can't_ reload as it would break the recaptchas
     // that are already in the page
     return (
-      !!pullGrecaptcha() &&
-      (hl === this.hl || this.counter > 0 || this.librarySeparatelyLoaded)
+      !!AUTH_WINDOW.grecaptcha &&
+      (hl === this.hostLanguage || this.counter > 0 || this.librarySeparatelyLoaded)
     );
   }
 }

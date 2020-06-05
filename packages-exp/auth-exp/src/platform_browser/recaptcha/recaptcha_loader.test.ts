@@ -23,18 +23,14 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth } from '../../../test/mock_auth';
+import { stubSingleTimeout } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
-import { AuthWindow } from '../auth_window';
+import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-  _JSLOAD_CALLBACK,
-  MOCK_RECAPTCHA_LOADER,
-  ReCaptchaLoader,
-  ReCaptchaLoaderImpl
+    _JSLOAD_CALLBACK, MOCK_RECAPTCHA_LOADER, ReCaptchaLoader, ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
-
-const WINDOW: AuthWindow = window;
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -48,7 +44,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
   afterEach(() => {
     sinon.restore();
-    delete WINDOW.grecaptcha;
+    delete AUTH_WINDOW.grecaptcha;
   });
 
   describe('MockLoader', () => {
@@ -66,13 +62,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
     const networkTimeoutId = 123;
 
     beforeEach(() => {
-      sinon.stub(window, 'setTimeout').callsFake(cb => {
-        triggerNetworkTimeout = () => cb();
-        // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
-        // which is flat-wrong. This is the easiest way to fix it.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return networkTimeoutId as any;
-      });
+      triggerNetworkTimeout = stubSingleTimeout(networkTimeoutId);
 
       sinon.stub(jsHelpers, '_loadJS').callsFake(() => {
         return new Promise((resolve, reject) => {
@@ -105,15 +95,15 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
     context('on js load callback', () => {
       function spoofJsLoad(): void {
-        WINDOW[_JSLOAD_CALLBACK]();
+        AUTH_WINDOW[_JSLOAD_CALLBACK]();
       }
 
       it('clears the network timeout', () => {
-        sinon.spy(WINDOW, 'clearTimeout');
+        sinon.spy(AUTH_WINDOW, 'clearTimeout');
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         loader.load(auth);
         spoofJsLoad();
-        expect(WINDOW.clearTimeout).to.have.been.calledWith(networkTimeoutId);
+        expect(AUTH_WINDOW.clearTimeout).to.have.been.calledWith(networkTimeoutId);
       });
 
       it('rejects if the grecaptcha object is not on the window', async () => {
@@ -127,25 +117,26 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
       it('overwrites the render method', async () => {
         const promise = loader.load(auth);
-        const oldRenderMethod = (): string => 'foo';
-        WINDOW.grecaptcha = { render: oldRenderMethod };
+        const mockRecaptcha = new MockReCaptcha(auth);
+        const oldRenderMethod = mockRecaptcha.render;
+        AUTH_WINDOW.grecaptcha = mockRecaptcha;
         spoofJsLoad();
         expect((await promise).render).not.to.eq(oldRenderMethod);
       });
 
       it('returns immediately if the new language code matches the old', async () => {
         const promise = loader.load(auth);
-        WINDOW.grecaptcha = { render: (): string => 'foo' };
+        AUTH_WINDOW.grecaptcha = new MockReCaptcha(auth);
         spoofJsLoad();
         await promise;
         // Notice no call to spoofJsLoad..
-        expect(await loader.load(auth)).to.eq(WINDOW.grecaptcha);
+        expect(await loader.load(auth)).to.eq(AUTH_WINDOW.grecaptcha);
       });
 
       it('returns immediately if grecaptcha is already set on window', async () => {
-        WINDOW.grecaptcha = { render: (): string => 'foo' };
+        AUTH_WINDOW.grecaptcha = new MockReCaptcha(auth);
         const loader = new ReCaptchaLoaderImpl();
-        expect(await loader.load(auth)).to.eq(WINDOW.grecaptcha);
+        expect(await loader.load(auth)).to.eq(AUTH_WINDOW.grecaptcha);
       });
     });
   });

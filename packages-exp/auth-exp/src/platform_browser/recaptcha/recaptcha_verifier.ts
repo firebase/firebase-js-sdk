@@ -23,13 +23,9 @@ import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { Auth } from '../../model/auth';
-import { AuthWindow } from '../auth_window';
+import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import {
-  MOCK_RECAPTCHA_LOADER,
-  RECAPTCHA_LOADER,
-  ReCaptchaLoader
-} from './recaptcha_loader';
+import { MOCK_RECAPTCHA_LOADER, RECAPTCHA_LOADER, ReCaptchaLoader } from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -169,7 +165,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
       if (typeof existing === 'function') {
         existing(token);
       } else if (typeof existing === 'string') {
-        const globalFunc = (window as AuthWindow)[existing];
+        const globalFunc = AUTH_WINDOW[existing];
         if (typeof globalFunc === 'function') {
           globalFunc(token);
         }
@@ -218,10 +214,9 @@ export class RecaptchaVerifier implements ApplicationVerifier {
 }
 
 function isWorker(): boolean {
-  const win: AuthWindow = window;
   return (
-    typeof win['WorkerGlobalScope'] !== 'undefined' &&
-    typeof win['importScripts'] === 'function'
+    typeof AUTH_WINDOW['WorkerGlobalScope'] !== 'undefined' &&
+    typeof AUTH_WINDOW['importScripts'] === 'function'
   );
 }
 

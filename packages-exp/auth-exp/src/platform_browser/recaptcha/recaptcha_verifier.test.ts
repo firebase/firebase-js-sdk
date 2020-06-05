@@ -27,7 +27,7 @@ import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
-import { AuthWindow } from '../auth_window';
+import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import { _JSLOAD_CALLBACK, MOCK_RECAPTCHA_LOADER } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
@@ -144,8 +144,8 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
 
     it('calls existing global function if on the window', async () => {
       let token = '';
-      (window as AuthWindow).callbackOnWindowObject = (t: string): void => {
-        token = t;
+      AUTH_WINDOW.callbackOnWindowObject = (t: unknown): void => {
+        token = t as string;
       };
 
       parameters = {
@@ -156,7 +156,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
       const expected = await verifier.verify();
       expect(token).to.eq(expected);
 
-      delete (window as AuthWindow).callbackOnWindowObject;
+      delete AUTH_WINDOW.callbackOnWindowObject;
     });
   });
 

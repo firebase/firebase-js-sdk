@@ -23,14 +23,10 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth } from '../../../test/mock_auth';
+import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
 import {
-  _EXPIRATION_TIME_MS,
-  _SOLVE_TIME_MS,
-  _WIDGET_ID_START,
-  MockReCaptcha,
-  MockWidget,
-  Widget
+    _EXPIRATION_TIME_MS, _SOLVE_TIME_MS, _WIDGET_ID_START, MockReCaptcha, MockWidget, Widget
 } from './recaptcha_mock';
 
 use(sinonChai);
@@ -150,45 +146,26 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
 
     context('#execute', () => {
       // Stub out a bunch of stuff on setTimer
-      let tripSolveTimer: () => void;
-      let tripExpireTimer: () => void;
+      let pendingTimers: TimerMap;
       let callbacks: { [key: string]: sinon.SinonSpy };
       let widget: MockWidget;
       let timeoutStub: sinon.SinonStub;
-
-      const solveTimer = 1;
-      const expireTimer = 2;
 
       beforeEach(() => {
         callbacks = {
           'callback': sinon.spy(),
           'expired-callback': sinon.spy()
         };
-        timeoutStub = sinon
-          .stub(window, 'setTimeout')
-          .callsFake((cb, duration) => {
-            switch (duration) {
-              case _SOLVE_TIME_MS:
-                tripSolveTimer = cb;
-                // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
-                // which is flat-wrong. This is the easiest way to fix it.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                return solveTimer as any;
-              case _EXPIRATION_TIME_MS:
-                tripExpireTimer = cb;
-                return expireTimer;
-              default:
-                throw new Error('Requested unknown callback duration');
-            }
-          });
+        pendingTimers = stubTimeouts();
+        timeoutStub = window.setTimeout as unknown as sinon.SinonStub;
         widget = new MockWidget(container, auth.name, callbacks);
       });
 
       it('keeps re-executing with new tokens if expiring', () => {
-        tripSolveTimer();
-        tripExpireTimer();
-        tripSolveTimer();
-        tripExpireTimer();
+        pendingTimers[_SOLVE_TIME_MS]();
+        pendingTimers[_EXPIRATION_TIME_MS]();
+        pendingTimers[_SOLVE_TIME_MS]();
+        pendingTimers[_EXPIRATION_TIME_MS]();
 
         expect(callbacks['callback']).to.have.been.calledTwice;
         expect(callbacks['callback'].getCall(0).args[0]).not.to.eq(
@@ -197,21 +174,21 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
       });
 
       it('posts callback with a random alphanumeric code', () => {
-        tripSolveTimer();
+        pendingTimers[_SOLVE_TIME_MS]();
         const arg: string = callbacks['callback'].getCall(0).args[0];
         expect(arg).to.be.a('string');
         expect(arg.length).to.equal(50);
       });
 
       it('expired callback does execute if just solve trips', () => {
-        tripSolveTimer();
+        pendingTimers[_SOLVE_TIME_MS]();
         expect(callbacks['callback']).to.have.been.called;
         expect(callbacks['expired-callback']).not.to.have.been.called;
       });
 
       it('expired callback executes if just expiration timer trips', () => {
-        tripSolveTimer();
-        tripExpireTimer();
+        pendingTimers[_SOLVE_TIME_MS]();
+        pendingTimers[_EXPIRATION_TIME_MS]();
         expect(callbacks['callback']).to.have.been.called;
         expect(callbacks['expired-callback']).to.have.been.called;
       });
