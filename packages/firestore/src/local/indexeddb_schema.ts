@@ -423,6 +423,8 @@ export class DbMutationQueue {
      *
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastStreamToken: string
   ) {}

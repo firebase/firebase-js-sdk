@@ -49,6 +49,8 @@ export class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
+  terminated = false;
+
   constructor(
     public readonly connection: Connection,
     public readonly credentials: CredentialsProvider,
@@ -57,8 +59,18 @@ class DatastoreImpl extends Datastore {
     super();
   }
 
+  private verifyNotTerminated(): void {
+    if (this.terminated) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The client has already been terminated.'
+      );
+    }
+  }
+
   /** Gets an auth token and invokes the provided RPC. */
   invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -77,6 +89,7 @@ class DatastoreImpl extends Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -198,4 +211,9 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
+}
+
+export function terminateDatastore(datastore: Datastore): void {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  datastoreImpl.terminated = true;
 }

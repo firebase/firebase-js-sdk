@@ -123,7 +123,8 @@ export async function testIndexedDbPersistence(
     lruParams,
     queue,
     JSON_SERIALIZER,
-    MOCK_SEQUENCE_NUMBER_SYNCER
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    /** forceOwningTab= */ false
   );
   await persistence.start();
   return persistence;

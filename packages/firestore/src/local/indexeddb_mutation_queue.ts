@@ -26,7 +26,6 @@ import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { decodeResourcePath } from './encoded_resource_path';
@@ -116,40 +115,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
       )
       .next(() => empty);
-  }
-
-  acknowledgeBatch(
-    transaction: PersistenceTransaction,
-    batch: MutationBatch,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // We can't store the resumeToken as a ByteString in IndexedDB, so we
-      // convert it to a Base64 string for storage.
-      metadata.lastStreamToken = streamToken.toBase64();
-
-      return mutationQueuesStore(transaction).put(metadata);
-    });
-  }
-
-  getLastStreamToken(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ByteString> {
-    return this.getMutationQueueMetadata(transaction).next<ByteString>(
-      metadata => ByteString.fromBase64String(metadata.lastStreamToken)
-    );
-  }
-
-  setLastStreamToken(
-    transaction: PersistenceTransaction,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // We can't store the resumeToken as a ByteString in IndexedDB, so we
-      // convert it to a Base64 string for storage.
-      metadata.lastStreamToken = streamToken.toBase64();
-      return mutationQueuesStore(transaction).put(metadata);
-    });
   }
 
   addMutationBatch(

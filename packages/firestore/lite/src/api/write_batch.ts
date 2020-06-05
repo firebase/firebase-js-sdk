@@ -76,16 +76,11 @@ export class WriteBatch implements firestore.WriteBatch {
       'WriteBatch.set'
     );
 
-    const parsed = isMerge(options)
-      ? this._dataReader.parseMergeData('WriteBatch.set', convertedValue)
-      : isMergeFields(options)
-      ? this._dataReader.parseMergeData(
-          'WriteBatch.set',
-          convertedValue,
-          options.mergeFields
-        )
-      : this._dataReader.parseSetData('WriteBatch.set', convertedValue);
-
+    const parsed = this._dataReader.parseSetData(
+      'WriteBatch.set',
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );

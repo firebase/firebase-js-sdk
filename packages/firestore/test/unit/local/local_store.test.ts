@@ -182,12 +182,7 @@ class LocalStoreTester {
             options.transformResult ? [options.transformResult] : null
           )
         ];
-        const write = MutationBatchResult.from(
-          batch,
-          ver,
-          mutationResults,
-          /*streamToken=*/ ByteString.EMPTY_BYTE_STRING
-        );
+        const write = MutationBatchResult.from(batch, ver, mutationResults);
 
         return this.localStore.acknowledgeBatch(write);
       })

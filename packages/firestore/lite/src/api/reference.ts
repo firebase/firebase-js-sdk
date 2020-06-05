@@ -27,9 +27,7 @@ import {
 } from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { ResourcePath } from '../../../src/model/path';
-import { Code, FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { tryCast } from './util';
 import { DocumentSnapshot } from './snapshot';
 import {
   invokeBatchGetDocumentsRpc,
@@ -41,6 +39,12 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import { FieldPath } from './field_path';
+import { cast } from './util';
+import {
+  validateArgType,
+  validateCollectionPath,
+  validateDocumentPath
+} from '../../../src/util/input_validation';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -181,31 +185,15 @@ export function collection(
   parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  if (relativePath.length === 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
+  validateArgType('doc', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    if (DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(path);
     return new CollectionReference(parent, path);
   } else {
-    const doc = tryCast(parent, DocumentReference);
+    const doc = cast(parent, DocumentReference);
     const absolutePath = doc._key.path.child(path);
-    if (DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a document.`
-      );
-    }
+    validateCollectionPath(absolutePath);
     return new CollectionReference(doc.firestore, absolutePath);
   }
 }
@@ -227,32 +215,15 @@ export function doc<T>(
   if (arguments.length === 1) {
     relativePath = AutoId.newId();
   }
-
-  if (!relativePath) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid path (${relativePath}). Empty paths are not supported.`
-    );
-  }
-
-  const path = ResourcePath.fromString(relativePath);
+  validateArgType('doc', 'non-empty string', 2, relativePath);
+  const path = ResourcePath.fromString(relativePath!);
   if (parent instanceof Firestore) {
-    if (!DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${path}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(path);
     return new DocumentReference(parent, new DocumentKey(path));
   } else {
-    const coll = tryCast(parent, CollectionReference);
+    const coll = cast(parent, CollectionReference);
     const absolutePath = coll._path.child(path);
-    if (!DocumentKey.isDocumentKey(absolutePath)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid path (${absolutePath}). Path points to a collection.`
-      );
-    }
+    validateDocumentPath(absolutePath);
     return new DocumentReference(
       coll.firestore,
       new DocumentKey(absolutePath),
@@ -281,7 +252,7 @@ export function parent<T>(
       );
     }
   } else {
-    const doc = tryCast(child, DocumentReference) as DocumentReference<T>;
+    const doc = cast<DocumentReference<T>>(child, DocumentReference);
     return new CollectionReference<T>(
       doc.firestore,
       doc._key.path.popLast(),
@@ -293,7 +264,7 @@ export function parent<T>(
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = tryCast(reference, DocumentReference) as DocumentReference<T>;
+  const ref = cast(reference, DocumentReference) as DocumentReference<T>;
   return ref.firestore._ensureClientConfigured().then(async datastore => {
     const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
     hardAssert(result.length === 1, 'Expected a single document result');
@@ -321,7 +292,7 @@ export function setDoc<T>(
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
-  const ref = tryCast(reference, DocumentReference);
+  const ref = cast(reference, DocumentReference);
 
   const [convertedValue] = applyFirestoreDataConverter(
     ref._converter,
@@ -336,11 +307,7 @@ export function setDoc<T>(
     ref.firestore._settings!
   );
 
-  const parsed = isMerge(options)
-    ? dataReader.parseMergeData('setDoc', convertedValue)
-    : isMergeFields(options)
-    ? dataReader.parseMergeData('setDoc', convertedValue, options.mergeFields)
-    : dataReader.parseSetData('setDoc', convertedValue);
+  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
 
   return configureClient.then(datastore =>
     invokeCommitRpc(
@@ -366,7 +333,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = tryCast(reference, DocumentReference);
+  const ref = cast(reference, DocumentReference);
 
   // Kick off configuring the client, which freezes the settings.
   const configureClient = ref.firestore._ensureClientConfigured();
@@ -410,7 +377,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
-  const ref = tryCast(reference, DocumentReference);
+  const ref = cast(reference, DocumentReference);
   return ref.firestore
     ._ensureClientConfigured()
     .then(datastore =>
@@ -424,7 +391,7 @@ export function addDoc<T>(
   reference: firestore.CollectionReference<T>,
   data: T
 ): Promise<firestore.DocumentReference<T>> {
-  const collRef = tryCast(reference, CollectionReference);
+  const collRef = cast(reference, CollectionReference);
   const docRef = doc(collRef);
 
   const [convertedValue] = applyFirestoreDataConverter(
@@ -449,24 +416,6 @@ export function addDoc<T>(
       )
     )
     .then(() => docRef);
-}
-
-/** Returns true if options.merge is true. */
-export function isMerge(
-  options?: firestore.SetOptions
-): options is { merge: true } {
-  return !!options && (options as { merge: true }).merge;
-}
-
-/** Returns true if options.mergeFields is set. */
-export function isMergeFields(
-  options?: firestore.SetOptions
-): options is { mergeFields: Array<string | firestore.FieldPath> } {
-  return (
-    !!options &&
-    !!(options as { mergeFields: Array<string | firestore.FieldPath> })
-      .mergeFields
-  );
 }
 
 export function newUserDataReader(

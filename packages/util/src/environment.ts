@@ -125,3 +125,12 @@ export function isUWP(): boolean {
 export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
 }
+
+/** Returns true if we are running in Safari. */
+export function isSafari(): boolean {
+  return (
+    !isNode() &&
+    navigator.userAgent.includes('Safari') &&
+    !navigator.userAgent.includes('Chrome')
+  );
+}
