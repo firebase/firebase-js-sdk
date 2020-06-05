@@ -7795,7 +7795,7 @@ declare namespace firebase.firestore {
     experimentalForceOwningTab?: boolean;
   }
 
-  export type LogLevel = 'debug' | 'error' | 'silent';
+  export type LogLevel = 'debug' | 'error' | 'silent' | 'warn' | 'info' | 'verbose';
 
   /**
    * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
