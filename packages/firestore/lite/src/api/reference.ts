@@ -189,12 +189,16 @@ export function collection(
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
     validateCollectionPath(path);
-    return new CollectionReference(parent, path);
+    return new CollectionReference(parent, path, /* converter= */ null);
   } else {
     const doc = cast(parent, DocumentReference);
     const absolutePath = doc._key.path.child(path);
     validateCollectionPath(absolutePath);
-    return new CollectionReference(doc.firestore, absolutePath);
+    return new CollectionReference(
+      doc.firestore,
+      absolutePath,
+      /* converter= */ null
+    );
   }
 }
 
@@ -219,7 +223,11 @@ export function doc<T>(
   const path = ResourcePath.fromString(relativePath!);
   if (parent instanceof Firestore) {
     validateDocumentPath(path);
-    return new DocumentReference(parent, new DocumentKey(path));
+    return new DocumentReference(
+      parent,
+      new DocumentKey(path),
+      /* converter= */ null
+    );
   } else {
     const coll = cast(parent, CollectionReference);
     const absolutePath = coll._path.child(path);
@@ -248,7 +256,8 @@ export function parent<T>(
     } else {
       return new DocumentReference(
         child.firestore,
-        new DocumentKey(parentPath)
+        new DocumentKey(parentPath),
+        /* converter= */ null
       );
     }
   } else {
