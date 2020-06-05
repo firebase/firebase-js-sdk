@@ -25,10 +25,26 @@ import '../src/platform_node/node_init';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
-export { DocumentReference } from './src/api/reference';
+export {
+  DocumentReference,
+  Query,
+  CollectionReference,
+  collection,
+  doc,
+  parent,
+  getDoc,
+  deleteDoc,
+  setDoc,
+  updateDoc,
+  addDoc
+} from './src/api/reference';
+
+// TOOD(firestorelite): Add tests when Queries are usable
+export { FieldPath, documentId } from './src/api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
@@ -39,6 +55,12 @@ export {
   arrayUnion,
   serverTimestamp
 } from './src/api/field_value';
+
+export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
+export { WriteBatch, writeBatch } from './src/api/write_batch';
+
+export { Transaction, runTransaction } from './src/api/transaction';
 
 export { setLogLevel } from '../src/util/log';
 

@@ -18,7 +18,7 @@
 import { CredentialsProvider } from '../api/credentials';
 import { MaybeDocument, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation, MutationResult } from '../model/mutation';
+import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -49,6 +49,8 @@ export class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
+  terminated = false;
+
   constructor(
     public readonly connection: Connection,
     public readonly credentials: CredentialsProvider,
@@ -57,8 +59,18 @@ class DatastoreImpl extends Datastore {
     super();
   }
 
+  private verifyNotTerminated(): void {
+    if (this.terminated) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The client has already been terminated.'
+      );
+    }
+  }
+
   /** Gets an auth token and invokes the provided RPC. */
   invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -77,6 +89,7 @@ class DatastoreImpl extends Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -106,20 +119,13 @@ export function newDatastore(
 export async function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
-): Promise<MutationResult[]> {
+): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
     database: datastoreImpl.serializer.encodedDatabaseId,
     writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
   };
-  const response = await datastoreImpl.invokeRPC<
-    api.CommitRequest,
-    api.CommitResponse
-  >('Commit', params);
-  return datastoreImpl.serializer.fromWriteResults(
-    response.writeResults,
-    response.commitTime
-  );
+  await datastoreImpl.invokeRPC('Commit', params);
 }
 
 export async function invokeBatchGetDocumentsRpc(
@@ -205,4 +211,9 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
+}
+
+export function terminateDatastore(datastore: Datastore): void {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  datastoreImpl.terminated = true;
 }

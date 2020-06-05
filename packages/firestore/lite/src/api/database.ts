@@ -22,12 +22,24 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
+import {
+  Datastore,
+  newDatastore,
+  terminateDatastore
+} from '../../../src/remote/datastore';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { Deferred } from '../../../src/util/promise';
+import { cast } from './util';
+
+// settings() defaults:
+const DEFAULT_HOST = 'firestore.googleapis.com';
+const DEFAULT_SSL = true;
 
 // TODO(firestorelite): Depend on FirebaseService once #3112 is merged
 
@@ -38,7 +50,10 @@ export class Firestore implements firestore.FirebaseFirestore {
   readonly _databaseId: DatabaseId;
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;
-  private _settings?: firestore.Settings;
+
+  // Assigned via _configureClient()/_ensureClientConfigured()
+  _settings?: firestore.Settings;
+  private readonly _datastoreDeferred = new Deferred<Datastore>();
 
   constructor(
     app: FirebaseApp,
@@ -63,12 +78,41 @@ export class Firestore implements firestore.FirebaseFirestore {
       );
     }
     this._settings = settings;
+
+    const databaseInfo = this._makeDatabaseInfo(settings);
+
+    // Kick off initializing the datastore but don't actually wait for it.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    PlatformSupport.getPlatform()
+      .loadConnection(databaseInfo)
+      .then(connection => {
+        const serializer = PlatformSupport.getPlatform().newSerializer(
+          databaseInfo.databaseId
+        );
+        const datastore = newDatastore(
+          connection,
+          this._credentials,
+          serializer
+        );
+        this._datastoreDeferred.resolve(datastore);
+      });
   }
 
-  _ensureClientConfigured(): void {
+  _ensureClientConfigured(): Promise<Datastore> {
     if (!this._settings) {
       this._settings = {};
     }
+    return this._datastoreDeferred.promise;
+  }
+
+  private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
+    return new DatabaseInfo(
+      this._databaseId,
+      /* persistenceKey= */ 'unsupported',
+      settings.host ?? DEFAULT_HOST,
+      settings.ssl ?? DEFAULT_SSL,
+      /* forceLongPolling= */ false
+    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -97,4 +141,14 @@ export function initializeFirestore(
 
 export function getFirestore(app: FirebaseApp): Firestore {
   return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
+}
+
+export function terminate(
+  firestore: firestore.FirebaseFirestore
+): Promise<void> {
+  // TODO(firestorelite): Call _removeServiceInstance when available
+  const firestoreClient = cast(firestore, Firestore);
+  return firestoreClient
+    ._ensureClientConfigured()
+    .then(datastore => terminateDatastore(datastore));
 }
