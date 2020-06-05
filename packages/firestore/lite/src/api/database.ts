@@ -28,7 +28,6 @@ import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { tryCast } from './util';
 import {
   Datastore,
   newDatastore,
@@ -36,6 +35,7 @@ import {
 } from '../../../src/remote/datastore';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { Deferred } from '../../../src/util/promise';
+import { cast } from './util';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -147,7 +147,7 @@ export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   // TODO(firestorelite): Call _removeServiceInstance when available
-  const firestoreClient = tryCast(firestore, Firestore);
+  const firestoreClient = cast(firestore, Firestore);
   return firestoreClient
     ._ensureClientConfigured()
     .then(datastore => terminateDatastore(datastore));
