@@ -40,7 +40,7 @@ import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
-import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
+import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { PlatformSupport } from '../platform/platform';
 
@@ -385,7 +385,10 @@ export class UserDataReader {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
       const childContext = context.childContextForFieldPath(path);
-      if (value instanceof DeleteFieldValueImpl) {
+      if (
+        value instanceof SerializableFieldValue &&
+        value._delegate instanceof DeleteFieldValueImpl
+      ) {
         // Add it to the field mask, but don't add anything to updateData.
         fieldMaskPaths.push(path);
       } else {
@@ -444,7 +447,10 @@ export class UserDataReader {
         const path = keys[i];
         const value = values[i];
         const childContext = context.childContextForFieldPath(path);
-        if (value instanceof DeleteFieldValueImpl) {
+        if (
+          value instanceof SerializableFieldValue &&
+          value._delegate instanceof DeleteFieldValueImpl
+        ) {
           // Add it to the field mask, but don't add anything to updateData.
           fieldMaskPaths.push(path);
         } else {
@@ -525,7 +531,7 @@ export function parseData(
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
-  } else if (input instanceof FieldValueImpl) {
+  } else if (input instanceof SerializableFieldValue) {
     // FieldValues usually parse into transforms (except FieldValue.delete())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
@@ -608,7 +614,7 @@ function parseArray(array: unknown[], context: ParseContext): api.Value {
  * context.fieldTransforms.
  */
 function parseSentinelFieldValue(
-  value: FieldValueImpl,
+  value: SerializableFieldValue,
   context: ParseContext
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
@@ -623,7 +629,7 @@ function parseSentinelFieldValue(
     );
   }
 
-  const fieldTransform = value.toFieldTransform(context);
+  const fieldTransform = value._toFieldTransform(context);
   if (fieldTransform) {
     context.fieldTransforms.push(fieldTransform);
   }
@@ -709,7 +715,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
     !(input instanceof DocumentKeyReference) &&
-    !(input instanceof FieldValueImpl)
+    !(input instanceof SerializableFieldValue)
   );
 }
 

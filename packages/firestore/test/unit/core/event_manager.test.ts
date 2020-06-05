@@ -224,9 +224,10 @@ describe('QueryListener', () => {
     const query = Query.atPath(path('rooms/Eros'));
 
     const listener = queryListener(query, [], events);
+    const error = new Error('bad');
 
-    listener.onError(Error('bad'));
-    expect(events[0]).to.deep.equal(new Error('bad'));
+    listener.onError(error);
+    expect(events[0]).to.deep.equal(error);
   });
 
   it('raises event for empty collection after sync', () => {
