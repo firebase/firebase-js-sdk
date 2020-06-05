@@ -89,10 +89,9 @@ import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference, Firestore } from '../../src/api/database';
+import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
-import { IndexedDbComponentProvider } from '../../src/core/component_provider';
 
 /* eslint-disable no-restricted-globals */
 
