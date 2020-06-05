@@ -25,7 +25,8 @@ import '../src/platform_node/node_init';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
 export {
@@ -41,6 +42,9 @@ export {
   updateDoc,
   addDoc
 } from './src/api/reference';
+
+// TOOD(firestorelite): Add tests when Queries are usable
+export { FieldPath, documentId } from './src/api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
