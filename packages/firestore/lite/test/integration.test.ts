@@ -271,9 +271,7 @@ describe('addDoc()', () => {
 
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
-      expect(() => {
-        addDoc(collRef, { val: undefined });
-      }).to.throw(
+      expect(() => addDoc(collRef, { val: undefined })).to.throw(
         'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
       );
     });
