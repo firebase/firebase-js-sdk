@@ -303,6 +303,12 @@ describe('DocumentSnapshot', () => {
   });
 });
 
+describe('deleteDoc()', () => {
+  it('can delete a non-existing document', () => {
+    return withTestDoc(docRef => deleteDoc(docRef));
+  });
+});
+
 // TODO(firestorelite): Expand test coverage once we can write docs
 describe('FieldValue', () => {
   it('support equality checking with isEqual()', () => {
