@@ -20,7 +20,10 @@ import * as firestore from '../../index';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Firestore } from './database';
-import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import {
+  DocumentKeyReference,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
@@ -32,6 +35,9 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { applyFirestoreDataConverter } from '../../../src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
 import { cast } from './util';
 import {
   validateArgType,
@@ -271,6 +277,36 @@ export function getDoc<T>(
   });
 }
 
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T,
+  options?: firestore.SetOptions
+): Promise<void> {
+  const ref = cast(reference, DocumentReference);
+
+  const [convertedValue] = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    'setDoc'
+  );
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = ref.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    ref.firestore._databaseId,
+    ref.firestore._settings!
+  );
+
+  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+
+  return configureClient.then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
+  );
+}
+
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
@@ -282,4 +318,16 @@ export function deleteDoc(
         new DeleteMutation(ref._key, Precondition.none())
       ])
     );
+}
+
+function newUserDataReader(
+  databaseId: DatabaseId,
+  settings: firestore.Settings
+): UserDataReader {
+  const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
+  return new UserDataReader(
+    databaseId,
+    !!settings.ignoreUndefinedProperties,
+    serializer
+  );
 }

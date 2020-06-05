@@ -23,7 +23,12 @@ import {
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
-import { withTestDb, withTestDoc } from './helpers';
+import {
+  withTestDb,
+  withTestDbSettings,
+  withTestDoc,
+  withTestDocAndInitialData
+} from './helpers';
 import {
   parent,
   collection,
@@ -31,8 +36,14 @@ import {
   doc,
   DocumentReference,
   getDoc,
-  deleteDoc
+  deleteDoc,
+  setDoc
 } from '../src/api/reference';
+import { FieldPath } from '../src/api/field_path';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { FieldValue } from '../../src/api/field_value';
 
@@ -169,7 +180,127 @@ describe('getDoc()', () => {
     });
   });
 
-  // TODO(firestorelite): Expand test coverage once we can write docs
+  it('can get an existing document', () => {
+    return withTestDocAndInitialData({ val: 1 }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.true;
+    });
+  });
+});
+
+describe('deleteDoc()', () => {
+  it('can delete a non-existing document', () => {
+    return withTestDoc(docRef => deleteDoc(docRef));
+  });
+
+  it('can delete an existing document', () => {
+    return withTestDoc(async docRef => {
+      await setDoc(docRef, {});
+      await deleteDoc(docRef);
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.false;
+    });
+  });
+});
+
+describe('setDoc()', () => {
+  it('can set a new document', () => {
+    return withTestDoc(async docRef => {
+      await setDoc(docRef, { val: 1 });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ val: 1 });
+    });
+  });
+
+  it('can merge a document', () => {
+    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+      await setDoc(docRef, { bar: 2 }, { merge: true });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 1, bar: 2 });
+    });
+  });
+
+  it('can merge a document with mergeFields', () => {
+    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+      await setDoc(
+        docRef,
+        { foo: 'ignored', bar: 2, baz: { foobar: 3 } },
+        { mergeFields: ['bar', new FieldPath('baz', 'foobar')] }
+      );
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({
+        foo: 1,
+        bar: 2,
+        baz: { foobar: 3 }
+      });
+    });
+  });
+
+  it('throws when user input fails validation', () => {
+    return withTestDoc(async docRef => {
+      expect(() => setDoc(docRef, { val: undefined })).to.throw(
+        'Function setDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+      );
+    });
+  });
+
+  it("can ignore 'undefined'", () => {
+    return withTestDbSettings(
+      DEFAULT_PROJECT_ID,
+      { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
+      async db => {
+        const docRef = doc(collection(db, 'test-collection'));
+        await setDoc(docRef, { val: undefined });
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({});
+      }
+    );
+  });
+});
+
+describe('DocumentSnapshot', () => {
+  it('can represent missing data', () => {
+    return withTestDoc(async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.false;
+      expect(docSnap.data()).to.be.undefined;
+    });
+  });
+
+  it('can return data', () => {
+    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.true;
+      expect(docSnap.data()).to.deep.equal({ foo: 1 });
+    });
+  });
+
+  it('can return single field', () => {
+    return withTestDocAndInitialData({ foo: 1, bar: 2 }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.get('foo')).to.equal(1);
+      expect(docSnap.get(new FieldPath('bar'))).to.equal(2);
+    });
+  });
+
+  it('can return nested field', () => {
+    return withTestDocAndInitialData({ foo: { bar: 1 } }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.get('foo.bar')).to.equal(1);
+      expect(docSnap.get(new FieldPath('foo', 'bar'))).to.equal(1);
+    });
+  });
+
+  it('is properly typed', () => {
+    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      let documentData = docSnap.data()!; // "data" is typed as nullable
+      if (docSnap.exists()) {
+        documentData = docSnap.data(); // "data" is typed as non-null
+      }
+      expect(documentData).to.deep.equal({ foo: 1 });
+    });
+  });
 });
 
 describe('deleteDoc()', () => {
