@@ -33,9 +33,9 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { validateReference } from './write_batch';
-import { isMerge, isMergeFields, newUserDataReader } from './reference';
+import { newUserDataReader } from './reference';
 import { FieldPath } from './field_path';
-import { tryCast } from './util';
+import { cast } from './util';
 
 export class Transaction implements firestore.Transaction {
   // This is the lite version of the Transaction API used in the legacy SDK. The
@@ -96,16 +96,11 @@ export class Transaction implements firestore.Transaction {
       value,
       'Transaction.set'
     );
-    const parsed = isMerge(options)
-      ? this._dataReader.parseMergeData('Transaction.set', convertedValue)
-      : isMergeFields(options)
-      ? this._dataReader.parseMergeData(
-          'Transaction.set',
-          convertedValue,
-          options.mergeFields
-        )
-      : this._dataReader.parseSetData('Transaction.set', convertedValue);
-
+    const parsed = this._dataReader.parseSetData(
+      'Transaction.set',
+      convertedValue,
+      options
+    );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -161,7 +156,7 @@ export function runTransaction<T>(
   firestore: firestore.FirebaseFirestore,
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
-  const firestoreClient = tryCast(firestore, Firestore);
+  const firestoreClient = cast(firestore, Firestore);
   return firestoreClient._ensureClientConfigured().then(async datastore => {
     const deferred = new Deferred<T>();
     new TransactionRunner<T>(

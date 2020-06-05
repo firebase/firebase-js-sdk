@@ -25,7 +25,8 @@ import '../src/platform_node/node_init';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
 export {
@@ -42,13 +43,26 @@ export {
   addDoc
 } from './src/api/reference';
 
-export { FieldPath } from './src/api/field_path';
+// TOOD(firestorelite): Add tests when Queries are usable
+export { FieldPath, documentId } from './src/api/field_path';
+
+// TOOD(firestorelite): Add tests when setDoc() is available
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
 
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
 
 export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export { Transaction, runTransaction } from './src/api/transaction';
+
+export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {
   _registerComponent(

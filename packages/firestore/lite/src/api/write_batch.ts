@@ -27,13 +27,8 @@ import {
   DocumentKeyReference,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import { tryCast } from './util';
-import {
-  DocumentReference,
-  isMerge,
-  isMergeFields,
-  newUserDataReader
-} from './reference';
+import { cast } from './util';
+import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
@@ -76,16 +71,11 @@ export class WriteBatch implements firestore.WriteBatch {
       'WriteBatch.set'
     );
 
-    const parsed = isMerge(options)
-      ? this._dataReader.parseMergeData('WriteBatch.set', convertedValue)
-      : isMergeFields(options)
-      ? this._dataReader.parseMergeData(
-          'WriteBatch.set',
-          convertedValue,
-          options.mergeFields
-        )
-      : this._dataReader.parseSetData('WriteBatch.set', convertedValue);
-
+    const parsed = this._dataReader.parseSetData(
+      'WriteBatch.set',
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -178,12 +168,12 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return tryCast(documentRef, DocumentReference) as DocumentReference<T>;
+    return cast(documentRef, DocumentReference) as DocumentReference<T>;
   }
 }
 
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
-  return new WriteBatch(tryCast(firestore, Firestore));
+  return new WriteBatch(cast(firestore, Firestore));
 }
