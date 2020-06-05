@@ -318,17 +318,17 @@ export function setDoc<T>(
 }
 
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   data: firestore.UpdateData
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   field: string | firestore.FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference,
+  reference: firestore.DocumentReference<unknown>,
   fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
@@ -418,7 +418,7 @@ export function addDoc<T>(
     .then(() => docRef);
 }
 
-function newUserDataReader(
+export function newUserDataReader(
   databaseId: DatabaseId,
   settings: firestore.Settings
 ): UserDataReader {

@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
+import * as firestore from '../index';
+
+import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { initializeApp } from '@firebase/app-exp';
 import {
   Firestore,
   getFirestore,
@@ -49,6 +51,7 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
+import { writeBatch } from '../src/api/write_batch';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { FieldValue } from '../../src/api/field_value';
 
@@ -228,101 +231,200 @@ describe('getDoc()', () => {
   });
 });
 
-describe('deleteDoc()', () => {
-  it('can delete a non-existing document', () => {
-    return withTestDoc(docRef => deleteDoc(docRef));
+/**
+ * Shared test class that is used to verify the WriteBatch, Transaction and
+ * DocumentReference-based mutation API.
+ */
+interface MutationTester {
+  set<T>(documentRef: firestore.DocumentReference<T>, data: T): Promise<void>;
+  set<T>(
+    documentRef: firestore.DocumentReference<T>,
+    data: Partial<T>,
+    options: firestore.SetOptions
+  ): Promise<void>;
+  update(
+    documentRef: firestore.DocumentReference<unknown>,
+    data: firestore.UpdateData
+  ): Promise<void>;
+  update(
+    documentRef: firestore.DocumentReference<unknown>,
+    field: string | firestore.FieldPath,
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
+  ): Promise<void>;
+  delete(documentRef: firestore.DocumentReference<unknown>): Promise<void>;
+}
+
+genericMutationTests({
+  set: setDoc,
+  update: updateDoc,
+  delete: deleteDoc
+});
+
+describe('WriteBatch', () => {
+  class WriteBatchTester implements MutationTester {
+    delete(ref: firestore.DocumentReference<unknown>): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      batch.delete(ref);
+      return batch.commit();
+    }
+
+    set<T>(
+      ref: firestore.DocumentReference<T>,
+      data: T | Partial<T>,
+      options?: firestore.SetOptions
+    ): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      // TODO(mrschmidt): Find a way to remove the `any` cast here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (batch.set as any).apply(batch, Array.from(arguments));
+      return batch.commit();
+    }
+
+    update(
+      ref: firestore.DocumentReference<unknown>,
+      dataOrField: firestore.UpdateData | string | firestore.FieldPath,
+      value?: unknown,
+      ...moreFieldsAndValues: unknown[]
+    ): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      // TODO(mrschmidt): Find a way to remove the `any` cast here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (batch.update as any).apply(batch, Array.from(arguments));
+      return batch.commit();
+    }
+  }
+
+  genericMutationTests(new WriteBatchTester());
+
+  it('can add multiple operations', () => {
+    return withTestCollection(async coll => {
+      const batch = writeBatch(coll.firestore);
+      batch.set(doc(coll), { doc: 1 });
+      batch.set(doc(coll), { doc: 2 });
+      await batch.commit();
+
+      // TODO(firestorelite): Verify collection contents once getQuery is added
+    });
   });
 
-  it('can delete an existing document', () => {
-    return withTestDoc(async docRef => {
-      await setDoc(docRef, {});
-      await deleteDoc(docRef);
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.false;
+  it('cannot add write after commit', () => {
+    return withTestDoc(async doc => {
+      const batch = writeBatch(doc.firestore);
+      batch.set(doc, { doc: 1 });
+      const op = batch.commit();
+      expect(() => batch.delete(doc)).to.throw(
+        'A write batch can no longer be used after commit() has been called.'
+      );
+      await op;
+      expect(() => batch.delete(doc)).to.throw(
+        'A write batch can no longer be used after commit() has been called.'
+      );
     });
   });
 });
 
-describe('setDoc()', () => {
-  it('can set a new document', () => {
-    return withTestDoc(async docRef => {
-      await setDoc(docRef, { val: 1 });
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ val: 1 });
-    });
-  });
+function genericMutationTests(op: MutationTester): void {
+  const setDoc = op.set;
+  const updateDoc = op.update;
+  const deleteDoc = op.delete;
 
-  it('can merge a document', () => {
-    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
-      await setDoc(docRef, { bar: 2 }, { merge: true });
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 1, bar: 2 });
+  describe('delete', () => {
+    it('can delete a non-existing document', () => {
+      return withTestDoc(docRef => deleteDoc(docRef));
     });
-  });
 
-  it('can merge a document with mergeFields', () => {
-    return withTestDocAndInitialData({ foo: 1 }, async docRef => {
-      await setDoc(
-        docRef,
-        { foo: 'ignored', bar: 2, baz: { foobar: 3 } },
-        { mergeFields: ['bar', new FieldPath('baz', 'foobar')] }
-      );
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({
-        foo: 1,
-        bar: 2,
-        baz: { foobar: 3 }
+    it('can delete an existing document', () => {
+      return withTestDoc(async docRef => {
+        await setDoc(docRef, {});
+        await deleteDoc(docRef);
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.exists()).to.be.false;
       });
     });
   });
 
-  it('throws when user input fails validation', () => {
-    return withTestDoc(async docRef => {
-      expect(() => setDoc(docRef, { val: undefined })).to.throw(
-        'Function setDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
-      );
-    });
-  });
-
-  it("can ignore 'undefined'", () => {
-    return withTestDbSettings(
-      DEFAULT_PROJECT_ID,
-      { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
-      async db => {
-        const docRef = doc(collection(db, 'test-collection'));
-        await setDoc(docRef, { val: undefined });
+  describe('set', () => {
+    it('can set a new document', () => {
+      return withTestDoc(async docRef => {
+        await setDoc(docRef, { val: 1 });
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({});
-      }
-    );
-  });
-});
-
-describe('update()', () => {
-  it('can update a document', () => {
-    return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
-      await updateDoc(docRef, { foo: 2, baz: 2 });
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+        expect(docSnap.data()).to.deep.equal({ val: 1 });
+      });
     });
-  });
 
-  it('can update a document (using varargs)', () => {
-    return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
-      await updateDoc(docRef, 'foo', 2, new FieldPath('baz'), 2);
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+    it('can merge a document', () => {
+      return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+        await setDoc(docRef, { bar: 2 }, { merge: true });
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({ foo: 1, bar: 2 });
+      });
     });
-  });
 
-  it('throws when user input fails validation', () => {
-    return withTestDoc(async docRef => {
-      expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-        'Function updateDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+    it('can merge a document with mergeFields', () => {
+      return withTestDocAndInitialData({ foo: 1 }, async docRef => {
+        await setDoc(
+          docRef,
+          { foo: 'ignored', bar: 2, baz: { foobar: 3 } },
+          { mergeFields: ['bar', new FieldPath('baz', 'foobar')] }
+        );
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({
+          foo: 1,
+          bar: 2,
+          baz: { foobar: 3 }
+        });
+      });
+    });
+
+    it('throws when user input fails validation', () => {
+      return withTestDoc(async docRef => {
+        expect(() => setDoc(docRef, { val: undefined })).to.throw(
+          /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+        );
+      });
+    });
+
+    it("can ignore 'undefined'", () => {
+      return withTestDbSettings(
+        DEFAULT_PROJECT_ID,
+        { ...DEFAULT_SETTINGS, ignoreUndefinedProperties: true },
+        async db => {
+          const docRef = doc(collection(db, 'test-collection'));
+          await setDoc(docRef, { val: undefined });
+          const docSnap = await getDoc(docRef);
+          expect(docSnap.data()).to.deep.equal({});
+        }
       );
     });
   });
-});
+
+  describe('update', () => {
+    it('can update a document', () => {
+      return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
+        await updateDoc(docRef, { foo: 2, baz: 2 });
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+      });
+    });
+
+    it('can update a document (using varargs)', () => {
+      return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
+        await updateDoc(docRef, 'foo', 2, new FieldPath('baz'), 2);
+        const docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+      });
+    });
+
+    it('throws when user input fails validation', () => {
+      return withTestDoc(async docRef => {
+        expect(() => updateDoc(docRef, { val: undefined })).to.throw(
+          /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+        );
+      });
+    });
+  });
+}
 
 describe('addDoc()', () => {
   it('can add a document', () => {
