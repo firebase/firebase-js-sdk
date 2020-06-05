@@ -116,7 +116,9 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     // that are already in the page
     return (
       !!AUTH_WINDOW.grecaptcha &&
-      (hl === this.hostLanguage || this.counter > 0 || this.librarySeparatelyLoaded)
+      (hl === this.hostLanguage ||
+        this.counter > 0 ||
+        this.librarySeparatelyLoaded)
     );
   }
 }

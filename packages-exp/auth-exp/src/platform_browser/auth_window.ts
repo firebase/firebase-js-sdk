@@ -17,8 +17,8 @@
 
 import { Recaptcha } from './recaptcha/recaptcha';
 
-/** 
- * A specialized window type that melds the normal window type plus the 
+/**
+ * A specialized window type that melds the normal window type plus the
  * various bits we need. The three different blocks that are &'d together
  * cant be defined in the same block together.
  */
@@ -31,7 +31,7 @@ export type AuthWindow = {
 } & {
   // A final catch-all for callbacks (which will have random names) that
   // we will stick on the window.
-  [callback: string]: ((...args: unknown[]) => void);
+  [callback: string]: (...args: unknown[]) => void;
 };
 
-export const AUTH_WINDOW = window as unknown as AuthWindow;
+export const AUTH_WINDOW = (window as unknown) as AuthWindow;

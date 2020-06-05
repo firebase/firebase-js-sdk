@@ -26,7 +26,12 @@ import { testAuth } from '../../../test/mock_auth';
 import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
 import {
-    _EXPIRATION_TIME_MS, _SOLVE_TIME_MS, _WIDGET_ID_START, MockReCaptcha, MockWidget, Widget
+  _EXPIRATION_TIME_MS,
+  _SOLVE_TIME_MS,
+  _WIDGET_ID_START,
+  MockReCaptcha,
+  MockWidget,
+  Widget
 } from './recaptcha_mock';
 
 use(sinonChai);
@@ -157,7 +162,7 @@ describe('platform-browser/recaptcha/recaptcha_mock', () => {
           'expired-callback': sinon.spy()
         };
         pendingTimers = stubTimeouts();
-        timeoutStub = window.setTimeout as unknown as sinon.SinonStub;
+        timeoutStub = (window.setTimeout as unknown) as sinon.SinonStub;
         widget = new MockWidget(container, auth.name, callbacks);
       });
 

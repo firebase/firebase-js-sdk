@@ -25,7 +25,11 @@ import { _isHttpOrHttps } from '../../core/util/location';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { MOCK_RECAPTCHA_LOADER, RECAPTCHA_LOADER, ReCaptchaLoader } from './recaptcha_loader';
+import {
+  MOCK_RECAPTCHA_LOADER,
+  RECAPTCHA_LOADER,
+  ReCaptchaLoader
+} from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',

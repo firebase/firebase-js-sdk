@@ -28,7 +28,10 @@ import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-    _JSLOAD_CALLBACK, MOCK_RECAPTCHA_LOADER, ReCaptchaLoader, ReCaptchaLoaderImpl
+  _JSLOAD_CALLBACK,
+  MOCK_RECAPTCHA_LOADER,
+  ReCaptchaLoader,
+  ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 
@@ -103,7 +106,9 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         loader.load(auth);
         spoofJsLoad();
-        expect(AUTH_WINDOW.clearTimeout).to.have.been.calledWith(networkTimeoutId);
+        expect(AUTH_WINDOW.clearTimeout).to.have.been.calledWith(
+          networkTimeoutId
+        );
       });
 
       it('rejects if the grecaptcha object is not on the window', async () => {
