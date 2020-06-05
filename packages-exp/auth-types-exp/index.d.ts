@@ -214,3 +214,9 @@ export interface UserCredential {
   credential: AuthCredential | null;
   operationType: OperationType;
 }
+
+export interface ApplicationVerifier {
+  readonly type: string;
+  verify(): Promise<string>;
+  reset(): void;
+}
