@@ -37,6 +37,7 @@ export {
   doc,
   parent,
   getDoc,
+  getQuery,
   deleteDoc,
   setDoc,
   updateDoc,

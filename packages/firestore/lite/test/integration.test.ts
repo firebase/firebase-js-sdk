@@ -29,6 +29,7 @@ import {
 } from '../src/api/database';
 import {
   withTestCollection,
+  withTestCollectionAndInitialData,
   withTestDb,
   withTestDbSettings,
   withTestDoc,
@@ -44,7 +45,8 @@ import {
   deleteDoc,
   setDoc,
   addDoc,
-  updateDoc
+  updateDoc,
+  getQuery
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -616,5 +618,170 @@ describe('FieldValue', () => {
     expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
     expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
     expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+  });
+});
+
+describe('Query', () => {
+  function verifyResults(
+    actual: firestore.QuerySnapshot<firestore.DocumentData>,
+    ...expected: firestore.DocumentData[]
+  ): void {
+    expect(actual.empty).to.equal(expected.length === 0);
+    expect(actual.size).to.equal(expected.length);
+
+    for (let i = 0; i < expected.length; ++i) {
+      expect(actual.docs[i].data()).to.deep.equal(expected[i]);
+    }
+  }
+
+  it('supports default query', () => {
+    return withTestCollectionAndInitialData([{ foo: 1 }], async collRef => {
+      const result = await getQuery(collRef);
+      verifyResults(result, { foo: 1 });
+    });
+  });
+
+  it('supports empty results', () => {
+    return withTestCollectionAndInitialData([], async collRef => {
+      const result = await getQuery(collRef);
+      verifyResults(result);
+    });
+  });
+
+  it('supports filtered query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.where('foo', '==', 1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports filtered query (with FieldPath)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.where(new FieldPath('foo'), '==', 1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports ordered query (with default order)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 }, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports ordered query (with asc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo', 'asc');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 }, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports ordered query (with desc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo', 'desc');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 }, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports limit query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').limit(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports limitToLast query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').limitToLast(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 }, { foo: 3 });
+      }
+    );
+  });
+
+  it('supports startAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').startAt(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports startAfter', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').startAfter(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports endAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').endAt(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports endBefore', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').endBefore(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports pagination', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        let query = collRef.orderBy('foo').limit(1);
+        let result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+
+        // Pass the document snapshot from the previous result
+        query = query.startAfter(result.docs[0]);
+        result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
   });
 });

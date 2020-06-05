@@ -37,7 +37,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   constructor(
     private _firestore: Firestore,
     private _key: DocumentKey,
-    private _document: Document | null,
+    public _document: Document | null,
     private _converter?: firestore.FirestoreDataConverter<T>
   ) {}
 
@@ -104,6 +104,35 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   implements firestore.QueryDocumentSnapshot<T> {
   data(): T {
     return super.data() as T;
+  }
+}
+
+export class QuerySnapshot<T = firestore.DocumentData>
+  implements firestore.QuerySnapshot<T> {
+  constructor(
+    readonly query: firestore.Query<T>,
+    private readonly _docs: Array<QueryDocumentSnapshot<T>>
+  ) {}
+
+  get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
+    return [...this._docs];
+  }
+
+  get size(): number {
+    return this.docs.length;
+  }
+
+  get empty(): boolean {
+    return this.docs.length === 0;
+  }
+
+  forEach(
+    callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
+    thisArg?: unknown
+  ): void {
+    this._docs.forEach(doc => {
+      callback.call(thisArg, doc);
+    });
   }
 }
 

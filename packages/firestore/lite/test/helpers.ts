@@ -68,6 +68,20 @@ export function withTestDocAndInitialData(
   });
 }
 
+export function withTestCollectionAndInitialData(
+  data: firestore.DocumentData[],
+  fn: (doc: firestore.CollectionReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(async db => {
+    const coll = collection(db, AutoId.newId());
+    for (const element of data) {
+      const ref = doc(coll);
+      await setDoc(ref, element);
+    }
+    return fn(coll);
+  });
+}
+
 export function withTestCollection(
   fn: (doc: firestore.CollectionReference) => void | Promise<void>
 ): Promise<void> {
