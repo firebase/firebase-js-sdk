@@ -184,7 +184,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Document {
     name?: string;
     fields?: ApiClientObjectMap<Value>;
-    createTime?: string;
+    createTime?: Timestamp;
     updateTime?: Timestamp;
   }
   interface DocumentChange {
