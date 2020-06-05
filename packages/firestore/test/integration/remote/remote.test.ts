@@ -30,14 +30,9 @@ describe('Remote Storage', () => {
   addEqualityMatcher();
 
   it('can write', () => {
-    return withTestDatastore(async ds => {
+    return withTestDatastore(ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
-      const result = await invokeCommitRpc(ds, [mutation]);
-      expect(result.length).to.equal(1);
-
-      const version = result[0].version;
-      expect(version).not.to.equal(null);
-      expect(SnapshotVersion.min().compareTo(version!)).to.be.lessThan(0);
+      return invokeCommitRpc(ds, [mutation]);
     });
   });
 

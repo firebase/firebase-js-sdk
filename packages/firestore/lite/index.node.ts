@@ -28,6 +28,17 @@ export {
   getFirestore
 } from './src/api/database';
 
+export {
+  DocumentReference,
+  Query,
+  CollectionReference,
+  collection,
+  doc,
+  parent,
+  getDoc,
+  deleteDoc
+} from './src/api/reference';
+
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
   FieldValue,
@@ -37,6 +48,10 @@ export {
   arrayUnion,
   serverTimestamp
 } from './src/api/field_value';
+
+export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
+export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {
   _registerComponent(

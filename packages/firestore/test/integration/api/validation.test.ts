@@ -21,13 +21,12 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
-  ALT_PROJECT_ID,
   apiDescribe,
-  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 // tslint:disable:no-floating-promises
 
