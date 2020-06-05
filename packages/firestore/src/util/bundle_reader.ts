@@ -20,7 +20,6 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
-import { AsyncQueue } from './async_queue';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -101,10 +100,9 @@ export class BundleReader {
         if (element && element.isBundleMetadata()) {
           this.metadata.resolve(element.payload.metadata!);
         } else {
-          const payload = (element || { payload: null }).payload;
           this.metadata.reject(
             new Error(`The first element of the bundle is not a metadata, it is
-          ${JSON.stringify(payload)}`)
+             ${JSON.stringify(element?.payload)}`)
           );
         }
       },
@@ -172,8 +170,7 @@ export class BundleReader {
    * If reached end of the stream, returns a null.
    */
   private async readLength(): Promise<Uint8Array | null> {
-    let position: number;
-    while ((position = this.indexOfOpenBracket()) < 0) {
+    while (this.indexOfOpenBracket() < 0) {
       const done = await this.pullMoreDataToBuffer();
       if (done) {
         break;
@@ -186,7 +183,7 @@ export class BundleReader {
       return null;
     }
 
-    position = this.indexOfOpenBracket();
+    const position = this.indexOfOpenBracket();
     // Broke out of the loop because underlying stream is closed, but still
     // cannot find an open bracket.
     if (position < 0) {
