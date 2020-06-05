@@ -65,7 +65,7 @@ export class DocumentKeyReference<T> {
   constructor(
     public readonly _databaseId: DatabaseId,
     public readonly _key: DocumentKey,
-    public readonly _converter?: UntypedFirestoreDataConverter<T>
+    public readonly _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 }
 

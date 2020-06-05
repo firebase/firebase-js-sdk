@@ -55,7 +55,7 @@ export class DocumentReference<T = firestore.DocumentData>
   constructor(
     readonly firestore: Firestore,
     key: DocumentKey,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, key, _converter);
   }
@@ -79,7 +79,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     readonly firestore: Firestore,
     readonly _query: InternalQuery,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   where(
@@ -153,7 +153,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     readonly firestore: Firestore,
     readonly _path: ResourcePath,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(firestore, InternalQuery.atPath(_path), _converter);
   }

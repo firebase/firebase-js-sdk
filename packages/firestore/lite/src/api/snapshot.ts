@@ -38,7 +38,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     private _firestore: Firestore,
     private _key: DocumentKey,
     private _document: Document | null,
-    private _converter?: firestore.FirestoreDataConverter<T>
+    private _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   get id(): string {
