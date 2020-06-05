@@ -320,6 +320,37 @@ export function deleteDoc(
     );
 }
 
+export function addDoc<T>(
+  reference: firestore.CollectionReference<T>,
+  data: T
+): Promise<firestore.DocumentReference<T>> {
+  const collRef = cast(reference, CollectionReference);
+  const docRef = doc(collRef);
+
+  const [convertedValue] = applyFirestoreDataConverter(
+    collRef._converter,
+    data,
+    'addDoc'
+  );
+
+  // Kick off configuring the client, which freezes the settings.
+  const configureClient = collRef.firestore._ensureClientConfigured();
+  const dataReader = newUserDataReader(
+    collRef.firestore._databaseId,
+    collRef.firestore._settings!
+  );
+  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+
+  return configureClient
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(docRef._key, Precondition.exists(false))
+      )
+    )
+    .then(() => docRef);
+}
+
 function newUserDataReader(
   databaseId: DatabaseId,
   settings: firestore.Settings

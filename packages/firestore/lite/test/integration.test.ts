@@ -24,6 +24,7 @@ import {
   initializeFirestore
 } from '../src/api/database';
 import {
+  withTestCollection,
   withTestDb,
   withTestDbSettings,
   withTestDoc,
@@ -37,7 +38,8 @@ import {
   DocumentReference,
   getDoc,
   deleteDoc,
-  setDoc
+  setDoc,
+  addDoc
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -258,6 +260,24 @@ describe('setDoc()', () => {
   });
 });
 
+describe('addDoc()', () => {
+  it('can add a document', () => {
+    return withTestCollection(async collRef => {
+      const docRef = await addDoc(collRef, { val: 1 });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ val: 1 });
+    });
+  });
+
+  it('throws when user input fails validation', () => {
+    return withTestCollection(async collRef => {
+      expect(() => addDoc(collRef, { val: undefined })).to.throw(
+        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+      );
+    });
+  });
+});
+
 describe('DocumentSnapshot', () => {
   it('can represent missing data', () => {
     return withTestDoc(async docRef => {
@@ -303,6 +323,7 @@ describe('DocumentSnapshot', () => {
   });
 });
 
+// TODO(firestorelite): Add converter tests
 describe('deleteDoc()', () => {
   it('can delete a non-existing document', () => {
     return withTestDoc(docRef => deleteDoc(docRef));

@@ -269,7 +269,7 @@ export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
-): Promise<DocumentSnapshot<T>>;
+): Promise<DocumentReference<T>>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T

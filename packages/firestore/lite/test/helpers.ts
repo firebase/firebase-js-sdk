@@ -25,6 +25,7 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
+import { AutoId } from '../../src/util/misc';
 
 let appCount = 0;
 
@@ -64,5 +65,13 @@ export function withTestDocAndInitialData(
     const ref = doc(collection(db, 'test-collection'));
     await setDoc(ref, data);
     return fn(ref);
+  });
+}
+
+export function withTestCollection(
+  fn: (doc: firestore.CollectionReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(db => {
+    return fn(collection(db, AutoId.newId()));
   });
 }
