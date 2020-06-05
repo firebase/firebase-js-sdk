@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Logger, LogLevel } from '@firebase/logger';
+import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';
 
@@ -28,8 +28,8 @@ export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevel): void {
-  logClient.logLevel = newLevel;
+export function setLogLevel(newLevel: LogLevelString | LogLevel): void {
+  logClient.setLogLevel(newLevel);
 }
 
 export function logDebug(msg: string, ...obj: unknown[]): void {
@@ -43,6 +43,13 @@ export function logError(msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= LogLevel.ERROR) {
     const args = obj.map(argToString);
     logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+  }
+}
+
+export function logWarn(msg: string, ...obj: unknown[]): void {
+  if (logClient.logLevel <= LogLevel.WARN) {
+    const args = obj.map(argToString);
+    logClient.warn(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
   }
 }
 

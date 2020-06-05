@@ -42,9 +42,19 @@ export {
   addDoc
 } from './src/api/reference';
 
-export { FieldPath } from './src/api/field_path';
+// TOOD(firestorelite): Add tests when setDoc() is available
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
 
 export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+
+export { setLogLevel } from '../src/util/log';
 
 export function registerFirestore(): void {
   _registerComponent(

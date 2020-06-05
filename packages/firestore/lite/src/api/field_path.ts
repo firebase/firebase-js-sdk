@@ -17,8 +17,9 @@
 
 import * as firestore from '../../index';
 
-import { tryCast } from './util';
 import { BaseFieldPath } from '../../../src/api/field_path';
+import { cast } from './util';
+import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single
@@ -43,7 +44,11 @@ export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
   }
 
   isEqual(other: firestore.FieldPath): boolean {
-    const path = tryCast(other, FieldPath);
+    const path = cast(other, FieldPath);
     return this._internalPath.isEqual(path._internalPath);
   }
+}
+
+export function documentId(): firestore.FieldPath {
+  return new FieldPath(DOCUMENT_KEY_NAME);
 }

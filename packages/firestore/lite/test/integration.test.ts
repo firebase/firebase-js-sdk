@@ -47,6 +47,8 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { FieldValue } from '../../src/api/field_value';
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -95,13 +97,13 @@ describe('doc', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => doc(db, 'coll')).to.throw(
-        'Invalid path (coll). Path points to a collection.'
+        'Invalid document path (coll). Path points to a collection.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Invalid path (). Empty paths are not supported.'
+        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
-        'Invalid path (coll/doc/coll). Path points to a collection.'
+        'Invalid document path (coll/doc/coll). Path points to a collection.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
         'Invalid path (coll//doc). Paths must not contain // in them.'
@@ -131,13 +133,15 @@ describe('collection', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
-        'Invalid path (coll/doc). Path points to a document.'
+        'Invalid collection path (coll/doc). Path points to a document.'
       );
+      // TODO(firestorelite): Explore returning a more helpful message
+      // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Invalid path (). Empty paths are not supported.'
+        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
-        'Invalid path (coll/doc/coll/doc). Path points to a document.'
+        'Invalid collection path (coll/doc/coll/doc). Path points to a document.'
       );
     });
   });
@@ -347,3 +351,27 @@ describe('DocumentSnapshot', () => {
 });
 
 // TODO(firestorelite): Add converter tests
+describe('deleteDoc()', () => {
+  it('can delete a non-existing document', () => {
+    return withTestDoc(docRef => deleteDoc(docRef));
+  });
+});
+
+// TODO(firestorelite): Expand test coverage once we can write docs
+describe('FieldValue', () => {
+  it('support equality checking with isEqual()', () => {
+    expectEqual(FieldValue.delete(), FieldValue.delete());
+    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
+    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
+    // TODO(firestorelite): Add test when field value is available
+    //expectNotEqual(FieldValue.delete(), documentId());
+  });
+
+  it('support instanceof checks', () => {
+    expect(FieldValue.delete()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.serverTimestamp()).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
+    expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+  });
+});
