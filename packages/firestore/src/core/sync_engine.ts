@@ -525,18 +525,18 @@ export class SyncEngine implements RemoteSyncer {
 
     const batchId = mutationBatchResult.batch.batchId;
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught
-    // up), so we raise user callbacks first so that they consistently happen
-    // before listen events.
-    this.processUserCallback(batchId, /*error=*/ null);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.acknowledgeBatch(
         mutationBatchResult
       );
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught
+      // up), so we raise user callbacks first so that they consistently happen
+      // before listen events.
+      this.processUserCallback(batchId, /*error=*/ null);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -550,16 +550,16 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('rejectFailedWrite()');
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught up),
-    // so we raise user callbacks first so that they consistently happen before
-    // listen events.
-    this.processUserCallback(batchId, error);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.rejectBatch(batchId);
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught up),
+      // so we raise user callbacks first so that they consistently happen before
+      // listen events.
+      this.processUserCallback(batchId, error);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {

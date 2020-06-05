@@ -23,11 +23,11 @@ import { Code, FirestoreError } from '../../../src/util/error';
  * This cast is used in the Lite and Full SDK to verify instance types for
  * arguments passed to the public API.
  */
-export function tryCast<T>(
+export function cast<T>(
   obj: object,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor: { new (...args: any[]): T }
-): T {
+): T | never {
   if (!(obj instanceof constructor)) {
     if (constructor.name === obj.constructor.name) {
       throw new FirestoreError(

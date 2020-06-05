@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.3.34",
+  "version": "0.3.35",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -24,8 +24,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/storage-types": "0.3.12",
-    "@firebase/util": "0.2.47",
-    "@firebase/component": "0.1.12",
+    "@firebase/util": "0.2.48",
+    "@firebase/component": "0.1.13",
     "tslib": "1.11.1"
   },
   "peerDependencies": {

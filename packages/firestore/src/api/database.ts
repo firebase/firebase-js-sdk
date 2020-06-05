@@ -385,6 +385,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     let synchronizeTabs = false;
+    let experimentalForceOwningTab = false;
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
@@ -396,12 +397,24 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         settings.synchronizeTabs ??
         settings.experimentalTabSynchronization ??
         DEFAULT_SYNCHRONIZE_TABS;
+
+      experimentalForceOwningTab = settings.experimentalForceOwningTab
+        ? settings.experimentalForceOwningTab
+        : false;
+
+      if (synchronizeTabs && experimentalForceOwningTab) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "The 'experimentalForceOwningTab' setting cannot be used with 'synchronizeTabs'."
+        );
+      }
     }
 
     return this.configureClient(this._componentProvider, {
       durable: true,
       cacheSizeBytes: this._settings.cacheSizeBytes,
-      synchronizeTabs
+      synchronizeTabs,
+      forceOwningTab: experimentalForceOwningTab
     });
   }
 
@@ -621,8 +634,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     switch (getLogLevel()) {
       case LogLevel.DEBUG:
         return 'debug';
+      case LogLevel.ERROR:
+        return 'error';
       case LogLevel.SILENT:
         return 'silent';
+      case LogLevel.WARN:
+        return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.VERBOSE:
+        return 'verbose';
       default:
         // The default log level is error
         return 'error';
@@ -631,23 +652,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
-    switch (level) {
-      case 'debug':
-        setLogLevel(LogLevel.DEBUG);
-        break;
-      case 'error':
-        setLogLevel(LogLevel.ERROR);
-        break;
-      case 'silent':
-        setLogLevel(LogLevel.SILENT);
-        break;
-      default:
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid log level: ' + level
-        );
-    }
+    validateStringEnum(
+      'setLogLevel',
+      ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
+      1,
+      level
+    );
+    setLogLevel(level);
   }
 
   // Note: this is not a property because the minifier can't work correctly with
@@ -725,17 +736,11 @@ export class Transaction implements firestore.Transaction {
       value,
       'Transaction.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -828,17 +833,11 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       'WriteBatch.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -1028,14 +1027,11 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       'DocumentReference.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this.firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this.firestore._dataReader.parseSetData(functionName, convertedValue);
+    const parsed = this.firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
     );

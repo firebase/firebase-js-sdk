@@ -49,6 +49,14 @@ const packageConfigs = {
   messaging: {
     // Messaging currently only supports these browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
+  },
+  firestore: {
+    browsers: [
+      'Chrome_Windows',
+      'Firefox_Windows',
+      'Edge_Windows',
+      'Safari_macOS'
+    ]
   }
 };
 
@@ -170,7 +178,8 @@ module.exports = function(config) {
       'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
       '**/test/**/*.ts': ['webpack', 'sourcemap'],
       '**/*.test.ts': ['webpack', 'sourcemap'],
-      'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
+      // Restore when ready to run Firestore unit tests in IE.
+      // 'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },
 
