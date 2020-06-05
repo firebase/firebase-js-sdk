@@ -16,6 +16,7 @@
  */
 
 import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -24,7 +25,6 @@ import {
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
-import { SnapshotVersion } from '../core/snapshot_version';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';

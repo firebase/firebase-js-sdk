@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { ListenSequence } from '../../../src/core/listen_sequence';
@@ -33,7 +34,6 @@ import {
   Persistence,
   PersistenceTransaction
 } from '../../../src/local/persistence';
-
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
@@ -50,6 +50,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { primitiveComparator } from '../../../src/util/misc';
 import { SortedMap } from '../../../src/util/sorted_map';
 import { key, path, version, wrapObject } from '../../util/helpers';
+
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
 describe('IndexedDbLruDelegate', () => {

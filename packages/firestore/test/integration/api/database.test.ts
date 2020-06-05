@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-
 import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';

@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-
 import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { User } from '../../../src/auth/user';
 import { SimpleDb } from '../../../src/local/simple_db';

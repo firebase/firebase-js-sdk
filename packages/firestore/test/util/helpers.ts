@@ -16,9 +16,6 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
-import * as api from '../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
@@ -76,6 +73,7 @@ import {
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { PlatformSupport } from '../../src/platform/platform';
+import * as api from '../../src/protos/firestore_proto_api';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import {
@@ -91,6 +89,7 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
+
 import { query } from './api_helpers';
 
 /* eslint-disable no-restricted-globals */

@@ -16,8 +16,8 @@
  */
 
 import { User } from '../auth/user';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
+import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore, MultiTabLocalStore } from '../local/local_store';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import {
@@ -37,6 +37,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+
 import { DatabaseInfo } from './database_info';
 import { EventManager } from './event_manager';
 import { PersistenceSettings } from './firestore_client';

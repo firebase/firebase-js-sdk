@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
+
 import {
   extractFieldMask,
   ObjectValue,
@@ -25,6 +24,7 @@ import {
   TypeOrder
 } from '../../../src/model/object_value';
 import { typeOrder } from '../../../src/model/values';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('ObjectValue', () => {

@@ -16,6 +16,7 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
+
 import { NodePlatform } from './node_platform';
 
 /**

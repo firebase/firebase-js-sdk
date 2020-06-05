@@ -24,6 +24,7 @@ import { estimateByteSize } from '../model/values';
 import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
+
 import { encodeResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,

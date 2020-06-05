@@ -17,12 +17,12 @@
 
 import { expect } from 'chai';
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import {
   loadRawProtos,
   protoLoaderOptions
 } from '../../../src/platform_node/load_protos';
+import * as api from '../../../src/protos/firestore_proto_api';
+
 import { serializerTest } from './serializer.helper';
 
 const protos = loadRawProtos();

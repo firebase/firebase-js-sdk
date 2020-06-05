@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-
-import { cast } from './util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
 } from '../../../src/model/path';
-import { validateNamedArrayAtLeastNumberOfElements } from '../../../src/util/input_validation';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { validateNamedArrayAtLeastNumberOfElements } from '../../../src/util/input_validation';
+import * as firestore from '../../index';
+
+import { cast } from './util';
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single

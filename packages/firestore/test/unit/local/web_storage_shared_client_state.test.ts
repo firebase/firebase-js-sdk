@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { User } from '../../../src/auth/user';
 import {
   BatchId,
@@ -43,6 +44,7 @@ import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { objectSize } from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
+
 import {
   clearWebStorage,
   populateWebStorage,

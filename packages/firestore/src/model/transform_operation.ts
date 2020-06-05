@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
-
 import { Timestamp } from '../api/timestamp';
+import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+
 import { serverTimestamp } from './server_timestamps';
 import {
   isArray,

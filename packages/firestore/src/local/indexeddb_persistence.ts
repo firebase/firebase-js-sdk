@@ -26,6 +26,7 @@ import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
+
 import {
   decodeResourcePath,
   EncodedResourcePath,

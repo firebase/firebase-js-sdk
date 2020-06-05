@@ -24,6 +24,7 @@ import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
+
 import {
   decodeResourcePath,
   encodeResourcePath

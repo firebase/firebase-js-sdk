@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
+import { fieldPathFromDotSeparatedString } from '../../../src/api/user_data_reader';
+import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { FieldPath as InternalFieldPath } from '../../../src/model/path';
 import * as firestore from '../../index';
 
 import { Firestore } from './database';
-import { DocumentReference } from './reference';
 import { FieldPath } from './field_path';
+import { DocumentReference } from './reference';
 import { cast } from './util';
-import { DocumentKey } from '../../../src/model/document_key';
-import { Document } from '../../../src/model/document';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
-import { FieldPath as InternalFieldPath } from '../../../src/model/path';
-import { fieldPathFromDotSeparatedString } from '../../../src/api/user_data_reader';
 
 export class DocumentSnapshot<T = firestore.DocumentData>
   implements firestore.DocumentSnapshot<T> {

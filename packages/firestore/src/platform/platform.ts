@@ -19,6 +19,7 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
+
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
 /**

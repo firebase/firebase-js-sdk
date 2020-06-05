@@ -16,8 +16,11 @@
  */
 
 import { expect } from 'chai';
+
+import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
@@ -31,8 +34,6 @@ import {
   version
 } from '../../util/helpers';
 
-import { Timestamp } from '../../../src/api/timestamp';
-import { Target } from '../../../src/core/target';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestTargetCache } from './test_target_cache';
 

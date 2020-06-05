@@ -30,6 +30,7 @@ import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
+
 import {
   DbMutationBatch,
   DbNoDocument,

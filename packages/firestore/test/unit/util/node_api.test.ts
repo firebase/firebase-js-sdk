@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { NodeCallback, nodePromise } from '../../../src/util/node_api';
 
 describe('nodePromise', () => {

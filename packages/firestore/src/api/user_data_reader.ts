@@ -17,8 +17,6 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import * as api from '../protos/firestore_proto_api';
-
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -33,11 +31,13 @@ import {
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import { FieldPath } from '../model/path';
 import { PlatformSupport } from '../platform/platform';
+import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
+
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,

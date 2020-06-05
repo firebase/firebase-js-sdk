@@ -65,6 +65,7 @@ import {
   isNullOrUndefined,
   isSafeInteger
 } from '../util/types';
+
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode } from './rpc_error';
 import {

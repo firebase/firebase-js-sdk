@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect, use } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -68,6 +68,7 @@ import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
+
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   MOCK_SEQUENCE_NUMBER_SYNCER,

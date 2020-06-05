@@ -16,6 +16,7 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
+
 import { primitiveComparator } from './misc';
 
 /**

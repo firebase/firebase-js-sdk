@@ -24,6 +24,7 @@ import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+
 import { Connection } from './connection';
 import {
   PersistentListenStream,

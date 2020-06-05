@@ -18,9 +18,9 @@
 import { expect } from 'chai';
 
 import { extractDependencies } from '../../../../../scripts/exp/extract-deps.helpers';
-
 import * as pkg from '../../../package.json';
 import { forEach } from '../../../src/util/obj';
+
 import * as dependencies from './dependencies.json';
 
 // TODO(firestorexp): Enable test

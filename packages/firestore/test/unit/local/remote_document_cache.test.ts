@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -33,6 +34,7 @@ import {
   removedDoc,
   version
 } from '../../util/helpers';
+
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 

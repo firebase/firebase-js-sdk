@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { makeConstructorPrivate } from '../../../src/util/api';
 
 describe('makeConstructorPrivate', () => {

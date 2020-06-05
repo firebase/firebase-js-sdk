@@ -20,6 +20,7 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+
 import { User } from '../auth/user';
 import { debugAssert, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';

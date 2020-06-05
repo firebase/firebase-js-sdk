@@ -23,11 +23,11 @@ import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
+import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-
-import { ByteString } from '../util/byte_string';
 import { isNullOrUndefined } from '../util/types';
+
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';

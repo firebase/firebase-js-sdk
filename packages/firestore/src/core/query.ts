@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
-
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -31,9 +29,11 @@ import {
   valueCompare,
   valueEquals
 } from '../model/values';
+import * as api from '../protos/firestore_proto_api';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+
 import { Target } from './target';
 
 export const enum LimitType {

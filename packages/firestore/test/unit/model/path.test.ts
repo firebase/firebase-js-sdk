@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { FieldPath, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { path } from '../../util/helpers';

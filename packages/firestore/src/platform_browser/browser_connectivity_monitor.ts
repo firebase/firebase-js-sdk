@@ -16,6 +16,7 @@
  */
 
 import { logDebug } from '../util/log';
+
 import {
   ConnectivityMonitor,
   ConnectivityMonitorCallback,

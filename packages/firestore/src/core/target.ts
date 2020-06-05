@@ -18,6 +18,7 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
+
 import { Bound, Filter, OrderBy } from './query';
 
 /**

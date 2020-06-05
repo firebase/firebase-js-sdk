@@ -17,8 +17,6 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import * as api from '../protos/firestore_proto_api';
-
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import { TypeOrder } from '../model/object_value';
@@ -33,10 +31,12 @@ import {
   normalizeTimestamp,
   typeOrder
 } from '../model/values';
+import * as api from '../protos/firestore_proto_api';
 import { isValidResourceName } from '../remote/serializer';
 import { fail, hardAssert } from '../util/assert';
 import { logError } from '../util/log';
 import { forEach } from '../util/obj';
+
 import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';

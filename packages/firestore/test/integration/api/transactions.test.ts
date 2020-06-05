@@ -17,6 +17,7 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
+
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 

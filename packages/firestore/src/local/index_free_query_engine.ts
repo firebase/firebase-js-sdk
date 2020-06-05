@@ -26,6 +26,7 @@ import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
+
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';

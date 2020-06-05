@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
 
 import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import * as firestore from '../../';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { PlatformSupport } from '../../../src/platform/platform';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 
 // settings() defaults:

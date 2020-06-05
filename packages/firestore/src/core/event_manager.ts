@@ -19,6 +19,7 @@ import { debugAssert } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
+
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';

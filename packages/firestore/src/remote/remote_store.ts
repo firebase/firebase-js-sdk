@@ -33,6 +33,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
+
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
 import {
   Datastore,

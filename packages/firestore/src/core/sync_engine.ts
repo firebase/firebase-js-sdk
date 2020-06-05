@@ -23,6 +23,11 @@ import {
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from '../local/shared_client_state_syncer';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
@@ -33,25 +38,20 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
+import { Datastore } from '../remote/datastore';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-
-import { ClientId, SharedClientState } from '../local/shared_client_state';
-import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from '../local/shared_client_state_syncer';
-import { Datastore } from '../remote/datastore';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { SortedSet } from '../util/sorted_set';
+
 import { ListenSequence } from './listen_sequence';
 import { LimitType, Query } from './query';
 import { SnapshotVersion } from './snapshot_version';

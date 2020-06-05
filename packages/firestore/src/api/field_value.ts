@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
 import { FieldTransform } from '../model/mutation';
 import {
   ArrayRemoveTransformOperation,
@@ -30,6 +31,7 @@ import {
   validateExactNumberOfArgs,
   validateNoArgs
 } from '../util/input_validation';
+
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 
 /**

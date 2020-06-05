@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
@@ -50,6 +51,7 @@ import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
+
 import { PersistenceAction } from './spec_test_runner';
 
 /**

@@ -16,6 +16,7 @@
  */
 
 import { PlatformSupport } from '../platform/platform';
+
 import { debugAssert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;

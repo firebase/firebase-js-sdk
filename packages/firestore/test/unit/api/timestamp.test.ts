@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Timestamp } from '../../../src/api/timestamp';
 import { Code } from '../../../src/util/error';
 import { addEqualityMatcher } from '../../util/equality_matcher';

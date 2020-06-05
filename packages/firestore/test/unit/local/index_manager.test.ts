@@ -16,11 +16,12 @@
  */
 
 import { expect } from 'chai';
+
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-
 import { path } from '../../util/helpers';
+
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
 

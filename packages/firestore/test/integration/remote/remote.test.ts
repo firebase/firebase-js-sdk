@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Document, NoDocument } from '../../../src/model/document';
 import {

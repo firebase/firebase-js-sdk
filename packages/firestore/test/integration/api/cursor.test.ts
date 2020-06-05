@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,

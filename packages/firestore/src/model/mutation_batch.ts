@@ -20,6 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+
 import {
   documentKeySet,
   DocumentKeySet,

@@ -22,6 +22,7 @@ import { AsyncQueue, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
+
 import { Transaction } from './transaction';
 
 const RETRY_COUNT = 5;

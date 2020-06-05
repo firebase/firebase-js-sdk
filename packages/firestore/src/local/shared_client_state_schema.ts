@@ -18,6 +18,7 @@
 import { User } from '../auth/user';
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { debugAssert } from '../util/assert';
+
 import { ClientId } from './shared_client_state';
 import { QueryTargetState } from './shared_client_state_syncer';
 

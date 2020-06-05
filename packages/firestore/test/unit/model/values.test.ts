@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
 
 import { GeoPoint } from '../../../src/api/geo_point';
@@ -29,6 +27,7 @@ import {
   valueCompare,
   valueEquals
 } from '../../../src/model/values';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
 import {
   blob,

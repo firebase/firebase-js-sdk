@@ -16,7 +16,6 @@
  */
 
 import * as firestore from '../../';
-
 import {
   ArrayRemoveFieldValueImpl,
   ArrayUnionFieldValueImpl,

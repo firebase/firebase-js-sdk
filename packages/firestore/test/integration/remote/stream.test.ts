@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';

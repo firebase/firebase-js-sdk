@@ -18,6 +18,7 @@
 import { User } from '../auth/user';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
+
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';

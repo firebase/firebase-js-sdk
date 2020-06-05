@@ -28,7 +28,9 @@ import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+
 import { decodeResourcePath } from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import {
   IndexedDbPersistence,
   IndexedDbTransaction
@@ -41,7 +43,6 @@ import {
   DbMutationQueue,
   DbMutationQueueKey
 } from './indexeddb_schema';
-import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';

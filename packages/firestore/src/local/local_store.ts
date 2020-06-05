@@ -36,6 +36,7 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
+import { extractFieldMask } from '../model/object_value';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { debugAssert, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -44,7 +45,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 
-import { extractFieldMask } from '../model/object_value';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';

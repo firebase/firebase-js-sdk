@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
@@ -37,6 +38,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
 import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 
 const TEST_TARGET_ID = 1;

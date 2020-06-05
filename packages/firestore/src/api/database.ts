@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-
-import * as api from '../protos/firestore_proto_api';
-
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
+import * as firestore from '@firebase/firestore-types';
+
 import {
   ComponentProvider,
   MemoryComponentProvider
@@ -47,6 +47,7 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { PlatformSupport } from '../platform/platform';
+import * as api from '../protos/firestore_proto_api';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
@@ -71,10 +72,7 @@ import {
 import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred, Rejecter, Resolver } from '../util/promise';
-import { FieldPath as ExternalFieldPath } from './field_path';
 
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import {
   CredentialsProvider,
   CredentialsSettings,
@@ -82,6 +80,7 @@ import {
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from './credentials';
+import { FieldPath as ExternalFieldPath } from './field_path';
 import {
   CompleteFn,
   ErrorFn,

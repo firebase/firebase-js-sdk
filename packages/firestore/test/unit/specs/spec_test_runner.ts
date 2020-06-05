@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -101,6 +102,7 @@ import {
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import {

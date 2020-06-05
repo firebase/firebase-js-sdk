@@ -22,11 +22,11 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
-
-import { debugAssert } from '../util/assert';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 

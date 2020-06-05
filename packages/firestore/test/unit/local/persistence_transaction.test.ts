@@ -16,11 +16,13 @@
  */
 
 import { expect } from 'chai';
+
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { DbTarget, DbTargetKey } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+
 import * as persistenceHelpers from './persistence_test_helpers';
 
 let persistence: Persistence;

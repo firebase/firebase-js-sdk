@@ -18,13 +18,14 @@
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
+
 import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
-import { IndexManager } from './index_manager';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';

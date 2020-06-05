@@ -16,6 +16,7 @@
  */
 
 import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -30,13 +31,13 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, fail, hardAssert } from '../util/assert';
-import { ObjectMap } from '../util/obj_map';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -44,7 +45,6 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
 } from './indexeddb_schema';
-import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';

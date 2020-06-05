@@ -17,7 +17,9 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
+
 import { version } from '../package.json';
+
 import { Firestore } from './src/api/database';
 
 import '../src/platform_node/node_init';

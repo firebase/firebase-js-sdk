@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { PlatformSupport } from '../../../src/platform/platform';
 
 describe('Platform', () => {

@@ -29,11 +29,11 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { PatchMutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-
-import { PatchMutation } from '../model/mutation';
 import { debugAssert } from '../util/assert';
+
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
