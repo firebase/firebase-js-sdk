@@ -787,7 +787,7 @@ export class JsonProtoSerializer {
     return result;
   }
 
-  fromQueryTarget(target: api.QueryTarget): Target {
+  convertQueryTargetToQuery(target: api.QueryTarget): Query {
     let path = this.fromQueryPath(target.parent!);
 
     const query = target.structuredQuery!;
@@ -840,7 +840,11 @@ export class JsonProtoSerializer {
       LimitType.First,
       startAt,
       endAt
-    ).toTarget();
+    );
+  }
+
+  fromQueryTarget(target: api.QueryTarget): Target {
+    return this.convertQueryTargetToQuery(target).toTarget();
   }
 
   toListenRequestLabels(

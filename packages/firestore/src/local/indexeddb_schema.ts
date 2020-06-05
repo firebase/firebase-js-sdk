@@ -1092,11 +1092,11 @@ export type DbBundlesKey = string;
 /**
  * A object representing a bundle loaded by the SDK.
  */
-export class DbBundles {
+export class DbBundle {
   /** Name of the IndexedDb object store. */
   static store = 'bundles';
 
-  static keyPath = ['bundleId'];
+  static keyPath = 'bundleId';
 
   constructor(
     /** The ID of the loaded bundle. */
@@ -1109,8 +1109,8 @@ export class DbBundles {
 }
 
 function createBundlesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbBundles.store, {
-    keyPath: DbBundles.keyPath
+  db.createObjectStore(DbBundle.store, {
+    keyPath: DbBundle.keyPath
   });
 }
 
@@ -1119,11 +1119,11 @@ export type DbNamedQueriesKey = string;
 /**
  * A object representing a named query loaded by the SDK via a bundle.
  */
-export class DbNamedQueries {
+export class DbNamedQuery {
   /** Name of the IndexedDb object store. */
   static store = 'namedQueries';
 
-  static keyPath = ['name'];
+  static keyPath = 'name';
 
   constructor(
     /** The name of the query. */
@@ -1136,8 +1136,8 @@ export class DbNamedQueries {
 }
 
 function createNamedQueriesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbNamedQueries.store, {
-    keyPath: DbNamedQueries.keyPath
+  db.createObjectStore(DbNamedQuery.store, {
+    keyPath: DbNamedQuery.keyPath
   });
 }
 
@@ -1174,7 +1174,7 @@ export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 // V10 does not change the set of stores.
 
-export const V11_STORES = [...V8_STORES, DbCollectionParent.store];
+export const V11_STORES = [...V8_STORES, DbBundle.store, DbNamedQuery.store];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
