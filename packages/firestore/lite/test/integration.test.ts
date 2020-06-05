@@ -15,23 +15,23 @@
  * limitations under the License.
  */
 
+import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { initializeApp } from '@firebase/app-exp';
+import { FieldValue } from '../../src/api/field_value';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import {
   Firestore,
   getFirestore,
   initializeFirestore,
   terminate
 } from '../src/api/database';
-import {
-  withTestCollection,
-  withTestDb,
-  withTestDbSettings,
-  withTestDoc,
-  withTestDocAndInitialData
-} from './helpers';
+import { FieldPath } from '../src/api/field_path';
 import {
   parent,
   collection,
@@ -44,13 +44,15 @@ import {
   addDoc,
   updateDoc
 } from '../src/api/reference';
-import { FieldPath } from '../src/api/field_path';
+
 import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { FieldValue } from '../../src/api/field_value';
+  withTestCollection,
+  withTestDb,
+  withTestDbSettings,
+  withTestDoc,
+  withTestDocAndInitialData
+} from './helpers';
+
 
 use(chaiAsPromised);
 

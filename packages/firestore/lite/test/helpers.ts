@@ -17,15 +17,14 @@
 
 import { initializeApp } from '@firebase/app-exp';
 
-import * as firestore from '../index';
-
-import { initializeFirestore } from '../src/api/database';
-import { doc, collection, setDoc } from '../src/api/reference';
+import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
-import { AutoId } from '../../src/util/misc';
+import * as firestore from '../index';
+import { initializeFirestore } from '../src/api/database';
+import { doc, collection, setDoc } from '../src/api/reference';
 
 let appCount = 0;
 

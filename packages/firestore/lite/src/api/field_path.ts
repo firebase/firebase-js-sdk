@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import { BaseFieldPath } from '../../../src/api/field_path';
+import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 import * as firestore from '../../index';
 
-import { BaseFieldPath } from '../../../src/api/field_path';
 import { cast } from './util';
-import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
+
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single

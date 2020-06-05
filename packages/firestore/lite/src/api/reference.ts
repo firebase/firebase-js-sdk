@@ -15,36 +15,38 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-
-import { Document } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
-import { Firestore } from './database';
+import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
   UserDataReader
 } from '../../../src/api/user_data_reader';
+import { DatabaseId } from '../../../src/core/database_info';
 import { Query as InternalQuery } from '../../../src/core/query';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { ResourcePath } from '../../../src/model/path';
-import { AutoId } from '../../../src/util/misc';
-import { DocumentSnapshot } from './snapshot';
+import { PlatformSupport } from '../../../src/platform/platform';
 import {
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { applyFirestoreDataConverter } from '../../../src/api/database';
-import { DatabaseId } from '../../../src/core/database_info';
-import { FieldPath } from './field_path';
-import { cast } from './util';
 import {
   validateArgType,
   validateCollectionPath,
   validateDocumentPath
 } from '../../../src/util/input_validation';
+import { AutoId } from '../../../src/util/misc';
+import * as firestore from '../../index';
+
+
+import { Firestore } from './database';
+import { FieldPath } from './field_path';
+import { DocumentSnapshot } from './snapshot';
+import { cast } from './util';
+
 
 /**
  * A reference to a particular document in a collection in the database.
