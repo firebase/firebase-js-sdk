@@ -41,11 +41,11 @@ export class Transaction implements firestore.Transaction {
   // This is the lite version of the Transaction API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
-  private _dataReader: UserDataReader;
+  private readonly _dataReader: UserDataReader;
 
   constructor(
-    private _firestore: Firestore,
-    private _transaction: InternalTransaction
+    private readonly _firestore: Firestore,
+    private readonly _transaction: InternalTransaction
   ) {
     // Kick off configuring the client, which freezes the settings.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -68,9 +68,19 @@ export class Transaction implements firestore.Transaction {
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(this._firestore, ref._key, null);
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            ref._key,
+            null,
+            ref._converter
+          );
         } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(this._firestore, doc.key, doc);
+          return new DocumentSnapshot<T>(
+            this._firestore,
+            doc.key,
+            doc,
+            ref._converter
+          );
         } else {
           throw fail(
             `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`

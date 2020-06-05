@@ -37,11 +37,11 @@ export class WriteBatch implements firestore.WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
+  private readonly _dataReader: UserDataReader;
   private _mutations = [] as Mutation[];
   private _committed = false;
-  private _dataReader: UserDataReader;
 
-  constructor(private _firestore: Firestore) {
+  constructor(private readonly _firestore: Firestore) {
     // Kick off configuring the client, which freezes the settings.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     _firestore._ensureClientConfigured();
