@@ -15,30 +15,23 @@
  * limitations under the License.
  */
 
-import {
-  DOCUMENT_KEY_NAME,
-  FieldPath as InternalFieldPath
-} from '../../../src/model/path';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { validateNamedArrayAtLeastNumberOfElements } from '../../../src/util/input_validation';
 import * as firestore from '../../index';
 
+import { BaseFieldPath } from '../../../src/api/field_path';
 import { cast } from './util';
+import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath implements firestore.FieldPath {
+export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
   // Note: This class is stripped down a copy of the FieldPath class in the
   // legacy SDK. The changes are:
   // - The `documentId()` static method has been removed
   // - Input validation is limited to errors that cannot be caught by the
   //   TypeScript transpiler.
-
-  /** Internal representation of a Firestore field path. */
-  _internalPath: InternalFieldPath;
 
   /**
    * Creates a FieldPath from the provided field names. If more than one field
@@ -47,23 +40,7 @@ export class FieldPath implements firestore.FieldPath {
    * @param fieldNames A list of field names.
    */
   constructor(...fieldNames: string[]) {
-    validateNamedArrayAtLeastNumberOfElements(
-      'FieldPath',
-      fieldNames,
-      'fieldNames',
-      1
-    );
-
-    const emptyElement = fieldNames.indexOf('');
-    if (emptyElement !== -1) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid field name at argument $(i + 1). ` +
-          'Field names must not be empty.'
-      );
-    }
-
-    this._internalPath = new InternalFieldPath(fieldNames);
+    super(fieldNames);
   }
 
   isEqual(other: firestore.FieldPath): boolean {

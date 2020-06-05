@@ -92,6 +92,7 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
@@ -734,17 +735,11 @@ export class Transaction implements firestore.Transaction {
       value,
       'Transaction.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -837,17 +832,11 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       'WriteBatch.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -1037,14 +1026,11 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       'DocumentReference.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this.firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this.firestore._dataReader.parseSetData(functionName, convertedValue);
+    const parsed = this.firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
     );
@@ -2545,8 +2531,8 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
  */
-function applyFirestoreDataConverter<T>(
-  converter: firestore.FirestoreDataConverter<T> | undefined,
+export function applyFirestoreDataConverter<T>(
+  converter: UntypedFirestoreDataConverter<T> | undefined,
   value: T,
   functionName: string
 ): [firestore.DocumentData, string] {
