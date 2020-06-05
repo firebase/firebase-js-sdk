@@ -109,6 +109,10 @@ export class PlatformSupport {
     PlatformSupport.platform = platform;
   }
 
+  private static _forceSetPlatform(platform: Platform): void {
+    PlatformSupport.platform = platform;
+  }
+
   static getPlatform(): Platform {
     if (!PlatformSupport.platform) {
       fail('Platform not set');
