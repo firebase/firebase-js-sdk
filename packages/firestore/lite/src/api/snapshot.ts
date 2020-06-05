@@ -66,7 +66,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       const snapshot = new QueryDocumentSnapshot(
         this._firestore,
         this._key,
-        this._document
+        this._document,
+        /* converter= */ null
       );
       return this._converter.fromFirestore(snapshot);
     } else {
@@ -74,7 +75,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         this._firestore._databaseId,
         /* timestampsInSnapshots= */ false,
         /* serverTimestampBehavior=*/ 'none',
-        key => new DocumentReference(this._firestore, key)
+        key =>
+          new DocumentReference(this._firestore, key, /* converter= */ null)
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
