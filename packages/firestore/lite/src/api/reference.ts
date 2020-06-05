@@ -26,8 +26,12 @@ import { FirebaseFirestore, FirestoreDataConverter } from '../../index';
 import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import { DocumentSnapshot } from './snapshot';
-import { invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import {
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc
+} from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { cast } from './util';
 import {
   validateArgType,
@@ -265,4 +269,17 @@ export function getDoc<T>(
       ref._converter
     );
   });
+}
+
+export function deleteDoc(
+  reference: firestore.DocumentReference
+): Promise<void> {
+  const ref = cast(reference, DocumentReference);
+  return ref.firestore
+    ._ensureClientConfigured()
+    .then(datastore =>
+      invokeCommitRpc(datastore, [
+        new DeleteMutation(ref._key, Precondition.none())
+      ])
+    );
 }

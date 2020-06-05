@@ -30,7 +30,8 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  getDoc
+  getDoc,
+  deleteDoc
 } from '../src/api/reference';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { FieldValue } from '../../src/api/field_value';
@@ -171,6 +172,13 @@ describe('getDoc()', () => {
   // TODO(firestorelite): Expand test coverage once we can write docs
 });
 
+describe('deleteDoc()', () => {
+  it('can delete a non-existing document', () => {
+    return withTestDoc(docRef => deleteDoc(docRef));
+  });
+});
+
+// TODO(firestorelite): Expand test coverage once we can write docs
 describe('FieldValue', () => {
   it('support equality checking with isEqual()', () => {
     expectEqual(FieldValue.delete(), FieldValue.delete());
