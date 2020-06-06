@@ -27,6 +27,7 @@ import { LocalStore } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
 import { MaybeDocumentMap } from '../model/collections';
 import { Deferred } from '../util/promise';
+import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -88,13 +89,26 @@ export interface LoadBundleTaskProgress {
 }
 export type TaskState = 'Error' | 'Running' | 'Success';
 
+export function initialProgress(
+  state: TaskState,
+  metadata: BundleMetadata
+): LoadBundleTaskProgress {
+  return {
+    taskState: state,
+    documentsLoaded: state === 'Success' ? metadata.totalDocuments! : 0,
+    bytesLoaded: state === 'Success' ? metadata.totalBytes! : 0,
+    totalDocuments: metadata.totalDocuments!,
+    totalBytes: metadata.totalBytes!
+  };
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface LoadBundleTask {
   onProgress(
-    next?: (a: LoadBundleTaskProgress) => any,
-    error?: (a: Error) => any,
-    complete?: () => void
-  ): Promise<void>;
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (error: Error) => any,
+    complete?: (progress?: LoadBundleTaskProgress) => any
+  ): Promise<any>;
 
   then(
     onFulfilled?: (a: LoadBundleTaskProgress) => any,
@@ -106,9 +120,9 @@ export interface LoadBundleTask {
 
 export class LoadBundleTaskImpl implements LoadBundleTask {
   private progressResolver = new Deferred<any>();
-  private progressNext?: (a: LoadBundleTaskProgress) => any;
-  private progressError?: (a: Error) => any;
-  private progressComplete?: () => any;
+  private progressNext?: (progress: LoadBundleTaskProgress) => any;
+  private progressError?: (err: Error) => any;
+  private progressComplete?: (progress?: LoadBundleTaskProgress) => any;
 
   private promiseResolver = new Deferred<any>();
   private promiseFulfilled?: (a: LoadBundleTaskProgress) => any;
@@ -123,9 +137,9 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
   };
 
   onProgress(
-    next?: (a: LoadBundleTaskProgress) => any,
-    error?: (a: Error) => any,
-    complete?: () => void
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (err: Error) => any,
+    complete?: (progress?: LoadBundleTaskProgress) => void
   ): Promise<any> {
     this.progressNext = next;
     this.progressError = error;
@@ -150,7 +164,7 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
   completeWith(progress: LoadBundleTaskProgress): void {
     let result;
     if (this.progressComplete) {
-      result = this.progressComplete();
+      result = this.progressComplete(progress);
     }
     this.progressResolver.resolve(result);
 
@@ -237,8 +251,8 @@ export class BundleLoader {
 
     if (element.payload.document) {
       debugAssert(
-        !this.unpairedDocumentMetadata,
-        'Unexpected document when no paring metadata is found'
+        !!this.unpairedDocumentMetadata,
+        'Unexpected document when no pairing metadata is found'
       );
       this.documents.push([
         this.unpairedDocumentMetadata!,

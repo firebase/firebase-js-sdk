@@ -480,6 +480,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream /*| string */
   ): LoadBundleTask {
+    this.ensureClientConfigured();
     return this._firestoreClient!.loadBundle(bundleData);
   }
 

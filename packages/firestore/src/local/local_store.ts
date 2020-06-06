@@ -755,7 +755,7 @@ export class LocalStore {
         return this.bundleCache.getBundle(transaction, bundleMetadata.id!);
       })
       .then(cached => {
-        return !!cached && cached!.createTime!.compareTo(currentReadTime) > 0;
+        return !!cached && cached!.createTime!.compareTo(currentReadTime) >= 0;
       });
   }
 

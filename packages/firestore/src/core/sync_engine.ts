@@ -75,7 +75,7 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
-import { BundleLoader, LoadBundleTaskImpl } from './bundle';
+import { BundleLoader, initialProgress, LoadBundleTaskImpl } from './bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -460,15 +460,11 @@ export class SyncEngine implements RemoteSyncer {
     const skip = await this.localStore.isNewerBundleLoaded(metadata);
     if (skip) {
       await reader.close();
-      task.completeWith({
-        taskState: 'Success',
-        documentsLoaded: 0,
-        bytesLoaded: 0,
-        totalDocuments: metadata.totalDocuments!,
-        totalBytes: metadata.totalBytes!
-      });
+      task.completeWith(initialProgress('Success', metadata));
       return;
     }
+
+    task.updateProgress(initialProgress('Running', metadata));
 
     const loader = new BundleLoader(metadata, this.localStore);
     let element = await reader.nextElement();
