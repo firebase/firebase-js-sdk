@@ -41,7 +41,9 @@ export {
   deleteDoc,
   setDoc,
   updateDoc,
-  addDoc
+  addDoc,
+  refEqual,
+  queryEqual
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when Queries are usable
@@ -57,7 +59,11 @@ export {
   serverTimestamp
 } from './src/api/field_value';
 
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
 
 export { WriteBatch, writeBatch } from './src/api/write_batch';
 

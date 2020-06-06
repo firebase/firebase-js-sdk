@@ -571,6 +571,38 @@ export function addDoc<T>(
     .then(() => docRef);
 }
 
+export function refEqual<T>(
+  left: firestore.DocumentReference<T> | firestore.CollectionReference<T>,
+  right: firestore.DocumentReference<T> | firestore.CollectionReference<T>
+): boolean {
+  if (
+    (left instanceof DocumentReference ||
+      left instanceof CollectionReference) &&
+    (right instanceof DocumentReference || right instanceof CollectionReference)
+  ) {
+    return (
+      left.firestore === right.firestore &&
+      left.path === right.path &&
+      left._converter === right._converter
+    );
+  }
+  return false;
+}
+
+export function queryEqual<T>(
+  left: firestore.Query<T>,
+  right: firestore.Query<T>
+): boolean {
+  if (left instanceof Query && right instanceof Query) {
+    return (
+      left.firestore === right.firestore &&
+      left._query.isEqual(right._query) &&
+      left._converter === right._converter
+    );
+  }
+  return false;
+}
+
 export function newUserDataReader(
   databaseId: DatabaseId,
   settings: firestore.Settings
