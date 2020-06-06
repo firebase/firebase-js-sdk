@@ -46,7 +46,8 @@ import {
   setDoc,
   addDoc,
   updateDoc,
-  getQuery
+  getQuery,
+  collectionGroup
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -783,5 +784,38 @@ describe('Query', () => {
         verifyResults(result, { foo: 2 });
       }
     );
+  });
+
+  it('supports collection groups', () => {
+    return withTestCollection(async collRef => {
+      const collectionGroupId = `${collRef.id}group`;
+
+      const fooDoc = doc(
+        collRef.firestore,
+        `${collRef.id}/foo/${collectionGroupId}/doc1`
+      );
+      const barDoc = doc(
+        collRef.firestore,
+        `${collRef.id}/bar/baz/boo/${collectionGroupId}/doc2`
+      );
+      await setDoc(fooDoc, { foo: 1 });
+      await setDoc(barDoc, { bar: 1 });
+
+      const query = collectionGroup(collRef.firestore, collectionGroupId);
+      const result = await getQuery(query);
+
+      verifyResults(result, { bar: 1 }, { foo: 1 });
+    });
+  });
+
+  it('validates collection groups', () => {
+    return withTestDb(firestore => {
+      expect(() => collectionGroup(firestore, '')).to.throw(
+        'Function collectionGroup() requires its first argument to be of type non-empty string, but it was: ""'
+      );
+      expect(() => collectionGroup(firestore, '/')).to.throw(
+        "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
+      );
+    });
   });
 });

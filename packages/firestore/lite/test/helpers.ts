@@ -70,7 +70,7 @@ export function withTestDocAndInitialData(
 
 export function withTestCollectionAndInitialData(
   data: firestore.DocumentData[],
-  fn: (doc: firestore.CollectionReference) => void | Promise<void>
+  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(async db => {
     const coll = collection(db, AutoId.newId());
@@ -83,7 +83,7 @@ export function withTestCollectionAndInitialData(
 }
 
 export function withTestCollection(
-  fn: (doc: firestore.CollectionReference) => void | Promise<void>
+  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(db => {
     return fn(collection(db, AutoId.newId()));
