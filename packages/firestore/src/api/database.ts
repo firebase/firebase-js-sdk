@@ -1648,7 +1648,9 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       throw invalidClassError('isEqual', 'Query', 1, other);
     }
     return (
-      this.firestore === other.firestore && this._query.isEqual(other._query)
+      this.firestore === other.firestore &&
+      this._query.isEqual(other._query) &&
+      this._converter === other._converter
     );
   }
 
