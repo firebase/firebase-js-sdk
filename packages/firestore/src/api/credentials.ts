@@ -214,7 +214,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       // outstanding so the response is potentially for a previous user (which
       // user, we can't be sure).
       if (this.tokenCounter !== initialTokenCounter) {
-        this.forceRefresh = true;
         throw new FirestoreError(
           Code.ABORTED,
           'getToken aborted due to token change.'
