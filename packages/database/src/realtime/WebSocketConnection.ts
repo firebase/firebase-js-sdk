@@ -87,6 +87,7 @@ export class WebSocketConnection implements Transport {
   constructor(
     public connId: string,
     repoInfo: RepoInfo,
+    private firebaseAppId?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ) {
@@ -153,7 +154,8 @@ export class WebSocketConnection implements Transport {
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
           headers: {
-            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`
+            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`,
+            'X-Firebase-GMPID': this.firebaseAppId || ''
           }
         };
 
@@ -170,7 +172,12 @@ export class WebSocketConnection implements Transport {
 
         this.mySock = new WebSocketImpl(this.connURL, [], options);
       } else {
-        this.mySock = new WebSocketImpl(this.connURL);
+        const options: { [k: string]: object } = {
+          headers: {
+            'X-Firebase-GMPID': this.firebaseAppId || ''
+          }
+        };
+        this.mySock = new WebSocketImpl(this.connURL, [], options);
       }
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
