@@ -26,6 +26,9 @@ export {
 export { inMemoryPersistence } from './core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
+// core/providers
+export { PhoneAuthProvider } from './core/providers/phone';
+
 // core/strategies
 export { signInWithCredential } from './core/strategies/credential';
 export {
@@ -42,6 +45,7 @@ export {
   fetchSignInMethodsForEmail,
   sendEmailVerification
 } from './core/strategies/email';
+export { signInWithPhoneNumber } from './core/strategies/phone';
 
 // core/user
 export {
