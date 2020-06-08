@@ -1,6 +1,6 @@
 # Unreleased
 - [fixed] Fixed an issue that may have prevented the client from connecting 
-  to the backend directly after a user signed in.
+  to the backend immediately after a user signed in.
   
 # Released
 - [changed] All known failure cases for Indexed-related crashes have now been
