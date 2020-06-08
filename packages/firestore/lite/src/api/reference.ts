@@ -360,18 +360,9 @@ export function updateDoc(
   return configureClient.then(datastore =>
     invokeCommitRpc(
       datastore,
-      parsed.toMutations(ref._key, Precondition.none())
+      parsed.toMutations(ref._key, Precondition.exists(true))
     )
   );
-
-  return ref.firestore
-    ._ensureClientConfigured()
-    .then(datastore =>
-      invokeCommitRpc(
-        datastore,
-        parsed.toMutations(ref._key, Precondition.exists(true))
-      )
-    );
 }
 
 export function deleteDoc(
