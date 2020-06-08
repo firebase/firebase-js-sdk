@@ -38,7 +38,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     private _firestore: Firestore,
     private _key: DocumentKey,
     private _document: Document | null,
-    private _converter?: firestore.FirestoreDataConverter<T>
+    private _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   get id(): string {
@@ -66,15 +66,17 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       const snapshot = new QueryDocumentSnapshot(
         this._firestore,
         this._key,
-        this._document
+        this._document,
+        /* converter= */ null
       );
       return this._converter.fromFirestore(snapshot);
     } else {
       const userDataWriter = new UserDataWriter(
         this._firestore._databaseId,
-        /* timestampsInSnapshots= */ false,
+        /* timestampsInSnapshots= */ true,
         /* serverTimestampBehavior=*/ 'none',
-        key => new DocumentReference(this._firestore, key)
+        key =>
+          new DocumentReference(this._firestore, key, /* converter= */ null)
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -88,7 +90,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,
-          /* timestampsInSnapshots= */ false,
+          /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
           key => new DocumentReference(this._firestore, key, this._converter)
         );
