@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed an issue that may have prevented the client from connecting 
+  to the backend directly after a user sign in.
+  
+# Released
 - [changed] All known failure cases for Indexed-related crashes have now been
   addressed. Instead of crashing the client, IndexedDB failures will result
   in rejected operations (e.g. rejected Writes or errored Query listeners). 
@@ -9,8 +13,6 @@
   
   If you continue to see Indexed-related crashes, we appreciate feedback 
   (https://github.com/firebase/firebase-js-sdk/issues/2755).
-
-# Released
 - [fixed] Fixed an issue that could cause Firestore to temporarily go 
   offline when a Window visibility event occurred.
 - [feature] Added support for calling  `FirebaseFiresore.settings` with 
