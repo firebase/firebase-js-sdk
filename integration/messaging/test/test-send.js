@@ -22,6 +22,7 @@ const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const clearAppForTest = require('./utils/clearAppForTest');
 const getReceivedBackgroundMessages = require('./utils/getReceivedBackgroundMessages');
+const openNewTab = require('./utils/openNewTab');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const clearBackgroundMessages = require('./utils/clearBackgroundMessages');
 
@@ -60,9 +61,21 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         globalWebDriver = createPermittedWebDriver(
           /* browser= */ assistantBrowser.getId()
         );
+
         await globalWebDriver.get(
           `${testServer.serverAddress}/${TEST_DOMAIN}/`
         );
+
+        // Shift window focus away from app window so that background messages can be received/processed
+        try {
+          await openNewTab(globalWebDriver);
+        } catch (err) {
+          // ChromeDriver seems to have an open bug which throws "JavascriptError: javascript error: circular reference".
+          // Nevertheless, a new tab can still be opened. Hence, just catch and continue here.
+          console.log(
+            'FCM integration test error (ignored on purpose): ' + err
+          );
+        }
       });
 
       after(async function() {
@@ -84,13 +97,17 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
 
         // Wait briefly for object store to be created and received message to be stored in idb
-        await wait(8000);
+        await wait(3000);
 
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
           /* expectedDataPayload= */ null
         );
+        await clearBackgroundMessages(globalWebDriver);
+
+        // clears errors and received foreground messages
+        await clearAppForTest(globalWebDriver);
       });
 
       it('Background app can receive a {"data"} message frow sw', async function() {
@@ -102,13 +119,18 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
 
         // Wait briefly for object store to be created and received message to be stored in idb
-        await wait(8000);
+        await wait(3000);
 
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
           /* expectedDataPayload= */ getTestDataPayload()
         );
+
+        await clearBackgroundMessages(globalWebDriver);
+
+        // clears errors and received foreground messages
+        await clearAppForTest(globalWebDriver);
       });
     });
   });

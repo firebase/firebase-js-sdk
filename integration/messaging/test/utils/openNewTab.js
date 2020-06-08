@@ -16,16 +16,9 @@
  */
 
 module.exports = async webdriver => {
-  console.log('Getting received foreground messages from test app: ');
+  console.log('Opening a new tab in the browser...');
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return window.__test.messages.length > 0;
-    });
-  });
-
-  console.log('Found message.');
   return webdriver.executeScript(() => {
-    return window.__test.messages;
+    return window.open();
   });
 };
