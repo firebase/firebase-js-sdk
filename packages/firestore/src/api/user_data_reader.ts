@@ -623,7 +623,7 @@ function parseSentinelFieldValue(
       `${value._methodName}() can only be used with update() and set()`
     );
   }
-  if (context.path === null) {
+  if (!context.path) {
     throw context.createError(
       `${value._methodName}() is not currently supported inside arrays`
     );
