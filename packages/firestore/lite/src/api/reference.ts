@@ -307,7 +307,12 @@ export function setDoc<T>(
     ref.firestore._settings!
   );
 
-  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+  const parsed = dataReader.parseSetData(
+    'setDoc',
+    ref._key,
+    convertedValue,
+    options
+  );
 
   return configureClient.then(datastore =>
     invokeCommitRpc(
@@ -349,12 +354,17 @@ export function updateDoc(
   ) {
     parsed = dataReader.parseUpdateVarargs(
       'updateDoc',
+      ref._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+    parsed = dataReader.parseUpdateData(
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData
+    );
   }
 
   return configureClient.then(datastore =>
@@ -406,7 +416,7 @@ export function addDoc<T>(
     collRef.firestore._databaseId,
     collRef.firestore._settings!
   );
-  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+  const parsed = dataReader.parseSetData('addDoc', docRef._key, convertedValue);
 
   return configureClient
     .then(datastore =>
