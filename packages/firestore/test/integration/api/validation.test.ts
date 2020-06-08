@@ -1419,7 +1419,14 @@ function expectWriteToFail(
     includeUpdates = true;
   }
 
-  const docRef = db.doc('foo/bar');
+  const docPath = 'foo/bar';
+  if (reason.includes('in field')) {
+    reason = `${reason.slice(0, -1)} in document ${docPath})`;
+  } else {
+    reason = `${reason} (found in document ${docPath})`;
+  }
+
+  const docRef = db.doc(docPath);
   const error = (fnName: string): string =>
     `Function ${fnName}() called with invalid data. ${reason}`;
 

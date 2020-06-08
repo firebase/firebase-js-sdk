@@ -244,9 +244,14 @@ export function patchMutation(
       json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
-  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
+  const patchKey = key(keyStr);
+  const parsed = testUserDataReader().parseUpdateData(
+    'patchMutation',
+    patchKey,
+    json
+  );
   return new PatchMutation(
-    key(keyStr),
+    patchKey,
     parsed.data,
     parsed.fieldMask,
     precondition
@@ -267,11 +272,13 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
+  const transformKey = key(keyStr);
   const result = testUserDataReader().parseUpdateData(
     'transformMutation()',
+    transformKey,
     data
   );
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(

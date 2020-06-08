@@ -107,11 +107,12 @@ export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
 
   _toFieldTransform(context: ParseContext): FieldTransform {
     // Although array transforms are used with writes, the actual elements
-    // being uniomed or removed are not considered writes since they cannot
+    // being unioned or removed are not considered writes since they cannot
     // contain any FieldValue sentinels, etc.
     const parseContext = new ParseContext(
       {
         dataSource: UserDataSource.Argument,
+        targetDoc: context.settings.targetDoc,
         methodName: this._methodName,
         arrayElement: true
       },
@@ -144,6 +145,7 @@ export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
     const parseContext = new ParseContext(
       {
         dataSource: UserDataSource.Argument,
+        targetDoc: context.settings.targetDoc,
         methodName: this._methodName,
         arrayElement: true
       },
@@ -173,6 +175,7 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
     const parseContext = new ParseContext(
       {
         dataSource: UserDataSource.Argument,
+        targetDoc: context.settings.targetDoc,
         methodName: this._methodName
       },
       context.databaseId,
