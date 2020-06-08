@@ -31,30 +31,58 @@ interface OnConfirmationCallback {
 }
 
 class ConfirmationResult implements externs.ConfirmationResult {
-  constructor(readonly verificationId: string, private readonly onConfirmation: OnConfirmationCallback) {}
+  constructor(
+    readonly verificationId: string,
+    private readonly onConfirmation: OnConfirmationCallback
+  ) {}
 
   confirm(verificationCode: string): Promise<externs.UserCredential> {
-    const authCredential = PhoneAuthProvider.credential(this.verificationId, verificationCode);
+    const authCredential = PhoneAuthProvider.credential(
+      this.verificationId,
+      verificationCode
+    );
     return this.onConfirmation(authCredential);
   }
 }
 
-export async function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult> {
-  const verificationId = await _verifyPhoneNumber(auth as Auth, phoneNumber, appVerifier);
-  return new ConfirmationResult(verificationId, cred => signInWithCredential(auth, cred));
+export async function signInWithPhoneNumber(
+  auth: externs.Auth,
+  phoneNumber: string,
+  appVerifier: externs.ApplicationVerifier
+): Promise<externs.ConfirmationResult> {
+  const verificationId = await _verifyPhoneNumber(
+    auth as Auth,
+    phoneNumber,
+    appVerifier
+  );
+  return new ConfirmationResult(verificationId, cred =>
+    signInWithCredential(auth, cred)
+  );
 }
 
 /**
  *  Returns a verification ID to be used in conjunction with the SMS code that
  *  is sent.
  */
-export async function _verifyPhoneNumber(auth: Auth, options: externs.PhoneInfoOptions | string, verifier: externs.ApplicationVerifier): Promise<string> {
+export async function _verifyPhoneNumber(
+  auth: Auth,
+  options: externs.PhoneInfoOptions | string,
+  verifier: externs.ApplicationVerifier
+): Promise<string> {
   const recaptchaToken = await verifier.verify();
 
   try {
-    assert(typeof recaptchaToken === 'string', auth.name, AuthErrorCode.ARGUMENT_ERROR);
-    assert(verifier.type === RECAPTCHA_VERIFIER_TYPE, auth.name, AuthErrorCode.ARGUMENT_ERROR);
-    
+    assert(
+      typeof recaptchaToken === 'string',
+      auth.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    assert(
+      verifier.type === RECAPTCHA_VERIFIER_TYPE,
+      auth.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+
     let phoneNumber: string;
     if (typeof options === 'string') {
       phoneNumber = options;
@@ -63,9 +91,9 @@ export async function _verifyPhoneNumber(auth: Auth, options: externs.PhoneInfoO
     }
 
     // MFA steps should happen here, before this next block
-    const {sessionInfo} = await sendPhoneVerificationCode(auth, {
+    const { sessionInfo } = await sendPhoneVerificationCode(auth, {
       phoneNumber,
-      recaptchaToken,
+      recaptchaToken
     });
 
     return sessionInfo;
@@ -73,4 +101,3 @@ export async function _verifyPhoneNumber(auth: Auth, options: externs.PhoneInfoO
     verifier.reset();
   }
 }
-

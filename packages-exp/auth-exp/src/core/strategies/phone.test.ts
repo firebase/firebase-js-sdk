@@ -35,7 +35,7 @@ import { _verifyPhoneNumber, signInWithPhoneNumber } from './phone';
 use(chaiAsPromised);
 use(sinonChai);
 
- describe('core/strategies/phone', () => {
+describe('core/strategies/phone', () => {
   let auth: Auth;
   let verifier: ApplicationVerifier;
   let sendCodeEndpoint: fetch.Route;
@@ -46,7 +46,7 @@ use(sinonChai);
     fetch.setUp();
 
     sendCodeEndpoint = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
-      sessionInfo: 'session-info',
+      sessionInfo: 'session-info'
     });
 
     verifier = new RecaptchaVerifier(document.createElement('div'), {}, auth);
@@ -64,7 +64,7 @@ use(sinonChai);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
-        phoneNumber: '+15105550000',
+        phoneNumber: '+15105550000'
       });
     });
 
@@ -82,11 +82,12 @@ use(sinonChai);
           localId: 'uid',
           kind: 'my-kind'
         };
-        const signInEndpoint = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, idTokenResponse);
+        const signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
         mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-          users: [
-            {localId: 'uid'}
-          ]
+          users: [{ localId: 'uid' }]
         });
 
         const result = await signInWithPhoneNumber(auth, 'number', verifier);
@@ -95,7 +96,7 @@ use(sinonChai);
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
-          code: '6789',
+          code: '6789'
         });
       });
     });
@@ -106,14 +107,18 @@ use(sinonChai);
       await _verifyPhoneNumber(auth, 'number', verifier);
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
     });
 
     it('works with an options object', async () => {
-      await _verifyPhoneNumber(auth, {
-        phoneNumber: 'number',
-      }, verifier);
+      await _verifyPhoneNumber(
+        auth,
+        {
+          phoneNumber: 'number'
+        },
+        verifier
+      );
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
         phoneNumber: 'number'
@@ -122,24 +127,32 @@ use(sinonChai);
 
     it('throws if the verifier does not return a string', async () => {
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
-      await expect(_verifyPhoneNumber(auth, 'number', verifier)).to.be.rejectedWith(
+      await expect(
+        _verifyPhoneNumber(auth, 'number', verifier)
+      ).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: Error (auth/argument-error)',
+        'Firebase: Error (auth/argument-error)'
       );
     });
 
     it('throws if the verifier type is not recaptcha', async () => {
-      const mutVerifier: {-readonly [K in keyof ApplicationVerifier]: ApplicationVerifier[K] } = verifier;
+      const mutVerifier: {
+        -readonly [K in keyof ApplicationVerifier]: ApplicationVerifier[K];
+      } = verifier;
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
-      await expect(_verifyPhoneNumber(auth, 'number', mutVerifier)).to.be.rejectedWith(
+      await expect(
+        _verifyPhoneNumber(auth, 'number', mutVerifier)
+      ).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: Error (auth/argument-error)',
+        'Firebase: Error (auth/argument-error)'
       );
     });
 
     it('resets the verifer after successful verification', async () => {
       sinon.spy(verifier, 'reset');
-      expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq('session-info');
+      expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq(
+        'session-info'
+      );
       expect(verifier.reset).to.have.been.called;
     });
 

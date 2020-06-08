@@ -43,13 +43,13 @@ describe('core/strategies/phone_credential', () => {
       refreshToken: '',
       kind: '',
       expiresIn: '10',
-      localId: '',
+      localId: ''
     };
 
     it('calls the endpoint with session and code', async () => {
       const cred = new PhoneAuthCredential({
         verificationId: 'session-info',
-        verificationCode: 'code',
+        verificationCode: 'code'
       });
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
@@ -57,14 +57,14 @@ describe('core/strategies/phone_credential', () => {
       expect(await cred._getIdTokenResponse(auth)).to.eql(response);
       expect(route.calls[0].request).to.eql({
         sessionInfo: 'session-info',
-        code: 'code',
+        code: 'code'
       });
     });
 
     it('calls the endpoint with proof and number', async () => {
       const cred = new PhoneAuthCredential({
         temporaryProof: 'temp-proof',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
@@ -72,7 +72,7 @@ describe('core/strategies/phone_credential', () => {
       expect(await cred._getIdTokenResponse(auth)).to.eql(response);
       expect(route.calls[0].request).to.eql({
         temporaryProof: 'temp-proof',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
     });
   });
@@ -83,7 +83,7 @@ describe('core/strategies/phone_credential', () => {
         temporaryProof: 'proof',
         phoneNumber: 'number',
         verificationId: 'id',
-        verificationCode: 'code',
+        verificationCode: 'code'
       });
 
       expect(cred.toJSON()).to.eql({
@@ -91,20 +91,20 @@ describe('core/strategies/phone_credential', () => {
         temporaryProof: 'proof',
         phoneNumber: 'number',
         verificationId: 'id',
-        verificationCode: 'code',
+        verificationCode: 'code'
       });
     });
 
     it('omits missing fields', () => {
       const cred = new PhoneAuthCredential({
         temporaryProof: 'proof',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
 
       expect(cred.toJSON()).to.eql({
         providerId: 'phone',
         temporaryProof: 'proof',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
     });
   });
@@ -114,7 +114,7 @@ describe('core/strategies/phone_credential', () => {
       const cred = PhoneAuthCredential.fromJSON('{"phoneNumber": "number"}');
       expect(cred?.toJSON()).to.eql({
         providerId: 'phone',
-        phoneNumber: 'number',
+        phoneNumber: 'number'
       });
     });
 

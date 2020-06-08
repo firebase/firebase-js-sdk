@@ -21,7 +21,12 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
-import { JsonError, SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
+import {
+  JsonError,
+  SERVER_ERROR_MAP,
+  ServerError,
+  ServerErrorMap
+} from './errors';
 
 export enum HttpMethod {
   POST = 'POST',
