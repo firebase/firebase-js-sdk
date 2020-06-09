@@ -107,7 +107,7 @@ export class BrowserPollConnection implements Transport {
   /**
    * @param connId An identifier for this connection, used for logging
    * @param repoInfo The info for the endpoint to send data to.
-   * @param applicationId The Firebase app ID for this project.
+   * @param applicationId The Firebase App ID for this project.
    * @param transportSessionId Optional transportSessionid if we are reconnecting for an existing
    *                                         transport session
    * @param lastSessionId Optional lastSessionId if the PersistentConnection has already created a
