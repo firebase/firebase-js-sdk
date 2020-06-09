@@ -45,7 +45,6 @@ describe('core/providers/phone', () => {
         sessionInfo: 'verification-id'
       });
 
-      auth.settings.appVerificationDisabledForTesting = true;
       const verifier = new RecaptchaVerifier(
         document.createElement('div'),
         {},
@@ -70,7 +69,7 @@ describe('core/providers/phone', () => {
       const credential = PhoneAuthProvider.credential('id', 'code');
 
       // Allows us to inspect the object
-      const blob = credential.toJSON() as { [key: string]: string };
+      const blob = credential.toJSON() as Record<string, string>;
 
       expect(blob.verificationId).to.eq('id');
       expect(blob.verificationCode).to.eq('code');

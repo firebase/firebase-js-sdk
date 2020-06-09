@@ -45,6 +45,7 @@ export {
   fetchSignInMethodsForEmail,
   sendEmailVerification
 } from './core/strategies/email';
+export { ExternPhoneAuthCredential as PhoneAuthCredential } from './core/strategies/phone_credential';
 export { signInWithPhoneNumber } from './core/strategies/phone';
 
 // core/user

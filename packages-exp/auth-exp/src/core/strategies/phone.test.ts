@@ -42,7 +42,6 @@ describe('core/strategies/phone', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    auth.settings.appVerificationDisabledForTesting = true;
     fetch.setUp();
 
     sendCodeEndpoint = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
@@ -82,6 +81,9 @@ describe('core/strategies/phone', () => {
           localId: 'uid',
           kind: 'my-kind'
         };
+
+        // This endpoint is called from within the callback, in
+        // signInWithCredential
         const signInEndpoint = mockEndpoint(
           Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
           idTokenResponse

@@ -60,6 +60,7 @@ export async function testAuth(): Promise<TestAuth> {
 
   await auth._initializeWithPersistence([persistence]);
   auth.persistenceLayer = persistence;
+  auth.settings.appVerificationDisabledForTesting = true;
   return auth;
 }
 
