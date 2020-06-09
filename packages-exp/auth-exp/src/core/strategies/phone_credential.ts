@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { signInWithPhoneNumber, SignInWithPhoneNumberRequest } from '../../api/authentication/sms';
+import {
+  signInWithPhoneNumber,
+  SignInWithPhoneNumberRequest
+} from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
@@ -119,7 +122,7 @@ export class PhoneAuthCredential implements externs.AuthCredential {
 }
 
 /** PhoneAuthCredential for public export; has a private constructor */
-export class ExternPhoneAuthCredential extends PhoneAuthCredential{
+export class ExternPhoneAuthCredential extends PhoneAuthCredential {
   private constructor(params: PhoneAuthCredentialParameters) {
     super(params);
   }
