@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // Fix for IE8 when developer's console is not opened.
 if (!window.console) {
   window.console = {
@@ -27,7 +44,6 @@ export function logAtLevel_(message, level) {
   console[level](message);
 }
 
-
 /**
  * Logs info level.
  * @param {string} message Object or message to log.
@@ -43,7 +59,6 @@ export function clearLogs() {
   $('.logs').text('');
 }
 
-
 /**
  * Displays for a few seconds a box with a specific message and then fades
  * it out.
@@ -53,9 +68,9 @@ export function clearLogs() {
  */
 function alertMessage_(message, cssClass) {
   const alertBox = $('<div></div>')
-      .addClass(cssClass)
-      .css('display', 'none')
-      .text(message);
+    .addClass(cssClass)
+    .css('display', 'none')
+    .text(message);
   // When modals are visible, display the alert in the modal layer above the
   // grey background.
   const visibleModal = $('.modal.in');
@@ -63,8 +78,9 @@ function alertMessage_(message, cssClass) {
     // Check first if the model has an overlaying-alert. If not, append the
     // overlaying-alert container.
     if (visibleModal.find('.overlaying-alert').size() == 0) {
-      const $overlayingAlert =
-          $('<div class="container-fluid overlaying-alert"></div>');
+      const $overlayingAlert = $(
+        '<div class="container-fluid overlaying-alert"></div>'
+      );
       visibleModal.append($overlayingAlert);
     }
     visibleModal.find('.overlaying-alert').prepend(alertBox);
@@ -82,7 +98,6 @@ function alertMessage_(message, cssClass) {
     }
   });
 }
-
 
 /**
  * Alerts a small success message in a overlaying alert box.

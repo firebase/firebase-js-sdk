@@ -30,7 +30,7 @@ const commonPlugins = [
   strip({
     functions: ['debugAssert.*']
   }),
-  resolve(),
+  resolve()
 ];
 
 const es5Builds = [
@@ -40,8 +40,8 @@ const es5Builds = [
   {
     input: 'src/index.js',
     output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
-    plugins: commonPlugins,
-  },
+    plugins: commonPlugins
+  }
 ];
 
 export default [...es5Builds];
