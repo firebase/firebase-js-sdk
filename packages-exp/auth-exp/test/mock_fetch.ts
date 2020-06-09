@@ -39,6 +39,7 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   }
 
   if (!routes.has(input)) {
+    console.error(`Unknown route being requested: ${input}`);
     throw new Error(`Unknown route being requested: ${input}`);
   }
 
