@@ -714,19 +714,11 @@ abstract class TestRunner {
     return Promise.resolve();
   }
 
-  private async doChangeUser(user: string | null): Promise<void> {
+  private doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    const deferred = new Deferred<void>();
-    await this.queue.enqueueRetryable(async () => {
-      try {
-        await this.syncEngine.handleCredentialChange(this.user);
-      } finally {
-        // Resolve the deferred Promise even if the operation failed. This allows
-        // the spec tests to manually retry the failed user change.
-        deferred.resolve();
-      }
-    });
-    return deferred.promise;
+    return this.queue.enqueue(() =>
+      this.syncEngine.handleCredentialChange(this.user)
+    );
   }
 
   private async doFailDatabase(
