@@ -55,6 +55,7 @@ import {
 } from './watch_change';
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
+import { User } from '../auth/user';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -756,13 +757,27 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.enableNetwork();
   }
 
-  async handleCredentialChange(): Promise<void> {
+  async handleCredentialChange(user: User): Promise<void> {
+    this.asyncQueue.verifyOperationInProgress();
+
     if (this.canUseNetwork()) {
-      // Tear down and re-create our network streams. This will ensure we get a fresh auth token
-      // for the new user and re-fill the write pipeline with new mutations from the LocalStore
-      // (since mutations are per-user).
+      // Tear down and re-create our network streams. This will ensure we get a
+      // fresh auth token for the new user and re-fill the write pipeline with
+      // new mutations from the LocalStore (since mutations are per-user).
       logDebug(LOG_TAG, 'RemoteStore restarting streams for new credential');
-      await this.restartNetwork();
+
+      this.networkEnabled = false;
+      await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Unknown);
+
+      await this.executeWithRecovery(async () => {
+        await this.syncEngine.handleUserChange(user);
+        await this.enableNetwork();
+      });
+    } else {
+      await this.executeWithRecovery(() =>
+        this.syncEngine.handleUserChange(user)
+      );
     }
   }
 

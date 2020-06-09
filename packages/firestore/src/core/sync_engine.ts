@@ -860,10 +860,12 @@ export class SyncEngine implements RemoteSyncer {
     );
   }
 
-  async handleCredentialChange(user: User): Promise<void> {
+  async handleUserChange(user: User): Promise<void> {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {
+      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
       const result = await this.localStore.handleUserChange(user);
       this.currentUser = user;
 
@@ -879,8 +881,6 @@ export class SyncEngine implements RemoteSyncer {
       );
       await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
-
-    await this.remoteStore.handleCredentialChange();
   }
 
   enableNetwork(): Promise<void> {
