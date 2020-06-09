@@ -80,7 +80,7 @@ export class WebSocketConnection implements Transport {
   /**
    * @param connId identifier for this transport
    * @param repoInfo The info for the websocket endpoint.
-   * @param applicationId The Firebase app ID for this project.
+   * @param applicationId The Firebase App ID for this project.
    * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
    * @param lastSessionId Optional lastSessionId if there was a previous connection
