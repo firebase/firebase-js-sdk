@@ -45,8 +45,6 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   beforeEach(async () => {
     fetch.setUp();
     auth = await testAuth();
-    // Force the verifier to use the mock recaptcha loader
-    auth.settings.appVerificationDisabledForTesting = true;
     auth.languageCode = 'fr';
     container = document.createElement('div');
     parameters = {};
