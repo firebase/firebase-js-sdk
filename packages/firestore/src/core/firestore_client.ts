@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { LoadBundleTask } from '@firebase/firestore-types';
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
@@ -49,7 +50,7 @@ import {
   MemoryComponentProvider
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTask, LoadBundleTaskImpl } from './bundle';
+import { LoadBundleTaskImpl } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

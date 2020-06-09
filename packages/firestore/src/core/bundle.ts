@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
+
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -80,19 +82,14 @@ export class BundleConverter {
   }
 }
 
-export interface LoadBundleTaskProgress {
-  documentsLoaded: number;
-  totalDocuments: number;
-  bytesLoaded: number;
-  totalBytes: number;
-  taskState: TaskState;
-}
-export type TaskState = 'Error' | 'Running' | 'Success';
-
+/**
+ * Returns a `LoadBundleTaskProgress` representing the first progress of
+ * loading a bundle.
+ */
 export function initialProgress(
-  state: TaskState,
+  state: firestore.TaskState,
   metadata: BundleMetadata
-): LoadBundleTaskProgress {
+): firestore.LoadBundleTaskProgress {
   return {
     taskState: state,
     documentsLoaded: state === 'Success' ? metadata.totalDocuments! : 0,
@@ -103,32 +100,21 @@ export function initialProgress(
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export interface LoadBundleTask {
-  onProgress(
-    next?: (progress: LoadBundleTaskProgress) => any,
-    error?: (error: Error) => any,
-    complete?: (progress?: LoadBundleTaskProgress) => any
-  ): Promise<any>;
-
-  then(
-    onFulfilled?: (a: LoadBundleTaskProgress) => any,
-    onRejected?: (a: Error) => any
-  ): Promise<any>;
-
-  catch(onRejected: (a: Error) => any): Promise<any>;
-}
-
-export class LoadBundleTaskImpl implements LoadBundleTask {
+export class LoadBundleTaskImpl implements firestore.LoadBundleTask {
   private progressResolver = new Deferred<any>();
-  private progressNext?: (progress: LoadBundleTaskProgress) => any;
+  private progressNext?: (progress: firestore.LoadBundleTaskProgress) => any;
   private progressError?: (err: Error) => any;
-  private progressComplete?: (progress?: LoadBundleTaskProgress) => any;
+  private progressComplete?: (
+    progress?: firestore.LoadBundleTaskProgress
+  ) => any;
 
   private promiseResolver = new Deferred<any>();
-  private promiseFulfilled?: (a: LoadBundleTaskProgress) => any;
-  private promiseRejected?: (a: Error) => any;
+  private promiseFulfilled?: (
+    progress: firestore.LoadBundleTaskProgress
+  ) => any;
+  private promiseRejected?: (err: Error) => any;
 
-  private lastProgress: LoadBundleTaskProgress = {
+  private lastProgress: firestore.LoadBundleTaskProgress = {
     taskState: 'Running',
     totalBytes: 0,
     totalDocuments: 0,
@@ -137,9 +123,9 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
   };
 
   onProgress(
-    next?: (progress: LoadBundleTaskProgress) => any,
+    next?: (progress: firestore.LoadBundleTaskProgress) => any,
     error?: (err: Error) => any,
-    complete?: (progress?: LoadBundleTaskProgress) => void
+    complete?: (progress?: firestore.LoadBundleTaskProgress) => void
   ): Promise<any> {
     this.progressNext = next;
     this.progressError = error;
@@ -153,15 +139,20 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
   }
 
   then(
-    onFulfilled?: (a: LoadBundleTaskProgress) => any,
+    onFulfilled?: (a: firestore.LoadBundleTaskProgress) => any,
     onRejected?: (a: Error) => any
   ): Promise<any> {
     this.promiseFulfilled = onFulfilled;
     this.promiseRejected = onRejected;
     return this.promiseResolver.promise;
   }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  completeWith(progress: LoadBundleTaskProgress): void {
+  /**
+   * Notifies the completion of loading a bundle, with a provided
+   * `LoadBundleTaskProgress` object.
+   */
+  completeWith(progress: firestore.LoadBundleTaskProgress): void {
     let result;
     if (this.progressComplete) {
       result = this.progressComplete(progress);
@@ -175,9 +166,13 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
     this.promiseResolver.resolve(result);
   }
 
+  /**
+   * Notifies a failure of loading a bundle, with a provided `Error`
+   * as the reason.
+   */
   failedWith(error: Error): void {
     if (this.progressNext) {
-      this.lastProgress!.taskState = 'Error';
+      this.lastProgress.taskState = 'Error';
       this.progressNext(this.lastProgress);
     }
 
@@ -194,44 +189,65 @@ export class LoadBundleTaskImpl implements LoadBundleTask {
     this.promiseResolver.reject(result);
   }
 
-  updateProgress(progress: LoadBundleTaskProgress): void {
+  /**
+   * Notifies a progress update of loading a bundle.
+   * @param progress The new progress.
+   */
+  updateProgress(progress: firestore.LoadBundleTaskProgress): void {
     this.lastProgress = progress;
     if (this.progressNext) {
       this.progressNext(progress);
     }
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export class LoadResult {
   constructor(
-    readonly progress: LoadBundleTaskProgress,
+    readonly progress: firestore.LoadBundleTaskProgress,
     readonly changedDocs?: MaybeDocumentMap
   ) {}
 }
 
+/**
+ * A class to process the elements from a bundle, load them into local
+ * storage and provide progress update while loading.
+ */
 export class BundleLoader {
-  private progress: LoadBundleTaskProgress;
+  /** The current progress of loading */
+  private progress: firestore.LoadBundleTaskProgress;
+  /**
+   * The threshold multiplier used to determine whether enough elements are
+   * batched to be loaded, and a progress update is needed.
+   */
   private step = 0.01;
+  /** Batched queries to be saved into storage */
   private queries: bundleProto.NamedQuery[] = [];
+  /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
+  /** How many bytes in the bundle are being batched. */
   private bytesIncrement = 0;
+  /** How many documents in the bundle are being batched. */
   private documentsIncrement = 0;
+  /**
+   * A BundleDocumentMetadata is added to the loader, it is saved here while
+   * we wait for the actual document.
+   */
   private unpairedDocumentMetadata: bundleProto.BundledDocumentMetadata | null = null;
 
   constructor(
     private metadata: bundleProto.BundleMetadata,
     private localStore: LocalStore
   ) {
-    this.progress = {
-      documentsLoaded: 0,
-      totalDocuments: metadata.totalDocuments!,
-      bytesLoaded: 0,
-      totalBytes: metadata.totalBytes!,
-      taskState: 'Running'
-    };
+    this.progress = initialProgress('Running', metadata);
   }
 
+  /**
+   * Adds an element from the bundle to the loader.
+   *
+   * If adding this element leads to actually saving the batched elements into
+   * storage, the returned promise will resolve to a `LoadResult`, otherwise
+   * it will resolve to null.
+   */
   addSizedElement(element: SizedBundleElement): Promise<LoadResult | null> {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
@@ -293,7 +309,10 @@ export class BundleLoader {
     return new LoadResult({ ...this.progress }, changedDocs);
   }
 
-  async complete(): Promise<LoadBundleTaskProgress> {
+  /**
+   * Update the progress to 'Success' and return the updated progress.
+   */
+  complete(): firestore.LoadBundleTaskProgress {
     debugAssert(
       this.queries.length === 0 && this.documents.length === 0,
       'There are more items needs to be saved but complete() is called.'

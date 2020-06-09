@@ -26,17 +26,16 @@ import {
 import { TestBundleBuilder } from '../../util/bundle_data';
 import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
-import { LoadBundleTaskProgress } from '../../../src/core/bundle';
 import { EventsAccumulator } from '../util/events_accumulator';
 
-function verifySuccessProgress(p: LoadBundleTaskProgress): void {
+function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
   expect(p.bytesLoaded).to.be.equal(p.totalBytes);
   expect(p.documentsLoaded).to.equal(p.totalDocuments);
 }
 
 function verifyInProgress(
-  p: LoadBundleTaskProgress,
+  p: firestore.LoadBundleTaskProgress,
   expectedDocuments: number
 ): void {
   expect(p.taskState).to.equal('Running');
@@ -83,9 +82,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocs(db);
 
-      const progresses: LoadBundleTaskProgress[] = [];
-      let completeProgress: LoadBundleTaskProgress,
-        fulfillProgress: LoadBundleTaskProgress;
+      const progresses: firestore.LoadBundleTaskProgress[] = [];
+      let completeProgress: firestore.LoadBundleTaskProgress,
+        fulfillProgress: firestore.LoadBundleTaskProgress;
       await db
         .loadBundle(
           encoder.encode(
@@ -132,7 +131,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocs(db);
 
-      let fulfillProgress: LoadBundleTaskProgress;
+      let fulfillProgress: firestore.LoadBundleTaskProgress;
       await db
         .loadBundle(
           encoder.encode(
@@ -168,8 +167,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
         )
       );
 
-      let completeProgress: LoadBundleTaskProgress;
-      const progresses: LoadBundleTaskProgress[] = [];
+      let completeProgress: firestore.LoadBundleTaskProgress;
+      const progresses: firestore.LoadBundleTaskProgress[] = [];
       await db
         .loadBundle(
           encoder.encode(

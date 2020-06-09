@@ -117,7 +117,7 @@ export class TestBundleBuilder {
   }
 }
 
-// Setting up test data.
+// TODO(wuandy): Ideally, these should use `TestBundleBuilder` above.
 export const meta: BundleElement = {
   metadata: {
     id: 'test-bundle',

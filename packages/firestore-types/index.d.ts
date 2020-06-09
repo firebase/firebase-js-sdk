@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { LoadBundleTask } from '../firestore/src/core/bundle';
 
 export type DocumentData = { [field: string]: any };
 
@@ -87,11 +86,36 @@ export class FirebaseFirestore {
   terminate(): Promise<void>;
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream /*| string */
+    bundleData: ArrayBuffer | ReadableStream | string
   ): LoadBundleTask;
 
   INTERNAL: { delete: () => Promise<void> };
 }
+
+export interface LoadBundleTask {
+  onProgress(
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (error: Error) => any,
+    complete?: (progress?: LoadBundleTaskProgress) => any
+  ): Promise<any>;
+
+  then(
+    onFulfilled?: (a: LoadBundleTaskProgress) => any,
+    onRejected?: (a: Error) => any
+  ): Promise<any>;
+
+  catch(onRejected: (a: Error) => any): Promise<any>;
+}
+
+export interface LoadBundleTaskProgress {
+  documentsLoaded: number;
+  totalDocuments: number;
+  bytesLoaded: number;
+  totalBytes: number;
+  taskState: TaskState;
+}
+
+export type TaskState = 'Error' | 'Running' | 'Success';
 
 export class GeoPoint {
   constructor(latitude: number, longitude: number);

@@ -241,7 +241,7 @@ describeSpec('Bundles:', [], () => {
         .watchAcksFull(query, 250)
         // Backend tells there is no such doc.
         .expectEvents(query, {})
-        // Bundle tells otherwise, leads to limbo resolution.
+        // Bundle tells otherwise, leads to limbo.
         .loadBundle(bundleString1)
         .expectEvents(query, {
           added: [doc('collection/a', 500, { key: 'b' })],

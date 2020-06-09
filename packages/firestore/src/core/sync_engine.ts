@@ -482,10 +482,11 @@ export class SyncEngine implements RemoteSyncer {
       const result = await loader.addSizedElement(element);
       if (result) {
         task.updateProgress(result.progress);
-      }
-      if (result && result.changedDocs) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
+
+        if (result.changedDocs) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
+        }
       }
 
       element = await reader.nextElement();
@@ -493,7 +494,7 @@ export class SyncEngine implements RemoteSyncer {
 
     await this.localStore.saveBundle(metadata);
 
-    const completeProgress = await loader.complete();
+    const completeProgress = loader.complete();
     task.completeWith(completeProgress);
   }
 
@@ -1328,12 +1329,5 @@ export class MultiTabSyncEngine extends SyncEngine
         })
         .catch(ignoreIfPrimaryLeaseLoss);
     }
-  }
-
-  loadBundle(
-    bundleReader: BundleReader,
-    task: LoadBundleTaskImpl
-  ): Promise<void> {
-    return super.loadBundle(bundleReader, task);
   }
 }
