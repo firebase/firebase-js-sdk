@@ -87,9 +87,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         fulfillProgress: firestore.LoadBundleTaskProgress;
       await db
         .loadBundle(
-          encoder.encode(
-            builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-          )
+          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
         .onProgress(
           progress => {
@@ -134,9 +132,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let fulfillProgress: firestore.LoadBundleTaskProgress;
       await db
         .loadBundle(
-          encoder.encode(
-            builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-          )
+          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
         .then(progress => {
           fulfillProgress = progress;
@@ -162,9 +158,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       const builder = bundleWithTestDocs(db);
 
       await db.loadBundle(
-        encoder.encode(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        )
+        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
 
       let completeProgress: firestore.LoadBundleTaskProgress;
@@ -210,6 +204,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       const builder = bundleWithTestDocs(db);
       const progress = await db.loadBundle(
+        // Testing passing non-string bundles.
         encoder.encode(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
@@ -236,9 +231,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         expect(
           otherDb.loadBundle(
-            encoder.encode(
-              builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-            )
+            builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
           )
         ).to.be.rejectedWith('Tried to deserialize key from different project');
       });

@@ -86,7 +86,7 @@ export class FirebaseFirestore {
   terminate(): Promise<void>;
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream | string
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
   ): LoadBundleTask;
 
   INTERNAL: { delete: () => Promise<void> };

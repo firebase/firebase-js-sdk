@@ -526,11 +526,17 @@ export class FirestoreClient {
   }
 
   loadBundle(
-    data: ReadableStream<Uint8Array | ArrayBuffer> | ArrayBuffer | Uint8Array
+    data: ReadableStream<ArrayBuffer> | ArrayBuffer | string
   ): LoadBundleTask {
     this.verifyNotTerminated();
 
-    const reader = new BundleReader(data);
+    let content: ReadableStream<ArrayBuffer> | ArrayBuffer;
+    if (typeof data === 'string') {
+      content = new TextEncoder().encode(data);
+    } else {
+      content = data;
+    }
+    const reader = new BundleReader(content);
     const task = new LoadBundleTaskImpl();
     this.asyncQueue.enqueueAndForget(() => {
       return this.syncEngine.loadBundle(reader, task);
