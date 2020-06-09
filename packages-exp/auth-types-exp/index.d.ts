@@ -183,10 +183,6 @@ export const enum SignInMethod {
   TWITTER = 'twitter.com'
 }
 
-export interface AuthProvider {
-  readonly providerId: string;
-}
-
 export abstract class AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: SignInMethod;
@@ -232,4 +228,11 @@ export interface PhoneInfoOptions {
   phoneNumber: string;
   // session?: MultiFactorSession;
   // multiFactorHint?: MultiFactorInfo;
+}
+
+/**
+ * A provider for generating credentials
+ */
+export interface AuthProvider {
+  readonly providerId: ProviderId;
 }
