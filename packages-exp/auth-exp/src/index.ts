@@ -27,9 +27,11 @@ export { inMemoryPersistence } from './core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 // core/providers
+export { AnonymousProvider } from './core/providers/anonymous';
 export { PhoneAuthProvider } from './core/providers/phone';
 
 // core/strategies
+export { signInAnonymously } from './core/strategies/anonymous';
 export { signInWithCredential } from './core/strategies/credential';
 export {
   sendPasswordResetEmail,

@@ -35,6 +35,7 @@ export interface UserParameters {
   email?: string;
   phoneNumber?: string;
   photoURL?: string;
+  isAnonymous?: boolean;
 }
 
 function assertStringOrUndefined(
@@ -64,8 +65,8 @@ export class UserImpl implements User {
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
-  isAnonymous = false;
-
+  isAnonymous: boolean = false;
+  
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
     this.auth = auth;
@@ -74,6 +75,7 @@ export class UserImpl implements User {
     this.email = opt.email || null;
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
+    this.isAnonymous = opt.isAnonymous || false;
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
@@ -176,7 +178,8 @@ export class UserImpl implements User {
    */
   static async _fromIdTokenResponse(
     auth: Auth,
-    idTokenResponse: IdTokenResponse
+    idTokenResponse: IdTokenResponse,
+    isAnonymous: boolean = false
   ): Promise<User> {
     const stsTokenManager = new StsTokenManager();
     stsTokenManager.updateFromServerResponse(idTokenResponse);
@@ -185,7 +188,8 @@ export class UserImpl implements User {
     const user = new UserImpl({
       uid: idTokenResponse.localId,
       auth,
-      stsTokenManager
+      stsTokenManager,
+      isAnonymous
     });
 
     // Updates the user info and data and resolves with a user instance.
