@@ -412,6 +412,7 @@ export class Connection {
     this.secondaryConn_ = new conn(
       this.nextTransportId_(),
       this.repoInfo_,
+      this.applicationId_,
       this.sessionId
     );
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we
