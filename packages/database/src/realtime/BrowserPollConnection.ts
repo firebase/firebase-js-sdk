@@ -27,6 +27,7 @@ import {
 import { StatsManager } from '../core/stats/StatsManager';
 import { PacketReceiver } from './polling/PacketReceiver';
 import {
+  APPLICATION_ID_PARAM,
   FORGE_DOMAIN,
   FORGE_REF,
   LAST_SESSION_PARAM,
@@ -216,6 +217,9 @@ export class BrowserPollConnection implements Transport {
       if (this.lastSessionId) {
         urlParams[LAST_SESSION_PARAM] = this.lastSessionId;
       }
+      if (this.applicationId) {
+        urlParams[APPLICATION_ID_PARAM] = this.applicationId;
+      }
       if (
         typeof location !== 'undefined' &&
         location.href &&
@@ -223,8 +227,6 @@ export class BrowserPollConnection implements Transport {
       ) {
         urlParams[REFERER_PARAM] = FORGE_REF;
       }
-      // TODO(mrschmidt): Consider adding `this.applicationId` as a header
-      // param
       const connectURL = this.urlFn(urlParams);
       this.log_('Connecting via long-poll to ' + connectURL);
       this.scriptTagHolder.addTag(connectURL, () => {
