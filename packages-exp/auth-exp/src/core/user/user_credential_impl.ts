@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+import { OperationType, UserCredential, ProviderId } from '@firebase/auth-types-exp';
 import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
@@ -35,7 +35,7 @@ export class UserCredentialImpl implements UserCredential {
     operationType: OperationType,
     idTokenResponse: IdTokenResponse
   ): Promise<UserCredential> {
-    const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
+    const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse, credential?.providerId === ProviderId.ANONYMOUS);
     const userCred = new UserCredentialImpl(user, credential, operationType);
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
