@@ -104,16 +104,18 @@ export class BrowserPollConnection implements Transport {
   private onDisconnect_: ((a?: boolean) => void) | null;
 
   /**
-   * @param {string} connId An identifier for this connection, used for logging
-   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
-   * @param {string=} transportSessionId Optional transportSessionid if we are reconnecting for an existing
+   * @param connId An identifier for this connection, used for logging
+   * @param repoInfo The info for the endpoint to send data to.
+   * @param applicationId The Firebase app ID for this project.
+   * @param transportSessionId Optional transportSessionid if we are reconnecting for an existing
    *                                         transport session
-   * @param {string=}  lastSessionId Optional lastSessionId if the PersistentConnection has already created a
+   * @param lastSessionId Optional lastSessionId if the PersistentConnection has already created a
    *                                     connection previously
    */
   constructor(
     public connId: string,
     public repoInfo: RepoInfo,
+    private applicationId?: string,
     public transportSessionId?: string,
     public lastSessionId?: string
   ) {
@@ -221,6 +223,8 @@ export class BrowserPollConnection implements Transport {
       ) {
         urlParams[REFERER_PARAM] = FORGE_REF;
       }
+      // TODO(mrschmidt): Consider adding `this.applicationId` as a header
+      // param
       const connectURL = this.urlFn(urlParams);
       this.log_('Connecting via long-poll to ' + connectURL);
       this.scriptTagHolder.addTag(connectURL, () => {
