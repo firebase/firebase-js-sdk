@@ -113,6 +113,8 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { BundleReader } from '../../../src/util/bundle_reader';
+import { LoadBundleTaskImpl } from '../../../src/core/bundle';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -301,6 +303,8 @@ abstract class TestRunner {
       return this.doAddSnapshotsInSyncListener();
     } else if ('removeSnapshotsInSyncListener' in step) {
       return this.doRemoveSnapshotsInSyncListener();
+    } else if ('loadBundle' in step) {
+      return this.doLoadBundle(step.loadBundle!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -436,6 +440,16 @@ abstract class TestRunner {
       throw new Error('There must be a listener to unlisten to');
     }
     return Promise.resolve();
+  }
+
+  private async doLoadBundle(bundle: string): Promise<void> {
+    const reader = new BundleReader(new TextEncoder().encode(bundle));
+    const task = new LoadBundleTaskImpl();
+    this.queue.enqueueAndForget(() => {
+      return this.syncEngine.loadBundle(reader, task);
+    });
+
+    await task;
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -1249,6 +1263,8 @@ export interface SpecStep {
   addSnapshotsInSyncListener?: true;
   /** Unlistens from a SnapshotsInSync event. */
   removeSnapshotsInSyncListener?: true;
+  /** Loads a bundle from a string. */
+  loadBundle?: string;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;

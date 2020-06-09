@@ -17,7 +17,12 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import { apiDescribe, toDataArray, withTestDb } from '../util/helpers';
+import {
+  apiDescribe,
+  toDataArray,
+  withAlternateTestDb,
+  withTestDb
+} from '../util/helpers';
 import { TestBundleBuilder } from '../../util/bundle_data';
 import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
@@ -40,7 +45,7 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
-apiDescribe.only('Bundles', (persistence: boolean) => {
+apiDescribe('Bundles', (persistence: boolean) => {
   const encoder = new TextEncoder();
   const testDocs: { [key: string]: firestore.DocumentData } = {
     a: { k: { stringValue: 'a' }, bar: { integerValue: 1 } },
@@ -222,6 +227,22 @@ apiDescribe.only('Bundles', (persistence: boolean) => {
         { k: 'a', bar: 0 },
         { k: 'b', bar: 0 }
       ]);
+    });
+  });
+
+  it('load with documents from other projects fails.', () => {
+    return withTestDb(persistence, async db => {
+      const builder = bundleWithTestDocs(db);
+      return withAlternateTestDb(persistence, async otherDb => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        expect(
+          otherDb.loadBundle(
+            encoder.encode(
+              builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+            )
+          )
+        ).to.be.rejectedWith('Tried to deserialize key from different project');
+      });
     });
   });
 });

@@ -646,7 +646,7 @@ export class LocalStore {
     });
     return this.persistence.runTransaction(
       'Apply bundle documents',
-      'readwrite-primary',
+      'readwrite',
       txn => {
         return this.applyDocuments(
           documentBuffer,

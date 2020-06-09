@@ -447,9 +447,15 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('loadBundle()');
 
-    return this.loadBundleAsync(bundleReader, task).catch(reason => {
-      task.failedWith(new Error(reason));
-    });
+    return (
+      this.loadBundleAsync(bundleReader, task)
+        // TODO(wuandy): Loading a bundle will fail the entire SDK if there is
+        // an error. We really should have a way to run operations on async queue
+        // and not failing the rest if there is an error.
+        .catch(reason => {
+          task.failedWith(reason);
+        })
+    );
   }
 
   private async loadBundleAsync(
@@ -1322,5 +1328,12 @@ export class MultiTabSyncEngine extends SyncEngine
         })
         .catch(ignoreIfPrimaryLeaseLoss);
     }
+  }
+
+  loadBundle(
+    bundleReader: BundleReader,
+    task: LoadBundleTaskImpl
+  ): Promise<void> {
+    return super.loadBundle(bundleReader, task);
   }
 }
