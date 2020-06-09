@@ -183,11 +183,14 @@ export const enum SignInMethod {
   TWITTER = 'twitter.com'
 }
 
-export interface AuthCredential {
+export interface AuthProvider {
+  readonly providerId: string;
+}
+
+export abstract class AuthCredential {
   readonly providerId: ProviderId;
   readonly signInMethod: SignInMethod;
   toJSON(): object;
-  fromJSON(json: object | string): AuthCredential | null;
 }
 
 export abstract class OAuthCredential implements AuthCredential {
@@ -200,7 +203,6 @@ export abstract class OAuthCredential implements AuthCredential {
   constructor();
 
   toJSON(): object;
-  fromJSON(json: object | string): OAuthCredential | null;
 }
 
 export const enum OperationType {
@@ -219,4 +221,15 @@ export interface ApplicationVerifier {
   readonly type: string;
   verify(): Promise<string>;
   reset(): void;
+}
+
+export interface ConfirmationResult {
+  readonly verificationId: string;
+  confirm(verificationCode: string): Promise<UserCredential>;
+}
+
+export interface PhoneInfoOptions {
+  phoneNumber: string;
+  // session?: MultiFactorSession;
+  // multiFactorHint?: MultiFactorInfo;
 }
