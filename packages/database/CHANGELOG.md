@@ -2,7 +2,7 @@
 - [feature] Added ServerValue.increment() to support atomic field value increments
   without transactions.
 - [fixed] Fixed Realtime Database URL parsing bug to support domains with more than 3 components.
-
+#G Trigger
 # Released
 - [fixed] Fixed an issue that caused large numeric values with leading zeros to
   not always be sorted correctly.
