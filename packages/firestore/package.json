@@ -21,7 +21,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.ts' '*.js' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "pregendeps:exp": "yarn build:exp",
-    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
+    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./dist/exp/packages/firestore/exp/src/api/foobar.d.ts --bundle ./dist/exp/foobar.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
     "test:exp": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'exp/test/**/*.test.ts' --file exp/index.node.ts --config ../../config/mocharc.node.js",
     "test": "run-s lint test:all",
