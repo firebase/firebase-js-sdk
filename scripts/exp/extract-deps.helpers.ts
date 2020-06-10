@@ -97,7 +97,7 @@ export async function extractDependenciesAndSize(
 
   fs.unlinkSync(input);
   fs.unlinkSync(output);
-
+  console.log(code);
   return { dependencies, sizeInBytes: Buffer.byteLength(code!, 'utf-8') };
 }
 
