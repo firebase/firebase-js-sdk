@@ -342,7 +342,8 @@ export function collectionGroup(
   firestoreClient._ensureClientConfigured();
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId)
+    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    /* converter= */ null
   );
 }
 
