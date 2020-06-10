@@ -25,16 +25,13 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
-import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
 import {
-  DbBundle,
   DbMutationBatch,
-  DbNamedQuery,
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
@@ -44,12 +41,10 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Bundle, NamedQuery } from '../core/bundle';
-import { Query } from '../core/query';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
-  constructor(private remoteSerializer: JsonProtoSerializer) {}
+  constructor(readonly remoteSerializer: JsonProtoSerializer) {}
 
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
@@ -129,12 +124,12 @@ export class LocalSerializer {
     return SnapshotVersion.fromTimestamp(timestamp);
   }
 
-  private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
+  toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
     const timestamp = snapshotVersion.toTimestamp();
     return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
   }
 
-  private fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
+  fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
     const timestamp = new Timestamp(
       dbTimestamp.seconds,
       dbTimestamp.nanoseconds
@@ -235,81 +230,6 @@ export class LocalSerializer {
       dbLastLimboFreeTimestamp,
       queryProto
     );
-  }
-
-  /** Encodes a DbBundle to a Bundle. */
-  fromDbBundle(dbBundle: DbBundle): Bundle {
-    return {
-      id: dbBundle.bundleId,
-      createTime: this.fromDbTimestamp(dbBundle.createTime),
-      version: dbBundle.version
-    };
-  }
-
-  /** Encodes a BundleMetadata to a DbBundle. */
-  toDbBundle(metadata: bundleProto.BundleMetadata): DbBundle {
-    return {
-      bundleId: metadata.id!,
-      createTime: this.toDbTimestamp(
-        this.remoteSerializer.fromVersion(metadata.createTime!)
-      ),
-      version: metadata.version!
-    };
-  }
-
-  /** Encodes a DbNamedQuery to a NamedQuery. */
-  fromDbNamedQuery(dbNamedQuery: DbNamedQuery): NamedQuery {
-    return {
-      name: dbNamedQuery.name,
-      query: this.fromBundledQuery(dbNamedQuery.bundledQuery),
-      readTime: this.fromDbTimestamp(dbNamedQuery.readTime)
-    };
-  }
-
-  /** Encodes a NamedQuery from bundle proto to a DbNamedQuery. */
-  toDbNamedQuery(query: bundleProto.NamedQuery): DbNamedQuery {
-    return {
-      name: query.name!,
-      readTime: this.toDbTimestamp(
-        this.remoteSerializer.fromVersion(query.readTime!)
-      ),
-      bundledQuery: query.bundledQuery!
-    };
-  }
-
-  /**
-   * Encodes a `BundledQuery` from bundle proto to a Query object.
-   *
-   * This reconstructs the original query used to build the bundle being loaded,
-   * including features exists only in SDKs (for example: limit-to-last).
-   */
-  fromBundledQuery(bundledQuery: bundleProto.BundledQuery): Query {
-    const query = this.remoteSerializer.convertQueryTargetToQuery({
-      parent: bundledQuery.parent!,
-      structuredQuery: bundledQuery.structuredQuery!
-    });
-    if (bundledQuery.limitType === 'LAST') {
-      return query.withLimitToLast(query.limit);
-    }
-    return query;
-  }
-
-  /** Encodes a NamedQuery proto object to a NamedQuery model object. */
-  fromProtoNamedQuery(namedQuery: bundleProto.NamedQuery): NamedQuery {
-    return {
-      name: namedQuery.name!,
-      query: this.fromBundledQuery(namedQuery.bundledQuery!),
-      readTime: this.remoteSerializer.fromVersion(namedQuery.readTime!)
-    };
-  }
-
-  /** Encodes a BundleMetadata proto object to a Bundle model object. */
-  fromBundleMetadata(metadata: bundleProto.BundleMetadata): Bundle {
-    return {
-      id: metadata.id!,
-      version: metadata.version!,
-      createTime: this.remoteSerializer.fromVersion(metadata.createTime!)
-    };
   }
 }
 

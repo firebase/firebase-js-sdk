@@ -78,7 +78,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     expectedQuery: Query,
     expectedReadSeconds: number,
     expectedReadNanos: number
-  ):void {
+  ): void {
     expect(actual.name).to.equal(expectedName);
     expect(actual.query.isEqual(expectedQuery)).to.be.true;
     expect(

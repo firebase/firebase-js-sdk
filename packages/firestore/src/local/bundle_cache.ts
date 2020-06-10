@@ -34,7 +34,8 @@ export interface BundleCache {
   ): PersistencePromise<Bundle | undefined>;
 
   /**
-   * Saves a `BundleMetadata` from a bundle into local storage, using its id as the persistent key.
+   * Saves a `BundleMetadata` from a bundle into local storage, using its id as
+   * the persistent key.
    */
   saveBundleMetadata(
     transaction: PersistenceTransaction,
