@@ -33,6 +33,7 @@ export { PhoneAuthProvider } from './core/providers/phone';
 // core/strategies
 export { signInAnonymously } from './core/strategies/anonymous';
 export { signInWithCredential } from './core/strategies/credential';
+export { signInWithCustomToken } from './core/strategies/custom_token';
 export {
   sendPasswordResetEmail,
   confirmPasswordReset,

@@ -66,7 +66,7 @@ export class UserImpl implements User {
   phoneNumber: string | null;
   photoURL: string | null;
   isAnonymous: boolean = false;
-  
+
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
     this.auth = auth;

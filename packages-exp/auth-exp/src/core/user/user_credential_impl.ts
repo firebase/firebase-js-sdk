@@ -15,27 +15,32 @@
  * limitations under the License.
  */
 
-import { OperationType, UserCredential, ProviderId } from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-types-exp';
+
 import { Auth } from '../../model/auth';
 import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
-import { User } from '../../model/user';
+import { User, UserCredential } from '../../model/user';
 import { UserImpl } from './user_impl';
 
 export class UserCredentialImpl implements UserCredential {
   constructor(
     public readonly user: User,
     public readonly credential: AuthCredential | null,
-    public readonly operationType: OperationType
+    public readonly operationType: externs.OperationType
   ) {}
 
   static async _fromIdTokenResponse(
     auth: Auth,
     credential: AuthCredential | null,
-    operationType: OperationType,
+    operationType: externs.OperationType,
     idTokenResponse: IdTokenResponse
   ): Promise<UserCredential> {
-    const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse, credential?.providerId === ProviderId.ANONYMOUS);
+    const user = await UserImpl._fromIdTokenResponse(
+      auth,
+      idTokenResponse,
+      credential?.providerId === externs.ProviderId.ANONYMOUS
+    );
     const userCred = new UserCredentialImpl(user, credential, operationType);
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
