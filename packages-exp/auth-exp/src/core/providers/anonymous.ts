@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
-import { AuthCredential, ProviderId, SignInMethod, AuthProvider } from "@firebase/auth-types-exp";
+import {
+  AuthCredential,
+  ProviderId,
+  SignInMethod,
+  AuthProvider
+} from '@firebase/auth-types-exp';
 import { signUp } from '../../api/authentication/sign_up';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from "../../model/id_token";
+import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 
 export class AnonymousCredential implements AuthCredential {
