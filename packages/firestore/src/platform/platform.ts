@@ -20,6 +20,8 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+import { BundleSource } from '../util/bundle_reader';
+import { validatePositiveNumber } from '../util/input_validation';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -52,8 +54,15 @@ export interface Platform {
 
   /**
    * Builds a `ByteStreamReader` from a data source.
+   * @param source The data source to use.
+   * @param bytesPerRead How many bytes each `read()` from the returned reader
+   *        will read. It is ignored if the passed in source does not provide
+   *        such control(example: ReadableStream).
    */
-  toByteStreamReader(source: unknown): ByteStreamReader;
+  toByteStreamReader(
+    source: BundleSource,
+    bytesPerRead: number
+  ): ByteStreamReader;
 
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
@@ -92,10 +101,11 @@ export interface ByteStreamReadResult {
  */
 export function toByteStreamReader(
   source: Uint8Array,
-  bytesPerRead = 10240
+  bytesPerRead: number
 ): ByteStreamReader {
+  validatePositiveNumber('toByteStreamReader', 2, bytesPerRead);
   let readFrom = 0;
-  return new (class implements ByteStreamReader {
+  const reader: ByteStreamReader = {
     async read(): Promise<ByteStreamReadResult> {
       if (readFrom < source.byteLength) {
         const result = {
@@ -107,10 +117,12 @@ export function toByteStreamReader(
       }
 
       return { value: undefined, done: true };
-    }
+    },
 
     async cancel(reason?: string): Promise<void> {}
-  })();
+  };
+
+  return reader;
 }
 
 /**

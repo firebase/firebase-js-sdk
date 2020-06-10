@@ -28,7 +28,10 @@ describe('Platform', () => {
 
   it('toByteStreamReader() steps underlying data', async () => {
     const encoder = new TextEncoder();
-    const r = toByteStreamReader(encoder.encode('0123456789'), 4);
+    const r = toByteStreamReader(
+      encoder.encode('0123456789'),
+      /* bytesPerRead */ 4
+    );
 
     let result = await r.read();
     expect(result.value).to.deep.equal(encoder.encode('0123'));

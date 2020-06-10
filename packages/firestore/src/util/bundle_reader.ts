@@ -39,6 +39,20 @@ export class SizedBundleElement {
   }
 }
 
+export type BundleSource =
+  | ReadableStream<Uint8Array>
+  | ArrayBuffer
+  | Uint8Array;
+
+/**
+ * When applicable, how many bytets to read from the underlying data source
+ * each time.
+ *
+ * It is not application when we don't really have control, for example, when
+ * source is a ReadableStream.
+ */
+const BYTES_PER_READ = 10240;
+
 /**
  * A class representing a bundle.
  *
@@ -48,8 +62,6 @@ export class SizedBundleElement {
 export class BundleReader {
   /** Cached bundle metadata. */
   private metadata: Deferred<BundleMetadata> = new Deferred<BundleMetadata>();
-  /** The reader to read from underlying binary bundle data source. */
-  private reader: ByteStreamReader;
   /**
    * Internal buffer to hold bundle content, accumulating incomplete element
    * content.
@@ -58,16 +70,16 @@ export class BundleReader {
   /** The decoder used to parse binary data into strings. */
   private textDecoder = new TextDecoder('utf-8');
 
-  constructor(
-    private bundleStream:
-      | ReadableStream<Uint8Array | ArrayBuffer>
-      | Uint8Array
-      | ArrayBuffer
-  ) {
-    this.reader = PlatformSupport.getPlatform().toByteStreamReader(
-      bundleStream
+  static fromBundleSource(source: BundleSource): BundleReader {
+    return new BundleReader(
+      PlatformSupport.getPlatform().toByteStreamReader(source, BYTES_PER_READ)
     );
+  }
 
+  constructor(
+    /** The reader to read from underlying binary bundle data source. */
+    private reader: ByteStreamReader
+  ) {
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
       element => {

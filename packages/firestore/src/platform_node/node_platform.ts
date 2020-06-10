@@ -33,6 +33,7 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 import { debugAssert } from '../util/assert';
+import { invalidClassError } from '../util/input_validation';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -91,10 +92,18 @@ export class NodePlatform implements Platform {
   /**
    * On Node, only supported data source is a `Uint8Array` for now.
    */
-  toByteStreamReader(source: unknown): ByteStreamReader {
-    if (source instanceof Uint8Array) {
-      return toByteStreamReader(source);
+  toByteStreamReader(
+    source: Uint8Array,
+    bytesPerRead: number
+  ): ByteStreamReader {
+    if (!(source instanceof Uint8Array)) {
+      throw invalidClassError(
+        'NodePlatform.toByteStreamReader',
+        'Uint8Array',
+        1,
+        source
+      );
     }
-    throw new Error('Source of `toByteStreamReader` has to be Uint8Array');
+    return toByteStreamReader(source, bytesPerRead);
   }
 }

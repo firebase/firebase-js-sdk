@@ -20,10 +20,9 @@ import {
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
 import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
-import { isNode } from '../../util/test_platform';
 import {
-  PlatformSupport,
-  toByteStreamReader
+  ByteStreamReader,
+  PlatformSupport
 } from '../../../src/platform/platform';
 
 /**
@@ -33,22 +32,12 @@ import {
  * @param bytesPerRead: How many bytes to read from the underlying buffer from
  * each read through the stream.
  */
-export function readableStreamFromString(
+export function byteStreamReaderFromString(
   content: string,
-  bytesPerRead = 10240
-): ReadableStream<Uint8Array | ArrayBuffer> {
-  let readFrom = 0;
+  bytesPerRead: number
+): ByteStreamReader {
   const data = new TextEncoder().encode(content);
-  return new ReadableStream({
-    start(controller) {},
-    async pull(controller): Promise<void> {
-      controller.enqueue(data.slice(readFrom, readFrom + bytesPerRead));
-      readFrom += bytesPerRead;
-      if (readFrom >= data.byteLength) {
-        controller.close();
-      }
-    }
-  });
+  return PlatformSupport.getPlatform().toByteStreamReader(data, bytesPerRead);
 }
 
 function lengthPrefixedString(o: {}): string {
@@ -58,13 +47,10 @@ function lengthPrefixedString(o: {}): string {
 }
 
 // Testing readableStreamFromString() is working as expected.
-// eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe)('readableStreamFromString()', () => {
-  it('returns stepping readable stream', async () => {
+describe('byteStreamReaderFromString()', () => {
+  it('returns a reader stepping readable stream', async () => {
     const encoder = new TextEncoder();
-    const r = PlatformSupport.getPlatform().toByteStreamReader(
-      readableStreamFromString('0123456789', 4)
-    );
+    const r = byteStreamReaderFromString('0123456789', 4);
 
     let result = await r.read();
     expect(result.value).to.deep.equal(encoder.encode('0123'));
@@ -92,21 +78,8 @@ describe('Bundle ', () => {
 });
 
 function genericBundleReadingTests(bytesPerRead: number): void {
-  // On Node, we need to override `bytesPerRead` from it's platform's `toByteStreamReader` call.
-  if (isNode()) {
-    const platform = PlatformSupport.getPlatform();
-    platform.toByteStreamReader = source =>
-      toByteStreamReader(source as Uint8Array, bytesPerRead);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (PlatformSupport as any)._forceSetPlatform(platform);
-  }
-
   function bundleFromString(s: string): BundleReader {
-    if (isNode()) {
-      return new BundleReader(encoder.encode(s));
-    } else {
-      return new BundleReader(readableStreamFromString(s, bytesPerRead));
-    }
+    return new BundleReader(byteStreamReaderFromString(s, bytesPerRead));
   }
 
   const encoder = new TextEncoder();
