@@ -18,10 +18,9 @@
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 import { BundleSource } from '../util/bundle_reader';
-import { validatePositiveNumber } from '../util/input_validation';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -84,7 +83,10 @@ export function toByteStreamReader(
   source: Uint8Array,
   bytesPerRead: number
 ): ReadableStreamReader<Uint8Array> {
-  validatePositiveNumber('toByteStreamReader', 2, bytesPerRead);
+  debugAssert(
+    bytesPerRead > 0,
+    `toByteStreamReader expects positive bytesPerRead, but got ${bytesPerRead}`
+  );
   let readFrom = 0;
   const reader: ReadableStreamReader<Uint8Array> = {
     async read(): Promise<ReadableStreamReadResult<Uint8Array>> {
