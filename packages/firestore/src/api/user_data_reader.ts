@@ -65,7 +65,7 @@ export class DocumentKeyReference<T> {
   constructor(
     public readonly _databaseId: DatabaseId,
     public readonly _key: DocumentKey,
-    public readonly _converter?: UntypedFirestoreDataConverter<T>
+    public readonly _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 }
 
@@ -623,7 +623,7 @@ function parseSentinelFieldValue(
       `${value._methodName}() can only be used with update() and set()`
     );
   }
-  if (context.path === null) {
+  if (!context.path) {
     throw context.createError(
       `${value._methodName}() is not currently supported inside arrays`
     );

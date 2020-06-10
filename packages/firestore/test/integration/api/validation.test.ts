@@ -472,6 +472,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
+      'must not contain field value transforms in arrays',
+      db => {
+        return expectWriteToFail(
+          db,
+          { 'array': [FieldValue.serverTimestamp()] },
+          'FieldValue.serverTimestamp() is not currently supported inside arrays'
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
       'must not contain directly nested arrays.',
       db => {
         return expectWriteToFail(
