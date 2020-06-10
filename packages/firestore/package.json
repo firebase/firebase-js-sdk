@@ -59,7 +59,6 @@
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.0",
-    "js-base64": "2.5.2",
     "tslib": "1.11.1"
   },
   "peerDependencies": {
@@ -70,7 +69,6 @@
     "@firebase/app-exp": "0.x",
     "@firebase/app-types-exp": "0.x",
     "@types/json-stable-stringify": "1.0.32",
-    "@types/js-base64": "2.3.1",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.9.0",
     "rollup": "2.7.6",

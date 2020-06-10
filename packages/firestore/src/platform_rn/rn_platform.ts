@@ -16,17 +16,21 @@
  */
 
 import { BrowserPlatform } from '../platform_browser/browser_platform';
-import { Base64 } from 'js-base64';
+import { base64 } from '@firebase/util';
 
 // Implements the Platform API for ReactNative.
 export class ReactNativePlatform extends BrowserPlatform {
   readonly base64Available = true;
 
   atob(encoded: string): string {
-    return Base64.decode(encoded);
+    // WebSafe uses a different URL-encoding safe alphabet that doesn't match
+    // the encoding used on the backend.
+    return base64.decodeString(encoded, /* webSafe =*/ false);
   }
 
   btoa(raw: string): string {
-    return Base64.encode(raw);
+    // WebSafe uses a different URL-encoding safe alphabet that doesn't match
+    // the encoding used on the backend.
+    return base64.encodeString(raw, /* webSafe =*/ false);
   }
 }
