@@ -26,11 +26,11 @@ use(chaiAsPromised);
 
 describe('core/providers/anonymous', () => {
   let auth: Auth;
-  
+
   beforeEach(async () => {
     auth = await testAuth();
   });
-  
+
   describe('AnonymousCredential', () => {
     const credential = new AnonymousCredential();
 
@@ -50,9 +50,9 @@ describe('core/providers/anonymous', () => {
 
     describe('#_getIdTokenResponse', () => {
       it('throws', async () => {
-        await expect(
-          credential._getIdTokenResponse(auth)
-        ).to.be.rejectedWith(Error);
+        await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
+          Error
+        );
       });
     });
 
