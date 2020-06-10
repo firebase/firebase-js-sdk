@@ -18,8 +18,9 @@
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+import { BundleSource } from '../util/bundle_reader';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -50,6 +51,18 @@ export interface Platform {
    */
   randomBytes(nBytes: number): Uint8Array;
 
+  /**
+   * Builds a `ByteStreamReader` from a data source.
+   * @param source The data source to use.
+   * @param bytesPerRead How many bytes each `read()` from the returned reader
+   *        will read. It is ignored if the passed in source does not provide
+   *        such control(example: ReadableStream).
+   */
+  toByteStreamReader(
+    source: BundleSource,
+    bytesPerRead: number
+  ): ReadableStreamReader<Uint8Array>;
+
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
 
@@ -58,6 +71,40 @@ export interface Platform {
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;
+}
+
+/**
+ * Builds a `ByteStreamReader` from a UInt8Array.
+ * @param source The data source to use.
+ * @param bytesPerRead How many bytes each `read()` from the returned reader
+ *        will read.
+ */
+export function toByteStreamReader(
+  source: Uint8Array,
+  bytesPerRead: number
+): ReadableStreamReader<Uint8Array> {
+  debugAssert(
+    bytesPerRead > 0,
+    `toByteStreamReader expects positive bytesPerRead, but got ${bytesPerRead}`
+  );
+  let readFrom = 0;
+  const reader: ReadableStreamReader<Uint8Array> = {
+    async read(): Promise<ReadableStreamReadResult<Uint8Array>> {
+      if (readFrom < source.byteLength) {
+        const result = {
+          value: source.slice(readFrom, readFrom + bytesPerRead),
+          done: false
+        };
+        readFrom += bytesPerRead;
+        return result;
+      }
+
+      return { value: undefined, done: true };
+    },
+    async cancel(): Promise<void> {},
+    releaseLock() {}
+  };
+  return reader;
 }
 
 /**

@@ -20,6 +20,8 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
+import { PlatformSupport } from '../platform/platform';
+import { debugAssert } from './assert';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -37,29 +39,18 @@ export class SizedBundleElement {
   }
 }
 
+export type BundleSource =
+  | ReadableStream<Uint8Array>
+  | ArrayBuffer
+  | Uint8Array;
+
 /**
- * Create a `ReadableStream` from a underlying buffer.
+ * When applicable, how many bytes to read from the underlying data source
+ * each time.
  *
- * @param data: Underlying buffer.
- * @param bytesPerRead: How many bytes to read from the underlying buffer from
- * each read through the stream.
+ * Not applicable for ReadableStreams.
  */
-export function toReadableStream(
-  data: Uint8Array | ArrayBuffer,
-  bytesPerRead = 10240
-): ReadableStream<Uint8Array | ArrayBuffer> {
-  let readFrom = 0;
-  return new ReadableStream({
-    start(controller) {},
-    async pull(controller): Promise<void> {
-      controller.enqueue(data.slice(readFrom, readFrom + bytesPerRead));
-      readFrom += bytesPerRead;
-      if (readFrom >= data.byteLength) {
-        controller.close();
-      }
-    }
-  });
-}
+const BYTES_PER_READ = 10240;
 
 /**
  * A class representing a bundle.
@@ -70,8 +61,6 @@ export function toReadableStream(
 export class BundleReader {
   /** Cached bundle metadata. */
   private metadata: Deferred<BundleMetadata> = new Deferred<BundleMetadata>();
-  /** The reader instance of the given ReadableStream. */
-  private reader: ReadableStreamDefaultReader;
   /**
    * Internal buffer to hold bundle content, accumulating incomplete element
    * content.
@@ -80,20 +69,16 @@ export class BundleReader {
   /** The decoder used to parse binary data into strings. */
   private textDecoder = new TextDecoder('utf-8');
 
-  constructor(
-    private bundleStream:
-      | ReadableStream<Uint8Array | ArrayBuffer>
-      | Uint8Array
-      | ArrayBuffer
-  ) {
-    if (
-      bundleStream instanceof Uint8Array ||
-      bundleStream instanceof ArrayBuffer
-    ) {
-      this.bundleStream = toReadableStream(bundleStream);
-    }
-    this.reader = (this.bundleStream as ReadableStream).getReader();
+  static fromBundleSource(source: BundleSource): BundleReader {
+    return new BundleReader(
+      PlatformSupport.getPlatform().toByteStreamReader(source, BYTES_PER_READ)
+    );
+  }
 
+  constructor(
+    /** The reader to read from underlying binary bundle data source. */
+    private reader: ReadableStreamReader<Uint8Array>
+  ) {
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
       element => {
@@ -220,8 +205,8 @@ export class BundleReader {
 
   private raiseError(message: string): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.reader.cancel('Invalid bundle format.');
-    throw new Error(message);
+    this.reader.cancel();
+    throw new Error(`Invalid bundle format: ${message}`);
   }
 
   /**
@@ -231,11 +216,12 @@ export class BundleReader {
   private async pullMoreDataToBuffer(): Promise<boolean> {
     const result = await this.reader.read();
     if (!result.done) {
+      debugAssert(!!result.value, 'Read undefined when "done" is false.');
       const newBuffer = new Uint8Array(
-        this.buffer.length + result.value.length
+        this.buffer.length + result.value!.length
       );
       newBuffer.set(this.buffer);
-      newBuffer.set(result.value, this.buffer.length);
+      newBuffer.set(result.value!, this.buffer.length);
       this.buffer = newBuffer;
     }
     return result.done;

@@ -19,7 +19,7 @@ import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
+import { Platform, toByteStreamReader } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
@@ -29,6 +29,7 @@ import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 import { debugAssert } from '../util/assert';
+import { invalidClassError } from '../util/input_validation';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -82,5 +83,23 @@ export class NodePlatform implements Platform {
     debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
 
     return randomBytes(nBytes);
+  }
+
+  /**
+   * On Node, only supported data source is a `Uint8Array` for now.
+   */
+  toByteStreamReader(
+    source: Uint8Array,
+    bytesPerRead: number
+  ): ReadableStreamReader<Uint8Array> {
+    if (!(source instanceof Uint8Array)) {
+      throw invalidClassError(
+        'NodePlatform.toByteStreamReader',
+        'Uint8Array',
+        1,
+        source
+      );
+    }
+    return toByteStreamReader(source, bytesPerRead);
   }
 }

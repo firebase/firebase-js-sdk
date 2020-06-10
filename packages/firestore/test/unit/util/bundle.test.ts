@@ -17,17 +17,24 @@
 import { expect } from 'chai';
 import {
   BundleReader,
-  SizedBundleElement,
-  toReadableStream
+  SizedBundleElement
 } from '../../../src/util/bundle_reader';
-import { isNode } from '../../util/test_platform';
 import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
+import { PlatformSupport } from '../../../src/platform/platform';
 
-function readableStreamFromString(
+/**
+ * Create a `ReadableStream` from a string.
+ *
+ * @param content: Bundle in string.
+ * @param bytesPerRead: How many bytes to read from the underlying buffer from
+ * each read through the stream.
+ */
+export function byteStreamReaderFromString(
   content: string,
   bytesPerRead: number
-): ReadableStream {
-  return toReadableStream(new TextEncoder().encode(content), bytesPerRead);
+): ReadableStreamReader<Uint8Array> {
+  const data = new TextEncoder().encode(content);
+  return PlatformSupport.getPlatform().toByteStreamReader(data, bytesPerRead);
 }
 
 function lengthPrefixedString(o: {}): string {
@@ -36,12 +43,11 @@ function lengthPrefixedString(o: {}): string {
   return `${l}${str}`;
 }
 
-// eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe)('readableStreamFromString()', () => {
-  it('returns stepping readable stream', async () => {
+// Testing readableStreamFromString() is working as expected.
+describe('byteStreamReaderFromString()', () => {
+  it('returns a reader stepping readable stream', async () => {
     const encoder = new TextEncoder();
-    const s = readableStreamFromString('0123456789', 4);
-    const r = s.getReader();
+    const r = byteStreamReaderFromString('0123456789', 4);
 
     let result = await r.read();
     expect(result.value).to.deep.equal(encoder.encode('0123'));
@@ -61,8 +67,7 @@ function lengthPrefixedString(o: {}): string {
   });
 });
 
-// eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe)('Bundle ', () => {
+describe('Bundle ', () => {
   genericBundleReadingTests(1);
   genericBundleReadingTests(4);
   genericBundleReadingTests(64);
@@ -70,6 +75,10 @@ function lengthPrefixedString(o: {}): string {
 });
 
 function genericBundleReadingTests(bytesPerRead: number): void {
+  function bundleFromString(s: string): BundleReader {
+    return new BundleReader(byteStreamReaderFromString(s, bytesPerRead));
+  }
+
   const encoder = new TextEncoder();
   // Setting up test data.
   const meta: BundleElement = {
@@ -199,8 +208,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     bytesPerRead: number,
     validMeta = false
   ): Promise<void> {
-    const bundleStream = readableStreamFromString(bundleString, bytesPerRead);
-    const bundle = new BundleReader(bundleStream);
+    const bundle = bundleFromString(bundleString);
 
     if (!validMeta) {
       await expect(await bundle.getMetadata()).should.be.rejected;
@@ -212,15 +220,13 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   }
 
   it('reads with query and doc with bytesPerRead ' + bytesPerRead, async () => {
-    const bundleStream = readableStreamFromString(
+    const bundle = bundleFromString(
       metaString +
         limitQueryString +
         limitToLastQueryString +
         doc1MetaString +
-        doc1String,
-      bytesPerRead
+        doc1String
     );
-    const bundle = new BundleReader(bundleStream);
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
@@ -235,16 +241,14 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   it(
     'reads with unexpected orders with bytesPerRead ' + bytesPerRead,
     async () => {
-      const bundleStream = readableStreamFromString(
+      const bundle = bundleFromString(
         metaString +
           doc1MetaString +
           doc1String +
           limitQueryString +
           doc2MetaString +
-          doc2String,
-        bytesPerRead
+          doc2String
       );
-      const bundle = new BundleReader(bundleStream);
 
       const actual = await getAllElements(bundle);
       expect(actual.length).to.equal(5);
@@ -262,11 +266,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   it(
     'reads without named query with bytesPerRead ' + bytesPerRead,
     async () => {
-      const bundleStream = readableStreamFromString(
-        metaString + doc1MetaString + doc1String,
-        bytesPerRead
-      );
-      const bundle = new BundleReader(bundleStream);
+      const bundle = bundleFromString(metaString + doc1MetaString + doc1String);
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
@@ -278,11 +278,9 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   );
 
   it('reads with deleted doc with bytesPerRead ' + bytesPerRead, async () => {
-    const bundleStream = readableStreamFromString(
-      metaString + noDocMetaString + doc1MetaString + doc1String,
-      bytesPerRead
+    const bundle = bundleFromString(
+      metaString + noDocMetaString + doc1MetaString + doc1String
     );
-    const bundle = new BundleReader(bundleStream);
 
     expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
@@ -296,8 +294,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   it(
     'reads without documents or query with bytesPerRead ' + bytesPerRead,
     async () => {
-      const bundleStream = readableStreamFromString(metaString, bytesPerRead);
-      const bundle = new BundleReader(bundleStream);
+      const bundle = bundleFromString(metaString);
 
       expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
 
