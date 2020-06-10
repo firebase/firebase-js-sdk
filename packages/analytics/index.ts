@@ -45,9 +45,7 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
-const NAMESPACE_EXPORTS = {
-  isSupported
-};
+
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
@@ -58,20 +56,12 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
-
-        if (!isSupported()) {
-          console.log('is supported evaluated to false');
-          throw ERROR_FACTORY.create(AnalyticsError.UNSUPPORTED_BROWSER);
-        }
-        console.log('is supported evaluate to true');
-
         return factory(app, installations);
       },
       ComponentType.PUBLIC
     ).setServiceProps({
       settings,
-      EventName,
-      NAMESPACE_EXPORTS
+      EventName
     })
   );
 
@@ -107,44 +97,8 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
-    isSupported(): boolean;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
   }
-}
-
-function isSupported(): boolean {
-  if ('indexedDB' in window && indexedDB !== null && navigator.cookieEnabled) {
-    try {
-      let preExist: boolean = false;
-      let isSupported: boolean = true;
-      const DUMMYDBNAME =
-        'a-dummy-database-for-testing-browser-context-firebase';
-      const request = window.indexedDB.open(DUMMYDBNAME);
-      request.onsuccess = () => {
-        console.log('successfully opend dummy indexedDB');
-        request.result.close();
-        // delete database only when it doesn't pre exist
-        if (!preExist) {
-          window.indexedDB.deleteDatabase(DUMMYDBNAME);
-        }
-      };
-      request.onupgradeneeded = () => {
-        preExist = true;
-        console.log('database needs to be upgraded');
-      };
-      request.onerror = error => {
-        console.log('what error on opening database connection? ');
-        console.log(error);
-        isSupported = false;
-      };
-      console.log('it does get here');
-      return isSupported;
-    } catch (error) {
-      console.log('caught error in analytics: ' + error);
-      return false;
-    }
-  }
-  return false;
 }

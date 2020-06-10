@@ -1,0 +1,60 @@
+{
+  "name": "@firebase/dummy-exp",
+  "version": "0.0.800",
+  "private": true,
+  "description": "FirebaseDummy",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm5.js",
+  "module": "dist/index.esm5.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
+    "build:deps": "lerna run --scope @firebase/dummy-exp --include-dependencies build",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "type-check": "tsc -p . --noEmit",
+    "prepare": "rollup -c rollup.config.release.js",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ./use_public_typings.js --public",
+    "typings:internal": "node ./use_public_typings.js"
+  },
+  "dependencies": {
+    "tslib": "1.11.1"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "rollup": "1.32.1",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.27.0",
+    "typescript": "3.8.3"
+  },
+  "repository": {
+    "directory": "packages-exp/dummy-exp",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "./dist/dummy-exp.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
