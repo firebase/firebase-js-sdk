@@ -58,7 +58,7 @@
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.0",
-    "tslib": "1.11.1"
+    "tslib": "^1.11.1"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
