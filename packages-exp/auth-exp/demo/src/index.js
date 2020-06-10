@@ -32,6 +32,8 @@ import {
   updateEmail,
   updatePassword,
   updateProfile,
+  signInAnonymously,
+  signInWithCustomToken,
   isSignInWithEmailLink,
   fetchSignInMethodsForEmail
 } from '@firebase/auth-exp';
@@ -376,21 +378,19 @@ function onReauthenticateWithEmailLink() {
  * @param {DOMEvent} event HTML DOM event returned by the listener.
  */
 function onSignInWithCustomToken(event) {
-  alertNotImplemented();
   // The token can be directly specified on the html element.
-  // var token = $('#user-custom-token').val();
+  var token = $('#user-custom-token').val();
 
-  // auth.signInWithCustomToken(token)
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  signInWithCustomToken(auth, token)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
  * Signs in anonymously.
  */
 function onSignInAnonymously() {
-  alertNotImplemented();
-  // auth.signInAnonymously()
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  signInAnonymously(auth)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**

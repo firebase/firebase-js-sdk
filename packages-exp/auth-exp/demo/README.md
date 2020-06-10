@@ -42,6 +42,13 @@ in the `config.js` file.
 
 ## Deploy
 
+Before deploying, you may need to build the auth-exp package:
+```bash
+yarn build:deps
+```
+
+This can take some time, and you only need to do it if you've modified the auth-exp package.
+
 To run the app locally, simply issue the following command in the `auth-exp/demo` directory:
 
 ```bash
