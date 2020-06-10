@@ -16,12 +16,7 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import {
-  ByteStreamReader,
-  ByteStreamReadResult,
-  Platform,
-  toByteStreamReader
-} from '../platform/platform';
+import { Platform, toByteStreamReader } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
@@ -30,6 +25,7 @@ import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 import { debugAssert } from '../util/assert';
+import { BundleSource } from '../util/bundle_reader';
 
 // Implements the Platform API for browsers and some browser-like environments
 // (including ReactNative).
@@ -103,28 +99,20 @@ export class BrowserPlatform implements Platform {
    * On web, a `ReadableStream` is wrapped around by a `ByteStreamReader`.
    */
   toByteStreamReader(
-    source: Uint8Array | ArrayBuffer | ReadableStream<Uint8Array>
-  ): ByteStreamReader {
+    source: BundleSource,
+    bytesPerRead: number
+  ): ReadableStreamReader<Uint8Array> {
     if (source instanceof Uint8Array) {
-      return toByteStreamReader(source);
+      return toByteStreamReader(source, bytesPerRead);
     }
     if (source instanceof ArrayBuffer) {
-      return toByteStreamReader(new Uint8Array(source));
+      return toByteStreamReader(new Uint8Array(source), bytesPerRead);
     }
     if (source instanceof ReadableStream) {
-      const reader = source.getReader();
-      return new (class implements ByteStreamReader {
-        read(): Promise<ByteStreamReadResult> {
-          return reader.read();
-        }
-
-        cancel(reason?: string): Promise<void> {
-          return reader.cancel(reason);
-        }
-      })();
+      return source.getReader();
     }
     throw new Error(
-      'Source of `toByteStreamReader` has to be Uint8Array, ArrayBuffer or ReadableStream'
+      'Source of `toByteStreamReader` has to be a ArrayBuffer or ReadableStream'
     );
   }
 }

@@ -16,12 +16,13 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { ByteStreamReader, Platform } from '../../src/platform/platform';
+import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { debugAssert, fail } from '../../src/util/assert';
 import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
+import { BundleSource } from '../../src/util/bundle_reader';
 
 /* eslint-disable no-restricted-globals */
 
@@ -271,8 +272,11 @@ export class TestPlatform implements Platform {
     return this.basePlatform.randomBytes(nBytes);
   }
 
-  toByteStreamReader(source: unknown): ByteStreamReader {
-    return this.basePlatform.toByteStreamReader(source);
+  toByteStreamReader(
+    source: BundleSource,
+    bytesPerRead: number
+  ): ReadableStreamReader<Uint8Array> {
+    return this.basePlatform.toByteStreamReader(source, bytesPerRead);
   }
 }
 
