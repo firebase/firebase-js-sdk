@@ -16,26 +16,26 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 
+import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { Auth } from '../../model/auth';
-import { AuthCredential } from '../../model/auth_credential';
+import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
-export async function signInWithCredential(
+export async function signInWithCustomToken(
   authExtern: externs.Auth,
-  credentialExtern: externs.AuthCredential
-): Promise<UserCredential> {
+  customToken: string
+): Promise<externs.UserCredential> {
   const auth = authExtern as Auth;
-  const credential = credentialExtern as AuthCredential;
-  // TODO: handle mfa by wrapping with callApiWithMfaContext
-  const response = await credential._getIdTokenResponse(auth);
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+  const response: IdTokenResponse = await getIdTokenResponse(auth, {
+    token: customToken
+  });
+  const cred = await UserCredentialImpl._fromIdTokenResponse(
     auth,
-    credential,
-    OperationType.SIGN_IN,
+    null,
+    externs.OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
-  return userCredential;
+  await auth.updateCurrentUser(cred.user);
+  return cred;
 }
