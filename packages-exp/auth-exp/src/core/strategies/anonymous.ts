@@ -21,7 +21,9 @@ import { AnonymousProvider } from '../providers/anonymous';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signInWithCredential } from './credential';
 
-export async function signInAnonymously(externAuth: externs.Auth): Promise<externs.UserCredential> {
+export async function signInAnonymously(
+  externAuth: externs.Auth
+): Promise<externs.UserCredential> {
   const auth = externAuth as Auth;
   const credential = AnonymousProvider.credential();
   if (auth.currentUser?.isAnonymous) {
@@ -34,4 +36,3 @@ export async function signInAnonymously(externAuth: externs.Auth): Promise<exter
   }
   return signInWithCredential(auth, credential);
 }
-
