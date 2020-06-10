@@ -20,7 +20,7 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
-import { ByteStreamReader, PlatformSupport } from '../platform/platform';
+import { PlatformSupport } from '../platform/platform';
 import { debugAssert } from './assert';
 
 /**
@@ -45,11 +45,10 @@ export type BundleSource =
   | Uint8Array;
 
 /**
- * When applicable, how many bytets to read from the underlying data source
+ * When applicable, how many bytes to read from the underlying data source
  * each time.
  *
- * It is not application when we don't really have control, for example, when
- * source is a ReadableStream.
+ * Not applicable for ReadableStreams.
  */
 const BYTES_PER_READ = 10240;
 
@@ -78,7 +77,7 @@ export class BundleReader {
 
   constructor(
     /** The reader to read from underlying binary bundle data source. */
-    private reader: ByteStreamReader
+    private reader: ReadableStreamReader<Uint8Array>
   ) {
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
@@ -206,8 +205,8 @@ export class BundleReader {
 
   private raiseError(message: string): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.reader.cancel('Invalid bundle format.');
-    throw new Error(message);
+    this.reader.cancel();
+    throw new Error(`Invalid bundle format: ${message}`);
   }
 
   /**

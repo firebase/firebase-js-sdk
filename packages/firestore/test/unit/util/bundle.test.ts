@@ -20,10 +20,7 @@ import {
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
 import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
-import {
-  ByteStreamReader,
-  PlatformSupport
-} from '../../../src/platform/platform';
+import { PlatformSupport } from '../../../src/platform/platform';
 
 /**
  * Create a `ReadableStream` from a string.
@@ -35,7 +32,7 @@ import {
 export function byteStreamReaderFromString(
   content: string,
   bytesPerRead: number
-): ByteStreamReader {
+): ReadableStreamReader<Uint8Array> {
   const data = new TextEncoder().encode(content);
   return PlatformSupport.getPlatform().toByteStreamReader(data, bytesPerRead);
 }

@@ -16,7 +16,7 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { ByteStreamReader, Platform } from '../../src/platform/platform';
+import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { debugAssert, fail } from '../../src/util/assert';
@@ -275,7 +275,7 @@ export class TestPlatform implements Platform {
   toByteStreamReader(
     source: BundleSource,
     bytesPerRead: number
-  ): ByteStreamReader {
+  ): ReadableStreamReader<Uint8Array> {
     return this.basePlatform.toByteStreamReader(source, bytesPerRead);
   }
 }

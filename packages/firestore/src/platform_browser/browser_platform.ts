@@ -16,11 +16,7 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import {
-  ByteStreamReader,
-  Platform,
-  toByteStreamReader
-} from '../platform/platform';
+import { Platform, toByteStreamReader } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
@@ -105,7 +101,7 @@ export class BrowserPlatform implements Platform {
   toByteStreamReader(
     source: BundleSource,
     bytesPerRead: number
-  ): ByteStreamReader {
+  ): ReadableStreamReader<Uint8Array> {
     if (source instanceof Uint8Array) {
       return toByteStreamReader(source, bytesPerRead);
     }

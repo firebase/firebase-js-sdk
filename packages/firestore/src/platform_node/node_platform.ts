@@ -19,11 +19,7 @@ import { randomBytes } from 'crypto';
 import { inspect } from 'util';
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import {
-  ByteStreamReader,
-  Platform,
-  toByteStreamReader
-} from '../platform/platform';
+import { Platform, toByteStreamReader } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
@@ -95,7 +91,7 @@ export class NodePlatform implements Platform {
   toByteStreamReader(
     source: Uint8Array,
     bytesPerRead: number
-  ): ByteStreamReader {
+  ): ReadableStreamReader<Uint8Array> {
     if (!(source instanceof Uint8Array)) {
       throw invalidClassError(
         'NodePlatform.toByteStreamReader',
