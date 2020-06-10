@@ -34,6 +34,7 @@ export {
   Query,
   CollectionReference,
   collection,
+  collectionGroup,
   doc,
   parent,
   getDoc,

@@ -322,6 +322,30 @@ export function collection(
   }
 }
 
+export function collectionGroup(
+  firestore: firestore.FirebaseFirestore,
+  collectionId: string
+): Query<firestore.DocumentData> {
+  const firestoreClient = cast(firestore, Firestore);
+
+  validateArgType('collectionGroup', 'non-empty string', 1, collectionId);
+  if (collectionId.indexOf('/') >= 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid collection ID '${collectionId}' passed to function ` +
+        `collectionGroup(). Collection IDs must not contain '/'.`
+    );
+  }
+
+  // Kick off configuring the client, which freezes the settings.
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClient._ensureClientConfigured();
+  return new Query(
+    firestoreClient,
+    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId)
+  );
+}
+
 export function doc(
   firestore: firestore.FirebaseFirestore,
   documentPath: string
