@@ -62,7 +62,7 @@ export function collectionReference(path: string): CollectionReference {
   firestoreClient.ensureClientConfigured();
   return new CollectionReference(
     pathFrom(path),
-    firestore(),
+    firestoreClient,
     /* converter= */ null
   );
 }
@@ -71,7 +71,11 @@ export function documentReference(path: string): DocumentReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   firestoreClient.ensureClientConfigured();
-  return new DocumentReference(key(path), firestore(), /* converter= */ null);
+  return new DocumentReference(
+    key(path),
+    firestoreClient,
+    /* converter= */ null
+  );
 }
 
 export function documentSnapshot(
