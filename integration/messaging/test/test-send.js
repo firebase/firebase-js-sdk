@@ -26,7 +26,7 @@ const openNewTab = require('./utils/openNewTab');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const clearBackgroundMessages = require('./utils/clearBackgroundMessages');
 
-const TEST_SUITE_TIMEOUT_MS = 120000;
+const TEST_SUITE_TIMEOUT_MS = 300000;
 const TEST_DOMAIN = 'valid-vapid-key';
 const TEST_PROJECT_SENDER_ID = '750970317741';
 const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
