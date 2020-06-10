@@ -804,10 +804,10 @@ function createError(
     description += ' (found';
 
     if (hasPath) {
-      description += ` in field ${path!.toString()}`;
+      description += ` in field ${path}`;
     }
     if (hasDocument) {
-      description += ` in document ${targetDoc!.toString()}`;
+      description += ` in document ${targetDoc}`;
     }
     description += ')';
   }
