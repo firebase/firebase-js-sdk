@@ -27,11 +27,7 @@ const TEST_SUITE_TIMEOUT_MS = 70000;
 describe(`Firebase Messaging Integration Tests > Use 'use valid manifest`, function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
 
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
+  this.retries(3);
 
   let globalWebDriver;
 

@@ -39,11 +39,7 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 
 describe('Starting Integration Test > Sending and Receiving ', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
+  this.retries(3);
   let globalWebDriver;
 
   before(async function() {
