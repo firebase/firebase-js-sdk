@@ -70,6 +70,7 @@
     "@firebase/app-exp": "0.x",
     "@firebase/app-types-exp": "0.x",
     "@types/json-stable-stringify": "1.0.32",
+    "@types/js-base64": "2.3.1",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.9.0",
     "rollup": "2.7.6",
