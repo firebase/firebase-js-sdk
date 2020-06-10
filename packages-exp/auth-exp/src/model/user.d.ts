@@ -48,3 +48,7 @@ export interface User extends externs.User {
   delete(): Promise<void>;
   toPlainObject(): PersistedBlob;
 }
+
+export interface UserCredential extends externs.UserCredential {
+  user: User;
+}

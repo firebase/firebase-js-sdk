@@ -34,7 +34,7 @@ describe('core/strategies/anonymous', () => {
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };
-  
+
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
@@ -52,9 +52,7 @@ describe('core/strategies/anonymous', () => {
 
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
-      const { credential, user, operationType } = await signInAnonymously(
-        auth
-      );
+      const { credential, user, operationType } = await signInAnonymously(auth);
       expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
       expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
       expect(operationType).to.eq(OperationType.SIGN_IN);
