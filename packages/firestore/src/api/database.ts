@@ -1528,7 +1528,19 @@ export class BaseQuery {
    * of the query or if any of the fields in the order by are an uncommitted
    * server timestamp.
    */
-  protected boundFromDocument(doc: Document, before: boolean): Bound {
+  protected boundFromDocument(
+    methodName: string,
+    doc: Document | null,
+    before: boolean
+  ): Bound {
+    if (!doc) {
+      throw new FirestoreError(
+        Code.NOT_FOUND,
+        `Can't use a DocumentSnapshot that doesn't exist for ` +
+          `${methodName}().`
+      );
+    }
+
     const components: api.Value[] = [];
 
     // Because people expect to continue/end a query at the exact document
@@ -2003,21 +2015,8 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
   ): Bound {
     validateDefined(methodName, 1, docOrField);
     if (docOrField instanceof DocumentSnapshot) {
-      if (fields.length > 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Too many arguments provided to ${methodName}().`
-        );
-      }
-      const snap = docOrField;
-      if (!snap.exists) {
-        throw new FirestoreError(
-          Code.NOT_FOUND,
-          `Can't use a DocumentSnapshot that doesn't exist for ` +
-            `${methodName}().`
-        );
-      }
-      return this.boundFromDocument(snap._document!, before);
+      validateExactNumberOfArgs(methodName, [docOrField, ...fields], 1);
+      return this.boundFromDocument(methodName, docOrField._document, before);
     } else {
       const allFields = [docOrField].concat(fields);
       return this.boundFromFields(methodName, allFields, before);
