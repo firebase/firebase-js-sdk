@@ -56,7 +56,7 @@
     "@firebase/logger": "0.2.5",
     "@firebase/util": "0.2.48",
     "@firebase/webchannel-wrapper": "0.2.41",
-    "@grpc/grpc-js": "0.8.1",
+    "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
     "tslib": "^1.11.1"
   },
