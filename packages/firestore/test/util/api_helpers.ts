@@ -45,8 +45,8 @@ import { Provider, ComponentContainer } from '@firebase/component';
  */
 export const FIRESTORE = new Firestore(
   {
-    projectId: 'projectid',
-    database: 'database'
+    projectId: 'test-project',
+    database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
   new IndexedDbComponentProvider()
@@ -60,14 +60,18 @@ export function collectionReference(path: string): CollectionReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   firestoreClient.ensureClientConfigured();
-  return new CollectionReference(pathFrom(path), firestoreClient);
+  return new CollectionReference(
+    pathFrom(path),
+    firestore(),
+    /* converter= */ null
+  );
 }
 
 export function documentReference(path: string): DocumentReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   firestoreClient.ensureClientConfigured();
-  return new DocumentReference(key(path), firestoreClient);
+  return new DocumentReference(key(path), firestore(), /* converter= */ null);
 }
 
 export function documentSnapshot(
@@ -81,7 +85,8 @@ export function documentSnapshot(
       key(path),
       doc(path, 1, data),
       fromCache,
-      /* hasPendingWrites= */ false
+      /* hasPendingWrites= */ false,
+      /* converter= */ null
     );
   } else {
     return new DocumentSnapshot(
@@ -89,13 +94,18 @@ export function documentSnapshot(
       key(path),
       null,
       fromCache,
-      /* hasPendingWrites= */ false
+      /* hasPendingWrites= */ false,
+      /* converter= */ null
     );
   }
 }
 
 export function query(path: string): Query {
-  return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
+  return new Query(
+    InternalQuery.atPath(pathFrom(path)),
+    firestore(),
+    /* converter= */ null
+  );
 }
 
 /**
@@ -141,5 +151,10 @@ export function querySnapshot(
     syncStateChanged,
     false
   );
-  return new QuerySnapshot(firestore(), query, viewSnapshot);
+  return new QuerySnapshot(
+    firestore(),
+    query,
+    viewSnapshot,
+    /* converter= */ null
+  );
 }

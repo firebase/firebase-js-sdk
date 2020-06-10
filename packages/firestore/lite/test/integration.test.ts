@@ -56,7 +56,16 @@ import {
 import { writeBatch } from '../src/api/write_batch';
 import { runTransaction } from '../src/api/transaction';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { FieldValue } from '../../src/api/field_value';
+import {
+  FieldValue,
+  deleteField,
+  increment,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove
+} from '../src/api/field_value';
+import { Timestamp } from '../../src/api/timestamp';
+
 use(chaiAsPromised);
 
 describe('Firestore', () => {
@@ -514,6 +523,13 @@ function genericMutationTests(
       });
     });
 
+    it('enforces that document exists', () => {
+      return withTestDoc(async docRef => {
+        await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
+          .rejected;
+      });
+    });
+
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
         if (validationUsesPromises) {
@@ -602,22 +618,54 @@ describe('deleteDoc()', () => {
   });
 });
 
-// TODO(firestorelite): Expand test coverage once we can write docs
 describe('FieldValue', () => {
   it('support equality checking with isEqual()', () => {
-    expectEqual(FieldValue.delete(), FieldValue.delete());
-    expectEqual(FieldValue.serverTimestamp(), FieldValue.serverTimestamp());
-    expectNotEqual(FieldValue.delete(), FieldValue.serverTimestamp());
-    // TODO(firestorelite): Add test when field value is available
-    //expectNotEqual(FieldValue.delete(), documentId());
+    expectEqual(deleteField(), deleteField());
+    expectEqual(serverTimestamp(), serverTimestamp());
+    expectNotEqual(deleteField(), serverTimestamp());
   });
 
   it('support instanceof checks', () => {
-    expect(FieldValue.delete()).to.be.an.instanceOf(FieldValue);
-    expect(FieldValue.serverTimestamp()).to.be.an.instanceOf(FieldValue);
-    expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
-    expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
-    expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+    expect(deleteField()).to.be.an.instanceOf(FieldValue);
+    expect(serverTimestamp()).to.be.an.instanceOf(FieldValue);
+    expect(increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
+    expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+  });
+
+  it('can apply arrayUnion', () => {
+    return withTestDocAndInitialData({ 'val': ['foo'] }, async docRef => {
+      await updateDoc(docRef, 'val', arrayUnion('bar'));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': ['foo', 'bar'] });
+    });
+  });
+
+  it('can apply arrayRemove', () => {
+    return withTestDocAndInitialData(
+      { 'val': ['foo', 'bar'] },
+      async docRef => {
+        await updateDoc(docRef, 'val', arrayRemove('bar'));
+        const snap = await getDoc(docRef);
+        expect(snap.data()).to.deep.equal({ 'val': ['foo'] });
+      }
+    );
+  });
+
+  it('can apply serverTimestamp', () => {
+    return withTestDocAndInitialData({ 'val': null }, async docRef => {
+      await updateDoc(docRef, 'val', serverTimestamp());
+      const snap = await getDoc(docRef);
+      expect(snap.get('val')).to.be.an.instanceOf(Timestamp);
+    });
+  });
+
+  it('can delete field', () => {
+    return withTestDocAndInitialData({ 'val': 'foo' }, async docRef => {
+      await updateDoc(docRef, 'val', deleteField());
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({});
+    });
   });
 });
 

@@ -72,7 +72,7 @@ export class DocumentReference<T = firestore.DocumentData>
   constructor(
     readonly firestore: Firestore,
     key: DocumentKey,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, key, _converter);
   }
@@ -98,7 +98,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
   constructor(
     readonly firestore: Firestore,
     readonly _query: InternalQuery,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(
       firestore._databaseId,
@@ -269,7 +269,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     readonly firestore: Firestore,
     readonly _path: ResourcePath,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(firestore, InternalQuery.atPath(_path), _converter);
   }
@@ -309,12 +309,16 @@ export function collection(
     parent._ensureClientConfigured();
 
     validateCollectionPath(path);
-    return new CollectionReference(parent, path);
+    return new CollectionReference(parent, path, /* converter= */ null);
   } else {
     const doc = cast(parent, DocumentReference);
     const absolutePath = doc._key.path.child(path);
     validateCollectionPath(absolutePath);
-    return new CollectionReference(doc.firestore, absolutePath);
+    return new CollectionReference(
+      doc.firestore,
+      absolutePath,
+      /* converter= */ null
+    );
   }
 }
 
@@ -343,7 +347,11 @@ export function doc<T>(
     parent._ensureClientConfigured();
 
     validateDocumentPath(path);
-    return new DocumentReference(parent, new DocumentKey(path));
+    return new DocumentReference(
+      parent,
+      new DocumentKey(path),
+      /* converter= */ null
+    );
   } else {
     const coll = cast(parent, CollectionReference);
     const absolutePath = coll._path.child(path);
@@ -372,7 +380,8 @@ export function parent<T>(
     } else {
       return new DocumentReference(
         child.firestore,
-        new DocumentKey(parentPath)
+        new DocumentKey(parentPath),
+        /* converter= */ null
       );
     }
   } else {
@@ -513,18 +522,9 @@ export function updateDoc(
   return configureClient.then(datastore =>
     invokeCommitRpc(
       datastore,
-      parsed.toMutations(ref._key, Precondition.none())
+      parsed.toMutations(ref._key, Precondition.exists(true))
     )
   );
-
-  return ref.firestore
-    ._ensureClientConfigured()
-    .then(datastore =>
-      invokeCommitRpc(
-        datastore,
-        parsed.toMutations(ref._key, Precondition.exists(true))
-      )
-    );
 }
 
 export function deleteDoc(
