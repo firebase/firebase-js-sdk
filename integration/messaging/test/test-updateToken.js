@@ -30,6 +30,12 @@ const TEST_DOMAIN = 'valid-vapid-key';
 
 describe('Firebase Messaging Integration Tests > update a token', function() {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
+  if (process.env.TRAVIS) {
+    this.retries(3);
+  } else {
+    this.retries(1);
+  }
+
   let globalWebDriver;
 
   before(async function() {
