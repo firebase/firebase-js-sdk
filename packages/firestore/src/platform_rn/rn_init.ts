@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import firebase from '../app';
-import { name, version } from '../package.json';
+import { PlatformSupport } from '../platform/platform';
+import { ReactNativePlatform } from './rn_platform';
 
-import '../auth';
-import '../database';
-// TODO(b/158625454): Storage doesn't actually work by default in RN (it uses
-//  `atob`). We should provide a RN build that works out of the box.
-import '../storage';
-import '../firestore';
-
-firebase.registerVersion(name, version, 'rn');
-
-export default firebase;
+/**
+ * This code needs to run before Firestore is used. This can be achieved in
+ * several ways:
+ *   1) Through the JSCompiler compiling this code and then (automatically)
+ *      executing it before exporting the Firestore symbols.
+ *   2) Through importing this module first in a Firestore main module
+ */
+PlatformSupport.setPlatform(new ReactNativePlatform());

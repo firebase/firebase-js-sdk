@@ -41,6 +41,7 @@
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
+  "react-native": "dist/index.rn.esm2017.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -58,6 +59,7 @@
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.0",
+    "js-base64": "2.5.2",
     "tslib": "1.11.1"
   },
   "peerDependencies": {

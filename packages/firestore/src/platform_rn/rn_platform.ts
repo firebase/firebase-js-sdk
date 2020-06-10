@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-import firebase from '../app';
-import { name, version } from '../package.json';
+import { BrowserPlatform } from '../platform_browser/browser_platform';
+import { Base64 } from 'js-base64';
 
-import '../auth';
-import '../database';
-// TODO(b/158625454): Storage doesn't actually work by default in RN (it uses
-//  `atob`). We should provide a RN build that works out of the box.
-import '../storage';
-import '../firestore';
+// Implements the Platform API for ReactNative.
+export class ReactNativePlatform extends BrowserPlatform {
+  readonly base64Available = true;
 
-firebase.registerVersion(name, version, 'rn');
+  atob(encoded: string): string {
+    return Base64.decode(encoded);
+  }
 
-export default firebase;
+  btoa(raw: string): string {
+    return Base64.encode(raw);
+  }
+}
