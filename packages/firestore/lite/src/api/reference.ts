@@ -58,9 +58,9 @@ import {
   validateArgType,
   validateCollectionPath,
   validateDocumentPath,
+  validateExactNumberOfArgs,
   validatePositiveNumber
 } from '../../../src/util/input_validation';
-import { Code, FirestoreError } from '../../../src/util/error';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 
 /**
@@ -236,21 +236,8 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     before: boolean
   ): Bound {
     if (docOrField instanceof DocumentSnapshot) {
-      if (fields.length > 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Too many arguments provided to ${methodName}().`
-        );
-      }
-      const snap = docOrField;
-      if (!snap.exists) {
-        throw new FirestoreError(
-          Code.NOT_FOUND,
-          `Can't use a DocumentSnapshot that doesn't exist for ` +
-            `${methodName}().`
-        );
-      }
-      return this.boundFromDocument(snap._document!, before);
+      validateExactNumberOfArgs(methodName, [docOrField, ...fields], 1);
+      return this.boundFromDocument(methodName, docOrField._document, before);
     } else {
       const allFields = [docOrField].concat(fields);
       return this.boundFromFields(methodName, allFields, before);

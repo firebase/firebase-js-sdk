@@ -58,7 +58,7 @@ export function validateNoArgs(functionName: string, args: IArguments): void {
  */
 export function validateExactNumberOfArgs(
   functionName: string,
-  args: IArguments,
+  args: ArrayLike<unknown>,
   numberOfArgs: number
 ): void {
   if (args.length !== numberOfArgs) {
