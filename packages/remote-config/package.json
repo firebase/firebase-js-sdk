@@ -33,7 +33,7 @@
     "@firebase/remote-config-types": "0.1.9",
     "@firebase/util": "0.2.48",
     "@firebase/component": "0.1.13",
-    "tslib": "1.11.1"
+    "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {

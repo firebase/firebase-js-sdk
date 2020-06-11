@@ -24,6 +24,7 @@ describe('Connection', () => {
     new Connection(
       '1',
       repoInfoForConnectionTest(),
+      'fake-app-id',
       message => {},
       (timestamp, sessionId) => {
         expect(sessionId).not.to.be.null;
@@ -43,11 +44,13 @@ describe('Connection', () => {
     new Connection(
       '1',
       info,
+      'fake-app-id',
       message => {},
       (timestamp, sessionId) => {
         new Connection(
           '2',
           info,
+          'fake-app-id',
           message => {},
           (timestamp, sessionId) => {},
           () => {},
