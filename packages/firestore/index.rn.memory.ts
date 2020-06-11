@@ -21,13 +21,14 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { Firestore } from './src/api/database';
 import { MemoryComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
+
 import './register-module';
-import './src/platform_node/node_init';
+import './src/platform_rn/rn_init';
 
 import { name, version } from './package.json';
 
 /**
- * Registers the memory-only Firestore build for Node with the components
+ * Registers the memory-only Firestore build for ReactNative with the components
  * framework.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
@@ -35,7 +36,7 @@ export function registerFirestore(instance: FirebaseNamespace): void {
     instance,
     (app, auth) => new Firestore(app, auth, new MemoryComponentProvider())
   );
-  instance.registerVersion(name, version, 'node');
+  instance.registerVersion(name, version, 'rn');
 }
 
 registerFirestore(firebase);
