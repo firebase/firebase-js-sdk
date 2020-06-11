@@ -62,7 +62,7 @@ async function addPayloadToDb(payload) {
 async function addPayloadToDbInternal(db, payload) {
   // onsuccess might race with onupgradeneeded. Consequently causing " object stores was not found" error. Therefore, wait briefly for db.createObjectStore to complete
   const delay = ms => new Promise(res => setTimeout(res, ms));
-  await delay(/* milliseconds= */ 3000);
+  await delay(/* milliseconds= */ 30000);
 
   tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readwrite');
 
