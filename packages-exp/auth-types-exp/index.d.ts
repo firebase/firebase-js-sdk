@@ -234,3 +234,16 @@ export interface PhoneInfoOptions {
 export interface AuthProvider {
   readonly providerId: ProviderId;
 }
+
+/**
+ * A provider for generating email & password and email link credentials
+ */
+export abstract class EmailAuthProvider implements AuthProvider {
+  private constructor();
+  static readonly PROVIDER_ID: string;
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: string;
+  static readonly EMAIL_LINK_SIGN_IN_METHOD: string;
+  static credential(email: string, password: string): AuthCredential;
+  static credentialWithLink(auth: Auth, email: string, emailLink: string): AuthCredential;
+  readonly providerId: ProviderId;
+}
