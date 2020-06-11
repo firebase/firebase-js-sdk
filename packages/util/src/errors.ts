@@ -66,7 +66,8 @@ export interface StringLike {
 }
 
 export interface ErrorData {
-  [key: string]: StringLike | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export interface FirebaseError extends Error, ErrorData {

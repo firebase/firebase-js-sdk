@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import {
   HttpsCallable,
   HttpsCallableResult,
@@ -70,7 +70,7 @@ function failAfter(millis: number): Promise<never> {
  * The main class for the Firebase Functions SDK.
  * @internal
  */
-export class FunctionsService {
+export class FunctionsService implements _FirebaseService {
   readonly contextProvider: ContextProvider;
   emulatorOrigin: string | null = null;
   cancelAllRequests: Promise<void>;
@@ -95,11 +95,9 @@ export class FunctionsService {
     });
   }
 
-  INTERNAL = {
-    delete: (): Promise<void> => {
-      return this.deleteService();
-    }
-  };
+  delete(): Promise<void> {
+    return this.deleteService();
+  }
 
   /**
    * Returns the URL for a callable with the given name.

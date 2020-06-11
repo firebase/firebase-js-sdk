@@ -19,6 +19,7 @@ import { FunctionsErrorCode } from '@firebase/functions-types-exp';
 import { decode } from './serializer';
 import { HttpResponseBody } from './service';
 import { FirebaseError } from '@firebase/util';
+import { FUNCTIONS_TYPE } from './constants';
 
 /**
  * Standard error codes for different ways a request can fail, as defined by:
@@ -57,14 +58,14 @@ export class FunctionsError extends FirebaseError {
      * A standard error code that will be returned to the client. This also
      * determines the HTTP status code of the response, as defined in code.proto.
      */
-    readonly code: FunctionsErrorCode,
+    code: FunctionsErrorCode,
     message?: string,
     /**
      * Extra data to be converted to JSON and included in the error response.
      */
     readonly details?: unknown
   ) {
-    super(code, message || '');
+    super(`${FUNCTIONS_TYPE}/${code}`, message || '');
   }
 }
 

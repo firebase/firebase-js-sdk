@@ -23,11 +23,7 @@ import {
   ComponentContainer,
   InstanceFactory
 } from '@firebase/component';
-
-/**
- * Type constant for Firebase Functions.
- */
-export const FUNCTIONS_TYPE = 'functions';
+import { FUNCTIONS_TYPE } from './constants';
 
 export const DEFAULT_REGION = 'us-central1';
 

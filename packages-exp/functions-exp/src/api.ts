@@ -17,7 +17,7 @@
 
 import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { FUNCTIONS_TYPE } from './config';
+import { FUNCTIONS_TYPE } from './constants';
 
 import { Provider } from '@firebase/component';
 import {

@@ -37,8 +37,6 @@
   },
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",
-    "@firebase/messaging": "0.6.16",
-    "@firebase/util":  "0.2.47",
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.8.3"
@@ -53,9 +51,11 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.12",
+    "@firebase/component": "0.1.13",
     "@firebase/functions-types-exp": "0.0.800",
+    "@firebase/messaging": "0.6.17",
     "@firebase/messaging-types": "0.4.5",
+    "@firebase/util": "0.2.48",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.11.1"
   },
