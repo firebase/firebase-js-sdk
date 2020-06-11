@@ -22,7 +22,7 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { Platform } from '../platform/platform';
+import { loadConnection, newSerializer } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -93,7 +93,6 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
 
   constructor(
-    private platform: Platform,
     private databaseInfo: DatabaseInfo,
     private credentials: CredentialsProvider,
     /**
@@ -235,16 +234,13 @@ export class FirestoreClient {
       // Datastore (without duplicating the initializing logic once per
       // provider).
 
-      const connection = await this.platform.loadConnection(this.databaseInfo);
-      const serializer = this.platform.newSerializer(
-        this.databaseInfo.databaseId
-      );
+      const connection = await loadConnection(this.databaseInfo);
+      const serializer = newSerializer(this.databaseInfo.databaseId);
       const datastore = newDatastore(connection, this.credentials, serializer);
 
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        platform: this.platform,
         datastore,
         clientId: this.clientId,
         initialUser: user,

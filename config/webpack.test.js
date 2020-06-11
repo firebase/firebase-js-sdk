@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,28 @@ module.exports = {
         },
         enforce: 'post',
         exclude: [/\.test\.ts$/, /\btest(ing)?\//]
+      },
+      {
+        test: /packages\/firestore\/.*\.tsx?$/,
+        use: {
+          loader: 'string-replace-loader',
+          options: {
+            multiple: [
+              {
+                search: '/platform/platform',
+                replace: '/platform_browser/browser_platform'
+              },
+              {
+                search: '/platform/format_json',
+                replace: '/platform_browser/browser_format_json'
+              },
+              {
+                search: '/platform/random_bytes',
+                replace: '/platform_browser/browser_random_bytes'
+              }
+            ]
+          }
+        }
       },
       {
         test: /\.js$/,

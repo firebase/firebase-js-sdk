@@ -18,6 +18,7 @@
 import * as path from 'path';
 
 import json from 'rollup-plugin-json';
+import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
@@ -31,7 +32,8 @@ import {
   firestoreTransformers,
   manglePrivatePropertiesOptions,
   resolveNodeExterns,
-  resolveBrowserExterns
+  resolveBrowserExterns,
+  generateAliasConfig
 } from './rollup.shared';
 
 // Firestore is released in a number of different build configurations:
@@ -61,6 +63,7 @@ import {
 // MARK: Browser builds
 
 const browserBuildPlugins = [
+  alias(generateAliasConfig('browser')),
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -100,6 +103,11 @@ const browserBuilds = [
   }
 ];
 
+const reactNativeBuildPlugins = [
+  alias(generateAliasConfig('rn')),
+  ...browserBuildPlugins.slice(1)
+];
+
 const reactNativeBuilds = [
   // Persistence build
   {
@@ -109,7 +117,7 @@ const reactNativeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: browserBuildPlugins,
+    plugins: reactNativeBuildPlugins,
     external: resolveBrowserExterns
   },
   // Memory-only build
@@ -120,7 +128,7 @@ const reactNativeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: browserBuildPlugins,
+    plugins: reactNativeBuildPlugins,
     external: resolveBrowserExterns
   }
 ];
@@ -128,6 +136,7 @@ const reactNativeBuilds = [
 // MARK: Node builds
 
 const nodeBuildPlugins = [
+  alias(generateAliasConfig('node')),
   typescriptPlugin({
     typescript,
     tsconfigOverride: {

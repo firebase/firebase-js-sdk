@@ -17,7 +17,7 @@
 
 import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
-import { PlatformSupport } from '../platform/platform';
+import { formatJSON } from '../platform/format_json';
 
 export { LogLevel };
 
@@ -60,9 +60,8 @@ function argToString(obj: unknown): string | unknown {
   if (typeof obj === 'string') {
     return obj;
   } else {
-    const platform = PlatformSupport.getPlatform();
     try {
-      return platform.formatJSON(obj);
+      return formatJSON(obj);
     } catch (e) {
       // Converting to JSON failed, just log the object directly
       return obj;

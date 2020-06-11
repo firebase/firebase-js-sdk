@@ -46,7 +46,6 @@ import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
-import { PlatformSupport } from '../platform/platform';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
@@ -529,7 +528,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const databaseInfo = this.makeDatabaseInfo();
 
     this._firestoreClient = new FirestoreClient(
-      PlatformSupport.getPlatform(),
       databaseInfo,
       this._credentials,
       this._queue

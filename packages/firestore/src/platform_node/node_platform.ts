@@ -15,72 +15,71 @@
  * limitations under the License.
  */
 
-import { randomBytes } from 'crypto';
-import { inspect } from 'util';
-
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
-import { ConnectivityMonitor } from './../remote/connectivity_monitor';
-import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
+import { ConnectivityMonitor } from '../remote/connectivity_monitor';
+import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
-import { debugAssert } from '../util/assert';
 
-export class NodePlatform implements Platform {
-  readonly base64Available = true;
+// The exports in this class must match the exports in '../platform/platform' as
+// they are bundled with the browser build during the Rollup build.
 
-  readonly document = null;
+/** Loads the GRPC stack */
+export function loadConnection(
+  databaseInfo: DatabaseInfo
+): Promise<Connection> {
+  const protos = loadProtos();
+  return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+}
 
-  get window(): Window | null {
-    if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
-      // eslint-disable-next-line no-restricted-globals
-      return window;
-    }
+/** Return the Platform-specific connectivity monitor. */
+export function newConnectivityMonitor(): ConnectivityMonitor {
+  return new NoopConnectivityMonitor();
+}
 
-    return null;
+/** Return the Platform-specific serializer monitor. */
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, { useProto3Json: false });
+}
+
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  // Node actually doesn't validate base64 strings.
+  // A quick sanity check that is not a fool-proof validation
+  if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Not a valid Base64 string: ' + encoded
+    );
+  }
+  return new Buffer(encoded, 'base64').toString('binary');
+}
+
+/** Converts a binary string to a Base64 encoded string. */
+export function encodeBase64(raw: string): string {
+  return new Buffer(raw, 'binary').toString('base64');
+}
+
+/** The Platform's 'window' implementation or null if not available. */
+export function getWindow(): Window | null {
+  if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+    // eslint-disable-next-line no-restricted-globals
+    return window;
   }
 
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    const protos = loadProtos();
-    return Promise.resolve(new GrpcConnection(protos, databaseInfo));
-  }
+  return null;
+}
 
-  newConnectivityMonitor(): ConnectivityMonitor {
-    return new NoopConnectivityMonitor();
-  }
+/** The Platform's 'document' implementation or null if not available. */
+export function getDocument(): Document | null {
+  return null;
+}
 
-  newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(partitionId, { useProto3Json: false });
-  }
-
-  formatJSON(value: unknown): string {
-    // util.inspect() results in much more readable output than JSON.stringify()
-    return inspect(value, { depth: 100 });
-  }
-
-  atob(encoded: string): string {
-    // Node actually doesn't validate base64 strings.
-    // A quick sanity check that is not a fool-proof validation
-    if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Not a valid Base64 string: ' + encoded
-      );
-    }
-    return new Buffer(encoded, 'base64').toString('binary');
-  }
-
-  btoa(raw: string): string {
-    return new Buffer(raw, 'binary').toString('base64');
-  }
-
-  randomBytes(nBytes: number): Uint8Array {
-    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
-
-    return randomBytes(nBytes);
-  }
+/** True if and only if the Base64 conversion functions are available. */
+export function isBase64Available(): boolean {
+  return true;
 }

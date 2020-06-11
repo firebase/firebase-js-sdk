@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import './src/platform_browser/browser_init';
+// TODO(mrschmidt): Once imported into Google3, fix
+// third_party/javascript/firebase/src/packages/firestore/tools/console.build.js
 
 export { Firestore, FirestoreDatabase } from './src/api/database';
 export {

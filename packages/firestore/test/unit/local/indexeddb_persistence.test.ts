@@ -60,13 +60,11 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
-import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -75,6 +73,8 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+import { FakeDocument, testDocument } from '../../util/test_platform';
+import { getWindow } from '../../../src/platform/platform';
 
 use(chaiAsPromised);
 
@@ -118,7 +118,7 @@ async function withUnstartedCustomPersistence(
   forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
@@ -127,23 +127,21 @@ async function withUnstartedCustomPersistence(
   });
 
   const queue = new AsyncQueue();
-  const platform = new TestPlatform(
-    PlatformSupport.getPlatform(),
-    new SharedFakeWebStorage()
-  );
+  const document = testDocument();
   const persistence = new MockIndexedDbPersistence(
     multiClient,
     TEST_PERSISTENCE_PREFIX,
     clientId,
-    platform,
     LruParams.DEFAULT,
     queue,
+    getWindow(),
+    document,
     serializer,
     MOCK_SEQUENCE_NUMBER_SYNCER,
     forceOwningTab
   );
 
-  await fn(persistence, platform, queue);
+  await fn(persistence, document, queue);
 }
 
 function withCustomPersistence(
@@ -152,7 +150,7 @@ function withCustomPersistence(
   forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
@@ -160,9 +158,9 @@ function withCustomPersistence(
     clientId,
     multiClient,
     forceOwningTab,
-    async (persistence, platform, queue) => {
+    async (persistence, document, queue) => {
       await persistence.start();
-      await fn(persistence, platform, queue);
+      await fn(persistence, document, queue);
       await persistence.shutdown();
     }
   );
@@ -172,7 +170,7 @@ async function withPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
@@ -188,7 +186,7 @@ async function withMultiClientPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
@@ -204,7 +202,7 @@ async function withForcedPersistence(
   clientId: ClientId,
   fn: (
     persistence: IndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
@@ -1100,8 +1098,8 @@ describe('IndexedDb: canActAsPrimary', () => {
     it(testName, () => {
       return withMultiClientPersistence(
         'thatClient',
-        async (thatPersistence, thatPlatform, thatQueue) => {
-          thatPlatform.raiseVisibilityEvent(thatVisibility);
+        async (thatPersistence, thatDocument, thatQueue) => {
+          thatDocument.raiseVisibilityEvent(thatVisibility);
           thatPersistence.setNetworkEnabled(thatNetwork);
           await thatQueue.drain();
 
@@ -1111,8 +1109,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
           await withMultiClientPersistence(
             'thisClient',
-            async (thisPersistence, thisPlatform, thisQueue) => {
-              thisPlatform.raiseVisibilityEvent(thisVisibility);
+            async (thisPersistence, thisDocument, thisQueue) => {
+              thisDocument.raiseVisibilityEvent(thisVisibility);
               thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
 
@@ -1131,8 +1129,8 @@ describe('IndexedDb: canActAsPrimary', () => {
   }
 
   it('is eligible when only client', () => {
-    return withPersistence('clientA', async (persistence, platform, queue) => {
-      platform.raiseVisibilityEvent('hidden');
+    return withPersistence('clientA', async (persistence, document, queue) => {
+      document.raiseVisibilityEvent('hidden');
       persistence.setNetworkEnabled(false);
       await queue.drain();
 

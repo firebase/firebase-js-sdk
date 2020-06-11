@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-import { ReactNativePlatform } from './rn_platform';
+import { inspect } from 'util';
 
-/**
- * This code needs to run before Firestore is used. This can be achieved in
- * several ways:
- *   1) Through the JSCompiler compiling this code and then (automatically)
- *      executing it before exporting the Firestore symbols.
- *   2) Through importing this module first in a Firestore main module
- */
-PlatformSupport.setPlatform(new ReactNativePlatform());
+/** Formats an object as a JSON string, suitable for logging. */
+export function formatJSON(value: unknown): string {
+  // util.inspect() results in much more readable output than JSON.stringify()
+  return inspect(value, { depth: 100 });
+}

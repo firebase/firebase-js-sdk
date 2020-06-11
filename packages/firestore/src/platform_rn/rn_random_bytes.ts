@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,4 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { PlatformSupport } from '../../../src/platform/platform';
-
-describe('Platform', () => {
-  it('can load the platform at runtime', () => {
-    expect(PlatformSupport.getPlatform()).to.exist;
-  });
-});
+export { randomBytes } from '../platform_browser/browser_random_bytes';

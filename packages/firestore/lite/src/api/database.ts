@@ -33,7 +33,7 @@ import {
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { loadConnection, newSerializer } from '../../../src/platform/platform';
 import { Deferred } from '../../../src/util/promise';
 import { cast } from './util';
 
@@ -83,19 +83,11 @@ export class Firestore implements firestore.FirebaseFirestore {
 
     // Kick off initializing the datastore but don't actually wait for it.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(connection => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        const datastore = newDatastore(
-          connection,
-          this._credentials,
-          serializer
-        );
-        this._datastoreDeferred.resolve(datastore);
-      });
+    loadConnection(databaseInfo).then(connection => {
+      const serializer = newSerializer(databaseInfo.databaseId);
+      const datastore = newDatastore(connection, this._credentials, serializer);
+      this._datastoreDeferred.resolve(datastore);
+    });
   }
 
   _ensureClientConfigured(): Promise<Datastore> {

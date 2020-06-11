@@ -20,8 +20,6 @@ import { Firestore } from './src/api/database';
 import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
 
-import '../src/platform_node/node_init';
-
 export {
   Firestore,
   initializeFirestore,

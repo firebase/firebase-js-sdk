@@ -26,7 +26,7 @@ import {
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { loadConnection, newSerializer } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { withTestDbsSettings } from './helpers';
 import { User } from '../../../src/auth/user';
@@ -52,15 +52,11 @@ export function withTestDatastore(
   credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  return PlatformSupport.getPlatform()
-    .loadConnection(databaseInfo)
-    .then(conn => {
-      const serializer = PlatformSupport.getPlatform().newSerializer(
-        databaseInfo.databaseId
-      );
-      const datastore = newDatastore(conn, credentialsProvider, serializer);
-      return fn(datastore);
-    });
+  return loadConnection(databaseInfo).then(conn => {
+    const serializer = newSerializer(databaseInfo.databaseId);
+    const datastore = newDatastore(conn, credentialsProvider, serializer);
+    return fn(datastore);
+  });
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {

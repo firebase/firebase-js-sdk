@@ -50,7 +50,6 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { newDatastore, Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -88,7 +87,6 @@ import {
   version
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
-import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -113,6 +111,12 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { encodeBase64 } from '../../../src/platform/platform';
+import {
+  FakeDocument,
+  SharedFakeWebStorage,
+  testWindow
+} from '../../util/test_platform';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -155,6 +159,8 @@ abstract class TestRunner {
   private snapshotsInSyncListeners: Array<Observer<void>>;
   private snapshotsInSyncEvents = 0;
 
+  protected document = new FakeDocument();
+
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -184,7 +190,6 @@ abstract class TestRunner {
   private serializer: JsonProtoSerializer;
 
   constructor(
-    protected readonly platform: TestPlatform,
     private sharedWrites: SharedWriteTracker,
     private persistenceSettings: PersistenceSettings,
     clientIndex: number,
@@ -232,7 +237,6 @@ abstract class TestRunner {
       {
         asyncQueue: this.queue,
         databaseInfo: this.databaseInfo,
-        platform: this.platform,
         datastore: this.datastore,
         clientId: this.clientId,
         initialUser: this.user,
@@ -576,7 +580,7 @@ abstract class TestRunner {
       targetChange: {
         readTime: this.serializer.toVersion(version(watchSnapshot.version)),
         // Convert to base64 string so it can later be parsed into ByteString.
-        resumeToken: this.platform.btoa(watchSnapshot.resumeToken || ''),
+        resumeToken: encodeBase64(watchSnapshot.resumeToken || ''),
         targetIds: watchSnapshot.targetIds
       }
     };
@@ -701,7 +705,7 @@ abstract class TestRunner {
 
   private async doApplyClientState(state: SpecClientState): Promise<void> {
     if (state.visibility) {
-      this.platform.raiseVisibilityEvent(state.visibility!);
+      this.document.raiseVisibilityEvent(state.visibility!);
     }
 
     if (state.primary) {
@@ -1043,13 +1047,11 @@ abstract class TestRunner {
 
 class MemoryTestRunner extends TestRunner {
   constructor(
-    platform: TestPlatform,
     sharedWrites: SharedWriteTracker,
     clientIndex: number,
     config: SpecConfig
   ) {
     super(
-      platform,
       sharedWrites,
       {
         durable: false
@@ -1075,13 +1077,12 @@ class MemoryTestRunner extends TestRunner {
  */
 class IndexedDbTestRunner extends TestRunner {
   constructor(
-    platform: TestPlatform,
     sharedWrites: SharedWriteTracker,
+    private sharedFakeWebStorage: SharedFakeWebStorage,
     clientIndex: number,
     config: SpecConfig
   ) {
     super(
-      platform,
       sharedWrites,
       {
         durable: true,
@@ -1098,7 +1099,10 @@ class IndexedDbTestRunner extends TestRunner {
     configuration: ComponentConfiguration,
     gcEnabled: boolean
   ): Promise<MockIndexedDbComponentProvider> {
-    const componentProvider = new MockIndexedDbComponentProvider();
+    const componentProvider = new MockIndexedDbComponentProvider(
+      testWindow(this.sharedFakeWebStorage),
+      this.document
+    );
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1120,7 +1124,6 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  // eslint-disable-next-line no-console
   const sharedMockStorage = new SharedFakeWebStorage();
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
@@ -1129,20 +1132,15 @@ export async function runSpec(
 
   const ensureRunner = async (clientIndex: number): Promise<TestRunner> => {
     if (!runners[clientIndex]) {
-      const platform = new TestPlatform(
-        PlatformSupport.getPlatform(),
-        sharedMockStorage
-      );
       if (usePersistence) {
         runners[clientIndex] = new IndexedDbTestRunner(
-          platform,
           outstandingMutations,
+          sharedMockStorage,
           clientIndex,
           config
         );
       } else {
         runners[clientIndex] = new MemoryTestRunner(
-          platform,
           outstandingMutations,
           clientIndex,
           config

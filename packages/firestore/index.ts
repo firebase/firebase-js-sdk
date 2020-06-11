@@ -24,7 +24,6 @@ import { configureForFirebase } from './src/platform/config';
 import { name, version } from './package.json';
 
 import './register-module';
-import './src/platform_browser/browser_init';
 
 /**
  * Registers the main Firestore build with the components framework.

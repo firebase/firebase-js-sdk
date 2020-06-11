@@ -47,3 +47,18 @@ export function isSafeInteger(value: unknown): boolean {
     value >= Number.MIN_SAFE_INTEGER
   );
 }
+
+/** The subset of the Window interface used by the SDK. */
+export interface WindowLike {
+  readonly localStorage: Storage;
+  readonly indexedDB: IDBFactory | null;
+  addEventListener(type: string, listener: EventListener): void;
+  removeEventListener(type: string, listener: EventListener): void;
+}
+
+/** The subset of the Document interface used by the SDK. */
+export interface DocumentLike {
+  readonly visibilityState: VisibilityState;
+  addEventListener(type: string, listener: EventListener): void;
+  removeEventListener(type: string, listener: EventListener): void;
+}

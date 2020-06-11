@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-import { NodePlatform } from './node_platform';
+import { debugAssert } from '../util/assert';
+import { randomBytes as generateRandomBytes } from 'crypto';
 
 /**
- * This code needs to run before Firestore is used. This can be achieved in
- * several ways:
- *   1) Through the JSCompiler compiling this code and then (automatically)
- *      executing it before exporting the Firestore symbols.
- *   2) Through importing this module first in a Firestore main module
+ * Generates `nBytes` of random bytes.
+ *
+ * If `nBytes < 0` , an error will be thrown.
  */
-PlatformSupport.setPlatform(new NodePlatform());
+export function randomBytes(nBytes: number): Uint8Array {
+  debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+  return generateRandomBytes(nBytes);
+}

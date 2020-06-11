@@ -35,7 +35,7 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { newSerializer } from '../../../src/platform/platform';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import { FieldPath } from './field_path';
@@ -422,7 +422,7 @@ export function newUserDataReader(
   databaseId: DatabaseId,
   settings: firestore.Settings
 ): UserDataReader {
-  const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
+  const serializer = newSerializer(databaseId);
   return new UserDataReader(
     databaseId,
     !!settings.ignoreUndefinedProperties,

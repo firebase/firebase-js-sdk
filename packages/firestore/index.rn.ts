@@ -22,8 +22,6 @@ import { IndexedDbComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
 
 import './register-module';
-import './src/platform_rn/rn_init';
-
 import { name, version } from './package.json';
 
 /**

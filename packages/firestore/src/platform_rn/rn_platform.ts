@@ -15,22 +15,36 @@
  * limitations under the License.
  */
 
-import { BrowserPlatform } from '../platform_browser/browser_platform';
 import { base64 } from '@firebase/util';
 
-// Implements the Platform API for ReactNative.
-export class ReactNativePlatform extends BrowserPlatform {
-  readonly base64Available = true;
+// ReactNative-specific platform implementation that provides its own Base64
+// encoding.
+// The exports in this class must match the exports in '../platform/platform' as
+// they are bundled with the browser build during the Rollup build.
 
-  atob(encoded: string): string {
-    // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-    // the encoding used on the backend.
-    return base64.decodeString(encoded, /* webSafe =*/ false);
-  }
+export {
+  loadConnection,
+  newConnectivityMonitor,
+  newSerializer,
+  getWindow,
+  getDocument
+} from '../platform_browser/browser_platform';
 
-  btoa(raw: string): string {
-    // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-    // the encoding used on the backend.
-    return base64.encodeString(raw, /* webSafe =*/ false);
-  }
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
+  // the encoding used on the backend.
+  return base64.decodeString(encoded, /* webSafe =*/ false);
+}
+
+/** Converts a binary string to a Base64 encoded string. */
+export function encodeBase64(raw: string): string {
+  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
+  // the encoding used on the backend.
+  return base64.encodeString(raw, /* webSafe =*/ false);
+}
+
+/** True if and only if the Base64 conversion functions are available. */
+export function isBase64Available(): boolean {
+  return true;
 }

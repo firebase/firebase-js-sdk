@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
+import { isBase64Available } from '../platform/platform';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
@@ -36,7 +36,7 @@ function assertUint8ArrayAvailable(): void {
 
 /** Helper function to assert Base64 functions are available at runtime. */
 function assertBase64Available(): void {
-  if (!PlatformSupport.getPlatform().base64Available) {
+  if (!isBase64Available()) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
       'Blobs are unavailable in Firestore in this environment.'

@@ -27,7 +27,12 @@ import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseInfo } from './database_info';
-import { Platform } from '../platform/platform';
+import {
+  getDocument,
+  getWindow,
+  newConnectivityMonitor,
+  newSerializer
+} from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
@@ -51,7 +56,6 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
-  platform: Platform;
   datastore: Datastore;
   clientId: ClientId;
   initialUser: User;
@@ -152,7 +156,7 @@ export class MemoryComponentProvider implements ComponentProvider {
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      cfg.platform.newConnectivityMonitor()
+      newConnectivityMonitor()
     );
   }
 
@@ -250,14 +254,15 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       cfg.databaseInfo
     );
-    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    const serializer = newSerializer(cfg.databaseInfo.databaseId);
     return new IndexedDbPersistence(
       cfg.persistenceSettings.synchronizeTabs,
       persistenceKey,
       cfg.clientId,
-      cfg.platform,
       LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
       cfg.asyncQueue,
+      getWindow(),
+      getDocument(),
       serializer,
       this.sharedClientState,
       cfg.persistenceSettings.forceOwningTab
@@ -269,7 +274,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       cfg.persistenceSettings.durable &&
       cfg.persistenceSettings.synchronizeTabs
     ) {
-      if (!WebStorageSharedClientState.isAvailable(cfg.platform)) {
+      const window = getWindow();
+      if (!WebStorageSharedClientState.isAvailable(window)) {
         throw new FirestoreError(
           Code.UNIMPLEMENTED,
           'IndexedDB persistence is only available on platforms that support LocalStorage.'
@@ -279,8 +285,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
         cfg.databaseInfo
       );
       return new WebStorageSharedClientState(
+        window,
         cfg.asyncQueue,
-        cfg.platform,
         persistenceKey,
         cfg.clientId,
         cfg.initialUser

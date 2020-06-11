@@ -16,78 +16,65 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from '../remote/connectivity_monitor';
-
 import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
-import { debugAssert } from '../util/assert';
 
 // Implements the Platform API for browsers and some browser-like environments
-// (including ReactNative, which has its own ReactNativePlatform that extends
-// from this class).
-export class BrowserPlatform implements Platform {
-  readonly base64Available = typeof atob !== 'undefined';
+// (including ReactNative, which has its own platform implementation that reuses
+// most of these methods).
+// The exports in this class must match the exports in '../platform/platform' as
+// they are bundled with the browser build during the Rollup build.
 
-  get document(): Document | null {
-    // `document` is not always available, e.g. in ReactNative and WebWorkers.
-    // eslint-disable-next-line no-restricted-globals
-    return typeof document !== 'undefined' ? document : null;
+/** Initializes the WebChannelConnection for the browser. */
+export function loadConnection(
+  databaseInfo: DatabaseInfo
+): Promise<Connection> {
+  return Promise.resolve(new WebChannelConnection(databaseInfo));
+}
+
+/** Return the Platform-specific connectivity monitor. */
+export function newConnectivityMonitor(): ConnectivityMonitor {
+  if (BrowserConnectivityMonitor.isAvailable()) {
+    return new BrowserConnectivityMonitor();
+  } else {
+    return new NoopConnectivityMonitor();
   }
+}
 
-  get window(): Window | null {
-    // `window` is not always available, e.g. in ReactNative and WebWorkers.
-    // eslint-disable-next-line no-restricted-globals
-    return typeof window !== 'undefined' ? window : null;
-  }
+/** Return the Platform-specific serializer monitor. */
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, { useProto3Json: true });
+}
 
-  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    return Promise.resolve(new WebChannelConnection(databaseInfo));
-  }
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  return atob(encoded);
+}
 
-  newConnectivityMonitor(): ConnectivityMonitor {
-    if (BrowserConnectivityMonitor.isAvailable()) {
-      return new BrowserConnectivityMonitor();
-    } else {
-      return new NoopConnectivityMonitor();
-    }
-  }
+/** Converts a binary string to a Base64 encoded string. */
+export function encodeBase64(raw: string): string {
+  return btoa(raw);
+}
 
-  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(databaseId, { useProto3Json: true });
-  }
+/** The Platform's 'window' implementation or null if not available. */
+export function getWindow(): Window | null {
+  // `window` is not always available, e.g. in ReactNative and WebWorkers.
+  // eslint-disable-next-line no-restricted-globals
+  return typeof window !== 'undefined' ? window : null;
+}
 
-  formatJSON(value: unknown): string {
-    return JSON.stringify(value);
-  }
+/** The Platform's 'document' implementation or null if not available. */
+export function getDocument(): Document | null {
+  // `document` is not always available, e.g. in ReactNative and WebWorkers.
+  // eslint-disable-next-line no-restricted-globals
+  return typeof document !== 'undefined' ? document : null;
+}
 
-  atob(encoded: string): string {
-    return atob(encoded);
-  }
-
-  btoa(raw: string): string {
-    return btoa(raw);
-  }
-
-  randomBytes(nBytes: number): Uint8Array {
-    debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
-
-    // Polyfills for IE and WebWorker by using `self` and `msCrypto` when `crypto` is not available.
-    const crypto =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      typeof self !== 'undefined' && (self.crypto || (self as any)['msCrypto']);
-    const bytes = new Uint8Array(nBytes);
-    if (crypto) {
-      crypto.getRandomValues(bytes);
-    } else {
-      // Falls back to Math.random
-      for (let i = 0; i < nBytes; i++) {
-        bytes[i] = Math.floor(Math.random() * 256);
-      }
-    }
-    return bytes;
-  }
+/** True if and only if the Base64 conversion functions are available. */
+export function isBase64Available(): boolean {
+  return typeof atob !== 'undefined';
 }

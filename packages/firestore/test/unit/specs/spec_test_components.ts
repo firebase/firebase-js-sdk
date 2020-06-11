@@ -43,7 +43,7 @@ import * as api from '../../../src/protos/firestore_proto_api';
 import { Deferred } from '../../../src/util/promise';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { encodeBase64, newSerializer } from '../../../src/platform/platform';
 import { FirestoreError } from '../../../src/util/error';
 import { Token } from '../../../src/api/credentials';
 import { Observer } from '../../../src/core/event_manager';
@@ -51,6 +51,12 @@ import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import { Query } from '../../../src/core/query';
 import { Mutation } from '../../../src/model/mutation';
 import { expect } from 'chai';
+import { FakeDocument } from '../../util/test_platform';
+import {
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
+import { WindowLike } from '../../../src/util/types';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -110,10 +116,30 @@ function failTransactionIfNeeded(
 export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
   persistence!: MockIndexedDbPersistence;
 
+  constructor(
+    private readonly window: WindowLike,
+    private readonly document: FakeDocument
+  ) {
+    super();
+  }
+
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
   ): GarbageCollectionScheduler | null {
     return null;
+  }
+
+  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      cfg.databaseInfo
+    );
+    return new WebStorageSharedClientState(
+      this.window,
+      cfg.asyncQueue,
+      persistenceKey,
+      cfg.clientId,
+      cfg.initialUser
+    );
   }
 
   createPersistence(cfg: ComponentConfiguration): MockIndexedDbPersistence {
@@ -125,15 +151,16 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       cfg.databaseInfo
     );
-    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    const serializer = newSerializer(cfg.databaseInfo.databaseId);
 
     return new MockIndexedDbPersistence(
       /* allowTabSynchronization= */ true,
       persistenceKey,
       cfg.clientId,
-      cfg.platform,
       LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
       cfg.asyncQueue,
+      this.window,
+      this.document,
       serializer,
       this.sharedClientState,
       cfg.persistenceSettings.forceOwningTab
@@ -235,7 +262,7 @@ export class MockConnection implements Connection {
   ): void {
     this.writeStream!.callOnMessage({
       // Convert to base64 string so it can later be parsed into ByteString.
-      streamToken: PlatformSupport.getPlatform().btoa(
+      streamToken: encodeBase64(
         'write-stream-token-' + this.nextWriteStreamToken
       ),
       commitTime,
