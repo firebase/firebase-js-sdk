@@ -24,7 +24,7 @@ import { PhoneAuthCredential } from '../credentials/phone';
 import { _verifyPhoneNumber } from '../strategies/phone';
 import { debugFail } from '../util/assert';
 
-export class PhoneAuthProvider implements externs.AuthProvider {
+export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
   static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
 
@@ -50,21 +50,21 @@ export class PhoneAuthProvider implements externs.AuthProvider {
     return new PhoneAuthCredential({ verificationId, verificationCode });
   }
 
-  static credentialFromResult(
+  static _credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
     void userCredential;
     return debugFail('not implemented');
   }
 
-  static credentialFromError(
+  static _credentialFromError(
     error: FirebaseError
   ): externs.AuthCredential | null {
     void error;
     return debugFail('not implemented');
   }
 
-  static credentialFromJSON(json: string | object): externs.AuthCredential {
+  static _credentialFromJSON(json: string | object): externs.AuthCredential {
     void json;
     return debugFail('not implemented');
   }

@@ -34,7 +34,7 @@ export interface PhoneAuthCredentialParameters {
   temporaryProof?: string;
 }
 
-export class PhoneAuthCredential implements AuthCredential {
+export class PhoneAuthCredential implements AuthCredential, externs.PhoneAuthCredential {
   readonly providerId = externs.ProviderId.PHONE;
   readonly signInMethod = externs.SignInMethod.PHONE;
 
