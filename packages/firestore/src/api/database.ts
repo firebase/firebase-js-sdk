@@ -1691,7 +1691,7 @@ export class BaseQuery {
         );
       }
       return refValue(this._databaseId, new DocumentKey(path));
-    } else if (documentIdValue instanceof DocumentReference) {
+    } else if (documentIdValue instanceof DocumentKeyReference) {
       return refValue(this._databaseId, documentIdValue._key);
     } else {
       throw new FirestoreError(
