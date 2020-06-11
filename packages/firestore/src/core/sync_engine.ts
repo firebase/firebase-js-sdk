@@ -449,9 +449,6 @@ export class SyncEngine implements RemoteSyncer {
 
     return (
       this.loadBundleAsync(bundleReader, task)
-        // TODO(wuandy): Loading a bundle will fail the entire SDK if there is
-        // an error. We really should have a way to run operations on async queue
-        // and not failing the rest if there is an error.
         .catch(reason => {
           task.failedWith(reason);
         })

@@ -226,7 +226,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents from other projects fails.', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocs(db);
+      let builder = bundleWithTestDocs(db);
       return withAlternateTestDb(persistence, async otherDb => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         expect(
@@ -234,6 +234,23 @@ apiDescribe('Bundles', (persistence: boolean) => {
             builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
           )
         ).to.be.rejectedWith('Tried to deserialize key from different project');
+
+        // Verify otherDb still functions, despite loaded a problematic bundle.
+        builder = bundleWithTestDocs(otherDb);
+        const progress = await otherDb.loadBundle(
+          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+        );
+        verifySuccessProgress(progress);
+
+        // Read from cache. These documents do not exist in backend, so they can
+        // only be read from cache.
+        const snap = await otherDb
+          .collection('coll-1')
+          .get({ source: 'cache' });
+        expect(toDataArray(snap)).to.deep.equal([
+          { k: 'a', bar: 1 },
+          { k: 'b', bar: 2 }
+        ]);
       });
     });
   });
