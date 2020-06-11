@@ -17,6 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 import { Auth } from '../../model/auth';
 import { initializeAuth } from '../auth/auth_impl';

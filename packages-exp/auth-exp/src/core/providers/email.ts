@@ -23,24 +23,24 @@ import { EmailAuthCredential } from '../credentials/email';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 
 export class EmailAuthProvider implements externs.EmailAuthProvider {
-   static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
-   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
-     externs.SignInMethod.EMAIL_PASSWORD;
-   static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
-   readonly providerId: externs.ProviderId = EmailAuthProvider.PROVIDER_ID;
+  static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
+    externs.SignInMethod.EMAIL_PASSWORD;
+  static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
+  readonly providerId: externs.ProviderId = EmailAuthProvider.PROVIDER_ID;
 
-   static credential(
-     email: string,
-     password: string,
-     signInMethod?: externs.SignInMethod
-   ): EmailAuthCredential {
-     return new EmailAuthCredential(
-       email,
-       password,
-       EmailAuthProvider.PROVIDER_ID,
-       signInMethod || this.EMAIL_PASSWORD_SIGN_IN_METHOD
-     );
-   }
+  static credential(
+    email: string,
+    password: string,
+    signInMethod?: externs.SignInMethod
+  ): EmailAuthCredential {
+    return new EmailAuthCredential(
+      email,
+      password,
+      EmailAuthProvider.PROVIDER_ID,
+      signInMethod || this.EMAIL_PASSWORD_SIGN_IN_METHOD
+    );
+  }
 
   static credentialWithLink(
     auth: Auth,
@@ -54,20 +54,18 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
       });
     }
 
-    const credential: EmailAuthCredential = this.credential(
-      email,
-      actionCodeUrl.code,
-      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
-    );
-
     // Check if the tenant ID in the email link matches the tenant ID on Auth
     // instance.
-    if (actionCodeUrl.tenantId !== auth.tenantId) {
+    if (actionCodeUrl.tenantId !== (auth.tenantId || null)) {
       throw AUTH_ERROR_FACTORY.create(AuthErrorCode.TENANT_ID_MISMATCH, {
         appName: auth.name
       });
     }
 
-    return credential;
+    return this.credential(
+      email,
+      actionCodeUrl.code,
+      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+    );
   }
- }
+}

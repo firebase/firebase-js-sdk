@@ -28,7 +28,9 @@ import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
-import { isSignInWithEmailLink, sendSignInLinkToEmail } from './email_link';
+import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from './email_link';
+import { ProviderId, SignInMethod, OperationType } from '@firebase/auth-types-exp';
+import { APIUserInfo } from '../../api/account_management/account';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -191,5 +193,43 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       )}`;
       expect(isSignInWithEmailLink(auth, link)).to.be.false;
     });
+  });
+});
+
+describe('core/strategies/email_and_password/signInWithEmailLink', () => {
+  let auth: Auth;
+  const serverUser: APIUserInfo = {
+    localId: 'local-id'
+  };
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+    mockEndpoint(Endpoint.SIGN_IN_WITH_EMAIL_LINK, {
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [serverUser]
+    });
+  });
+  afterEach(mockFetch.tearDown);
+
+  it('should sign in the user', async () => {
+    const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
+    const actionLink =
+      'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
+      'continueUrl=' +
+      encodeURIComponent(continueUrl) +
+      '&languageCode=en&state=bla';
+    const { credential, user, operationType } = await signInWithEmailLink(auth, 'some-email', actionLink);
+    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
+    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+    expect(operationType).to.eq(OperationType.SIGN_IN);
+    expect(user.uid).to.eq(serverUser.localId);
+    expect(user.isAnonymous).to.be.false;
   });
 });
