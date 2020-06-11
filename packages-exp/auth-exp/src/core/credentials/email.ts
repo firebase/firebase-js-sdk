@@ -26,10 +26,11 @@ import { debugFail } from '../util/assert';
 import { AuthCredential } from '.';
 
 export class EmailAuthCredential implements AuthCredential {
+  readonly providerId = EmailAuthProvider.PROVIDER_ID;
+
   constructor(
     readonly email: string,
     readonly password: string,
-    readonly providerId: typeof EmailAuthProvider.PROVIDER_ID,
     readonly signInMethod: externs.SignInMethod
   ) {}
 
@@ -42,7 +43,7 @@ export class EmailAuthCredential implements AuthCredential {
   }
 
   async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
-     switch (this.signInMethod) {
+    switch (this.signInMethod) {
       case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
         return signInWithPassword(auth, {
           returnSecureToken: true,

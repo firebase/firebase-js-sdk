@@ -36,7 +36,11 @@ import {
   signInWithEmailAndPassword
 } from './email_and_password';
 import { APIUserInfo } from '../../api/account_management/account';
-import { SignInMethod, OperationType, ProviderId } from '@firebase/auth-types-exp';
+import {
+  SignInMethod,
+  OperationType,
+  ProviderId
+} from '@firebase/auth-types-exp';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -342,7 +346,11 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
   afterEach(mockFetch.tearDown);
 
   it('should sign in the user', async () => {
-    const { credential, user, operationType } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password');
+    const {
+      credential,
+      user,
+      operationType
+    } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password');
     expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
     expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
     expect(operationType).to.eq(OperationType.SIGN_IN);

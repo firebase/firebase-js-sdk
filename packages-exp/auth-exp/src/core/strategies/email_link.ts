@@ -26,7 +26,6 @@ import { _getCurrentUrl } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 
-
 export async function sendSignInLinkToEmail(
   auth: externs.Auth,
   email: string,
@@ -55,9 +54,13 @@ export async function signInWithEmailLink(
   auth: externs.Auth,
   email: string,
   emailLink?: string
-): Promise<externs.UserCredential> { 
+): Promise<externs.UserCredential> {
   return signInWithCredential(
     auth,
-    EmailAuthProvider.credentialWithLink(auth as Auth, email, emailLink || _getCurrentUrl())
+    EmailAuthProvider.credentialWithLink(
+      auth as Auth,
+      email,
+      emailLink || _getCurrentUrl()
+    )
   );
 }

@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { signUp } from '../../api/authentication/sign_up';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';

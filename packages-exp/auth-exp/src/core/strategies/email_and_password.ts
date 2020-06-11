@@ -85,7 +85,7 @@ export async function verifyPasswordResetCode(
   return data.email!;
 }
 
-export async function signInWithEmailAndPassword(
+export function signInWithEmailAndPassword(
   auth: externs.Auth,
   email: string,
   password: string

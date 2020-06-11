@@ -41,7 +41,11 @@ describe('core/credentials/email', () => {
   });
 
   context('email & password', () => {
-    const credential = new EmailAuthCredential('some-email', 'some-password', EmailAuthProvider.PROVIDER_ID, EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD);
+    const credential = new EmailAuthCredential(
+      'some-email',
+      'some-password',
+      EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
+    );
 
     beforeEach(() => {
       mockFetch.setUp();
@@ -101,7 +105,11 @@ describe('core/credentials/email', () => {
   });
 
   context('email link', () => {
-    const credential = new EmailAuthCredential('some-email', 'oob-code', EmailAuthProvider.PROVIDER_ID, EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD);
+    const credential = new EmailAuthCredential(
+      'some-email',
+      'oob-code',
+      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+    );
 
     beforeEach(() => {
       mockFetch.setUp();

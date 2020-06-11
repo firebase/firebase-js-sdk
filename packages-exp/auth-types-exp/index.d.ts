@@ -193,14 +193,14 @@ export abstract class AuthCredential {
 
 export abstract class OAuthCredential extends AuthCredential {
   static fromJSON(json: object | string): OAuthCredential | null;
-  
+
   readonly accessToken?: string;
   readonly idToken?: string;
   readonly secret?: string;
 }
 
 export abstract class PhoneAuthCredential extends AuthCredential {
-  static fromJSON ( json :  object | string ) : PhoneAuthCredential | null;
+  static fromJSON(json: object | string): PhoneAuthCredential | null;
 }
 
 export const enum OperationType {
@@ -239,26 +239,26 @@ export interface AuthProvider {
   readonly providerId: ProviderId;
 }
 
-/** 
+/**
  * A provider for generating phone credentials
  */
 export class PhoneAuthProvider implements AuthProvider {
- static readonly PROVIDER_ID: string;
- static readonly PHONE_SIGN_IN_METHOD: string;
- static credential(
-   verificationId: string,
-   verificationCode: string
- ): AuthCredential;
+  static readonly PROVIDER_ID: string;
+  static readonly PHONE_SIGN_IN_METHOD: string;
+  static credential(
+    verificationId: string,
+    verificationCode: string
+  ): AuthCredential;
 
- constructor(auth?: Auth | null);
+  constructor(auth?: Auth | null);
 
- readonly providerId: ProviderId;
+  readonly providerId: ProviderId;
 
- verifyPhoneNumber(
-   phoneNumber: string,
-   applicationVerifier: ApplicationVerifier,
-   /* multiFactorSession?: MultiFactorSession */
- ): Promise<string>;
+  verifyPhoneNumber(
+    phoneNumber: string,
+    applicationVerifier: ApplicationVerifier
+    /* multiFactorSession?: MultiFactorSession */
+  ): Promise<string>;
 }
 
 /**
@@ -270,6 +270,10 @@ export abstract class EmailAuthProvider implements AuthProvider {
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: string;
   static readonly EMAIL_LINK_SIGN_IN_METHOD: string;
   static credential(email: string, password: string): AuthCredential;
-  static credentialWithLink(auth: Auth, email: string, emailLink: string): AuthCredential;
+  static credentialWithLink(
+    auth: Auth,
+    email: string,
+    emailLink: string
+  ): AuthCredential;
   readonly providerId: ProviderId;
 }

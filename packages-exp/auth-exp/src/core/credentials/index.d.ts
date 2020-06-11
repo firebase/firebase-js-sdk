@@ -22,7 +22,7 @@ import { Auth } from '../../model/auth';
 
 export abstract class AuthCredential extends externs.AuthCredential {
   static fromJSON(json: object | string): AuthCredential | null;
-  
+
   _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse>;
   _matchIdTokenWithUid(auth: Auth, uid: string): Promise<IdTokenResponse>;

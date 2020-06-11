@@ -35,7 +35,10 @@ describe('core/providers/email', () => {
 
   describe('.credential', () => {
     it('should return an email & password credential', () => {
-      const credential = EmailAuthProvider.credential('some-email', 'some-password');
+      const credential = EmailAuthProvider.credential(
+        'some-email',
+        'some-password'
+      );
       expect(credential.email).to.eq('some-email');
       expect(credential.password).to.eq('some-password');
       expect(credential.providerId).to.eq(ProviderId.PASSWORD);
@@ -53,7 +56,11 @@ describe('core/providers/email', () => {
         encodeURIComponent(continueUrl) +
         '&languageCode=en&state=bla';
 
-      const credential = EmailAuthProvider.credentialWithLink(auth, 'some-email', actionLink);
+      const credential = EmailAuthProvider.credentialWithLink(
+        auth,
+        'some-email',
+        actionLink
+      );
       expect(credential.email).to.eq('some-email');
       expect(credential.password).to.eq('CODE');
       expect(credential.providerId).to.eq(ProviderId.PASSWORD);

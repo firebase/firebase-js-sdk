@@ -30,10 +30,11 @@ use(chaiAsPromised);
 
 describe('core/credentials/anonymous', () => {
   let auth: Auth;
-  const credential = new AnonymousCredential();
+  let credential: AnonymousCredential;
 
   beforeEach(async () => {
     auth = await testAuth();
+    credential = new AnonymousCredential();
   });
 
   it('should have an anonymous provider', () => {
@@ -85,9 +86,9 @@ describe('core/credentials/anonymous', () => {
 
   describe('#_matchIdTokenWithUid', () => {
     it('throws', () => {
-      expect(() =>
-        credential._matchIdTokenWithUid(auth, 'other-uid')
-      ).to.throw(Error);
+      expect(() => credential._matchIdTokenWithUid(auth, 'other-uid')).to.throw(
+        Error
+      );
     });
   });
 });

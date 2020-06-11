@@ -20,14 +20,15 @@ import * as externs from '@firebase/auth-types-exp';
 import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
+import { AuthErrorCode } from '../errors';
+import { assert } from '../util/assert';
 
 export class EmailAuthProvider implements externs.EmailAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
     externs.SignInMethod.EMAIL_PASSWORD;
   static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
-  readonly providerId: externs.ProviderId = EmailAuthProvider.PROVIDER_ID;
+  readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
   static credential(
     email: string,
@@ -37,7 +38,6 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     return new EmailAuthCredential(
       email,
       password,
-      EmailAuthProvider.PROVIDER_ID,
       signInMethod || this.EMAIL_PASSWORD_SIGN_IN_METHOD
     );
   }
@@ -48,19 +48,15 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     emailLink: string
   ): EmailAuthCredential {
     const actionCodeUrl = ActionCodeURL._fromLink(auth, emailLink);
-    if (!actionCodeUrl) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
-        appName: auth.name
-      });
-    }
+    assert(actionCodeUrl, auth.name, AuthErrorCode.ARGUMENT_ERROR);
 
     // Check if the tenant ID in the email link matches the tenant ID on Auth
     // instance.
-    if (actionCodeUrl.tenantId !== (auth.tenantId || null)) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.TENANT_ID_MISMATCH, {
-        appName: auth.name
-      });
-    }
+    assert(
+      actionCodeUrl.tenantId === (auth.tenantId || null),
+      auth.name,
+      AuthErrorCode.TENANT_ID_MISMATCH
+    );
 
     return this.credential(
       email,
