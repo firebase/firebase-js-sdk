@@ -25,6 +25,7 @@ import {
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
+import { AuthCredential } from '.';
 
 export interface PhoneAuthCredentialParameters {
   verificationId?: string;
@@ -33,7 +34,7 @@ export interface PhoneAuthCredentialParameters {
   temporaryProof?: string;
 }
 
-export class PhoneAuthCredential implements externs.AuthCredential {
+export class PhoneAuthCredential implements AuthCredential {
   readonly providerId = externs.ProviderId.PHONE;
   readonly signInMethod = externs.SignInMethod.PHONE;
 
@@ -92,7 +93,7 @@ export class PhoneAuthCredential implements externs.AuthCredential {
     return obj;
   }
 
-  static fromJSON(json: string | object): externs.AuthCredential | null {
+  static fromJSON(json: object | string): PhoneAuthCredential | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);
     }
@@ -118,12 +119,5 @@ export class PhoneAuthCredential implements externs.AuthCredential {
       phoneNumber,
       temporaryProof
     });
-  }
-}
-
-/** PhoneAuthCredential for public export; has a private constructor */
-export class ExternPhoneAuthCredential extends PhoneAuthCredential {
-  private constructor(params: PhoneAuthCredentialParameters) {
-    super(params);
   }
 }

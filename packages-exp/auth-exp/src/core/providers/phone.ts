@@ -16,12 +16,12 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 
+import { FirebaseError } from '@firebase/util';
 import { Auth } from '../../model/auth';
 import { initializeAuth } from '../auth/auth_impl';
+import { PhoneAuthCredential } from '../credentials/phone';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { PhoneAuthCredential } from '../strategies/phone_credential';
 import { debugFail } from '../util/assert';
 
 export class PhoneAuthProvider implements externs.AuthProvider {

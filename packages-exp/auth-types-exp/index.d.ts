@@ -184,21 +184,19 @@ export const enum SignInMethod {
 }
 
 export abstract class AuthCredential {
+  static fromJSON(json: object | string): AuthCredential | null;
+
   readonly providerId: ProviderId;
   readonly signInMethod: SignInMethod;
   toJSON(): object;
 }
 
-export abstract class OAuthCredential implements AuthCredential {
+export abstract class OAuthCredential extends AuthCredential {
+  static fromJSON ( json :  object | string ) : OAuthCredential | null;
+
   readonly accessToken?: string;
   readonly idToken?: string;
   readonly secret?: string;
-  readonly providerId: ProviderId;
-  readonly signInMethod: SignInMethod;
-
-  constructor();
-
-  toJSON(): object;
 }
 
 export const enum OperationType {
