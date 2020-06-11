@@ -15,11 +15,20 @@
  * limitations under the License.
  */
 
+/**
+ * Update `@firebase` dependency versions in a package.json to reflect the latest versions.
+ * These can get out of sync when working on a new unreleased component in a branch while the
+ * already-released component versions in its deps keep being updated with each release.
+ *
+ * Usage: node scripts/exp/update-internal-dep-versions.js --file [package.json file path]
+ *
+ * Example: node scripts/exp/update-internal-dep-versions.js --file packages-exp/functions-exp/package.json
+ */
+
 const { projectRoot } = require('../utils');
 const { mapPkgNameToPkgJson } = require('../release/utils/workspace');
 const { argv } = require('yargs');
 const fs = require('mz/fs');
-
 async function updateField(pkg, fieldName) {
   const field = pkg[fieldName];
   for (const depName in field) {
