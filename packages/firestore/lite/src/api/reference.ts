@@ -62,6 +62,7 @@ import {
   validatePositiveNumber
 } from '../../../src/util/input_validation';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 /**
  * A reference to a particular document in a collection in the database.
