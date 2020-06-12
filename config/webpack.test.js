@@ -18,6 +18,9 @@
 const path = require('path');
 const webpack = require('webpack');
 
+/** A regular expression used to replace Firestore' platform specific modules. */
+const FIRESTORE_PLATFORM_RE = /(.*)\/platform\/(platform|format_json|random_bytes)(\.ts)?/;
+
 module.exports = {
   mode: 'development',
   devtool: 'source-map',
@@ -53,28 +56,6 @@ module.exports = {
         exclude: [/\.test\.ts$/, /\btest(ing)?\//]
       },
       {
-        test: /packages\/firestore\/.*\.tsx?$/,
-        use: {
-          loader: 'string-replace-loader',
-          options: {
-            multiple: [
-              {
-                search: '/platform/platform',
-                replace: '/platform_browser/browser_platform'
-              },
-              {
-                search: '/platform/format_json',
-                replace: '/platform_browser/browser_format_json'
-              },
-              {
-                search: '/platform/random_bytes',
-                replace: '/platform_browser/browser_random_bytes'
-              }
-            ]
-          }
-        }
-      },
-      {
         test: /\.js$/,
         include: [/node_modules\/chai-as-promised/],
         use: {
@@ -99,6 +80,15 @@ module.exports = {
     extensions: ['.js', '.ts']
   },
   plugins: [
+    new webpack.NormalModuleReplacementPlugin(
+      FIRESTORE_PLATFORM_RE,
+      resource => {
+        resource.request = resource.request.replace(
+          FIRESTORE_PLATFORM_RE,
+          '$1/platform_browser/browser_$2.ts'
+        );
+      }
+    ),
     new webpack.EnvironmentPlugin([
       'RTDB_EMULATOR_PORT',
       'RTDB_EMULATOR_NAMESPACE'
