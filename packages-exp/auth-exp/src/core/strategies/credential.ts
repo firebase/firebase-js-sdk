@@ -90,8 +90,8 @@ export async function _assertLinkedStatus(
   const providerIds = providerDataAsNames(user.providerData);
 
   const code =
-      expected === false
-        ? AuthErrorCode.PROVIDER_ALREADY_LINKED
-        : AuthErrorCode.NO_SUCH_PROVIDER;
+    expected === false
+      ? AuthErrorCode.PROVIDER_ALREADY_LINKED
+      : AuthErrorCode.NO_SUCH_PROVIDER;
   assert(providerIds.has(provider) === expected, user.auth.name, code);
 }

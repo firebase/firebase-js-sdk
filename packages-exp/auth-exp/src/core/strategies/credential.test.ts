@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -30,7 +34,11 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { _assertLinkedStatus, linkWithCredential, signInWithCredential } from './credential';
+import {
+  _assertLinkedStatus,
+  linkWithCredential,
+  signInWithCredential
+} from './credential';
 
 use(chaiAsPromised);
 
@@ -146,8 +154,8 @@ describe('core/strategies/credential', () => {
     });
 
     it('should not error if provider is not linked', async () => {
-      await expect(_assertLinkedStatus(false, user, ProviderId.GOOGLE)).not.to.be
-        .rejected;
+      await expect(_assertLinkedStatus(false, user, ProviderId.GOOGLE)).not.to
+        .be.rejected;
     });
 
     it('should error if provider is not linked but it was expected to be', async () => {

@@ -22,6 +22,12 @@ export interface ProviderAssociatedObject {
 /**
  * Takes a set of UserInfo provider data and converts it to a set of names
  */
-export function providerDataAsNames<T extends ProviderAssociatedObject>(providerData: T[]): Set<string> {
-  return new Set(providerData.map(({providerId}) => providerId).filter(pid => !!pid) as string[]);
+export function providerDataAsNames<T extends ProviderAssociatedObject>(
+  providerData: T[]
+): Set<string> {
+  return new Set(
+    providerData
+      .map(({ providerId }) => providerId)
+      .filter(pid => !!pid) as string[]
+  );
 }
