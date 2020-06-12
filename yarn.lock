@@ -13387,14 +13387,6 @@ string-length@^1.0.0:
   dependencies:
     strip-ansi "^3.0.0"
 
-string-replace-loader@2.3.0:
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/string-replace-loader/-/string-replace-loader-2.3.0.tgz#7f29be7d73c94dd92eccd5c5a15651181d7ecd3d"
-  integrity sha512-HYBIHStViMKLZC/Lehxy42OuwsBaPzX/LjcF5mkJlE2SnHXmW6SW6eiHABTXnY8ZCm/REbdJ8qnA0ptmIzN0Ng==
-  dependencies:
-    loader-utils "^1.2.3"
-    schema-utils "^2.6.5"
-
 string-width@^1.0.1, string-width@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
@@ -14850,11 +14842,6 @@ webpack-log@^2.0.0:
   dependencies:
     ansi-colors "^3.0.0"
     uuid "^3.3.2"
-
-webpack-path-override-plugin@1.0.5:
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/webpack-path-override-plugin/-/webpack-path-override-plugin-1.0.5.tgz#48dac2480ba98c9f539580fdb0a53f27889e7caf"
-  integrity sha1-SNrCSAupjJ9TlYD9sKU/J4iefK8=
 
 webpack-sources@^1.4.0, webpack-sources@^1.4.1:
   version "1.4.3"
