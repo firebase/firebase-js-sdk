@@ -18,8 +18,8 @@
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
 import { Auth } from '../src/model/auth';
-import { AuthCredential } from '../src/model/auth_credential';
 import { IdTokenResponse } from '../src/model/id_token';
+import { AuthCredential } from '../src/core/credentials';
 
 export class MockAuthCredential implements AuthCredential {
   response?: PhoneOrOauthTokenResponse;
