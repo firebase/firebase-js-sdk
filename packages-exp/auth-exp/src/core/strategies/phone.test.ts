@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ApplicationVerifier, OperationType, ProviderId } from '@firebase/auth-types-exp';
+import {
+  ApplicationVerifier,
+  OperationType,
+  ProviderId
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -31,7 +35,11 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
-import { _verifyPhoneNumber, linkWithPhoneNumber, signInWithPhoneNumber } from './phone';
+import {
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  signInWithPhoneNumber
+} from './phone';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -111,7 +119,7 @@ describe('core/strategies/phone', () => {
 
     beforeEach(() => {
       getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-        users: [{uid: 'uid'}]
+        users: [{ uid: 'uid' }]
       });
 
       user = testUser(auth, 'uid', 'email', true);
@@ -122,17 +130,17 @@ describe('core/strategies/phone', () => {
         users: [
           {
             uid: 'uid',
-            providerUserInfo: [
-              {providerId: ProviderId.PHONE}
-            ]
+            providerUserInfo: [{ providerId: ProviderId.PHONE }]
           }
         ]
       };
 
-      await expect(linkWithPhoneNumber(user, 'number', verifier))
-        .to.be.rejectedWith(
-          FirebaseError, 'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).',
-        );
+      await expect(
+        linkWithPhoneNumber(user, 'number', verifier)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
+      );
     });
 
     it('calls verify phone number', async () => {
@@ -178,7 +186,7 @@ describe('core/strategies/phone', () => {
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
           code: '6789',
-          idToken: initialIdToken,
+          idToken: initialIdToken
         });
       });
     });

@@ -19,7 +19,9 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
-    linkWithPhoneNumber, signInWithPhoneNumber, SignInWithPhoneNumberRequest
+  linkWithPhoneNumber,
+  signInWithPhoneNumber,
+  SignInWithPhoneNumberRequest
 } from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
@@ -47,7 +49,7 @@ export class PhoneAuthCredential
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
-      ...this.makeVerificationRequest(),
+      ...this.makeVerificationRequest()
     });
   }
 

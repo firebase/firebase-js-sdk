@@ -21,15 +21,10 @@ import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
+import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
-<<<<<<< HEAD
-import { signInWithCredential } from './credential';
-import { PhoneAuthCredential } from '../credentials/phone';
-=======
 import { _assertLinkedStatus, linkWithCredential, signInWithCredential } from './credential';
-import { PhoneAuthCredential } from './phone_credential';
->>>>>>> ffdb4d73... Add unlink(), linkWithCredential(), linkWithPhoneNumber()
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;

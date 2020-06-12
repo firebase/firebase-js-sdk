@@ -50,7 +50,10 @@ export class MockAuthCredential implements AuthCredential {
     return this.response!;
   }
 
-  async _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {
+  async _linkToIdToken(
+    _auth: Auth,
+    _idToken: string
+  ): Promise<IdTokenResponse> {
     return this.response!;
   }
 

@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -30,7 +34,11 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { _assertLinkedStatus, linkWithCredential, signInWithCredential } from './credential';
+import {
+  _assertLinkedStatus,
+  linkWithCredential,
+  signInWithCredential
+} from './credential';
 
 use(chaiAsPromised);
 
@@ -103,23 +111,26 @@ describe('core/strategies/credential', () => {
         users: [
           {
             ...serverUser,
-            providerUserInfo: [
-              {providerId: ProviderId.FIREBASE}
-            ]
+            providerUserInfo: [{ providerId: ProviderId.FIREBASE }]
           }
         ]
       };
 
       await expect(linkWithCredential(user, authCredential)).to.be.rejectedWith(
-        FirebaseError, 'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).',
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
     });
 
     it('should return a valid user credential', async () => {
-        const { credential, user: newUser, operationType } = await linkWithCredential(user, authCredential);
-        expect(operationType).to.eq(OperationType.LINK);
-        expect(newUser).to.eq(user);
-        expect(credential).to.be.null;
+      const {
+        credential,
+        user: newUser,
+        operationType
+      } = await linkWithCredential(user, authCredential);
+      expect(operationType).to.eq(OperationType.LINK);
+      expect(newUser).to.eq(user);
+      expect(credential).to.be.null;
     });
   });
 
@@ -129,24 +140,31 @@ describe('core/strategies/credential', () => {
         users: [
           {
             ...serverUser,
-            providerUserInfo: [
-              {providerId: ProviderId.PHONE}
-            ]
+            providerUserInfo: [{ providerId: ProviderId.PHONE }]
           }
         ]
       };
 
-      await expect(_assertLinkedStatus(false, user, ProviderId.PHONE)).to.be.rejectedWith(
-        FirebaseError, 'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).',
+      await expect(
+        _assertLinkedStatus(false, user, ProviderId.PHONE)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
     });
 
     it('should not error if provider is not linked', async () => {
-      await expect(_assertLinkedStatus(false, user, ProviderId.PHONE)).not.to.be.rejected;
+      await expect(_assertLinkedStatus(false, user, ProviderId.PHONE)).not.to.be
+        .rejected;
     });
 
     it('should error if provider is not linked but it was expected to be', async () => {
-      await expect(_assertLinkedStatus(true, user, ProviderId.PHONE)).to.be.rejectedWith(FirebaseError, 'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).');
+      await expect(
+        _assertLinkedStatus(true, user, ProviderId.PHONE)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
+      );
     });
 
     it('should not error if provider is linked and that is expected', async () => {
@@ -154,13 +172,12 @@ describe('core/strategies/credential', () => {
         users: [
           {
             ...serverUser,
-            providerUserInfo: [
-              {providerId: ProviderId.PHONE}
-            ]
+            providerUserInfo: [{ providerId: ProviderId.PHONE }]
           }
         ]
       };
-      await expect(_assertLinkedStatus(true, user, ProviderId.PHONE)).not.to.be.rejected;
+      await expect(_assertLinkedStatus(true, user, ProviderId.PHONE)).not.to.be
+        .rejected;
     });
   });
 });

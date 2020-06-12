@@ -55,7 +55,10 @@ export async function linkWithCredential(
   const credential = credentialExtern as AuthCredential;
   await _assertLinkedStatus(false, user, credential.providerId);
 
-  const response = await credential._linkToIdToken(user.auth, await user.getIdToken());
+  const response = await credential._linkToIdToken(
+    user.auth,
+    await user.getIdToken()
+  );
 
   const newCred = _authCredentialFromTokenResponse(response);
   await user._updateTokensIfNecessary(response, /* reload */ true);
@@ -70,7 +73,7 @@ export function _authCredentialFromTokenResponse(
     phoneNumber
   } = response as SignInWithPhoneNumberResponse;
   if (temporaryProof && phoneNumber) {
-    return new PhoneAuthCredential({temporaryProof, phoneNumber});
+    return new PhoneAuthCredential({ temporaryProof, phoneNumber });
   }
 
   // TODO: Handle Oauth cases
@@ -80,7 +83,7 @@ export function _authCredentialFromTokenResponse(
 export async function _assertLinkedStatus(
   expected: boolean,
   user: User,
-  provider: externs.ProviderId,
+  provider: externs.ProviderId
 ): Promise<void> {
   await _reloadWithoutSaving(user);
   const providerIds = user.providerData.map(({ providerId }) => providerId);
@@ -92,4 +95,3 @@ export async function _assertLinkedStatus(
     fail(user.auth.name, code);
   }
 }
-

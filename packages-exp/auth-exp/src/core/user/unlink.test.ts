@@ -45,16 +45,19 @@ describe('core/user/unlink', () => {
     fetch.tearDown();
   });
 
-  it('rejects if the provider is not linked',  async() => {
+  it('rejects if the provider is not linked', async () => {
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [
         {
-          uid: 'uid',
+          uid: 'uid'
         }
       ]
     });
 
-    await expect(unlink(user, ProviderId.PHONE)).to.be.rejectedWith(FirebaseError, 'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).');
+    await expect(unlink(user, ProviderId.PHONE)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
+    );
   });
 
   context('with properly linked account', () => {
@@ -64,17 +67,17 @@ describe('core/user/unlink', () => {
         users: [
           {
             uid: 'uid',
-            providerUserInfo: [
-              {providerId: ProviderId.PHONE}
-            ]
+            providerUserInfo: [{ providerId: ProviderId.PHONE }]
           }
         ]
       });
 
       endpoint = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
-        providerUserInfo: [{
-          providerId: ProviderId.GOOGLE,
-        }]
+        providerUserInfo: [
+          {
+            providerId: ProviderId.GOOGLE
+          }
+        ]
       });
     });
 
@@ -86,7 +89,7 @@ describe('core/user/unlink', () => {
           phoneNumber: '',
           email: '',
           photoURL: '',
-          uid: '',
+          uid: ''
         },
         {
           providerId: ProviderId.GOOGLE,
@@ -94,7 +97,7 @@ describe('core/user/unlink', () => {
           phoneNumber: '',
           email: '',
           photoURL: '',
-          uid: '',
+          uid: ''
         }
       ];
       await unlink(user, ProviderId.PHONE);
@@ -105,20 +108,18 @@ describe('core/user/unlink', () => {
           phoneNumber: '',
           email: '',
           photoURL: '',
-          uid: '',
+          uid: ''
         }
       ]);
 
-      expect(auth.persistenceLayer.lastObjectSet).to.eql(
-        user.toPlainObject(),
-      );
+      expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
     });
 
     it('calls the endpoint with the provider', async () => {
       await unlink(user, ProviderId.PHONE);
       expect(endpoint.calls[0].request).to.eql({
         idToken: await user.getIdToken(),
-        deleteProvider: [ProviderId.PHONE],
+        deleteProvider: [ProviderId.PHONE]
       });
     });
   });

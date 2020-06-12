@@ -101,7 +101,10 @@ export class UserImpl implements User {
     return reload(this);
   }
 
-  async _updateTokensIfNecessary(response: IdTokenResponse, reload = false): Promise<void> {
+  async _updateTokensIfNecessary(
+    response: IdTokenResponse,
+    reload = false
+  ): Promise<void> {
     let tokensRefreshed = false;
     if (
       response.idToken &&

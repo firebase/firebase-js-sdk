@@ -83,7 +83,7 @@ describe('core/credentials/phone', () => {
       refreshToken: '',
       kind: '',
       expiresIn: '10',
-      localId: 'uid',
+      localId: 'uid'
     };
 
     it('calls the endpoint with session and code', async () => {
@@ -98,7 +98,7 @@ describe('core/credentials/phone', () => {
       expect(route.calls[0].request).to.eql({
         sessionInfo: 'session-info',
         code: 'code',
-        idToken: 'id-token',
+        idToken: 'id-token'
       });
     });
 
@@ -114,7 +114,7 @@ describe('core/credentials/phone', () => {
       expect(route.calls[0].request).to.eql({
         temporaryProof: 'temp-proof',
         phoneNumber: 'number',
-        idToken: 'id-token',
+        idToken: 'id-token'
       });
     });
   });
