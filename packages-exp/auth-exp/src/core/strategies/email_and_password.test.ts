@@ -354,8 +354,8 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       'some-email',
       'some-password'
     );
-    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(credential!.providerId).to.eq(ProviderId.PASSWORD);
+    expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
@@ -389,8 +389,8 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
       user,
       operationType
     } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password');
-    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(credential!.providerId).to.eq(ProviderId.PASSWORD);
+    expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
