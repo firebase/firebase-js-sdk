@@ -18,68 +18,16 @@
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth } from '../../../test/mock_auth';
-import { Auth } from '../../model/auth';
-import { AnonymousCredential, AnonymousProvider } from './anonymous';
+import { AnonymousProvider } from './anonymous';
 
 use(chaiAsPromised);
 
 describe('core/providers/anonymous', () => {
-  let auth: Auth;
-
-  beforeEach(async () => {
-    auth = await testAuth();
-  });
-
-  describe('AnonymousCredential', () => {
-    const credential = new AnonymousCredential();
-
-    it('should have an anonymous provider', () => {
+  describe('.credential', () => {
+    it('should return an anonymous credential', () => {
+      const credential = AnonymousProvider.credential();
       expect(credential.providerId).to.eq(ProviderId.ANONYMOUS);
-    });
-
-    it('should have an anonymous sign in method', () => {
       expect(credential.signInMethod).to.eq(SignInMethod.ANONYMOUS);
-    });
-
-    describe('#toJSON', () => {
-      it('throws', () => {
-        expect(credential.toJSON).to.throw(Error);
-      });
-    });
-
-    describe('#_getIdTokenResponse', () => {
-      it('throws', async () => {
-        await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
-          Error
-        );
-      });
-    });
-
-    describe('#_linkToIdToken', () => {
-      it('throws', async () => {
-        await expect(
-          credential._linkToIdToken(auth, 'id-token')
-        ).to.be.rejectedWith(Error);
-      });
-    });
-
-    describe('#_matchIdTokenWithUid', () => {
-      it('throws', () => {
-        expect(() =>
-          credential._matchIdTokenWithUid(auth, 'other-uid')
-        ).to.throw(Error);
-      });
-    });
-  });
-
-  describe('AnonymousProvider', () => {
-    describe('.credential', () => {
-      it('should return an anonymous credential', () => {
-        const credential = AnonymousProvider.credential();
-        expect(credential.providerId).to.eq(ProviderId.ANONYMOUS);
-        expect(credential.signInMethod).to.eq(SignInMethod.ANONYMOUS);
-      });
     });
   });
 });
