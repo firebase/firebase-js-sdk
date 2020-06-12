@@ -21,7 +21,10 @@ import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
+import { EmailAuthProvider } from '../providers/email';
+import { _getCurrentUrl } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
+import { signInWithCredential } from './credential';
 
 export async function sendSignInLinkToEmail(
   auth: externs.Auth,
@@ -45,4 +48,19 @@ export function isSignInWithEmailLink(
 ): boolean {
   const actionCodeUrl = ActionCodeURL._fromLink(auth as Auth, emailLink);
   return actionCodeUrl?.operation === Operation.EMAIL_SIGNIN;
+}
+
+export async function signInWithEmailLink(
+  auth: externs.Auth,
+  email: string,
+  emailLink?: string
+): Promise<externs.UserCredential> {
+  return signInWithCredential(
+    auth,
+    EmailAuthProvider.credentialWithLink(
+      auth as Auth,
+      email,
+      emailLink || _getCurrentUrl()
+    )
+  );
 }

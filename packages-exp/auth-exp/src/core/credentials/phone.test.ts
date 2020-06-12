@@ -23,9 +23,9 @@ import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { PhoneAuthCredential } from './phone_credential';
+import { PhoneAuthCredential } from '../credentials/phone';
 
-describe('core/strategies/phone_credential', () => {
+describe('core/credentials/phone', () => {
   let auth: Auth;
 
   beforeEach(async () => {

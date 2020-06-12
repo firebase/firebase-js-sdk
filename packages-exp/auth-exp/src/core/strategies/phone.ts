@@ -24,7 +24,7 @@ import { AuthErrorCode } from '../errors';
 import { PhoneAuthProvider } from '../providers/phone';
 import { assert } from '../util/assert';
 import { signInWithCredential } from './credential';
-import { PhoneAuthCredential } from './phone_credential';
+import { PhoneAuthCredential } from '../credentials/phone';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;

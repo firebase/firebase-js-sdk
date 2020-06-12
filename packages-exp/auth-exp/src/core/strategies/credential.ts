@@ -16,10 +16,10 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 
+import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { Auth } from '../../model/auth';
-import { AuthCredential } from '../../model/auth_credential';
+import { AuthCredential } from '../credentials';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
 export async function signInWithCredential(
