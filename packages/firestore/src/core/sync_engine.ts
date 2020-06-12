@@ -447,12 +447,9 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('loadBundle()');
 
-    return (
-      this.loadBundleAsync(bundleReader, task)
-        .catch(reason => {
-          task.failedWith(reason);
-        })
-    );
+    return this.loadBundleAsync(bundleReader, task).catch(reason => {
+      task.failedWith(reason);
+    });
   }
 
   private async loadBundleAsync(

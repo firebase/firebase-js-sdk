@@ -28,7 +28,6 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
-import { TimerId } from '../../../src/util/async_queue';
 
 interface TestBundleDocument {
   key: DocumentKey;
@@ -286,33 +285,37 @@ describeSpec('Bundles:', [], () => {
     }
   );
 
-  specTest('Load and observe from secondary clients.', ['multi-client'], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 250, { key: 'a' });
-    const bundleString1 = bundleWithDocument({
-      key: docA.key,
-      readTime: 500,
-      createTime: 250,
-      updateTime: 500,
-      content: { key: { stringValue: 'b' } }
-    });
-
-    return client(0)
-      .userListens(query)
-      .watchAcksFull(query, 250, docA)
-      .expectEvents(query, {
-        added: [docA]
-      })
-      .client(1)
-      .userListens(query)
-      .expectEvents(query, {
-        added: [docA]
-      })
-      .loadBundle(bundleString1)
-      .expectEvents(query, {
-        modified: [doc('collection/a', 500, { key: 'b' })]
+  specTest(
+    'Load and observe from same secondary client.',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 250, { key: 'a' });
+      const bundleString1 = bundleWithDocument({
+        key: docA.key,
+        readTime: 500,
+        createTime: 250,
+        updateTime: 500,
+        content: { key: { stringValue: 'b' } }
       });
-  });
+
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 250, docA)
+        .expectEvents(query, {
+          added: [docA]
+        })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {
+          added: [docA]
+        })
+        .loadBundle(bundleString1)
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { key: 'b' })]
+        });
+    }
+  );
 
   specTest(
     'Load from primary client and observe from secondary.',
@@ -328,27 +331,26 @@ describeSpec('Bundles:', [], () => {
         content: { key: { stringValue: 'b' } }
       });
 
-      return (
-        client(0)
-          .userListens(query)
-          .watchAcksFull(query, 250, docA)
-          .expectEvents(query, {
-            added: [docA]
-          })
-          .client(1)
-          .stealPrimaryLease()
-          .expectListen(query, 'resume-token-250')
-          // Bundle tells otherwise, leads to limbo resolution.
-          .loadBundle(bundleString1)
-          .client(0)
-          .runTimer(TimerId.ClientMetadataRefresh)
-          // Client 0 recovers from its lease loss and applies the updates from
-          // client 1
-          .expectPrimaryState(false)
-          .expectEvents(query, {
-            modified: [doc('collection/a', 500, { key: 'b' })]
-          })
-      );
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 250, docA)
+        .expectEvents(query, {
+          added: [docA]
+        })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {
+          added: [docA]
+        })
+        .client(0)
+        .loadBundle(bundleString1)
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { key: 'b' })]
+        })
+        .client(1)
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { key: 'b' })]
+        });
     }
   );
 });
