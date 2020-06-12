@@ -15,32 +15,31 @@
  * limitations under the License.
  */
 
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
-
-import { FirebaseError } from '@firebase/util';
-
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import {
   checkActionCode,
   confirmPasswordReset,
+  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  verifyPasswordResetCode,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  verifyPasswordResetCode
 } from './email_and_password';
-import { APIUserInfo } from '../../api/account_management/account';
-import {
-  SignInMethod,
-  OperationType,
-  ProviderId
-} from '@firebase/auth-types-exp';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -321,6 +320,45 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
+  });
+});
+
+describe('core/strategies/email_and_password/createUserWithEmailAndPassword', () => {
+  let auth: Auth;
+  const serverUser: APIUserInfo = {
+    localId: 'local-id'
+  };
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+    mockEndpoint(Endpoint.SIGN_UP, {
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [serverUser]
+    });
+  });
+  afterEach(mockFetch.tearDown);
+
+  it('should sign in the user', async () => {
+    const {
+      credential,
+      user,
+      operationType
+    } = await createUserWithEmailAndPassword(
+      auth,
+      'some-email',
+      'some-password'
+    );
+    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
+    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(operationType).to.eq(OperationType.SIGN_IN);
+    expect(user.uid).to.eq(serverUser.localId);
+    expect(user.isAnonymous).to.be.false;
   });
 });
 
