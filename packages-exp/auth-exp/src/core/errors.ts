@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 import { AppName } from '../model/auth';
 import { User } from '../model/user';
