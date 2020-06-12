@@ -18,10 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { UserImpl } from './user_impl';
+import { AuthCredential } from '../credentials';
 
 export class UserCredentialImpl implements UserCredential {
   constructor(

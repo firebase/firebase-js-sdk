@@ -32,8 +32,15 @@ import {
   checkActionCode,
   confirmPasswordReset,
   sendPasswordResetEmail,
-  verifyPasswordResetCode
+  verifyPasswordResetCode,
+  signInWithEmailAndPassword
 } from './email_and_password';
+import { APIUserInfo } from '../../api/account_management/account';
+import {
+  SignInMethod,
+  OperationType,
+  ProviderId
+} from '@firebase/auth-types-exp';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -314,5 +321,40 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
     expect(mock.calls.length).to.eq(1);
+  });
+});
+
+describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => {
+  let auth: Auth;
+  const serverUser: APIUserInfo = {
+    localId: 'local-id'
+  };
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+    mockEndpoint(Endpoint.SIGN_IN_WITH_PASSWORD, {
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [serverUser]
+    });
+  });
+  afterEach(mockFetch.tearDown);
+
+  it('should sign in the user', async () => {
+    const {
+      credential,
+      user,
+      operationType
+    } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password');
+    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
+    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(operationType).to.eq(OperationType.SIGN_IN);
+    expect(user.uid).to.eq(serverUser.localId);
+    expect(user.isAnonymous).to.be.false;
   });
 });

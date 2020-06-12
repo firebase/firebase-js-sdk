@@ -140,7 +140,6 @@ describe('core/user/reload', () => {
       ]
     });
     await _reloadWithoutSaving(user);
-    console.warn(user.providerData);
     expect(user.providerData).to.eql([
       { ...BASIC_USER_INFO },
       {

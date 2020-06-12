@@ -33,9 +33,9 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
-import { AuthCredential } from '../../model/auth_credential';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from './user_credential_impl';
+import { AuthCredential } from '../credentials';
 
 use(chaiAsPromised);
 use(sinonChai);
