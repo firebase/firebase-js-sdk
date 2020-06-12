@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
-export function far(): string {
-  return 'far';
+export function far(version: string): string {
+  console.log(version);
+  return version;
 }

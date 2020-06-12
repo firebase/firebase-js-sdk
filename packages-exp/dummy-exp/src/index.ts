@@ -17,5 +17,15 @@
 
 export * from './bar';
 export { foo1 } from './foo';
+import { SDK_VERSION } from './bar';
 import { far } from './far';
-far();
+export const VAR = 'variable';
+export let var2: string;
+export let var3 = 'var3';
+var3 = 'var3Changed';
+
+export function boo(): string {
+  return 'boo';
+}
+
+far(SDK_VERSION);

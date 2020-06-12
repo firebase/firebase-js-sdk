@@ -62,8 +62,6 @@ export async function extractDependenciesAndSize(
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
-  // console.log(input);
-  // console.log(output);
   // jsBundle : /Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firestore/dist/exp/index.js
 
   // JavaScript content that exports a single API from the bundle
@@ -71,8 +69,6 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-  // console.log('beforeContent\n');
-  // console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -83,7 +79,6 @@ export async function extractDependenciesAndSize(
   await bundle.write({ file: output, format: 'es' });
 
   const dependencies = extractDeclarations(output);
-  // console.log(dependencies);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -125,6 +120,27 @@ export function extractDeclarations(jsFile: string): MemberList {
       declarations.classes.push(node.name!.text);
     } else if (ts.isVariableDeclaration(node)) {
       declarations.variables.push(node.name!.getText());
+    } else if (ts.isVariableStatement(node)) {
+      const variableDeclarations = node.declarationList.declarations;
+      variableDeclarations.forEach(variableDeclaration => {
+        if (ts.isIdentifier(variableDeclaration.name)) {
+          declarations.variables.push(
+            (variableDeclaration.name as ts.Identifier).escapedText as string
+          );
+        }
+        // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
+        // need Identifier type, not sure in what case BindingPattern type is for.
+        else {
+          console.log(
+            'this VariableDeclaration.name object is of BindingPattern type !'
+          );
+        }
+      });
+    } else if (ts.isExportDeclaration(node)) {
+      // TODO: here is a tricky case
+      // export from <file path>
+      // export {functions .. variable} from <file path>
+      // a recursive solution here
     }
   });
 

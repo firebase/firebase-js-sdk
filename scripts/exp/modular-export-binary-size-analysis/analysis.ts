@@ -40,14 +40,16 @@ function collectBinarySize(path) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS]) {
+  if (packageJson[TYPINGS] && packageJson.name == DUMMYMODULE) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
+
     const publicApi = extractDeclarations(resolve(dtsFile));
     if (!packageJson[BUNDLE]) {
       console.log('This module does not have bundle file!');
       return;
     }
+    console.log(publicApi);
     // calculate binary size for every export and build a json report
     buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`).then(json => {
       console.log(json);
@@ -88,6 +90,7 @@ async function buildJson(
   for (const exp of publicApi.functions) {
     result[exp] = await extractDependenciesAndSize(exp, jsFile);
   }
+  //console.log(publicApi.variables);
   for (const exp of publicApi.variables) {
     result[exp] = await extractDependenciesAndSize(exp, jsFile);
   }
