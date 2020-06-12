@@ -40,7 +40,7 @@ export interface User extends externs.User {
   providerData: MutableUserInfo[];
   metadata: externs.UserMetadata;
 
-  _updateTokensIfNecessary(response: IdTokenResponse): boolean;
+  _updateTokensIfNecessary(response: IdTokenResponse, reload?: boolean): Promise<void>;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;

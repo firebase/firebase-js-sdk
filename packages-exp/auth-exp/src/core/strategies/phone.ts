@@ -19,12 +19,17 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { AuthErrorCode } from '../errors';
-import { PhoneAuthProvider } from '../providers/phone';
 import { assert } from '../util/assert';
+<<<<<<< HEAD
 import { signInWithCredential } from './credential';
 import { PhoneAuthCredential } from '../credentials/phone';
+=======
+import { _assertLinkedStatus, linkWithCredential, signInWithCredential } from './credential';
+import { PhoneAuthCredential } from './phone_credential';
+>>>>>>> ffdb4d73... Add unlink(), linkWithCredential(), linkWithPhoneNumber()
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -37,10 +42,10 @@ class ConfirmationResult implements externs.ConfirmationResult {
   ) {}
 
   confirm(verificationCode: string): Promise<externs.UserCredential> {
-    const authCredential = PhoneAuthProvider.credential(
-      this.verificationId,
+    const authCredential = new PhoneAuthCredential({
+      verificationId: this.verificationId,
       verificationCode
-    );
+    });
     return this.onConfirmation(authCredential);
   }
 }
@@ -57,6 +62,23 @@ export async function signInWithPhoneNumber(
   );
   return new ConfirmationResult(verificationId, cred =>
     signInWithCredential(auth, cred)
+  );
+}
+
+export async function linkWithPhoneNumber(
+  userExtern: externs.User,
+  phoneNumber: string,
+  appVerifier: externs.ApplicationVerifier
+): Promise<externs.ConfirmationResult> {
+  const user = userExtern as User;
+  await _assertLinkedStatus(false, user, externs.ProviderId.PHONE);
+  const verificationId = await _verifyPhoneNumber(
+    user.auth,
+    phoneNumber,
+    appVerifier
+  );
+  return new ConfirmationResult(verificationId, cred =>
+    linkWithCredential(user, cred)
   );
 }
 
