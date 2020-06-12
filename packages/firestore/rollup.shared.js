@@ -33,16 +33,8 @@ export function generateAliasConfig(platform) {
   return {
     entries: [
       {
-        find: /^(.*)\/platform\/platform(\.ts)?$/,
-        replacement: `$1/platform_${platform}/${platform}_platform.ts`
-      },
-      {
-        find: /^(.*)\/platform\/random_bytes(\.ts)?$/,
-        replacement: `$1/platform_${platform}/${platform}_random_bytes.ts`
-      },
-      {
-        find: /^(.*)\/platform\/format_json(\.ts)?$/,
-        replacement: `$1/platform_${platform}/${platform}_format_json.ts`
+        find: /^(.*)\/platform\/(platform|random_bytes|format_json)(\.ts)?$/,
+        replacement: `$1/platform_${platform}/${platform}_$2.ts`
       }
     ]
   };
