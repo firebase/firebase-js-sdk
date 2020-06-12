@@ -24,7 +24,11 @@ import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recapt
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
-import { _assertLinkedStatus, linkWithCredential, signInWithCredential } from './credential';
+import {
+  _assertLinkedStatus,
+  linkWithCredential,
+  signInWithCredential
+} from './credential';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
