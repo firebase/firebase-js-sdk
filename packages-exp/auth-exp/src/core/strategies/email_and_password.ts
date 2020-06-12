@@ -21,8 +21,10 @@ import { resetPassword } from '../../api/account_management/email_and_password';
 import * as api from '../../api/authentication/email_and_password';
 import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
+import { EmailAuthProvider } from '../providers/email';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
+import { signInWithCredential } from './credential';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
@@ -81,4 +83,15 @@ export async function verifyPasswordResetCode(
   const { data } = await checkActionCode(auth, code);
   // Email should always be present since a code was sent to it
   return data.email!;
+}
+
+export function signInWithEmailAndPassword(
+  auth: externs.Auth,
+  email: string,
+  password: string
+): Promise<externs.UserCredential> {
+  return signInWithCredential(
+    auth,
+    EmailAuthProvider.credential(email, password)
+  );
 }

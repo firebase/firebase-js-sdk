@@ -28,6 +28,7 @@ export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 // core/providers
 export { AnonymousProvider } from './core/providers/anonymous';
+export { EmailAuthProvider } from './core/providers/email';
 export { PhoneAuthProvider } from './core/providers/phone';
 
 // core/strategies
@@ -38,17 +39,18 @@ export {
   sendPasswordResetEmail,
   confirmPasswordReset,
   checkActionCode,
-  verifyPasswordResetCode
+  verifyPasswordResetCode,
+  signInWithEmailAndPassword
 } from './core/strategies/email_and_password';
 export {
   sendSignInLinkToEmail,
-  isSignInWithEmailLink
+  isSignInWithEmailLink,
+  signInWithEmailLink
 } from './core/strategies/email_link';
 export {
   fetchSignInMethodsForEmail,
   sendEmailVerification
 } from './core/strategies/email';
-export { ExternPhoneAuthCredential as PhoneAuthCredential } from './core/strategies/phone_credential';
 export { signInWithPhoneNumber } from './core/strategies/phone';
 
 // core/user
