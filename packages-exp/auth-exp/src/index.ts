@@ -33,7 +33,10 @@ export { PhoneAuthProvider } from './core/providers/phone';
 
 // core/strategies
 export { signInAnonymously } from './core/strategies/anonymous';
-export { signInWithCredential, linkWithCredential } from './core/strategies/credential';
+export {
+  signInWithCredential,
+  linkWithCredential
+} from './core/strategies/credential';
 export { signInWithCustomToken } from './core/strategies/custom_token';
 export {
   sendPasswordResetEmail,
@@ -51,7 +54,10 @@ export {
   fetchSignInMethodsForEmail,
   sendEmailVerification
 } from './core/strategies/email';
-export { signInWithPhoneNumber, linkWithPhoneNumber } from './core/strategies/phone';
+export {
+  signInWithPhoneNumber,
+  linkWithPhoneNumber
+} from './core/strategies/phone';
 
 // core/user
 export {
