@@ -20,6 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { deleteLinkedAccounts } from '../../api/account_management/account';
 import { User } from '../../model/user';
 import { _assertLinkedStatus } from '../strategies/credential';
+import { providerDataAsNames } from '../util/providers';
 
 export async function unlink(
   userExtern: externs.User,
@@ -32,12 +33,12 @@ export async function unlink(
     deleteProvider: [providerId]
   });
 
-  const providersLeft = (providerUserInfo || []).map(i => i.providerId);
+  const providersLeft = providerDataAsNames(providerUserInfo || []);
 
   user.providerData = user.providerData.filter(pd =>
-    providersLeft.includes(pd.providerId || undefined)
+    providersLeft.has(pd.providerId)
   );
-  if (!providersLeft.includes(externs.ProviderId.PHONE)) {
+  if (!providersLeft.has(externs.ProviderId.PHONE)) {
     user.phoneNumber = null;
   }
 

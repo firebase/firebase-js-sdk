@@ -27,7 +27,8 @@ import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { fail } from '../util/assert';
+import { assert } from '../util/assert';
+import { providerDataAsNames } from '../util/providers';
 
 export async function signInWithCredential(
   authExtern: externs.Auth,
@@ -86,12 +87,11 @@ export async function _assertLinkedStatus(
   provider: externs.ProviderId
 ): Promise<void> {
   await _reloadWithoutSaving(user);
-  const providerIds = user.providerData.map(({ providerId }) => providerId);
-  if (providerIds.includes(provider) !== expected) {
-    const code =
+  const providerIds = providerDataAsNames(user.providerData);
+
+  const code =
       expected === false
         ? AuthErrorCode.PROVIDER_ALREADY_LINKED
         : AuthErrorCode.NO_SUCH_PROVIDER;
-    fail(user.auth.name, code);
-  }
+  assert(providerIds.has(provider) === expected, user.auth.name, code);
 }

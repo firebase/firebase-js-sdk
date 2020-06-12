@@ -81,7 +81,8 @@ describe('core/user/unlink', () => {
       });
     });
 
-    it('removes the provider from the list and persists', async () => {
+    it('removes the phone provider from the list and persists', async () => {
+      user.phoneNumber = 'number!';
       user.providerData = [
         {
           providerId: ProviderId.PHONE,
@@ -101,6 +102,41 @@ describe('core/user/unlink', () => {
         }
       ];
       await unlink(user, ProviderId.PHONE);
+      expect(user.providerData).to.eql([
+        {
+          providerId: ProviderId.GOOGLE,
+          displayName: '',
+          phoneNumber: '',
+          email: '',
+          photoURL: '',
+          uid: ''
+        }
+      ]);
+
+      expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
+      expect(user.phoneNumber).to.be.null;
+    });
+
+    it('removes non-phone provider from the list and persists', async () => {
+      user.providerData = [
+        {
+          providerId: ProviderId.GOOGLE,
+          displayName: '',
+          phoneNumber: '',
+          email: '',
+          photoURL: '',
+          uid: ''
+        },
+        {
+          providerId: ProviderId.TWITTER,
+          displayName: '',
+          phoneNumber: '',
+          email: '',
+          photoURL: '',
+          uid: ''
+        }
+      ];
+      await unlink(user, ProviderId.TWITTER);
       expect(user.providerData).to.eql([
         {
           providerId: ProviderId.GOOGLE,
