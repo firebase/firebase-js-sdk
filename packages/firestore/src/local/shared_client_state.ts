@@ -41,6 +41,7 @@ import {
 import {
   CLIENT_STATE_KEY_PREFIX,
   ClientStateSchema,
+  createRemoteDocumentsChangedKey,
   createWebStorageClientStateKey,
   createWebStorageMutationBatchKey,
   createWebStorageOnlineStateKey,
@@ -174,6 +175,8 @@ export interface SharedClientState {
   setOnlineState(onlineState: OnlineState): void;
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+
+  remoteDocumentsChanged(): void;
 }
 
 /**
@@ -478,6 +481,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly sequenceNumberKey: string;
   private readonly storageListener = this.handleWebStorageEvent.bind(this);
   private readonly onlineStateKey: string;
+  private readonly remoteDocumentsChangedKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
@@ -538,6 +542,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
 
     this.onlineStateKey = createWebStorageOnlineStateKey(this.persistenceKey);
+
+    this.remoteDocumentsChangedKey = createRemoteDocumentsChangedKey(
+      this.persistenceKey
+    );
 
     // Rather than adding the storage observer during start(), we add the
     // storage observer during initialization. This ensures that we collect
@@ -718,6 +726,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistOnlineState(onlineState);
   }
 
+  remoteDocumentsChanged(): void {
+    this.persistRemoteDocumentsChangedState();
+  }
+
   shutdown(): void {
     if (this.started) {
       this.platform.window!.removeEventListener(
@@ -819,6 +831,8 @@ export class WebStorageSharedClientState implements SharedClientState {
           if (sequenceNumber !== ListenSequence.INVALID) {
             this.sequenceNumberHandler!(sequenceNumber);
           }
+        } else if (event.key === this.remoteDocumentsChangedKey) {
+          return this.syncEngine!.synchronizeWithChangedDocuments();
         }
       });
     }
@@ -882,6 +896,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
     const targetMetadata = new QueryTargetMetadata(targetId, state, error);
     this.setItem(targetKey, targetMetadata.toWebStorageJSON());
+  }
+
+  private persistRemoteDocumentsChangedState(): void {
+    this.setItem(this.remoteDocumentsChangedKey, 'value-not-used');
   }
 
   /**
@@ -1132,4 +1150,8 @@ export class MemorySharedClientState implements SharedClientState {
   shutdown(): void {}
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
+
+  remoteDocumentsChanged(): void {
+    // No op.
+  }
 }

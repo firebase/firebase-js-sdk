@@ -447,9 +447,13 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('loadBundle()');
 
-    return this.loadBundleAsync(bundleReader, task).catch(reason => {
-      task.failedWith(reason);
-    });
+    return this.loadBundleAsync(bundleReader, task)
+      .catch(reason => {
+        task.failedWith(reason);
+      })
+      .then(() => {
+        this.sharedClientState.remoteDocumentsChanged();
+      });
   }
 
   private async loadBundleAsync(
@@ -1044,6 +1048,13 @@ export class MultiTabSyncEngine extends SyncEngine
       source === OnlineStateSource.SharedClientState
     ) {
       super.applyOnlineStateChange(onlineState, source);
+    }
+  }
+
+  async synchronizeWithChangedDocuments(): Promise<void> {
+    if (this.isPrimaryClient) {
+      const changes = await this.localStore.getNewDocumentChanges();
+      await this.emitNewSnapsAndNotifyLocalStore(changes);
     }
   }
 

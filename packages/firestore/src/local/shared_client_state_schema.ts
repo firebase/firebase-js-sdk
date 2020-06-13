@@ -115,6 +115,18 @@ export function createWebStorageOnlineStateKey(persistenceKey: string): string {
   return `${ONLINE_STATE_KEY_PREFIX}_${persistenceKey}`;
 }
 
+// The WebStorage prefix that plays as a event to indicate the remote documents
+// might have changed due to some actions secondary tabs did.
+// format of the key is:
+//     firestore_remote_documents_changed_<persistence_prefix>
+export const REMOTE_DOCUMENTS_CHANGED_KEY_PREFIX =
+  'firestore_remote_documents_changed';
+export function createRemoteDocumentsChangedKey(
+  persistenceKey: string
+): string {
+  return `${REMOTE_DOCUMENTS_CHANGED_KEY_PREFIX}_${persistenceKey}`;
+}
+
 /**
  * The JSON representation of the system's online state, as written by the
  * primary client.

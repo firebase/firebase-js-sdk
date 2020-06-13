@@ -275,12 +275,9 @@ describeSpec('Bundles:', [], () => {
           // Bundle tells otherwise, leads to limbo resolution.
           .loadBundle(bundleString1)
           .client(0)
-          .becomeVisible()
-        // TODO(wuandy): Loading from secondary client does not notify other
-        // clients for now. We need to fix it and uncomment below.
-        // .expectEvents(query, {
-        //   modified: [doc('collection/a', 500, { key: 'b' })],
-        // })
+          .expectEvents(query, {
+            modified: [doc('collection/a', 500, { key: 'b' })]
+          })
       );
     }
   );
