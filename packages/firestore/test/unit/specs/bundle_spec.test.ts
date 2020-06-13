@@ -251,39 +251,7 @@ describeSpec('Bundles:', [], () => {
   });
 
   specTest(
-    'Load from secondary clients and observe from primary.',
-    ['multi-client'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 250, { key: 'a' });
-      const bundleString1 = bundleWithDocument({
-        key: docA.key,
-        readTime: 500,
-        createTime: 250,
-        updateTime: 500,
-        content: { key: { stringValue: 'b' } }
-      });
-
-      return (
-        client(0)
-          .userListens(query)
-          .watchAcksFull(query, 250, docA)
-          .expectEvents(query, {
-            added: [docA]
-          })
-          .client(1)
-          // Bundle tells otherwise, leads to limbo resolution.
-          .loadBundle(bundleString1)
-          .client(0)
-          .expectEvents(query, {
-            modified: [doc('collection/a', 500, { key: 'b' })]
-          })
-      );
-    }
-  );
-
-  specTest(
-    'Load and observe from same secondary client.',
+    'Load and observe from secondary and observe from others.',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -307,7 +275,20 @@ describeSpec('Bundles:', [], () => {
         .expectEvents(query, {
           added: [docA]
         })
+        .client(2)
+        .userListens(query)
+        .expectEvents(query, {
+          added: [docA]
+        })
         .loadBundle(bundleString1)
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { key: 'b' })]
+        })
+        .client(0)
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { key: 'b' })]
+        })
+        .client(1)
         .expectEvents(query, {
           modified: [doc('collection/a', 500, { key: 'b' })]
         });

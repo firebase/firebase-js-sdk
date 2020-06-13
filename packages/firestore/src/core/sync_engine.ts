@@ -452,7 +452,9 @@ export class SyncEngine implements RemoteSyncer {
         task.failedWith(reason);
       })
       .then(() => {
-        this.sharedClientState.remoteDocumentsChanged();
+        if (!this.isPrimaryClient) {
+          this.sharedClientState.remoteDocumentsChanged();
+        }
       });
   }
 
@@ -1052,10 +1054,8 @@ export class MultiTabSyncEngine extends SyncEngine
   }
 
   async synchronizeWithChangedDocuments(): Promise<void> {
-    if (this.isPrimaryClient) {
-      const changes = await this.localStore.getNewDocumentChanges();
-      await this.emitNewSnapsAndNotifyLocalStore(changes);
-    }
+    const changes = await this.localStore.getNewDocumentChanges();
+    await this.emitNewSnapsAndNotifyLocalStore(changes);
   }
 
   async applyBatchState(
