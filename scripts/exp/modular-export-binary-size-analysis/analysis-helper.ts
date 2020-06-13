@@ -27,6 +27,7 @@ export type MemberList = {
   classes: string[];
   functions: string[];
   variables: string[];
+  reExports: string[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
 export type ExportData = { dependencies: MemberList; sizeInBytes: number };
@@ -69,12 +70,13 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
+  //console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
   const bundle = await rollup.rollup({
     input,
-    external: id => id.startsWith('@firebase/')
+    external: id => id.startsWith('@firebase-exp/')
   });
   await bundle.write({ file: output, format: 'es' });
 
@@ -111,9 +113,11 @@ export function extractDeclarations(jsFile: string): MemberList {
   const declarations: MemberList = {
     functions: [],
     classes: [],
-    variables: []
+    variables: [],
+    reExports: []
   };
   ts.forEachChild(sourceFile, node => {
+    console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -137,10 +141,35 @@ export function extractDeclarations(jsFile: string): MemberList {
         }
       });
     } else if (ts.isExportDeclaration(node)) {
+      if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+        const fileName: string = node.moduleSpecifier.text;
+        if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+          // named exports
+          node.exportClause.elements.forEach(exportSpecifier => {
+            console.log(exportSpecifier.kind);
+            console.log(exportSpecifier.name.escapedText);
+            declarations.reExports.push(
+              exportSpecifier.name.escapedText as string
+            );
+          });
+        } else if (!node.exportClause) {
+          // problem 2: we cant get the full path of the reexports
+          // ./boo
+          const reExportsMember = extractDeclarations(
+            path.resolve(`${fileName}.d.ts`)
+          );
+          console.log(reExportsMember);
+        }
+      }
+
       // TODO: here is a tricky case
       // export from <file path>
       // export {functions .. variable} from <file path>
       // a recursive solution here
+      // if it is named export, just need to record the name.
+
+      // console.log(node.kind);
+      //console.log(node);
     }
   });
 

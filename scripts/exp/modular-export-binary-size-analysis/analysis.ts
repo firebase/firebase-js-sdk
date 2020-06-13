@@ -49,10 +49,10 @@ function collectBinarySize(path) {
       console.log('This module does not have bundle file!');
       return;
     }
-    console.log(publicApi);
+    //console.log(publicApi);
     // calculate binary size for every export and build a json report
     buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`).then(json => {
-      console.log(json);
+      //console.log(json);
       //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
     });
   }
