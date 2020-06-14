@@ -18,8 +18,9 @@
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+import { BundleSource } from '../util/bundle_reader';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -52,8 +53,15 @@ export interface Platform {
 
   /**
    * Builds a `ByteStreamReader` from a data source.
+   * @param source The data source to use.
+   * @param bytesPerRead How many bytes each `read()` from the returned reader
+   *        will read. It is ignored if the passed in source does not provide
+   *        such control(example: ReadableStream).
    */
-  toByteStreamReader(source: unknown): ByteStreamReader;
+  toByteStreamReader(
+    source: BundleSource,
+    bytesPerRead: number
+  ): ReadableStreamReader<Uint8Array>;
 
   /** The Platform's 'window' implementation or null if not available. */
   readonly window: Window | null;
@@ -66,25 +74,6 @@ export interface Platform {
 }
 
 /**
- * An interface compatible with Web's ReadableStream.getReader() return type.
- *
- * This can be used as an abstraction to mimic `ReadableStream` where it is not
- * available.
- */
-export interface ByteStreamReader {
-  read(): Promise<ByteStreamReadResult>;
-  cancel(reason?: string): Promise<void>;
-}
-
-/**
- * An interface compatible with ReadableStreamReadResult<UInt8Array>.
- */
-export interface ByteStreamReadResult {
-  done: boolean;
-  value?: Uint8Array;
-}
-
-/**
  * Builds a `ByteStreamReader` from a UInt8Array.
  * @param source The data source to use.
  * @param bytesPerRead How many bytes each `read()` from the returned reader
@@ -92,11 +81,15 @@ export interface ByteStreamReadResult {
  */
 export function toByteStreamReader(
   source: Uint8Array,
-  bytesPerRead = 10240
-): ByteStreamReader {
+  bytesPerRead: number
+): ReadableStreamReader<Uint8Array> {
+  debugAssert(
+    bytesPerRead > 0,
+    `toByteStreamReader expects positive bytesPerRead, but got ${bytesPerRead}`
+  );
   let readFrom = 0;
-  return new (class implements ByteStreamReader {
-    async read(): Promise<ByteStreamReadResult> {
+  const reader: ReadableStreamReader<Uint8Array> = {
+    async read(): Promise<ReadableStreamReadResult<Uint8Array>> {
       if (readFrom < source.byteLength) {
         const result = {
           value: source.slice(readFrom, readFrom + bytesPerRead),
@@ -107,10 +100,11 @@ export function toByteStreamReader(
       }
 
       return { value: undefined, done: true };
-    }
-
-    async cancel(reason?: string): Promise<void> {}
-  })();
+    },
+    async cancel(): Promise<void> {},
+    releaseLock() {}
+  };
+  return reader;
 }
 
 /**
@@ -124,13 +118,6 @@ export class PlatformSupport {
     if (PlatformSupport.platform) {
       fail('Platform already defined');
     }
-    PlatformSupport.platform = platform;
-  }
-
-  /**
-   * Forcing to set the platform instance, testing only!
-   */
-  private static _forceSetPlatform(platform: Platform): void {
     PlatformSupport.platform = platform;
   }
 

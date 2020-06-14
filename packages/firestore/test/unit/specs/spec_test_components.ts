@@ -51,9 +51,7 @@ import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import { Query } from '../../../src/core/query';
 import { Mutation } from '../../../src/model/mutation';
 import { expect } from 'chai';
-import {
-  JSON_SERIALIZER
-} from '../local/persistence_test_helpers';
+import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

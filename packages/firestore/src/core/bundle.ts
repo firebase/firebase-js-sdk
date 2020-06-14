@@ -30,7 +30,10 @@ import { debugAssert } from '../util/assert';
 export interface Bundle {
   readonly id: string;
   readonly version: number;
-  // When the saved bundle is built from the server SDKs.
+  /**
+   * Set to the snapshot version of the bundle if created by the Server SDKs.
+   * Otherwise set to SnapshotVersion.MIN.
+   */
   readonly createTime: SnapshotVersion;
 }
 
@@ -40,7 +43,7 @@ export interface Bundle {
 export interface NamedQuery {
   readonly name: string;
   readonly query: Query;
-  // When the results for this query are read to the saved bundle.
+  /** The time at which the results for this query were read. */
   readonly readTime: SnapshotVersion;
 }
 

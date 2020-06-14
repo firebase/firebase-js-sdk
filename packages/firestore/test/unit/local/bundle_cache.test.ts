@@ -18,12 +18,16 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { filter, orderBy, path } from '../../util/helpers';
-import * as persistenceHelpers from './persistence_test_helpers';
 import { TestBundleCache } from './test_bundle_cache';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
-import { JSON_SERIALIZER } from './persistence_test_helpers';
+import {
+  clearTestPersistence,
+  JSON_SERIALIZER,
+  testIndexedDbPersistence,
+  testMemoryEagerPersistence
+} from './persistence_test_helpers';
 import { ResourcePath } from '../../../src/model/path';
 import { NamedQuery } from '../../../src/core/bundle';
 
@@ -31,9 +35,9 @@ describe('MemoryBundleCache', () => {
   let cache: TestBundleCache;
 
   beforeEach(async () => {
-    cache = await persistenceHelpers
-      .testMemoryEagerPersistence()
-      .then(persistence => new TestBundleCache(persistence));
+    cache = await testMemoryEagerPersistence().then(
+      persistence => new TestBundleCache(persistence)
+    );
   });
 
   genericBundleCacheTests(() => cache);
@@ -48,15 +52,13 @@ describe('IndexedDbBundleCache', () => {
   let cache: TestBundleCache;
   let persistence: IndexedDbPersistence;
   beforeEach(async () => {
-    persistence = await persistenceHelpers.testIndexedDbPersistence({
-      synchronizeTabs: true
-    });
+    persistence = await testIndexedDbPersistence();
     cache = new TestBundleCache(persistence);
   });
 
   afterEach(async () => {
     await persistence.shutdown();
-    await persistenceHelpers.clearTestPersistence();
+    await clearTestPersistence();
   });
 
   genericBundleCacheTests(() => cache);
@@ -78,7 +80,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     expectedQuery: Query,
     expectedReadSeconds: number,
     expectedReadNanos: number
-  ):void {
+  ): void {
     expect(actual.name).to.equal(expectedName);
     expect(actual.query.isEqual(expectedQuery)).to.be.true;
     expect(
