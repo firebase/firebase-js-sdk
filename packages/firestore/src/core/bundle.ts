@@ -47,10 +47,16 @@ export interface NamedQuery {
   readonly readTime: SnapshotVersion;
 }
 
+/**
+ * Represents the [metadata, document] pairs from the bundles in an array.
+ */
 export type BundledDocuments = Array<
   [bundleProto.BundledDocumentMetadata, api.Document | undefined]
 >;
 
+/**
+ * Helper to convert objects from bundles to model objects in the SDK.
+ */
 export class BundleConverter {
   constructor(private serializer: JsonProtoSerializer) {}
 
@@ -58,6 +64,9 @@ export class BundleConverter {
     return this.serializer.fromName(name);
   }
 
+  /**
+   * Converts a [metadata, document] pair to a MaybeDocument.
+   */
   toMaybeDocument(
     metadata: bundleProto.BundledDocumentMetadata,
     doc: api.Document | undefined
