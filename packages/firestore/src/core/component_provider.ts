@@ -137,7 +137,8 @@ export class MemoryComponentProvider implements ComponentProvider {
       !cfg.persistenceSettings.durable,
       'Can only start memory persistence'
     );
-    return new MemoryPersistence(MemoryEagerDelegate.factory);
+    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    return new MemoryPersistence(MemoryEagerDelegate.factory, serializer);
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {

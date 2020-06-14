@@ -45,6 +45,9 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import { MemoryBundleCache } from './memory_bundle_cache';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { LocalSerializer } from './local_serializer';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -63,7 +66,9 @@ export class MemoryPersistence implements Persistence {
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
+  private readonly bundleCache: MemoryBundleCache;
   private readonly listenSequence = new ListenSequence(0);
+  private serializer: LocalSerializer;
 
   private _started = false;
 
@@ -76,7 +81,8 @@ export class MemoryPersistence implements Persistence {
    * checked or asserted on every access.
    */
   constructor(
-    referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate
+    referenceDelegateFactory: (p: MemoryPersistence) => MemoryReferenceDelegate,
+    serializer: JsonProtoSerializer
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
@@ -88,6 +94,8 @@ export class MemoryPersistence implements Persistence {
       this.indexManager,
       sizer
     );
+    this.serializer = new LocalSerializer(serializer);
+    this.bundleCache = new MemoryBundleCache(this.serializer);
   }
 
   start(): Promise<void> {
@@ -130,6 +138,10 @@ export class MemoryPersistence implements Persistence {
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {
     return this.remoteDocumentCache;
+  }
+
+  getBundleCache(): MemoryBundleCache {
+    return this.bundleCache;
   }
 
   runTransaction<T>(
