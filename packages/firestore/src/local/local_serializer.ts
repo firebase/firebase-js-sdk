@@ -31,7 +31,9 @@ import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
 import {
+  DbBundle,
   DbMutationBatch,
+  DbNamedQuery,
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
@@ -41,6 +43,9 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
+import { Bundle, NamedQuery } from '../core/bundle';
+import { Query } from '../core/query';
+import * as bundleProto from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -238,4 +243,100 @@ export class LocalSerializer {
  */
 function isDocumentQuery(dbQuery: DbQuery): dbQuery is api.DocumentsTarget {
   return (dbQuery as api.DocumentsTarget).documents !== undefined;
+}
+
+/** Encodes a DbBundle to a Bundle. */
+export function fromDbBundle(
+  serializer: LocalSerializer,
+  dbBundle: DbBundle
+): Bundle {
+  return {
+    id: dbBundle.bundleId,
+    createTime: serializer.fromDbTimestamp(dbBundle.createTime),
+    version: dbBundle.version
+  };
+}
+
+/** Encodes a BundleMetadata to a DbBundle. */
+export function toDbBundle(
+  serializer: LocalSerializer,
+  metadata: bundleProto.BundleMetadata
+): DbBundle {
+  return {
+    bundleId: metadata.id!,
+    createTime: serializer.toDbTimestamp(
+      serializer.remoteSerializer.fromVersion(metadata.createTime!)
+    ),
+    version: metadata.version!
+  };
+}
+
+/** Encodes a DbNamedQuery to a NamedQuery. */
+export function fromDbNamedQuery(
+  serializer: LocalSerializer,
+  dbNamedQuery: DbNamedQuery
+): NamedQuery {
+  return {
+    name: dbNamedQuery.name,
+    query: fromBundledQuery(serializer, dbNamedQuery.bundledQuery),
+    readTime: serializer.fromDbTimestamp(dbNamedQuery.readTime)
+  };
+}
+
+/** Encodes a NamedQuery from a bundle proto to a DbNamedQuery. */
+export function toDbNamedQuery(
+  serializer: LocalSerializer,
+  query: bundleProto.NamedQuery
+): DbNamedQuery {
+  return {
+    name: query.name!,
+    readTime: serializer.toDbTimestamp(
+      serializer.remoteSerializer.fromVersion(query.readTime!)
+    ),
+    bundledQuery: query.bundledQuery!
+  };
+}
+
+/**
+ * Encodes a `BundledQuery` from bundle proto to a Query object.
+ *
+ * This reconstructs the original query used to build the bundle being loaded,
+ * including features exists only in SDKs (for example: limit-to-last).
+ */
+export function fromBundledQuery(
+  serializer: LocalSerializer,
+  bundledQuery: bundleProto.BundledQuery
+): Query {
+  const query = serializer.remoteSerializer.convertQueryTargetToQuery({
+    parent: bundledQuery.parent!,
+    structuredQuery: bundledQuery.structuredQuery!
+  });
+  if (bundledQuery.limitType === 'LAST') {
+    return query.withLimitToLast(query.limit);
+  }
+  return query;
+}
+
+/** Encodes a NamedQuery proto object to a NamedQuery model object. */
+export function fromProtoNamedQuery(
+  serializer: LocalSerializer,
+  namedQuery: bundleProto.NamedQuery
+): NamedQuery {
+  return {
+    name: namedQuery.name!,
+    query: fromBundledQuery(serializer, namedQuery.bundledQuery!),
+    readTime: serializer.remoteSerializer.fromVersion(namedQuery.readTime!)
+  };
+}
+
+/** Encodes a BundleMetadata proto object to a Bundle model object. */
+export function fromBundleMetadata(
+  serializer: LocalSerializer,
+  metadata: bundleProto.BundleMetadata
+): Bundle {
+  return {
+    id: metadata.id!,
+    version: metadata.version!,
+    createTime: serializer.remoteSerializer.fromVersion(metadata.createTime!)
+  };
 }

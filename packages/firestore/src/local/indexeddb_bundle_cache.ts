@@ -27,15 +27,14 @@ import {
 } from './indexeddb_schema';
 import { SimpleDbStore } from './simple_db';
 import { IndexedDbPersistence } from './indexeddb_persistence';
-import { LocalSerializer } from './local_serializer';
 import {
-  Bundle,
   fromDbBundle,
   fromDbNamedQuery,
-  NamedQuery,
+  LocalSerializer,
   toDbBundle,
   toDbNamedQuery
-} from '../core/bundle';
+} from './local_serializer';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 export class IndexedDbBundleCache implements BundleCache {
   constructor(private serializer: LocalSerializer) {}

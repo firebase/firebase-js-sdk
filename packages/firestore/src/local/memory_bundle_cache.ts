@@ -19,13 +19,12 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
+import { Bundle, NamedQuery } from '../core/bundle';
 import {
-  Bundle,
   fromBundleMetadata,
   fromProtoNamedQuery,
-  NamedQuery
-} from '../core/bundle';
-import { LocalSerializer } from './local_serializer';
+  LocalSerializer
+} from './local_serializer';
 
 export class MemoryBundleCache implements BundleCache {
   private bundles = new Map<string, Bundle>();
