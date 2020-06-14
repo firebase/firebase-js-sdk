@@ -92,6 +92,7 @@ import { fieldPathFromArgument, UserDataReader } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -481,6 +482,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   ): firestore.LoadBundleTask {
     this.ensureClientConfigured();
     return this._firestoreClient!.loadBundle(bundleData);
+  }
+
+  async namedQuery(name: string): Promise<firestore.Query | null> {
+    this.ensureClientConfigured();
+    const namedQuery = await this._firestoreClient!.getNamedQuery(name);
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(namedQuery.query, this, undefined, namedQuery.readTime);
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -1440,7 +1451,8 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    protected readonly _converter?: firestore.FirestoreDataConverter<T>
+    protected readonly _converter?: firestore.FirestoreDataConverter<T>,
+    readonly _readFrom?: SnapshotVersion
   ) {}
 
   where(
@@ -1659,7 +1671,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.Query<U> {
-    return new Query<U>(this._query, this.firestore, converter);
+    return new Query<U>(this._query, this.firestore, converter, this._readFrom);
   }
 
   /** Helper function to create a bound from a document or fields */
@@ -1904,6 +1916,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     });
 
     const firestoreClient = this.firestore.ensureClientConfigured();
+    options.readFrom = this._readFrom;
     const internalListener = firestoreClient.listen(
       this._query,
       asyncObserver,

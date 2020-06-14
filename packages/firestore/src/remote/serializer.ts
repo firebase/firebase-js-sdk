@@ -887,6 +887,10 @@ export class JsonProtoSerializer {
 
     if (targetData.resumeToken.approximateByteSize() > 0) {
       result.resumeToken = this.toBytes(targetData.resumeToken);
+    } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min())) {
+      result.readTime = this.toTimestamp(
+        targetData.snapshotVersion.toTimestamp()
+      );
     }
 
     return result;

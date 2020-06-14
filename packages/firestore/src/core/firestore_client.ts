@@ -50,7 +50,7 @@ import {
   MemoryComponentProvider
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTaskImpl } from './bundle';
+import { LoadBundleTaskImpl, NamedQuery } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -396,7 +396,9 @@ export class FirestoreClient {
   ): QueryListener {
     this.verifyNotTerminated();
     const listener = new QueryListener(query, observer, options);
-    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
+    this.asyncQueue.enqueueAndForget(() =>
+      this.eventMgr.listen(listener, options.readFrom)
+    );
     return listener;
   }
 
@@ -543,5 +545,10 @@ export class FirestoreClient {
     });
 
     return task;
+  }
+
+  getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
+    this.verifyNotTerminated();
+    return this.localStore.getNamedQuery(queryName);
   }
 }

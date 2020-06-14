@@ -216,7 +216,10 @@ export class SyncEngine implements RemoteSyncer {
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the initial snapshot.
    */
-  async listen(query: Query): Promise<ViewSnapshot> {
+  async listen(
+    query: Query,
+    readFrom?: SnapshotVersion
+  ): Promise<ViewSnapshot> {
     this.assertSubscribed('listen()');
 
     let targetId;
@@ -234,7 +237,10 @@ export class SyncEngine implements RemoteSyncer {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const targetData = await this.localStore.allocateTarget(query.toTarget());
+      const targetData = await this.localStore.allocateTarget(
+        query.toTarget(),
+        readFrom
+      );
 
       const status = this.sharedClientState.addLocalQueryTarget(
         targetData.targetId

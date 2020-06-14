@@ -23,6 +23,7 @@ import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -59,7 +60,10 @@ export class EventManager implements SyncEngineListener {
     this.syncEngine.subscribe(this);
   }
 
-  async listen(listener: QueryListener): Promise<void> {
+  async listen(
+    listener: QueryListener,
+    readFrom?: SnapshotVersion
+  ): Promise<void> {
     const query = listener.query;
     let firstListen = false;
 
@@ -71,7 +75,7 @@ export class EventManager implements SyncEngineListener {
 
     if (firstListen) {
       try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query);
+        queryInfo.viewSnap = await this.syncEngine.listen(query, readFrom);
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
           e,
@@ -195,6 +199,16 @@ export interface ListenOptions {
    * offline.
    */
   readonly waitForSyncWhenOnline?: boolean;
+
+  /**
+   * Tells the backend whether the client already has the query results up to
+   * a point in time, and the backend will only send deltas from that point
+   * on if applicable (for example, backend might already lose track of this
+   * particular query, and has to restart and send everything anyways).
+   *
+   * When not set, backend simply assumes the client does not have anything.
+   */
+  readFrom?: SnapshotVersion | undefined;
 }
 
 /**
