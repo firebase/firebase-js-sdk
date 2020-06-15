@@ -91,6 +91,7 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
@@ -579,14 +580,22 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
     validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
-    return new CollectionReference(ResourcePath.fromString(pathString), this);
+    return new CollectionReference(
+      ResourcePath.fromString(pathString),
+      this,
+      /* converter= */ null
+    );
   }
 
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
     validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
-    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+    return DocumentReference.forPath(
+      ResourcePath.fromString(pathString),
+      this,
+      /* converter= */ null
+    );
   }
 
   collectionGroup(collectionId: string): firestore.Query {
@@ -607,7 +616,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
     return new Query(
       new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
-      this
+      this,
+      /* converter= */ null
     );
   }
 
@@ -735,17 +745,11 @@ export class Transaction implements firestore.Transaction {
       value,
       'Transaction.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -838,17 +842,11 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       'WriteBatch.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this._firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this._firestore._dataReader.parseSetData(
-            functionName,
-            convertedValue
-          );
+    const parsed = this._firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
     );
@@ -957,7 +955,7 @@ export class DocumentReference<T = firestore.DocumentData>
   constructor(
     public _key: DocumentKey,
     readonly firestore: Firestore,
-    readonly _converter?: firestore.FirestoreDataConverter<T>
+    readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, _key, _converter);
     this._firestoreClient = this.firestore.ensureClientConfigured();
@@ -966,7 +964,7 @@ export class DocumentReference<T = firestore.DocumentData>
   static forPath<U>(
     path: ResourcePath,
     firestore: Firestore,
-    converter?: firestore.FirestoreDataConverter<U>
+    converter: firestore.FirestoreDataConverter<U> | null
   ): DocumentReference<U> {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
@@ -1012,7 +1010,11 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     }
     const path = ResourcePath.fromString(pathString);
-    return new CollectionReference(this._key.path.child(path), this.firestore);
+    return new CollectionReference(
+      this._key.path.child(path),
+      this.firestore,
+      /* converter= */ null
+    );
   }
 
   isEqual(other: firestore.DocumentReference<T>): boolean {
@@ -1038,14 +1040,11 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       'DocumentReference.set'
     );
-    const parsed =
-      options.merge || options.mergeFields
-        ? this.firestore._dataReader.parseMergeData(
-            functionName,
-            convertedValue,
-            options.mergeFields
-          )
-        : this.firestore._dataReader.parseSetData(functionName, convertedValue);
+    const parsed = this.firestore._dataReader.parseSetData(
+      functionName,
+      convertedValue,
+      options
+    );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
     );
@@ -1342,7 +1341,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     public _document: Document | null,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean,
-    private readonly _converter?: firestore.FirestoreDataConverter<T>
+    private readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   data(options?: firestore.SnapshotOptions): T | undefined {
@@ -1359,7 +1358,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._key,
           this._document,
           this._fromCache,
-          this._hasPendingWrites
+          this._hasPendingWrites,
+          /* converter= */ null
         );
         return this._converter.fromFirestore(snapshot, options);
       } else {
@@ -1367,7 +1367,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
-          key => new DocumentReference(key, this._firestore)
+          key =>
+            new DocumentReference(key, this._firestore, /* converter= */ null)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1450,7 +1451,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    protected readonly _converter?: firestore.FirestoreDataConverter<T>
+    protected readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   where(
@@ -1662,7 +1663,9 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       throw invalidClassError('isEqual', 'Query', 1, other);
     }
     return (
-      this.firestore === other.firestore && this._query.isEqual(other._query)
+      this.firestore === other.firestore &&
+      this._query.isEqual(other._query) &&
+      this._converter === other._converter
     );
   }
 
@@ -2182,7 +2185,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
     private readonly _firestore: Firestore,
     private readonly _originalQuery: InternalQuery,
     private readonly _snapshot: ViewSnapshot,
-    private readonly _converter?: firestore.FirestoreDataConverter<T>
+    private readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
@@ -2293,7 +2296,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     readonly _path: ResourcePath,
     firestore: Firestore,
-    _converter?: firestore.FirestoreDataConverter<T>
+    _converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(InternalQuery.atPath(_path), firestore, _converter);
     if (_path.length % 2 !== 1) {
@@ -2317,7 +2320,8 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     } else {
       return new DocumentReference<firestore.DocumentData>(
         new DocumentKey(parentPath),
-        this.firestore
+        this.firestore,
+        /* converter= */ null
       );
     }
   }
@@ -2458,7 +2462,7 @@ export function changesFromSnapshot<T>(
   firestore: Firestore,
   includeMetadataChanges: boolean,
   snapshot: ViewSnapshot,
-  converter?: firestore.FirestoreDataConverter<T>
+  converter: firestore.FirestoreDataConverter<T> | null
 ): Array<firestore.DocumentChange<T>> {
   if (snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
@@ -2546,8 +2550,8 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
  */
-function applyFirestoreDataConverter<T>(
-  converter: firestore.FirestoreDataConverter<T> | undefined,
+export function applyFirestoreDataConverter<T>(
+  converter: UntypedFirestoreDataConverter<T> | null,
   value: T,
   functionName: string
 ): [firestore.DocumentData, string] {

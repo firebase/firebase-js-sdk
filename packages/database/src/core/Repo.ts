@@ -116,6 +116,7 @@ export class Repo {
 
       this.persistentConnection_ = new PersistentConnection(
         this.repoInfo_,
+        app.options.appId,
         this.onDataUpdate_.bind(this),
         this.onConnectStatus_.bind(this),
         this.onServerInfoUpdate_.bind(this),

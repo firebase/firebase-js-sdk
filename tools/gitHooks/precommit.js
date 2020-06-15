@@ -80,17 +80,6 @@ $ git stash pop
     // Validate License headers exist
     await doLicense(changedFiles);
 
-    // Diff staged changes against last commit. Don't do an empty commit.
-    const postDiff = await git.diff(['--cached']);
-    if (!postDiff) {
-      console.error(chalk`
-{red Staged files are identical to previous commit after running formatting
-steps. Skipping commit.}
-
-`);
-      return process.exit(1);
-    }
-
     console.log(chalk`
 Pre-Push Validation Succeeded
 

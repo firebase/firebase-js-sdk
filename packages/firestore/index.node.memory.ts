@@ -35,7 +35,7 @@ export function registerFirestore(instance: FirebaseNamespace): void {
     instance,
     (app, auth) => new Firestore(app, auth, new MemoryComponentProvider())
   );
-  instance.registerVersion(name, version);
+  instance.registerVersion(name, version, 'node');
 }
 
 registerFirestore(firebase);

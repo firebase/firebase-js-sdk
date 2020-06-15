@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -24,8 +24,8 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@firebase/util": "0.2.47",
-    "tslib": "1.11.1"
+    "@firebase/util": "0.2.48",
+    "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {

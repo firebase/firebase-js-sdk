@@ -29,6 +29,8 @@ export const FORGE_DOMAIN = 'firebaseio.com';
 
 export const LAST_SESSION_PARAM = 'ls';
 
+export const APPLICATION_ID_PARAM = 'p';
+
 export const WEBSOCKET = 'websocket';
 
 export const LONG_POLLING = 'long_polling';

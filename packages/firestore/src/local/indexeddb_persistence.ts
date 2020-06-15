@@ -305,9 +305,7 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb = db;
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary(
-          this.forceOwningTab
-        );
+        return this.updateClientMetadataAndTryBecomePrimary();
       })
       .then(() => {
         if (!this.isPrimary && !this.allowTabSynchronization) {
@@ -404,9 +402,7 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(
-    forceOwningTab = false
-  ): Promise<void> {
+  private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
     return this.runTransaction(
       'updateClientMetadataAndTryBecomePrimary',
       'readwrite',
@@ -446,15 +442,15 @@ export class IndexedDbPersistence implements Persistence {
       }
     )
       .catch(e => {
+        if (isIndexedDbTransactionError(e)) {
+          logDebug(LOG_TAG, 'Failed to extend owner lease: ', e);
+          // Proceed with the existing state. Any subsequent access to
+          // IndexedDB will verify the lease.
+          return this.isPrimary;
+        }
+
         if (!this.allowTabSynchronization) {
-          if (isIndexedDbTransactionError(e)) {
-            logDebug(LOG_TAG, 'Failed to extend owner lease: ', e);
-            // Proceed with the existing state. Any subsequent access to
-            // IndexedDB will verify the lease.
-            return this.isPrimary;
-          } else {
-            throw e;
-          }
+          throw e;
         }
 
         logDebug(

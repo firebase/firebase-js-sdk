@@ -84,23 +84,16 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { query } from './api_helpers';
+import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference, Firestore } from '../../src/api/database';
+import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
-
-// A Firestore that can be used in DocumentReferences and UserDataWriter.
-const fakeFirestore: Firestore = {
-  ensureClientConfigured: () => {},
-  _databaseId: new DatabaseId('test-project')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
 
 export type TestSnapshotVersion = number;
 
@@ -109,7 +102,7 @@ export function testUserDataWriter(): UserDataWriter {
     new DatabaseId('test-project'),
     /* timestampsInSnapshots= */ false,
     'none',
-    key => new DocumentReference(key, fakeFirestore)
+    key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
   );
 }
 
@@ -133,7 +126,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 export function ref(key: string, offset?: number): DocumentReference {
   return new DocumentReference(
     new DocumentKey(path(key, offset)),
-    fakeFirestore
+    FIRESTORE,
+    /* converter= */ null
   );
 }
 
@@ -241,7 +235,7 @@ export function patchMutation(
   // Replace '<DELETE>' from JSON with FieldValue
   forEach(json, (k, v) => {
     if (v === '<DELETE>') {
-      json[k] = new DeleteFieldValueImpl();
+      json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
   const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
