@@ -77,6 +77,48 @@ describe('core/credentials/phone', () => {
     });
   });
 
+  context('#_linkToIdToken', () => {
+    const response: IdTokenResponse = {
+      idToken: '',
+      refreshToken: '',
+      kind: '',
+      expiresIn: '10',
+      localId: 'uid'
+    };
+
+    it('calls the endpoint with session and code', async () => {
+      const cred = new PhoneAuthCredential({
+        verificationId: 'session-info',
+        verificationCode: 'code'
+      });
+
+      const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
+
+      expect(await cred._linkToIdToken(auth, 'id-token')).to.eql(response);
+      expect(route.calls[0].request).to.eql({
+        sessionInfo: 'session-info',
+        code: 'code',
+        idToken: 'id-token'
+      });
+    });
+
+    it('calls the endpoint with proof and number', async () => {
+      const cred = new PhoneAuthCredential({
+        temporaryProof: 'temp-proof',
+        phoneNumber: 'number'
+      });
+
+      const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
+
+      expect(await cred._linkToIdToken(auth, 'id-token')).to.eql(response);
+      expect(route.calls[0].request).to.eql({
+        temporaryProof: 'temp-proof',
+        phoneNumber: 'number',
+        idToken: 'id-token'
+      });
+    });
+  });
+
   context('#toJSON', () => {
     it('fills out the object with everything that is set', () => {
       const cred = new PhoneAuthCredential({
