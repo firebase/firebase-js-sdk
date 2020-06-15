@@ -23,20 +23,26 @@ import {
   ProviderId,
   SignInMethod
 } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { signInWithCredential } from './credential';
+import { User } from '../../model/user';
+import {
+  _assertLinkedStatus,
+  linkWithCredential,
+  signInWithCredential
+} from './credential';
 
 use(chaiAsPromised);
 
-describe('core/strategies/signInWithCredential', () => {
+describe('core/strategies/credential', () => {
   const serverUser: APIUserInfo = {
     localId: 'local-id',
     displayName: 'display-name',
@@ -63,32 +69,115 @@ describe('core/strategies/signInWithCredential', () => {
   );
 
   let auth: Auth;
+  let getAccountInfoEndpoint: mockFetch.Route;
+  let user: User;
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
     authCredential._setIdTokenResponse(idTokenResponse);
-    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+    getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
     });
+
+    user = testUser(auth, 'uid', undefined, true);
   });
+
   afterEach(mockFetch.tearDown);
 
-  it('should return a valid user credential', async () => {
-    const { credential, user, operationType } = await signInWithCredential(
-      auth,
-      authCredential
-    );
-    expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
-    expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
-    expect(user.uid).to.eq('local-id');
-    expect(user.tenantId).to.eq('tenant-id');
-    expect(user.displayName).to.eq('display-name');
-    expect(operationType).to.eq(OperationType.SIGN_IN);
+  describe('signInWithCredential', () => {
+    it('should return a valid user credential', async () => {
+      const { credential, user, operationType } = await signInWithCredential(
+        auth,
+        authCredential
+      );
+      expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
+      expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect(user.uid).to.eq('local-id');
+      expect(user.tenantId).to.eq('tenant-id');
+      expect(user.displayName).to.eq('display-name');
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+    });
+
+    it('should update the current user', async () => {
+      const { user } = await signInWithCredential(auth, authCredential);
+      expect(auth.currentUser).to.eq(user);
+    });
   });
 
-  it('should update the current user', async () => {
-    const { user } = await signInWithCredential(auth, authCredential);
-    expect(auth.currentUser).to.eq(user);
+  describe('linkWithCredential', () => {
+    it('should throw an error if the provider is already linked', async () => {
+      getAccountInfoEndpoint.response = {
+        users: [
+          {
+            ...serverUser,
+            providerUserInfo: [{ providerId: ProviderId.FIREBASE }]
+          }
+        ]
+      };
+
+      await expect(linkWithCredential(user, authCredential)).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
+      );
+    });
+
+    it('should return a valid user credential', async () => {
+      const {
+        credential,
+        user: newUser,
+        operationType
+      } = await linkWithCredential(user, authCredential);
+      expect(operationType).to.eq(OperationType.LINK);
+      expect(newUser).to.eq(user);
+      expect(credential).to.be.null;
+    });
+  });
+
+  describe('_assertLinkedStatus', () => {
+    it('should error with already linked if expectation is true', async () => {
+      getAccountInfoEndpoint.response = {
+        users: [
+          {
+            ...serverUser,
+            providerUserInfo: [{ providerId: ProviderId.GOOGLE }]
+          }
+        ]
+      };
+
+      await expect(
+        _assertLinkedStatus(false, user, ProviderId.GOOGLE)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
+      );
+    });
+
+    it('should not error if provider is not linked', async () => {
+      await expect(_assertLinkedStatus(false, user, ProviderId.GOOGLE)).not.to
+        .be.rejected;
+    });
+
+    it('should error if provider is not linked but it was expected to be', async () => {
+      await expect(
+        _assertLinkedStatus(true, user, ProviderId.GOOGLE)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
+      );
+    });
+
+    it('should not error if provider is linked and that is expected', async () => {
+      getAccountInfoEndpoint.response = {
+        users: [
+          {
+            ...serverUser,
+            providerUserInfo: [{ providerId: ProviderId.GOOGLE }]
+          }
+        ]
+      };
+      await expect(_assertLinkedStatus(true, user, ProviderId.GOOGLE)).not.to.be
+        .rejected;
+    });
   });
 });
