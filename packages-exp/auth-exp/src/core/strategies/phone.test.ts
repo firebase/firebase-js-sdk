@@ -20,17 +20,26 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ApplicationVerifier, OperationType } from '@firebase/auth-types-exp';
+import {
+  ApplicationVerifier,
+  OperationType,
+  ProviderId
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
-import { _verifyPhoneNumber, signInWithPhoneNumber } from './phone';
+import {
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  signInWithPhoneNumber
+} from './phone';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -99,6 +108,85 @@ describe('core/strategies/phone', () => {
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
           code: '6789'
+        });
+      });
+    });
+  });
+
+  describe('linkWithPhoneNumber', () => {
+    let getAccountInfoEndpoint: fetch.Route;
+    let user: User;
+
+    beforeEach(() => {
+      getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [{ uid: 'uid' }]
+      });
+
+      user = testUser(auth, 'uid', 'email', true);
+    });
+
+    it('rejects if a phone provider is already linked', async () => {
+      getAccountInfoEndpoint.response = {
+        users: [
+          {
+            uid: 'uid',
+            providerUserInfo: [{ providerId: ProviderId.PHONE }]
+          }
+        ]
+      };
+
+      await expect(
+        linkWithPhoneNumber(user, 'number', verifier)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
+      );
+    });
+
+    it('calls verify phone number', async () => {
+      await linkWithPhoneNumber(user, '+15105550000', verifier);
+
+      expect(sendCodeEndpoint.calls[0].request).to.eql({
+        recaptchaToken: 'recaptcha-token',
+        phoneNumber: '+15105550000'
+      });
+    });
+
+    context('ConfirmationResult', () => {
+      it('result contains verification id baked in', async () => {
+        const result = await linkWithPhoneNumber(user, 'number', verifier);
+        expect(result.verificationId).to.eq('session-info');
+      });
+
+      it('calling #confirm finishes the sign in flow', async () => {
+        const idTokenResponse: IdTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: 'my-kind'
+        };
+
+        // This endpoint is called from within the callback, in
+        // signInWithCredential
+        const signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+
+        const initialIdToken = await user.getIdToken();
+
+        const result = await linkWithPhoneNumber(user, 'number', verifier);
+        const userCred = await result.confirm('6789');
+        expect(userCred.user.uid).to.eq('uid');
+        expect(userCred.operationType).to.eq(OperationType.LINK);
+        expect(signInEndpoint.calls[0].request).to.eql({
+          sessionInfo: 'session-info',
+          code: '6789',
+          idToken: initialIdToken
         });
       });
     });
