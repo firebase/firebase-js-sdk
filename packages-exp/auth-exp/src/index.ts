@@ -43,6 +43,7 @@ export {
   confirmPasswordReset,
   checkActionCode,
   verifyPasswordResetCode,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from './core/strategies/email_and_password';
 export {
