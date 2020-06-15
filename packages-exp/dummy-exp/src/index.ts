@@ -22,10 +22,35 @@ import { far } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';
+export { LogLevel } from '@firebase/logger';
 var3 = 'var3Changed';
 
 export function boo(): string {
   return 'boo';
 }
+
+export declare enum LogLevel1 {
+  DEBUG = 0,
+  VERBOSE = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  SILENT = 5
+}
+
+export interface LogCallbackParams {
+  level: LogLevel1;
+  message: string;
+  args: unknown[];
+  type: string;
+}
+
+export type LogLevel2 =
+  | 'debug'
+  | 'error'
+  | 'silent'
+  | 'warn'
+  | 'info'
+  | 'verbose';
 
 far(SDK_VERSION);

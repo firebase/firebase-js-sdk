@@ -27,7 +27,7 @@ export type MemberList = {
   classes: string[];
   functions: string[];
   variables: string[];
-  reExports: string[];
+  enums: string[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
 export type ExportData = { dependencies: MemberList; sizeInBytes: number };
@@ -49,7 +49,6 @@ export async function extractDependencies(
     exportName,
     jsBundle
   );
-  //console.log(dependencies);
   return dependencies;
 }
 
@@ -63,14 +62,10 @@ export async function extractDependenciesAndSize(
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
-  // jsBundle : /Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firestore/dist/exp/index.js
 
-  // JavaScript content that exports a single API from the bundle
-  //beforeCOntent: export { Blob } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firestore/dist/exp/index.js';
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-  //console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -94,7 +89,6 @@ export async function extractDependenciesAndSize(
 
   fs.unlinkSync(input);
   fs.unlinkSync(output);
-  // console.log(code);
   return { dependencies, sizeInBytes: Buffer.byteLength(code!, 'utf-8') };
 }
 
@@ -114,8 +108,9 @@ export function extractDeclarations(jsFile: string): MemberList {
     functions: [],
     classes: [],
     variables: [],
-    reExports: []
+    enums: []
   };
+
   ts.forEachChild(sourceFile, node => {
     console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
@@ -124,6 +119,8 @@ export function extractDeclarations(jsFile: string): MemberList {
       declarations.classes.push(node.name!.text);
     } else if (ts.isVariableDeclaration(node)) {
       declarations.variables.push(node.name!.getText());
+    } else if (ts.isEnumDeclaration(node)) {
+      declarations.enums.push(node.name.escapedText.toString());
     } else if (ts.isVariableStatement(node)) {
       const variableDeclarations = node.declarationList.declarations;
       variableDeclarations.forEach(variableDeclaration => {
@@ -143,33 +140,37 @@ export function extractDeclarations(jsFile: string): MemberList {
     } else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
         const fileName: string = node.moduleSpecifier.text;
+        const reExportPath = `${jsFile.substring(
+          0,
+          jsFile.lastIndexOf('/') + 1
+        )}${fileName}.d.ts`;
+        const reExportsMember = extractDeclarations(path.resolve(reExportPath));
+        // for Named Exports : filter the reExportsMember to keep only the symbols
+        // declared for re-export.
+
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-          // named exports
           node.exportClause.elements.forEach(exportSpecifier => {
-            console.log(exportSpecifier.kind);
-            console.log(exportSpecifier.name.escapedText);
-            declarations.reExports.push(
-              exportSpecifier.name.escapedText as string
+            const reExportedSymbol: string = exportSpecifier.name.escapedText.toString();
+            reExportsMember.functions = reExportsMember.functions.filter(each =>
+              isReExported(each, reExportedSymbol)
+            );
+            reExportsMember.variables = reExportsMember.variables.filter(each =>
+              isReExported(each, reExportedSymbol)
+            );
+            reExportsMember.classes = reExportsMember.classes.filter(each =>
+              isReExported(each, reExportedSymbol)
+            );
+            reExportsMember.enums = reExportsMember.enums.filter(each =>
+              isReExported(each, reExportedSymbol)
             );
           });
-        } else if (!node.exportClause) {
-          // problem 2: we cant get the full path of the reexports
-          // ./boo
-          const reExportsMember = extractDeclarations(
-            path.resolve(`${fileName}.d.ts`)
-          );
-          console.log(reExportsMember);
         }
+        // concatename reExport MemberList with MemberList of the dts file
+        declarations.functions.push(...reExportsMember.functions);
+        declarations.variables.push(...reExportsMember.variables);
+        declarations.classes.push(...reExportsMember.classes);
+        declarations.enums.push(...reExportsMember.classes);
       }
-
-      // TODO: here is a tricky case
-      // export from <file path>
-      // export {functions .. variable} from <file path>
-      // a recursive solution here
-      // if it is named export, just need to record the name.
-
-      // console.log(node.kind);
-      //console.log(node);
     }
   });
 
@@ -177,6 +178,11 @@ export function extractDeclarations(jsFile: string): MemberList {
   declarations.functions.sort();
   declarations.classes.sort();
   declarations.variables.sort();
+  declarations.enums.sort();
 
   return declarations;
+}
+
+function isReExported(symbol: string, reExportedSymbol: string): boolean {
+  return symbol.localeCompare(reExportedSymbol) == 0;
 }

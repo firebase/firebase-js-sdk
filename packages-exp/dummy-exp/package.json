@@ -32,6 +32,7 @@
     "typings:internal": "node ./use_public_typings.js"
   },
   "dependencies": {
+    "@firebase/logger": "^0.2.5",
     "tslib": "1.11.1"
   },
   "license": "Apache-2.0",
