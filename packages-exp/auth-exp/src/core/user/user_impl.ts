@@ -16,6 +16,7 @@
  */
 
 import { IdTokenResult, ProviderId } from '@firebase/auth-types-exp';
+
 import { deleteAccount } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
@@ -23,7 +24,7 @@ import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
-import { reload, _reloadWithoutSaving } from './reload';
+import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -100,16 +101,27 @@ export class UserImpl implements User {
     return reload(this);
   }
 
-  _updateTokensIfNecessary(response: IdTokenResponse): boolean {
+  async _updateTokensIfNecessary(
+    response: IdTokenResponse,
+    reload = false
+  ): Promise<void> {
+    let tokensRefreshed = false;
     if (
       response.idToken &&
       response.idToken !== this.stsTokenManager.accessToken
     ) {
       this.stsTokenManager.updateFromServerResponse(response);
-      return true;
+      tokensRefreshed = true;
     }
 
-    return false;
+    if (reload) {
+      await _reloadWithoutSaving(this);
+    }
+
+    await this.auth._persistUserIfCurrent(this);
+    if (tokensRefreshed) {
+      this.auth._notifyListenersIfCurrent(this);
+    }
   }
 
   async delete(): Promise<void> {
