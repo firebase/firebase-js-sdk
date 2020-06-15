@@ -27,6 +27,7 @@ import { TestBundleBuilder } from '../../util/bundle_data';
 import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+import { collectionReference } from '../../util/api_helpers';
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
@@ -51,7 +52,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     b: { k: { stringValue: 'b' }, bar: { integerValue: 2 } }
   };
 
-  function bundleWithTestDocs(
+  function bundleWithTestDocsAndQueries(
     db: firestore.FirebaseFirestore
   ): TestBundleBuilder {
     const a = key('coll-1/a');
@@ -60,6 +61,25 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db as any)._databaseId as DatabaseId
     );
+
+    builder.addNamedQuery(
+      'limit',
+      { seconds: 1000, nanos: 9999 },
+      (collectionReference('coll-1')
+        .orderBy('bar', 'desc')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .limit(1) as any)._query
+    );
+    builder.addNamedQuery(
+      'limit-to-last',
+      { seconds: 1000, nanos: 9999 },
+      (collectionReference('coll-1')
+        .orderBy('bar', 'desc')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .limit(1) as any)._query,
+      'LAST'
+    );
+
     builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);
     builder.addDocument(
       a,
@@ -80,7 +100,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents only with on progress and promise interface.', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocs(db);
+      const builder = bundleWithTestDocsAndQueries(db);
 
       const progresses: firestore.LoadBundleTaskProgress[] = [];
       let completeProgress: firestore.LoadBundleTaskProgress,
@@ -110,24 +130,35 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       verifySuccessProgress(completeProgress!);
       verifySuccessProgress(fulfillProgress!);
-      expect(progresses.length).to.equal(3);
+      // 2 named queries + 2 documents + initial progress.
+      expect(progresses.length).to.equal(5);
       verifyInProgress(progresses[0], 0);
-      verifyInProgress(progresses[1], 1);
-      verifyInProgress(progresses[2], 2);
+      verifyInProgress(progresses[1], 0);
+      verifyInProgress(progresses[2], 0);
+      verifyInProgress(progresses[3], 1);
+      verifyInProgress(progresses[4], 2);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
-      const snap = await db.collection('coll-1').get({ source: 'cache' });
+      let snap = await db.collection('coll-1').get({ source: 'cache' });
       expect(toDataArray(snap)).to.deep.equal([
         { k: 'a', bar: 1 },
         { k: 'b', bar: 2 }
       ]);
+
+      snap = await (await db.namedQuery('limit'))!.get({ source: 'cache' });
+      expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
+
+      snap = await (await db.namedQuery('limit-to-last'))!.get({
+        source: 'cache'
+      });
+      expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
     });
   });
 
-  it('load with documents with promise interface.', () => {
+  it('load with documents and queries with promise interface.', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocs(db);
+      const builder = bundleWithTestDocsAndQueries(db);
 
       let fulfillProgress: firestore.LoadBundleTaskProgress;
       await db
@@ -145,17 +176,16 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
-      const snap = await db.collection('coll-1').get({ source: 'cache' });
-      expect(toDataArray(snap)).to.deep.equal([
-        { k: 'a', bar: 1 },
-        { k: 'b', bar: 2 }
-      ]);
+      const snap = await (await db.namedQuery('limit-to-last'))!.get({
+        source: 'cache'
+      });
+      expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
     });
   });
 
   it('load for a second time skips.', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocs(db);
+      const builder = bundleWithTestDocsAndQueries(db);
 
       await db.loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
@@ -202,7 +232,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       db.collection('coll-1').onSnapshot(accumulator.storeEvent);
       await accumulator.awaitEvent();
 
-      const builder = bundleWithTestDocs(db);
+      const builder = bundleWithTestDocsAndQueries(db);
       const progress = await db.loadBundle(
         // Testing passing non-string bundles.
         encoder.encode(
@@ -216,17 +246,19 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      const snap = await db.collection('coll-1').get();
-      expect(toDataArray(snap)).to.deep.equal([
-        { k: 'a', bar: 0 },
-        { k: 'b', bar: 0 }
-      ]);
+      let snap = await (await db.namedQuery('limit'))!.get({ source: 'cache' });
+      expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
+
+      snap = await (await db.namedQuery('limit-to-last'))!.get({
+        source: 'cache'
+      });
+      expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
 
-  it('load with documents from other projects fails.', () => {
+  it('load bunldes from other projects fails.', () => {
     return withTestDb(persistence, async db => {
-      let builder = bundleWithTestDocs(db);
+      let builder = bundleWithTestDocsAndQueries(db);
       return withAlternateTestDb(persistence, async otherDb => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         expect(
@@ -236,7 +268,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         ).to.be.rejectedWith('Tried to deserialize key from different project');
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
-        builder = bundleWithTestDocs(otherDb);
+        builder = bundleWithTestDocsAndQueries(otherDb);
         const progress = await otherDb.loadBundle(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         );

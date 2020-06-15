@@ -356,8 +356,16 @@ abstract class TestRunner {
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
     let targetFailed = false;
 
-    const querySpec = listenSpec[1];
+    const querySpec = listenSpec.query;
     const query = parseQuery(querySpec);
+    let readFrom: SnapshotVersion;
+    if (listenSpec.fromName) {
+      const savedQuery = await this.localStore.getNamedQuery(
+        listenSpec.fromName
+      );
+      expect(query.isEqual(savedQuery!.query)).to.be.true;
+      readFrom = savedQuery!.readTime;
+    }
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
         targetFailed = true;
@@ -372,7 +380,9 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
+    await this.queue.enqueue(() =>
+      this.eventManager.listen(queryListener, readFrom)
+    );
 
     if (targetFailed) {
       expect(this.persistence.injectFailures).contains('Allocate target');
@@ -955,17 +965,24 @@ abstract class TestRunner {
       // TODO(mcg): populate the purpose of the target once it's possible to
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
-      const expectedTarget = this.serializer.toTarget(
-        new TargetData(
-          parseQuery(expected.queries[0]).toTarget(),
-          targetId,
-          TargetPurpose.Listen,
-          ARBITRARY_SEQUENCE_NUMBER,
-          SnapshotVersion.min(),
-          SnapshotVersion.min(),
-          byteStringFromString(expected.resumeToken)
-        )
+      let targetData = new TargetData(
+        parseQuery(expected.queries[0]).toTarget(),
+        targetId,
+        TargetPurpose.Listen,
+        ARBITRARY_SEQUENCE_NUMBER
       );
+      if (typeof expected.resumeToken === 'string') {
+        targetData = targetData.withResumeToken(
+          byteStringFromString(expected.resumeToken),
+          SnapshotVersion.min()
+        );
+      } else {
+        targetData = targetData.withResumeToken(
+          byteStringFromString(''),
+          version(expected.resumeToken)
+        );
+      }
+      const expectedTarget = this.serializer.toTarget(targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
@@ -1343,7 +1360,11 @@ export interface SpecStep {
 }
 
 /** [<target-id>, <query-path>] */
-export type SpecUserListen = [TargetId, string | SpecQuery];
+export interface SpecUserListen {
+  targetId: TargetId;
+  query: string | SpecQuery;
+  fromName?: string;
+}
 
 /** [<target-id>, <query-path>] */
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];

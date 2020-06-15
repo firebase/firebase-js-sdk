@@ -24,6 +24,7 @@ import { Value } from '../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { PlatformSupport } from '../../src/platform/platform';
 import { DocumentKey } from '../../src/model/document_key';
+import { Query } from '../../src/core/query';
 
 function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
@@ -68,14 +69,28 @@ export class TestBundleBuilder {
     });
     return this;
   }
+
   addNamedQuery(
     name: string,
     readTime: api.Timestamp,
-    bundledQuery: BundledQuery
+    query: Query,
+    limitType?: BundledQuery.LimitType
   ): TestBundleBuilder {
-    this.elements.push({ namedQuery: { name, readTime, bundledQuery } });
+    const queryTarget = this.serializer.toQueryTarget(query.toTarget());
+    this.elements.push({
+      namedQuery: {
+        name,
+        readTime,
+        bundledQuery: {
+          parent: queryTarget.parent,
+          structuredQuery: queryTarget.structuredQuery,
+          limitType
+        }
+      }
+    });
     return this;
   }
+
   getMetadataElement(
     id: string,
     createTime: api.Timestamp,

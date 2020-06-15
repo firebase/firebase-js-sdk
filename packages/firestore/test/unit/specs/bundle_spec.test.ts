@@ -16,7 +16,13 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, path, TestSnapshotVersion, version } from '../../util/helpers';
+import {
+  doc,
+  filter,
+  path,
+  TestSnapshotVersion,
+  version
+} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -28,6 +34,8 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
+import { BundledQuery } from '../../../src/protos/firestore_bundle_proto';
+import LimitType = BundledQuery.LimitType;
 
 interface TestBundleDocument {
   key: DocumentKey;
@@ -36,8 +44,29 @@ interface TestBundleDocument {
   updateTime?: TestSnapshotVersion;
   content?: api.ApiClientObjectMap<Value>;
 }
-function bundleWithDocument(testDoc: TestBundleDocument): string {
+
+interface TestBundledQuery {
+  name: string;
+  readTime: TestSnapshotVersion;
+  query: Query;
+  limitType?: LimitType;
+}
+
+function bundleWithDocumentAndQuery(
+  testDoc: TestBundleDocument,
+  testQuery?: TestBundledQuery
+): string {
   const builder = new TestBundleBuilder(TEST_DATABASE_ID);
+
+  if (testQuery) {
+    builder.addNamedQuery(
+      testQuery.name,
+      JSON_SERIALIZER.toVersion(version(testQuery.readTime)),
+      testQuery.query,
+      testQuery.limitType
+    );
+  }
+
   builder.addDocumentMetadata(
     testDoc.key,
     JSON_SERIALIZER.toVersion(version(testDoc.readTime)),
@@ -63,7 +92,7 @@ describeSpec('Bundles:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docAChanged = doc('collection/a', 2999, { key: 'b' });
 
-    const bundleString = bundleWithDocument({
+    const bundleString = bundleWithDocumentAndQuery({
       key: docA.key,
       readTime: 3000,
       createTime: 1999,
@@ -83,7 +112,7 @@ describeSpec('Bundles:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
 
-    const bundleString = bundleWithDocument({
+    const bundleString = bundleWithDocumentAndQuery({
       key: docA.key,
       readTime: 3000
     });
@@ -100,7 +129,7 @@ describeSpec('Bundles:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
 
-    const bundleString = bundleWithDocument({
+    const bundleString = bundleWithDocumentAndQuery({
       key: docA.key,
       readTime: 999
     });
@@ -122,7 +151,7 @@ describeSpec('Bundles:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
 
-      const bundleString1 = bundleWithDocument({
+      const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 500,
         createTime: 250,
@@ -130,7 +159,7 @@ describeSpec('Bundles:', [], () => {
         content: { key: { stringValue: 'b' } }
       });
 
-      const bundleString2 = bundleWithDocument({
+      const bundleString2 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 1001,
         createTime: 250,
@@ -178,7 +207,7 @@ describeSpec('Bundles:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
 
-      const bundleString1 = bundleWithDocument({
+      const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 500,
         createTime: 250,
@@ -186,7 +215,7 @@ describeSpec('Bundles:', [], () => {
         content: { key: { stringValue: 'b' } }
       });
 
-      const bundleString2 = bundleWithDocument({
+      const bundleString2 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 1001,
         createTime: 250,
@@ -225,7 +254,7 @@ describeSpec('Bundles:', [], () => {
   specTest('Newer docs from bundles might lead to limbo doc.', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
-    const bundleString1 = bundleWithDocument({
+    const bundleString1 = bundleWithDocumentAndQuery({
       key: docA.key,
       readTime: 500,
       createTime: 250,
@@ -250,13 +279,95 @@ describeSpec('Bundles:', [], () => {
     );
   });
 
+  specTest('Bundles query can be loaded and resumed.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 100, { key: 'a' });
+    const bundleString1 = bundleWithDocumentAndQuery(
+      {
+        key: docA.key,
+        readTime: 500,
+        createTime: 250,
+        updateTime: 500,
+        content: { key: { stringValue: 'b' } }
+      },
+      { name: 'bundled-query', readTime: 400, query }
+    );
+
+    return spec()
+      .loadBundle(bundleString1)
+      .userListensToNamedQuery('bundled-query', query, 400)
+      .expectEvents(query, {
+        added: [doc('collection/a', 500, { key: 'b' })],
+        fromCache: true
+      });
+  });
+
+  specTest(
+    'Bundles query can be loaded and resumed from different tabs',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const query1 = Query.atPath(path('collection')).addFilter(
+        filter('key', '==', 'c')
+      );
+      const docA = doc('collection/a', 100, { key: 'a' });
+      const bundleString1 = bundleWithDocumentAndQuery(
+        {
+          key: docA.key,
+          readTime: 500,
+          createTime: 250,
+          updateTime: 500,
+          content: { key: { stringValue: 'b' } }
+        },
+        { name: 'bundled-query', readTime: 400, query }
+      );
+
+      const bundleString2 = bundleWithDocumentAndQuery(
+        {
+          key: docA.key,
+          readTime: 600,
+          createTime: 250,
+          updateTime: 550,
+          content: { key: { stringValue: 'c' } }
+        },
+        { name: 'bundled-query', readTime: 560, query: query1 }
+      );
+
+      return (
+        client(0)
+          .loadBundle(bundleString1)
+          // Read named query from loaded bundle by primary.
+          .client(1)
+          .userListensToNamedQuery('bundled-query', query, 400)
+          .expectEvents(query, {
+            added: [doc('collection/a', 500, { key: 'b' })],
+            fromCache: true
+          })
+          // Loads a newer bundle.
+          .loadBundle(bundleString2)
+          .expectEvents(query, {
+            modified: [doc('collection/a', 550, { key: 'c' })],
+            fromCache: true
+          })
+          .userUnlistens(query)
+          // Read named query from loaded bundle by secondary.
+          .client(0)
+          .userListensToNamedQuery('bundled-query', query1, 560)
+          .expectEvents(query1, {
+            added: [doc('collection/a', 550, { key: 'c' })],
+            fromCache: true
+          })
+      );
+    }
+  );
+
   specTest(
     'Load and observe from secondary and observe from others.',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
-      const bundleString1 = bundleWithDocument({
+      const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 500,
         createTime: 250,
@@ -301,7 +412,7 @@ describeSpec('Bundles:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
-      const bundleString1 = bundleWithDocument({
+      const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
         readTime: 500,
         createTime: 250,

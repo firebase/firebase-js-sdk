@@ -66,7 +66,7 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: SpecQuery[];
-  resumeToken: string;
+  resumeToken: string | TestSnapshotVersion;
 }
 
 export interface ActiveTargetMap {
@@ -237,7 +237,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(query: Query, resumeToken?: string): this {
+  userListens(query: Query, resumeFrom?: string | TestSnapshotVersion): this {
     this.nextStep();
 
     const target = query.toTarget();
@@ -246,7 +246,7 @@ export class SpecBuilder {
     if (this.injectFailures) {
       // Return a `userListens()` step but don't advance the target IDs.
       this.currentStep = {
-        userListen: [targetId, SpecBuilder.queryToSpec(query)]
+        userListen: { targetId, query: SpecBuilder.queryToSpec(query) }
       };
     } else {
       if (this.queryMapping.has(target)) {
@@ -256,9 +256,9 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resumeToken);
+      this.addQueryToActiveTargets(targetId, query, resumeFrom);
       this.currentStep = {
-        userListen: [targetId, SpecBuilder.queryToSpec(query)],
+        userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
       };
     }
@@ -350,6 +350,17 @@ export class SpecBuilder {
     this.currentStep = {
       loadBundle: bundleContent
     };
+    return this;
+  }
+
+  userListensToNamedQuery(
+    name: string,
+    query: Query,
+    readFrom: TestSnapshotVersion
+  ): this {
+    // Note we do not call this.nextStep() here because we reuse userListens().
+    this.userListens(query, readFrom);
+    this.currentStep!.userListen!.fromName = name;
     return this;
   }
 
@@ -1013,7 +1024,7 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resumeToken?: string
+    resumeToken?: string | TestSnapshotVersion
   ): void {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
