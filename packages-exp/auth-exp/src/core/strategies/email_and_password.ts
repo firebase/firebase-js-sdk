@@ -25,6 +25,8 @@ import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { signUp } from '../../api/authentication/sign_up';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
@@ -83,6 +85,30 @@ export async function verifyPasswordResetCode(
   const { data } = await checkActionCode(auth, code);
   // Email should always be present since a code was sent to it
   return data.email!;
+}
+
+export async function createUserWithEmailAndPassword(
+  authExtern: externs.Auth,
+  email: string,
+  password: string
+): Promise<externs.UserCredential> {
+  const auth = authExtern as Auth;
+
+  const response = await signUp(auth, {
+    returnSecureToken: true,
+    email,
+    password
+  });
+
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+    auth,
+    EmailAuthProvider.credential(email, password),
+    externs.OperationType.SIGN_IN,
+    response
+  );
+  await auth.updateCurrentUser(userCredential.user);
+
+  return userCredential;
 }
 
 export function signInWithEmailAndPassword(
