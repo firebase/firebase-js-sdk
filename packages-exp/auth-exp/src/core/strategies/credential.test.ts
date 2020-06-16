@@ -26,6 +26,7 @@ import {
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
+import { makeJWT } from '../../../test/jwt';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
@@ -37,6 +38,7 @@ import { User } from '../../model/user';
 import {
   _assertLinkedStatus,
   linkWithCredential,
+  reauthenticateWithCredential,
   signInWithCredential
 } from './credential';
 
@@ -102,6 +104,38 @@ describe('core/strategies/credential', () => {
     it('should update the current user', async () => {
       const { user } = await signInWithCredential(auth, authCredential);
       expect(auth.currentUser).to.eq(user);
+    });
+  });
+
+  describe('reauthenticateWithCredential', () => {
+    it('should throw an error if the uid is mismatched', async () => {
+      authCredential._setIdTokenResponse({
+        ...idTokenResponse,
+        idToken: makeJWT({ sub: 'not-my-uid' })
+      });
+
+      await expect(
+        reauthenticateWithCredential(user, authCredential)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
+      );
+    });
+
+    it('sould return the expected user credential', async () => {
+      authCredential._setIdTokenResponse({
+        ...idTokenResponse,
+        idToken: makeJWT({ sub: 'uid' })
+      });
+
+      const {
+        credential,
+        user: newUser,
+        operationType
+      } = await reauthenticateWithCredential(user, authCredential);
+      expect(operationType).to.eq(OperationType.REAUTHENTICATE);
+      expect(newUser).to.eq(user);
+      expect(credential).to.be.null;
     });
   });
 
