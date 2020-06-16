@@ -303,6 +303,8 @@ export function collection(
   }
 }
 
+// TODO(firestorelite): Consider using ErrorFactory -
+// https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
 export function collectionGroup(
   firestore: firestore.FirebaseFirestore,
   collectionId: string
@@ -364,10 +366,10 @@ export function doc<T>(
 }
 
 export function parent(
-  reference: CollectionReference<unknown>
+  reference: firestore.CollectionReference<unknown>
 ): DocumentReference<firestore.DocumentData> | null;
 export function parent<T>(
-  reference: DocumentReference<T>
+  reference: firestore.DocumentReference<T>
 ): CollectionReference<T>;
 export function parent<T>(
   child: firestore.CollectionReference<unknown> | firestore.DocumentReference<T>

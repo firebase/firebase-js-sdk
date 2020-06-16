@@ -615,7 +615,6 @@ describe('DocumentSnapshot', () => {
   });
 });
 
-// TODO(firestorelite): Add converter tests
 describe('deleteDoc()', () => {
   it('can delete a non-existing document', () => {
     return withTestDoc(docRef => deleteDoc(docRef));
@@ -965,5 +964,85 @@ describe('equality', () => {
         expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).to.be.false;
       }
     );
+  });
+});
+
+describe('withConverter() support', () => {
+  class Post {
+    constructor(readonly title: string, readonly author: string) {}
+    byline(): string {
+      return this.title + ', by ' + this.author;
+    }
+  }
+
+  const postConverter = {
+    toFirestore(post: Post): firestore.DocumentData {
+      return { title: post.title, author: post.author };
+    },
+    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+      const data = snapshot.data();
+      return new Post(data.title, data.author);
+    }
+  };
+
+  it('for DocumentReference.withConverter()', () => {
+    return withTestDoc(async docRef => {
+      docRef = docRef.withConverter(postConverter);
+      await setDoc(docRef, new Post('post', 'author'));
+      const postData = await getDoc(docRef);
+      const post = postData.data();
+      expect(post).to.not.equal(undefined);
+      expect(post!.byline()).to.equal('post, by author');
+    });
+  });
+
+  it('for CollectionReference.withConverter()', () => {
+    return withTestCollection(async coll => {
+      coll = coll.withConverter(postConverter);
+      const docRef = await addDoc(coll, new Post('post', 'author'));
+      const postData = await getDoc(docRef);
+      const post = postData.data();
+      expect(post).to.not.equal(undefined);
+      expect(post!.byline()).to.equal('post, by author');
+    });
+  });
+
+  it('for Query.withConverter()', () => {
+    return withTestCollection(async coll => {
+      coll = coll.withConverter(postConverter);
+      await setDoc(doc(coll, 'post1'), new Post('post1', 'author1'));
+      const posts = await getQuery(coll);
+      expect(posts.size).to.equal(1);
+      expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+    });
+  });
+
+  it('drops the converter when calling parent() with a CollectionReference', () => {
+    return withTestDb(async db => {
+      const coll = collection(db, 'root/doc/parent').withConverter(
+        postConverter
+      );
+      const untypedDoc = parent(coll)!;
+      expect(refEqual(untypedDoc, doc(db, 'root/doc'))).to.be.true;
+    });
+  });
+
+  it('checks converter when comparing with isEqual()', () => {
+    return withTestDb(async db => {
+      const postConverter2 = { ...postConverter };
+
+      const postsCollection = collection(db, 'users/user1/posts').withConverter(
+        postConverter
+      );
+      const postsCollection2 = collection(
+        db,
+        'users/user1/posts'
+      ).withConverter(postConverter2);
+      expect(refEqual(postsCollection, postsCollection2)).to.be.false;
+
+      const docRef = doc(db, 'some/doc').withConverter(postConverter);
+      const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
+      expect(refEqual(docRef, docRef2)).to.be.false;
+    });
   });
 });
