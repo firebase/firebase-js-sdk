@@ -16,11 +16,12 @@
  */
 
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+
 import { signUp } from '../../api/authentication/sign_up';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
-import { AuthCredential } from '.';
+import { AuthCredential } from './';
 
 export class AnonymousCredential implements AuthCredential {
   providerId = ProviderId.ANONYMOUS;
@@ -44,7 +45,7 @@ export class AnonymousCredential implements AuthCredential {
     debugFail("Can't link to an anonymous credential");
   }
 
-  _matchIdTokenWithUid(_auth: Auth, _uid: string): Promise<never> {
+  _getReauthenticationResolver(_auth: Auth): Promise<never> {
     debugFail('Method not implemented.');
   }
 }

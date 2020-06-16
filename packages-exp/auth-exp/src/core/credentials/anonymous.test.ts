@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
-import * as mockFetch from '../../../test/mock_fetch';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth } from '../../../test/mock_auth';
-import { Auth } from '../../model/auth';
-import { AnonymousCredential } from './anonymous';
+
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+
 import { mockEndpoint } from '../../../test/api/helper';
+import { testAuth } from '../../../test/mock_auth';
+import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
+import { Auth } from '../../model/auth';
+import { AnonymousCredential } from './anonymous';
 
 use(chaiAsPromised);
 
@@ -84,9 +86,9 @@ describe('core/credentials/anonymous', () => {
     });
   });
 
-  describe('#_matchIdTokenWithUid', () => {
+  describe('#_getReauthenticationResolver', () => {
     it('throws', () => {
-      expect(() => credential._matchIdTokenWithUid(auth, 'other-uid')).to.throw(
+      expect(() => credential._getReauthenticationResolver(auth)).to.throw(
         Error
       );
     });

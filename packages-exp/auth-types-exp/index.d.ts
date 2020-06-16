@@ -80,6 +80,7 @@ export interface Config {
  */
 export interface ParsedToken {
   'exp'?: string;
+  'sub'?: string;
   'auth_time'?: string;
   'iat'?: string;
   'firebase'?: {
