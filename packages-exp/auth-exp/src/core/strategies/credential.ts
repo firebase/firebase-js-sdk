@@ -21,13 +21,15 @@ import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
+import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
+import { _parseToken } from '../user/id_token_result';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
 
 export async function signInWithCredential(
@@ -61,9 +63,24 @@ export async function linkWithCredential(
     await user.getIdToken()
   );
 
-  const newCred = _authCredentialFromTokenResponse(response);
-  await user._updateTokensIfNecessary(response, /* reload */ true);
-  return new UserCredentialImpl(user, newCred, OperationType.LINK);
+  return userCredForOperation(user, OperationType.LINK, response);
+}
+
+export async function reauthenticateWithCredential(
+  userExtern: externs.User,
+  credentialExtern: externs.AuthCredential
+): Promise<externs.UserCredential> {
+  const credential = credentialExtern as AuthCredential;
+  const user = userExtern as User;
+
+  const { auth, uid } = user;
+  const response = await verifyTokenResponseUid(
+    credential._getReauthenticationResolver(auth),
+    uid,
+    auth.name
+  );
+
+  return userCredForOperation(user, OperationType.REAUTHENTICATE, response);
 }
 
 export function _authCredentialFromTokenResponse(
@@ -94,4 +111,38 @@ export async function _assertLinkedStatus(
       ? AuthErrorCode.PROVIDER_ALREADY_LINKED
       : AuthErrorCode.NO_SUCH_PROVIDER;
   assert(providerIds.has(provider) === expected, user.auth.name, code);
+}
+
+async function verifyTokenResponseUid(
+  idTokenResolver: Promise<IdTokenResponse>,
+  uid: string,
+  appName: string
+): Promise<IdTokenResponse> {
+  try {
+    const response = await idTokenResolver;
+    assert(response.idToken, appName, AuthErrorCode.INTERNAL_ERROR);
+    const parsed = _parseToken(response.idToken);
+    assert(parsed, appName, AuthErrorCode.INTERNAL_ERROR);
+
+    const { sub: localId } = parsed;
+    assert(uid === localId, appName, AuthErrorCode.USER_MISMATCH);
+
+    return response;
+  } catch (e) {
+    // Convert user deleted error into user mismatch
+    if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
+      fail(appName, AuthErrorCode.USER_MISMATCH);
+    }
+    throw e;
+  }
+}
+
+async function userCredForOperation(
+  user: User,
+  opType: OperationType,
+  response: IdTokenResponse
+): Promise<UserCredentialImpl> {
+  const newCred = _authCredentialFromTokenResponse(response);
+  await user._updateTokensIfNecessary(response, /* reload */ true);
+  return new UserCredentialImpl(user, newCred, opType);
 }
