@@ -26,7 +26,10 @@ import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import {
-    _assertLinkedStatus, linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  _assertLinkedStatus,
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from './credential';
 
 interface OnConfirmationCallback {

@@ -34,7 +34,10 @@ import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import {
-    _verifyPhoneNumber, linkWithPhoneNumber, reauthenticateWithPhoneNumber, signInWithPhoneNumber
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  signInWithPhoneNumber
 } from './phone';
 
 use(chaiAsPromised);
@@ -210,13 +213,17 @@ describe('core/strategies/phone', () => {
 
     context('ConfirmationResult', () => {
       it('result contains verification id baked in', async () => {
-        const result = await reauthenticateWithPhoneNumber(user, 'number', verifier);
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
+        );
         expect(result.verificationId).to.eq('session-info');
       });
 
       it('calling #confirm finishes the sign in flow', async () => {
         const idTokenResponse: IdTokenResponse = {
-          idToken: makeJWT({'sub': 'uid'}),
+          idToken: makeJWT({ 'sub': 'uid' }),
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
@@ -233,20 +240,24 @@ describe('core/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        const result = await reauthenticateWithPhoneNumber(user, 'number', verifier);
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
+        );
         const userCred = await result.confirm('6789');
         expect(userCred.user.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
           code: '6789',
-          operation: 'REAUTH',
+          operation: 'REAUTH'
         });
       });
 
       it('rejects if the uid mismatches', async () => {
         const idTokenResponse: IdTokenResponse = {
-          idToken: makeJWT({'sub': 'different-uid'}),
+          idToken: makeJWT({ 'sub': 'different-uid' }),
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
@@ -254,15 +265,14 @@ describe('core/strategies/phone', () => {
         };
         // This endpoint is called from within the callback, in
         // signInWithCredential
-        mockEndpoint(
-          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-          idTokenResponse
+        mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, idTokenResponse);
+
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
         );
-  
-        const result = await reauthenticateWithPhoneNumber(user, 'number', verifier);
-        await expect(
-          result.confirm('code')
-        ).to.be.rejectedWith(
+        await expect(result.confirm('code')).to.be.rejectedWith(
           FirebaseError,
           'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch)'
         );

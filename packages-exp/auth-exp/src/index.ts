@@ -92,7 +92,7 @@ export {
 export {
   signInWithPhoneNumber,
   linkWithPhoneNumber,
-  reauthenticateWithPhoneNumber,
+  reauthenticateWithPhoneNumber
 } from './core/strategies/phone';
 
 // core

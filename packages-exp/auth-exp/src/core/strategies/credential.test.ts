@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -32,7 +36,10 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
-    _assertLinkedStatus, linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  _assertLinkedStatus,
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from './credential';
 
 use(chaiAsPromised);
@@ -104,10 +111,12 @@ describe('core/strategies/credential', () => {
     it('should throw an error if the uid is mismatched', async () => {
       authCredential._setIdTokenResponse({
         ...idTokenResponse,
-        idToken: makeJWT({sub: 'not-my-uid'}),
+        idToken: makeJWT({ sub: 'not-my-uid' })
       });
 
-      await expect(reauthenticateWithCredential(user, authCredential)).to.be.rejectedWith(
+      await expect(
+        reauthenticateWithCredential(user, authCredential)
+      ).to.be.rejectedWith(
         FirebaseError,
         'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
       );
@@ -116,7 +125,7 @@ describe('core/strategies/credential', () => {
     it('sould return the expected user credential', async () => {
       authCredential._setIdTokenResponse({
         ...idTokenResponse,
-        idToken: makeJWT({sub: 'uid'}),
+        idToken: makeJWT({ sub: 'uid' })
       });
 
       const {

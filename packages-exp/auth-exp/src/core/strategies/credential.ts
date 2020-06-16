@@ -75,16 +75,16 @@ export async function reauthenticateWithCredential(
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 
-  const {auth, uid} = user;
-  const response = await verifyTokenResponseUid(credential._getReauthenticationResolver(auth), uid, auth.name);
+  const { auth, uid } = user;
+  const response = await verifyTokenResponseUid(
+    credential._getReauthenticationResolver(auth),
+    uid,
+    auth.name
+  );
   const newCred = _authCredentialFromTokenResponse(response);
 
   await user._updateTokensIfNecessary(response, /* reload */ true);
-  return new UserCredentialImpl(
-    user,
-    newCred,
-    OperationType.REAUTHENTICATE
-  );
+  return new UserCredentialImpl(user, newCred, OperationType.REAUTHENTICATE);
 }
 
 export function _authCredentialFromTokenResponse(
@@ -116,7 +116,6 @@ export async function _assertLinkedStatus(
       : AuthErrorCode.NO_SUCH_PROVIDER;
   assert(providerIds.has(provider) === expected, user.auth.name, code);
 }
-
 
 async function verifyTokenResponseUid(
   idTokenResolver: Promise<IdTokenResponse>,

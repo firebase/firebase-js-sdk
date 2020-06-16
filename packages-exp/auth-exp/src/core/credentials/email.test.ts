@@ -99,9 +99,9 @@ describe('core/credentials/email', () => {
 
     describe('#_getReauthenticationResolver', () => {
       it('throws', () => {
-        expect(() =>
-          credential._getReauthenticationResolver(auth)
-        ).to.throw(Error);
+        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
+          Error
+        );
       });
     });
   });
@@ -162,9 +162,9 @@ describe('core/credentials/email', () => {
 
     describe('#_matchIdTokenWithUid', () => {
       it('throws', () => {
-        expect(() =>
-          credential._getReauthenticationResolver(auth)
-        ).to.throw(Error);
+        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
+          Error
+        );
       });
     });
   });
