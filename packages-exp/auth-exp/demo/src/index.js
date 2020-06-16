@@ -322,8 +322,10 @@ function onSetPersistence() {
 function onSignUp() {
   var email = $('#signup-email').val();
   var password = $('#signup-password').val();
-  createUserWithEmailAndPassword(auth, email, password)
-      .then(onAuthUserCredentialSuccess, onAuthError);
+  createUserWithEmailAndPassword(auth, email, password).then(
+    onAuthUserCredentialSuccess,
+    onAuthError
+  );
 }
 
 /**
@@ -332,8 +334,10 @@ function onSignUp() {
 function onSignInWithEmailAndPassword() {
   var email = $('#signin-email').val();
   var password = $('#signin-password').val();
-  signInWithEmailAndPassword(auth, email, password)
-      .then(onAuthUserCredentialSuccess, onAuthError);
+  signInWithEmailAndPassword(auth, email, password).then(
+    onAuthUserCredentialSuccess,
+    onAuthError
+  );
 }
 
 /**
@@ -355,10 +359,14 @@ function onSignInWithEmailLink() {
 function onLinkWithEmailLink() {
   var email = $('#link-with-email-link-email').val();
   var link = $('#link-with-email-link-link').val() || undefined;
-  var credential = firebase.auth.EmailAuthProvider
-      .credentialWithLink(email, link);
-  linkWithCredential(activeUser(), credential)
-      .then(onAuthUserCredentialSuccess, onAuthError);
+  var credential = firebase.auth.EmailAuthProvider.credentialWithLink(
+    email,
+    link
+  );
+  linkWithCredential(activeUser(), credential).then(
+    onAuthUserCredentialSuccess,
+    onAuthError
+  );
 }
 
 /**
@@ -629,12 +637,11 @@ function signInOrLinkCredential(credential) {
       return;
     }
 
-    linkWithCredential(activeUser(), credential)
-      .then(function(result) {
-        logAdditionalUserInfo(result);
-        refreshUserData();
-        alertSuccess('Provider linked!');
-      }, onAuthError);
+    linkWithCredential(activeUser(), credential).then(function(result) {
+      logAdditionalUserInfo(result);
+      refreshUserData();
+      alertSuccess('Provider linked!');
+    }, onAuthError);
   } else {
     signInWithCredential(auth, credential).then(
       onAuthUserCredentialSuccess,
@@ -739,12 +746,13 @@ function onSendSignInLinkToEmailCurrentUrl() {
   sendSignInLinkToEmail(auth, email, actionCodeSettings).then(function() {
     if ('localStorage' in window && window['localStorage'] !== null) {
       window.localStorage.setItem(
-          'emailForSignIn',
-          // Save the email and the timestamp.
-          JSON.stringify({
-            email: email,
-            timestamp: new Date().getTime()
-          }));
+        'emailForSignIn',
+        // Save the email and the timestamp.
+        JSON.stringify({
+          email: email,
+          timestamp: new Date().getTime()
+        })
+      );
     }
     alertSuccess('Email sent!');
   }, onAuthError);
@@ -824,9 +832,9 @@ function onLinkWithEmailAndPassword() {
   var email = $('#link-email').val();
   var password = $('#link-password').val();
   linkWithCredential(
-      activeUser(),
-      firebase.auth.EmailAuthProvider.credential(email, password))
-      .then(onAuthUserCredentialSuccess, onAuthError);
+    activeUser(),
+    firebase.auth.EmailAuthProvider.credential(email, password)
+  ).then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
@@ -852,11 +860,10 @@ function onLinkWithGenericIdPCredential() {
  */
 function onUnlinkProvider() {
   var providerId = $('#unlinked-provider-id').val();
-  unlink(activeUser(), providerId)
-    .then(function(user) {
-      alertSuccess('Provider unlinked from user.');
-      refreshUserData();
-    }, onAuthError);
+  unlink(activeUser(), providerId).then(function(user) {
+    alertSuccess('Provider unlinked from user.');
+    refreshUserData();
+  }, onAuthError);
 }
 
 /**
