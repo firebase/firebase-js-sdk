@@ -40,9 +40,11 @@ import {
   signInWithEmailAndPassword,
   sendSignInLinkToEmail,
   sendPasswordResetEmail,
+  EmailAuthProvider,
   verifyPasswordResetCode,
   confirmPasswordReset,
   linkWithCredential,
+  reauthenticateWithCredential,
   unlink
 } from '@firebase/auth-exp';
 
@@ -373,17 +375,14 @@ function onLinkWithEmailLink() {
  * Re-authenticate a user with email link credential.
  */
 function onReauthenticateWithEmailLink() {
-  alertNotImplemented();
-  // var email = $('#link-with-email-link-email').val();
-  // var link = $('#link-with-email-link-link').val() || undefined;
-  // var credential = firebase.auth.EmailAuthProvider
-  //     .credentialWithLink(email, link);
-  // activeUser().reauthenticateWithCredential(credential)
-  //     .then(function(result) {
-  //       logAdditionalUserInfo(result);
-  //       refreshUserData();
-  //       alertSuccess('User reauthenticated!');
-  //     }, onAuthError);
+  var email = $('#link-with-email-link-email').val();
+  var link = $('#link-with-email-link-link').val() || undefined;
+  var credential = EmailAuthProvider.credentialWithLink(email, link);
+  reauthenticateWithCredential(activeUser(), credential).then(function(result) {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated!');
+  }, onAuthError);
 }
 
 /**
@@ -558,13 +557,11 @@ function onReauthConfirmPhoneVerification() {
     verificationId,
     verificationCode
   );
-  activeUser()
-    .reauthenticateWithCredential(credential)
-    .then(function(result) {
-      logAdditionalUserInfo(result);
-      refreshUserData();
-      alertSuccess('User reauthenticated!');
-    }, onAuthError);
+  reauthenticateWithCredential(activeUser(), credential).then(function(result) {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated!');
+  }, onAuthError);
 }
 
 /**
