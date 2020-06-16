@@ -67,7 +67,8 @@ export { PhoneAuthProvider } from './core/providers/phone';
 export { signInAnonymously } from './core/strategies/anonymous';
 export {
   signInWithCredential,
-  linkWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential
 } from './core/strategies/credential';
 export { signInWithCustomToken } from './core/strategies/custom_token';
 export {
@@ -90,7 +91,8 @@ export {
 } from './core/strategies/email';
 export {
   signInWithPhoneNumber,
-  linkWithPhoneNumber
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber
 } from './core/strategies/phone';
 
 // core
