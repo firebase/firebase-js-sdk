@@ -23,7 +23,7 @@ import { Component, ComponentType } from '@firebase/component';
 import '../src/platform_node/node_init';
 
 export {
-  Firestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate
@@ -63,6 +63,7 @@ export {
 export {
   DocumentSnapshot,
   QueryDocumentSnapshot,
+  QuerySnapshot,
   snapshotEqual
 } from './src/api/snapshot';
 
@@ -71,6 +72,12 @@ export { WriteBatch, writeBatch } from './src/api/write_batch';
 export { Transaction, runTransaction } from './src/api/transaction';
 
 export { setLogLevel } from '../src/util/log';
+
+export { Blob } from '../src/api/blob';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Timestamp } from '../src/api/timestamp';
 
 export function registerFirestore(): void {
   _registerComponent(
