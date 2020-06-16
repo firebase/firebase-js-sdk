@@ -38,13 +38,12 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   }
 
   verifyPhoneNumber(
-    phoneNumber: string,
+    phoneOptions: externs.PhoneInfoOptions | string,
     applicationVerifier: externs.ApplicationVerifier
-    /* multiFactorSession?: MultiFactorSession, */
   ): Promise<string> {
     return _verifyPhoneNumber(
       this.auth,
-      phoneNumber,
+      phoneOptions,
       applicationVerifier as ApplicationVerifier
     );
   }

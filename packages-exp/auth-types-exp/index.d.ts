@@ -16,11 +16,11 @@
  */
 
 import {
-  ErrorFn,
   CompleteFn,
+  ErrorFn,
   NextFn,
-  Unsubscribe,
-  Observer
+  Observer,
+  Unsubscribe
 } from '@firebase/util';
 
 /**
@@ -89,6 +89,9 @@ export interface ParsedToken {
   [key: string]: string | object | undefined;
 }
 
+/**
+ * TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway?
+ */
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 /**
