@@ -1,10 +1,6 @@
 /**
  * @license
-<<<<<<< HEAD
  * Copyright 2019 Google LLC
-=======
- * Copyright 2019 Google Inc.
->>>>>>> 6b951a1c... Add react native persistence class (#2955)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
 import {

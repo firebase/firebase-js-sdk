@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-<<<<<<< HEAD
 import {
   CompleteFn,
   ErrorFn,
@@ -360,13 +359,10 @@ export interface PhoneInfoOptions {
   // multiFactorHint?: MultiFactorInfo;
 }
 
-=======
->>>>>>> 6b951a1c... Add react native persistence class (#2955)
 export interface ReactNativeAsyncStorage {
   setItem(key: string, value: string): Promise<void>;
   getItem(key: string): Promise<string | null>;
   removeItem(key: string): Promise<void>;
-<<<<<<< HEAD
 }
 
 /**
@@ -414,6 +410,4 @@ export interface UserInfo {
 export interface UserMetadata {
   readonly creationTime?: string;
   readonly lastSignInTime?: string;
-=======
->>>>>>> 6b951a1c... Add react native persistence class (#2955)
 }
