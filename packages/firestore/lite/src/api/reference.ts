@@ -61,6 +61,7 @@ import {
   validatePositiveNumber
 } from '../../../src/util/input_validation';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -302,6 +303,28 @@ export function collection(
   }
 }
 
+export function collectionGroup(
+  firestore: firestore.FirebaseFirestore,
+  collectionId: string
+): Query<firestore.DocumentData> {
+  const firestoreClient = cast(firestore, Firestore);
+
+  validateArgType('collectionGroup', 'non-empty string', 1, collectionId);
+  if (collectionId.indexOf('/') >= 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid collection ID '${collectionId}' passed to function ` +
+        `collectionGroup(). Collection IDs must not contain '/'.`
+    );
+  }
+
+  return new Query(
+    firestoreClient,
+    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    /* converter= */ null
+  );
+}
+
 export function doc(
   firestore: firestore.FirebaseFirestore,
   documentPath: string
@@ -531,6 +554,38 @@ export function addDoc<T>(
       )
     )
     .then(() => docRef);
+}
+
+export function refEqual<T>(
+  left: firestore.DocumentReference<T> | firestore.CollectionReference<T>,
+  right: firestore.DocumentReference<T> | firestore.CollectionReference<T>
+): boolean {
+  if (
+    (left instanceof DocumentReference ||
+      left instanceof CollectionReference) &&
+    (right instanceof DocumentReference || right instanceof CollectionReference)
+  ) {
+    return (
+      left.firestore === right.firestore &&
+      left.path === right.path &&
+      left._converter === right._converter
+    );
+  }
+  return false;
+}
+
+export function queryEqual<T>(
+  left: firestore.Query<T>,
+  right: firestore.Query<T>
+): boolean {
+  if (left instanceof Query && right instanceof Query) {
+    return (
+      left.firestore === right.firestore &&
+      left._query.isEqual(right._query) &&
+      left._converter === right._converter
+    );
+  }
+  return false;
 }
 
 export function newUserDataReader(firestore: Firestore): UserDataReader {
