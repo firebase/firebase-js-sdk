@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-export enum Operation {
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  RECOVER_EMAIL = 'RECOVER_EMAIL',
-  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-  VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
-  REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION'
+import * as externs from '@firebase/auth-types-exp';
+
+export interface ApplicationVerifier extends externs.ApplicationVerifier {
+  _reset(): void;
 }

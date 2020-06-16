@@ -24,7 +24,6 @@ import { Endpoint } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
@@ -36,6 +35,7 @@ import {
   signInWithPassword,
   VerifyEmailRequest
 } from './email_and_password';
+import { Operation } from '@firebase/auth-types-exp';
 
 use(chaiAsPromised);
 

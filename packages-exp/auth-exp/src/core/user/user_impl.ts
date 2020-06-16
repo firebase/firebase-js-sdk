@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { IdTokenResult, ProviderId } from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 
 import { deleteAccount } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
@@ -51,7 +51,7 @@ function assertStringOrUndefined(
 
 export class UserImpl implements User {
   // For the user object, provider is always Firebase.
-  readonly providerId = ProviderId.FIREBASE;
+  readonly providerId = externs.ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
 
   uid: string;
@@ -93,7 +93,7 @@ export class UserImpl implements User {
     return accessToken;
   }
 
-  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
+  getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult> {
     return getIdTokenResult(this, forceRefresh);
   }
 

@@ -15,8 +15,41 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+import { ErrorFn, CompleteFn, Unsubscribe } from '@firebase/util';
+
 // core/auth
 export { initializeAuth } from './core/auth/auth_impl';
+
+// Non-optional auth methods.
+export function setPersistence(
+  auth: externs.Auth,
+  persistence: externs.Persistence
+): void {
+  auth.setPersistence(persistence);
+}
+export function onIdTokenChanged(
+  auth: externs.Auth,
+  nextOrObserver: externs.NextOrObserver<externs.User>,
+  error?: ErrorFn,
+  completed?: CompleteFn
+): Unsubscribe {
+  return auth.onIdTokenChanged(nextOrObserver, error, completed);
+}
+export function onAuthStateChanged(
+  auth: externs.Auth,
+  nextOrObserver: externs.NextOrObserver<externs.User>,
+  error?: ErrorFn,
+  completed?: CompleteFn
+): Unsubscribe {
+  return auth.onAuthStateChanged(nextOrObserver, error, completed);
+}
+export function useDeviceLanguage(auth: externs.Auth): void {
+  auth.useDeviceLanguage();
+}
+export function signOut(auth: externs.Auth): Promise<void> {
+  return auth.signOut();
+}
 
 // core/persistence
 export {
@@ -27,7 +60,6 @@ export { inMemoryPersistence } from './core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
 
 // core/providers
-export { AnonymousProvider } from './core/providers/anonymous';
 export { EmailAuthProvider } from './core/providers/email';
 export { PhoneAuthProvider } from './core/providers/phone';
 
@@ -67,11 +99,10 @@ export {
   updatePassword
 } from './core/user/account_info';
 export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
-export { reload } from './core/user/reload';
 export { unlink } from './core/user/unlink';
 
-// model
-export { Operation as ActionCodeOperationType } from './model/action_code_info';
-
-// platform-browser/recaptcha
-export { RecaptchaVerifier } from './platform_browser/recaptcha/recaptcha_verifier';
+// Non-optional user methods.
+export { reload } from './core/user/reload';
+export async function deleteUser(user: externs.User): Promise<void> {
+  return user.delete();
+}
