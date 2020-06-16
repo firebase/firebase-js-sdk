@@ -35,7 +35,15 @@ import {
   signInAnonymously,
   signInWithCustomToken,
   isSignInWithEmailLink,
-  fetchSignInMethodsForEmail
+  fetchSignInMethodsForEmail,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendSignInLinkToEmail,
+  sendPasswordResetEmail,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
+  linkWithCredential,
+  unlink
 } from '@firebase/auth-exp';
 
 import { config } from './config';
@@ -312,22 +320,20 @@ function onSetPersistence() {
  * Signs up a new user with an email and a password.
  */
 function onSignUp() {
-  alertNotImplemented();
-  // var email = $('#signup-email').val();
-  // var password = $('#signup-password').val();
-  // auth.createUserWithEmailAndPassword(email, password)
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  var email = $('#signup-email').val();
+  var password = $('#signup-password').val();
+  createUserWithEmailAndPassword(auth, email, password)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
  * Signs in a user with an email and a password.
  */
 function onSignInWithEmailAndPassword() {
-  alertNotImplemented();
-  // var email = $('#signin-email').val();
-  // var password = $('#signin-password').val();
-  // signInWithEmailAndPassword(auth, email, password)
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  var email = $('#signin-email').val();
+  var password = $('#signin-password').val();
+  signInWithEmailAndPassword(auth, email, password)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
@@ -347,13 +353,12 @@ function onSignInWithEmailLink() {
  * Links a user with an email link.
  */
 function onLinkWithEmailLink() {
-  alertNotImplemented();
-  // var email = $('#link-with-email-link-email').val();
-  // var link = $('#link-with-email-link-link').val() || undefined;
-  // var credential = firebase.auth.EmailAuthProvider
-  //     .credentialWithLink(email, link);
-  // activeUser().linkWithCredential(credential)
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  var email = $('#link-with-email-link-email').val();
+  var link = $('#link-with-email-link-link').val() || undefined;
+  var credential = firebase.auth.EmailAuthProvider
+      .credentialWithLink(email, link);
+  linkWithCredential(activeUser(), credential)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
@@ -623,8 +628,8 @@ function signInOrLinkCredential(credential) {
       alertError('You need to sign in before linking an account.');
       return;
     }
-    activeUser()
-      .linkWithCredential(credential)
+
+    linkWithCredential(activeUser(), credential)
       .then(function(result) {
         logAdditionalUserInfo(result);
         refreshUserData();
@@ -715,81 +720,75 @@ function onUpdateProfile() {
  * Sends sign in with email link to the user.
  */
 function onSendSignInLinkToEmail() {
-  alertNotImplemented();
-  // var email = $('#sign-in-with-email-link-email').val();
-  // auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
-  //   alertSuccess('Email sent!');
-  // }, onAuthError);
+  var email = $('#sign-in-with-email-link-email').val();
+  sendSignInLinkToEmail(auth, email, getActionCodeSettings()).then(function() {
+    alertSuccess('Email sent!');
+  }, onAuthError);
 }
 
 /**
  * Sends sign in with email link to the user and pass in current url.
  */
 function onSendSignInLinkToEmailCurrentUrl() {
-  alertNotImplemented();
-  // var email = $('#sign-in-with-email-link-email').val();
-  // var actionCodeSettings = {
-  //   'url': window.location.href,
-  //   'handleCodeInApp': true
-  // };
+  var email = $('#sign-in-with-email-link-email').val();
+  var actionCodeSettings = {
+    'url': window.location.href,
+    'handleCodeInApp': true
+  };
 
-  // auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function() {
-  //   if ('localStorage' in window && window['localStorage'] !== null) {
-  //     window.localStorage.setItem(
-  //         'emailForSignIn',
-  //         // Save the email and the timestamp.
-  //         JSON.stringify({
-  //           email: email,
-  //           timestamp: new Date().getTime()
-  //         }));
-  //   }
-  //   alertSuccess('Email sent!');
-  // }, onAuthError);
+  sendSignInLinkToEmail(auth, email, actionCodeSettings).then(function() {
+    if ('localStorage' in window && window['localStorage'] !== null) {
+      window.localStorage.setItem(
+          'emailForSignIn',
+          // Save the email and the timestamp.
+          JSON.stringify({
+            email: email,
+            timestamp: new Date().getTime()
+          }));
+    }
+    alertSuccess('Email sent!');
+  }, onAuthError);
 }
 
 /**
  * Sends email link to link the user.
  */
 function onSendLinkEmailLink() {
-  alertNotImplemented();
-  // var email = $('#link-with-email-link-email').val();
-  // auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
-  //   alertSuccess('Email sent!');
-  // }, onAuthError);
+  var email = $('#link-with-email-link-email').val();
+  sendSignInLinkToEmail(auth, email, getActionCodeSettings()).then(function() {
+    alertSuccess('Email sent!');
+  }, onAuthError);
 }
 
 /**
  * Sends password reset email to the user.
  */
 function onSendPasswordResetEmail() {
-  alertNotImplemented();
-  // var email = $('#password-reset-email').val();
-  // auth.sendPasswordResetEmail(email, getActionCodeSettings()).then(function() {
-  //   alertSuccess('Email sent!');
-  // }, onAuthError);
+  var email = $('#password-reset-email').val();
+  sendPasswordResetEmail(auth, email, getActionCodeSettings()).then(function() {
+    alertSuccess('Email sent!');
+  }, onAuthError);
 }
 
 /**
  * Verifies the password reset code entered by the user.
  */
 function onVerifyPasswordResetCode() {
-  alertNotImplemented();
-  // var code = $('#password-reset-code').val();
-  // auth.verifyPasswordResetCode(code).then(function() {
-  //   alertSuccess('Password reset code is valid!');
-  // }, onAuthError);
+  var code = $('#password-reset-code').val();
+  verifyPasswordResetCode(auth, code).then(function() {
+    alertSuccess('Password reset code is valid!');
+  }, onAuthError);
 }
 
 /**
  * Confirms the password reset with the code and password supplied by the user.
  */
 function onConfirmPasswordReset() {
-  alertNotImplemented();
-  // var code = $('#password-reset-code').val();
-  // var password = $('#password-reset-password').val();
-  // auth.confirmPasswordReset(code, password).then(function() {
-  //   alertSuccess('Password has been changed!');
-  // }, onAuthError);
+  var code = $('#password-reset-code').val();
+  var password = $('#password-reset-password').val();
+  confirmPasswordReset(auth, code, password).then(function() {
+    alertSuccess('Password has been changed!');
+  }, onAuthError);
 }
 
 /**
@@ -822,12 +821,12 @@ function onGetProviderData() {
  * Links a signed in user with an email and password account.
  */
 function onLinkWithEmailAndPassword() {
-  alertNotImplemented();
-  // var email = $('#link-email').val();
-  // var password = $('#link-password').val();
-  // activeUser().linkWithCredential(
-  //     firebase.auth.EmailAuthProvider.credential(email, password))
-  //     .then(onAuthUserCredentialSuccess, onAuthError);
+  var email = $('#link-email').val();
+  var password = $('#link-password').val();
+  linkWithCredential(
+      activeUser(),
+      firebase.auth.EmailAuthProvider.credential(email, password))
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 /**
@@ -853,8 +852,7 @@ function onLinkWithGenericIdPCredential() {
  */
 function onUnlinkProvider() {
   var providerId = $('#unlinked-provider-id').val();
-  activeUser()
-    .unlink(providerId)
+  unlink(activeUser(), providerId)
     .then(function(user) {
       alertSuccess('Provider unlinked from user.');
       refreshUserData();
