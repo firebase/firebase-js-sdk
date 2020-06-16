@@ -100,6 +100,31 @@ const browserBuilds = [
   }
 ];
 
+const reactNativeBuilds = [
+  // Persistence build
+  {
+    input: 'index.rn.ts',
+    output: {
+      file: pkg['react-native'],
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: browserBuildPlugins,
+    external: resolveBrowserExterns
+  },
+  // Memory-only build
+  {
+    input: 'index.rn.memory.ts',
+    output: {
+      file: path.resolve('./memory', memoryPkg['react-native']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: browserBuildPlugins,
+    external: resolveBrowserExterns
+  }
+];
+
 // MARK: Node builds
 
 const nodeBuildPlugins = [
@@ -145,4 +170,4 @@ const nodeBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+export default [...browserBuilds, ...reactNativeBuilds, ...nodeBuilds];

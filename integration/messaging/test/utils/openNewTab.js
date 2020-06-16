@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 
-const config = {
-  apiKey: 'AIzaSyCaSnFca0oG_b-t-s_p9wRdr9o9aSPmolE',
-  authDomain: 'fcm-sdk-testing-vapid-key.firebaseapp.com',
-  databaseURL: 'https://fcm-sdk-testing-vapid-key.firebaseio.com',
-  projectId: 'fcm-sdk-testing-vapid-key',
-  storageBucket: '',
-  messagingSenderId: '650229866790'
-};
+module.exports = async webdriver => {
+  console.log('Opening a new tab in the browser...');
 
-if (this['window']) {
-  window.firebaseConfig = config;
-} else if (this['module']) {
-  module.exports = config;
-} else {
-  self.firebaseConfig = config;
-}
+  return webdriver.executeScript(() => {
+    return window.open();
+  });
+};

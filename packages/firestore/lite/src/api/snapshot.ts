@@ -113,8 +113,8 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
 export class QuerySnapshot<T = firestore.DocumentData>
   implements firestore.QuerySnapshot<T> {
   constructor(
-    public readonly query: firestore.Query<T>,
-    public readonly _docs: Array<QueryDocumentSnapshot<T>>
+    readonly query: firestore.Query<T>,
+    readonly _docs: Array<QueryDocumentSnapshot<T>>
   ) {}
 
   get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
