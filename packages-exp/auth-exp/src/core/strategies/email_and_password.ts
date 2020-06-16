@@ -19,7 +19,6 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { resetPassword } from '../../api/account_management/email_and_password';
 import * as api from '../../api/authentication/email_and_password';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
@@ -34,7 +33,7 @@ export async function sendPasswordResetEmail(
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
   const request: api.PasswordResetRequest = {
-    requestType: Operation.PASSWORD_RESET,
+    requestType: externs.Operation.PASSWORD_RESET,
     email
   };
   if (actionCodeSettings) {

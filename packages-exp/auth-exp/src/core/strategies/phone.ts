@@ -29,6 +29,7 @@ import {
   linkWithCredential,
   signInWithCredential
 } from './credential';
+import { ApplicationVerifier } from '../../model/application_verifier';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -57,7 +58,7 @@ export async function signInWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     auth as Auth,
     phoneNumber,
-    appVerifier
+    appVerifier as ApplicationVerifier
   );
   return new ConfirmationResult(verificationId, cred =>
     signInWithCredential(auth, cred)
@@ -74,7 +75,7 @@ export async function linkWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     user.auth,
     phoneNumber,
-    appVerifier
+    appVerifier as ApplicationVerifier
   );
   return new ConfirmationResult(verificationId, cred =>
     linkWithCredential(user, cred)
@@ -88,7 +89,7 @@ export async function linkWithPhoneNumber(
 export async function _verifyPhoneNumber(
   auth: Auth,
   options: externs.PhoneInfoOptions | string,
-  verifier: externs.ApplicationVerifier
+  verifier: ApplicationVerifier
 ): Promise<string> {
   const recaptchaToken = await verifier.verify();
 
@@ -119,6 +120,6 @@ export async function _verifyPhoneNumber(
 
     return sessionInfo;
   } finally {
-    verifier.reset();
+    verifier._reset();
   }
 }

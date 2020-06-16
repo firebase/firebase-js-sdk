@@ -16,14 +16,12 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { ActionCodeSettings } from '@firebase/auth-types-exp';
 
 import {
   createAuthUri,
   CreateAuthUriRequest
 } from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
@@ -48,20 +46,20 @@ export async function fetchSignInMethodsForEmail(
 }
 
 export async function sendEmailVerification(
-  auth: externs.Auth,
-  user: User,
-  actionCodeSettings?: ActionCodeSettings
+  userExtern: externs.User,
+  actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
+  const user = userExtern as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
-    requestType: Operation.VERIFY_EMAIL,
+    requestType: externs.Operation.VERIFY_EMAIL,
     idToken
   };
   if (actionCodeSettings) {
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  const { email } = await api.sendEmailVerification(auth as Auth, request);
+  const { email } = await api.sendEmailVerification(user.auth, request);
 
   if (email !== user.email) {
     await user.reload();
