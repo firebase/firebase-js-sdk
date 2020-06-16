@@ -38,8 +38,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.null;
@@ -51,8 +55,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.GITHUB,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
@@ -64,8 +72,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.GOOGLE,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
         expect(username).to.be.null;
@@ -78,8 +90,12 @@ describe('core/user/additional_user_info', () => {
           rawUserInfo: rawUserInfoNoLogin,
           screenName: 'scott'
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.TWITTER);
         expect(username).to.eq('scott');
@@ -93,14 +109,14 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        expect(additionalUserInfo.profile).to.eql(userProfileWithLogin);
+        expect(fromIdTokenResponse(idResponse)!.profile).to.eql(
+          userProfileWithLogin
+        );
       });
 
       it('for missing JSON', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        expect(additionalUserInfo.profile).to.be.empty;
+        expect(fromIdTokenResponse(idResponse)!.profile).to.be.empty;
       });
     });
 
@@ -110,8 +126,7 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           isNewUser: true
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        expect(additionalUserInfo.isNewUser).to.be.true;
+        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
       });
 
       it('for new users by toolkit response kind', () => {
@@ -119,14 +134,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           kind: IdTokenResponseKind.SignupNewUser
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        expect(additionalUserInfo.isNewUser).to.be.true;
+        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
       });
 
       it('for old users', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        expect(additionalUserInfo.isNewUser).to.be.false;
+        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.false;
       });
     });
 
@@ -136,8 +149,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.CUSTOM,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
@@ -149,8 +166,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.ANONYMOUS,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const additionalUserInfo = fromIdTokenResponse(idResponse)!;
-        const { isNewUser, providerId, username, profile } = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
@@ -158,8 +179,14 @@ describe('core/user/additional_user_info', () => {
       });
 
       it('for missing provider IDs in response but not in token', () => {
-        const additionalUserInfo = fromIdTokenResponse(idTokenResponse({rawUserInfo: rawUserInfoWithLogin}))!;
-        const {isNewUser, providerId, username, profile} = additionalUserInfo;
+        const {
+          isNewUser,
+          providerId,
+          username,
+          profile
+        } = fromIdTokenResponse(
+          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin })
+        )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.null;
@@ -170,8 +197,7 @@ describe('core/user/additional_user_info', () => {
     describe('returns null', () => {
       it('for missing provider IDs', () => {
         const idResponse = idTokenResponse({});
-        const additionalUserInfo = fromIdTokenResponse(idResponse);
-        expect(additionalUserInfo).to.be.null;
+        expect(fromIdTokenResponse(idResponse)!).to.be.null;
       });
     });
   });

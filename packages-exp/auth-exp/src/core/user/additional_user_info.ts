@@ -14,26 +14,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AdditionalUserInfo, UserProfile } from '../../model/user';
+import {
+  AdditionalUserInfo,
+  UserProfile,
+  ProviderId
+} from '@firebase/auth-types-exp';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { ProviderId } from '../providers';
-import { parseToken } from './id_token_result';
+import { _parseToken } from './id_token_result';
+import { assert } from '../util/assert';
 
+/**
+ * Parse the `AdditionalUserInfo` from the ID token response.
+ */
 export function fromIdTokenResponse(
   idTokenResponse: IdTokenResponse,
+  appName: string
 ): AdditionalUserInfo | null {
   const { providerId } = idTokenResponse;
-  const profile =
-    typeof idTokenResponse.rawUserInfo === 'string'
-      ? JSON.parse(idTokenResponse.rawUserInfo)
-      : {};
+  const profile = idTokenResponse.rawUserInfo
+    ? JSON.parse(idTokenResponse.rawUserInfo)
+    : {};
   const isNewUser =
     !!idTokenResponse.isNewUser ||
     idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
   if (!providerId && !!idTokenResponse) {
-    const providerId = parseToken(idTokenResponse.idToken)?.firebase?.['sign_in_provider'] as ProviderId;
-    if (providerId && Object.values(ProviderId).includes(providerId)) {
-      return new GenericAdditionalUserInfo(isNewUser, providerId, null, profile);
+    const providerId = _parseToken(idTokenResponse.idToken)?.firebase?.[
+      'sign_in_provider'
+    ];
+    assert(
+      // @ts-ignore - Check to see if string is castable to enum.
+      !providerId || Object.values(ProviderId).includes(providerId),
+      appName
+    );
+    if (providerId) {
+      const filteredProviderId =
+        providerId !== ProviderId.ANONYMOUS && providerId !== ProviderId.CUSTOM
+          ? (providerId as ProviderId)
+          : null;
+      // Uses generic class in accordance with the legacy SDK.
+      return new GenericAdditionalUserInfo(isNewUser, filteredProviderId, null);
     }
   }
   if (!providerId) {
@@ -54,9 +73,9 @@ export function fromIdTokenResponse(
       );
     case ProviderId.CUSTOM:
     case ProviderId.ANONYMOUS:
-      return new GenericAdditionalUserInfo(isNewUser, null, null, profile);
+      return new GenericAdditionalUserInfo(isNewUser, null, null);
     default:
-      return new GenericAdditionalUserInfo(
+      return new FederatedAdditionalUserInfo(
         isNewUser,
         providerId,
         null,
@@ -69,18 +88,28 @@ class GenericAdditionalUserInfo implements AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
     readonly providerId: ProviderId | null,
-    readonly username: string | null,
-    readonly profile: UserProfile
+    readonly username: string | null
   ) {}
 }
 
-class FacebookAdditionalUserInfo extends GenericAdditionalUserInfo {
+class FederatedAdditionalUserInfo extends GenericAdditionalUserInfo {
+  constructor(
+    isNewUser: boolean,
+    providerId: ProviderId | null,
+    username: string | null,
+    readonly profile: UserProfile
+  ) {
+    super(isNewUser, providerId, username);
+  }
+}
+
+class FacebookAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: UserProfile) {
     super(isNewUser, ProviderId.FACEBOOK, null, profile);
   }
 }
 
-class GithubAdditionalUserInfo extends GenericAdditionalUserInfo {
+class GithubAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: UserProfile) {
     super(
       isNewUser,
@@ -91,13 +120,13 @@ class GithubAdditionalUserInfo extends GenericAdditionalUserInfo {
   }
 }
 
-class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
+class GoogleAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: UserProfile) {
     super(isNewUser, ProviderId.GOOGLE, null, profile);
   }
 }
 
-class TwitterAdditionalUserInfo extends GenericAdditionalUserInfo {
+class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
     profile: UserProfile,
