@@ -73,6 +73,7 @@ export { signInWithCustomToken } from './core/strategies/custom_token';
 export {
   sendPasswordResetEmail,
   confirmPasswordReset,
+  applyActionCode,
   checkActionCode,
   verifyPasswordResetCode,
   createUserWithEmailAndPassword,
@@ -91,6 +92,9 @@ export {
   signInWithPhoneNumber,
   linkWithPhoneNumber
 } from './core/strategies/phone';
+
+// core
+export { ActionCodeURL, parseActionCodeURL } from './core/action_code_url';
 
 // core/user
 export {
