@@ -18,6 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
+import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
@@ -25,11 +26,8 @@ import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import {
-  _assertLinkedStatus,
-  linkWithCredential,
-  signInWithCredential
+    _assertLinkedStatus, linkWithCredential, reauthenticateWithCredential, signInWithCredential
 } from './credential';
-import { ApplicationVerifier } from '../../model/application_verifier';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -79,6 +77,22 @@ export async function linkWithPhoneNumber(
   );
   return new ConfirmationResult(verificationId, cred =>
     linkWithCredential(user, cred)
+  );
+}
+
+export async function reauthenticateWithPhoneNumber(
+  userExtern: externs.User,
+  phoneNumber: string,
+  appVerifier: externs.ApplicationVerifier
+): Promise<externs.ConfirmationResult> {
+  const user = userExtern as User;
+  const verificationId = await _verifyPhoneNumber(
+    user.auth,
+    phoneNumber,
+    appVerifier as ApplicationVerifier
+  );
+  return new ConfirmationResult(verificationId, cred =>
+    reauthenticateWithCredential(user, cred)
   );
 }
 

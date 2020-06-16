@@ -16,14 +16,15 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+
 import { signInWithPassword } from '../../api/authentication/email_and_password';
 import { signInWithEmailLink } from '../../api/authentication/email_link';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
 import { debugFail } from '../util/assert';
-import { AuthCredential } from '.';
+import { AuthCredential } from './';
 
 export class EmailAuthCredential implements AuthCredential {
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
@@ -66,7 +67,7 @@ export class EmailAuthCredential implements AuthCredential {
     debugFail('Method not implemented.');
   }
 
-  _matchIdTokenWithUid(_auth: Auth, _uid: string): Promise<never> {
+  _getReauthenticationResolver(_auth: Auth): Promise<never> {
     debugFail('Method not implemented.');
   }
 }

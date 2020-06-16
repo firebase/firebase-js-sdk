@@ -19,14 +19,12 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
-  linkWithPhoneNumber,
-  signInWithPhoneNumber,
-  SignInWithPhoneNumberRequest
+    linkWithPhoneNumber, signInWithPhoneNumber, SignInWithPhoneNumberRequest,
+    verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { debugFail } from '../util/assert';
-import { AuthCredential } from '.';
+import { AuthCredential } from './';
 
 export interface PhoneAuthCredentialParameters {
   verificationId?: string;
@@ -53,10 +51,8 @@ export class PhoneAuthCredential
     });
   }
 
-  _matchIdTokenWithUid(auth: Auth, uid: string): Promise<IdTokenResponse> {
-    void auth;
-    void uid;
-    return debugFail('not implemented');
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+    return verifyPhoneNumberForExisting(auth, this.makeVerificationRequest());
   }
 
   private makeVerificationRequest(): SignInWithPhoneNumberRequest {
