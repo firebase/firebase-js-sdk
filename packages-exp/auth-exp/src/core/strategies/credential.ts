@@ -63,9 +63,7 @@ export async function linkWithCredential(
     await user.getIdToken()
   );
 
-  const newCred = _authCredentialFromTokenResponse(response);
-  await user._updateTokensIfNecessary(response, /* reload */ true);
-  return new UserCredentialImpl(user, newCred, OperationType.LINK);
+  return userCredForOperation(user, OperationType.LINK, response);
 }
 
 export async function reauthenticateWithCredential(
@@ -81,10 +79,8 @@ export async function reauthenticateWithCredential(
     uid,
     auth.name
   );
-  const newCred = _authCredentialFromTokenResponse(response);
 
-  await user._updateTokensIfNecessary(response, /* reload */ true);
-  return new UserCredentialImpl(user, newCred, OperationType.REAUTHENTICATE);
+  return userCredForOperation(user, OperationType.REAUTHENTICATE, response);
 }
 
 export function _authCredentialFromTokenResponse(
@@ -122,22 +118,27 @@ async function verifyTokenResponseUid(
   uid: string,
   appName: string
 ): Promise<IdTokenResponse> {
-  const code = AuthErrorCode.USER_MISMATCH;
   try {
     const response = await idTokenResolver;
-    assert(response.idToken, appName, code);
+    assert(response.idToken, appName, AuthErrorCode.INTERNAL_ERROR);
     const parsed = _parseToken(response.idToken);
     assert(parsed, appName, AuthErrorCode.INTERNAL_ERROR);
 
     const { sub: localId } = parsed;
-    assert(uid === localId, appName, code);
+    assert(uid === localId, appName, AuthErrorCode.USER_MISMATCH);
 
     return response;
   } catch (e) {
     // Convert user deleted error into user mismatch
     if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
-      fail(appName, code);
+      fail(appName, AuthErrorCode.USER_MISMATCH);
     }
     throw e;
   }
+}
+
+async function userCredForOperation(user: User, opType: OperationType, response: IdTokenResponse): Promise<UserCredentialImpl> {
+  const newCred = _authCredentialFromTokenResponse(response);
+  await user._updateTokensIfNecessary(response, /* reload */ true);
+  return new UserCredentialImpl(user, newCred, opType);
 }
