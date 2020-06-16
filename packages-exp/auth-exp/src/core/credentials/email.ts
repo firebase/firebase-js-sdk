@@ -20,7 +20,8 @@ import * as externs from '@firebase/auth-types-exp';
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
 import {
-    signInWithEmailLink, signInWithEmailLinkForLinking
+  signInWithEmailLink,
+  signInWithEmailLinkForLinking
 } from '../../api/authentication/email_link';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';

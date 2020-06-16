@@ -98,7 +98,10 @@ describe('core/credentials/email', () => {
           localId: serverUser.localId!
         });
 
-        const idTokenResponse = await credential._linkToIdToken(auth, 'id-token-2');
+        const idTokenResponse = await credential._linkToIdToken(
+          auth,
+          'id-token-2'
+        );
         expect(idTokenResponse.idToken).to.eq('id-token');
         expect(idTokenResponse.refreshToken).to.eq('refresh-token');
         expect(idTokenResponse.expiresIn).to.eq('1234');
@@ -176,7 +179,10 @@ describe('core/credentials/email', () => {
 
     describe('#_linkToIdToken', () => {
       it('calls sign in with the new token', async () => {
-        const idTokenResponse = await credential._linkToIdToken(auth, 'id-token-2');
+        const idTokenResponse = await credential._linkToIdToken(
+          auth,
+          'id-token-2'
+        );
         expect(idTokenResponse.idToken).to.eq('id-token');
         expect(idTokenResponse.refreshToken).to.eq('refresh-token');
         expect(idTokenResponse.expiresIn).to.eq('1234');

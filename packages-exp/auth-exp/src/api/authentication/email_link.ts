@@ -39,7 +39,8 @@ export async function signInWithEmailLink(
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
 }
 
-export interface SignInWithEmailLinkForLinkingRequest extends SignInWithEmailLinkRequest {
+export interface SignInWithEmailLinkForLinkingRequest
+  extends SignInWithEmailLinkRequest {
   idToken: string;
 }
 
