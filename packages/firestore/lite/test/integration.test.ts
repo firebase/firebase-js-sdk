@@ -46,10 +46,10 @@ import {
   setDoc,
   addDoc,
   updateDoc,
-  getQuery,
   refEqual,
   queryEqual,
-  collectionGroup
+  collectionGroup,
+  getQuery
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -886,6 +886,8 @@ describe('equality', () => {
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(coll1a, coll1c)).to.be.false;
+
+      expect(refEqual(coll1a, doc(firestore, 'a/b'))).to.be.false;
     });
   });
 
@@ -903,6 +905,8 @@ describe('equality', () => {
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(doc1a, doc1c)).to.be.false;
+
+      expect(refEqual(doc1a, collection(firestore, 'a'))).to.be.false;
     });
   });
 

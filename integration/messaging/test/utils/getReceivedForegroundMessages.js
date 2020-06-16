@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
  */
 
 module.exports = async webdriver => {
-  console.log('Rolling time forward 8 days...');
+  console.log('Getting received foreground messages from test app: ');
+
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
-      return !!window.__test;
+      return window.__test.messages.length > 0;
     });
   });
+
+  console.log('Found message.');
   return webdriver.executeScript(() => {
-    return window.__test.triggerTimeForward();
+    return window.__test.messages;
   });
 };

@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@firebase/util": "0.2.48",
-    "tslib": "1.11.1"
+    "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
