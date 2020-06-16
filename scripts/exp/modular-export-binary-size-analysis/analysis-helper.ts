@@ -22,12 +22,18 @@ import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
 
+export type SpecialExports = {
+  exportSymbol: string;
+  exportPath: string;
+};
+
 /** Contains a list of members by type. */
 export type MemberList = {
   classes: string[];
   functions: string[];
   variables: string[];
   enums: string[];
+  externals: SpecialExports[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
 export type ExportData = { dependencies: MemberList; sizeInBytes: number };
@@ -108,11 +114,12 @@ export function extractDeclarations(jsFile: string): MemberList {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
 
   ts.forEachChild(sourceFile, node => {
-    console.log(node.kind);
+    //console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -139,30 +146,33 @@ export function extractDeclarations(jsFile: string): MemberList {
       });
     } else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+        let isExternalExport: boolean = false;
         const fileName: string = node.moduleSpecifier.text;
         const reExportPath = `${jsFile.substring(
           0,
           jsFile.lastIndexOf('/') + 1
         )}${fileName}.d.ts`;
+        if (isExternalModuleModuleExport(reExportPath)) {
+          isExternalExport = true;
+        }
         const reExportsMember = extractDeclarations(path.resolve(reExportPath));
         // for Named Exports : filter the reExportsMember to keep only the symbols
         // declared for re-export.
-
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
           node.exportClause.elements.forEach(exportSpecifier => {
-            const reExportedSymbol: string = exportSpecifier.name.escapedText.toString();
-            reExportsMember.functions = reExportsMember.functions.filter(each =>
-              isReExported(each, reExportedSymbol)
+            const reExportedSymbol: string = extractRealSymbolName(
+              exportSpecifier
             );
-            reExportsMember.variables = reExportsMember.variables.filter(each =>
-              isReExported(each, reExportedSymbol)
-            );
-            reExportsMember.classes = reExportsMember.classes.filter(each =>
-              isReExported(each, reExportedSymbol)
-            );
-            reExportsMember.enums = reExportsMember.enums.filter(each =>
-              isReExported(each, reExportedSymbol)
-            );
+            filterAllBy(reExportsMember, reExportedSymbol);
+            // if export is renamed, replace with new name
+
+            if (isExportRenamed(exportSpecifier)) {
+              replaceAll(
+                reExportsMember,
+                reExportedSymbol,
+                exportSpecifier.name.escapedText.toString()
+              );
+            }
           });
         }
         // concatename reExport MemberList with MemberList of the dts file
@@ -183,6 +193,55 @@ export function extractDeclarations(jsFile: string): MemberList {
   return declarations;
 }
 
+function isExternalModuleModuleExport(exportPath: string): boolean {
+  return !fs.existsSync(path.resolve(exportPath));
+}
 function isReExported(symbol: string, reExportedSymbol: string): boolean {
   return symbol.localeCompare(reExportedSymbol) == 0;
+}
+
+function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
+  // if property name is not null -> export is renamed
+  if (exportSpecifier.propertyName) {
+    return exportSpecifier.propertyName.escapedText.toString();
+  }
+
+  return exportSpecifier.name.escapedText.toString();
+}
+function filterAllBy(memberList: MemberList, keep: string) {
+  memberList.functions = memberList.functions.filter(each =>
+    isReExported(each, keep)
+  );
+  memberList.variables = memberList.variables.filter(each =>
+    isReExported(each, keep)
+  );
+  memberList.classes = memberList.classes.filter(each =>
+    isReExported(each, keep)
+  );
+  memberList.enums = memberList.enums.filter(each => isReExported(each, keep));
+}
+
+function replaceAll(memberList: MemberList, original: string, current: string) {
+  memberList.classes = replaceWith(memberList.classes, original, current);
+  memberList.variables = replaceWith(memberList.variables, original, current);
+  memberList.functions = replaceWith(memberList.functions, original, current);
+  memberList.enums = replaceWith(memberList.enums, original, current);
+}
+function replaceWith(
+  arr: string[],
+  original: string,
+  current: string
+): string[] {
+  const rv: string[] = [];
+  for (let each of arr) {
+    if (each.localeCompare(original) == 0) {
+      rv.push(current);
+    } else {
+      rv.push(each);
+    }
+  }
+  return rv;
+}
+function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
+  return exportSpecifier.propertyName != null;
 }

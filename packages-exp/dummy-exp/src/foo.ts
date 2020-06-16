@@ -22,3 +22,6 @@ export function foo(): string {
 export function foo1(): string {
   return 'foo';
 }
+export function foo2(): string {
+  return 'foo2';
+}

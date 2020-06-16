@@ -17,16 +17,18 @@
 
 export * from './bar';
 export { foo1 } from './foo';
+export { foo2 as foo3 } from './foo';
 import { SDK_VERSION } from './bar';
 import { far } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';
-export { LogLevel } from '@firebase/logger';
+export class Student {}
+import { LogLevel } from '@firebase/logger';
 var3 = 'var3Changed';
 
-export function boo(): string {
-  return 'boo';
+export function boo(): LogLevel {
+  return LogLevel.DEBUG;
 }
 
 export declare enum LogLevel1 {
@@ -54,3 +56,5 @@ export type LogLevel2 =
   | 'verbose';
 
 far(SDK_VERSION);
+
+export { LogLevel } from '@firebase/logger';

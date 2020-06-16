@@ -51,10 +51,10 @@ function collectBinarySize(path) {
     }
     console.log(publicApi);
     // calculate binary size for every export and build a json report
-    buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`).then(json => {
-      //console.log(json);
-      //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
-    });
+    // buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`).then(json => {
+    //   //console.log(json);
+    //   //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
+    // });
   }
 }
 

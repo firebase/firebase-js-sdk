@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { boo } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages-exp/dummy-exp/dist/index.esm2017.js';
+export { foo3 } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages-exp/dummy-exp/dist/index.esm2017.js';
