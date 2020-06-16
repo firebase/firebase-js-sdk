@@ -38,7 +38,8 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  verifyPasswordResetCode
+  verifyPasswordResetCode,
+  applyActionCode
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -187,6 +188,45 @@ describe('core/strategies/confirmPasswordReset', () => {
   });
 });
 
+describe('core/strategies/applyActionCode', () => {
+  const oobCode = 'oob-code';
+
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
+  afterEach(mockFetch.tearDown);
+
+  it('should apply the oob code', async () => {
+    const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
+    await applyActionCode(auth, oobCode);
+    expect(mock.calls[0].request).to.eql({
+      oobCode
+    });
+  });
+
+  it('should surface errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SET_ACCOUNT_INFO,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_OOB_CODE
+        }
+      },
+      400
+    );
+    await expect(applyActionCode(auth, oobCode)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
+    );
+    expect(mock.calls.length).to.eq(1);
+  });
+});
+
 describe('core/strategies/checkActionCode', () => {
   const oobCode = 'oob-code';
   const email = 'foo@bar.com';
@@ -210,7 +250,7 @@ describe('core/strategies/checkActionCode', () => {
     expect(response).to.eql({
       data: {
         email,
-        fromEmail: null
+        previousEmail: null
       },
       operation: Operation.PASSWORD_RESET
     });
@@ -229,7 +269,7 @@ describe('core/strategies/checkActionCode', () => {
     expect(response).to.eql({
       data: {
         email,
-        fromEmail: newEmail
+        previousEmail: newEmail
       },
       operation: Operation.PASSWORD_RESET
     });
@@ -284,7 +324,8 @@ describe('core/strategies/verifyPasswordResetCode', () => {
   it('should verify the oob code', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       requestType: Operation.PASSWORD_RESET,
-      email: 'foo@bar.com'
+      email: 'foo@bar.com',
+      previousEmail: null
     });
     const response = await verifyPasswordResetCode(auth, oobCode);
     expect(response).to.eq(email);
