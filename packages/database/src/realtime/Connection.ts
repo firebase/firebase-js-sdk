@@ -84,17 +84,19 @@ export class Connection {
   private tx_: Transport;
 
   /**
-   * @param {!string} id - an id for this connection
-   * @param {!RepoInfo} repoInfo_ - the info for the endpoint to connect to
-   * @param {function(Object)} onMessage_ - the callback to be triggered when a server-push message arrives
-   * @param {function(number, string)} onReady_ - the callback to be triggered when this connection is ready to send messages.
-   * @param {function()} onDisconnect_ - the callback to be triggered when a connection was lost
-   * @param {function(string)} onKill_ - the callback to be triggered when this connection has permanently shut down.
-   * @param {string=} lastSessionId - last session id in persistent connection. is used to clean up old session in real-time server
+   * @param id - an id for this connection
+   * @param repoInfo_ - the info for the endpoint to connect to
+   * @param applicationId_ - the Firebase App ID for this project
+   * @param onMessage_ - the callback to be triggered when a server-push message arrives
+   * @param onReady_ - the callback to be triggered when this connection is ready to send messages.
+   * @param onDisconnect_ - the callback to be triggered when a connection was lost
+   * @param onKill_ - the callback to be triggered when this connection has permanently shut down.
+   * @param lastSessionId - last session id in persistent connection. is used to clean up old session in real-time server
    */
   constructor(
     public id: string,
     private repoInfo_: RepoInfo,
+    private applicationId_: string | undefined,
     private onMessage_: (a: {}) => void,
     private onReady_: (a: number, b: string) => void,
     private onDisconnect_: () => void,
@@ -116,6 +118,7 @@ export class Connection {
     this.conn_ = new conn(
       this.nextTransportId_(),
       this.repoInfo_,
+      this.applicationId_,
       undefined,
       this.lastSessionId
     );
@@ -409,6 +412,7 @@ export class Connection {
     this.secondaryConn_ = new conn(
       this.nextTransportId_(),
       this.repoInfo_,
+      this.applicationId_,
       this.sessionId
     );
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we

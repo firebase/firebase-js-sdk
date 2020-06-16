@@ -47,6 +47,9 @@ export const enum LimitType {
  * query the RemoteStore results.
  */
 export class Query {
+  // TODO(firestorelite): Refactor this class so that methods that are not used
+  // in the Lite client become tree-shakeable.
+
   static atPath(path: ResourcePath): Query {
     return new Query(path);
   }

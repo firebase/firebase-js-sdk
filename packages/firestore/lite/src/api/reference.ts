@@ -51,7 +51,6 @@ import {
   applyFirestoreDataConverter,
   BaseQuery
 } from '../../../src/api/database';
-import { DatabaseId } from '../../../src/core/database_info';
 import { FieldPath } from './field_path';
 import { cast } from './util';
 import {
@@ -101,11 +100,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     readonly _query: InternalQuery,
     readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
-    super(
-      firestore._databaseId,
-      newUserDataReader(firestore._databaseId, firestore._settings!),
-      _query
-    );
+    super(firestore._databaseId, newUserDataReader(firestore), _query);
   }
 
   where(
@@ -161,6 +156,8 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     );
   }
 
+  // TODO(firestiorelite): Consider making the Query methods tree-shakeable
+  // (`Query.startAt()` would become `startAt(query)`).
   startAt(
     docOrField: unknown | firestore.DocumentSnapshot<unknown>,
     ...fields: unknown[]
@@ -292,10 +289,6 @@ export function collection(
   validateArgType('doc', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    // Kick off configuring the client, which freezes the settings.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    parent._ensureClientConfigured();
-
     validateCollectionPath(path);
     return new CollectionReference(parent, path, /* converter= */ null);
   } else {
@@ -310,6 +303,8 @@ export function collection(
   }
 }
 
+// TODO(firestorelite): Consider using ErrorFactory -
+// https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
 export function collectionGroup(
   firestore: firestore.FirebaseFirestore,
   collectionId: string
@@ -325,9 +320,6 @@ export function collectionGroup(
     );
   }
 
-  // Kick off configuring the client, which freezes the settings.
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient._ensureClientConfigured();
   return new Query(
     firestoreClient,
     new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
@@ -355,10 +347,6 @@ export function doc<T>(
   validateArgType('doc', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath!);
   if (parent instanceof Firestore) {
-    // Kick off configuring the client, which freezes the settings.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    parent._ensureClientConfigured();
-
     validateDocumentPath(path);
     return new DocumentReference(
       parent,
@@ -411,7 +399,7 @@ export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  return ref.firestore._ensureClientConfigured().then(async datastore => {
+  return ref.firestore._getDatastore().then(async datastore => {
     const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
     hardAssert(result.length === 1, 'Expected a single document result');
     const maybeDocument = result[0];
@@ -424,33 +412,32 @@ export function getDoc<T>(
   });
 }
 
+// TODO(firestorelite): Consider renaming to getDocs
 export function getQuery<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
-  return internalQuery.firestore
-    ._ensureClientConfigured()
-    .then(async datastore => {
-      const result = await invokeRunQueryRpc(datastore, internalQuery._query);
-      const docs = result.map(
-        doc =>
-          new QueryDocumentSnapshot<T>(
-            internalQuery.firestore,
-            doc.key,
-            doc,
-            internalQuery._converter
-          )
-      );
+  return internalQuery.firestore._getDatastore().then(async datastore => {
+    const result = await invokeRunQueryRpc(datastore, internalQuery._query);
+    const docs = result.map(
+      doc =>
+        new QueryDocumentSnapshot<T>(
+          internalQuery.firestore,
+          doc.key,
+          doc,
+          internalQuery._converter
+        )
+    );
 
-      if (internalQuery._query.hasLimitToLast()) {
-        // Limit to last queries reverse the orderBy constraint that was
-        // specified by the user. As such, we need to reverse the order of the
-        // results to return the documents in the expected order.
-        docs.reverse();
-      }
+    if (internalQuery._query.hasLimitToLast()) {
+      // Limit to last queries reverse the orderBy constraint that was
+      // specified by the user. As such, we need to reverse the order of the
+      // results to return the documents in the expected order.
+      docs.reverse();
+    }
 
-      return new QuerySnapshot<T>(query, docs);
-    });
+    return new QuerySnapshot<T>(query, docs);
+  });
 }
 
 export function setDoc<T>(
@@ -474,22 +461,17 @@ export function setDoc<T>(
     data,
     'setDoc'
   );
-
-  // Kick off configuring the client, which freezes the settings.
-  const configureClient = ref.firestore._ensureClientConfigured();
-  const dataReader = newUserDataReader(
-    ref.firestore._databaseId,
-    ref.firestore._settings!
-  );
-
+  const dataReader = newUserDataReader(ref.firestore);
   const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
 
-  return configureClient.then(datastore =>
-    invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.none())
-    )
-  );
+  return ref.firestore
+    ._getDatastore()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(ref._key, Precondition.none())
+      )
+    );
 }
 
 export function updateDoc(
@@ -509,13 +491,7 @@ export function updateDoc(
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   const ref = cast(reference, DocumentReference);
-
-  // Kick off configuring the client, which freezes the settings.
-  const configureClient = ref.firestore._ensureClientConfigured();
-  const dataReader = newUserDataReader(
-    ref.firestore._databaseId,
-    ref.firestore._settings!
-  );
+  const dataReader = newUserDataReader(ref.firestore);
 
   let parsed: ParsedUpdateData;
   if (
@@ -532,12 +508,14 @@ export function updateDoc(
     parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
   }
 
-  return configureClient.then(datastore =>
-    invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.exists(true))
-    )
-  );
+  return ref.firestore
+    ._getDatastore()
+    .then(datastore =>
+      invokeCommitRpc(
+        datastore,
+        parsed.toMutations(ref._key, Precondition.exists(true))
+      )
+    );
 }
 
 export function deleteDoc(
@@ -545,7 +523,7 @@ export function deleteDoc(
 ): Promise<void> {
   const ref = cast(reference, DocumentReference);
   return ref.firestore
-    ._ensureClientConfigured()
+    ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(datastore, [
         new DeleteMutation(ref._key, Precondition.none())
@@ -566,15 +544,11 @@ export function addDoc<T>(
     'addDoc'
   );
 
-  // Kick off configuring the client, which freezes the settings.
-  const configureClient = collRef.firestore._ensureClientConfigured();
-  const dataReader = newUserDataReader(
-    collRef.firestore._databaseId,
-    collRef.firestore._settings!
-  );
+  const dataReader = newUserDataReader(collRef.firestore);
   const parsed = dataReader.parseSetData('addDoc', convertedValue);
 
-  return configureClient
+  return collRef.firestore
+    ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(
         datastore,
@@ -616,13 +590,13 @@ export function queryEqual<T>(
   return false;
 }
 
-export function newUserDataReader(
-  databaseId: DatabaseId,
-  settings: firestore.Settings
-): UserDataReader {
-  const serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
+export function newUserDataReader(firestore: Firestore): UserDataReader {
+  const settings = firestore._getSettings();
+  const serializer = PlatformSupport.getPlatform().newSerializer(
+    firestore._databaseId
+  );
   return new UserDataReader(
-    databaseId,
+    firestore._databaseId,
     !!settings.ignoreUndefinedProperties,
     serializer
   );

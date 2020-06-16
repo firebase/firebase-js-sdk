@@ -14,28 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { MemoryComponentProvider } from './src/core/component_provider';
+import { IndexedDbComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/platform/config';
+
 import './register-module';
-import './src/platform_node/node_init';
+import './src/platform_rn/rn_init';
 
 import { name, version } from './package.json';
 
 /**
- * Registers the memory-only Firestore build for Node with the components
- * framework.
+ * Registers the main Firestore ReactNative build with the components framework.
+ * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    (app, auth) => new Firestore(app, auth, new MemoryComponentProvider())
+    (app, auth) => new Firestore(app, auth, new IndexedDbComponentProvider())
   );
-  instance.registerVersion(name, version, 'node');
+  instance.registerVersion(name, version, 'rn');
 }
 
 registerFirestore(firebase);

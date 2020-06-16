@@ -33,7 +33,7 @@
     "@firebase/util": "0.2.48",
     "@firebase/logger": "0.2.5",
     "@firebase/component": "0.1.13",
-    "tslib": "1.11.1",
+    "tslib": "^1.11.1",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
   },

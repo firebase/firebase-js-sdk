@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-module.exports = async webdriver => {
-  console.log('Waiting for received message...');
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return window.__test.messages.length > 0;
-    });
-  });
+import { PlatformSupport } from '../platform/platform';
+import { ReactNativePlatform } from './rn_platform';
 
-  console.log('Found message.');
-  return webdriver.executeScript(() => {
-    return window.__test.messages;
-  });
-};
+/**
+ * This code needs to run before Firestore is used. This can be achieved in
+ * several ways:
+ *   1) Through the JSCompiler compiling this code and then (automatically)
+ *      executing it before exporting the Firestore symbols.
+ *   2) Through importing this module first in a Firestore main module
+ */
+PlatformSupport.setPlatform(new ReactNativePlatform());
