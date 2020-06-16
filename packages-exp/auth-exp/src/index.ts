@@ -16,7 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { ErrorFn, CompleteFn, Unsubscribe } from '@firebase/util';
+import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 // core/auth
 export { initializeAuth } from './core/auth/auth_impl';
@@ -100,6 +100,8 @@ export {
 } from './core/user/account_info';
 export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
 export { unlink } from './core/user/unlink';
+
+export { RecaptchaVerifier } from './platform_browser/recaptcha/recaptcha_verifier';
 
 // Non-optional user methods.
 export { reload } from './core/user/reload';
