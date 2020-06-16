@@ -35,7 +35,7 @@ export async function getIdTokenResult(
 ): Promise<externs.IdTokenResult> {
   const user = externUser as User;
   const token = await user.getIdToken(forceRefresh);
-  const claims = parseToken(token);
+  const claims = _parseToken(token);
 
   assert(
     claims && claims.exp && claims.auth_time && claims.iat,
@@ -83,7 +83,7 @@ function utcTimestampToDateString(timestamp: string | number): string {
   return ''; // TODO(avolkovi): is this the right fallback?
 }
 
-function parseToken(token: string): externs.ParsedToken | null {
+export function _parseToken(token: string): externs.ParsedToken | null {
   const [algorithm, payload, signature] = token.split('.');
   if (
     algorithm === undefined ||

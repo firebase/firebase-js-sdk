@@ -24,9 +24,11 @@ import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
+import { makeJWT } from '../../../test/jwt';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
+import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
@@ -34,9 +36,9 @@ import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_ve
 import {
   _verifyPhoneNumber,
   linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
   signInWithPhoneNumber
 } from './phone';
-import { ApplicationVerifier } from '../../model/application_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -185,6 +187,95 @@ describe('core/strategies/phone', () => {
           code: '6789',
           idToken: initialIdToken
         });
+      });
+    });
+  });
+
+  describe('reauthenticateWithPhoneNumber', () => {
+    let user: User;
+
+    beforeEach(() => {
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [{ uid: 'uid' }]
+      });
+
+      user = testUser(auth, 'uid', 'email', true);
+    });
+
+    it('calls verify phone number', async () => {
+      await reauthenticateWithPhoneNumber(user, '+15105550000', verifier);
+
+      expect(sendCodeEndpoint.calls[0].request).to.eql({
+        recaptchaToken: 'recaptcha-token',
+        phoneNumber: '+15105550000'
+      });
+    });
+
+    context('ConfirmationResult', () => {
+      it('result contains verification id baked in', async () => {
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
+        );
+        expect(result.verificationId).to.eq('session-info');
+      });
+
+      it('calling #confirm finishes the sign in flow', async () => {
+        const idTokenResponse: IdTokenResponse = {
+          idToken: makeJWT({ 'sub': 'uid' }),
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: 'my-kind'
+        };
+
+        // This endpoint is called from within the callback, in
+        // signInWithCredential
+        const signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
+        );
+        const userCred = await result.confirm('6789');
+        expect(userCred.user.uid).to.eq('uid');
+        expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
+        expect(signInEndpoint.calls[0].request).to.eql({
+          sessionInfo: 'session-info',
+          code: '6789',
+          operation: 'REAUTH'
+        });
+      });
+
+      it('rejects if the uid mismatches', async () => {
+        const idTokenResponse: IdTokenResponse = {
+          idToken: makeJWT({ 'sub': 'different-uid' }),
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: 'my-kind'
+        };
+        // This endpoint is called from within the callback, in
+        // signInWithCredential
+        mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, idTokenResponse);
+
+        const result = await reauthenticateWithPhoneNumber(
+          user,
+          'number',
+          verifier
+        );
+        await expect(result.confirm('code')).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch)'
+        );
       });
     });
   });

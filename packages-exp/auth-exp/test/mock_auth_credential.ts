@@ -18,9 +18,9 @@
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
+import { AuthCredential } from '../src/core/credentials';
 import { Auth } from '../src/model/auth';
 import { IdTokenResponse } from '../src/model/id_token';
-import { AuthCredential } from '../src/core/credentials';
 
 export class MockAuthCredential implements AuthCredential {
   response?: PhoneOrOauthTokenResponse;
@@ -57,7 +57,7 @@ export class MockAuthCredential implements AuthCredential {
     return this.response!;
   }
 
-  _matchIdTokenWithUid(_auth: Auth, _uid: string): Promise<IdTokenResponse> {
-    throw new Error('Method not implemented.');
+  async _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
+    return this.response!;
   }
 }

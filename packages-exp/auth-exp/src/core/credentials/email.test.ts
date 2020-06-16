@@ -15,17 +15,19 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+
+import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+
+import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
+import * as mockFetch from '../../../test/mock_fetch';
+import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { EmailAuthProvider } from '../providers/email';
 import { EmailAuthCredential } from './email';
-import * as mockFetch from '../../../test/mock_fetch';
-import { mockEndpoint } from '../../../test/api/helper';
-import { Endpoint } from '../../api';
-import { APIUserInfo } from '../../api/account_management/account';
 
 use(chaiAsPromised);
 
@@ -95,11 +97,11 @@ describe('core/credentials/email', () => {
       });
     });
 
-    describe('#_matchIdTokenWithUid', () => {
+    describe('#_getReauthenticationResolver', () => {
       it('throws', () => {
-        expect(() =>
-          credential._matchIdTokenWithUid(auth, 'other-uid')
-        ).to.throw(Error);
+        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
+          Error
+        );
       });
     });
   });
@@ -160,9 +162,9 @@ describe('core/credentials/email', () => {
 
     describe('#_matchIdTokenWithUid', () => {
       it('throws', () => {
-        expect(() =>
-          credential._matchIdTokenWithUid(auth, 'other-uid')
-        ).to.throw(Error);
+        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
+          Error
+        );
       });
     });
   });
