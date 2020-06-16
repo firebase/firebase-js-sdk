@@ -137,7 +137,11 @@ async function verifyTokenResponseUid(
   }
 }
 
-async function userCredForOperation(user: User, opType: OperationType, response: IdTokenResponse): Promise<UserCredentialImpl> {
+async function userCredForOperation(
+  user: User,
+  opType: OperationType,
+  response: IdTokenResponse
+): Promise<UserCredentialImpl> {
   const newCred = _authCredentialFromTokenResponse(response);
   await user._updateTokensIfNecessary(response, /* reload */ true);
   return new UserCredentialImpl(user, newCred, opType);
