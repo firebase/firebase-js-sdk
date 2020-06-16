@@ -17,22 +17,23 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { resetPassword } from '../../api/account_management/email_and_password';
-import * as api from '../../api/authentication/email_and_password';
+import * as account from '../../api/account_management/email_and_password';
+import * as authentication from '../../api/authentication/email_and_password';
 import { Auth } from '../../model/auth';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signUp } from '../../api/authentication/sign_up';
+import { assert } from '../util/assert';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
   email: string,
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
-  const request: api.PasswordResetRequest = {
+  const request: authentication.PasswordResetRequest = {
     requestType: externs.Operation.PASSWORD_RESET,
     email
   };
@@ -40,7 +41,7 @@ export async function sendPasswordResetEmail(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await api.sendPasswordResetEmail(auth as Auth, request);
+  await authentication.sendPasswordResetEmail(auth as Auth, request);
 }
 
 export async function confirmPasswordReset(
@@ -48,32 +49,55 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await resetPassword(auth as Auth, {
+  await account.resetPassword(auth as Auth, {
     oobCode,
     newPassword
   });
   // Do not return the email.
 }
 
+export async function applyActionCode(
+  auth: externs.Auth,
+  oobCode: string
+): Promise<void> {
+  await account.applyActionCode(auth as Auth, { oobCode });
+}
+
 export async function checkActionCode(
   auth: externs.Auth,
   oobCode: string
 ): Promise<externs.ActionCodeInfo> {
-  const response = await resetPassword(auth as Auth, {
-    oobCode
-  });
-  if (!response.requestType) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name
-    });
+  const response = await account.resetPassword(auth as Auth, { oobCode });
+
+  // Email could be empty only if the request type is EMAIL_SIGNIN or
+  // VERIFY_AND_CHANGE_EMAIL.
+  // New email should not be empty if the request type is
+  // VERIFY_AND_CHANGE_EMAIL.
+  const operation = response.requestType;
+  assert(operation, auth.name, AuthErrorCode.INTERNAL_ERROR);
+  switch (operation) {
+    case externs.Operation.EMAIL_SIGNIN:
+      break;
+    case externs.Operation.VERIFY_AND_CHANGE_EMAIL:
+      assert(response.newEmail, auth.name, AuthErrorCode.INTERNAL_ERROR);
+      break;
+    default:
+      assert(response.email, auth.name, AuthErrorCode.INTERNAL_ERROR);
   }
 
   return {
     data: {
-      email: response.email || null,
-      fromEmail: response.newEmail || null
+      email:
+        (response.requestType === externs.Operation.VERIFY_AND_CHANGE_EMAIL
+          ? response.newEmail
+          : response.email) || null,
+      previousEmail:
+        (response.requestType === externs.Operation.VERIFY_AND_CHANGE_EMAIL
+          ? response.email
+          : response.newEmail) || null
+      /* multiFactorInfo: MultiFactorInfo | null; */
     },
-    operation: response.requestType
+    operation
   };
 }
 
