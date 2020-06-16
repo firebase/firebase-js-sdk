@@ -26,7 +26,10 @@ import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
-import { signInWithEmailLink, signInWithEmailLinkForLinking } from './email_link';
+import {
+  signInWithEmailLink,
+  signInWithEmailLinkForLinking
+} from './email_link';
 
 use(chaiAsPromised);
 
@@ -39,7 +42,6 @@ describe('api/authentication/email_link', () => {
   });
 
   afterEach(mockFetch.tearDown);
-
 
   context('signInWithEmailLink', () => {
     const request = {
@@ -93,7 +95,7 @@ describe('api/authentication/email_link', () => {
     const request = {
       email: 'foo@bar.com',
       oobCode: 'my-code',
-      idToken: 'id-token-2',
+      idToken: 'id-token-2'
     };
 
     it('should POST to the correct endpoint', async () => {
@@ -130,7 +132,9 @@ describe('api/authentication/email_link', () => {
         400
       );
 
-      await expect(signInWithEmailLinkForLinking(auth, request)).to.be.rejectedWith(
+      await expect(
+        signInWithEmailLinkForLinking(auth, request)
+      ).to.be.rejectedWith(
         FirebaseError,
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );
