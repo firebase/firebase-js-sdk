@@ -387,6 +387,7 @@ export function getDoc<T>(
   });
 }
 
+// TODO(firestorelite): Consider renaming to getDocs
 export function getQuery<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
