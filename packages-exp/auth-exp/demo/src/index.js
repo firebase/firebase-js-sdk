@@ -377,14 +377,12 @@ function onLinkWithEmailLink() {
 function onReauthenticateWithEmailLink() {
   var email = $('#link-with-email-link-email').val();
   var link = $('#link-with-email-link-link').val() || undefined;
-  var credential = EmailAuthProvider
-      .credentialWithLink(email, link);
-  reauthenticateWithCredential(activeUser(), credential)
-      .then(function(result) {
-        logAdditionalUserInfo(result);
-        refreshUserData();
-        alertSuccess('User reauthenticated!');
-      }, onAuthError);
+  var credential = EmailAuthProvider.credentialWithLink(email, link);
+  reauthenticateWithCredential(activeUser(), credential).then(function(result) {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated!');
+  }, onAuthError);
 }
 
 /**
@@ -559,12 +557,11 @@ function onReauthConfirmPhoneVerification() {
     verificationId,
     verificationCode
   );
-  reauthenticateWithCredential(activeUser(), credential)
-    .then(function(result) {
-      logAdditionalUserInfo(result);
-      refreshUserData();
-      alertSuccess('User reauthenticated!');
-    }, onAuthError);
+  reauthenticateWithCredential(activeUser(), credential).then(function(result) {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated!');
+  }, onAuthError);
 }
 
 /**
