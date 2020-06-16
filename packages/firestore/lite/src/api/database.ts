@@ -34,8 +34,8 @@ import {
   terminateDatastore
 } from '../../../src/remote/datastore';
 import { PlatformSupport } from '../../../src/platform/platform';
-import { Deferred } from '../../../src/util/promise';
 import { cast } from './util';
+import { Settings } from '../../';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -52,8 +52,8 @@ export class Firestore implements firestore.FirebaseFirestore {
   private readonly _credentials: CredentialsProvider;
 
   // Assigned via _configureClient()/_ensureClientConfigured()
-  _settings?: firestore.Settings;
-  private readonly _datastoreDeferred = new Deferred<Datastore>();
+  private _settings?: firestore.Settings;
+  private _datastorePromise?: Promise<Datastore>;
 
   constructor(
     app: FirebaseApp,
@@ -78,31 +78,29 @@ export class Firestore implements firestore.FirebaseFirestore {
       );
     }
     this._settings = settings;
-
-    const databaseInfo = this._makeDatabaseInfo(settings);
-
-    // Kick off initializing the datastore but don't actually wait for it.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(connection => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        const datastore = newDatastore(
-          connection,
-          this._credentials,
-          serializer
-        );
-        this._datastoreDeferred.resolve(datastore);
-      });
   }
 
-  _ensureClientConfigured(): Promise<Datastore> {
+  _getSettings(): Settings {
     if (!this._settings) {
       this._settings = {};
     }
-    return this._datastoreDeferred.promise;
+    return this._settings;
+  }
+
+  _getDatastore(): Promise<Datastore> {
+    if (!this._datastorePromise) {
+      const databaseInfo = this._makeDatabaseInfo(this._getSettings());
+      this._datastorePromise = PlatformSupport.getPlatform()
+        .loadConnection(databaseInfo)
+        .then(connection => {
+          const serializer = PlatformSupport.getPlatform().newSerializer(
+            databaseInfo.databaseId
+          );
+          return newDatastore(connection, this._credentials, serializer);
+        });
+    }
+
+    return this._datastorePromise;
   }
 
   private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
@@ -149,6 +147,6 @@ export function terminate(
   // TODO(firestorelite): Call _removeServiceInstance when available
   const firestoreClient = cast(firestore, Firestore);
   return firestoreClient
-    ._ensureClientConfigured()
+    ._getDatastore()
     .then(datastore => terminateDatastore(datastore));
 }
