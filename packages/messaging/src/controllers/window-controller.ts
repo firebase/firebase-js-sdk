@@ -15,30 +15,33 @@
  * limitations under the License.
  */
 
-import { getToken, deleteToken } from '../core/token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { FirebaseMessaging } from '@firebase/messaging-types';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import {
-  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
   DEFAULT_SW_PATH,
   DEFAULT_SW_SCOPE,
   DEFAULT_VAPID_KEY
 } from '../util/constants';
-import { FirebaseApp } from '@firebase/app-types';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import { deleteToken, getToken } from '../core/token-management';
+
 import { ConsoleMessageData } from '../interfaces/message-payload';
-import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { isConsoleMessage } from '../helpers/is-console-message';
 
 export class WindowController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
   private swRegistration?: ServiceWorkerRegistration;
   private onMessageCallback: NextFn<object> | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private onMessageObserver: any = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -133,13 +136,15 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
    */
   // TODO: Simplify this to only accept a function and not an Observer.
   onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
-    this.onMessageCallback =
-      typeof nextOrObserver === 'function'
-        ? nextOrObserver
-        : nextOrObserver.next;
+    if (typeof nextOrObserver === 'function') {
+      this.onMessageCallback = nextOrObserver;
+    } else {
+      this.onMessageObserver = nextOrObserver;
+    }
 
     return () => {
       this.onMessageCallback = null;
+      this.onMessageObserver = null;
     };
   }
 
@@ -195,6 +200,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
 
     if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
       this.onMessageCallback(payload);
+    }
+
+    if (this.onMessageObserver && type === MessageType.PUSH_RECEIVED) {
+      this.onMessageObserver.next(payload);
     }
 
     const { data } = payload;

@@ -20,7 +20,9 @@ module.exports = async webdriver => {
 
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
-      return window.__test.messages.length > 0;
+      // two messages should be pushed for each Send request: one from onMessage(callback) and the
+      // other from onMessage(observer)
+      return window.__test.messages.length >= 2;
     });
   });
 

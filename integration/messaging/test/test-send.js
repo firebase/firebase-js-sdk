@@ -16,6 +16,7 @@
  */
 
 const expect = require('chai').expect;
+const assert = require('chai').assert;
 const testServer = require('./utils/test-server');
 const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
@@ -32,6 +33,7 @@ const FIELD_FROM = 'from';
 const FIELD_COLLAPSE_KEY = 'collapse_key';
 const FIELD_DATA = 'data';
 const FIELD_NOTIFICATION = 'notification';
+const FIELD_IS_OBSERVER_HANDLED = 'isObserverHandled';
 
 // 4 minutes. The fact that the flow includes making a request to the Send Service, storing/retrieving form indexedDb asynchronously makes these test units to have a execution time variance. Therefore, allowing these units to have a longer time to work is crucial.
 const TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 240000;

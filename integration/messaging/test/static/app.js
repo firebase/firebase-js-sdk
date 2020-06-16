@@ -26,6 +26,9 @@ class DemoApp {
    * elements and initialize the Firebase app and initial state, including
    * getting the current FCM token if one is available.
    */
+
+  IS_OBSERVER_HANDLED = 'isObserverHandled';
+
   constructor(firebaseConfig, options = {}) {
     this._clock = sinon.useFakeTimers();
     this._token = null;
@@ -58,8 +61,16 @@ class DemoApp {
       );
     }
 
+    // subscribe foreground messages conventionally
     this._messaging.onMessage(message => {
-      this.appendMessage(message);
+      this.appendMessage({ ...message, IS_OBSERVER_HANDLED: false });
+    });
+
+    // subscribe foreground messages in reactive style
+    this._messaging.onMessage({
+      next: message => {
+        this.appendMessage({ ...message, IS_OBSERVER_HANDLED: true });
+      }
     });
 
     this._messaging.getToken().then(
