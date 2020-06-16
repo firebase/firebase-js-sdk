@@ -303,6 +303,8 @@ export function collection(
   }
 }
 
+// TODO(firestorelite): Consider using ErrorFactory -
+// https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
 export function collectionGroup(
   firestore: firestore.FirebaseFirestore,
   collectionId: string
