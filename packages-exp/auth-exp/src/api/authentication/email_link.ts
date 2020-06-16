@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
+import { _performSignInRequest, Endpoint, HttpMethod } from '../';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
@@ -35,6 +35,20 @@ export async function signInWithEmailLink(
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<
     SignInWithEmailLinkRequest,
+    SignInWithEmailLinkResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
+}
+
+export interface SignInWithEmailLinkForLinkingRequest extends SignInWithEmailLinkRequest {
+  idToken: string;
+}
+
+export async function signInWithEmailLinkForLinking(
+  auth: Auth,
+  request: SignInWithEmailLinkForLinkingRequest
+): Promise<SignInWithEmailLinkResponse> {
+  return _performSignInRequest<
+    SignInWithEmailLinkForLinkingRequest,
     SignInWithEmailLinkResponse
   >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
 }

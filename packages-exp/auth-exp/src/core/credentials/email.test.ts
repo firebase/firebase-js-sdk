@@ -75,7 +75,7 @@ describe('core/credentials/email', () => {
     });
 
     describe('#_getIdTokenResponse', () => {
-      it('call sign in with password', async () => {
+      it('calls sign in with password', async () => {
         const idTokenResponse = await credential._getIdTokenResponse(auth);
         expect(idTokenResponse.idToken).to.eq('id-token');
         expect(idTokenResponse.refreshToken).to.eq('refresh-token');
@@ -90,18 +90,40 @@ describe('core/credentials/email', () => {
     });
 
     describe('#_linkToIdToken', () => {
-      it('throws', async () => {
-        await expect(
-          credential._linkToIdToken(auth, 'id-token')
-        ).to.be.rejectedWith(Error);
+      it('calls update email password', async () => {
+        apiMock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+          idToken: 'id-token',
+          refreshToken: 'refresh-token',
+          expiresIn: '1234',
+          localId: serverUser.localId!
+        });
+
+        const idTokenResponse = await credential._linkToIdToken(auth, 'id-token-2');
+        expect(idTokenResponse.idToken).to.eq('id-token');
+        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+        expect(idTokenResponse.expiresIn).to.eq('1234');
+        expect(idTokenResponse.localId).to.eq(serverUser.localId);
+        expect(apiMock.calls[0].request).to.eql({
+          idToken: 'id-token-2',
+          returnSecureToken: true,
+          email: 'some-email',
+          password: 'some-password'
+        });
       });
     });
 
     describe('#_getReauthenticationResolver', () => {
-      it('throws', () => {
-        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
-          Error
-        );
+      it('calls sign in with password', async () => {
+        const idTokenResponse = await credential._getIdTokenResponse(auth);
+        expect(idTokenResponse.idToken).to.eq('id-token');
+        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+        expect(idTokenResponse.expiresIn).to.eq('1234');
+        expect(idTokenResponse.localId).to.eq(serverUser.localId);
+        expect(apiMock.calls[0].request).to.eql({
+          returnSecureToken: true,
+          email: 'some-email',
+          password: 'some-password'
+        });
       });
     });
   });
@@ -153,18 +175,31 @@ describe('core/credentials/email', () => {
     });
 
     describe('#_linkToIdToken', () => {
-      it('throws', async () => {
-        await expect(
-          credential._linkToIdToken(auth, 'id-token')
-        ).to.be.rejectedWith(Error);
+      it('calls sign in with the new token', async () => {
+        const idTokenResponse = await credential._linkToIdToken(auth, 'id-token-2');
+        expect(idTokenResponse.idToken).to.eq('id-token');
+        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+        expect(idTokenResponse.expiresIn).to.eq('1234');
+        expect(idTokenResponse.localId).to.eq(serverUser.localId);
+        expect(apiMock.calls[0].request).to.eql({
+          idToken: 'id-token-2',
+          email: 'some-email',
+          oobCode: 'oob-code'
+        });
       });
     });
 
     describe('#_matchIdTokenWithUid', () => {
-      it('throws', () => {
-        expect(() => credential._getReauthenticationResolver(auth)).to.throw(
-          Error
-        );
+      it('call sign in with email link', async () => {
+        const idTokenResponse = await credential._getIdTokenResponse(auth);
+        expect(idTokenResponse.idToken).to.eq('id-token');
+        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+        expect(idTokenResponse.expiresIn).to.eq('1234');
+        expect(idTokenResponse.localId).to.eq(serverUser.localId);
+        expect(apiMock.calls[0].request).to.eql({
+          email: 'some-email',
+          oobCode: 'oob-code'
+        });
       });
     });
   });
