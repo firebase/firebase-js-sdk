@@ -45,7 +45,7 @@ export function isSignInWithEmailLink(
   auth: externs.Auth,
   emailLink: string
 ): boolean {
-  const actionCodeUrl = ActionCodeURL._fromLink(auth as Auth, emailLink);
+  const actionCodeUrl = ActionCodeURL.parseLink(auth as Auth, emailLink);
   return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
 

@@ -16,9 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
-import { Auth } from '../model/auth';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
+import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
 
 /**
  * Enums for fields in URL query string.
@@ -73,7 +71,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   readonly operation: externs.Operation;
   readonly tenantId: string | null;
 
-  constructor(auth: Auth, actionLink: string) {
+  constructor(auth: externs.Auth, actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);
@@ -92,7 +90,10 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  static _fromLink(auth: Auth, link: string): ActionCodeURL | null {
+  static parseLink(
+    auth: externs.Auth,
+    link: string
+  ): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
       return new ActionCodeURL(auth, actionLink);
@@ -100,4 +101,11 @@ export class ActionCodeURL implements externs.ActionCodeURL {
       return null;
     }
   }
+}
+
+export function parseActionCodeURL(
+  auth: externs.Auth,
+  link: string
+): externs.ActionCodeURL | null {
+  return ActionCodeURL.parseLink(auth, link);
 }

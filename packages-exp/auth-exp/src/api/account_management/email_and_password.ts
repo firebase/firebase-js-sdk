@@ -61,3 +61,21 @@ export async function updateEmailPassword(
     UpdateEmailPasswordResponse
   >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);
 }
+
+export interface ApplyActionCodeRequest {
+  oobCode: string;
+}
+
+export interface ApplyActionCodeResponse {}
+
+export async function applyActionCode(
+  auth: Auth,
+  request: ApplyActionCodeRequest
+): Promise<ApplyActionCodeResponse> {
+  return _performApiRequest<ApplyActionCodeRequest, ApplyActionCodeResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SET_ACCOUNT_INFO,
+    request
+  );
+}
