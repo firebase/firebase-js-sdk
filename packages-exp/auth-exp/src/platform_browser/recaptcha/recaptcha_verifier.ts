@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ApplicationVerifier } from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { initializeAuth } from '../../core/auth/auth_impl';
@@ -30,6 +30,7 @@ import {
   RECAPTCHA_LOADER,
   ReCaptchaLoader
 } from './recaptcha_loader';
+import { ApplicationVerifier } from '../../model/application_verifier';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -40,7 +41,8 @@ type TokenCallback = (token: string) => void;
 
 export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 
-export class RecaptchaVerifier implements ApplicationVerifier {
+export class RecaptchaVerifier
+  implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
   private readonly auth: Auth;
   private readonly appName: string;
@@ -129,7 +131,7 @@ export class RecaptchaVerifier implements ApplicationVerifier {
     return this.renderPromise;
   }
 
-  reset(): void {
+  _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
       this.assertedRecaptcha.reset(this.widgetId);
