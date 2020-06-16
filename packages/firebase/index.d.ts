@@ -7579,7 +7579,7 @@ declare namespace firebase.storage {
     on(
       event: firebase.storage.TaskEvent,
       nextOrObserver?:
-        | firebase.Observer<UploadTaskSnapshot>
+        | Partial<firebase.Observer<UploadTaskSnapshot>>
         | null
         | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
