@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId, Operation } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -28,7 +28,6 @@ import { testAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as location from '../util/location';
@@ -134,7 +133,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email
     });
 
-    await sendEmailVerification(auth, user);
+    await sendEmailVerification(user);
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
@@ -149,7 +148,7 @@ describe('core/strategies/sendEmailVerification', () => {
       email: 'other@email.com'
     });
 
-    await sendEmailVerification(auth, user);
+    await sendEmailVerification(user);
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
@@ -164,7 +163,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(auth, user, {
+      await sendEmailVerification(user, {
         handleCodeInApp: true,
         iOS: {
           bundleId: 'my-bundle',
@@ -192,7 +191,7 @@ describe('core/strategies/sendEmailVerification', () => {
         requestType: Operation.VERIFY_EMAIL,
         email
       });
-      await sendEmailVerification(auth, user, {
+      await sendEmailVerification(user, {
         handleCodeInApp: true,
         android: {
           installApp: false,

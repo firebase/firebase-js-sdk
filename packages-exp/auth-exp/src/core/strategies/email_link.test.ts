@@ -19,6 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
+import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -26,7 +27,6 @@ import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import {
   isSignInWithEmailLink,
@@ -61,7 +61,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
     await sendSignInLinkToEmail(auth, email);
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.EMAIL_SIGNIN,
+      requestType: externs.Operation.EMAIL_SIGNIN,
       email
     });
   });
@@ -100,7 +100,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.EMAIL_SIGNIN,
+        requestType: externs.Operation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -127,7 +127,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.EMAIL_SIGNIN,
+        requestType: externs.Operation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
