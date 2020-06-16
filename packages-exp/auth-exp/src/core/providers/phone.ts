@@ -24,6 +24,7 @@ import { initializeAuth } from '../auth/auth_impl';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { _verifyPhoneNumber } from '../strategies/phone';
 import { debugFail } from '../util/assert';
+import { ApplicationVerifier } from '../../model/application_verifier';
 
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
@@ -41,7 +42,11 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     applicationVerifier: externs.ApplicationVerifier
     /* multiFactorSession?: MultiFactorSession, */
   ): Promise<string> {
-    return _verifyPhoneNumber(this.auth, phoneNumber, applicationVerifier);
+    return _verifyPhoneNumber(
+      this.auth,
+      phoneNumber,
+      applicationVerifier as ApplicationVerifier
+    );
   }
 
   static credential(

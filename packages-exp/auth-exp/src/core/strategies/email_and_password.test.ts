@@ -16,6 +16,7 @@
  */
 
 import {
+  Operation,
   OperationType,
   ProviderId,
   SignInMethod
@@ -30,7 +31,6 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import {
   checkActionCode,

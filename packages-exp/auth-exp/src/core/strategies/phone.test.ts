@@ -20,11 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  ApplicationVerifier,
-  OperationType,
-  ProviderId
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -40,6 +36,7 @@ import {
   linkWithPhoneNumber,
   signInWithPhoneNumber
 } from './phone';
+import { ApplicationVerifier } from '../../model/application_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -239,19 +236,19 @@ describe('core/strategies/phone', () => {
     });
 
     it('resets the verifer after successful verification', async () => {
-      sinon.spy(verifier, 'reset');
+      sinon.spy(verifier, '_reset');
       expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq(
         'session-info'
       );
-      expect(verifier.reset).to.have.been.called;
+      expect(verifier._reset).to.have.been.called;
     });
 
     it('resets the verifer after a failed verification', async () => {
-      sinon.spy(verifier, 'reset');
+      sinon.spy(verifier, '_reset');
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
 
       await expect(_verifyPhoneNumber(auth, 'number', verifier)).to.be.rejected;
-      expect(verifier.reset).to.have.been.called;
+      expect(verifier._reset).to.have.been.called;
     });
   });
 });

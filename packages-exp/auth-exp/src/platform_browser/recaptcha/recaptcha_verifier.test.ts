@@ -166,7 +166,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
         .returns(Promise.resolve(recaptcha));
       sinon.spy(recaptcha, 'reset');
       await verifier.render();
-      verifier.reset();
+      verifier._reset();
       expect(recaptcha.reset).to.have.been.called;
     });
   });
@@ -185,7 +185,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      expect(() => verifier.reset()).to.throw(
+      expect(() => verifier._reset()).to.throw(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
