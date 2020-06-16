@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Operation } from '../model/action_code_info';
 import { Auth } from '../model/auth';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
 
@@ -37,19 +36,19 @@ enum QueryField {
 /**
  * Map from mode string in action code URL to Action Code Info operation.
  */
-const MODE_TO_OPERATION_MAP: { [key: string]: Operation } = {
-  'recoverEmail': Operation.RECOVER_EMAIL,
-  'resetPassword': Operation.PASSWORD_RESET,
-  'signIn': Operation.EMAIL_SIGNIN,
-  'verifyEmail': Operation.VERIFY_EMAIL,
-  'verifyAndChangeEmail': Operation.VERIFY_AND_CHANGE_EMAIL,
-  'revertSecondFactorAddition': Operation.REVERT_SECOND_FACTOR_ADDITION
+const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
+  'recoverEmail': externs.Operation.RECOVER_EMAIL,
+  'resetPassword': externs.Operation.PASSWORD_RESET,
+  'signIn': externs.Operation.EMAIL_SIGNIN,
+  'verifyEmail': externs.Operation.VERIFY_EMAIL,
+  'verifyAndChangeEmail': externs.Operation.VERIFY_AND_CHANGE_EMAIL,
+  'revertSecondFactorAddition': externs.Operation.REVERT_SECOND_FACTOR_ADDITION
 };
 
 /**
  * Maps the mode string in action code URL to Action Code Info operation.
  */
-function parseMode(mode: string | null): Operation | null {
+function parseMode(mode: string | null): externs.Operation | null {
   return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
 }
 
@@ -71,7 +70,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   readonly code: string;
   readonly continueUrl: string | null;
   readonly languageCode: string | null;
-  readonly operation: Operation;
+  readonly operation: externs.Operation;
   readonly tenantId: string | null;
 
   constructor(auth: Auth, actionLink: string) {

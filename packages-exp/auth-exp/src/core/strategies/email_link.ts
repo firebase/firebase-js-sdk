@@ -18,7 +18,6 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import * as api from '../../api/authentication/email_and_password';
-import { Operation } from '../../model/action_code_info';
 import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthProvider } from '../providers/email';
@@ -32,7 +31,7 @@ export async function sendSignInLinkToEmail(
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
   const request: api.EmailSignInRequest = {
-    requestType: Operation.EMAIL_SIGNIN,
+    requestType: externs.Operation.EMAIL_SIGNIN,
     email
   };
   if (actionCodeSettings) {
@@ -47,7 +46,7 @@ export function isSignInWithEmailLink(
   emailLink: string
 ): boolean {
   const actionCodeUrl = ActionCodeURL._fromLink(auth as Auth, emailLink);
-  return actionCodeUrl?.operation === Operation.EMAIL_SIGNIN;
+  return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
 
 export async function signInWithEmailLink(

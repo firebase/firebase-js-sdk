@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Operation } from '@firebase/auth-types-exp';
+
 import {
   Endpoint,
   HttpMethod,
@@ -23,7 +25,6 @@ import {
 } from '..';
 import { Auth } from '../../model/auth';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
-import { Operation } from '../../model/action_code_info';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
