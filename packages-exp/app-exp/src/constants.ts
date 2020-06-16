@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 import { name as appName } from '../package.json';
 import { name as analyticsName } from '../../../packages/analytics/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
@@ -28,6 +27,8 @@ import { name as remoteConfigName } from '../../../packages/remote-config/packag
 import { name as storageName } from '../../../packages/storage/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
 import { name as packageName } from '../../../packages/firebase/package.json';
+
+export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 export const PLATFORM_LOG_STRING = {
   [appName]: 'fire-core',
