@@ -28,7 +28,7 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Dependencies, NextOrObserver } from '../../model/auth';
+import { Auth, Dependencies } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
@@ -57,7 +57,7 @@ export class AuthImpl implements Auth {
   private lastNotifiedUid: string | undefined = undefined;
 
   languageCode: string | null = null;
-  tenantId?: string | null | undefined;
+  tenantId: string | null = null;
   settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
 
   constructor(
@@ -107,7 +107,7 @@ export class AuthImpl implements Auth {
   }
 
   onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: externs.NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -120,7 +120,7 @@ export class AuthImpl implements Auth {
   }
 
   onIdTokenChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: externs.NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -160,7 +160,7 @@ export class AuthImpl implements Auth {
 
   private registerStateListener(
     subscription: Subscription<User>,
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: externs.NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {

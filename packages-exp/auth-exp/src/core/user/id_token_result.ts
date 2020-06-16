@@ -61,7 +61,8 @@ export async function getIdTokenResult(
       secondsStringToMilliseconds(claims.exp)
     ),
     signInProvider: signInProvider || null,
-    signInSecondFactor: firebase?.['sign_in_second_factor'] || null
+    signInSecondFactor:
+      (firebase?.['sign_in_second_factor'] as externs.ProviderId) || null
   };
 }
 
@@ -69,7 +70,7 @@ function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
 }
 
-function utcTimestampToDateString(timestamp: string | number): string | null {
+function utcTimestampToDateString(timestamp: string | number): string {
   try {
     const date = new Date(Number(timestamp));
     if (!isNaN(date.getTime())) {
@@ -79,7 +80,7 @@ function utcTimestampToDateString(timestamp: string | number): string | null {
     // Do nothing, return null
   }
 
-  return null;
+  return ''; // TODO(avolkovi): is this the right fallback?
 }
 
 function parseToken(token: string): externs.ParsedToken | null {

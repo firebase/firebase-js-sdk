@@ -17,8 +17,9 @@
 
 import { expect } from 'chai';
 
+import { Operation } from '@firebase/auth-types-exp';
+
 import { testAuth } from '../../test/mock_auth';
-import { Operation } from '../model/action_code_info';
 import { Auth } from '../model/auth';
 import { ActionCodeURL } from './action_code_url';
 
