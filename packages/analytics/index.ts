@@ -137,7 +137,7 @@ function validateBrowserContext(): void {
       };
     } catch (error) {
       throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-        errorInfo: error.messages
+        errorInfo: error
       });
     }
   } else {
