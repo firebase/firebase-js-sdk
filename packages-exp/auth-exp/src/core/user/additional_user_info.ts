@@ -21,38 +21,31 @@ import {
 } from '@firebase/auth-types-exp';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _parseToken } from './id_token_result';
-import { assert } from '../util/assert';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
  */
-export function fromIdTokenResponse(
+export function _fromIdTokenResponse(
   idTokenResponse: IdTokenResponse,
-  appName: string
 ): AdditionalUserInfo | null {
   const { providerId } = idTokenResponse;
   const profile = idTokenResponse.rawUserInfo
     ? JSON.parse(idTokenResponse.rawUserInfo)
     : {};
   const isNewUser =
-    !!idTokenResponse.isNewUser ||
+    idTokenResponse.isNewUser ||
     idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
   if (!providerId && !!idTokenResponse) {
     const providerId = _parseToken(idTokenResponse.idToken)?.firebase?.[
       'sign_in_provider'
     ];
-    assert(
-      // @ts-ignore - Check to see if string is castable to enum.
-      !providerId || Object.values(ProviderId).includes(providerId),
-      appName
-    );
     if (providerId) {
       const filteredProviderId =
         providerId !== ProviderId.ANONYMOUS && providerId !== ProviderId.CUSTOM
           ? (providerId as ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.
-      return new GenericAdditionalUserInfo(isNewUser, filteredProviderId, null);
+      return new GenericAdditionalUserInfo(isNewUser, filteredProviderId);
     }
   }
   if (!providerId) {
@@ -73,12 +66,11 @@ export function fromIdTokenResponse(
       );
     case ProviderId.CUSTOM:
     case ProviderId.ANONYMOUS:
-      return new GenericAdditionalUserInfo(isNewUser, null, null);
+      return new GenericAdditionalUserInfo(isNewUser, null);
     default:
       return new FederatedAdditionalUserInfo(
         isNewUser,
         providerId,
-        null,
         profile
       );
   }
@@ -88,50 +80,59 @@ class GenericAdditionalUserInfo implements AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
     readonly providerId: ProviderId | null,
-    readonly username: string | null
   ) {}
 }
 
 class FederatedAdditionalUserInfo extends GenericAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
-    providerId: ProviderId | null,
-    username: string | null,
-    readonly profile: UserProfile
+    providerId: ProviderId,
+    readonly profile: UserProfile,
   ) {
-    super(isNewUser, providerId, username);
+    super(isNewUser, providerId);
+  }
+}
+
+class FederatedAdditionalUserInfoWithUsername extends FederatedAdditionalUserInfo {
+  constructor(
+    isNewUser: boolean,
+    providerId: ProviderId,
+    profile: UserProfile,
+    readonly username: string | null,
+  ) {
+    super(isNewUser, providerId, profile);
   }
 }
 
 class FacebookAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: UserProfile) {
-    super(isNewUser, ProviderId.FACEBOOK, null, profile);
+    super(isNewUser, ProviderId.FACEBOOK, profile);
   }
 }
 
-class GithubAdditionalUserInfo extends FederatedAdditionalUserInfo {
+class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
   constructor(isNewUser: boolean, profile: UserProfile) {
     super(
       isNewUser,
       ProviderId.GITHUB,
-      typeof profile?.login === 'string' ? profile?.login : null,
-      profile
+      profile,
+      typeof profile?.login === 'string' ? profile?.login : null
     );
   }
 }
 
 class GoogleAdditionalUserInfo extends FederatedAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: UserProfile) {
-    super(isNewUser, ProviderId.GOOGLE, null, profile);
+    super(isNewUser, ProviderId.GOOGLE, profile);
   }
 }
 
-class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfo {
+class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
   constructor(
     isNewUser: boolean,
     profile: UserProfile,
     screenName: string | null
   ) {
-    super(isNewUser, ProviderId.TWITTER, screenName, profile);
+    super(isNewUser, ProviderId.TWITTER, profile, screenName);
   }
 }

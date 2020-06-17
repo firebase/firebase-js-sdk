@@ -419,10 +419,10 @@ export interface AdditionalUserInfo {
   readonly isNewUser: boolean;
   readonly profile?: UserProfile;
   readonly providerId: ProviderId | null;
-  readonly username: string | null;
+  readonly username?: string | null;
 }
 
 /**
  * User profile used in `AdditionalUserInfo`
  */
-export type UserProfile = { [key: string]: unknown } | null;
+export type UserProfile = Record<string, unknown>;

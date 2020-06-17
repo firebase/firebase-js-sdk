@@ -16,13 +16,15 @@
  */
 
 import { expect } from 'chai';
-import { fromIdTokenResponse } from './additional_user_info';
+import { _fromIdTokenResponse } from './additional_user_info';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { ProviderId } from '../providers';
-import { UserProfile } from '../../model/user';
+import {
+  UserProfile,
+  ProviderId
+} from '@firebase/auth-types-exp';
 
 describe('core/user/additional_user_info', () => {
-  describe('fromIdTokenResponse', () => {
+  describe('_fromIdTokenResponse', () => {
     const userProfileWithLogin: UserProfile = {
       login: 'scott',
       friends: [],
@@ -43,7 +45,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.null;
@@ -60,7 +62,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
@@ -77,7 +79,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
         expect(username).to.be.null;
@@ -95,7 +97,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.TWITTER);
         expect(username).to.eq('scott');
@@ -109,14 +111,14 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           rawUserInfo: rawUserInfoWithLogin
         });
-        expect(fromIdTokenResponse(idResponse)!.profile).to.eql(
+        expect(_fromIdTokenResponse(idResponse)!.profile).to.eql(
           userProfileWithLogin
         );
       });
 
       it('for missing JSON', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        expect(fromIdTokenResponse(idResponse)!.profile).to.be.empty;
+        expect(_fromIdTokenResponse(idResponse)!.profile).to.be.empty;
       });
     });
 
@@ -126,7 +128,7 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           isNewUser: true
         });
-        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
       });
 
       it('for new users by toolkit response kind', () => {
@@ -134,12 +136,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           kind: IdTokenResponseKind.SignupNewUser
         });
-        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
       });
 
       it('for old users', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        expect(fromIdTokenResponse(idResponse)!.isNewUser).to.be.false;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.false;
       });
     });
 
@@ -154,7 +156,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
@@ -171,7 +173,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(idResponse)!;
+        } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.null;
@@ -184,7 +186,7 @@ describe('core/user/additional_user_info', () => {
           providerId,
           username,
           profile
-        } = fromIdTokenResponse(
+        } = _fromIdTokenResponse(
           idTokenResponse({ rawUserInfo: rawUserInfoWithLogin })
         )!;
         expect(isNewUser).to.be.false;
@@ -197,7 +199,7 @@ describe('core/user/additional_user_info', () => {
     describe('returns null', () => {
       it('for missing provider IDs', () => {
         const idResponse = idTokenResponse({});
-        expect(fromIdTokenResponse(idResponse)!).to.be.null;
+        expect(_fromIdTokenResponse(idResponse)).to.be.null;
       });
     });
   });
@@ -205,10 +207,10 @@ describe('core/user/additional_user_info', () => {
 
 function idTokenResponse(partial: Partial<IdTokenResponse>): IdTokenResponse {
   return {
-    idToken: 'Parsing logic not implemented',
-    refreshToken: "Doesn't matter",
-    expiresIn: "Doesn't matter",
-    localId: "Doesn't matter",
+    idToken: 'id-token',
+    refreshToken: "refresh-token",
+    expiresIn: "expires-in",
+    localId: "local-id",
     kind: IdTokenResponseKind.CreateAuthUri,
     ...partial
   };
