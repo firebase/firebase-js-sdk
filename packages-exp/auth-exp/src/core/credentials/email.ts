@@ -17,13 +17,17 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
+import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
-import { signInWithEmailLink } from '../../api/authentication/email_link';
+import {
+  signInWithEmailLink,
+  signInWithEmailLinkForLinking
+} from '../../api/authentication/email_link';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
-import { debugFail } from '../util/assert';
+import { debugFail, fail } from '../util/assert';
 import { AuthCredential } from './';
 
 export class EmailAuthCredential implements AuthCredential {
@@ -57,17 +61,31 @@ export class EmailAuthCredential implements AuthCredential {
           oobCode: this.password
         });
       default:
-        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-          appName: auth.name
-        });
+        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
     }
   }
 
-  async _linkToIdToken(_auth: Auth, _idToken: string): Promise<never> {
-    debugFail('Method not implemented.');
+  async _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+    switch (this.signInMethod) {
+      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+        return updateEmailPassword(auth, {
+          idToken,
+          returnSecureToken: true,
+          email: this.email,
+          password: this.password
+        });
+      case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+        return signInWithEmailLinkForLinking(auth, {
+          idToken,
+          email: this.email,
+          oobCode: this.password
+        });
+      default:
+        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+    }
   }
 
-  _getReauthenticationResolver(_auth: Auth): Promise<never> {
-    debugFail('Method not implemented.');
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+    return this._getIdTokenResponse(auth);
   }
 }
