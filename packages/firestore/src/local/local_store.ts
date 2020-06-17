@@ -72,6 +72,7 @@ import { isIndexedDbTransactionError } from './simple_db';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 const LOG_TAG = 'LocalStore';
 
@@ -199,12 +200,14 @@ export class LocalStore {
    */
   protected lastDocumentChangeReadTime = SnapshotVersion.min();
 
+  private bundleConverter: BundleConverter;
+
   constructor(
     /** Manages our in-memory or durable persistence. */
     protected persistence: Persistence,
     private queryEngine: QueryEngine,
     initialUser: User,
-    private bundleConverter: BundleConverter
+    private serializer: JsonProtoSerializer
   ) {
     debugAssert(
       persistence.started,
@@ -220,6 +223,8 @@ export class LocalStore {
       this.persistence.getIndexManager()
     );
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
+
+    this.bundleConverter = new BundleConverter(this.serializer);
   }
 
   /** Starts the LocalStore. */
@@ -496,6 +501,9 @@ export class LocalStore {
 
     return this.persistence
       .runTransaction('Apply remote event', 'readwrite-primary', txn => {
+        const documentBuffer = this.remoteDocuments.newChangeBuffer({
+          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+        });
         // Reset newTargetDataByTargetMap in case this transaction gets re-run.
         newTargetDataByTargetMap = this.targetDataByTarget;
 
@@ -548,13 +556,8 @@ export class LocalStore {
           }
         });
 
-        const documentBuffer = this.remoteDocuments.newChangeBuffer({
-          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-        });
         let changedDocs = maybeDocumentMap();
-        let updatedKeys = documentKeySet();
         remoteEvent.documentUpdates.forEach((key, doc) => {
-          updatedKeys = updatedKeys.add(key);
           if (remoteEvent.resolvedLimboDocuments.has(key)) {
             promises.push(
               this.persistence.referenceDelegate.updateLimboDocument(txn, key)
@@ -566,11 +569,11 @@ export class LocalStore {
         // documents in advance in a single call.
         promises.push(
           this.applyDocuments(
-            documentBuffer,
             txn,
-            updatedKeys,
+            documentBuffer,
             remoteEvent.documentUpdates,
-            remoteVersion
+            remoteVersion,
+            undefined
           ).next(result => {
             changedDocs = result;
           })
@@ -622,22 +625,20 @@ export class LocalStore {
    * LocalDocuments are re-calculated if there are remaining mutations in the
    * queue.
    */
-  applyBundledDocuments(
-    documents: BundledDocuments
-  ): Promise<MaybeDocumentMap> {
-    let updatedKeys = documentKeySet();
+  applyBundleDocuments(documents: BundledDocuments): Promise<MaybeDocumentMap> {
     let documentMap = maybeDocumentMap();
     let versionMap = documentVersionMap();
-    for (const [metadata, doc] of documents) {
-      const documentKey = this.bundleConverter.toDocumentKey(metadata.name!);
-      updatedKeys = updatedKeys.add(documentKey);
+    for (const bundleDoc of documents) {
+      const documentKey = this.bundleConverter.toDocumentKey(
+        bundleDoc.metadata.name!
+      );
       documentMap = documentMap.insert(
         documentKey,
-        this.bundleConverter.toMaybeDocument(metadata, doc)
+        this.bundleConverter.toMaybeDocument(bundleDoc)
       );
       versionMap = versionMap.insert(
         documentKey,
-        this.bundleConverter.toSnapshotVersion(metadata.readTime!)
+        this.bundleConverter.toSnapshotVersion(bundleDoc.metadata.readTime!)
       );
     }
 
@@ -649,10 +650,10 @@ export class LocalStore {
       'readwrite-primary',
       txn => {
         return this.applyDocuments(
-          documentBuffer,
           txn,
-          updatedKeys,
+          documentBuffer,
           documentMap,
+          undefined,
           versionMap
         )
           .next(changedDocs => {
@@ -680,22 +681,23 @@ export class LocalStore {
    * they have different read times.
    */
   private applyDocuments(
-    documentBuffer: RemoteDocumentChangeBuffer,
     txn: PersistenceTransaction,
-    updatedKeys: DocumentKeySet,
+    documentBuffer: RemoteDocumentChangeBuffer,
     documents: MaybeDocumentMap,
-    remoteVersion: SnapshotVersion | DocumentVersionMap
+    globalVersion: SnapshotVersion | undefined,
+    documentVersions: DocumentVersionMap | undefined
   ): PersistencePromise<MaybeDocumentMap> {
-    const universalReadTime = remoteVersion instanceof SnapshotVersion;
+    let updatedKeys = documentKeySet();
+    documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
     return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
       let changedDocs = maybeDocumentMap();
       documents.forEach((key, doc) => {
         const existingDoc = existingDocs.get(key);
         let docReadVersion: SnapshotVersion | null = null;
-        if (universalReadTime) {
-          docReadVersion = remoteVersion as SnapshotVersion;
-        } else {
-          docReadVersion = (remoteVersion as DocumentVersionMap).get(key);
+        if (documentVersions) {
+          docReadVersion = documentVersions.get(key);
+        } else if (globalVersion) {
+          docReadVersion = globalVersion;
         }
         debugAssert(!!docReadVersion, 'Document read version must exist');
 
@@ -744,18 +746,19 @@ export class LocalStore {
    * Returns a promise of a boolean to indicate if the given bundle has already
    * been loaded and the create time is newer than the current loading bundle.
    */
-  isNewerBundleLoaded(
-    bundleMetadata: bundleProto.BundleMetadata
-  ): Promise<boolean> {
+  hasNewerBundle(bundleMetadata: bundleProto.BundleMetadata): Promise<boolean> {
     const currentReadTime = this.bundleConverter.toSnapshotVersion(
       bundleMetadata.createTime!
     );
     return this.persistence
       .runTransaction('isNewerBundleLoaded', 'readonly', transaction => {
-        return this.bundleCache.getBundle(transaction, bundleMetadata.id!);
+        return this.bundleCache.getBundleMetadata(
+          transaction,
+          bundleMetadata.id!
+        );
       })
       .then(cached => {
-        return !!cached && cached!.createTime!.compareTo(currentReadTime) > 0;
+        return !!cached && cached.createTime!.compareTo(currentReadTime) > 0;
       });
   }
 
@@ -781,9 +784,7 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Get named query',
       'readonly',
-      transaction => {
-        return this.bundleCache.getNamedQuery(transaction, queryName);
-      }
+      transaction => this.bundleCache.getNamedQuery(transaction, queryName)
     );
   }
 
@@ -794,9 +795,7 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Save named query',
       'readwrite',
-      transaction => {
-        return this.bundleCache.saveNamedQuery(transaction, query);
-      }
+      transaction => this.bundleCache.saveNamedQuery(transaction, query)
     );
   }
 
@@ -1167,9 +1166,9 @@ export class MultiTabLocalStore extends LocalStore {
     protected persistence: IndexedDbPersistence,
     queryEngine: QueryEngine,
     initialUser: User,
-    bundleConverter: BundleConverter
+    serializer: JsonProtoSerializer
   ) {
-    super(persistence, queryEngine, initialUser, bundleConverter);
+    super(persistence, queryEngine, initialUser, serializer);
 
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();

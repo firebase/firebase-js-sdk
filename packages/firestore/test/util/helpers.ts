@@ -414,23 +414,23 @@ export function bundledDocuments(
   const result: BundledDocuments = [];
   for (const d of documents) {
     if (d instanceof NoDocument) {
-      result.push([
-        {
+      result.push({
+        metadata: {
           name: JSON_SERIALIZER.toName(d.key),
           readTime: JSON_SERIALIZER.toVersion(d.version),
           exists: false
         },
-        undefined
-      ]);
+        document: undefined
+      });
     } else if (d instanceof Document) {
-      result.push([
-        {
+      result.push({
+        metadata: {
           name: JSON_SERIALIZER.toName(d.key),
           readTime: JSON_SERIALIZER.toVersion(d.version),
           exists: true
         },
-        JSON_SERIALIZER.toDocument(d)
-      ]);
+        document: JSON_SERIALIZER.toDocument(d)
+      });
     }
   }
 

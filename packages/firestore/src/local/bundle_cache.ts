@@ -28,7 +28,7 @@ export interface BundleCache {
    * Gets a saved `Bundle` for a given `bundleId`, returns undefined if
    * no bundles are found under the given id.
    */
-  getBundle(
+  getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
   ): PersistencePromise<Bundle | undefined>;

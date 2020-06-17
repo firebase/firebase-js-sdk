@@ -48,11 +48,21 @@ export interface NamedQuery {
 }
 
 /**
- * Represents the [metadata, document] pairs from the bundles in an array.
+ * Represents a bundled document, including the metadata and the document
+ * itself, if exists.
  */
-export type BundledDocuments = Array<
-  [bundleProto.BundledDocumentMetadata, api.Document | undefined]
->;
+interface BundledDocument {
+  metadata: bundleProto.BundledDocumentMetadata;
+  document: api.Document | undefined;
+}
+
+/**
+ * An array of `BundledDocument`.
+ */
+export type BundledDocuments = Array<{
+  metadata: bundleProto.BundledDocumentMetadata;
+  document: api.Document | undefined;
+}>;
 
 /**
  * Helper to convert objects from bundles to model objects in the SDK.
@@ -67,17 +77,17 @@ export class BundleConverter {
   /**
    * Converts a [metadata, document] pair to a MaybeDocument.
    */
-  toMaybeDocument(
-    metadata: bundleProto.BundledDocumentMetadata,
-    doc: api.Document | undefined
-  ): MaybeDocument {
-    if (metadata.exists) {
-      debugAssert(!!doc, 'Document is undefined when metadata.exist is true.');
-      return this.serializer.fromDocument(doc!, false);
+  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
+    if (bundledDoc.metadata.exists) {
+      debugAssert(
+        !!bundledDoc.document,
+        'Document is undefined when metadata.exist is true.'
+      );
+      return this.serializer.fromDocument(bundledDoc.document!, false);
     } else {
       return new NoDocument(
-        this.toDocumentKey(metadata.name!),
-        this.toSnapshotVersion(metadata.readTime!)
+        this.toDocumentKey(bundledDoc.metadata.name!),
+        this.toSnapshotVersion(bundledDoc.metadata.readTime!)
       );
     }
   }

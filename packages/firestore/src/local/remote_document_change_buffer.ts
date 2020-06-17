@@ -28,13 +28,11 @@ import { SnapshotVersion } from '../core/snapshot_version';
 /**
  * Represents a document change to be applied to remote document cache.
  */
-class RemoteDocumentChange {
-  constructor(
-    // The document in this change, null if it is a removal from the cache.
-    readonly maybeDoc: MaybeDocument | null,
-    // The timestamp when this change is read.
-    readonly readTime?: SnapshotVersion
-  ) {}
+interface RemoteDocumentChange {
+  // The document in this change, null if it is a removal from the cache.
+  readonly maybeDocument: MaybeDocument | null;
+  // The timestamp when this change is read.
+  readonly readTime?: SnapshotVersion;
 }
 
 /**
@@ -82,7 +80,7 @@ export abstract class RemoteDocumentChangeBuffer {
         !!change.readTime,
         `Read time is not set for ${key}. All removeEntry() calls must include a readTime if 'trackRemovals' is used.`
       );
-      return change.readTime!;
+      return change.readTime;
     }
     return SnapshotVersion.min();
   }
@@ -95,10 +93,7 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
-    this.changes.set(
-      maybeDocument.key,
-      new RemoteDocumentChange(maybeDocument, readTime)
-    );
+    this.changes.set(maybeDocument.key, { maybeDocument, readTime });
   }
 
   /**
@@ -109,7 +104,7 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
     this.assertNotApplied();
-    this.changes.set(key, new RemoteDocumentChange(null, readTime));
+    this.changes.set(key, { maybeDocument: null, readTime });
   }
 
   /**
@@ -131,7 +126,7 @@ export abstract class RemoteDocumentChangeBuffer {
     const bufferedEntry = this.changes.get(documentKey);
     if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(
-        bufferedEntry.maybeDoc
+        bufferedEntry.maybeDocument
       );
     } else {
       return this.getFromCache(transaction, documentKey);

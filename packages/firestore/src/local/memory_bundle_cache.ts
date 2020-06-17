@@ -32,7 +32,7 @@ export class MemoryBundleCache implements BundleCache {
 
   constructor(private serializer: LocalSerializer) {}
 
-  getBundle(
+  getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
   ): PersistencePromise<Bundle | undefined> {

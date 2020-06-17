@@ -451,13 +451,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           previousSize !== undefined,
           `Cannot modify a document that wasn't read (for ${key})`
         );
-        if (documentChange.maybeDoc) {
+        if (documentChange.maybeDocument) {
           debugAssert(
             !this.getReadTime(key).isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
-            documentChange.maybeDoc!,
+            documentChange.maybeDocument,
             this.getReadTime(key)
           );
           collectionParents = collectionParents.add(key.path.popLast());
