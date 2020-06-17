@@ -43,7 +43,7 @@ import * as api from '../../../src/protos/firestore_proto_api';
 import { Deferred } from '../../../src/util/promise';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
-import { encodeBase64, newSerializer } from '../../../src/platform/platform';
+import { encodeBase64 } from '../../../src/platform/base64';
 import { FirestoreError } from '../../../src/util/error';
 import { Token } from '../../../src/api/credentials';
 import { Observer } from '../../../src/core/event_manager';
@@ -57,6 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { WindowLike } from '../../../src/util/types';
+import { newSerializer } from '../../../src/platform/serializer';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

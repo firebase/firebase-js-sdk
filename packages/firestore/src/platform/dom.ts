@@ -23,4 +23,4 @@ hardAssert(
   'The generic Platform implementation should only run under ts-node.'
 );
 
-export { randomBytes } from './node/random_bytes';
+export { getWindow, getDocument } from './node/dom';

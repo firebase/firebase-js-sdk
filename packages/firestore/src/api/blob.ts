@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { isBase64Available } from '../platform/platform';
+import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,

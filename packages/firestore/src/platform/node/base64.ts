@@ -15,33 +15,24 @@
  * limitations under the License.
  */
 
-import { base64 } from '@firebase/util';
-
-// ReactNative-specific platform implementation that provides its own Base64
-// encoding.
-// The exports in this class must match the exports in '../platform/platform' as
-// they are bundled with the browser build during the Rollup build.
-
-export {
-  loadConnection,
-  newConnectivityMonitor,
-  newSerializer,
-  getWindow,
-  getDocument
-} from '../platform_browser/browser_platform';
-
 /** Converts a Base64 encoded string to a binary string. */
+import { Code, FirestoreError } from '../../util/error';
+
 export function decodeBase64(encoded: string): string {
-  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-  // the encoding used on the backend.
-  return base64.decodeString(encoded, /* webSafe =*/ false);
+  // Node actually doesn't validate base64 strings.
+  // A quick sanity check that is not a fool-proof validation
+  if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Not a valid Base64 string: ' + encoded
+    );
+  }
+  return new Buffer(encoded, 'base64').toString('binary');
 }
 
 /** Converts a binary string to a Base64 encoded string. */
 export function encodeBase64(raw: string): string {
-  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-  // the encoding used on the backend.
-  return base64.encodeString(raw, /* webSafe =*/ false);
+  return new Buffer(raw, 'binary').toString('base64');
 }
 
 /** True if and only if the Base64 conversion functions are available. */

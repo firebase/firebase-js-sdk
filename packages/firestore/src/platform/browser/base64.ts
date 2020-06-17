@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  return atob(encoded);
+}
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
+/** Converts a binary string to a Base64 encoded string. */
+export function encodeBase64(raw: string): string {
+  return btoa(raw);
+}
 
-export { randomBytes } from './node/random_bytes';
+/** True if and only if the Base64 conversion functions are available. */
+export function isBase64Available(): boolean {
+  return typeof atob !== 'undefined';
+}

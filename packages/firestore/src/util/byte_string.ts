@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { decodeBase64, encodeBase64 } from '../platform/platform';
+import { decodeBase64, encodeBase64 } from '../platform/base64';
 import { primitiveComparator } from './misc';
 
 /**

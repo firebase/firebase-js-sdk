@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+/** The Platform's 'window' implementation or null if not available. */
+export function getWindow(): Window | null {
+  if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+    // eslint-disable-next-line no-restricted-globals
+    return window;
+  }
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
+  return null;
+}
 
-export { randomBytes } from './node/random_bytes';
+/** The Platform's 'document' implementation or null if not available. */
+export function getDocument(): Document | null {
+  return null;
+}

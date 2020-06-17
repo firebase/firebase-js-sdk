@@ -48,7 +48,7 @@ export function isSafeInteger(value: unknown): boolean {
   );
 }
 
-/** The subset of the Window interface used by the SDK. */
+/** The subset of the browser's Window interface used by the SDK. */
 export interface WindowLike {
   readonly localStorage: Storage;
   readonly indexedDB: IDBFactory | null;
@@ -56,7 +56,7 @@ export interface WindowLike {
   removeEventListener(type: string, listener: EventListener): void;
 }
 
-/** The subset of the Document interface used by the SDK. */
+/** The subset of the browser's Document interface used by the SDK. */
 export interface DocumentLike {
   readonly visibilityState: VisibilityState;
   addEventListener(type: string, listener: EventListener): void;

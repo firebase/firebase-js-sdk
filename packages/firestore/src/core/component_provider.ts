@@ -27,12 +27,6 @@ import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseInfo } from './database_info';
-import {
-  getDocument,
-  getWindow,
-  newConnectivityMonitor,
-  newSerializer
-} from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
@@ -47,6 +41,9 @@ import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
+import { newConnectivityMonitor } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
+import { getDocument, getWindow } from '../platform/dom';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +

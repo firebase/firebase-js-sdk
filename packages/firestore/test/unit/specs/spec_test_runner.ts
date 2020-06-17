@@ -111,7 +111,7 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { encodeBase64 } from '../../../src/platform/platform';
+import { encodeBase64 } from '../../../src/platform/base64';
 import {
   FakeDocument,
   SharedFakeWebStorage,

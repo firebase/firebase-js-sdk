@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { debugAssert } from '../../util/assert';
+import { randomBytes as generateRandomBytes } from 'crypto';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
-
-export { randomBytes } from './node/random_bytes';
+/**
+ * Generates `nBytes` of random bytes.
+ *
+ * If `nBytes < 0` , an error will be thrown.
+ */
+export function randomBytes(nBytes: number): Uint8Array {
+  debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+  return generateRandomBytes(nBytes);
+}

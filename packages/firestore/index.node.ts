@@ -19,7 +19,7 @@ import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
 import { IndexedDbComponentProvider } from './src/core/component_provider';
-import { configureForFirebase } from './src/platform/config';
+import { configureForFirebase } from './src/config';
 
 import './register-module';
 

@@ -74,7 +74,7 @@ import {
   TEST_SERIALIZER
 } from './persistence_test_helpers';
 import { FakeDocument, testDocument } from '../../util/test_platform';
-import { getWindow } from '../../../src/platform/platform';
+import { getWindow } from '../../../src/platform/dom';
 
 use(chaiAsPromised);
 

@@ -47,8 +47,8 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { getDocument, getWindow } from '../../../src/platform/platform';
 import { WindowLike } from '../../../src/util/types';
+import { getDocument, getWindow } from '../../../src/platform/dom';
 
 /* eslint-disable no-restricted-globals */
 

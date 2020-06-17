@@ -20,8 +20,8 @@ import { Code, FirestoreError } from './error';
 import { logDebug, logError } from './log';
 import { Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
-import { getWindow } from '../platform/platform';
 import { isIndexedDbTransactionError } from '../local/simple_db';
+import { getWindow } from '../platform/dom';
 
 const LOG_TAG = 'AsyncQueue';
 

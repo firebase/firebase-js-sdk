@@ -26,7 +26,7 @@ export {
   PublicQuerySnapshot as QuerySnapshot,
   PublicFieldValue as FieldValue,
   PublicBlob as Blob
-} from './src/platform/config';
+} from './src/config';
 export { GeoPoint } from './src/api/geo_point';
 export { FirstPartyCredentialsSettings } from './src/api/credentials';
 export { FieldPath } from './src/api/field_path';

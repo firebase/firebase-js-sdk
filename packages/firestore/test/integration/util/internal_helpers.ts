@@ -26,11 +26,12 @@ import {
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { loadConnection, newSerializer } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { withTestDbsSettings } from './helpers';
 import { User } from '../../../src/auth/user';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
@@ -52,7 +53,7 @@ export function withTestDatastore(
   credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  return loadConnection(databaseInfo).then(conn => {
+  return newConnection(databaseInfo).then(conn => {
     const serializer = newSerializer(databaseInfo.databaseId);
     const datastore = newDatastore(conn, credentialsProvider, serializer);
     return fn(datastore);

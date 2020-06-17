@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { randomBytes } from '../platform_browser/browser_random_bytes';
+export { formatJSON } from '../browser/format_json';

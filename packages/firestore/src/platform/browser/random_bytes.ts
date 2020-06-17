@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { debugAssert } from '../util/assert';
+import { debugAssert } from '../../util/assert';
 
 /**
  * Generates `nBytes` of random bytes.

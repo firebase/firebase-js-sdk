@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+/** Return the Platform-specific serializer monitor. */
+import { JsonProtoSerializer } from '../../remote/serializer';
+import { DatabaseId } from '../../core/database_info';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
-
-export { randomBytes } from './node/random_bytes';
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, { useProto3Json: false });
+}

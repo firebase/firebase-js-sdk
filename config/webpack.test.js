@@ -18,8 +18,11 @@
 const path = require('path');
 const webpack = require('webpack');
 
-/** A regular expression used to replace Firestore' platform specific modules. */
-const FIRESTORE_PLATFORM_RE = /^(.*)\/platform\/(platform|format_json|random_bytes)(\.ts)?$/;
+/**
+ * A regular expression used to replace Firestore's platform specific modules,
+ * which are located under 'packages/firestore/src/platform/'.
+ */
+const FIRESTORE_PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
@@ -85,7 +88,7 @@ module.exports = {
       resource => {
         resource.request = resource.request.replace(
           FIRESTORE_PLATFORM_RE,
-          '$1/platform_browser/browser_$2.ts'
+          '$1/platform/browser/$2.ts'
         );
       }
     ),

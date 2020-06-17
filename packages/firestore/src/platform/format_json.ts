@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-import * as node from '../platform_node/node_format_json';
-import * as browser from '../platform_browser/browser_format_json';
 import { isNode } from '@firebase/util';
 
-// This file provides additional platform specific APIs. It acts an add on to
-// "platform.ts" and exists separately to avoid circular dependency issues with
-// ts-node.
-
-/** Formats an object as a JSON string, suitable for logging. */
-export function formatJSON(value: unknown): string {
-  return isNode() ? node.formatJSON(value) : browser.formatJSON(value);
+// Note: We don't depend on `hardAssert` as that creates a circular reference,
+// since it uses `formatJSON()` to format its log message.
+if (!isNode()) {
+  throw new Error(
+    'The generic Platform implementation should only run under ts-node.'
+  );
 }
+
+export { formatJSON } from './node/format_json';

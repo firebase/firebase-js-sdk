@@ -38,7 +38,7 @@ export const protoLoaderOptions: IConversionOptions = {
 export function loadProtos(): GrpcObject {
   const root = resolve(
     __dirname,
-    process.env.FIRESTORE_PROTO_ROOT || '../protos'
+    process.env.FIRESTORE_PROTO_ROOT || '../../protos'
   );
   const firestoreProtoFile = join(root, 'google/firestore/v1/firestore.proto');
 
@@ -54,7 +54,7 @@ export function loadProtos(): GrpcObject {
 export function loadRawProtos(): Root {
   const root = resolve(
     __dirname,
-    process.env.FIRESTORE_PROTO_ROOT || '../protos'
+    process.env.FIRESTORE_PROTO_ROOT || '../../protos'
   );
   const firestoreProtoFile = join(root, 'google/firestore/v1/firestore.proto');
 

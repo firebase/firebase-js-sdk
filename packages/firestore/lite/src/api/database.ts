@@ -33,9 +33,10 @@ import {
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { loadConnection, newSerializer } from '../../../src/platform/platform';
 import { Deferred } from '../../../src/util/promise';
 import { cast } from './util';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -83,7 +84,7 @@ export class Firestore implements firestore.FirebaseFirestore {
 
     // Kick off initializing the datastore but don't actually wait for it.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    loadConnection(databaseInfo).then(connection => {
+    newConnection(databaseInfo).then(connection => {
       const serializer = newSerializer(databaseInfo.databaseId);
       const datastore = newDatastore(connection, this._credentials, serializer);
       this._datastoreDeferred.resolve(datastore);

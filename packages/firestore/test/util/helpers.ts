@@ -86,7 +86,7 @@ import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
-import { decodeBase64, encodeBase64 } from '../../src/platform/platform';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';

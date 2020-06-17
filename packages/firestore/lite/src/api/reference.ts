@@ -35,7 +35,6 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { newSerializer } from '../../../src/platform/platform';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import { FieldPath } from './field_path';
@@ -45,6 +44,7 @@ import {
   validateCollectionPath,
   validateDocumentPath
 } from '../../../src/util/input_validation';
+import { newSerializer } from '../../../src/platform/serializer';
 
 /**
  * A reference to a particular document in a collection in the database.

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,4 +15,12 @@
  * limitations under the License.
  */
 
-export { formatJSON } from '../platform_browser/browser_format_json';
+import { isNode } from '@firebase/util';
+import { hardAssert } from '../util/assert';
+
+hardAssert(
+  isNode(),
+  'The generic Platform implementation should only run under ts-node.'
+);
+
+export { newSerializer } from './node/serializer';

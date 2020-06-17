@@ -15,15 +15,10 @@
  * limitations under the License.
  */
 
-import { debugAssert } from '../util/assert';
-import { randomBytes as generateRandomBytes } from 'crypto';
+/** Return the Platform-specific serializer monitor. */
+import { DatabaseId } from '../../core/database_info';
+import { JsonProtoSerializer } from '../../remote/serializer';
 
-/**
- * Generates `nBytes` of random bytes.
- *
- * If `nBytes < 0` , an error will be thrown.
- */
-export function randomBytes(nBytes: number): Uint8Array {
-  debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
-  return generateRandomBytes(nBytes);
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, { useProto3Json: true });
 }

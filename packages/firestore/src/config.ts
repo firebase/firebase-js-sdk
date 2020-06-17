@@ -30,13 +30,13 @@ import {
   CollectionReference,
   Transaction,
   WriteBatch
-} from '../api/database';
-import { Blob } from '../api/blob';
-import { FieldPath } from '../api/field_path';
-import { GeoPoint } from '../api/geo_point';
-import { Timestamp } from '../api/timestamp';
-import { makeConstructorPrivate } from '../util/api';
-import { FieldValue } from '../api/field_value';
+} from './api/database';
+import { Blob } from './api/blob';
+import { FieldPath } from './api/field_path';
+import { GeoPoint } from './api/geo_point';
+import { Timestamp } from './api/timestamp';
+import { makeConstructorPrivate } from './util/api';
+import { FieldValue } from './api/field_value';
 
 // Public instance that disallows construction at runtime. Note that this still
 // allows instanceof checks.
