@@ -21,19 +21,19 @@ import * as fs from 'fs';
 import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
-
-export type SpecialExports = {
-  exportSymbol: string;
-  exportPath: string;
-};
-
+import { TYPINGS } from './analysis';
+import * as glob from 'glob';
+import { projectRoot } from '../../utils';
+import {
+  mapPkgNameToPkgPath,
+  mapPkgNameToPkgJson
+} from '../../release/utils/workspace';
 /** Contains a list of members by type. */
 export type MemberList = {
   classes: string[];
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: SpecialExports[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
 export type ExportData = { dependencies: MemberList; sizeInBytes: number };
@@ -68,6 +68,7 @@ export async function extractDependenciesAndSize(
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
+  console.log(input);
 
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
@@ -81,7 +82,7 @@ export async function extractDependenciesAndSize(
   });
   await bundle.write({ file: output, format: 'es' });
 
-  const dependencies = extractDeclarations(output);
+  const dependencies = await extractDeclarations(output);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -102,7 +103,7 @@ export async function extractDependenciesAndSize(
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
  */
-export function extractDeclarations(jsFile: string): MemberList {
+export async function extractDeclarations(jsFile: string): Promise<MemberList> {
   const program = ts.createProgram([jsFile], { allowJs: true });
 
   const sourceFile = program.getSourceFile(jsFile);
@@ -114,12 +115,12 @@ export function extractDeclarations(jsFile: string): MemberList {
     functions: [],
     classes: [],
     variables: [],
-    enums: [],
-    externals: []
+    enums: []
   };
+  const promises: Array<Promise<void>> = [];
 
   ts.forEachChild(sourceFile, node => {
-    //console.log(node.kind);
+    console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -133,7 +134,7 @@ export function extractDeclarations(jsFile: string): MemberList {
       variableDeclarations.forEach(variableDeclaration => {
         if (ts.isIdentifier(variableDeclaration.name)) {
           declarations.variables.push(
-            (variableDeclaration.name as ts.Identifier).escapedText as string
+            (variableDeclaration.name as ts.Identifier).escapedText.toString()
           );
         }
         // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
@@ -146,44 +147,94 @@ export function extractDeclarations(jsFile: string): MemberList {
       });
     } else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        let isExternalExport: boolean = false;
-        const fileName: string = node.moduleSpecifier.text;
-        const reExportPath = `${jsFile.substring(
-          0,
-          jsFile.lastIndexOf('/') + 1
-        )}${fileName}.d.ts`;
-        if (isExternalModuleModuleExport(reExportPath)) {
-          isExternalExport = true;
-        }
-        const reExportsMember = extractDeclarations(path.resolve(reExportPath));
-        // for Named Exports : filter the reExportsMember to keep only the symbols
-        // declared for re-export.
-        if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-          node.exportClause.elements.forEach(exportSpecifier => {
-            const reExportedSymbol: string = extractRealSymbolName(
-              exportSpecifier
-            );
-            filterAllBy(reExportsMember, reExportedSymbol);
-            // if export is renamed, replace with new name
+        const reExportPath: string = node.moduleSpecifier.text;
+        let reExportFullPath = `${path.dirname(jsFile)}/${reExportPath}.d.ts`;
 
-            if (isExportRenamed(exportSpecifier)) {
-              replaceAll(
-                reExportsMember,
-                reExportedSymbol,
-                exportSpecifier.name.escapedText.toString()
+        //   const resolvedFullPath = path.resolve(reExportFullPath);
+        promises.push(
+          (async () => {
+            if (isExternalModuleExports(reExportFullPath)) {
+              let externalModulePkgPath = await mapPkgNameToPkgPath(
+                reExportPath
               );
+              if (!fs.existsSync(`${externalModulePkgPath}/package.json`)) {
+                console.log(
+                  `external module ${reExportPath} doesn't have package json file`
+                );
+              }
+              const externalModulePkgJson = require(`${externalModulePkgPath}/package.json`);
+
+              if (!externalModulePkgJson[TYPINGS]) {
+                console.log(
+                  `external module ${reExportPath} doesn't have typings field in package json`
+                );
+                return;
+              }
+              reExportFullPath = `${externalModulePkgPath}/${externalModulePkgJson[TYPINGS]}`;
+              console.log(reExportFullPath);
             }
-          });
-        }
-        // concatename reExport MemberList with MemberList of the dts file
-        declarations.functions.push(...reExportsMember.functions);
-        declarations.variables.push(...reExportsMember.variables);
-        declarations.classes.push(...reExportsMember.classes);
-        declarations.enums.push(...reExportsMember.classes);
+            const reExportsMember = await extractDeclarations(reExportFullPath);
+
+            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+              node.exportClause.elements.forEach(exportSpecifier => {
+                const reExportedSymbol: string = extractRealSymbolName(
+                  exportSpecifier
+                );
+                //console.log(reExportedSymbol);
+                filterAllBy(reExportsMember, reExportedSymbol);
+                // if export is renamed, replace with new name
+
+                if (isExportRenamed(exportSpecifier)) {
+                  replaceAll(
+                    reExportsMember,
+                    reExportedSymbol,
+                    exportSpecifier.name.escapedText.toString()
+                  );
+                }
+              });
+            }
+            // concatename reExport MemberList with MemberList of the dts file
+            declarations.functions.push(...reExportsMember.functions);
+            declarations.variables.push(...reExportsMember.variables);
+            declarations.classes.push(...reExportsMember.classes);
+            declarations.enums.push(...reExportsMember.classes);
+          })()
+        );
+
+        //}
+
+        // const reExportsMember = await extractDeclarations(path.resolve(reExportFullPath));
+        // console.log(reExportsMember);
+        // // for Named Exports : filter the reExportsMember to keep only the symbols
+        // // declared for re-export.
+        // if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+        //   node.exportClause.elements.forEach(exportSpecifier => {
+        //     const reExportedSymbol: string = extractRealSymbolName(
+        //       exportSpecifier
+        //     );
+        //     console.log(reExportedSymbol);
+        //     filterAllBy(reExportsMember, reExportedSymbol);
+        //     // if export is renamed, replace with new name
+
+        //     if (isExportRenamed(exportSpecifier)) {
+        //       replaceAll(
+        //         reExportsMember,
+        //         reExportedSymbol,
+        //         exportSpecifier.name.escapedText.toString()
+        //       );
+        //     }
+        //   });
+        // }
+        // // concatename reExport MemberList with MemberList of the dts file
+        // declarations.functions.push(...reExportsMember.functions);
+        // declarations.variables.push(...reExportsMember.variables);
+        // declarations.classes.push(...reExportsMember.classes);
+        // declarations.enums.push(...reExportsMember.classes);
       }
     }
   });
-
+  await Promise.all(promises);
+  console.log('promises all resolved');
   // Sort to ensure stable output
   declarations.functions.sort();
   declarations.classes.sort();
@@ -193,7 +244,25 @@ export function extractDeclarations(jsFile: string): MemberList {
   return declarations;
 }
 
-function isExternalModuleModuleExport(exportPath: string): boolean {
+function extractExternalModuleExportsDtsFile(moduleIdentifier: string): string {
+  try {
+    //@firebase/logger
+    const externalModulePackageJson = require.resolve(
+      `${moduleIdentifier}/package.json`
+    );
+    const packageJsonLoaded = require(`${moduleIdentifier}/package.json`);
+    if (packageJsonLoaded[TYPINGS]) {
+      return `${path.dirname(externalModulePackageJson)}/${
+        packageJsonLoaded[TYPINGS]
+      }`;
+    }
+    return null;
+  } catch (e) {
+    console.log(e);
+    throw new Error(e);
+  }
+}
+function isExternalModuleExports(exportPath: string): boolean {
   return !fs.existsSync(path.resolve(exportPath));
 }
 function isReExported(symbol: string, reExportedSymbol: string): boolean {
