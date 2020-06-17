@@ -34,7 +34,6 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 import { name, version } from './package.json';
-import { fakeServer } from 'sinon';
 
 declare global {
   interface Window {
