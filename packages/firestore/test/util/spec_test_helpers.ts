@@ -26,7 +26,12 @@ import * as api from '../../src/protos/firestore_proto_api';
 import { Document, NoDocument } from '../../src/model/document';
 import { mapRpcCodeFromCode } from '../../src/remote/rpc_error';
 import { fail } from '../../src/util/assert';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  toBytes,
+  toName,
+  toVersion
+} from '../../src/remote/serializer';
 import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
@@ -50,9 +55,9 @@ export function encodeWatchChange(
       return {
         documentChange: {
           document: {
-            name: serializer.toName(doc.key),
+            name: toName(serializer, doc.key),
             fields: doc.toProto().mapValue.fields,
-            updateTime: serializer.toVersion(doc.version)
+            updateTime: toVersion(serializer, doc.version)
           },
           targetIds: watchChange.updatedTargetIds,
           removedTargetIds: watchChange.removedTargetIds
@@ -62,15 +67,15 @@ export function encodeWatchChange(
       const doc = watchChange.newDoc;
       return {
         documentDelete: {
-          document: serializer.toName(doc.key),
-          readTime: serializer.toVersion(doc.version),
+          document: toName(serializer, doc.key),
+          readTime: toVersion(serializer, doc.version),
           removedTargetIds: watchChange.removedTargetIds
         }
       };
     } else if (watchChange.newDoc === null) {
       return {
         documentRemove: {
-          document: serializer.toName(watchChange.key),
+          document: toName(serializer, watchChange.key),
           removedTargetIds: watchChange.removedTargetIds
         }
       };
@@ -88,7 +93,7 @@ export function encodeWatchChange(
       targetChange: {
         targetChangeType: encodeTargetChangeTargetChangeType(watchChange.state),
         targetIds: watchChange.targetIds,
-        resumeToken: serializer.toBytes(watchChange.resumeToken),
+        resumeToken: toBytes(serializer, watchChange.resumeToken),
         cause
       }
     };
