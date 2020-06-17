@@ -20,9 +20,9 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { TargetId } from '../core/types';
+import { primitiveComparator } from '../util/misc';
 import { Document, MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
-import { primitiveComparator } from '../util/misc';
 
 /** Miscellaneous collection types / constants. */
 export interface DocumentSizeEntry {

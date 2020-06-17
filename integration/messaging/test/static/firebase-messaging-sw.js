@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,4 @@
  * limitations under the License.
  */
 
-importScripts('/sw-shared.js');
-importScripts('/valid-no-vapid-key/firebaseConfig.js');
-
-firebase.initializeApp(self.firebaseConfig);
-
-const messaging = firebase.messaging();
-messaging.setBackgroundMessageHandler(data => {
-  const title = 'Background Notification';
-  return self.registration.showNotification(title, {});
-});
+importScripts('./sw-base.js');

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-module.exports = async webdriver => {
-  console.log('Rolling time forward 8 days...');
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
+module.exports = async webDriver => {
+  console.log('Clearing received messaged and errors from the test app.');
+
+  await webDriver.wait(() => {
+    return webDriver.executeScript(() => {
       return !!window.__test;
     });
   });
-  return webdriver.executeScript(() => {
-    return window.__test.triggerTimeForward();
+
+  return webDriver.executeScript(() => {
+    return window.__test.clearInstanceForTest();
   });
 };
