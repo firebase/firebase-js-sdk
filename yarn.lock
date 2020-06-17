@@ -954,13 +954,6 @@
     p-defer "^3.0.0"
     protobufjs "^6.8.1"
 
-"@grpc/grpc-js@0.8.1":
-  version "0.8.1"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-0.8.1.tgz#3003a422577da39e7113566f2fdd4872f31e6090"
-  integrity sha512-e8gSjRZnOUefsR3obOgxG9RtYW2Mw83hh7ogE2ByCdgRhoX0mdnJwBcZOami3E0l643KCTZvORFwfSEi48KFIQ==
-  dependencies:
-    semver "^6.2.0"
-
 "@grpc/grpc-js@^0.6.12":
   version "0.6.18"
   resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-0.6.18.tgz#ba3b3dfef869533161d192a385412a4abd0db127"
@@ -972,6 +965,13 @@
   version "0.7.6"
   resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-0.7.6.tgz#e721ffeb1fdd685a2d31c99a376f53ef8b3b1452"
   integrity sha512-koYbq7Fp3BU3D2tHivr/2DLPcv1PoBcuH4Px4gY6/IcSmfOvo+J70LARZCmV6t7FgqORN5hup4IvUgxyWkLJ+A==
+  dependencies:
+    semver "^6.2.0"
+
+"@grpc/grpc-js@^1.0.0":
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.0.5.tgz#09948c0810e62828fdd61455b2eb13d7879888b0"
+  integrity sha512-Hm+xOiqAhcpT9RYM8lc15dbQD7aQurM7ZU8ulmulepiPlN7iwBXXwP3vSBUimoFoApRqz7pSIisXU8pZaCB4og==
   dependencies:
     semver "^6.2.0"
 
@@ -4125,10 +4125,10 @@ chrome-trace-event@^1.0.2:
   dependencies:
     tslib "^1.9.0"
 
-chromedriver@80.0.2:
-  version "80.0.2"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-80.0.2.tgz#005b9bf19abebf678b5d5670a9f16605c437a154"
-  integrity sha512-MKrTzBtykWuIswRYgUw9dHXr96BShQYSy8NdLlo2LN1mZ17A9nxtz9v0h9z1zKWTVaxT7e0qvo41rSY5BL1i+Q==
+chromedriver@^83.0.0:
+  version "83.0.0"
+  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-83.0.0.tgz#75d7d838e58014658c3990089464166fef951926"
+  integrity sha512-AePp9ykma+z4aKPRqlbzvVlc22VsQ6+rgF+0aL3B5onHOncK18dWSkLrSSJMczP/mXILN9ohGsvpuTwoRSj6OQ==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
     axios "^0.19.2"
@@ -14092,6 +14092,11 @@ tslib@1.11.1, tslib@^1.10.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.11.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-1.11.1.tgz#eb15d128827fbee2841549e171f45ed338ac7e35"
   integrity sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
+
+tslib@^1.11.1:
+  version "1.13.0"
+  resolved "https://registry.npmjs.org/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
+  integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
 
 tslint@6.1.2:
   version "6.1.2"
