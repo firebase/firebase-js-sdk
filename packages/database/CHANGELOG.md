@@ -1,5 +1,5 @@
 # Unreleased
-- [changed] Added internal HTTP header to the WebChannel connection.
+- [changed] Added internal HTTP header to the WebSocket connection.
 - [feature] Added ServerValue.increment() to support atomic field value increments
   without transactions.
 - [fixed] Fixed Realtime Database URL parsing bug to support domains with more than 3 components.
