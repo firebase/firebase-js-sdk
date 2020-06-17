@@ -47,13 +47,7 @@ export class Transaction implements firestore.Transaction {
     private readonly _firestore: Firestore,
     private readonly _transaction: InternalTransaction
   ) {
-    // Kick off configuring the client, which freezes the settings.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    _firestore._ensureClientConfigured();
-    this._dataReader = newUserDataReader(
-      _firestore._databaseId,
-      _firestore._settings!
-    );
+    this._dataReader = newUserDataReader(_firestore);
   }
 
   get<T>(
@@ -167,7 +161,7 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient._ensureClientConfigured().then(async datastore => {
+  return firestoreClient._getDatastore().then(async datastore => {
     const deferred = new Deferred<T>();
     new TransactionRunner<T>(
       new AsyncQueue(),

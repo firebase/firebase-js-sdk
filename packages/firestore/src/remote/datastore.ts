@@ -52,9 +52,9 @@ class DatastoreImpl extends Datastore {
   terminated = false;
 
   constructor(
-    public readonly connection: Connection,
-    public readonly credentials: CredentialsProvider,
-    public readonly serializer: JsonProtoSerializer
+    readonly connection: Connection,
+    readonly credentials: CredentialsProvider,
+    readonly serializer: JsonProtoSerializer
   ) {
     super();
   }

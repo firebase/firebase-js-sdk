@@ -57,15 +57,25 @@ export function firestore(): Firestore {
 }
 
 export function collectionReference(path: string): CollectionReference {
+  const firestoreClient = firestore();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClient.ensureClientConfigured();
   return new CollectionReference(
     pathFrom(path),
-    firestore(),
+    firestoreClient,
     /* converter= */ null
   );
 }
 
 export function documentReference(path: string): DocumentReference {
-  return new DocumentReference(key(path), firestore(), /* converter= */ null);
+  const firestoreClient = firestore();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClient.ensureClientConfigured();
+  return new DocumentReference(
+    key(path),
+    firestoreClient,
+    /* converter= */ null
+  );
 }
 
 export function documentSnapshot(

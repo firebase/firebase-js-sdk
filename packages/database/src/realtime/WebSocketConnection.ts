@@ -78,15 +78,17 @@ export class WebSocketConnection implements Transport {
   private isClosed_: boolean;
 
   /**
-   * @param {string} connId identifier for this transport
-   * @param {RepoInfo} repoInfo The info for the websocket endpoint.
-   * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport
+   * @param connId identifier for this transport
+   * @param repoInfo The info for the websocket endpoint.
+   * @param applicationId The Firebase App ID for this project.
+   * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
-   * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
+   * @param lastSessionId Optional lastSessionId if there was a previous connection
    */
   constructor(
     public connId: string,
     repoInfo: RepoInfo,
+    private applicationId?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ) {
@@ -153,7 +155,8 @@ export class WebSocketConnection implements Transport {
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
           headers: {
-            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`
+            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`,
+            'X-Firebase-GMPID': this.applicationId || ''
           }
         };
 
@@ -170,7 +173,12 @@ export class WebSocketConnection implements Transport {
 
         this.mySock = new WebSocketImpl(this.connURL, [], options);
       } else {
-        this.mySock = new WebSocketImpl(this.connURL);
+        const options: { [k: string]: object } = {
+          headers: {
+            'X-Firebase-GMPID': this.applicationId || ''
+          }
+        };
+        this.mySock = new WebSocketImpl(this.connURL, [], options);
       }
     } catch (e) {
       this.log_('Error instantiating WebSocket.');

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-importScripts('/sw-shared.js');
-importScripts('./firebaseConfig.js');
+module.exports = async webdriver => {
+  console.log('retrieving token from test app');
 
-firebase.initializeApp(self.firebaseConfig);
+  await webdriver.wait(() => {
+    return webdriver.executeScript(() => {
+      return !!window.__test && !!window.__test.token;
+    });
+  });
 
-const messaging = firebase.messaging();
-messaging.setBackgroundMessageHandler(data => {
-  const title = 'Background Notification';
-  return self.registration.showNotification(title, {});
-});
+  return webdriver.executeScript(() => {
+    return window.__test.token;
+  });
+};

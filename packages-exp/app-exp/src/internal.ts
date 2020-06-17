@@ -18,6 +18,7 @@
 import { _FirebaseAppInternal, FirebaseApp } from '@firebase/app-types-exp';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
+import { DEFAULT_ENTRY_NAME } from './constants';
 
 /**
  * @internal
@@ -100,6 +101,22 @@ export function _getProvider<T extends Name>(
   name: T
 ): Provider<T> {
   return (app as _FirebaseAppInternal).container.getProvider(name);
+}
+
+/**
+ *
+ * @param app - FirebaseApp instance
+ * @param name - service name
+ * @param instanceIdentifier - service instance identifier in case the service supports multiple instances
+ *
+ * @internal
+ */
+export function _removeServiceInstance<T extends Name>(
+  app: FirebaseApp,
+  name: T,
+  instanceIdentifier: string = DEFAULT_ENTRY_NAME
+): void {
+  _getProvider(app, name).clearInstance(instanceIdentifier);
 }
 
 /**
