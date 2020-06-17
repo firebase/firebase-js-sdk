@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { isNode, isReactNative } from '@firebase/util';
+import { randomBytes as nodeRandomBytes } from './node/random_bytes';
+import { randomBytes as rnRandomBytes } from './rn/random_bytes';
+import { randomBytes as browserRandomBytes } from './browser/random_bytes';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
-
-export { randomBytes } from './node/random_bytes';
+/**
+ * Generates `nBytes` of random bytes.
+ *
+ * If `nBytes < 0` , an error will be thrown.
+ */
+export function randomBytes(nBytes: number): Uint8Array {
+  if (isNode()) {
+    return nodeRandomBytes(nBytes);
+  } else if (isReactNative()) {
+    return rnRandomBytes(nBytes);
+  } else {
+    return browserRandomBytes(nBytes);
+  }
+}

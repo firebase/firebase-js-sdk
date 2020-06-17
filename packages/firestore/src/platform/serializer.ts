@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { isNode, isReactNative } from '@firebase/util';
+import { newSerializer as nodeNewSerializer } from './node/serializer';
+import { newSerializer as rnNewSerializer } from './rn/serializer';
+import { newSerializer as browserNewSerializer } from './browser/serializer';
+import { DatabaseId } from '../core/database_info';
+import { JsonProtoSerializer } from '../remote/serializer';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
-
-export { newSerializer } from './node/serializer';
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  if (isNode()) {
+    return nodeNewSerializer(databaseId);
+  } else if (isReactNative()) {
+    return rnNewSerializer(databaseId);
+  } else {
+    return browserNewSerializer(databaseId);
+  }
+}

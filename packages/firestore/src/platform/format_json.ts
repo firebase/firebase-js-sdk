@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
+import { isNode, isReactNative } from '@firebase/util';
+import { formatJSON as nodeFormatJSON } from './node/format_json';
+import { formatJSON as rnFormatJSON } from './rn/format_json';
+import { formatJSON as browserFormatJSON } from './browser/format_json';
 
-// Note: We don't depend on `hardAssert` as that creates a circular reference,
-// since it uses `formatJSON()` to format its log message.
-if (!isNode()) {
-  throw new Error(
-    'The generic Platform implementation should only run under ts-node.'
-  );
+/** Formats an object as a JSON string, suitable for logging. */
+export function formatJSON(value: unknown): string {
+  if (isNode()) {
+    return nodeFormatJSON(value);
+  } else if (isReactNative()) {
+    return rnFormatJSON(value);
+  } else {
+    return browserFormatJSON(value);
+  }
 }
-
-export { formatJSON } from './node/format_json';

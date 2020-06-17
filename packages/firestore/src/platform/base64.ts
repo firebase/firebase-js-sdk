@@ -15,12 +15,53 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { isNode, isReactNative } from '@firebase/util';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
+import {
+  decodeBase64 as nodeDecodeBase64,
+  encodeBase64 as nodeEncodeBase64,
+  isBase64Available as nodeIsBase64Available
+} from './node/base64';
+import {
+  decodeBase64 as rnDecodeBase64,
+  encodeBase64 as rnEncodeBase64,
+  isBase64Available as rnIsBase64Available
+} from './rn/base64';
+import {
+  decodeBase64 as browserDecodeBase64,
+  encodeBase64 as browserEncodeBase64,
+  isBase64Available as browserIsBase64Available
+} from './browser/base64';
 
-export { decodeBase64, encodeBase64, isBase64Available } from './node/base64';
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  if (isNode()) {
+    return nodeDecodeBase64(encoded);
+  } else if (isReactNative()) {
+    return rnDecodeBase64(encoded);
+  } else {
+    return browserDecodeBase64(encoded);
+  }
+}
+
+/** Converts a binary string to a Base64 encoded string. */
+export function encodeBase64(raw: string): string {
+  if (isNode()) {
+    return nodeEncodeBase64(raw);
+  } else if (isReactNative()) {
+    return rnEncodeBase64(raw);
+  } else {
+    return browserEncodeBase64(raw);
+  }
+}
+
+/** True if and only if the Base64 conversion functions are available. */
+export function isBase64Available(): boolean {
+  if (isNode()) {
+    return nodeIsBase64Available();
+  } else if (isReactNative()) {
+    return rnIsBase64Available();
+  } else {
+    return browserIsBase64Available();
+  }
+}

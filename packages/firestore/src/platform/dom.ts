@@ -15,12 +15,38 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { isNode, isReactNative } from '@firebase/util';
+import {
+  getWindow as nodeGetWindow,
+  getDocument as nodeGetDocument
+} from './node/dom';
+import {
+  getWindow as rnGetWindow,
+  getDocument as rnGetDocument
+} from './rn/dom';
+import {
+  getWindow as browserGetWindow,
+  getDocument as browserGetDocument
+} from './browser/dom';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
+/** The Platform's 'window' implementation or null if not available. */
+export function getWindow(): Window | null {
+  if (isNode()) {
+    return nodeGetWindow();
+  } else if (isReactNative()) {
+    return rnGetWindow();
+  } else {
+    return browserGetWindow();
+  }
+}
 
-export { getWindow, getDocument } from './node/dom';
+/** The Platform's 'document' implementation or null if not available. */
+export function getDocument(): Document | null {
+  if (isNode()) {
+    return nodeGetDocument();
+  } else if (isReactNative()) {
+    return rnGetDocument();
+  } else {
+    return browserGetDocument();
+  }
+}

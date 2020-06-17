@@ -15,12 +15,39 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
-import { hardAssert } from '../util/assert';
+import { isNode, isReactNative } from '@firebase/util';
+import {
+  newConnectivityMonitor as nodeNewConnectivityMonitor,
+  newConnection as nodeNewConnection
+} from './node/connection';
+import {
+  newConnectivityMonitor as rnNewConnectivityMonitor,
+  newConnection as rnNewConnection
+} from './rn/connection';
+import {
+  newConnectivityMonitor as browserNewConnectivityMonitor,
+  newConnection as browserNewConnection
+} from './browser/connection';
+import { ConnectivityMonitor } from '../remote/connectivity_monitor';
+import { DatabaseInfo } from '../core/database_info';
+import { Connection } from '../remote/connection';
 
-hardAssert(
-  isNode(),
-  'The generic Platform implementation should only run under ts-node.'
-);
+export function newConnectivityMonitor(): ConnectivityMonitor {
+  if (isNode()) {
+    return nodeNewConnectivityMonitor();
+  } else if (isReactNative()) {
+    return rnNewConnectivityMonitor();
+  } else {
+    return browserNewConnectivityMonitor();
+  }
+}
 
-export { newConnectivityMonitor, newConnection } from './node/connection';
+export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+  if (isNode()) {
+    return nodeNewConnection(databaseInfo);
+  } else if (isReactNative()) {
+    return rnNewConnection(databaseInfo);
+  } else {
+    return browserNewConnection(databaseInfo);
+  }
+}
