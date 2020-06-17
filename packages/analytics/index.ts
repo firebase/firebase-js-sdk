@@ -34,6 +34,7 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 import { name, version } from './package.json';
+import { fakeServer } from 'sinon';
 
 declare global {
   interface Window {
@@ -59,11 +60,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
           .getProvider('installations')
           .getImmediate();
 
-        if (!isSupported()) {
-          console.log('is supported evaluated to false');
-          throw ERROR_FACTORY.create(AnalyticsError.UNSUPPORTED_BROWSER);
-        }
-        console.log('is supported evaluate to true');
+        validateBrowserContext();
 
         return factory(app, installations);
       },
@@ -113,38 +110,46 @@ declare module '@firebase/app-types' {
     analytics(): FirebaseAnalytics;
   }
 }
-
-function isSupported(): boolean {
+function validateBrowserContext(): void {
   if ('indexedDB' in window && indexedDB !== null && navigator.cookieEnabled) {
     try {
-      let preExist: boolean = false;
-      let isSupported: boolean = true;
+      let preExist: boolean = true;
       const DUMMYDBNAME =
         'a-dummy-database-for-testing-browser-context-firebase';
       const request = window.indexedDB.open(DUMMYDBNAME);
       request.onsuccess = () => {
-        console.log('successfully opend dummy indexedDB');
+        //console.log('successfully opend dummy indexedDB');
         request.result.close();
-        // delete database only when it doesn't pre exist
+        // delete database only when it doesn't pre-exist
         if (!preExist) {
+          //console.log("deleting database");
           window.indexedDB.deleteDatabase(DUMMYDBNAME);
         }
       };
       request.onupgradeneeded = () => {
-        preExist = true;
-        console.log('database needs to be upgraded');
+        preExist = false;
+        //console.log('database needs to be upgraded');
       };
-      request.onerror = error => {
-        console.log('what error on opening database connection? ');
-        console.log(error);
-        isSupported = false;
+
+      request.onerror = () => {
+        throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+          errorInfo: request.error!.message
+        });
       };
-      console.log('it does get here');
-      return isSupported;
     } catch (error) {
-      console.log('caught error in analytics: ' + error);
-      return false;
+      throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+        errorInfo: error.messages
+      });
     }
+  } else {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
-  return false;
+}
+function isSupported(): boolean {
+  try {
+    validateBrowserContext();
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
