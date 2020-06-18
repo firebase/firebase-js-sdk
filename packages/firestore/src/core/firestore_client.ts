@@ -179,7 +179,7 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueAndForget(() =>
+        this.asyncQueue.enqueueRetryable(() =>
           this.remoteStore.handleCredentialChange(user)
         );
       }

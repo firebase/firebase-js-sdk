@@ -716,8 +716,11 @@ abstract class TestRunner {
 
   private async doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.enqueue(() =>
-      this.remoteStore.handleCredentialChange(this.user)
+    // We don't block on `handleCredentialChange` as it may not get executed
+    // during an IndexedDb failure. Non-recovery tests will pick up the user
+    // change when the AsyncQueue is drained.
+    this.queue.enqueueRetryable(() =>
+      this.remoteStore.handleCredentialChange(new User(user))
     );
   }
 
