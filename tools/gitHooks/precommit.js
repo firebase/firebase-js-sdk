@@ -36,7 +36,7 @@ $ git stash -u
 $ git stash pop
 `;
 
-const FETCH_TIMEOUT = 100;
+const FETCH_TIMEOUT = 10 * 1000; // 10 seconds
 
 function timeoutPromise(millis) {
   return new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ function timeoutPromise(millis) {
         symbol: '⚠️'
       });
       console.warn(
-        chalk`\n{yellow Unable to fetch latest version of master, diff may be stale.}`
+        chalk`\n{yellow WARNING: Unable to fetch latest version of master, diff may be stale.}`
       );
     }
 
