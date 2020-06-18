@@ -131,14 +131,14 @@ describe('Testing Module Tests', function() {
         }
       }`
     });
-    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
+    await expect(promise).to.be.rejectedWith(/ECONNREFUSED/);
   });
 
   it('clearFirestoreData() succeeds on valid input', async function() {
     let promise = firebase.clearFirestoreData({
       projectId: 'foo'
     });
-    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
+    await expect(promise).to.be.rejectedWith(/ECONNREFUSED/);
   });
 
   it('apps() returns apps created with initializeTestApp', async function() {
