@@ -103,27 +103,24 @@ function assertPresent(value: unknown, description: string): asserts value {
   debugAssert(!isNullOrUndefined(value), description + ' is missing');
 }
 
-export interface SerializerOptions {
-  /**
-   * The serializer supports both Protobuf.js and Proto3 JSON formats. By
-   * setting serializer.flag to true, the serializer will use the Proto3 JSON format.
-   *
-   * For a description of the Proto3 JSON format check
-   * https://developers.google.com/protocol-buffers/docs/proto3#json
-   */
-  useProto3Json: boolean;
-}
-
 /**
- * Generates JsonObject values for the Datastore API suitable for sending to
- * either GRPC stub methods or via the JSON/HTTP REST API.
+ * This class generates JsonObject values for the Datastore API suitable for
+ * sending to either GRPC stub methods or via the JSON/HTTP REST API.
+ *
+ * The serializer supports both Protobuf.js and Proto3 JSON formats. By
+ * setting `useProto3Json` to true, the serializer will use the Proto3 JSON
+ * format.
+ *
+ * For a description of the Proto3 JSON format check
+ * https://developers.google.com/protocol-buffers/docs/proto3#json
+ *
  * TODO(klimt): We can remove the databaseId argument if we keep the full
  * resource name in documents.
  */
 export class JsonProtoSerializer {
   constructor(
     readonly databaseId: DatabaseId,
-    readonly options: SerializerOptions
+    readonly useProto3Json: boolean
   ) {}
 }
 
@@ -145,7 +142,7 @@ function toInt32Proto(
   serializer: JsonProtoSerializer,
   val: number | null
 ): number | { value: number } | null {
-  if (serializer.options.useProto3Json || isNullOrUndefined(val)) {
+  if (serializer.useProto3Json || isNullOrUndefined(val)) {
     return val;
   } else {
     return { value: val };
@@ -183,7 +180,7 @@ export function toDouble(
   serializer: JsonProtoSerializer,
   value: number
 ): api.Value {
-  if (serializer.options.useProto3Json) {
+  if (serializer.useProto3Json) {
     if (isNaN(value)) {
       return { doubleValue: 'NaN' };
     } else if (value === Infinity) {
@@ -214,7 +211,7 @@ export function toTimestamp(
   serializer: JsonProtoSerializer,
   timestamp: Timestamp
 ): api.Timestamp {
-  if (serializer.options.useProto3Json) {
+  if (serializer.useProto3Json) {
     // Serialize to ISO-8601 date format, but with full nano resolution.
     // Since JS Date has only millis, let's only use it for the seconds and
     // then manually add the fractions to the end.
@@ -248,7 +245,7 @@ export function toBytes(
   serializer: JsonProtoSerializer,
   bytes: Blob | ByteString
 ): string | Uint8Array {
-  if (serializer.options.useProto3Json) {
+  if (serializer.useProto3Json) {
     return bytes.toBase64();
   } else {
     return bytes.toUint8Array();
@@ -262,7 +259,7 @@ export function fromBytes(
   serializer: JsonProtoSerializer,
   value: string | Uint8Array | undefined
 ): ByteString {
-  if (serializer.options.useProto3Json) {
+  if (serializer.useProto3Json) {
     hardAssert(
       value === undefined || typeof value === 'string',
       'value must be undefined or a string when using proto3 Json'
@@ -290,8 +287,8 @@ export function fromVersion(version: api.Timestamp): SnapshotVersion {
 }
 
 export function toResourceName(
-  path: ResourcePath,
-  databaseId: DatabaseId
+  databaseId: DatabaseId,
+  path: ResourcePath
 ): string {
   return fullyQualifiedPrefixPath(databaseId)
     .child('documents')
@@ -312,7 +309,7 @@ export function toName(
   serializer: JsonProtoSerializer,
   key: DocumentKey
 ): string {
-  return toResourceName(key.path, serializer.databaseId);
+  return toResourceName(serializer.databaseId, key.path);
 }
 
 export function fromName(
@@ -342,7 +339,7 @@ function toQueryPath(
   serializer: JsonProtoSerializer,
   path: ResourcePath
 ): string {
-  return toResourceName(path, serializer.databaseId);
+  return toResourceName(serializer.databaseId, path);
 }
 
 function fromQueryPath(name: string): ResourcePath {
@@ -711,7 +708,7 @@ function fromWriteResult(
     // deletes of non-existing documents (rather than null). This breaks the
     // test "get deleted doc while offline with source=cache" as NoDocuments
     // with version 0 are filtered by IndexedDb's RemoteDocumentCache.
-    // TODO(#2149): Remove serializer.when Emulator is fixed
+    // TODO(#2149): Remove this when Emulator is fixed
     version = fromVersion(commitTime);
   }
 

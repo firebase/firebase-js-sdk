@@ -53,8 +53,8 @@ export class NodePlatform implements Platform {
     return new NoopConnectivityMonitor();
   }
 
-  newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(partitionId, { useProto3Json: false });
+  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+    return new JsonProtoSerializer(databaseId, /* useProto3Json= */ false);
   }
 
   formatJSON(value: unknown): string {

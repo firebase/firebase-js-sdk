@@ -210,9 +210,10 @@ abstract class TestRunner {
     this.queue = new AsyncQueue();
     this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
 
-    this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
-      useProto3Json: true
-    });
+    this.serializer = new JsonProtoSerializer(
+      this.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
 
     this.useGarbageCollection = config.useGarbageCollection;
     this.numClients = config.numClients;

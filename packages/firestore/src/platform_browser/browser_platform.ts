@@ -57,7 +57,7 @@ export class BrowserPlatform implements Platform {
   }
 
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-    return new JsonProtoSerializer(databaseId, { useProto3Json: true });
+    return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
   }
 
   formatJSON(value: unknown): string {

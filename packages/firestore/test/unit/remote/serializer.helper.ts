@@ -124,7 +124,7 @@ export function serializerTest(
 ): void {
   describe('Serializer', () => {
     const partition = new DatabaseId('p', 'd');
-    const s = new JsonProtoSerializer(partition, { useProto3Json: false });
+    const s = new JsonProtoSerializer(partition, /* useProto3Json= */ false);
 
     /**
      * Wraps the given target in TargetData. This is useful because the APIs we're

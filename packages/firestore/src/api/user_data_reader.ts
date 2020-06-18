@@ -660,7 +660,9 @@ function parseScalarValue(
     return { stringValue: value };
   } else if (value instanceof Date) {
     const timestamp = Timestamp.fromDate(value);
-    return { timestampValue: toTimestamp(context.serializer, timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof Timestamp) {
     // Firestore backend truncates precision down to microseconds. To ensure
     // offline mode works the same with regards to truncation, perform the
@@ -669,7 +671,9 @@ function parseScalarValue(
       value.seconds,
       Math.floor(value.nanoseconds / 1000) * 1000
     );
-    return { timestampValue: toTimestamp(context.serializer, timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof GeoPoint) {
     return {
       geoPointValue: {
@@ -691,8 +695,8 @@ function parseScalarValue(
     }
     return {
       referenceValue: toResourceName(
-        value._key.path,
-        value._databaseId || context.serializer.databaseId
+        value._databaseId || context.databaseId,
+        value._key.path
       )
     };
   } else if (value === undefined && context.ignoreUndefinedProperties) {

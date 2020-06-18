@@ -34,9 +34,10 @@ import {
 } from '../../src/remote/serializer';
 import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
-const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
-  useProto3Json: true
-});
+const serializer = new JsonProtoSerializer(
+  TEST_DATABASE_ID,
+  /* useProto3Json= */ true
+);
 
 export function encodeWatchChange(
   watchChange: WatchChange
