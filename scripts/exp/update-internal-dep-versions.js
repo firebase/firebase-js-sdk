@@ -32,7 +32,7 @@ const fs = require('mz/fs');
 async function updateField(pkg, fieldName) {
   const field = pkg[fieldName];
   for (const depName in field) {
-    if (!depName.includes('@firebase')) continue;
+    if (!depName.includes('@firebase') && depName !== 'firebase') continue;
     const depJson = await mapPkgNameToPkgJson(depName);
     if (!depJson.version) continue;
     field[depName] = depJson.version;

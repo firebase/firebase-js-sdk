@@ -66,8 +66,7 @@ export interface StringLike {
 }
 
 export interface ErrorData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface FirebaseError extends Error, ErrorData {
@@ -149,7 +148,7 @@ export class ErrorFactory<
 function replaceTemplate(template: string, data: ErrorData): string {
   return template.replace(PATTERN, (_, key) => {
     const value = data[key];
-    return value != null ? value.toString() : `<${key}?>`;
+    return value != null ? String(value) : `<${key}?>`;
   });
 }
 
