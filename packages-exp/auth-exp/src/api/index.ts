@@ -27,10 +27,17 @@ import {
   ServerError,
   ServerErrorMap
 } from './errors';
+import { fail } from '../core/util/assert';
 
 export enum HttpMethod {
   POST = 'POST',
   GET = 'GET'
+}
+
+export enum HttpHeader {
+  CONTENT_TYPE = 'Content-Type',
+  X_FIREBASE_LOCALE = 'X-Firebase-Locale',
+  X_CLIENT_VERSION = 'X-Client-Version'
 }
 
 export enum Endpoint {
@@ -82,14 +89,19 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
+    const headers = new Headers();
+    headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
+    headers.set(HttpHeader.X_CLIENT_VERSION, auth.config.sdkClientVersion);
+
+    if (auth.languageCode) {
+      headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
+    }
+
     return fetch(
       `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
       {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Version': auth.config.sdkClientVersion
-        },
+        headers,
         referrerPolicy: 'no-referrer',
         ...body
       }
@@ -114,23 +126,19 @@ export async function _performFetchWithErrorHandling<V>(
       const json: JsonError = await response.json();
       const authError = errorMap[json.error.message];
       if (authError) {
-        throw AUTH_ERROR_FACTORY.create(authError, { appName: auth.name });
+        fail(auth.name, authError);
       } else {
         // TODO probably should handle improperly formatted errors as well
         // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
         console.error(`Unexpected API error: ${json.error.message}`);
-        throw AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-          appName: auth.name
-        });
+        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
       }
     }
   } catch (e) {
     if (e instanceof FirebaseError) {
       throw e;
     }
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-      appName: auth.name
-    });
+    fail(auth.name, AuthErrorCode.NETWORK_REQUEST_FAILED);
   }
 }
 

@@ -35,6 +35,7 @@ import { Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
+import { _getUserLanguage } from '../util/navigator';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -86,7 +87,7 @@ export class AuthImpl implements Auth {
   }
 
   useDeviceLanguage(): void {
-    throw new Error('Method not implemented.');
+    this.languageCode = _getUserLanguage();
   }
 
   async updateCurrentUser(user: User | null): Promise<void> {
