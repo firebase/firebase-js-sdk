@@ -16,24 +16,29 @@
  */
 
 import {
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
   CONSOLE_CAMPAIGN_ID,
-  CONSOLE_CAMPAIGN_TIME,
   CONSOLE_CAMPAIGN_NAME,
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED
+  CONSOLE_CAMPAIGN_TIME
 } from '../util/constants';
 
-export interface NotificationDetails extends NotificationOptions {
+export interface NotificationPayload extends NotificationOptions {
   title: string;
-  click_action?: string; // eslint-disable-line camelcase
+
+  // eslint-disable-next-line camelcase
+  click_action?: string;
 }
 
 export interface FcmOptions {
   link?: string;
+
+  // eslint-disable-next-line camelcase
+  analytics_label?: string;
 }
 
 export interface MessagePayload {
   fcmOptions?: FcmOptions;
-  notification?: NotificationDetails;
+  notification?: NotificationPayload;
   data?: unknown;
 }
 

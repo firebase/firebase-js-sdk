@@ -23,27 +23,36 @@ import {
   ErrorFn,
   CompleteFn
 } from '@firebase/util';
+import { MessagePayload } from '../messaging/src/interfaces/message-payload';
 
 export interface FirebaseMessaging {
-  // TODO: remove the token parameter and just delete the token that matches
-  // this app if it exists.
-  deleteToken(token: string): Promise<boolean>;
-  getToken(): Promise<string>;
+  /** window controller */
+  deleteToken(): Promise<boolean>;
+  getToken(options?: {
+    vapidKey?: string;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+  }): Promise<string>;
   onMessage(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+
+  /** service worker controller */
+  onBackgroundMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe;
+
+  /** @deprecated */
+  deleteToken(token: string): Promise<boolean>;
+  getToken(): Promise<string>;
   onTokenRefresh(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  /**
-   * @deprecated Use Notification.requestPermission() instead.
-   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
-   */
-  requestPermission(): Promise<void>;
   setBackgroundMessageHandler(
     callback: (payload: any) => Promise<any> | void
   ): void;

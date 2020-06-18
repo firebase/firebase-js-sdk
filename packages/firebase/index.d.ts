@@ -6950,14 +6950,48 @@ declare namespace firebase.messaging {
    */
   interface Messaging {
     /**
+     * Deletes the only registration token associated with this messaging instance and unsubscribes
+     * this messaging instance from the push subscription.
+     *
+     * @return The promise resolves when the token has been successfully deleted.
+     */
+    deleteToken(): Promise<boolean>;
+
+    /**
      * To forcibly stop a registration token from being used, delete it
      * by calling this method.
      *
      * @param token The token to delete.
      * @return The promise resolves when the token has been
      *   successfully deleted.
+     *
+     * @deprecated Use deleteToken() instead.
      */
     deleteToken(token: string): Promise<boolean>;
+
+    /**
+     * Subscribes the user to push notifications. Returns an FCM registration
+     * token that can be used to send push messages to the user.
+     *
+     * If notification permission isn't already granted, this method asks the
+     * user for permission. The returned promise rejects if the user does not
+     * allow the app to show notifications.
+     *
+     * @param options.vapidKey the public server key provided to push services. It is used to authenticate
+     * the push subscribers to receive push messages only from sending servers that holds the corresponding private key. If it is not provided, a default VAPID key will be be used. Note that some push services (Chrome Push Service) require a non-default VAPID key. Therefore, it is recommended to to generate and import a VAPID key for your project with {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm Configure Web Credentials with FCM}. Also See {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol The Web Push Protocol} for details on web push services.}
+     *
+     * @param options.serviceWorkerRegistration the service worker registration for receiving push messaging.
+     * If it is not provided explicitly, you need to have a `firebase-messaging-sw.js` at your root location.
+     * See {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token} for more details.
+     *
+     * @return The promise resolves with the FCM token string.
+     *
+     */
+    getToken(options?: {
+      vapidKey?: string;
+      serviceWorkerRegistration?: ServiceWorkerRegistration;
+    }): Promise<string>;
+
     /**
      * Subscribes the user to push notifications and returns an FCM registration
      * token that can be used to send push messages to the user.
@@ -6967,8 +7001,14 @@ declare namespace firebase.messaging {
      * allow the app to show notifications.
      *
      * @return The promise resolves with the FCM token string.
+     *
+     * @deprecated Use getToken(options?: {
+      vapidKey?: string;
+      serviceWorkerRegistration?: ServiceWorkerRegistration;
+    }): Promise<string>;.
      */
     getToken(): Promise<string>;
+
     /**
      * When a push message is received and the user is currently on a page
      * for your origin, the message is passed to the page and an `onMessage()`
@@ -6988,6 +7028,24 @@ declare namespace firebase.messaging {
       error?: firebase.ErrorFn,
       completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
+
+    /**
+     * Called when a message is received while the app is in the background. An app is considered
+     * as a background app if no active window is displayed.
+     *
+     * @param
+     *     nextOrObserver This function, or observer object with `next` defined,
+     *     is called when a message is received and the app is currently in the background.
+     *
+     * @return To stop listening for messages
+     *    execute this returned function
+     */
+    onBackgroundMessage(
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
+    ): firebase.Unsubscribe;
+
     /**
      * You should listen for token refreshes so your web app knows when FCM
      * has invalidated your existing token and you need to call `getToken()`
@@ -6998,12 +7056,15 @@ declare namespace firebase.messaging {
      *     is called when a token refresh has occurred.
      * @return To stop listening for token
      *   refresh events execute this returned function.
+     *
+     * @deprecated There is no need to handle token rotation.
      */
     onTokenRefresh(
       nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
       error?: firebase.ErrorFn,
       completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
+
     /**
      * Notification permissions are required to send a user push messages.
      * Calling this method displays the permission dialog to the user and
@@ -7013,10 +7074,10 @@ declare namespace firebase.messaging {
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
      *
-     * @deprecated Use Notification.requestPermission() instead.
-     * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+     * @deprecated Use {@link https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission Notification.requestPermission()} instead.
      */
     requestPermission(): Promise<void>;
+
     /**
      * FCM directs push messages to your web page's `onMessage()` callback
      * if the user currently has it open. Otherwise, it calls
@@ -7030,15 +7091,49 @@ declare namespace firebase.messaging {
     setBackgroundMessageHandler(
       callback: (payload: any) => Promise<any> | void
     ): void;
+
     /**
      * To use your own service worker for receiving push messages, you
      * can pass in your service worker registration in this method.
      *
      * @param registration The service worker
      *   registration you wish to use for push messaging.
+     * 
+     *     @deprecated Use getToken(options?: {
+      vapidKey?: string;
+      serviceWorkerRegistration?: ServiceWorkerRegistration;
+    }): Promise<string>;.
      */
+
     useServiceWorker(registration: ServiceWorkerRegistration): void;
+
+    /**
+     * @deprecated Use getToken(options?: {
+      vapidKey?: string;
+      serviceWorkerRegistration?: ServiceWorkerRegistration;
+    }): Promise<string>;.
+     */
     usePublicVapidKey(b64PublicKey: string): void;
+  }
+
+  /**
+   * Message payload that contains the notification payload that is represented with {@link firebase.Messaging.NotificationPayload} and the data payload that contains an arbitrary number of key-value pairs sent by developers through the {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
+   */
+  export interface MessagePayload {
+    notification?: NotificationPayload;
+    data?: { [key: string]: string };
+  }
+
+  /**
+   * Notification parameters that define the display and behavior properties of a push notification.
+   */
+  export interface NotificationPayload {
+    title?: string;
+    body?: string;
+    image?: string;
+    clickAction?: string;
+    link?: string;
+    analyticsLabel?: string;
   }
 
   function isSupported(): boolean;

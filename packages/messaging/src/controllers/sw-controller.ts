@@ -15,22 +15,23 @@
  * limitations under the License.
  */
 
-import { deleteToken, getToken } from '../core/token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { DEFAULT_VAPID_KEY, FCM_MSG } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import {
   MessagePayload,
-  NotificationDetails
+  NotificationPayload
 } from '../interfaces/message-payload';
-import { FCM_MSG, DEFAULT_VAPID_KEY } from '../util/constants';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
-import { dbGet } from '../helpers/idb-manager';
-import { Unsubscribe } from '@firebase/util';
-import { sleep } from '../helpers/sleep';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import { deleteToken, getToken } from '../core/token-management';
+
 import { FirebaseApp } from '@firebase/app-types';
-import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { dbGet } from '../helpers/idb-manager';
+import { isConsoleMessage } from '../helpers/is-console-message';
+import { sleep } from '../helpers/sleep';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
@@ -40,6 +41,10 @@ export type BgMessageHandler = (payload: MessagePayload) => unknown;
 export class SwController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
   private bgMessageHandler: BgMessageHandler | null = null;
+  private onBackgroundMessageCallback:
+    | NextFn<MessagePayload>
+    | Observer<MessagePayload>
+    | null = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -61,7 +66,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
 
   /**
    * Calling setBackgroundMessageHandler will opt in to some specific
-   * behaviours.
+   * behaviors.
    * 1.) If a notification doesn't need to be shown due to a window already
    * being visible, then push messages will be sent to the page.
    * 2.) If a notification needs to be shown, and the message contains no
@@ -80,6 +85,24 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     }
 
     this.bgMessageHandler = callback;
+  }
+
+  onBackgroundMessage(
+    nextOrObserver: NextFn<object> | Observer<object>
+  ): Unsubscribe {
+    if (typeof nextOrObserver === 'function') {
+      this.onBackgroundMessageCallback = nextOrObserver;
+    } else if (typeof nextOrObserver.next === 'function') {
+      this.onBackgroundMessageCallback = nextOrObserver.next;
+    } else {
+      this.onBackgroundMessageCallback = nextOrObserver as Observer<
+        MessagePayload
+      >;
+    }
+
+    return () => {
+      this.onBackgroundMessageCallback = null;
+    };
   }
 
   // TODO: Remove getToken from SW Controller.
@@ -112,7 +135,6 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  // TODO: Deprecate this and make VAPID key a parameter in getToken.
   // TODO: Remove this together with getToken from SW Controller.
   usePublicVapidKey(vapidKey: string): void {
     if (this.vapidKey !== null) {
@@ -156,17 +178,31 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       return;
     }
 
+    // foreground handling
     const clientList = await getClientList();
     if (hasVisibleClients(clientList)) {
-      // App in foreground. Send to page.
       return sendMessageToWindowClients(clientList, payload);
     }
 
-    const notificationDetails = getNotificationData(payload);
-    if (notificationDetails) {
-      await showNotification(notificationDetails);
+    // background handling
+    const notificationPayload = getNotificationPayload(payload);
+    if (notificationPayload) {
+      await showNotification(notificationPayload);
     } else if (this.bgMessageHandler) {
       await this.bgMessageHandler(payload);
+    }
+
+    if (this.onBackgroundMessageCallback) {
+      if (this.onBackgroundMessageCallback as NextFn<MessagePayload>) {
+        await (this.onBackgroundMessageCallback as NextFn<MessagePayload>)(
+          payload
+        );
+        return;
+      }
+
+      await (this.onBackgroundMessageCallback as Observer<MessagePayload>).next(
+        payload
+      );
     }
   }
 
@@ -243,14 +279,14 @@ function getMessagePayload({ data }: PushEvent): MessagePayload | null {
   }
 }
 
-function getNotificationData(
+function getNotificationPayload(
   payload: MessagePayload
-): NotificationDetails | undefined {
+): NotificationPayload | undefined {
   if (!payload || typeof payload.notification !== 'object') {
     return;
   }
 
-  const notificationInformation: NotificationDetails = {
+  const notificationInformation: NotificationPayload = {
     ...payload.notification
   };
 
@@ -335,7 +371,7 @@ function createNewMessage(
   };
 }
 
-function showNotification(details: NotificationDetails): Promise<void> {
+function showNotification(details: NotificationPayload): Promise<void> {
   const title = details.title ?? '';
 
   const { actions } = details;

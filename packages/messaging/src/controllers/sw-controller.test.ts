@@ -1,3 +1,30 @@
+import '../testing/setup';
+
+import * as tokenManagementModule from '../core/token-management';
+
+import { BgMessageHandler, SwController } from './sw-controller';
+import {
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
+  CONSOLE_CAMPAIGN_NAME,
+  CONSOLE_CAMPAIGN_TIME,
+  DEFAULT_VAPID_KEY,
+  FCM_MSG
+} from '../util/constants';
+import { DeepPartial, ValueOf, Writable } from 'ts-essentials';
+import {
+  FakeEvent,
+  FakePushSubscription,
+  mockServiceWorker,
+  restoreServiceWorker
+} from '../testing/fakes/service-worker';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import { spy, stub } from 'sinon';
+
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { MessagePayload } from '../interfaces/message-payload';
+import { Stub } from '../testing/sinon-types';
+import { dbSet } from '../helpers/idb-manager';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -15,33 +42,8 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { stub, spy } from 'sinon';
-
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import '../testing/setup';
-import { SwController, BgMessageHandler } from './sw-controller';
-import * as tokenManagementModule from '../core/token-management';
-import { Stub } from '../testing/sinon-types';
-import { Writable, ValueOf, DeepPartial } from 'ts-essentials';
-import { MessagePayload } from '../interfaces/message-payload';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
-import {
-  mockServiceWorker,
-  restoreServiceWorker,
-  FakeEvent,
-  FakePushSubscription
-} from '../testing/fakes/service-worker';
-import {
-  FCM_MSG,
-  DEFAULT_VAPID_KEY,
-  CONSOLE_CAMPAIGN_ID,
-  CONSOLE_CAMPAIGN_NAME,
-  CONSOLE_CAMPAIGN_TIME,
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED
-} from '../util/constants';
-import { dbSet } from '../helpers/idb-manager';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;

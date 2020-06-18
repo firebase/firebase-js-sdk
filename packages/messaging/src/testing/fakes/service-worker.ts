@@ -98,7 +98,6 @@ export class FakeServiceWorkerRegistration
   active = null;
   installing = null;
   waiting = null;
-
   onupdatefound = null;
   pushManager = new FakePushManager();
   scope = '/scope-value';

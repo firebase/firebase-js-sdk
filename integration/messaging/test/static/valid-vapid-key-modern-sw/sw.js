@@ -25,10 +25,10 @@ importScripts('/firebase-messaging.js');
 firebase.initializeApp(FIREBASE_CONFIG);
 const messaging = firebase.messaging();
 
-messaging.setBackgroundMessageHandler(payload => {
+messaging.onBackgroundMessage(payload => {
   console.log(
     TAG +
-      'a background message is received in the background handler hook: ' +
+      'a background message is received in the onBackgroundMessage hook: ' +
       JSON.stringify(payload) +
       '. Storing it into idb for tests to read...'
   );

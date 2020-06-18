@@ -1,3 +1,19 @@
+import '../testing/setup';
+
+import * as tokenManagementModule from '../core/token-management';
+
+import {
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
+  CONSOLE_CAMPAIGN_NAME,
+  CONSOLE_CAMPAIGN_TIME,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE,
+  DEFAULT_VAPID_KEY
+} from '../util/constants';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
+import { Spy, Stub } from '../testing/sinon-types';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -14,32 +30,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
-import { stub, spy, SinonSpy, useFakeTimers, SinonFakeTimers } from 'sinon';
+import { assert, expect } from 'chai';
 
+import { ErrorCode } from '../util/errors';
+import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { WindowController } from './window-controller';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { ErrorCode } from '../util/errors';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import * as tokenManagementModule from '../core/token-management';
-import {
-  DEFAULT_VAPID_KEY,
-  DEFAULT_SW_SCOPE,
-  DEFAULT_SW_PATH,
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
-  CONSOLE_CAMPAIGN_ID,
-  CONSOLE_CAMPAIGN_NAME,
-  CONSOLE_CAMPAIGN_TIME
-} from '../util/constants';
-import { Stub, Spy } from '../testing/sinon-types';
-import '../testing/setup';
-import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
 
 type MessageEventListener = (event: Event) => Promise<void>;
 
-const ORIGINAL_SW_REGISTRATION = ServiceWorkerRegistration;
+const ORIGINAL_SW_REGISTRATION = FakeServiceWorkerRegistration;
 
 describe('WindowController', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -102,6 +104,134 @@ describe('WindowController', () => {
   });
 
   describe('getToken', () => {
+    it('uses default sw if none was registered nor provided', async () => {
+      assert.isUndefined(windowController.getSwReg());
+
+      await windowController.getToken({});
+
+      expect(registerStub).to.have.been.calledOnceWith(DEFAULT_SW_PATH, {
+        scope: DEFAULT_SW_SCOPE
+      });
+    });
+
+    it('uses option-provided swReg if non was registered', async () => {
+      assert.isUndefined(windowController.getSwReg());
+
+      await windowController.getToken({
+        serviceWorkerRegistration: swRegistration
+      });
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses previsouly stored sw if non is provided in the option parameter', async () => {
+      windowController.useServiceWorker(swRegistration);
+      assert.strictEqual(
+        JSON.stringify(windowController.getSwReg()),
+        JSON.stringify(swRegistration)
+      );
+
+      await windowController.getToken({});
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('new swReg overrides existing swReg ', async () => {
+      windowController.useServiceWorker(swRegistration);
+      assert.strictEqual(
+        JSON.stringify(windowController.getSwReg()),
+        JSON.stringify(swRegistration)
+      );
+
+      const otherSwReg = new FakeServiceWorkerRegistration();
+
+      await windowController.getToken({
+        serviceWorkerRegistration: otherSwReg
+      });
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        otherSwReg,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses default VAPID if: a) no VAPID was stored and b) non iss provided in option', async () => {
+      assert.strictEqual(windowController.getVapidKey(), null);
+
+      await windowController.getToken({});
+
+      assert.strictEqual(windowController.getVapidKey(), DEFAULT_VAPID_KEY);
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses option-provided VAPID if no VAPID has been registered', async () => {
+      assert.strictEqual(windowController.getVapidKey(), null);
+
+      await windowController.getToken({ vapidKey: 'test_vapid_key' });
+
+      assert.strictEqual(windowController.getVapidKey(), 'test_vapid_key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'test_vapid_key'
+      );
+    });
+
+    it('uses option-provided VAPID if it is different from currently registered VAPID', async () => {
+      windowController.usePublicVapidKey('old_key');
+      assert.strictEqual(windowController.getVapidKey(), 'old_key');
+
+      await windowController.getToken({ vapidKey: 'new_key' });
+
+      assert.strictEqual(windowController.getVapidKey(), 'new_key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'new_key'
+      );
+    });
+
+    it('uses existing VAPID if newly provided has the same value', async () => {
+      windowController.usePublicVapidKey('key');
+      assert.strictEqual(windowController.getVapidKey(), 'key');
+
+      await windowController.getToken({ vapidKey: 'key' });
+
+      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'key'
+      );
+    });
+
+    it('uses existing VAPID if non is provided in the option parameter', async () => {
+      windowController.usePublicVapidKey('key');
+      assert.strictEqual(windowController.getVapidKey(), 'key');
+
+      await windowController.getToken({});
+
+      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'key'
+      );
+    });
+
     it('throws if permission is denied', async () => {
       stub(Notification, 'permission').value('denied');
 

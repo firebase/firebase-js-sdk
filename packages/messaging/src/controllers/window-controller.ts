@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -15,25 +16,36 @@
  * limitations under the License.
  */
 
-import { getToken, deleteToken } from '../core/token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { FirebaseMessaging } from '@firebase/messaging-types';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import {
-  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
   DEFAULT_SW_PATH,
   DEFAULT_SW_SCOPE,
-  DEFAULT_VAPID_KEY
+  DEFAULT_VAPID_KEY,
+  TAG
 } from '../util/constants';
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
+import {
+  ConsoleMessageData,
+  MessagePayload
+} from '../interfaces/message-payload';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import { deleteToken, getToken } from '../core/token-management';
+
 import { FirebaseApp } from '@firebase/app-types';
-import { ConsoleMessageData } from '../interfaces/message-payload';
-import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { isConsoleMessage } from '../helpers/is-console-message';
 
 export class WindowController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
@@ -52,16 +64,41 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     return this.firebaseDependencies.app;
   }
 
-  async getToken(): Promise<string> {
-    if (!this.vapidKey) {
-      this.vapidKey = DEFAULT_VAPID_KEY;
+  private async messageEventListener(event: MessageEvent): Promise<void> {
+    if (!event.data?.firebaseMessaging) {
+      // Not a message from FCM
+      return;
     }
 
-    const swRegistration = await this.getServiceWorkerRegistration();
+    const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
 
-    // Check notification permission.
+    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
+      this.onMessageCallback(payload);
+    }
+
+    const { data } = payload;
+    if (
+      isConsoleMessage(data) &&
+      data[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+    ) {
+      // Analytics is enabled on this message, so we should log it.
+      await this.logEvent(type, data);
+    }
+  }
+
+  getVapidKey(): string | null {
+    return this.vapidKey;
+  }
+
+  getSwReg(): ServiceWorkerRegistration | undefined {
+    return this.swRegistration;
+  }
+
+  async getToken(options?: {
+    vapidKey?: string;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+  }): Promise<string> {
     if (Notification.permission === 'default') {
-      // The user hasn't allowed or denied notifications yet. Ask them.
       await Notification.requestPermission();
     }
 
@@ -69,13 +106,89 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
       throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
     }
 
-    return getToken(this.firebaseDependencies, swRegistration, this.vapidKey);
+    await this.updateVapidKey(options?.vapidKey);
+    await this.updateSwReg(options?.serviceWorkerRegistration);
+
+    if (!this.swRegistration) {
+      console.debug(
+        TAG +
+          'no sw has been provided explicitly. Attempting to find firebase-messaging-sw.js in default directory.'
+      );
+      await this.registerDefaultSw();
+    }
+
+    return getToken(
+      this.firebaseDependencies,
+      this.swRegistration!,
+      this.vapidKey!
+    );
+  }
+
+  async updateVapidKey(vapidKey: string | undefined): Promise<void> {
+    if (!!this.vapidKey && !!vapidKey && this.vapidKey !== vapidKey) {
+      console.debug(
+        TAG +
+          'newly provided VapidKey is different from previously stored VapidKey.  New VapidKey is overriding.'
+      );
+      this.vapidKey = vapidKey;
+    }
+
+    if (!this.vapidKey && !!vapidKey) {
+      this.vapidKey = vapidKey;
+    }
+
+    if (!this.vapidKey && !vapidKey) {
+      console.debug(
+        TAG +
+          'no VapidKey is provided. Using the default VapidKey. Note that Push will NOT work in Chrome without a non-default VapidKey.'
+      );
+      this.vapidKey = DEFAULT_VAPID_KEY;
+    }
+  }
+
+  async updateSwReg(
+    swRegistration: ServiceWorkerRegistration | undefined
+  ): Promise<void> {
+    if (!swRegistration) {
+      return;
+    }
+
+    if (!(swRegistration instanceof ServiceWorkerRegistration)) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_SW_REGISTRATION);
+    }
+
+    this.swRegistration = swRegistration;
+  }
+
+  private async registerDefaultSw(): Promise<void> {
+    try {
+      this.swRegistration = await navigator.serviceWorker.register(
+        DEFAULT_SW_PATH,
+        {
+          scope: DEFAULT_SW_SCOPE
+        }
+      );
+
+      // The timing when browser updates sw when sw has an update is unreliable by my experiment.
+      // It leads to version conflict when the SDK upgrades to a newer version in the main page, but
+      // sw is stuck with the old version. For example, https://github.com/firebase/firebase-js-sdk/issues/2590
+      // The following line reliably updates sw if there was an update.
+      this.swRegistration.update().catch(() => {
+        /* it is non blocking and we don't care if it failed */
+      });
+    } catch (e) {
+      throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
+        browserErrorMessage: e.message
+      });
+    }
   }
 
   async deleteToken(): Promise<boolean> {
-    const swRegistration = await this.getServiceWorkerRegistration();
+    if (!this.swRegistration) {
+      await this.registerDefaultSw();
+    }
 
-    return deleteToken(this.firebaseDependencies, swRegistration);
+    return deleteToken(this.firebaseDependencies, this.swRegistration!);
   }
 
   /**
@@ -101,7 +214,6 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     }
   }
 
-  // TODO: Deprecate this and make VAPID key a parameter in getToken.
   usePublicVapidKey(vapidKey: string): void {
     if (this.vapidKey !== null) {
       throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
@@ -129,9 +241,9 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   /**
    * @param nextOrObserver An observer object or a function triggered on
    * message.
+   *
    * @return The unsubscribe function for the observer.
    */
-  // TODO: Simplify this to only accept a function and not an Observer.
   onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
     this.onMessageCallback =
       typeof nextOrObserver === 'function'
@@ -147,64 +259,20 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
-  // Unimplemented
-  onTokenRefresh(): Unsubscribe {
-    return () => {};
+  onBackgroundMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
   /**
-   * Creates or updates the default service worker registration.
-   * @return The service worker registration to be used for the push service.
+   * No-op. It was initially designed with token rotation requests from server in mind. However, the plan to implement such feature was abandoned.
+   * @deprecated
    */
-  private async getServiceWorkerRegistration(): Promise<
-    ServiceWorkerRegistration
-  > {
-    if (!this.swRegistration) {
-      try {
-        this.swRegistration = await navigator.serviceWorker.register(
-          DEFAULT_SW_PATH,
-          {
-            scope: DEFAULT_SW_SCOPE
-          }
-        );
-
-        // The timing when browser updates sw when sw has an update is unreliable by my experiment.
-        // It leads to version conflict when the SDK upgrades to a newer version in the main page, but
-        // sw is stuck with the old version. For example, https://github.com/firebase/firebase-js-sdk/issues/2590
-        // The following line reliably updates sw if there was an update.
-        this.swRegistration.update().catch(() => {
-          /* it is non blocking and we don't care if it failed */
-        });
-      } catch (e) {
-        throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
-          browserErrorMessage: e.message
-        });
-      }
-    }
-
-    return this.swRegistration;
-  }
-
-  private async messageEventListener(event: MessageEvent): Promise<void> {
-    if (!event.data?.firebaseMessaging) {
-      // Not a message from FCM
-      return;
-    }
-
-    const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
-
-    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
-      this.onMessageCallback(payload);
-    }
-
-    const { data } = payload;
-    if (
-      isConsoleMessage(data) &&
-      data[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
-    ) {
-      // Analytics is enabled on this message, so we should log it.
-      await this.logEvent(type, data);
-    }
+  onTokenRefresh(): Unsubscribe {
+    return () => {};
   }
 
   private async logEvent(
