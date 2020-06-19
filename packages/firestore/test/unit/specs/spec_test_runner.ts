@@ -52,11 +52,16 @@ import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  toMutation,
+  toTarget,
+  toVersion
+} from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -76,7 +81,6 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
-  validateFirestoreError,
   filter,
   key,
   orderBy,
@@ -85,6 +89,7 @@ import {
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
+  validateFirestoreError,
   version
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
@@ -205,9 +210,10 @@ abstract class TestRunner {
     this.queue = new AsyncQueue();
     this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
 
-    this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
-      useProto3Json: true
-    });
+    this.serializer = new JsonProtoSerializer(
+      this.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
 
     this.useGarbageCollection = config.useGarbageCollection;
     this.numClients = config.numClients;
@@ -574,7 +580,7 @@ abstract class TestRunner {
     // separate event.
     const protoJSON: api.ListenResponse = {
       targetChange: {
-        readTime: this.serializer.toVersion(version(watchSnapshot.version)),
+        readTime: toVersion(this.serializer, version(watchSnapshot.version)),
         // Convert to base64 string so it can later be parsed into ByteString.
         resumeToken: this.platform.btoa(watchSnapshot.resumeToken || ''),
         targetIds: watchSnapshot.targetIds
@@ -621,14 +627,14 @@ abstract class TestRunner {
       expect(writes.length).to.equal(mutations.length);
       for (let i = 0; i < writes.length; ++i) {
         expect(writes[i]).to.deep.equal(
-          this.serializer.toMutation(mutations[i])
+          toMutation(this.serializer, mutations[i])
         );
       }
     });
   }
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
-    const updateTime = this.serializer.toVersion(version(writeAck.version));
+    const updateTime = toVersion(this.serializer, version(writeAck.version));
     const nextMutation = writeAck.keepInQueue
       ? this.sharedWrites.peek()
       : this.sharedWrites.shift();
@@ -943,7 +949,8 @@ abstract class TestRunner {
       // TODO(mcg): populate the purpose of the target once it's possible to
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
-      const expectedTarget = this.serializer.toTarget(
+      const expectedTarget = toTarget(
+        this.serializer,
         new TargetData(
           parseQuery(expected.queries[0]).toTarget(),
           targetId,

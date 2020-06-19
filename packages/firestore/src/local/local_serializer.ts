@@ -26,7 +26,17 @@ import {
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
-import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  fromDocument,
+  fromDocumentsTarget,
+  fromMutation,
+  fromQueryTarget,
+  JsonProtoSerializer,
+  toDocument,
+  toDocumentsTarget,
+  toMutation,
+  toQueryTarget
+} from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Target } from '../core/target';
@@ -49,7 +59,8 @@ export class LocalSerializer {
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
     if (remoteDoc.document) {
-      return this.remoteSerializer.fromDocument(
+      return fromDocument(
+        this.remoteSerializer,
         remoteDoc.document,
         !!remoteDoc.hasCommittedMutations
       );
@@ -76,7 +87,7 @@ export class LocalSerializer {
     const dbReadTime = this.toDbTimestampKey(readTime);
     const parentPath = maybeDoc.key.path.popLast().toArray();
     if (maybeDoc instanceof Document) {
-      const doc = this.remoteSerializer.toDocument(maybeDoc);
+      const doc = toDocument(this.remoteSerializer, maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,
@@ -140,10 +151,10 @@ export class LocalSerializer {
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */
   toDbMutationBatch(userId: string, batch: MutationBatch): DbMutationBatch {
     const serializedBaseMutations = batch.baseMutations.map(m =>
-      this.remoteSerializer.toMutation(m)
+      toMutation(this.remoteSerializer, m)
     );
     const serializedMutations = batch.mutations.map(m =>
-      this.remoteSerializer.toMutation(m)
+      toMutation(this.remoteSerializer, m)
     );
     return new DbMutationBatch(
       userId,
@@ -157,10 +168,10 @@ export class LocalSerializer {
   /** Decodes a DbMutationBatch into a MutationBatch */
   fromDbMutationBatch(dbBatch: DbMutationBatch): MutationBatch {
     const baseMutations = (dbBatch.baseMutations || []).map(m =>
-      this.remoteSerializer.fromMutation(m)
+      fromMutation(this.remoteSerializer, m)
     );
     const mutations = dbBatch.mutations.map(m =>
-      this.remoteSerializer.fromMutation(m)
+      fromMutation(this.remoteSerializer, m)
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
     return new MutationBatch(
@@ -181,9 +192,9 @@ export class LocalSerializer {
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
-      target = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
+      target = fromDocumentsTarget(dbTarget.query);
     } else {
-      target = this.remoteSerializer.fromQueryTarget(dbTarget.query);
+      target = fromQueryTarget(dbTarget.query);
     }
     return new TargetData(
       target,
@@ -211,9 +222,9 @@ export class LocalSerializer {
     );
     let queryProto: DbQuery;
     if (targetData.target.isDocumentQuery()) {
-      queryProto = this.remoteSerializer.toDocumentsTarget(targetData.target);
+      queryProto = toDocumentsTarget(this.remoteSerializer, targetData.target);
     } else {
-      queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
+      queryProto = toQueryTarget(this.remoteSerializer, targetData.target);
     }
 
     // We can't store the resumeToken as a ByteString in IndexedDb, so we
