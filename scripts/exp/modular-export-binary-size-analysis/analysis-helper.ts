@@ -22,12 +22,8 @@ import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
 import { TYPINGS } from './analysis';
-import * as glob from 'glob';
-import { projectRoot } from '../../utils';
-import {
-  mapPkgNameToPkgPath,
-  mapPkgNameToPkgJson
-} from '../../release/utils/workspace';
+import { request } from 'express';
+
 /** Contains a list of members by type. */
 export type MemberList = {
   classes: string[];
@@ -49,11 +45,13 @@ export type ExportData = { dependencies: MemberList; sizeInBytes: number };
  */
 export async function extractDependencies(
   exportName: string,
-  jsBundle: string
+  jsBundle: string,
+  allModuleLocations: string[]
 ): Promise<MemberList> {
   const { dependencies } = await extractDependenciesAndSize(
     exportName,
-    jsBundle
+    jsBundle,
+    allModuleLocations
   );
   return dependencies;
 }
@@ -64,11 +62,11 @@ export async function extractDependencies(
  */
 export async function extractDependenciesAndSize(
   exportName: string,
-  jsBundle: string
+  jsBundle: string,
+  allModuleLocations: string[]
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
-  console.log(input);
 
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
@@ -82,7 +80,7 @@ export async function extractDependenciesAndSize(
   });
   await bundle.write({ file: output, format: 'es' });
 
-  const dependencies = await extractDeclarations(output);
+  const dependencies = extractDeclarations(allModuleLocations, output);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -103,7 +101,10 @@ export async function extractDependenciesAndSize(
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
  */
-export async function extractDeclarations(jsFile: string): Promise<MemberList> {
+export function extractDeclarations(
+  allModulesLocation: string[],
+  jsFile: string
+): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
 
   const sourceFile = program.getSourceFile(jsFile);
@@ -117,10 +118,8 @@ export async function extractDeclarations(jsFile: string): Promise<MemberList> {
     variables: [],
     enums: []
   };
-  const promises: Array<Promise<void>> = [];
-
   ts.forEachChild(sourceFile, node => {
-    console.log(node.kind);
+    //console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -148,93 +147,62 @@ export async function extractDeclarations(jsFile: string): Promise<MemberList> {
     } else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
         const reExportPath: string = node.moduleSpecifier.text;
+
         let reExportFullPath = `${path.dirname(jsFile)}/${reExportPath}.d.ts`;
+        // check if it's an export within module or cross-module
+        if (isExternalModuleExports(reExportPath, reExportFullPath)) {
+          // check if it's a non-firebase module export -> we dont support
+          if (isNonFirebaseModuleExports(reExportPath)) {
+            console.log(
+              `${reExportPath} is a non-firebase module, and size analysis on non-firebase module is currently not supported`
+            );
+            return;
+          }
 
-        //   const resolvedFullPath = path.resolve(reExportFullPath);
-        promises.push(
-          (async () => {
-            if (isExternalModuleExports(reExportFullPath)) {
-              let externalModulePkgPath = await mapPkgNameToPkgPath(
-                reExportPath
-              );
-              if (!fs.existsSync(`${externalModulePkgPath}/package.json`)) {
-                console.log(
-                  `external module ${reExportPath} doesn't have package json file`
-                );
-              }
-              const externalModulePkgJson = require(`${externalModulePkgPath}/package.json`);
-
-              if (!externalModulePkgJson[TYPINGS]) {
-                console.log(
-                  `external module ${reExportPath} doesn't have typings field in package json`
-                );
-                return;
-              }
-              reExportFullPath = `${externalModulePkgPath}/${externalModulePkgJson[TYPINGS]}`;
-              console.log(reExportFullPath);
-            }
-            const reExportsMember = await extractDeclarations(reExportFullPath);
-
-            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-              node.exportClause.elements.forEach(exportSpecifier => {
-                const reExportedSymbol: string = extractRealSymbolName(
-                  exportSpecifier
-                );
-                //console.log(reExportedSymbol);
-                filterAllBy(reExportsMember, reExportedSymbol);
-                // if export is renamed, replace with new name
-
-                if (isExportRenamed(exportSpecifier)) {
-                  replaceAll(
-                    reExportsMember,
-                    reExportedSymbol,
-                    exportSpecifier.name.escapedText.toString()
-                  );
-                }
-              });
-            }
-            // concatename reExport MemberList with MemberList of the dts file
-            declarations.functions.push(...reExportsMember.functions);
-            declarations.variables.push(...reExportsMember.variables);
-            declarations.classes.push(...reExportsMember.classes);
-            declarations.enums.push(...reExportsMember.classes);
-          })()
+          reExportFullPath = extractExternalModuleDtsFilePath(
+            reExportPath,
+            allModulesLocation
+          );
+          if (!reExportFullPath) {
+            console.log(
+              `encountered error when attempting to access ${reExportPath} module's .d.ts file`
+            );
+            return;
+          }
+        }
+        const reExportsMember = extractDeclarations(
+          allModulesLocation,
+          reExportFullPath
         );
 
-        //}
-
-        // const reExportsMember = await extractDeclarations(path.resolve(reExportFullPath));
-        // console.log(reExportsMember);
-        // // for Named Exports : filter the reExportsMember to keep only the symbols
-        // // declared for re-export.
-        // if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-        //   node.exportClause.elements.forEach(exportSpecifier => {
-        //     const reExportedSymbol: string = extractRealSymbolName(
-        //       exportSpecifier
-        //     );
-        //     console.log(reExportedSymbol);
-        //     filterAllBy(reExportsMember, reExportedSymbol);
-        //     // if export is renamed, replace with new name
-
-        //     if (isExportRenamed(exportSpecifier)) {
-        //       replaceAll(
-        //         reExportsMember,
-        //         reExportedSymbol,
-        //         exportSpecifier.name.escapedText.toString()
-        //       );
-        //     }
-        //   });
-        // }
-        // // concatename reExport MemberList with MemberList of the dts file
-        // declarations.functions.push(...reExportsMember.functions);
-        // declarations.variables.push(...reExportsMember.variables);
-        // declarations.classes.push(...reExportsMember.classes);
-        // declarations.enums.push(...reExportsMember.classes);
+        if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+          const actualExports: string[] = [];
+          node.exportClause.elements.forEach(exportSpecifier => {
+            const reExportedSymbol: string = extractRealSymbolName(
+              exportSpecifier
+            );
+            // if export is renamed, replace with new name
+            if (isExportRenamed(exportSpecifier)) {
+              actualExports.push(exportSpecifier.name.escapedText.toString());
+              replaceAll(
+                reExportsMember,
+                reExportedSymbol,
+                exportSpecifier.name.escapedText.toString()
+              );
+            } else {
+              actualExports.push(reExportedSymbol);
+            }
+          });
+          filterAllBy(reExportsMember, actualExports);
+        }
+        // concatename reExport MemberList with MemberList of the dts file
+        declarations.functions.push(...reExportsMember.functions);
+        declarations.variables.push(...reExportsMember.variables);
+        declarations.classes.push(...reExportsMember.classes);
+        declarations.enums.push(...reExportsMember.enums);
       }
     }
   });
-  await Promise.all(promises);
-  console.log('promises all resolved');
   // Sort to ensure stable output
   declarations.functions.sort();
   declarations.classes.sort();
@@ -244,32 +212,46 @@ export async function extractDeclarations(jsFile: string): Promise<MemberList> {
   return declarations;
 }
 
-function extractExternalModuleExportsDtsFile(moduleIdentifier: string): string {
+function extractExternalModuleDtsFilePath(
+  moduleIdentifier: string,
+  allModulesLocation: string[]
+): string {
+  const modulePath = allModulesLocation
+    .filter(path => {
+      try {
+        const json = require(`${path}/package.json`);
+        return json.name === moduleIdentifier;
+      } catch (err) {
+        return null;
+      }
+    })
+    .reduce(val => val);
   try {
-    //@firebase/logger
-    const externalModulePackageJson = require.resolve(
-      `${moduleIdentifier}/package.json`
-    );
-    const packageJsonLoaded = require(`${moduleIdentifier}/package.json`);
-    if (packageJsonLoaded[TYPINGS]) {
-      return `${path.dirname(externalModulePackageJson)}/${
-        packageJsonLoaded[TYPINGS]
-      }`;
+    const pkgJson = require(`${modulePath}/package.json`);
+    if (pkgJson[TYPINGS]) {
+      return `${modulePath}/${pkgJson[TYPINGS]}`;
     }
     return null;
-  } catch (e) {
-    console.log(e);
-    throw new Error(e);
+  } catch (err) {
+    return null;
   }
 }
-function isExternalModuleExports(exportPath: string): boolean {
-  return !fs.existsSync(path.resolve(exportPath));
+function isNonFirebaseModuleExports(moduleIdentifier: string): boolean {
+  return !moduleIdentifier.includes('@firebase');
 }
-function isReExported(symbol: string, reExportedSymbol: string): boolean {
-  return symbol.localeCompare(reExportedSymbol) == 0;
+
+function isExternalModuleExports(
+  reExportPath: string,
+  exportPath: string
+): boolean {
+  return !fs.existsSync(exportPath);
+}
+function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
+  return reExportedSymbols.includes(symbol);
 }
 
 function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
+  //console.log(exportSpecifier);
   // if property name is not null -> export is renamed
   if (exportSpecifier.propertyName) {
     return exportSpecifier.propertyName.escapedText.toString();
@@ -277,7 +259,7 @@ function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
 
   return exportSpecifier.name.escapedText.toString();
 }
-function filterAllBy(memberList: MemberList, keep: string) {
+function filterAllBy(memberList: MemberList, keep: string[]) {
   memberList.functions = memberList.functions.filter(each =>
     isReExported(each, keep)
   );

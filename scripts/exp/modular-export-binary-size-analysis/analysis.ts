@@ -34,7 +34,7 @@ const BUNDLE: string = 'esm2017';
 const OUTPUTDIR: string = './dependencies';
 const DUMMYMODULE: string = '@firebase/dummy-exp';
 
-async function collectBinarySize(path) {
+function collectBinarySize(allModuleLocations: string[], path: string) {
   const packageJsonPath = `${path}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
     return;
@@ -47,21 +47,23 @@ async function collectBinarySize(path) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
-    const publicApi = await extractDeclarations(resolve(dtsFile));
+    const publicApi = extractDeclarations(allModuleLocations, resolve(dtsFile));
+
     if (!packageJson[BUNDLE]) {
       console.log('This module does not have bundle file!');
       return;
     }
     console.log(publicApi);
     // calculate binary size for every export and build a json report
-    buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`).then(json => {
-      console.log(json);
-      //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
-    });
+    // buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, allModuleLocations).then(json => {
+    //   console.log(json);
+    //   //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
+    // });
   }
 }
 
-async function traverseDirs(
+function traverseDirs(
+  allModulesLocation: string[],
   moduleLocation: string,
   executor,
   level: number,
@@ -71,45 +73,61 @@ async function traverseDirs(
     return;
   }
 
-  await executor(moduleLocation);
+  executor(allModulesLocation, moduleLocation);
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      await traverseDirs(p, executor, level + 1, levelLimit);
+      allModulesLocation.push(p);
+      traverseDirs(allModulesLocation, p, executor, level + 1, levelLimit);
     }
   }
 }
 
 async function buildJson(
   publicApi: MemberList,
-  jsFile: string
+  jsFile: string,
+  allModuleLocations: string[]
 ): Promise<string> {
   const result: { [key: string]: ExportData } = {};
   for (const exp of publicApi.classes) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile);
+    result[exp] = await extractDependenciesAndSize(
+      exp,
+      jsFile,
+      allModuleLocations
+    );
   }
   for (const exp of publicApi.functions) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile);
+    result[exp] = await extractDependenciesAndSize(
+      exp,
+      jsFile,
+      allModuleLocations
+    );
   }
   //console.log(publicApi.variables);
   for (const exp of publicApi.variables) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile);
+    result[exp] = await extractDependenciesAndSize(
+      exp,
+      jsFile,
+      allModuleLocations
+    );
   }
   return JSON.stringify(result, null, 4);
 }
 
 async function main() {
   // retrieve All Modules Name
-  const allModulesLocaion = await mapWorkspaceToPackages([
-    `${projectRoot}/packages-exp/*`
+  const allModulesLocation = await mapWorkspaceToPackages([
+    `${projectRoot}/packages-exp/*`,
+    `${projectRoot}/packages/*`
   ]);
+  //console.log(allModulesLocation);
 
-  for (const moduleLocation of allModulesLocaion) {
+  for (const moduleLocation of allModulesLocation) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(moduleLocation, collectBinarySize, 0, 1);
+    traverseDirs(allModulesLocation, moduleLocation, collectBinarySize, 0, 1);
   }
 }
 main();
