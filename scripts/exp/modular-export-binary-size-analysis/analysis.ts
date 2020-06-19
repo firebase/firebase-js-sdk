@@ -43,7 +43,7 @@ function collectBinarySize(allModuleLocations: string[], path: string) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS] && packageJson.name == DUMMYMODULE) {
+  if (packageJson[TYPINGS]) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
@@ -122,8 +122,6 @@ async function main() {
     `${projectRoot}/packages-exp/*`,
     `${projectRoot}/packages/*`
   ]);
-  //console.log(allModulesLocation);
-
   for (const moduleLocation of allModulesLocation) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.

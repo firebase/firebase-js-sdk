@@ -16,7 +16,7 @@
  */
 
 export * from './bar';
-export { foo1 } from './foo';
+export { foo1, fooo, Apple, BUG } from './foo';
 export { foo2 as foo3 } from './foo';
 import { SDK_VERSION } from './bar';
 import { far } from './far';

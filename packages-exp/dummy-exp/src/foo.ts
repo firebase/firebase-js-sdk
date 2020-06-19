@@ -25,3 +25,15 @@ export function foo1(): string {
 export function foo2(): string {
   return 'foo2';
 }
+export class Apple {}
+
+export enum BUG {
+  DEBUG = 0,
+  VERBOSE = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  SILENT = 5
+}
+export const fooo: string = 'foooo';
+export const f1: string = 'f1';

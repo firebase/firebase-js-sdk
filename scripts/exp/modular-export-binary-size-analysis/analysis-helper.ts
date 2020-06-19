@@ -106,6 +106,7 @@ export function extractDeclarations(
   jsFile: string
 ): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
+  const checker = program.getTypeChecker();
 
   const sourceFile = program.getSourceFile(jsFile);
   if (!sourceFile) {
@@ -118,8 +119,8 @@ export function extractDeclarations(
     variables: [],
     enums: []
   };
+
   ts.forEachChild(sourceFile, node => {
-    //console.log(node.kind);
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -133,7 +134,7 @@ export function extractDeclarations(
       variableDeclarations.forEach(variableDeclaration => {
         if (ts.isIdentifier(variableDeclaration.name)) {
           declarations.variables.push(
-            (variableDeclaration.name as ts.Identifier).escapedText.toString()
+            (variableDeclaration.name as ts.Identifier).getText(sourceFile)
           );
         }
         // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
@@ -146,35 +147,15 @@ export function extractDeclarations(
       });
     } else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        const reExportPath: string = node.moduleSpecifier.text;
-
-        let reExportFullPath = `${path.dirname(jsFile)}/${reExportPath}.d.ts`;
-        // check if it's an export within module or cross-module
-        if (isExternalModuleExports(reExportPath, reExportFullPath)) {
-          // check if it's a non-firebase module export -> we dont support
-          if (isNonFirebaseModuleExports(reExportPath)) {
-            console.log(
-              `${reExportPath} is a non-firebase module, and size analysis on non-firebase module is currently not supported`
-            );
-            return;
-          }
-
-          reExportFullPath = extractExternalModuleDtsFilePath(
-            reExportPath,
-            allModulesLocation
-          );
-          if (!reExportFullPath) {
-            console.log(
-              `encountered error when attempting to access ${reExportPath} module's .d.ts file`
-            );
-            return;
-          }
-        }
+        const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+        const reExportFullPath = symbol.valueDeclaration.getSourceFile()
+          .fileName;
         const reExportsMember = extractDeclarations(
           allModulesLocation,
           reExportFullPath
         );
 
+        // named exports
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
           const actualExports: string[] = [];
           node.exportClause.elements.forEach(exportSpecifier => {
@@ -212,40 +193,6 @@ export function extractDeclarations(
   return declarations;
 }
 
-function extractExternalModuleDtsFilePath(
-  moduleIdentifier: string,
-  allModulesLocation: string[]
-): string {
-  const modulePath = allModulesLocation
-    .filter(path => {
-      try {
-        const json = require(`${path}/package.json`);
-        return json.name === moduleIdentifier;
-      } catch (err) {
-        return null;
-      }
-    })
-    .reduce(val => val);
-  try {
-    const pkgJson = require(`${modulePath}/package.json`);
-    if (pkgJson[TYPINGS]) {
-      return `${modulePath}/${pkgJson[TYPINGS]}`;
-    }
-    return null;
-  } catch (err) {
-    return null;
-  }
-}
-function isNonFirebaseModuleExports(moduleIdentifier: string): boolean {
-  return !moduleIdentifier.includes('@firebase');
-}
-
-function isExternalModuleExports(
-  reExportPath: string,
-  exportPath: string
-): boolean {
-  return !fs.existsSync(exportPath);
-}
 function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
   return reExportedSymbols.includes(symbol);
 }
