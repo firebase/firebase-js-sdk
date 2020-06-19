@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,28 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import {
-  getWindow as nodeGetWindow,
-  getDocument as nodeGetDocument
-} from './node/dom';
-import {
-  getWindow as rnGetWindow,
-  getDocument as rnGetDocument
-} from './rn/dom';
-import {
-  getWindow as browserGetWindow,
-  getDocument as browserGetDocument
-} from './browser/dom';
+import * as node from './node/dom';
+import * as rn from './rn/dom';
+import * as browser from './browser/dom';
 
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {
   if (isNode()) {
-    return nodeGetWindow();
+    return node.getWindow();
   } else if (isReactNative()) {
-    return rnGetWindow();
+    return rn.getWindow();
   } else {
-    return browserGetWindow();
+    return browser.getWindow();
   }
 }
 
 /** The Platform's 'document' implementation or null if not available. */
 export function getDocument(): Document | null {
   if (isNode()) {
-    return nodeGetDocument();
+    return node.getDocument();
   } else if (isReactNative()) {
-    return rnGetDocument();
+    return rn.getDocument();
   } else {
-    return browserGetDocument();
+    return browser.getDocument();
   }
 }

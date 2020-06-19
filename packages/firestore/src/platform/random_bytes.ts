@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import { randomBytes as nodeRandomBytes } from './node/random_bytes';
-import { randomBytes as rnRandomBytes } from './rn/random_bytes';
-import { randomBytes as browserRandomBytes } from './browser/random_bytes';
+import * as node from './node/random_bytes';
+import * as rn from './rn/random_bytes';
+import * as browser from './browser/random_bytes';
 
 /**
  * Generates `nBytes` of random bytes.
@@ -27,10 +27,10 @@ import { randomBytes as browserRandomBytes } from './browser/random_bytes';
  */
 export function randomBytes(nBytes: number): Uint8Array {
   if (isNode()) {
-    return nodeRandomBytes(nBytes);
+    return node.randomBytes(nBytes);
   } else if (isReactNative()) {
-    return rnRandomBytes(nBytes);
+    return rn.randomBytes(nBytes);
   } else {
-    return browserRandomBytes(nBytes);
+    return browser.randomBytes(nBytes);
   }
 }

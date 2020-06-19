@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import { formatJSON as nodeFormatJSON } from './node/format_json';
-import { formatJSON as rnFormatJSON } from './rn/format_json';
-import { formatJSON as browserFormatJSON } from './browser/format_json';
+import * as node from './node/format_json';
+import * as rn from './rn/format_json';
+import * as browser from './browser/format_json';
 
 /** Formats an object as a JSON string, suitable for logging. */
 export function formatJSON(value: unknown): string {
   if (isNode()) {
-    return nodeFormatJSON(value);
+    return node.formatJSON(value);
   } else if (isReactNative()) {
-    return rnFormatJSON(value);
+    return rn.formatJSON(value);
   } else {
-    return browserFormatJSON(value);
+    return browser.formatJSON(value);
   }
 }

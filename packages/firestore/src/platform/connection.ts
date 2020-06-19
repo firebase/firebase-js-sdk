@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,29 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import {
-  newConnectivityMonitor as nodeNewConnectivityMonitor,
-  newConnection as nodeNewConnection
-} from './node/connection';
-import {
-  newConnectivityMonitor as rnNewConnectivityMonitor,
-  newConnection as rnNewConnection
-} from './rn/connection';
-import {
-  newConnectivityMonitor as browserNewConnectivityMonitor,
-  newConnection as browserNewConnection
-} from './browser/connection';
+import * as node from './node/connection';
+import * as rn from './rn/connection';
+import * as browser from './browser/connection';
 import { ConnectivityMonitor } from '../remote/connectivity_monitor';
 import { DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
 
 export function newConnectivityMonitor(): ConnectivityMonitor {
   if (isNode()) {
-    return nodeNewConnectivityMonitor();
+    return node.newConnectivityMonitor();
   } else if (isReactNative()) {
-    return rnNewConnectivityMonitor();
+    return rn.newConnectivityMonitor();
   } else {
-    return browserNewConnectivityMonitor();
+    return browser.newConnectivityMonitor();
   }
 }
 
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
   if (isNode()) {
-    return nodeNewConnection(databaseInfo);
+    return node.newConnection(databaseInfo);
   } else if (isReactNative()) {
-    return rnNewConnection(databaseInfo);
+    return rn.newConnection(databaseInfo);
   } else {
-    return browserNewConnection(databaseInfo);
+    return browser.newConnection(databaseInfo);
   }
 }

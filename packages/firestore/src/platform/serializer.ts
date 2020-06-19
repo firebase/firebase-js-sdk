@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import { newSerializer as nodeNewSerializer } from './node/serializer';
-import { newSerializer as rnNewSerializer } from './rn/serializer';
-import { newSerializer as browserNewSerializer } from './browser/serializer';
+import * as node from './node/serializer';
+import * as rn from './rn/serializer';
+import * as browser from './browser/serializer';
 import { DatabaseId } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
 
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   if (isNode()) {
-    return nodeNewSerializer(databaseId);
+    return node.newSerializer(databaseId);
   } else if (isReactNative()) {
-    return rnNewSerializer(databaseId);
+    return rn.newSerializer(databaseId);
   } else {
-    return browserNewSerializer(databaseId);
+    return browser.newSerializer(databaseId);
   }
 }
