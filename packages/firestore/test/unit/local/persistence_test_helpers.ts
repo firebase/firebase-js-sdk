@@ -86,9 +86,10 @@ export const INDEXEDDB_TEST_DATABASE_NAME =
   IndexedDbPersistence.buildStoragePrefix(TEST_DATABASE_INFO) +
   IndexedDbPersistence.MAIN_DATABASE;
 
-const JSON_SERIALIZER = new JsonProtoSerializer(TEST_DATABASE_ID, {
-  useProto3Json: true
-});
+const JSON_SERIALIZER = new JsonProtoSerializer(
+  TEST_DATABASE_ID,
+  /* useProto3Json= */ true
+);
 
 /**
  * IndexedDb serializer that uses `TEST_DATABASE_ID` as its database

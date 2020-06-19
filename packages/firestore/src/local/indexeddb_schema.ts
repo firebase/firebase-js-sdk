@@ -483,7 +483,7 @@ export class DbMutationBatch {
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     * Mutations are serialized via toMutation().
      */
     public mutations: api.Write[]
   ) {}

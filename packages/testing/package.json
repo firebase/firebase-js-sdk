@@ -14,7 +14,8 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
+    "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
+    "test": "firebase emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "prepare": "yarn build"
   },
@@ -23,13 +24,12 @@
     "firebase": "7.15.2",
     "@firebase/logger": "0.2.5",
     "@firebase/util": "0.2.49",
-    "@types/request": "2.48.4",
     "request": "2.88.2"
   },
   "devDependencies": {
+    "@types/request": "2.48.4",
+    "firebase-tools": "^8.4.3",
     "rollup": "2.7.6",
-    "rollup-plugin-copy-assets": "1.1.0",
-    "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.27.0"
   },
   "repository": {
