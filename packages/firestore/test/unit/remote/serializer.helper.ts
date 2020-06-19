@@ -973,9 +973,7 @@ export function serializerTest(
           documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
           targetId: 1
         });
-        expect(fromDocumentsTarget(s, toDocumentsTarget(s, q))).to.deep.equal(
-          q
-        );
+        expect(fromDocumentsTarget(toDocumentsTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts first-level ancestor queries', () => {
@@ -996,7 +994,7 @@ export function serializerTest(
           },
           targetId: 1
         });
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts nested ancestor queries', () => {
@@ -1020,7 +1018,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts single filters at first-level collections', () => {
@@ -1055,7 +1053,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts multiple filters at first-level collections', () => {
@@ -1127,7 +1125,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts single filters on deeper collections', () => {
@@ -1162,7 +1160,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts order bys', () => {
@@ -1190,7 +1188,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts limits', () => {
@@ -1215,7 +1213,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts startAt/endAt', () => {
@@ -1268,7 +1266,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(s, toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts resume tokens', () => {

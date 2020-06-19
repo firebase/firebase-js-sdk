@@ -153,7 +153,6 @@ function toInt32Proto(
  * Returns a number (or null) from a google.protobuf.Int32Value proto.
  */
 function fromInt32Proto(
-  serializer: JsonProtoSerializer,
   val: number | { value: number } | undefined
 ): number | null {
   let result;
@@ -629,7 +628,7 @@ export function fromMutation(
   proto: api.Write
 ): Mutation {
   const precondition = proto.currentDocument
-    ? fromPrecondition(serializer, proto.currentDocument)
+    ? fromPrecondition(proto.currentDocument)
     : Precondition.none();
 
   if (proto.update) {
@@ -681,10 +680,7 @@ function toPrecondition(
   }
 }
 
-function fromPrecondition(
-  serializer: JsonProtoSerializer,
-  precondition: api.Precondition
-): Precondition {
+function fromPrecondition(precondition: api.Precondition): Precondition {
   if (precondition.updateTime !== undefined) {
     return Precondition.updateTime(fromVersion(precondition.updateTime));
   } else if (precondition.exists !== undefined) {
@@ -805,7 +801,6 @@ export function toDocumentsTarget(
 }
 
 export function fromDocumentsTarget(
-  serializer: JsonProtoSerializer,
   documentsTarget: api.DocumentsTarget
 ): Target {
   const count = documentsTarget.documents!.length;
@@ -870,10 +865,7 @@ export function toQueryTarget(
   return result;
 }
 
-export function fromQueryTarget(
-  serializer: JsonProtoSerializer,
-  target: api.QueryTarget
-): Target {
+export function fromQueryTarget(target: api.QueryTarget): Target {
   let path = fromQueryPath(target.parent!);
 
   const query = target.structuredQuery!;
@@ -904,7 +896,7 @@ export function fromQueryTarget(
 
   let limit: number | null = null;
   if (query.limit) {
-    limit = fromInt32Proto(serializer, query.limit);
+    limit = fromInt32Proto(query.limit);
   }
 
   let startAt: Bound | null = null;

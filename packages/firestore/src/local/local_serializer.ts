@@ -192,9 +192,9 @@ export class LocalSerializer {
 
     let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
-      target = fromDocumentsTarget(this.remoteSerializer, dbTarget.query);
+      target = fromDocumentsTarget(dbTarget.query);
     } else {
-      target = fromQueryTarget(this.remoteSerializer, dbTarget.query);
+      target = fromQueryTarget(dbTarget.query);
     }
     return new TargetData(
       target,
