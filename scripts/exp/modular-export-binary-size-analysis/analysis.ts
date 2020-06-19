@@ -79,7 +79,7 @@ function traverseDirs(
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      allModulesLocation.push(p);
+      //allModulesLocation.push(p);
       traverseDirs(allModulesLocation, p, executor, level + 1, levelLimit);
     }
   }
@@ -119,8 +119,8 @@ async function buildJson(
 async function main() {
   // retrieve All Modules Name
   const allModulesLocation = await mapWorkspaceToPackages([
-    `${projectRoot}/packages-exp/*`,
-    `${projectRoot}/packages/*`
+    `${projectRoot}/packages-exp/*`
+    // `${projectRoot}/packages/*`
   ]);
   for (const moduleLocation of allModulesLocation) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
