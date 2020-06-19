@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+import { expect } from 'chai';
+import { testFxn } from '../src';
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+describe('Simple test', () => {
+  it('Should skip this test');
+  it('Should test this fxn', () => {
+    expect(testFxn()).to.equal(42);
+  });
+  it('Should test this async thing', async () => {
+    // Do some async assertions, you can use `await` syntax if it helps
+    const val = await Promise.resolve(42);
+    expect(val).to.equal(42);
+  });
+});

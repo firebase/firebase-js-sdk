@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,33 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
+import resolve from '@rollup/plugin-node-resolve';
+import strip from '@rollup/plugin-strip';
 import pkg from './package.json';
-import typescript from 'typescript';
-
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+/**
+ * Common plugins for all builds
+ */
+const commonPlugins = [
+  strip({
+    functions: ['debugAssert.*']
+  }),
+  resolve()
+];
+
+const es5Builds = [
+  /**
+   * Browser Builds
+   */
+  {
+    input: 'src/index.js',
+    output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
+    plugins: commonPlugins
+  }
+];
+
+export default [...es5Builds];

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,26 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Auth } from '../../model/auth';
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
+export interface CreateAuthUriRequest {
+  identifier: string;
+  continueUri: string;
+}
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+export interface CreateAuthUriResponse {
+  signinMethods: string[];
+}
 
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+export async function createAuthUri(
+  auth: Auth,
+  request: CreateAuthUriRequest
+): Promise<CreateAuthUriResponse> {
+  return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.CREATE_AUTH_URI,
+    request
+  );
+}

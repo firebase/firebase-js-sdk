@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,14 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+export function _getCurrentUrl(): string {
+  return self?.location?.href || '';
+}
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
+export function _isHttpOrHttps(): boolean {
+  return _getCurrentScheme() === 'http:' || _getCurrentScheme() === 'https:';
+}
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+export function _getCurrentScheme(): string | null {
+  return self?.location?.protocol || null;
+}

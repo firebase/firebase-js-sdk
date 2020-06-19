@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,21 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+const karmaBase = require('../../config/karma.base');
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
+const files = ['src/**/*.test.ts'];
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+module.exports = function(config) {
+  const karmaConfig = Object.assign({}, karmaBase, {
+    // files to load into karma
+    files: files,
+    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
+    // frameworks to use
+    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    frameworks: ['mocha']
+  });
 
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  config.set(karmaConfig);
 };
+
+module.exports.files = files;

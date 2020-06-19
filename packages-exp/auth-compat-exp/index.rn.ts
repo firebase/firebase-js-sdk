@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,15 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+/**
+ * This is the file that people using React Native will actually import. You
+ * should only include this file if you have something specific about your
+ * implementation that mandates having a separate entrypoint. Otherwise you can
+ * just use index.ts
+ */
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
+import { AsyncStorage } from 'react-native';
+import { ReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react_native';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const reactNativeLocalPersistence = new ReactNativePersistence(AsyncStorage);
