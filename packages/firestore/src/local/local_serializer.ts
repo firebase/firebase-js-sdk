@@ -51,7 +51,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { serialize } from '@grpc/grpc-js';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
