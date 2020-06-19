@@ -37,16 +37,16 @@ export function fromRef(
   return _fromRef(ref, options);
 }
 
-export function fromDocRef(
-  ref: firestore.DocumentReference,
+export function fromDocRef<T>(
+  ref: firestore.DocumentReference<T>,
   options?: firestore.SnapshotListenOptions
-): Observable<firestore.DocumentSnapshot> {
-  return fromRef(ref, options) as Observable<firestore.DocumentSnapshot>;
+): Observable<firestore.DocumentSnapshot<T>> {
+  return fromRef(ref, options) as Observable<firestore.DocumentSnapshot<T>>;
 }
 
-export function fromCollectionRef(
-  ref: firestore.Query,
+export function fromCollectionRef<T>(
+  ref: firestore.Query<T>,
   options?: firestore.SnapshotListenOptions
-): Observable<firestore.QuerySnapshot> {
-  return fromRef(ref, options) as Observable<firestore.QuerySnapshot>;
+): Observable<firestore.QuerySnapshot<T>> {
+  return fromRef(ref, options) as Observable<firestore.QuerySnapshot<T>>;
 }

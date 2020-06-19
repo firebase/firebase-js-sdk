@@ -32,10 +32,10 @@ const ALL_EVENTS: firestore.DocumentChangeType[] = [
  * are specified by the event filter. If the document change type is not
  * in specified events array, it will not be emitted.
  */
-const filterEvents = (
+const filterEvents = <T>(
   events?: firestore.DocumentChangeType[]
-): MonoTypeOperatorFunction<firestore.DocumentChange[]> =>
-  filter((changes: firestore.DocumentChange[]) => {
+): MonoTypeOperatorFunction<Array<firestore.DocumentChange<T>>> =>
+  filter((changes: Array<firestore.DocumentChange<T>>) => {
     let hasChange = false;
     for (let i = 0; i < changes.length; i++) {
       const change = changes[i];
@@ -53,7 +53,7 @@ const filterEvents = (
  * This creates an empty array and would be incorrect to emit.
  */
 const filterEmpty = filter(
-  (changes: firestore.DocumentChange[]) => changes.length > 0
+  <T>(changes: Array<firestore.DocumentChange<T>>) => changes.length > 0
 );
 
 /**
@@ -76,10 +76,10 @@ function sliceAndSplice<T>(
  * @param combined
  * @param change
  */
-function processIndividualChange(
-  combined: firestore.DocumentChange[],
-  change: firestore.DocumentChange
-): firestore.DocumentChange[] {
+function processIndividualChange<T>(
+  combined: Array<firestore.DocumentChange<T>>,
+  change: firestore.DocumentChange<T>
+): Array<firestore.DocumentChange<T>> {
   switch (change.type) {
     case 'added':
       if (
@@ -129,11 +129,11 @@ function processIndividualChange(
  * @param changes
  * @param events
  */
-function processDocumentChanges(
-  current: firestore.DocumentChange[],
-  changes: firestore.DocumentChange[],
+function processDocumentChanges<T>(
+  current: Array<firestore.DocumentChange<T>>,
+  changes: Array<firestore.DocumentChange<T>>,
   events: firestore.DocumentChangeType[] = ALL_EVENTS
-): firestore.DocumentChange[] {
+): Array<firestore.DocumentChange<T>> {
   changes.forEach(change => {
     // skip unwanted change types
     if (events.indexOf(change.type) > -1) {
@@ -148,10 +148,10 @@ function processDocumentChanges(
  * order of occurence.
  * @param query
  */
-export function collectionChanges(
-  query: firestore.Query,
+export function collectionChanges<T>(
+  query: firestore.Query<T>,
   events: firestore.DocumentChangeType[] = ALL_EVENTS
-): Observable<firestore.DocumentChange[]> {
+): Observable<Array<firestore.DocumentChange<T>>> {
   return fromCollectionRef(query).pipe(
     map(snapshot => snapshot.docChanges()),
     filterEvents(events),
@@ -163,9 +163,9 @@ export function collectionChanges(
  * Return a stream of document snapshots on a query. These results are in sort order.
  * @param query
  */
-export function collection(
-  query: firestore.Query
-): Observable<firestore.QueryDocumentSnapshot[]> {
+export function collection<T>(
+  query: firestore.Query<T>
+): Observable<Array<firestore.QueryDocumentSnapshot<T>>> {
   return fromCollectionRef(query).pipe(map(changes => changes.docs));
 }
 
@@ -173,15 +173,15 @@ export function collection(
  * Return a stream of document changes on a query. These results are in sort order.
  * @param query
  */
-export function sortedChanges(
-  query: firestore.Query,
+export function sortedChanges<T>(
+  query: firestore.Query<T>,
   events?: firestore.DocumentChangeType[]
-): Observable<firestore.DocumentChange[]> {
+): Observable<Array<firestore.DocumentChange<T>>> {
   return collectionChanges(query, events).pipe(
     scan(
       (
-        current: firestore.DocumentChange[],
-        changes: firestore.DocumentChange[]
+        current: Array<firestore.DocumentChange<T>>,
+        changes: Array<firestore.DocumentChange<T>>
       ) => processDocumentChanges(current, changes, events),
       []
     ),
@@ -193,14 +193,14 @@ export function sortedChanges(
  * Create a stream of changes as they occur it time. This method is similar
  * to docChanges() but it collects each event in an array over time.
  */
-export function auditTrail(
-  query: firestore.Query,
+export function auditTrail<T>(
+  query: firestore.Query<T>,
   events?: firestore.DocumentChangeType[]
-): Observable<firestore.DocumentChange[]> {
+): Observable<Array<firestore.DocumentChange<T>>> {
   return collectionChanges(query, events).pipe(
     scan(
       (current, action) => [...current, ...action],
-      [] as firestore.DocumentChange[]
+      [] as Array<firestore.DocumentChange<T>>
     )
   );
 }
@@ -210,7 +210,7 @@ export function auditTrail(
  * @param query
  */
 export function collectionData<T>(
-  query: firestore.Query,
+  query: firestore.Query<T>,
   idField?: string
 ): Observable<T[]> {
   return collection(query).pipe(

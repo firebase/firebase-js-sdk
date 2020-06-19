@@ -20,9 +20,9 @@ import { fromDocRef } from '../fromRef';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-export function doc(
-  ref: firestore.DocumentReference
-): Observable<firestore.DocumentSnapshot> {
+export function doc<T>(
+  ref: firestore.DocumentReference<T>
+): Observable<firestore.DocumentSnapshot<T>> {
   return fromDocRef(ref);
 }
 
@@ -31,7 +31,7 @@ export function doc(
  * @param query
  */
 export function docData<T>(
-  ref: firestore.DocumentReference,
+  ref: firestore.DocumentReference<T>,
   idField?: string
 ): Observable<T> {
   return doc(ref).pipe(map(snap => snapToData(snap, idField) as T));
