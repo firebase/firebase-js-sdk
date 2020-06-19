@@ -860,7 +860,7 @@ export class SyncEngine implements RemoteSyncer {
     );
   }
 
-  async handleUserChange(user: User): Promise<void> {
+  async handleCredentialChange(user: User): Promise<void> {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {

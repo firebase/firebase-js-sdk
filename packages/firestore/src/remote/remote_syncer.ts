@@ -71,5 +71,5 @@ export interface RemoteSyncer {
    * Updates all local state to match the pending mutations for the given user.
    * May be called repeatedly for the same user.
    */
-  handleUserChange(user: User): Promise<void>;
+  handleCredentialChange(user: User): Promise<void>;
 }

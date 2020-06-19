@@ -776,7 +776,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
-    await this.syncEngine.handleUserChange(user);
+    await this.syncEngine.handleCredentialChange(user);
 
     this.offlineCauses.delete(OfflineCause.CredentialChange);
     await this.enableNetworkInternal();
