@@ -28,9 +28,12 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  applyBundleDocuments,
+  hasNewerBundle,
   LocalStore,
   LocalWriteResult,
-  MultiTabLocalStore
+  MultiTabLocalStore,
+  saveBundle
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -170,7 +173,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => this.localStore.applyBundleDocuments(documents))
+      .then(() => applyBundleDocuments(this.localStore, documents))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -416,7 +419,7 @@ class LocalStoreTester {
     expected: boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.hasNewerBundle(metadata).then(actual => {
+      return hasNewerBundle(this.localStore, metadata).then(actual => {
         expect(actual).to.equal(expected);
       });
     });
@@ -425,7 +428,7 @@ class LocalStoreTester {
 
   afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
-      this.localStore.saveBundle(metadata)
+      saveBundle(this.localStore, metadata)
     );
     return this;
   }
