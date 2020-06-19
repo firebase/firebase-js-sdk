@@ -17,11 +17,13 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
+import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
-import { UserImpl } from './user_impl';
 import { AuthCredential } from '../credentials';
+import { _authCredentialFromTokenResponse } from '../credentials/inferred';
+import { UserImpl } from './user_impl';
 
 export class UserCredentialImpl implements UserCredential {
   constructor(
@@ -45,5 +47,11 @@ export class UserCredentialImpl implements UserCredential {
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
+  }
+
+  static async _forOperation(user: User, operationType: externs.OperationType, response: PhoneOrOauthTokenResponse): Promise<UserCredentialImpl> {
+    const newCred = _authCredentialFromTokenResponse(response);
+    await user._updateTokensIfNecessary(response, /* reload */ true);
+    return new UserCredentialImpl(user, newCred, operationType);
   }
 }

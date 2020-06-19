@@ -24,12 +24,10 @@ import { User } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
+import { _assertLinkedStatus } from '../user/link_unlink';
 import { assert } from '../util/assert';
 import {
-  _assertLinkedStatus,
-  linkWithCredential,
-  reauthenticateWithCredential,
-  signInWithCredential
+    linkWithCredential, reauthenticateWithCredential, signInWithCredential
 } from './credential';
 
 interface OnConfirmationCallback {

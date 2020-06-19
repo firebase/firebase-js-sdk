@@ -18,11 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -36,10 +32,7 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
-  _assertLinkedStatus,
-  linkWithCredential,
-  reauthenticateWithCredential,
-  signInWithCredential
+    linkWithCredential, reauthenticateWithCredential, signInWithCredential
 } from './credential';
 
 use(chaiAsPromised);
@@ -165,53 +158,6 @@ describe('core/strategies/credential', () => {
       expect(operationType).to.eq(OperationType.LINK);
       expect(newUser).to.eq(user);
       expect(credential).to.be.null;
-    });
-  });
-
-  describe('_assertLinkedStatus', () => {
-    it('should error with already linked if expectation is true', async () => {
-      getAccountInfoEndpoint.response = {
-        users: [
-          {
-            ...serverUser,
-            providerUserInfo: [{ providerId: ProviderId.GOOGLE }]
-          }
-        ]
-      };
-
-      await expect(
-        _assertLinkedStatus(false, user, ProviderId.GOOGLE)
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
-      );
-    });
-
-    it('should not error if provider is not linked', async () => {
-      await expect(_assertLinkedStatus(false, user, ProviderId.GOOGLE)).not.to
-        .be.rejected;
-    });
-
-    it('should error if provider is not linked but it was expected to be', async () => {
-      await expect(
-        _assertLinkedStatus(true, user, ProviderId.GOOGLE)
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
-      );
-    });
-
-    it('should not error if provider is linked and that is expected', async () => {
-      getAccountInfoEndpoint.response = {
-        users: [
-          {
-            ...serverUser,
-            providerUserInfo: [{ providerId: ProviderId.GOOGLE }]
-          }
-        ]
-      };
-      await expect(_assertLinkedStatus(true, user, ProviderId.GOOGLE)).not.to.be
-        .rejected;
     });
   });
 });
