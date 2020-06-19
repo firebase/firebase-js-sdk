@@ -112,7 +112,7 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
     databaseId,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      ? new JsonProtoSerializer(databaseId, useProto3Json)
       : undefined
   );
 }

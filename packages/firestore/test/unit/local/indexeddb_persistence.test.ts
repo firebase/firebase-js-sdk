@@ -122,9 +122,10 @@ async function withUnstartedCustomPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
-    useProto3Json: true
-  });
+  const serializer = new JsonProtoSerializer(
+    TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
 
   const queue = new AsyncQueue();
   const document = testDocument();
