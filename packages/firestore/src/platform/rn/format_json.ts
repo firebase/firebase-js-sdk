@@ -15,14 +15,4 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-import { ReactNativePlatform } from './rn_platform';
-
-/**
- * This code needs to run before Firestore is used. This can be achieved in
- * several ways:
- *   1) Through the JSCompiler compiling this code and then (automatically)
- *      executing it before exporting the Firestore symbols.
- *   2) Through importing this module first in a Firestore main module
- */
-PlatformSupport.setPlatform(new ReactNativePlatform());
+export { formatJSON } from '../browser/format_json';

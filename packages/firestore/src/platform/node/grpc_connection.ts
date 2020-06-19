@@ -28,16 +28,16 @@ const SDK_VERSION = firebase.SDK_VERSION;
 
 const grpcVersion = grpcPkgJson.version;
 
-import { Token } from '../api/credentials';
-import { DatabaseInfo } from '../core/database_info';
-import { Connection, Stream } from '../remote/connection';
-import { mapCodeFromRpcCode } from '../remote/rpc_error';
-import { StreamBridge } from '../remote/stream_bridge';
-import { hardAssert } from '../util/assert';
-import { FirestoreError } from '../util/error';
-import { logError, logDebug, logWarn } from '../util/log';
-import { NodeCallback, nodePromise } from '../util/node_api';
-import { Deferred } from '../util/promise';
+import { Token } from '../../api/credentials';
+import { DatabaseInfo } from '../../core/database_info';
+import { Connection, Stream } from '../../remote/connection';
+import { mapCodeFromRpcCode } from '../../remote/rpc_error';
+import { StreamBridge } from '../../remote/stream_bridge';
+import { hardAssert } from '../../util/assert';
+import { FirestoreError } from '../../util/error';
+import { logError, logDebug, logWarn } from '../../util/log';
+import { NodeCallback, nodePromise } from '../../util/node_api';
+import { Deferred } from '../../util/promise';
 
 const LOG_TAG = 'Connection';
 

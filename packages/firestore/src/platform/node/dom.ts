@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import typescript from 'typescript';
+/** The Platform's 'window' implementation or null if not available. */
+export function getWindow(): Window | null {
+  if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+    // eslint-disable-next-line no-restricted-globals
+    return window;
+  }
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
+  return null;
+}
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+/** The Platform's 'document' implementation or null if not available. */
+export function getDocument(): Document | null {
+  return null;
+}

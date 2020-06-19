@@ -86,7 +86,7 @@ import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
@@ -501,7 +501,7 @@ export function localViewChanges(
  * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
-  const base64 = PlatformSupport.getPlatform().btoa(value);
+  const base64 = encodeBase64(value);
   return ByteString.fromBase64String(base64);
 }
 
@@ -517,7 +517,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return PlatformSupport.getPlatform().atob(value ?? '');
+  return decodeBase64(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */

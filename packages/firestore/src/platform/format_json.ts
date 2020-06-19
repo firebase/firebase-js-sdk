@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,18 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { isNode, isReactNative } from '@firebase/util';
+import * as node from './node/format_json';
+import * as rn from './rn/format_json';
+import * as browser from './browser/format_json';
 
-describe('Platform', () => {
-  it('can load the platform at runtime', () => {
-    expect(PlatformSupport.getPlatform()).to.exist;
-  });
-});
+/** Formats an object as a JSON string, suitable for logging. */
+export function formatJSON(value: unknown): string {
+  if (isNode()) {
+    return node.formatJSON(value);
+  } else if (isReactNative()) {
+    return rn.formatJSON(value);
+  } else {
+    return browser.formatJSON(value);
+  }
+}

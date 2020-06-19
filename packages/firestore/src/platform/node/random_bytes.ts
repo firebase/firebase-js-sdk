@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,15 @@
  * limitations under the License.
  */
 
-/**
- * This will include all of the test files and compile them as needed
- *
- * Taken from karma-webpack source:
- * https://github.com/webpack-contrib/karma-webpack#alternative-usage
- */
+import { debugAssert } from '../../util/assert';
+import { randomBytes as generateRandomBytes } from 'crypto';
 
-// 'context()' definition requires additional dependency on webpack-env package.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const testsContext = (require as any).context(
-  '.',
-  true,
-  /^((?!node).)*\.test$/
-);
-const browserTests = testsContext
-  .keys()
-  .filter((file: string) => !file.match(/([\/.])node([\/.])/));
-browserTests.forEach(testsContext);
+/**
+ * Generates `nBytes` of random bytes.
+ *
+ * If `nBytes < 0` , an error will be thrown.
+ */
+export function randomBytes(nBytes: number): Uint8Array {
+  debugAssert(nBytes >= 0, `Expecting non-negative nBytes, got: ${nBytes}`);
+  return generateRandomBytes(nBytes);
+}

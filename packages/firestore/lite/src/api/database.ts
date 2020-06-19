@@ -33,7 +33,8 @@ import {
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 import { cast } from './util';
 import { Settings } from '../../';
 
@@ -90,14 +91,10 @@ export class Firestore implements firestore.FirebaseFirestore {
   _getDatastore(): Promise<Datastore> {
     if (!this._datastorePromise) {
       const databaseInfo = this._makeDatabaseInfo(this._getSettings());
-      this._datastorePromise = PlatformSupport.getPlatform()
-        .loadConnection(databaseInfo)
-        .then(connection => {
-          const serializer = PlatformSupport.getPlatform().newSerializer(
-            databaseInfo.databaseId
-          );
-          return newDatastore(connection, this._credentials, serializer);
-        });
+      this._datastorePromise = newConnection(databaseInfo).then(connection => {
+        const serializer = newSerializer(databaseInfo.databaseId);
+        return newDatastore(connection, this._credentials, serializer);
+      });
     }
 
     return this._datastorePromise;
