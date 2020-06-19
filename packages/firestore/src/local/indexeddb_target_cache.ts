@@ -39,7 +39,7 @@ import {
   DbTargetGlobalKey,
   DbTargetKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
+import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -162,7 +162,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const targetData = this.serializer.fromDbTarget(value);
+        const targetData = fromDbTarget(value);
         if (
           targetData.sequenceNumber <= upperBound &&
           activeTargetIds.get(targetData.targetId) === null
@@ -183,7 +183,7 @@ export class IndexedDbTargetCache implements TargetCache {
     f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const targetData = this.serializer.fromDbTarget(value);
+      const targetData = fromDbTarget(value);
       f(targetData);
     });
   }
@@ -211,7 +211,7 @@ export class IndexedDbTargetCache implements TargetCache {
     targetData: TargetData
   ): PersistencePromise<void> {
     return targetsStore(transaction).put(
-      this.serializer.toDbTarget(targetData)
+      toDbTarget(this.serializer, targetData)
     );
   }
 
@@ -262,7 +262,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .iterate(
         { range, index: DbTarget.queryTargetsIndexName },
         (key, value, control) => {
-          const found = this.serializer.fromDbTarget(value);
+          const found = fromDbTarget(value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
           if (target.isEqual(found.target)) {
@@ -392,7 +392,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .get(targetId)
       .next(found => {
         if (found) {
-          return this.serializer.fromDbTarget(found);
+          return fromDbTarget(found);
         } else {
           return null;
         }
