@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -45,8 +45,8 @@
   },
   "dependencies": {
     "@firebase/installations-types": "0.3.4",
-    "@firebase/util": "0.2.48",
-    "@firebase/component": "0.1.13",
+    "@firebase/util": "0.2.49",
+    "@firebase/component": "0.1.14",
     "idb": "3.0.2",
     "tslib": "^1.11.1"
   }
