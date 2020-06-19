@@ -116,14 +116,15 @@ describe('Testing Module Tests', function() {
     ).to.throw(/databaseName not specified/);
   });
 
-  it('loadDatabaseRules() tries to make a network request', async function() {
-    await expect(
-      firebase.loadDatabaseRules({ databaseName: 'foo', rules: '{}' })
-    ).to.be.rejectedWith(/ECONNREFUSED/);
+  it('loadDatabaseRules() succeeds on valid input', async function() {
+    await firebase.loadDatabaseRules({
+      databaseName: 'foo',
+      rules: '{ "rules": {} }'
+    });
   });
 
   it('loadFirestoreRules() succeeds on valid input', async function() {
-    let promise = firebase.loadFirestoreRules({
+    await firebase.loadFirestoreRules({
       projectId: 'foo',
       rules: `service cloud.firestore {
         match /databases/{db}/documents/{doc=**} {
@@ -131,14 +132,12 @@ describe('Testing Module Tests', function() {
         }
       }`
     });
-    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
   });
 
   it('clearFirestoreData() succeeds on valid input', async function() {
-    let promise = firebase.clearFirestoreData({
+    await firebase.clearFirestoreData({
       projectId: 'foo'
     });
-    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
   });
 
   it('apps() returns apps created with initializeTestApp', async function() {
