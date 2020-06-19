@@ -411,28 +411,17 @@ export class TestBundledDocuments {
 export function bundledDocuments(
   documents: MaybeDocument[]
 ): TestBundledDocuments {
-  const result: BundledDocuments = [];
-  for (const d of documents) {
-    if (d instanceof NoDocument) {
-      result.push({
-        metadata: {
-          name: JSON_SERIALIZER.toName(d.key),
-          readTime: JSON_SERIALIZER.toVersion(d.version),
-          exists: false
-        },
-        document: undefined
-      });
-    } else if (d instanceof Document) {
-      result.push({
-        metadata: {
-          name: JSON_SERIALIZER.toName(d.key),
-          readTime: JSON_SERIALIZER.toVersion(d.version),
-          exists: true
-        },
-        document: JSON_SERIALIZER.toDocument(d)
-      });
-    }
-  }
+  const result = documents.map(d => {
+    return {
+      metadata: {
+        name: JSON_SERIALIZER.toName(d.key),
+        readTime: JSON_SERIALIZER.toVersion(d.version),
+        exists: d instanceof Document
+      },
+      document:
+        d instanceof Document ? JSON_SERIALIZER.toDocument(d) : undefined
+    };
+  });
 
   return new TestBundledDocuments(result);
 }

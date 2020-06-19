@@ -32,7 +32,7 @@ interface RemoteDocumentChange {
   // The document in this change, null if it is a removal from the cache.
   readonly maybeDocument: MaybeDocument | null;
   // The timestamp when this change is read.
-  readonly readTime?: SnapshotVersion;
+  readonly readTime: SnapshotVersion | null;
 }
 
 /**
@@ -102,7 +102,7 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only remove documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
+  removeEntry(key: DocumentKey, readTime: SnapshotVersion | null = null): void {
     this.assertNotApplied();
     this.changes.set(key, { maybeDocument: null, readTime });
   }

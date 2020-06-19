@@ -568,7 +568,7 @@ export class LocalStore {
         // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
         // documents in advance in a single call.
         promises.push(
-          this.applyDocuments(
+          this.prepareApplyingDocuments(
             txn,
             documentBuffer,
             remoteEvent.documentUpdates,
@@ -649,7 +649,7 @@ export class LocalStore {
       'Apply bundle documents',
       'readwrite-primary',
       txn => {
-        return this.applyDocuments(
+        return this.prepareApplyingDocuments(
           txn,
           documentBuffer,
           documentMap,
@@ -671,16 +671,22 @@ export class LocalStore {
   }
 
   /**
-   * Applies documents to remote document cache, returns the document changes
-   * resulting from applying those documents.
+   * Prepares document change buffer resulted from documents to be applied,
+   * returns the document changes resulting from applying those documents.
    *
-   * @param updatedKeys Keys of the documents to be applied.
+   * @param txn Transaction to use to read existing documents from storage.
+   * @param documentBuffer Document buffer to collect the resulted changes to be
+   *        applied to storage.
    * @param documents Documents to be applied.
-   * @param remoteVersion The read time of the documents to be applied, it is
-   * a `SnapshotVersion` if all documents have the same read time, or a `DocumentVersionMap` if
-   * they have different read times.
+   * @param globalVersion A `SnapshotVersion` representing the read time if all
+   *        documents have the same read time.
+   * @param documentVersions A DocumentKey-to-SnapshotVersion map if documents
+   *        have their own read time.
+   *
+   * Note: this function will use `documentVersions` if it is defined;
+   * when it is not defined, resorts to `globalVersion`.
    */
-  private applyDocuments(
+  private prepareApplyingDocuments(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer,
     documents: MaybeDocumentMap,
@@ -751,7 +757,7 @@ export class LocalStore {
       bundleMetadata.createTime!
     );
     return this.persistence
-      .runTransaction('isNewerBundleLoaded', 'readonly', transaction => {
+      .runTransaction('hasNewerBundle', 'readonly', transaction => {
         return this.bundleCache.getBundleMetadata(
           transaction,
           bundleMetadata.id!

@@ -170,9 +170,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.applyBundleDocuments(documents);
-      })
+      .then(() => this.localStore.applyBundleDocuments(documents))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -426,9 +424,9 @@ class LocalStoreTester {
   }
 
   afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.saveBundle(metadata);
-    });
+    this.promiseChain = this.promiseChain.then(() =>
+      this.localStore.saveBundle(metadata)
+    );
     return this;
   }
 

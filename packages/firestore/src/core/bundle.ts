@@ -59,10 +59,7 @@ interface BundledDocument {
 /**
  * An array of `BundledDocument`.
  */
-export type BundledDocuments = Array<{
-  metadata: bundleProto.BundledDocumentMetadata;
-  document: api.Document | undefined;
-}>;
+export type BundledDocuments = BundledDocument[];
 
 /**
  * Helper to convert objects from bundles to model objects in the SDK.
