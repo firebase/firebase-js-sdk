@@ -49,7 +49,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "dependencies": {
     "@firebase/component": "0.1.14",
     "@firebase/functions-types-exp": "0.0.800",

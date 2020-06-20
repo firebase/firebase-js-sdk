@@ -33,6 +33,7 @@ export const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
 const OUTPUTDIR: string = './dependencies';
 const DUMMYMODULE: string = '@firebase/dummy-exp';
+const FUNCTIONMODULE: string = '@firebase/functions-exp';
 
 function collectBinarySize(allModuleLocations: string[], path: string) {
   const packageJsonPath = `${path}/package.json`;
@@ -43,7 +44,7 @@ function collectBinarySize(allModuleLocations: string[], path: string) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS]) {
+  if (packageJson[TYPINGS] && packageJson.name == FUNCTIONMODULE) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
