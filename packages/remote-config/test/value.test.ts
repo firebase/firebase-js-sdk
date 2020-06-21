@@ -54,6 +54,26 @@ describe('Value', () => {
     });
   });
 
+  describe('asJSON', () => {
+    it('returns static default json if source is static', () => {
+      expect(new Value('static').asJSON()).to.eq(null);
+    });
+
+    it('returns value as a json', () => {
+      expect(new Value('remote', '{"key": "value"}').asJSON()).to.eql({
+        key: 'value'
+      });
+      expect(new Value('default', '[1, 5, "false"]').asJSON()).to.eql([
+        1,
+        5,
+        'false'
+      ]);
+      expect(new Value('default', '33').asJSON()).to.eq(33);
+      expect(new Value('default', 'false').asJSON()).to.be.false;
+      expect(new Value('default', 'random string').asJSON()).to.eq(null);
+    });
+  });
+
   describe('asNumber', () => {
     it('returns static default number if source is static', () => {
       expect(new Value('static').asNumber()).to.eq(0);

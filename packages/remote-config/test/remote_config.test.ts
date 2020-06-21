@@ -39,13 +39,15 @@ describe('RemoteConfig', () => {
     key1: 'active_config_value_1',
     key2: 'active_config_value_2',
     key3: 'true',
-    key4: '123'
+    key4: '123',
+    key5: '{"key": "value"}'
   };
   const DEFAULT_CONFIG = {
     key1: 'default_config_value_1',
     key2: 'default_config_value_2',
     key3: 'false',
     key4: '345',
+    key5: '{"key": "value"}',
     test: 'test'
   };
 
@@ -252,6 +254,25 @@ describe('RemoteConfig', () => {
     });
   });
 
+  describe('getJSON', () => {
+    it('returns the active value if available', () => {
+      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      rc.defaultConfig = DEFAULT_CONFIG;
+
+      expect(rc.getJSON('key5')).to.eql(JSON.parse(ACTIVE_CONFIG.key5));
+    });
+
+    it('returns the default value if active is not available', () => {
+      rc.defaultConfig = DEFAULT_CONFIG;
+
+      expect(rc.getJSON('key5')).to.eql(JSON.parse(DEFAULT_CONFIG.key5));
+    });
+
+    it('returns the static value if active and default are not available', () => {
+      expect(rc.getJSON('key1')).to.eq(null);
+    });
+  });
+
   describe('getString', () => {
     it('returns the active value if available', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
@@ -300,6 +321,7 @@ describe('RemoteConfig', () => {
         key2: new Value('remote', ACTIVE_CONFIG.key2),
         key3: new Value('remote', ACTIVE_CONFIG.key3),
         key4: new Value('remote', ACTIVE_CONFIG.key4),
+        key5: new Value('remote', ACTIVE_CONFIG.key5),
         test: new Value('default', DEFAULT_CONFIG.test)
       });
     });
@@ -312,6 +334,7 @@ describe('RemoteConfig', () => {
         key2: new Value('default', DEFAULT_CONFIG.key2),
         key3: new Value('default', DEFAULT_CONFIG.key3),
         key4: new Value('default', DEFAULT_CONFIG.key4),
+        key5: new Value('default', DEFAULT_CONFIG.key5),
         test: new Value('default', DEFAULT_CONFIG.test)
       });
     });

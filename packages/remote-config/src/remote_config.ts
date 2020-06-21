@@ -182,6 +182,10 @@ export class RemoteConfig implements RemoteConfigType {
     return this.getValue(key).asBoolean();
   }
 
+  getJSON(key: string): unknown {
+    return this.getValue(key).asJSON();
+  }
+
   getNumber(key: string): number {
     return this.getValue(key).asNumber();
   }
