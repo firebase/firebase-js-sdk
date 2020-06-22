@@ -4388,6 +4388,23 @@ declare namespace firebase.auth {
    * any additional user information that was returned from the identity provider.
    * operationType could be 'signIn' for a sign-in operation, 'link' for a linking
    * operation and 'reauthenticate' for a reauthentication operation.
+   * 
+   * Depending on the original operation, the <code>credential</code> field may contain
+   * one of the following subclasses of <code>AuthCredential</code>:
+   *
+   * <ul>
+   *   <li>
+   *    {@link firebase.auth.PhoneAuthCredential} for phone auth operations such as
+   *    <code>signInWithPhoneNumber</code>
+   *   </li>
+   *   <li>
+   *    {@link firebase.auth.OAuthCredential} for OAuth operations such as
+   *    <code>signInWithPopup</code>
+   *   </li>
+   * </ul>
+   *
+   * For other sign-in operations, such as email/password sign-in, the <code>credential<field>
+   * will be null.
    */
   type UserCredential = {
     additionalUserInfo?: firebase.auth.AdditionalUserInfo | null;
