@@ -977,7 +977,13 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
   if (filters.length === 0) {
     return;
   }
-  const protos = filters.map(filter => toUnaryOrFieldFilter(filter));
+  const protos = filters.map(filter => {
+    if (filter instanceof FieldFilter) {
+      return toUnaryOrFieldFilter(filter);
+    } else {
+      return fail('Unrecognized filter: ' + JSON.stringify(filter));
+    }
+  });
   if (protos.length === 1) {
     return protos[0];
   }
