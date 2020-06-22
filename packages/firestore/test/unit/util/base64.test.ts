@@ -23,6 +23,7 @@ const BASE64_ENCODED = 'GRBoQgKB9LW1';
 const BASE64_DECODED = '\u0019\u0010\u0068\u0042\u0002\u0081\u00f4\u00b5\u00b5';
 
 describe('atob', () => {
+  // eslint-disable-next-line no-restricted-properties
   (typeof atob !== 'undefined' ? it : it.skip)(
     'decodes with native support',
     () => {
@@ -31,6 +32,7 @@ describe('atob', () => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (typeof atob !== 'undefined' ? it : it.skip)(
     'roundtrips with native support',
     () => {
@@ -51,6 +53,7 @@ describe('atob', () => {
 });
 
 describe('btoa', () => {
+  // eslint-disable-next-line no-restricted-properties
   (typeof btoa !== 'undefined' ? it : it.skip)(
     'encodes with native support',
     () => {
@@ -59,6 +62,7 @@ describe('btoa', () => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (typeof btoa !== 'undefined' ? it : it.skip)(
     'roundtrips with native support',
     () => {
