@@ -77,6 +77,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -90,6 +91,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -109,6 +111,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -130,6 +133,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -147,6 +151,7 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -223,6 +228,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -232,7 +238,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97203
+        "sizeInBytes": 97396
     },
     "DocumentReference": {
         "dependencies": {
@@ -1274,6 +1280,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -1311,6 +1318,7 @@
                 "invalidClassError",
                 "invokeCommitRpc",
                 "isArray",
+                "isDocumentTarget",
                 "isDouble",
                 "isEmpty",
                 "isInteger",
@@ -1335,6 +1343,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -1354,6 +1363,7 @@
                 "refValue",
                 "registerFirestore",
                 "serverTimestamp",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDocumentMask",
@@ -1445,6 +1455,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -1455,7 +1466,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 107641
+        "sizeInBytes": 107674
     },
     "arrayRemove": {
         "dependencies": {
@@ -1692,6 +1703,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -1706,6 +1718,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -1725,6 +1738,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -1746,6 +1760,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -1763,6 +1778,7 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -1840,6 +1856,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -1849,7 +1866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97831
+        "sizeInBytes": 98024
     },
     "collectionGroup": {
         "dependencies": {
@@ -1866,6 +1883,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -1880,6 +1898,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -1899,6 +1918,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -1920,6 +1940,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -1937,6 +1958,7 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -2012,6 +2034,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -2021,7 +2044,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97262
+        "sizeInBytes": 97455
     },
     "deleteDoc": {
         "dependencies": {
@@ -2218,6 +2241,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -2231,6 +2255,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "doc",
                 "encodeBase64",
@@ -2251,6 +2276,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -2272,6 +2298,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -2290,6 +2317,7 @@
                 "randomBytes",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -2368,6 +2396,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -2377,7 +2406,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98652
+        "sizeInBytes": 98845
     },
     "documentId": {
         "dependencies": {
@@ -2799,7 +2828,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 94348
+        "sizeInBytes": 94239
     },
     "increment": {
         "dependencies": {
@@ -2982,6 +3011,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -2995,6 +3025,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -3014,6 +3045,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -3035,6 +3067,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -3053,6 +3086,7 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -3129,6 +3163,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -3138,7 +3173,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97546
+        "sizeInBytes": 97739
     },
     "queryEqual": {
         "dependencies": {
@@ -3324,6 +3359,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyReference",
+                "canonifyTarget",
                 "canonifyTimestamp",
                 "canonifyValue",
                 "cast",
@@ -3337,6 +3373,7 @@
                 "compareTimestamps",
                 "createMetadata",
                 "debugAssert",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -3356,6 +3393,7 @@
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
+                "isDocumentTarget",
                 "isEmpty",
                 "isMapValue",
                 "isNanValue",
@@ -3377,6 +3415,7 @@
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
+                "newTarget",
                 "newUserDataReader",
                 "nodePromise",
                 "normalizeByteString",
@@ -3395,6 +3434,7 @@
                 "refEqual",
                 "refValue",
                 "registerFirestore",
+                "targetEquals",
                 "timestampEquals",
                 "toBytes",
                 "toDouble",
@@ -3471,6 +3511,7 @@
                 "SnapshotVersion",
                 "StreamBridge",
                 "Target",
+                "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
                 "UnknownDocument",
@@ -3480,7 +3521,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97488
+        "sizeInBytes": 97681
     },
     "runTransaction": {
         "dependencies": {

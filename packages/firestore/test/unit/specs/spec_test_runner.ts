@@ -165,9 +165,9 @@ abstract class TestRunner {
   private snapshotsInSyncEvents = 0;
 
   protected document = new FakeDocument();
-
-  private queryListeners = new ObjectMap<Query, QueryListener>(q =>
-    q.canonicalId()
+  private queryListeners = new ObjectMap<Query, QueryListener>(
+    q => q.canonicalId(),
+    (l, r) => l.isEqual(r)
   );
 
   private expectedActiveLimboDocs: DocumentKey[];

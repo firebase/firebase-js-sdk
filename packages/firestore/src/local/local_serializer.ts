@@ -39,7 +39,7 @@ import {
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { Target } from '../core/target';
+import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -221,7 +221,7 @@ export class LocalSerializer {
       targetData.lastLimboFreeSnapshotVersion
     );
     let queryProto: DbQuery;
-    if (targetData.target.isDocumentQuery()) {
+    if (isDocumentTarget(targetData.target)) {
       queryProto = toDocumentsTarget(this.remoteSerializer, targetData.target);
     } else {
       queryProto = toQueryTarget(this.remoteSerializer, targetData.target);
@@ -234,7 +234,7 @@ export class LocalSerializer {
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(
       targetData.targetId,
-      targetData.target.canonicalId(),
+      canonifyTarget(targetData.target),
       dbTimestamp,
       resumeToken,
       targetData.sequenceNumber,

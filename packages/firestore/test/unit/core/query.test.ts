@@ -33,6 +33,7 @@ import {
   ref,
   wrap
 } from '../../util/helpers';
+import { canonifyTarget } from '../../../src/core/target';
 
 describe('Bound', () => {
   function makeBound(values: unknown[], before: boolean): Bound {
@@ -722,6 +723,6 @@ describe('Query', () => {
   });
 
   function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
-    expect(query.toTarget().canonicalId()).to.equal(expectedCanonicalId);
+    expect(canonifyTarget(query.toTarget())).to.equal(expectedCanonicalId);
   }
 });
