@@ -37,18 +37,43 @@ import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
-import { JsonProtoSerializer } from '../remote/serializer';
-import { Blob } from './blob';
 import {
-  FieldPath as ExternalFieldPath,
-  fromDotSeparatedString
-} from './field_path';
-import { DeleteFieldValueImpl, FieldValueImpl } from './field_value';
+  JsonProtoSerializer,
+  toBytes,
+  toNumber,
+  toResourceName,
+  toTimestamp
+} from '../remote/serializer';
+import { Blob } from './blob';
+import { BaseFieldPath, fromDotSeparatedString } from './field_path';
+import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { PlatformSupport } from '../platform/platform';
-import { DocumentReference } from './database';
+import { newSerializer } from '../platform/serializer';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
+
+/**
+ * An untyped Firestore Data Converter interface that is shared between the
+ * lite, full and legacy SDK.
+ */
+export interface UntypedFirestoreDataConverter<T> {
+  toFirestore(modelObject: T): firestore.DocumentData;
+  fromFirestore(snapshot: unknown, options?: unknown): T;
+}
+
+/**
+ * A reference to a document in a Firebase project.
+ *
+ * This class serves as a common base class for the public DocumentReferences
+ * exposed in the lite, full and legacy SDK.
+ */
+export class DocumentKeyReference<T> {
+  constructor(
+    readonly _databaseId: DatabaseId,
+    readonly _key: DocumentKey,
+    readonly _converter: UntypedFirestoreDataConverter<T> | null
+  ) {}
+}
 
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
@@ -158,6 +183,8 @@ export class ParseContext {
    * @param settings The settings for the parser.
    * @param databaseId The database ID of the Firestore instance.
    * @param serializer The serializer to use to generate the Value proto.
+   * @param ignoreUndefinedProperties Whether to ignore undefined properties
+   * rather than throw.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
    * @param fieldMask A mutable list of field paths encountered while parsing
@@ -172,6 +199,7 @@ export class ParseContext {
     readonly settings: ContextSettings,
     readonly databaseId: DatabaseId,
     readonly serializer: JsonProtoSerializer,
+    readonly ignoreUndefinedProperties: boolean,
     fieldTransforms?: FieldTransform[],
     fieldMask?: FieldPath[]
   ) {
@@ -198,6 +226,7 @@ export class ParseContext {
       { ...this.settings, ...configuration },
       this.databaseId,
       this.serializer,
+      this.ignoreUndefinedProperties,
       this.fieldTransforms,
       this.fieldMask
     );
@@ -276,48 +305,40 @@ export class UserDataReader {
 
   constructor(
     private readonly databaseId: DatabaseId,
+    private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
-    this.serializer =
-      serializer || PlatformSupport.getPlatform().newSerializer(databaseId);
+    this.serializer = serializer || newSerializer(databaseId);
   }
 
-  /** Parse document data from a non-merge set() call. */
-  parseSetData(methodName: string, input: unknown): ParsedSetData {
-    const context = this.createContext(UserDataSource.Set, methodName);
+  /** Parse document data from a set() call. */
+  parseSetData(
+    methodName: string,
+    input: unknown,
+    options: firestore.SetOptions = {}
+  ): ParsedSetData {
+    const context = this.createContext(
+      options.merge || options.mergeFields
+        ? UserDataSource.MergeSet
+        : UserDataSource.Set,
+      methodName
+    );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
 
-    return new ParsedSetData(
-      new ObjectValue(updateData),
-      /* fieldMask= */ null,
-      context.fieldTransforms
-    );
-  }
-
-  /** Parse document data from a set() call with '{merge:true}'. */
-  parseMergeData(
-    methodName: string,
-    input: unknown,
-    fieldPaths?: Array<string | firestore.FieldPath>
-  ): ParsedSetData {
-    const context = this.createContext(UserDataSource.MergeSet, methodName);
-    validatePlainObject('Data must be an object, but it was:', context, input);
-    const updateData = parseObject(input, context);
-
-    let fieldMask: FieldMask;
+    let fieldMask: FieldMask | null;
     let fieldTransforms: FieldTransform[];
 
-    if (!fieldPaths) {
+    if (options.merge) {
       fieldMask = new FieldMask(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
-    } else {
+    } else if (options.mergeFields) {
       const validatedFieldPaths: FieldPath[] = [];
 
-      for (const stringOrFieldPath of fieldPaths) {
+      for (const stringOrFieldPath of options.mergeFields) {
         let fieldPath: FieldPath;
 
-        if (stringOrFieldPath instanceof ExternalFieldPath) {
+        if (stringOrFieldPath instanceof BaseFieldPath) {
           fieldPath = stringOrFieldPath._internalPath;
         } else if (typeof stringOrFieldPath === 'string') {
           fieldPath = fieldPathFromDotSeparatedString(
@@ -344,9 +365,13 @@ export class UserDataReader {
 
       fieldMask = new FieldMask(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
-        fieldMask.covers(transform.field)
+        fieldMask!.covers(transform.field)
       );
+    } else {
+      fieldMask = null;
+      fieldTransforms = context.fieldTransforms;
     }
+
     return new ParsedSetData(
       new ObjectValue(updateData),
       fieldMask,
@@ -365,7 +390,10 @@ export class UserDataReader {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
       const childContext = context.childContextForFieldPath(path);
-      if (value instanceof DeleteFieldValueImpl) {
+      if (
+        value instanceof SerializableFieldValue &&
+        value._delegate instanceof DeleteFieldValueImpl
+      ) {
         // Add it to the field mask, but don't add anything to updateData.
         fieldMaskPaths.push(path);
       } else {
@@ -388,7 +416,7 @@ export class UserDataReader {
   /** Parse update data from a list of field/value arguments. */
   parseUpdateVarargs(
     methodName: string,
-    field: string | ExternalFieldPath,
+    field: string | BaseFieldPath,
     value: unknown,
     moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
@@ -408,7 +436,7 @@ export class UserDataReader {
       keys.push(
         fieldPathFromArgument(
           methodName,
-          moreFieldsAndValues[i] as string | ExternalFieldPath
+          moreFieldsAndValues[i] as string | BaseFieldPath
         )
       );
       values.push(moreFieldsAndValues[i + 1]);
@@ -424,7 +452,10 @@ export class UserDataReader {
         const path = keys[i];
         const value = values[i];
         const childContext = context.childContextForFieldPath(path);
-        if (value instanceof DeleteFieldValueImpl) {
+        if (
+          value instanceof SerializableFieldValue &&
+          value._delegate instanceof DeleteFieldValueImpl
+        ) {
           // Add it to the field mask, but don't add anything to updateData.
           fieldMaskPaths.push(path);
         } else {
@@ -458,7 +489,8 @@ export class UserDataReader {
         arrayElement: false
       },
       this.databaseId,
-      this.serializer
+      this.serializer,
+      this.ignoreUndefinedProperties
     );
   }
 
@@ -504,7 +536,7 @@ export function parseData(
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
-  } else if (input instanceof FieldValueImpl) {
+  } else if (input instanceof SerializableFieldValue) {
     // FieldValues usually parse into transforms (except FieldValue.delete())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
@@ -587,7 +619,7 @@ function parseArray(array: unknown[], context: ParseContext): api.Value {
  * context.fieldTransforms.
  */
 function parseSentinelFieldValue(
-  value: FieldValueImpl,
+  value: SerializableFieldValue,
   context: ParseContext
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
@@ -596,13 +628,13 @@ function parseSentinelFieldValue(
       `${value._methodName}() can only be used with update() and set()`
     );
   }
-  if (context.path === null) {
+  if (!context.path) {
     throw context.createError(
       `${value._methodName}() is not currently supported inside arrays`
     );
   }
 
-  const fieldTransform = value.toFieldTransform(context);
+  const fieldTransform = value._toFieldTransform(context);
   if (fieldTransform) {
     context.fieldTransforms.push(fieldTransform);
   }
@@ -613,18 +645,23 @@ function parseSentinelFieldValue(
  *
  * @return The parsed value
  */
-function parseScalarValue(value: unknown, context: ParseContext): api.Value {
+function parseScalarValue(
+  value: unknown,
+  context: ParseContext
+): api.Value | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
-    return context.serializer.toNumber(value);
+    return toNumber(context.serializer, value);
   } else if (typeof value === 'boolean') {
     return { booleanValue: value };
   } else if (typeof value === 'string') {
     return { stringValue: value };
   } else if (value instanceof Date) {
     const timestamp = Timestamp.fromDate(value);
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof Timestamp) {
     // Firestore backend truncates precision down to microseconds. To ensure
     // offline mode works the same with regards to truncation, perform the
@@ -633,7 +670,9 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
       value.seconds,
       Math.floor(value.nanoseconds / 1000) * 1000
     );
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof GeoPoint) {
     return {
       geoPointValue: {
@@ -642,10 +681,10 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
       }
     };
   } else if (value instanceof Blob) {
-    return { bytesValue: context.serializer.toBytes(value) };
-  } else if (value instanceof DocumentReference) {
+    return { bytesValue: toBytes(context.serializer, value) };
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
-    const otherDb = value.firestore._databaseId;
+    const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -654,11 +693,13 @@ function parseScalarValue(value: unknown, context: ParseContext): api.Value {
       );
     }
     return {
-      referenceValue: context.serializer.toResourceName(
-        value._key.path,
-        value.firestore._databaseId
+      referenceValue: toResourceName(
+        value._databaseId || context.databaseId,
+        value._key.path
       )
     };
+  } else if (value === undefined && context.ignoreUndefinedProperties) {
+    return null;
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -682,8 +723,8 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
-    !(input instanceof DocumentReference) &&
-    !(input instanceof FieldValueImpl)
+    !(input instanceof DocumentKeyReference) &&
+    !(input instanceof SerializableFieldValue)
   );
 }
 
@@ -708,9 +749,9 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | ExternalFieldPath
+  path: string | BaseFieldPath
 ): FieldPath {
-  if (path instanceof ExternalFieldPath) {
+  if (path instanceof BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
@@ -730,7 +771,7 @@ export function fieldPathFromArgument(
  * @param path The dot-separated string form of a field path which will be split
  * on dots.
  */
-function fieldPathFromDotSeparatedString(
+export function fieldPathFromDotSeparatedString(
   methodName: string,
   path: string
 ): FieldPath {

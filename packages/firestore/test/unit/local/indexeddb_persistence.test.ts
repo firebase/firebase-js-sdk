@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+import { expect, use } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -58,13 +60,11 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
-import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -73,9 +73,13 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+import { canonifyTarget } from '../../../src/core/target';
+import { FakeDocument, testDocument } from '../../util/test_platform';
+import { getWindow } from '../../../src/platform/dom';
+
+use(chaiAsPromised);
 
 /* eslint-disable no-restricted-globals */
-
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
@@ -112,50 +116,53 @@ function withDb(
 async function withUnstartedCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
-    useProto3Json: true
-  });
+  const serializer = new JsonProtoSerializer(
+    TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
 
   const queue = new AsyncQueue();
-  const platform = new TestPlatform(
-    PlatformSupport.getPlatform(),
-    new SharedFakeWebStorage()
-  );
+  const document = testDocument();
   const persistence = new MockIndexedDbPersistence(
     multiClient,
     TEST_PERSISTENCE_PREFIX,
     clientId,
-    platform,
     LruParams.DEFAULT,
     queue,
+    getWindow(),
+    document,
     serializer,
-    MOCK_SEQUENCE_NUMBER_SYNCER
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    forceOwningTab
   );
 
-  await fn(persistence, platform, queue);
+  await fn(persistence, document, queue);
 }
 
 function withCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
   return withUnstartedCustomPersistence(
     clientId,
     multiClient,
-    async (persistence, platform, queue) => {
+    forceOwningTab,
+    async (persistence, document, queue) => {
       await persistence.start();
-      await fn(persistence, platform, queue);
+      await fn(persistence, document, queue);
       await persistence.shutdown();
     }
   );
@@ -165,22 +172,48 @@ async function withPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ false,
+    fn
+  );
 }
 
 async function withMultiClientPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ true,
+    /* forceOwningTab= */ false,
+    fn
+  );
+}
+
+async function withForcedPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    document: FakeDocument,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ true,
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -776,7 +809,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
         return targetsStore.iterate((key, value) => {
           const targetData = TEST_SERIALIZER.fromDbTarget(value).target;
-          const expectedCanonicalId = targetData.canonicalId();
+          const expectedCanonicalId = canonifyTarget(targetData);
 
           const actualCanonicalId = value.canonicalId;
           expect(actualCanonicalId).to.equal(expectedCanonicalId);
@@ -1067,8 +1100,8 @@ describe('IndexedDb: canActAsPrimary', () => {
     it(testName, () => {
       return withMultiClientPersistence(
         'thatClient',
-        async (thatPersistence, thatPlatform, thatQueue) => {
-          thatPlatform.raiseVisibilityEvent(thatVisibility);
+        async (thatPersistence, thatDocument, thatQueue) => {
+          thatDocument.raiseVisibilityEvent(thatVisibility);
           thatPersistence.setNetworkEnabled(thatNetwork);
           await thatQueue.drain();
 
@@ -1078,8 +1111,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
           await withMultiClientPersistence(
             'thisClient',
-            async (thisPersistence, thisPlatform, thisQueue) => {
-              thisPlatform.raiseVisibilityEvent(thisVisibility);
+            async (thisPersistence, thisDocument, thisQueue) => {
+              thisDocument.raiseVisibilityEvent(thisVisibility);
               thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
 
@@ -1098,8 +1131,8 @@ describe('IndexedDb: canActAsPrimary', () => {
   }
 
   it('is eligible when only client', () => {
-    return withPersistence('clientA', async (persistence, platform, queue) => {
-      platform.raiseVisibilityEvent('hidden');
+    return withPersistence('clientA', async (persistence, document, queue) => {
+      document.raiseVisibilityEvent('hidden');
       persistence.setNetworkEnabled(false);
       await queue.drain();
 
@@ -1127,6 +1160,18 @@ describe('IndexedDb: canActAsPrimary', () => {
       expect(await getCurrentLeaseOwner()).to.not.be.null;
     });
   });
+
+  it('obtains lease if forceOwningTab is set', () => {
+    return withPersistence('clientA', async clientA => {
+      await withForcedPersistence('clientB', async () => {
+        return expect(
+          clientA.runTransaction('tx', 'readwrite-primary', () =>
+            PersistencePromise.resolve()
+          )
+        ).to.be.eventually.rejected;
+      });
+    });
+  });
 });
 
 describe('IndexedDb: allowTabSynchronization', () => {
@@ -1143,8 +1188,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db => {
-        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await expect(db.start()).to.eventually.be.rejectedWith(
           'Failed to obtain exclusive access to the persistence layer.'
         );
@@ -1157,20 +1203,35 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ true,
+      /* forceOwningTab= */ false,
       async db => {
-        db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
+        db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
         await db.shutdown();
       }
     );
   });
 
+  it('blocks start() when getHighestListenSequenceNumber() fails', async () => {
+    await withUnstartedCustomPersistence(
+      'clientA',
+      /* multiClient= */ false,
+      /* forceOwningTab= */ false,
+      async db1 => {
+        db1.injectFailures = ['getHighestListenSequenceNumber'];
+        await expect(db1.start()).to.eventually.be.rejectedWith(
+          'IndexedDB transaction failed'
+        );
+      }
+    );
+  });
+
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
-      db.injectFailures = { updateClientMetadataAndTryBecomePrimary: true };
-      await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
+      await queue.runAllDelayedOperationsUntil(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
-        db.injectFailures = undefined;
+        db.injectFailures = [];
         return db.runTransaction('check success', 'readwrite-primary', () =>
           PersistencePromise.resolve()
         );

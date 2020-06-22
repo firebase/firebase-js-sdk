@@ -308,7 +308,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encodeResourcePath(k.path));
+  > = new ObjectMap(
+    k => encodeResourcePath(k.path),
+    (l, r) => l.isEqual(r)
+  );
 
   readonly garbageCollector: LruGarbageCollector;
 

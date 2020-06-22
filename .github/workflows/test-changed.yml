@@ -28,3 +28,5 @@ jobs:
       run: yarn build
     - name: Run tests on changed packages
       run: xvfb-run yarn test:changed
+      env:
+        FCM_TEST_PROJECT_SERVER_KEY: $${{secrets.FCM_TEST_PROJECT_SERVER_KEY}}  

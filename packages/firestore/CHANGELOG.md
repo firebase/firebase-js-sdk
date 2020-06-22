@@ -1,4 +1,23 @@
 # Unreleased
+- [fixed] Fixed an issue that may have prevented the client from connecting 
+  to the backend immediately after a user signed in.
+  
+# Released
+- [changed] All known failure cases for Indexed-related crashes have now been
+  addressed. Instead of crashing the client, IndexedDB failures will result
+  in rejected operations (e.g. rejected Writes or errored Query listeners). 
+  If these rejections surface in your app, you can retry these operations 
+  when IndexedDB access is restored. 
+  IndexedDB failures that occur due to background work are automatically 
+  retried. 
+  
+  If you continue to see Indexed-related crashes, we appreciate feedback 
+  (https://github.com/firebase/firebase-js-sdk/issues/2755).
+- [fixed] Fixed an issue that could cause Firestore to temporarily go 
+  offline when a Window visibility event occurred.
+- [feature] Added support for calling  `FirebaseFiresore.settings` with 
+  `{ ignoreUndefinedProperties: true }`. When set, Firestore ignores 
+  undefined properties inside objects rather than rejecting the API call.
 - [fixed] Fixed a regression introduced in v7.14.2 that incorrectly applied
   a `FieldValue.increment` in combination with `set({...}, {merge: true})`.
 - [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
@@ -7,6 +26,9 @@
   in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive 
   multi-tab notifications while the file system is locked.
+- [feature] Added an `experimentalForceOwningTab` setting that can be used to
+  enable persistence in environments without LocalStorage, which allows
+  persistence to be used in Web Workers (#983).
 
 # 1.10.2
 - [fixed] Temporarily reverted the use of window.crypto to generate document

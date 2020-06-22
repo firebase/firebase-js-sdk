@@ -25,13 +25,13 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  DEFAULT_SETTINGS,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
+import { DEFAULT_SETTINGS } from '../util/settings';
 
 // tslint:disable:no-floating-promises
 
@@ -1372,6 +1372,24 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const usersCollection = postsCollection.parent;
         expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+      });
+    });
+
+    it('checks converter when comparing with isEqual()', () => {
+      return withTestDb(persistence, async db => {
+        const postConverter2 = { ...postConverter };
+
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+        const postsCollection2 = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter2);
+        expect(postsCollection.isEqual(postsCollection2)).to.be.false;
+
+        const docRef = db.doc('some/doc').withConverter(postConverter);
+        const docRef2 = db.doc('some/doc').withConverter(postConverter2);
+        expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
   });

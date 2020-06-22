@@ -29,8 +29,7 @@ import {
 } from './encoded_resource_path';
 import {
   IndexedDbLruDelegate,
-  IndexedDbPersistence,
-  IndexedDbTransaction
+  IndexedDbPersistence
 } from './indexeddb_persistence';
 import {
   DbTarget,
@@ -46,8 +45,8 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { Target } from '../core/target';
+import { SimpleDbStore } from './simple_db';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -90,8 +89,8 @@ export class IndexedDbTargetCache implements TargetCache {
   getHighestSequenceNumber(
     transaction: PersistenceTransaction
   ): PersistencePromise<ListenSequenceNumber> {
-    return getHighestListenSequenceNumber(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
+    return this.retrieveMetadata(transaction).next(
+      targetGlobal => targetGlobal.highestListenSequenceNumber
     );
   }
 
@@ -192,9 +191,12 @@ export class IndexedDbTargetCache implements TargetCache {
   private retrieveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
-    return retrieveMetadata(
-      (transaction as IndexedDbTransaction).simpleDbTransaction
-    );
+    return globalTargetStore(transaction)
+      .get(DbTargetGlobal.key)
+      .next(metadata => {
+        hardAssert(metadata !== null, 'Missing metadata row.');
+        return metadata;
+      });
   }
 
   private saveMetadata(
@@ -250,7 +252,7 @@ export class IndexedDbTargetCache implements TargetCache {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = target.canonicalId();
+    const canonicalId = canonifyTarget(target);
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -263,7 +265,7 @@ export class IndexedDbTargetCache implements TargetCache {
           const found = this.serializer.fromDbTarget(value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          if (target.isEqual(found.target)) {
+          if (targetEquals(target, found.target)) {
             result = found;
             control.done();
           }
@@ -419,27 +421,6 @@ function globalTargetStore(
   return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
     txn,
     DbTargetGlobal.store
-  );
-}
-
-function retrieveMetadata(
-  txn: SimpleDbTransaction
-): PersistencePromise<DbTargetGlobal> {
-  const globalStore = SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
-    DbTargetGlobal.store
-  );
-  return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    hardAssert(metadata !== null, 'Missing metadata row.');
-    return metadata;
-  });
-}
-
-export function getHighestListenSequenceNumber(
-  txn: SimpleDbTransaction
-): PersistencePromise<ListenSequenceNumber> {
-  return retrieveMetadata(txn).next(
-    targetGlobal => targetGlobal.highestListenSequenceNumber
   );
 }
 
