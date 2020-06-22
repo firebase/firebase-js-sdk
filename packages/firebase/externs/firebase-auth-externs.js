@@ -2036,6 +2036,20 @@ firebase.auth.Auth.prototype.updateCurrentUser = function(user) {};
  * operationType could be 'signIn' for a sign-in operation, 'link' for a linking
  * operation and 'reauthenticate' for a reauthentication operation.
  *
+ * Depending on the original operation, the <code>credential</code> field may contain
+ * one of the following subclasses of <code>AuthCredential</code>:
+ *
+ * <ul>
+ *   <li>
+ *    {@link firebase.auth.PhoneAuthCredential} for phone auth operations such as
+ *    <code>signInWithPhoneNumber</code>
+ *   </li>
+ *   <li>
+ *    {@link firebase.auth.OAuthCredential} for OAuth operations such as
+ *    <code>signInWithPopup</code>
+ *   </li>
+ * </ul>
+ *
  * @typedef {{
  *   user: ?firebase.User,
  *   credential: ?firebase.auth.AuthCredential,
