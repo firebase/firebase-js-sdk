@@ -18,7 +18,7 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy } from './query';
+import { Bound, boundEquals, canonifyBound, Filter, OrderBy } from './query';
 import { debugCast } from '../util/assert';
 
 /**
@@ -102,11 +102,11 @@ export function canonifyTarget(target: Target): string {
     }
     if (targetImpl.startAt) {
       canonicalId += '|lb:';
-      canonicalId += targetImpl.startAt.canonicalId();
+      canonicalId += canonifyBound(targetImpl.startAt);
     }
     if (targetImpl.endAt) {
       canonicalId += '|ub:';
-      canonicalId += targetImpl.endAt.canonicalId();
+      canonicalId += canonifyBound(targetImpl.endAt);
     }
     targetImpl.memoizedCanonicalId = canonicalId;
   }
@@ -128,10 +128,10 @@ export function stringifyTarget(target: Target): string {
     str += `, orderBy: [${target.orderBy.join(', ')}]`;
   }
   if (target.startAt) {
-    str += ', startAt: ' + target.startAt;
+    str += ', startAt: ' + canonifyBound(target.startAt);
   }
   if (target.endAt) {
-    str += ', endAt: ' + target.endAt;
+    str += ', endAt: ' + canonifyBound(target.endAt);
   }
   return `Target(${str})`;
 }
@@ -169,17 +169,11 @@ export function targetEquals(left: Target, right: Target): boolean {
     return false;
   }
 
-  if (
-    left.startAt !== null
-      ? !left.startAt.isEqual(right.startAt)
-      : right.startAt !== null
-  ) {
+  if (!boundEquals(left.startAt, right.startAt)) {
     return false;
   }
 
-  return left.endAt !== null
-    ? left.endAt.isEqual(right.endAt)
-    : right.endAt === null;
+  return boundEquals(left.endAt, right.endAt);
 }
 
 export function isDocumentTarget(target: Target): boolean {
