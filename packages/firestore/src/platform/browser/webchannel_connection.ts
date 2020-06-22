@@ -34,21 +34,21 @@ import {
   isUWP
 } from '@firebase/util';
 
-import { Token } from '../api/credentials';
-import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { SDK_VERSION } from '../core/version';
-import { Connection, Stream } from '../remote/connection';
+import { Token } from '../../api/credentials';
+import { DatabaseId, DatabaseInfo } from '../../core/database_info';
+import { SDK_VERSION } from '../../core/version';
+import { Connection, Stream } from '../../remote/connection';
 import {
   mapCodeFromRpcStatus,
   mapCodeFromHttpResponseErrorStatus
-} from '../remote/rpc_error';
-import { StreamBridge } from '../remote/stream_bridge';
-import { debugAssert, fail, hardAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { logDebug, logWarn } from '../util/log';
-import { Indexable } from '../util/misc';
-import { Rejecter, Resolver } from '../util/promise';
-import { StringMap } from '../util/types';
+} from '../../remote/rpc_error';
+import { StreamBridge } from '../../remote/stream_bridge';
+import { debugAssert, fail, hardAssert } from '../../util/assert';
+import { Code, FirestoreError } from '../../util/error';
+import { logDebug, logWarn } from '../../util/log';
+import { Indexable } from '../../util/misc';
+import { Rejecter, Resolver } from '../../util/promise';
+import { StringMap } from '../../util/types';
 
 const LOG_TAG = 'Connection';
 

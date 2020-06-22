@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,22 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-import { BrowserPlatform } from './browser_platform';
+import { isNode, isReactNative } from '@firebase/util';
+import * as node from './node/random_bytes';
+import * as rn from './rn/random_bytes';
+import * as browser from './browser/random_bytes';
 
 /**
- * This code needs to run before Firestore is used. This can be achieved in
- * several ways:
- *   1) Through the JSCompiler compiling this code and then (automatically)
- *      executing it before exporting the Firestore symbols.
- *   2) Through importing this module first in a Firestore main module
+ * Generates `nBytes` of random bytes.
+ *
+ * If `nBytes < 0` , an error will be thrown.
  */
-PlatformSupport.setPlatform(new BrowserPlatform());
+export function randomBytes(nBytes: number): Uint8Array {
+  if (isNode()) {
+    return node.randomBytes(nBytes);
+  } else if (isReactNative()) {
+    return rn.randomBytes(nBytes);
+  } else {
+    return browser.randomBytes(nBytes);
+  }
+}
