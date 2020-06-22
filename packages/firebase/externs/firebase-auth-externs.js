@@ -2050,6 +2050,9 @@ firebase.auth.Auth.prototype.updateCurrentUser = function(user) {};
  *   </li>
  * </ul>
  *
+ * For other sign-in operations, such as email/password sign-in, the <code>credential<field>
+ * will be null.
+ *
  * @typedef {{
  *   user: ?firebase.User,
  *   credential: ?firebase.auth.AuthCredential,
