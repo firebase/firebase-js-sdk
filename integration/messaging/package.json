@@ -8,7 +8,7 @@
     "test:manual": "mocha --exit"
   },
   "dependencies": {
-    "firebase": "7.15.3"
+    "firebase": "7.15.4"
   },
   "devDependencies": {
     "chai": "4.2.0",

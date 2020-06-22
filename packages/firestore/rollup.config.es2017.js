@@ -103,11 +103,6 @@ const browserBuilds = [
   }
 ];
 
-const reactNativeBuildPlugins = [
-  alias(generateAliasConfig('rn')),
-  ...browserBuildPlugins.slice(1)
-];
-
 // MARK: Node builds
 
 const nodeBuildPlugins = [
