@@ -43,7 +43,7 @@
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
-  "react-native": "dist/index.rn.esm2017.js",
+  "react-native": "dist/index.rn.esm.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",

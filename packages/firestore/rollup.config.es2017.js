@@ -113,7 +113,7 @@ const reactNativeBuilds = [
   {
     input: 'index.rn.ts',
     output: {
-      file: pkg['react-native'],
+      file: 'dist/index.rn.esm2017.js',
       format: 'es',
       sourcemap: true
     },
@@ -124,7 +124,7 @@ const reactNativeBuilds = [
   {
     input: 'index.rn.memory.ts',
     output: {
-      file: path.resolve('./memory', memoryPkg['react-native']),
+      file: 'dist/index.memory.rn.esm2017.js',
       format: 'es',
       sourcemap: true
     },
