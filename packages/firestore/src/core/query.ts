@@ -38,6 +38,7 @@ import {
   canonifyTarget,
   isDocumentTarget,
   newTarget,
+  stringifyTarget,
   Target,
   targetEquals
 } from './target';
@@ -274,7 +275,7 @@ export class Query {
   }
 
   toString(): string {
-    return `Query(target=${this.toTarget().toString()}; limitType=${
+    return `Query(target=${stringifyTarget(this.toTarget())}; limitType=${
       this.limitType
     })`;
   }
