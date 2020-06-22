@@ -1,6 +1,8 @@
 # Unreleased
 - [fixed] Fixed an issue that may have prevented the client from connecting 
   to the backend immediately after a user signed in.
+- [fixed] Added support for using `set()` with merge options when using
+  `FirestoreDataConverter`.
   
 # Released
 - [changed] All known failure cases for Indexed-related crashes have now been
