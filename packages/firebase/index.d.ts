@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DocumentData } from '@firebase/firestore-types';
+
 /**
  * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
@@ -7859,9 +7861,12 @@ declare namespace firebase.firestore {
     /**
      * Called by the Firestore SDK to convert a custom model object of type T
      * into a plain Javascript object (suitable for writing directly to the
-     * Firestore database).
+     * Firestore database). To use set() with `merge` and `mergeFields,
+     * toFirestore() must be defined with `Partial<T>`.
      */
-    toFirestore(modelObject: T): DocumentData;
+    toFirestore:
+      | ((modelObject: T) => DocumentData)
+      | ((modelObject: Partial<T>, options?: SetOptions) => DocumentData);
 
     /**
      * Called by the Firestore SDK to convert Firestore data into an object of
@@ -7870,7 +7875,10 @@ declare namespace firebase.firestore {
      * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
      * @param options The SnapshotOptions from the initial call to `data()`.
      */
-    fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
+    fromFirestore: (
+      snapshot: QueryDocumentSnapshot,
+      options: SnapshotOptions
+    ) => T;
   }
 
   /**
@@ -8310,9 +8318,31 @@ declare namespace firebase.firestore {
      */
     set<T>(
       documentRef: DocumentReference<T>,
-      data: T,
-      options?: SetOptions
+      data: Partial<T>,
+      options: SetOptions
     ): Transaction;
+
+    /**
+     * Writes to the document referred to by the provided `DocumentReference`.
+     * If the document does not exist yet, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into the existing document.
+     *
+     * @param documentRef A reference to the document to be set.
+     * @param data An object of the fields and values for the document.
+     * @return This `Transaction` instance. Used for chaining method calls.
+     */
+    set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+
+    /**
+     * Writes to the document referred to by the provided `DocumentReference`.
+     * If the document does not exist yet, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into the existing document.
+     *
+     * @param documentRef A reference to the document to be set.
+     * @param data An object of the fields and values for the document.
+     * @param options An object to configure the set behavior.
+     * @return This `Transaction` instance. Used for chaining method calls.
+     */
 
     /**
      * Updates fields in the document referred to by the provided
@@ -8384,9 +8414,20 @@ declare namespace firebase.firestore {
      */
     set<T>(
       documentRef: DocumentReference<T>,
-      data: T,
-      options?: SetOptions
+      data: Partial<T>,
+      options: SetOptions
     ): WriteBatch;
+
+    /**
+     * Writes to the document referred to by the provided `DocumentReference`.
+     * If the document does not exist yet, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into the existing document.
+     *
+     * @param documentRef A reference to the document to be set.
+     * @param data An object of the fields and values for the document.
+     * @return This `WriteBatch` instance. Used for chaining method calls.
+     */
+    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -8566,7 +8607,18 @@ declare namespace firebase.firestore {
      * @return A Promise resolved once the data has been successfully written
      * to the backend (Note that it won't resolve while you're offline).
      */
-    set(data: T, options?: SetOptions): Promise<void>;
+    set(data: Partial<T>, options: SetOptions): Promise<void>;
+
+    /**
+     * Writes to the document referred to by this `DocumentReference`. If the
+     * document does not yet exist, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into an existing document.
+     *
+     * @param data A map of the fields and values for the document.
+     * @return A Promise resolved once the data has been successfully written
+     * to the backend (Note that it won't resolve while you're offline).
+     */
+    set(data: T): Promise<void>;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.

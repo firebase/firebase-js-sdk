@@ -727,8 +727,14 @@ export class Transaction implements firestore.Transaction {
   }
 
   set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: firestore.SetOptions
+  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+  set<T>(
     documentRef: firestore.DocumentReference<T>,
-    value: T,
+    value: T | Partial<T>,
     options?: firestore.SetOptions
   ): Transaction {
     validateBetweenNumberOfArgs('Transaction.set', arguments, 2, 3);
@@ -741,7 +747,8 @@ export class Transaction implements firestore.Transaction {
     const [convertedValue, functionName] = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'Transaction.set'
+      'Transaction.set',
+      options
     );
     const parsed = this._firestore._dataReader.parseSetData(
       functionName,
@@ -823,8 +830,14 @@ export class WriteBatch implements firestore.WriteBatch {
   constructor(private _firestore: Firestore) {}
 
   set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: firestore.SetOptions
+  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<T>(
     documentRef: firestore.DocumentReference<T>,
-    value: T,
+    value: T | Partial<T>,
     options?: firestore.SetOptions
   ): WriteBatch {
     validateBetweenNumberOfArgs('WriteBatch.set', arguments, 2, 3);
@@ -838,7 +851,8 @@ export class WriteBatch implements firestore.WriteBatch {
     const [convertedValue, functionName] = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'WriteBatch.set'
+      'WriteBatch.set',
+      options
     );
     const parsed = this._firestore._dataReader.parseSetData(
       functionName,
@@ -1026,17 +1040,16 @@ export class DocumentReference<T = firestore.DocumentData>
     );
   }
 
-  set(
-    value: firestore.DocumentData,
-    options?: firestore.SetOptions
-  ): Promise<void>;
-  set(value: T, options?: firestore.SetOptions): Promise<void> {
+  set(value: Partial<T>, options: firestore.SetOptions): Promise<void>;
+  set(value: T): Promise<void>;
+  set(value: T | Partial<T>, options?: firestore.SetOptions): Promise<void> {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
     const [convertedValue, functionName] = applyFirestoreDataConverter(
       this._converter,
       value,
-      'DocumentReference.set'
+      'DocumentReference.set',
+      options
     );
     const parsed = this.firestore._dataReader.parseSetData(
       functionName,
@@ -2573,11 +2586,19 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
   value: T,
-  functionName: string
+  functionName: string,
+  options?: firestore.SetOptions
 ): [firestore.DocumentData, string] {
   let convertedValue;
   if (converter) {
-    convertedValue = converter.toFirestore(value);
+    if (options && (options.merge || options.mergeFields)) {
+      // Cast to `any` in order to satisfy the union type constraint on
+      // toFirestore().
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      convertedValue = (converter as any).toFirestore(value, options);
+    } else {
+      convertedValue = converter.toFirestore(value);
+    }
     functionName = 'toFirestore() in ' + functionName;
   } else {
     convertedValue = value as firestore.DocumentData;

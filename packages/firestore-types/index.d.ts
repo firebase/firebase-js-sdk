@@ -49,9 +49,14 @@ export type LogLevel =
 export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
-  toFirestore(modelObject: T): DocumentData;
+  toFirestore:
+    | ((modelObject: T) => DocumentData)
+    | ((modelObject: Partial<T>, options?: SetOptions) => DocumentData);
 
-  fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
+  fromFirestore: (
+    snapshot: QueryDocumentSnapshot,
+    options: SnapshotOptions
+  ) => T;
 }
 
 export class FirebaseFirestore {
@@ -146,7 +151,13 @@ export class Transaction {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
+    data: Partial<T>,
+    options: SetOptions
+  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: T | Partial<T>,
     options?: SetOptions
   ): Transaction;
 
@@ -166,7 +177,13 @@ export class WriteBatch {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
+    data: Partial<T>,
+    options: SetOptions
+  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: T | Partial<T>,
     options?: SetOptions
   ): WriteBatch;
 
@@ -208,7 +225,9 @@ export class DocumentReference<T = DocumentData> {
 
   isEqual(other: DocumentReference<T>): boolean;
 
-  set(data: T, options?: SetOptions): Promise<void>;
+  set(data: Partial<T>, options: SetOptions): Promise<void>;
+  set(data: T): Promise<void>;
+  set(data: T | Partial<T>, options?: SetOptions): Promise<void>;
 
   update(data: UpdateData): Promise<void>;
   update(
