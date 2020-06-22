@@ -799,9 +799,9 @@ export function boundEquals(left: Bound | null, right: Bound | null): boolean {
     return false;
   }
   for (let i = 0; i < left.position.length; i++) {
-    const thisPosition = left.position[i];
-    const otherPosition = right.position[i];
-    if (!valueEquals(thisPosition, otherPosition)) {
+    const leftPosition = left.position[i];
+    const rightPosition = right.position[i];
+    if (!valueEquals(leftPosition, rightPosition)) {
       return false;
     }
   }
