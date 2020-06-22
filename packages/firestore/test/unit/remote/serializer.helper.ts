@@ -32,7 +32,7 @@ import {
   Query
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
+import { Target, targetEquals } from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import {
   DeleteMutation,
@@ -957,7 +957,7 @@ export function serializerTest(
     });
 
     describe('toTarget', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: targetEquals, forType: Target });
 
       it('converts first-level key queries', () => {
         const q = Query.atPath(path('docs/1')).toTarget();
