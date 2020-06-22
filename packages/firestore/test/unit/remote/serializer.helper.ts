@@ -24,12 +24,9 @@ import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
-  ArrayContainsAnyFilter,
-  ArrayContainsFilter,
   Direction,
   FieldFilter,
-  InFilter,
-  KeyFieldFilter,
+  fieldFilterEquals,
   Operator,
   OrderBy,
   Query
@@ -136,7 +133,7 @@ export function serializerTest(
     }
 
     describe('converts value', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: fieldFilterEquals, forType: FieldFilter });
 
       /**
        * Verifies full round-trip of encoding/decoding fieldValue objects:
@@ -754,11 +751,11 @@ export function serializerTest(
     });
 
     describe('to/from FieldFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: fieldFilterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
         const path = new FieldPath(['item', 'part', 'top']);
-        const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
+        const input = new FieldFilter(path, Operator.EQUAL, wrap('food'));
         const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
@@ -847,7 +844,6 @@ export function serializerTest(
         });
         const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(KeyFieldFilter);
       });
 
       it('converts array-contains', () => {
@@ -862,7 +858,6 @@ export function serializerTest(
         });
         const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
       });
 
       it('converts IN', () => {
@@ -885,7 +880,6 @@ export function serializerTest(
         });
         const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(InFilter);
       });
 
       it('converts array-contains-any', () => {
@@ -908,12 +902,11 @@ export function serializerTest(
         });
         const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
       });
     });
 
     describe('to/from UnaryFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: fieldFilterEquals, forType: FieldFilter });
 
       it('converts null', () => {
         const input = filter('field', '==', null);

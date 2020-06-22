@@ -913,7 +913,7 @@ export class SyncEngine implements RemoteSyncer {
 }
 
 /**
- * An impplementation of SyncEngine that implement SharedClientStateSyncer for
+ * An implementation of SyncEngine that implement SharedClientStateSyncer for
  * Multi-Tab synchronization.
  */
 // PORTING NOTE: Web only

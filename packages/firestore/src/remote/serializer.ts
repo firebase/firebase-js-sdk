@@ -22,7 +22,6 @@ import {
   Bound,
   Direction,
   FieldFilter,
-  Filter,
   LimitType,
   Operator,
   OrderBy,
@@ -884,7 +883,7 @@ export function fromQueryTarget(target: api.QueryTarget): Target {
     }
   }
 
-  let filterBy: Filter[] = [];
+  let filterBy: FieldFilter[] = [];
   if (query.where) {
     filterBy = fromFilter(query.where);
   }
@@ -973,7 +972,7 @@ export function toTarget(
   return result;
 }
 
-function toFilter(filters: Filter[]): api.Filter | undefined {
+function toFilter(filters: FieldFilter[]): api.Filter | undefined {
   if (filters.length === 0) {
     return;
   }
@@ -990,7 +989,7 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
   return { compositeFilter: { op: 'AND', filters: protos } };
 }
 
-function fromFilter(filter: api.Filter | undefined): Filter[] {
+function fromFilter(filter: api.Filter | undefined): FieldFilter[] {
   if (!filter) {
     return [];
   } else if (filter.unaryFilter !== undefined) {
@@ -1104,8 +1103,8 @@ export function fromPropertyOrder(orderBy: api.Order): OrderBy {
   );
 }
 
-export function fromFieldFilter(filter: api.Filter): Filter {
-  return FieldFilter.create(
+export function fromFieldFilter(filter: api.Filter): FieldFilter {
+  return new FieldFilter(
     fromFieldPathReference(filter.fieldFilter!.field!),
     fromOperatorName(filter.fieldFilter!.op!),
     filter.fieldFilter!.value!
@@ -1140,16 +1139,14 @@ export function toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
   };
 }
 
-export function fromUnaryFilter(filter: api.Filter): Filter {
+export function fromUnaryFilter(filter: api.Filter): FieldFilter {
   switch (filter.unaryFilter!.op!) {
     case 'IS_NAN':
       const nanField = fromFieldPathReference(filter.unaryFilter!.field!);
-      return FieldFilter.create(nanField, Operator.EQUAL, {
-        doubleValue: NaN
-      });
+      return new FieldFilter(nanField, Operator.EQUAL, { doubleValue: NaN });
     case 'IS_NULL':
       const nullField = fromFieldPathReference(filter.unaryFilter!.field!);
-      return FieldFilter.create(nullField, Operator.EQUAL, {
+      return new FieldFilter(nullField, Operator.EQUAL, {
         nullValue: 'NULL_VALUE'
       });
     case 'OPERATOR_UNSPECIFIED':

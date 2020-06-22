@@ -18,7 +18,16 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, boundEquals, canonifyBound, Filter, OrderBy } from './query';
+import {
+  Bound,
+  boundEquals,
+  canonifyBound,
+  canonifyFieldFilter,
+  FieldFilter,
+  fieldFilterEquals,
+  OrderBy,
+  stringifyFieldFilter
+} from './query';
 import { debugCast } from '../util/assert';
 
 /**
@@ -33,7 +42,7 @@ export class Target {
     readonly path: ResourcePath,
     readonly collectionGroup: string | null,
     readonly orderBy: OrderBy[],
-    readonly filters: Filter[],
+    readonly filters: FieldFilter[],
     readonly limit: number | null,
     readonly startAt: Bound | null,
     readonly endAt: Bound | null
@@ -46,7 +55,7 @@ class TargetImpl extends Target {
     path: ResourcePath,
     collectionGroup: string | null = null,
     orderBy: OrderBy[] = [],
-    filters: Filter[] = [],
+    filters: FieldFilter[] = [],
     limit: number | null = null,
     startAt: Bound | null = null,
     endAt: Bound | null = null
@@ -67,7 +76,7 @@ export function newTarget(
   path: ResourcePath,
   collectionGroup: string | null = null,
   orderBy: OrderBy[] = [],
-  filters: Filter[] = [],
+  filters: FieldFilter[] = [],
   limit: number | null = null,
   startAt: Bound | null = null,
   endAt: Bound | null = null
@@ -92,7 +101,9 @@ export function canonifyTarget(target: Target): string {
       canonicalId += '|cg:' + targetImpl.collectionGroup;
     }
     canonicalId += '|f:';
-    canonicalId += targetImpl.filters.map(f => f.canonicalId()).join(',');
+    canonicalId += targetImpl.filters
+      .map(f => canonifyFieldFilter(f))
+      .join(',');
     canonicalId += '|ob:';
     canonicalId += targetImpl.orderBy.map(o => o.canonicalId()).join(',');
 
@@ -119,7 +130,9 @@ export function stringifyTarget(target: Target): string {
     str += ' collectionGroup=' + target.collectionGroup;
   }
   if (target.filters.length > 0) {
-    str += `, filters: [${target.filters.join(', ')}]`;
+    str += `, filters: [${target.filters
+      .map(f => stringifyFieldFilter(f))
+      .join(', ')}]`;
   }
   if (!isNullOrUndefined(target.limit)) {
     str += ', limit: ' + target.limit;
@@ -156,7 +169,7 @@ export function targetEquals(left: Target, right: Target): boolean {
   }
 
   for (let i = 0; i < left.filters.length; i++) {
-    if (!left.filters[i].isEqual(right.filters[i])) {
+    if (!fieldFilterEquals(left.filters[i], right.filters[i])) {
       return false;
     }
   }
