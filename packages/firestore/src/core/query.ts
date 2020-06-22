@@ -845,6 +845,6 @@ export function stringifyOrderBy(orderBy: OrderBy): string {
   return `${orderBy.field.canonicalString()} (${orderBy.dir})`;
 }
 
-export function orderByEquals(left: OrderBy, right: OrderBy) {
+export function orderByEquals(left: OrderBy, right: OrderBy): boolean {
   return left.dir === right.dir && left.field.isEqual(right.field);
 }
