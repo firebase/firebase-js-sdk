@@ -71,8 +71,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -151,6 +153,8 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -238,7 +242,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97396
+        "sizeInBytes": 97991
     },
     "DocumentReference": {
         "dependencies": {
@@ -774,7 +778,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88429
+        "sizeInBytes": 87202
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1274,8 +1278,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -1363,6 +1369,8 @@
                 "refValue",
                 "registerFirestore",
                 "serverTimestamp",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -1466,7 +1474,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 107674
+        "sizeInBytes": 108269
     },
     "arrayRemove": {
         "dependencies": {
@@ -1697,8 +1705,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -1778,6 +1788,8 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -1866,7 +1878,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98024
+        "sizeInBytes": 98619
     },
     "collectionGroup": {
         "dependencies": {
@@ -1877,8 +1889,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -1958,6 +1972,8 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -2044,7 +2060,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97455
+        "sizeInBytes": 98050
     },
     "deleteDoc": {
         "dependencies": {
@@ -2235,8 +2251,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -2317,6 +2335,8 @@
                 "randomBytes",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -2406,7 +2426,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98845
+        "sizeInBytes": 99440
     },
     "documentId": {
         "dependencies": {
@@ -2828,7 +2848,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 94239
+        "sizeInBytes": 93121
     },
     "increment": {
         "dependencies": {
@@ -3005,8 +3025,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -3086,6 +3108,8 @@
                 "primitiveComparator",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -3173,7 +3197,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97739
+        "sizeInBytes": 98334
     },
     "queryEqual": {
         "dependencies": {
@@ -3342,7 +3366,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88633
+        "sizeInBytes": 87406
     },
     "refEqual": {
         "dependencies": {
@@ -3353,8 +3377,10 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "boundEquals",
                 "canonicalId",
                 "canonifyArray",
+                "canonifyBound",
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
@@ -3434,6 +3460,8 @@
                 "refEqual",
                 "refValue",
                 "registerFirestore",
+                "sortsBeforeDocument",
+                "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
                 "toBytes",
@@ -3521,7 +3549,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97681
+        "sizeInBytes": 98276
     },
     "runTransaction": {
         "dependencies": {
@@ -4142,7 +4170,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 89366
+        "sizeInBytes": 88139
     },
     "terminate": {
         "dependencies": {

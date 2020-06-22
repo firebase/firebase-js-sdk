@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { Blob } from '../../../src/api/blob';
 import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
-import { Bound, Query } from '../../../src/core/query';
+import { Bound, boundEquals, Query } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -45,23 +45,23 @@ describe('Bound', () => {
 
   it('implements isEqual', () => {
     let bound = makeBound([1, 2], true);
-    expect(bound.isEqual(makeBound([1, 2], true))).to.be.true;
+    expect(boundEquals(bound, makeBound([1, 2], true))).to.be.true;
 
     // Mismatch values
-    expect(bound.isEqual(makeBound([2, 2], true))).to.be.false;
-    expect(bound.isEqual(makeBound([1, 3], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([2, 2], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([1, 3], true))).to.be.false;
 
     // Mismatch before
-    expect(bound.isEqual(makeBound([1, 2], false))).to.be.false;
+    expect(boundEquals(bound, makeBound([1, 2], false))).to.be.false;
 
     // Unequal lengths
-    expect(bound.isEqual(makeBound([], true))).to.be.false;
-    expect(bound.isEqual(makeBound([1], true))).to.be.false;
-    expect(bound.isEqual(makeBound([1, 2, 3], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([1], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([1, 2, 3], true))).to.be.false;
 
     // Zero length
     bound = makeBound([], false);
-    expect(bound.isEqual(makeBound([], false))).to.be.true;
+    expect(boundEquals(bound, makeBound([], false))).to.be.true;
   });
 });
 
