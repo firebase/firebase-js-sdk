@@ -34,7 +34,13 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import { Target } from './target';
+import {
+  canonifyTarget,
+  isDocumentTarget,
+  newTarget,
+  Target,
+  targetEquals
+} from './target';
 
 export const enum LimitType {
   First = 'F',
@@ -264,7 +270,7 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    return `${this.toTarget().canonicalId()}|lt:${this.limitType}`;
+    return `${canonifyTarget(this.toTarget())}|lt:${this.limitType}`;
   }
 
   toString(): string {
@@ -275,7 +281,7 @@ export class Query {
 
   isEqual(other: Query): boolean {
     return (
-      this.toTarget().isEqual(other.toTarget()) &&
+      targetEquals(this.toTarget(), other.toTarget()) &&
       this.limitType === other.limitType
     );
   }
@@ -343,7 +349,7 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return this.toTarget().isDocumentQuery();
+    return isDocumentTarget(this.toTarget());
   }
 
   isCollectionGroupQuery(): boolean {
@@ -357,7 +363,7 @@ export class Query {
   toTarget(): Target {
     if (!this.memoizedTarget) {
       if (this.limitType === LimitType.First) {
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           this.orderBy,
@@ -386,7 +392,7 @@ export class Query {
           : null;
 
         // Now return as a LimitType.First query.
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           orderBys,

@@ -148,8 +148,9 @@ export interface SyncEngineListener {
 export class SyncEngine implements RemoteSyncer {
   protected syncEngineListener: SyncEngineListener | null = null;
 
-  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
-    q.canonicalId()
+  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
+    q => q.canonicalId(),
+    (l, r) => l.isEqual(r)
   );
   protected queriesByTarget = new Map<TargetId, Query[]>();
   /**
