@@ -45,6 +45,7 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
+
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
@@ -55,7 +56,6 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
-
         return factory(app, installations);
       },
       ComponentType.PUBLIC

@@ -35,7 +35,11 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.0.800"
+    "@firebase/app-exp": "0.0.800",
+    "@firebase/dummy-exp": "0.0.800",
+    "@firebase/functions-exp": "0.0.800",
+    "@firebase/auth-exp": "0.1.0",
+    "@firebase/auth-compat-exp": "0.1.0"
   },
   "devDependencies": {
     "rollup": "1.32.1",
@@ -52,6 +56,9 @@
     "typescript": "3.7.5"
   },
   "components": [
-    "app"
+    "app",
+    "dummy",
+    "functions",
+    "auth"
   ]
 }

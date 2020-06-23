@@ -48,6 +48,7 @@ export async function extractDependencies(
     exportName,
     jsBundle
   );
+  console.log(dependencies);
   return dependencies;
 }
 
@@ -61,11 +62,17 @@ export async function extractDependenciesAndSize(
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
+  console.log(input);
+  console.log(output);
+  // jsBundle : /Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firestore/dist/exp/index.js
 
   // JavaScript content that exports a single API from the bundle
+  //beforeCOntent: export { Blob } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firestore/dist/exp/index.js';
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
+  console.log('beforeContent\n');
+  console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -76,6 +83,7 @@ export async function extractDependenciesAndSize(
   await bundle.write({ file: output, format: 'es' });
 
   const dependencies = extractDeclarations(output);
+  console.log(dependencies);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
@@ -89,7 +97,7 @@ export async function extractDependenciesAndSize(
 
   fs.unlinkSync(input);
   fs.unlinkSync(output);
-
+  console.log(code);
   return { dependencies, sizeInBytes: Buffer.byteLength(code!, 'utf-8') };
 }
 
@@ -99,6 +107,7 @@ export async function extractDependenciesAndSize(
  */
 export function extractDeclarations(jsFile: string): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
+
   const sourceFile = program.getSourceFile(jsFile);
   if (!sourceFile) {
     throw new Error('Failed to parse file: ' + jsFile);

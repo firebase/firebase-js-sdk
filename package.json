@@ -138,7 +138,9 @@
     "typescript": "3.8.3",
     "watch": "1.0.2",
     "webpack": "4.43.0",
-    "yargs": "15.3.1"
+    "yargs": "15.3.1",
+    "@rollup/plugin-commonjs": "13.0.0",
+    "@rollup/plugin-node-resolve": "8.1.0"
   },
   "husky": {
     "hooks": {

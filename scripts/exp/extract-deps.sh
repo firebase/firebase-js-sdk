@@ -27,5 +27,8 @@ GENERATE_DEPS_JS="$DIR/extract-deps.ts"
 export TS_NODE_CACHE=NO 
 export TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}' 
 export TS_NODE_PROJECT="$DIR/../../config/tsconfig.base.json"
-
+echo $TSNODE
+echo $GENERATE_DEPS_JS
+#Users/xuechunhou/Desktop/Google/firebase-js-sdk/node_modules/.bin/ts-node
+#/Users/xuechunhou/Desktop/Google/firebase-js-sdk/scripts/exp/extract-deps.ts
 $TSNODE $GENERATE_DEPS_JS "$@"
