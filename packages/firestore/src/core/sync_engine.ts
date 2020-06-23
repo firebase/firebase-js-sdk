@@ -148,8 +148,9 @@ export interface SyncEngineListener {
 export class SyncEngine implements RemoteSyncer {
   protected syncEngineListener: SyncEngineListener | null = null;
 
-  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
-    q.canonicalId()
+  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
+    q => q.canonicalId(),
+    (l, r) => l.isEqual(r)
   );
   protected queriesByTarget = new Map<TargetId, Query[]>();
   /**
@@ -864,6 +865,8 @@ export class SyncEngine implements RemoteSyncer {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {
+      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
       const result = await this.localStore.handleUserChange(user);
       this.currentUser = user;
 
@@ -879,8 +882,6 @@ export class SyncEngine implements RemoteSyncer {
       );
       await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
-
-    await this.remoteStore.handleCredentialChange();
   }
 
   enableNetwork(): Promise<void> {

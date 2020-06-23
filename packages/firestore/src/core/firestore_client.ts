@@ -22,7 +22,6 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { Platform } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -48,6 +47,8 @@ import {
   ComponentProvider,
   MemoryComponentProvider
 } from './component_provider';
+import { newConnection } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -93,7 +94,6 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
 
   constructor(
-    private platform: Platform,
     private databaseInfo: DatabaseInfo,
     private credentials: CredentialsProvider,
     /**
@@ -179,9 +179,9 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueRetryable(() => {
-          return this.handleCredentialChange(user);
-        });
+        this.asyncQueue.enqueueRetryable(() =>
+          this.remoteStore.handleCredentialChange(user)
+        );
       }
     });
 
@@ -235,16 +235,13 @@ export class FirestoreClient {
       // Datastore (without duplicating the initializing logic once per
       // provider).
 
-      const connection = await this.platform.loadConnection(this.databaseInfo);
-      const serializer = this.platform.newSerializer(
-        this.databaseInfo.databaseId
-      );
+      const connection = await newConnection(this.databaseInfo);
+      const serializer = newSerializer(this.databaseInfo.databaseId);
       const datastore = newDatastore(connection, this.credentials, serializer);
 
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        platform: this.platform,
         datastore,
         clientId: this.clientId,
         initialUser: user,
@@ -337,13 +334,6 @@ export class FirestoreClient {
         'The client has already been terminated.'
       );
     }
-  }
-
-  private handleCredentialChange(user: User): Promise<void> {
-    this.asyncQueue.verifyOperationInProgress();
-
-    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
-    return this.syncEngine.handleCredentialChange(user);
   }
 
   /** Disables the network connection. Pending operations will not complete. */

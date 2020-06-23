@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.15.1",
+  "version": "1.15.4",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -43,7 +43,6 @@
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
-  "react-native": "dist/index.rn.esm2017.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -54,10 +53,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.13",
+    "@firebase/component": "0.1.14",
     "@firebase/firestore-types": "1.11.0",
     "@firebase/logger": "0.2.5",
-    "@firebase/util": "0.2.48",
+    "@firebase/util": "0.2.49",
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
@@ -68,8 +67,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x",
+    "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.9.0",

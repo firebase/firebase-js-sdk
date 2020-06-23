@@ -18,7 +18,8 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy } from './query';
+import { Bound, boundEquals, canonifyBound, Filter, OrderBy } from './query';
+import { debugCast } from '../util/assert';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -28,128 +29,157 @@ import { Bound, Filter, OrderBy } from './query';
  * in persistence.
  */
 export class Target {
-  private memoizedCanonicalId: string | null = null;
-
-  /**
-   * Initializes a Target with a path and optional additional query constraints.
-   * Path must currently be empty if this is a collection group query.
-   *
-   * NOTE: you should always construct `Target` from `Query.toTarget` instead of
-   * using this constructor, because `Query` provides an implicit `orderBy`
-   * property.
-   */
-  constructor(
+  protected constructor(
     readonly path: ResourcePath,
-    readonly collectionGroup: string | null = null,
-    readonly orderBy: OrderBy[] = [],
-    readonly filters: Filter[] = [],
-    readonly limit: number | null = null,
-    readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null
+    readonly collectionGroup: string | null,
+    readonly orderBy: OrderBy[],
+    readonly filters: Filter[],
+    readonly limit: number | null,
+    readonly startAt: Bound | null,
+    readonly endAt: Bound | null
   ) {}
+}
 
-  canonicalId(): string {
-    if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.collectionGroup !== null) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      canonicalId += this.filters.map(f => f.canonicalId()).join(',');
-      canonicalId += '|ob:';
-      canonicalId += this.orderBy.map(o => o.canonicalId()).join(',');
+class TargetImpl extends Target {
+  memoizedCanonicalId: string | null = null;
+  constructor(
+    path: ResourcePath,
+    collectionGroup: string | null = null,
+    orderBy: OrderBy[] = [],
+    filters: Filter[] = [],
+    limit: number | null = null,
+    startAt: Bound | null = null,
+    endAt: Bound | null = null
+  ) {
+    super(path, collectionGroup, orderBy, filters, limit, startAt, endAt);
+  }
+}
 
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
+/**
+ * Initializes a Target with a path and optional additional query constraints.
+ * Path must currently be empty if this is a collection group query.
+ *
+ * NOTE: you should always construct `Target` from `Query.toTarget` instead of
+ * using this factory method, because `Query` provides an implicit `orderBy`
+ * property.
+ */
+export function newTarget(
+  path: ResourcePath,
+  collectionGroup: string | null = null,
+  orderBy: OrderBy[] = [],
+  filters: Filter[] = [],
+  limit: number | null = null,
+  startAt: Bound | null = null,
+  endAt: Bound | null = null
+): Target {
+  return new TargetImpl(
+    path,
+    collectionGroup,
+    orderBy,
+    filters,
+    limit,
+    startAt,
+    endAt
+  );
+}
+
+export function canonifyTarget(target: Target): string {
+  const targetImpl = debugCast(target, TargetImpl);
+
+  if (targetImpl.memoizedCanonicalId === null) {
+    let canonicalId = targetImpl.path.canonicalString();
+    if (targetImpl.collectionGroup !== null) {
+      canonicalId += '|cg:' + targetImpl.collectionGroup;
     }
-    return this.memoizedCanonicalId;
+    canonicalId += '|f:';
+    canonicalId += targetImpl.filters.map(f => f.canonicalId()).join(',');
+    canonicalId += '|ob:';
+    canonicalId += targetImpl.orderBy.map(o => o.canonicalId()).join(',');
+
+    if (!isNullOrUndefined(targetImpl.limit)) {
+      canonicalId += '|l:';
+      canonicalId += targetImpl.limit!;
+    }
+    if (targetImpl.startAt) {
+      canonicalId += '|lb:';
+      canonicalId += canonifyBound(targetImpl.startAt);
+    }
+    if (targetImpl.endAt) {
+      canonicalId += '|ub:';
+      canonicalId += canonifyBound(targetImpl.endAt);
+    }
+    targetImpl.memoizedCanonicalId = canonicalId;
+  }
+  return targetImpl.memoizedCanonicalId;
+}
+
+export function stringifyTarget(target: Target): string {
+  let str = target.path.canonicalString();
+  if (target.collectionGroup !== null) {
+    str += ' collectionGroup=' + target.collectionGroup;
+  }
+  if (target.filters.length > 0) {
+    str += `, filters: [${target.filters.join(', ')}]`;
+  }
+  if (!isNullOrUndefined(target.limit)) {
+    str += ', limit: ' + target.limit;
+  }
+  if (target.orderBy.length > 0) {
+    str += `, orderBy: [${target.orderBy.join(', ')}]`;
+  }
+  if (target.startAt) {
+    str += ', startAt: ' + canonifyBound(target.startAt);
+  }
+  if (target.endAt) {
+    str += ', endAt: ' + canonifyBound(target.endAt);
+  }
+  return `Target(${str})`;
+}
+
+export function targetEquals(left: Target, right: Target): boolean {
+  if (left.limit !== right.limit) {
+    return false;
   }
 
-  toString(): string {
-    let str = this.path.canonicalString();
-    if (this.collectionGroup !== null) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.orderBy.length > 0) {
-      str += `, orderBy: [${this.orderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
-    return `Target(${str})`;
+  if (left.orderBy.length !== right.orderBy.length) {
+    return false;
   }
 
-  isEqual(other: Target): boolean {
-    if (this.limit !== other.limit) {
+  for (let i = 0; i < left.orderBy.length; i++) {
+    if (!left.orderBy[i].isEqual(right.orderBy[i])) {
       return false;
     }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
   }
 
-  isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+  if (left.filters.length !== right.filters.length) {
+    return false;
   }
+
+  for (let i = 0; i < left.filters.length; i++) {
+    if (!left.filters[i].isEqual(right.filters[i])) {
+      return false;
+    }
+  }
+
+  if (left.collectionGroup !== right.collectionGroup) {
+    return false;
+  }
+
+  if (!left.path.isEqual(right.path)) {
+    return false;
+  }
+
+  if (!boundEquals(left.startAt, right.startAt)) {
+    return false;
+  }
+
+  return boundEquals(left.endAt, right.endAt);
+}
+
+export function isDocumentTarget(target: Target): boolean {
+  return (
+    DocumentKey.isDocumentKey(target.path) &&
+    target.collectionGroup === null &&
+    target.filters.length === 0
+  );
 }

@@ -34,7 +34,14 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import { Target } from './target';
+import {
+  canonifyTarget,
+  isDocumentTarget,
+  newTarget,
+  stringifyTarget,
+  Target,
+  targetEquals
+} from './target';
 
 export const enum LimitType {
   First = 'F',
@@ -264,18 +271,18 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    return `${this.toTarget().canonicalId()}|lt:${this.limitType}`;
+    return `${canonifyTarget(this.toTarget())}|lt:${this.limitType}`;
   }
 
   toString(): string {
-    return `Query(target=${this.toTarget().toString()}; limitType=${
+    return `Query(target=${stringifyTarget(this.toTarget())}; limitType=${
       this.limitType
     })`;
   }
 
   isEqual(other: Query): boolean {
     return (
-      this.toTarget().isEqual(other.toTarget()) &&
+      targetEquals(this.toTarget(), other.toTarget()) &&
       this.limitType === other.limitType
     );
   }
@@ -343,7 +350,7 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return this.toTarget().isDocumentQuery();
+    return isDocumentTarget(this.toTarget());
   }
 
   isCollectionGroupQuery(): boolean {
@@ -357,7 +364,7 @@ export class Query {
   toTarget(): Target {
     if (!this.memoizedTarget) {
       if (this.limitType === LimitType.First) {
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           this.orderBy,
@@ -386,7 +393,7 @@ export class Query {
           : null;
 
         // Now return as a LimitType.First query.
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           orderBys,
@@ -445,10 +452,10 @@ export class Query {
    * Makes sure a document is within the bounds, if provided.
    */
   private matchesBounds(doc: Document): boolean {
-    if (this.startAt && !this.startAt.sortsBeforeDocument(this.orderBy, doc)) {
+    if (this.startAt && !sortsBeforeDocument(this.startAt, this.orderBy, doc)) {
       return false;
     }
-    if (this.endAt && this.endAt.sortsBeforeDocument(this.orderBy, doc)) {
+    if (this.endAt && sortsBeforeDocument(this.endAt, this.orderBy, doc)) {
       return false;
     }
     return true;
@@ -725,73 +732,80 @@ export const enum Direction {
  */
 export class Bound {
   constructor(readonly position: api.Value[], readonly before: boolean) {}
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Make this collision robust.
-    return `${this.before ? 'b' : 'a'}:${this.position
-      .map(p => canonicalId(p))
-      .join(',')}`;
-  }
+export function canonifyBound(bound: Bound): string {
+  // TODO(b/29183165): Make this collision robust.
+  return `${bound.before ? 'b' : 'a'}:${bound.position
+    .map(p => canonicalId(p))
+    .join(',')}`;
+}
 
-  /**
-   * Returns true if a document sorts before a bound using the provided sort
-   * order.
-   */
-  sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
-    debugAssert(
-      this.position.length <= orderBy.length,
-      "Bound has more components than query's orderBy"
-    );
-    let comparison = 0;
-    for (let i = 0; i < this.position.length; i++) {
-      const orderByComponent = orderBy[i];
-      const component = this.position[i];
-      if (orderByComponent.field.isKeyField()) {
-        debugAssert(
-          isReferenceValue(component),
-          'Bound has a non-key value where the key path is being used.'
-        );
-        comparison = DocumentKey.comparator(
-          DocumentKey.fromName(component.referenceValue),
-          doc.key
-        );
-      } else {
-        const docValue = doc.field(orderByComponent.field);
-        debugAssert(
-          docValue !== null,
-          'Field should exist since document matched the orderBy already.'
-        );
-        comparison = valueCompare(component, docValue);
-      }
-      if (orderByComponent.dir === Direction.DESCENDING) {
-        comparison = comparison * -1;
-      }
-      if (comparison !== 0) {
-        break;
-      }
+/**
+ * Returns true if a document sorts before a bound using the provided sort
+ * order.
+ */
+export function sortsBeforeDocument(
+  bound: Bound,
+  orderBy: OrderBy[],
+  doc: Document
+): boolean {
+  debugAssert(
+    bound.position.length <= orderBy.length,
+    "Bound has more components than query's orderBy"
+  );
+  let comparison = 0;
+  for (let i = 0; i < bound.position.length; i++) {
+    const orderByComponent = orderBy[i];
+    const component = bound.position[i];
+    if (orderByComponent.field.isKeyField()) {
+      debugAssert(
+        isReferenceValue(component),
+        'Bound has a non-key value where the key path is being used.'
+      );
+      comparison = DocumentKey.comparator(
+        DocumentKey.fromName(component.referenceValue),
+        doc.key
+      );
+    } else {
+      const docValue = doc.field(orderByComponent.field);
+      debugAssert(
+        docValue !== null,
+        'Field should exist since document matched the orderBy already.'
+      );
+      comparison = valueCompare(component, docValue);
     }
-    return this.before ? comparison <= 0 : comparison < 0;
+    if (orderByComponent.dir === Direction.DESCENDING) {
+      comparison = comparison * -1;
+    }
+    if (comparison !== 0) {
+      break;
+    }
+  }
+  return bound.before ? comparison <= 0 : comparison < 0;
+}
+
+export function boundEquals(left: Bound | null, right: Bound | null): boolean {
+  if (left === null) {
+    return right === null;
+  } else if (right === null) {
+    return false;
   }
 
-  isEqual(other: Bound | null): boolean {
-    if (other === null) {
+  if (
+    left.before !== right.before ||
+    left.position.length !== right.position.length
+  ) {
+    return false;
+  }
+  for (let i = 0; i < left.position.length; i++) {
+    const leftPosition = left.position[i];
+    const rightPosition = right.position[i];
+    if (!valueEquals(leftPosition, rightPosition)) {
       return false;
     }
-    if (
-      this.before !== other.before ||
-      this.position.length !== other.position.length
-    ) {
-      return false;
-    }
-    for (let i = 0; i < this.position.length; i++) {
-      const thisPosition = this.position[i];
-      const otherPosition = other.position[i];
-      if (!valueEquals(thisPosition, otherPosition)) {
-        return false;
-      }
-    }
-    return true;
   }
+  return true;
 }
 
 /**
