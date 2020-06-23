@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 import { version } from '../../../packages/firebase/package.json';
+import { LogLevel } from '@firebase/logger';
 export const SDK_VERSION = version;
-export function bar(): string {
+export function bar(): LogLevel {
   return bar1();
 }
 
-export function bar1(): string {
-  return 'bar1';
+export function bar1(): LogLevel {
+  return LogLevel.DEBUG;
 }
 
 export function bar2(): string {
-  return bar1() + bar();
+  return bar1().toLocaleString() + bar();
 }

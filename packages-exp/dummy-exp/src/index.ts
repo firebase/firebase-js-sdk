@@ -16,10 +16,11 @@
  */
 
 export * from './bar';
-export { foo1, fooo, Apple, BUG } from './foo';
-export { foo2 as foo3 } from './foo';
-import { SDK_VERSION } from './bar';
-import { far } from './far';
+
+export * from './foo';
+// import { SDK_VERSION } from './bar';
+// import { far } from './far';
+export { far1, far, far3 } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';
@@ -31,7 +32,7 @@ export function boo(): LogLevel {
   return LogLevel.DEBUG;
 }
 
-export declare enum LogLevel1 {
+export enum LogLevel1 {
   DEBUG = 0,
   VERBOSE = 1,
   INFO = 2,
@@ -55,6 +56,6 @@ export type LogLevel2 =
   | 'info'
   | 'verbose';
 
-far(SDK_VERSION);
+// far(SDK_VERSION);
 
 export { LogLevel } from '@firebase/logger';

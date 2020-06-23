@@ -24,6 +24,9 @@ import * as ts from 'typescript';
 import { TYPINGS } from './analysis';
 import { request } from 'express';
 
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+
 /** Contains a list of members by type. */
 export type MemberList = {
   classes: string[];
@@ -46,12 +49,12 @@ export type ExportData = { dependencies: MemberList; sizeInBytes: number };
 export async function extractDependencies(
   exportName: string,
   jsBundle: string,
-  allModuleLocations: string[]
+  map: Map<string, string>
 ): Promise<MemberList> {
   const { dependencies } = await extractDependenciesAndSize(
     exportName,
     jsBundle,
-    allModuleLocations
+    map
   );
   return dependencies;
 }
@@ -63,7 +66,7 @@ export async function extractDependencies(
 export async function extractDependenciesAndSize(
   exportName: string,
   jsBundle: string,
-  allModuleLocations: string[]
+  map: Map<string, string>
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
@@ -71,19 +74,26 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
+  //console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
   const bundle = await rollup.rollup({
     input,
-    external: id => id.startsWith('@firebase-exp/')
+    plugins: [
+      resolve({
+        mainFields: ['esm2017', 'module', 'main']
+      }),
+      commonjs()
+    ]
   });
   await bundle.write({ file: output, format: 'es' });
 
-  const dependencies = extractDeclarations(allModuleLocations, output);
+  const dependencies = extractDeclarations(output, map);
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
+  //console.log(afterContent);
   const { code } = terser.minify(afterContent, {
     output: {
       comments: false
@@ -102,8 +112,8 @@ export async function extractDependenciesAndSize(
  * compiler API.
  */
 export function extractDeclarations(
-  allModulesLocation: string[],
-  jsFile: string
+  jsFile: string,
+  map?: Map<string, string>
 ): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
   const checker = program.getTypeChecker();
@@ -113,7 +123,7 @@ export function extractDeclarations(
     throw new Error('Failed to parse file: ' + jsFile);
   }
 
-  const declarations: MemberList = {
+  let declarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
@@ -150,10 +160,7 @@ export function extractDeclarations(
         const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
         const reExportFullPath = symbol.valueDeclaration.getSourceFile()
           .fileName;
-        const reExportsMember = extractDeclarations(
-          allModulesLocation,
-          reExportFullPath
-        );
+        const reExportsMember = extractDeclarations(reExportFullPath);
 
         // named exports
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
@@ -184,6 +191,12 @@ export function extractDeclarations(
       }
     }
   });
+
+  if (map) {
+    declarations = mapSymbolToType(map, declarations);
+    declarations = dedup(declarations);
+  }
+
   // Sort to ensure stable output
   declarations.functions.sort();
   declarations.classes.sort();
@@ -193,6 +206,61 @@ export function extractDeclarations(
   return declarations;
 }
 
+function dedup(memberList: MemberList): MemberList {
+  const classesSet: Set<string> = new Set(memberList.classes);
+  memberList.classes = Array.from(classesSet);
+
+  const functionsSet: Set<string> = new Set(memberList.functions);
+  memberList.functions = Array.from(functionsSet);
+
+  const enumsSet: Set<string> = new Set(memberList.enums);
+  memberList.enums = Array.from(enumsSet);
+
+  const variablesSet: Set<string> = new Set(memberList.variables);
+  memberList.variables = Array.from(variablesSet);
+
+  return memberList;
+}
+function mapSymbolToType(
+  map: Map<string, string>,
+  memberList: MemberList
+): MemberList {
+  const newMemberList: MemberList = {
+    functions: [],
+    classes: [],
+    variables: [],
+    enums: []
+  };
+  memberList.classes.forEach(element => {
+    if (map.has(element)) {
+      newMemberList[map.get(element)].push(element);
+    } else {
+      newMemberList.classes.push(element);
+    }
+  });
+  memberList.variables.forEach(element => {
+    if (map.has(element)) {
+      newMemberList[map.get(element)].push(element);
+    } else {
+      newMemberList.variables.push(element);
+    }
+  });
+  memberList.enums.forEach(element => {
+    if (map.has(element)) {
+      newMemberList[map.get(element)].push(element);
+    } else {
+      newMemberList.enums.push(element);
+    }
+  });
+  memberList.functions.forEach(element => {
+    if (map.has(element)) {
+      newMemberList[map.get(element)].push(element);
+    } else {
+      newMemberList.functions.push(element);
+    }
+  });
+  return newMemberList;
+}
 function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
   return reExportedSymbols.includes(symbol);
 }

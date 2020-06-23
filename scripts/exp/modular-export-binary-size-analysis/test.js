@@ -14,5 +14,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export { foo3 } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages-exp/dummy-exp/dist/index.esm2017.js';
+export { LogLevel } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages-exp/dummy-exp/dist/index.esm2017.js';

@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "importHelpers": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "target": "es5",
+        "esModuleInterop": true
+    }
+}

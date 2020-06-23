@@ -38,6 +38,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@rollup/plugin-alias": "3.1.1",
     "rollup": "1.32.1",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",

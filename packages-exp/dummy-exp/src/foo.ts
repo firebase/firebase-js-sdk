@@ -14,16 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export const fooo: string = 'foooo';
+export const f2: string = 'foo2';
+export const f1: string = 'foo1';
 
 export function foo(): string {
   return foo1();
 }
 
 export function foo1(): string {
-  return 'foo';
+  return f1;
 }
 export function foo2(): string {
-  return 'foo2';
+  return f1 + f2;
 }
 export class Apple {}
 
@@ -35,5 +38,3 @@ export enum BUG {
   ERROR = 4,
   SILENT = 5
 }
-export const fooo: string = 'foooo';
-export const f1: string = 'f1';

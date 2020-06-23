@@ -24,3 +24,7 @@ export function far1(version: string): string {
   console.log(version);
   return version;
 }
+export function far3(version: string): string {
+  console.log(version);
+  return version;
+}
