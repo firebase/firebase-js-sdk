@@ -21,7 +21,7 @@ const ora = require('ora');
 
 exports.runTests = async () => {
   try {
-    await spawn('yarn', ['test'], {
+    await spawn('yarn', ['test:release'], {
       cwd: root,
       stdio: 'inherit'
     });
