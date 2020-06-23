@@ -56,7 +56,7 @@ export async function unlink(
 /**
  * Internal-only link helper
  */
-export async function _link(user: User, linkAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl> {
+export async function _link<T extends externs.AuthCredential|null>(user: User, linkAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl<T>> {
   return UserCredentialImpl._forOperation(user, externs.OperationType.LINK, await linkAction);
 }
 

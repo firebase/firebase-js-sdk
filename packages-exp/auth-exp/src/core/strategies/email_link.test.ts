@@ -20,25 +20,17 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
 import * as externs from '@firebase/auth-types-exp';
+import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
+import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
-import {
-  isSignInWithEmailLink,
-  sendSignInLinkToEmail,
-  signInWithEmailLink
-} from './email_link';
-import {
-  ProviderId,
-  SignInMethod,
-  OperationType
-} from '@firebase/auth-types-exp';
-import { APIUserInfo } from '../../api/account_management/account';
+import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -238,8 +230,7 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
       'some-email',
       actionLink
     );
-    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+    expect(credential).to.be.null;
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;

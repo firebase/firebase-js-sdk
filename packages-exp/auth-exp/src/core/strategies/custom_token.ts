@@ -25,12 +25,12 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 export async function signInWithCustomToken(
   authExtern: externs.Auth,
   customToken: string
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<null>> {
   const auth = authExtern as Auth;
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
     token: customToken
   });
-  const cred = await UserCredentialImpl._fromIdTokenResponse(
+  const cred = await UserCredentialImpl._fromIdTokenResponse<null>(
     auth,
     null,
     externs.OperationType.SIGN_IN,

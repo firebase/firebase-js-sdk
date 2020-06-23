@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { AuthCredential, OperationType } from '@firebase/auth-types-exp';
 
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
@@ -24,7 +24,7 @@ import { assert, fail } from '../util/assert';
 import { _parseToken } from './id_token_result';
 import { UserCredentialImpl } from './user_credential_impl';
 
-export async function _reauthenticate(user: User, reauthAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl> {
+export async function _reauthenticate<T extends AuthCredential|null>(user: User, reauthAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl<T>> {
   const appName = user.auth.name;
   
   try {

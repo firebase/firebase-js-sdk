@@ -25,33 +25,35 @@ import { AuthCredential } from '../credentials';
 import { _authCredentialFromTokenResponse } from '../credentials/inferred';
 import { UserImpl } from './user_impl';
 
-export class UserCredentialImpl implements UserCredential {
+export class UserCredentialImpl<T extends externs.AuthCredential|null> implements UserCredential<T> {
   constructor(
     public readonly user: User,
-    public readonly credential: AuthCredential | null,
+    public readonly credential: T,
     public readonly operationType: externs.OperationType
   ) {}
 
-  static async _fromIdTokenResponse(
+  static async _fromIdTokenResponse<T extends externs.AuthCredential|null>(
     auth: Auth,
-    credential: AuthCredential | null,
+    credential: AuthCredential|null,
     operationType: externs.OperationType,
     idTokenResponse: IdTokenResponse
-  ): Promise<UserCredential> {
+  ): Promise<UserCredential<T>> {
     const user = await UserImpl._fromIdTokenResponse(
       auth,
       idTokenResponse,
       credential?.providerId === externs.ProviderId.ANONYMOUS
     );
-    const userCred = new UserCredentialImpl(user, credential, operationType);
+    const newCred = _authCredentialFromTokenResponse(idTokenResponse) as T;
+    const userCred = new UserCredentialImpl<T>(user, newCred, operationType);
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
   }
 
-  static async _forOperation(user: User, operationType: externs.OperationType, response: PhoneOrOauthTokenResponse): Promise<UserCredentialImpl> {
-    const newCred = _authCredentialFromTokenResponse(response);
+  static async _forOperation<T extends externs.AuthCredential|null>(user: User, operationType: externs.OperationType, response: PhoneOrOauthTokenResponse): Promise<UserCredentialImpl<T>> {
+    // We're forced to make this cast since `response` is of indeterminate shape.
+    const newCred = _authCredentialFromTokenResponse(response) as T;
     await user._updateTokensIfNecessary(response, /* reload */ true);
-    return new UserCredentialImpl(user, newCred, operationType);
+    return new UserCredentialImpl<T>(user, newCred, operationType);
   }
 }

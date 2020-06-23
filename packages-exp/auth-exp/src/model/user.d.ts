@@ -52,6 +52,6 @@ export interface User extends externs.User {
   toPlainObject(): PersistedBlob;
 }
 
-export interface UserCredential extends externs.UserCredential {
+export interface UserCredential<T extends externs.AuthCredential | null> extends externs.UserCredential<T> {
   user: User;
 }

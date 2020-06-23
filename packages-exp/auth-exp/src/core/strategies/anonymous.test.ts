@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
 import { expect } from 'chai';
+
+import { OperationType } from '@firebase/auth-types-exp';
+
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
@@ -53,8 +51,7 @@ describe('core/strategies/anonymous', () => {
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
       const { credential, user, operationType } = await signInAnonymously(auth);
-      expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-      expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+      expect(credential).to.be.null;
       expect(operationType).to.eq(OperationType.SIGN_IN);
       expect(user.uid).to.eq(serverUser.localId);
       expect(user.isAnonymous).to.be.true;
@@ -68,8 +65,7 @@ describe('core/strategies/anonymous', () => {
         const { credential, user, operationType } = await signInAnonymously(
           auth
         );
-        expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-        expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+        expect(credential).to.be.null;
         expect(operationType).to.eq(OperationType.SIGN_IN);
         expect(user.uid).to.eq(userCredential.user.uid);
         expect(user.isAnonymous).to.be.true;
@@ -85,8 +81,7 @@ describe('core/strategies/anonymous', () => {
         const { credential, user, operationType } = await signInAnonymously(
           auth
         );
-        expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-        expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+        expect(credential).to.be.null;
         expect(operationType).to.eq(OperationType.SIGN_IN);
         expect(user.uid).to.not.eq(fakeUser.uid);
         expect(user.isAnonymous).to.be.true;

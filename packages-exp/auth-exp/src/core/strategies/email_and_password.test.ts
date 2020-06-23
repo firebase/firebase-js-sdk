@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-import {
-  Operation,
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
+
+import { Operation, OperationType } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
@@ -33,13 +30,8 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import {
-  checkActionCode,
-  confirmPasswordReset,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  verifyPasswordResetCode,
-  applyActionCode
+    applyActionCode, checkActionCode, confirmPasswordReset, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, signInWithEmailAndPassword, verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -395,8 +387,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       'some-email',
       'some-password'
     );
-    expect(credential!.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(credential).to.be.null;
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
@@ -430,8 +421,7 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
       user,
       operationType
     } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password');
-    expect(credential!.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+    expect(credential).to.be.null;
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;

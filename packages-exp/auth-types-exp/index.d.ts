@@ -306,7 +306,7 @@ export class PhoneAuthProvider implements AuthProvider {
  */
 export interface ConfirmationResult {
   readonly verificationId: string;
-  confirm(verificationCode: string): Promise<UserCredential>;
+  confirm(verificationCode: string): Promise<UserCredential<PhoneAuthCredential>>;
 }
 
 /**

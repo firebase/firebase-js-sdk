@@ -31,7 +31,7 @@ import {
 } from './credential';
 
 interface OnConfirmationCallback {
-  (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
+  (credential: PhoneAuthCredential): Promise<externs.UserCredential<externs.PhoneAuthCredential>>;
 }
 
 class ConfirmationResult implements externs.ConfirmationResult {
@@ -40,7 +40,7 @@ class ConfirmationResult implements externs.ConfirmationResult {
     private readonly onConfirmation: OnConfirmationCallback
   ) {}
 
-  confirm(verificationCode: string): Promise<externs.UserCredential> {
+  confirm(verificationCode: string): Promise<externs.UserCredential<externs.PhoneAuthCredential>> {
     const authCredential = new PhoneAuthCredential({
       verificationId: this.verificationId,
       verificationCode

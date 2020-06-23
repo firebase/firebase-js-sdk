@@ -27,15 +27,15 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
-export async function signInWithCredential(
+export async function signInWithCredential<T extends externs.AuthCredential|null>(
   authExtern: externs.Auth,
   credentialExtern: externs.AuthCredential
-): Promise<UserCredential> {
+): Promise<UserCredential<T>> {
   const auth = authExtern as Auth;
   const credential = credentialExtern as AuthCredential;
   // TODO: handle mfa by wrapping with callApiWithMfaContext
   const response = await credential._getIdTokenResponse(auth);
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse<T>(
     auth,
     credential,
     OperationType.SIGN_IN,
@@ -45,10 +45,10 @@ export async function signInWithCredential(
   return userCredential;
 }
 
-export async function linkWithCredential(
+export async function linkWithCredential<T extends externs.AuthCredential|null>(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
-): Promise<UserCredential> {
+): Promise<UserCredential<T>> {
   const user = userExtern as User;
   const credential = credentialExtern as AuthCredential;
 
@@ -60,10 +60,10 @@ export async function linkWithCredential(
   ));
 }
 
-export async function reauthenticateWithCredential(
+export async function reauthenticateWithCredential<T extends externs.AuthCredential|null>(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<T>> {
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 

@@ -86,8 +86,7 @@ describe('core/strategies/credential', () => {
         auth,
         authCredential
       );
-      expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
-      expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect(credential).to.be.null;
       expect(user.uid).to.eq('local-id');
       expect(user.tenantId).to.eq('tenant-id');
       expect(user.displayName).to.eq('display-name');

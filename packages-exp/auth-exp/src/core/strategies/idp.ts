@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OAuthCredential, OperationType } from '@firebase/auth-types-exp';
 
 import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
@@ -36,7 +36,7 @@ export interface IdpTaskParams {
   user?: User;
 }
 
-export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
+export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential<OAuthCredential>>;
 
 function paramsToRequest({
   requestUri,
@@ -55,16 +55,15 @@ function paramsToRequest({
   };
 }
 
-export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
+export async function _signIn(params: IdpTaskParams): Promise<UserCredential<OAuthCredential>> {
   const request = paramsToRequest(params);
   const auth = params.auth;
 
   const response = await signInWithIdp(auth, request);
 
-  const credential = _authCredentialFromTokenResponse(response);
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse<OAuthCredential>(
     auth,
-    credential,
+    null,
     OperationType.SIGN_IN,
     response
   );
@@ -72,14 +71,14 @@ export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
   return userCredential;
 }
 
-export async function _reauth(params: IdpTaskParams): Promise<UserCredential> {
+export async function _reauth(params: IdpTaskParams): Promise<UserCredential<OAuthCredential>> {
   const { auth, user } = params;
   assert(user, auth.name);
   const requestPromise = signInWithIdp(auth, paramsToRequest(params));
   return _reauthenticate(user, requestPromise);
 }
 
-export async function _link(params: IdpTaskParams): Promise<UserCredential> {
+export async function _link(params: IdpTaskParams): Promise<UserCredential<OAuthCredential>> {
   const { auth, user } = params;
   assert(user, auth.name);
   
