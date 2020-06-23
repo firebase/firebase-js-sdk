@@ -23,7 +23,10 @@ import { runCanaryRelease } from './canary';
 import { ReleaseType } from './utils/enums';
 import { publish } from './utils/publish';
 import { pushReleaseTagsToGithub, cleanTree } from './utils/git';
-import { releaseType as releaseTypePrompt } from './utils/inquirer';
+import {
+  releaseType as releaseTypePrompt,
+  validateVersions
+} from './utils/inquirer';
 import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
 import { bumpVersionForStaging } from './staging';
@@ -88,7 +91,17 @@ const prompt = createPromptModule();
        * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
        */
       if (releaseType === ReleaseType.Staging) {
-        await bumpVersionForStaging();
+        const updatedPackages = await bumpVersionForStaging();
+
+        // We don't need to validate versions for prod releases because prod releases
+        // are validated in the version bump PR which should be merged before running this script
+        const { versionCheck } = await prompt([
+          validateVersions(updatedPackages)
+        ]);
+
+        if (!versionCheck) {
+          throw new Error('Version check failed');
+        }
       }
 
       /**
