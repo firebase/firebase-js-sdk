@@ -36,6 +36,14 @@ $ git stash -u
 $ git stash pop
 `;
 
+const FETCH_TIMEOUT = 10 * 1000; // 10 seconds
+
+function timeoutPromise(millis) {
+  return new Promise((resolve, reject) => {
+    setTimeout(reject, millis);
+  });
+}
+
 (async () => {
   try {
     const hasDiff = !!(await git.diff());
@@ -50,7 +58,10 @@ $ git stash pop
       ' Fetching latest version of master branch.'
     ).start();
     try {
-      await git.fetch('origin', 'master');
+      await Promise.race([
+        git.fetch('origin', 'master'),
+        timeoutPromise(FETCH_TIMEOUT)
+      ]);
       fetchSpinner.stopAndPersist({
         symbol: '✅'
       });
@@ -59,7 +70,7 @@ $ git stash pop
         symbol: '⚠️'
       });
       console.warn(
-        chalk`\n{yellow} Unable to fetch latest version of master, diff may be stale.`
+        chalk`\n{yellow WARNING: Unable to fetch latest version of master, diff may be stale.}`
       );
     }
 
@@ -79,17 +90,6 @@ $ git stash pop
 
     // Validate License headers exist
     await doLicense(changedFiles);
-
-    // Diff staged changes against last commit. Don't do an empty commit.
-    const postDiff = await git.diff(['--cached']);
-    if (!postDiff) {
-      console.error(chalk`
-{red Staged files are identical to previous commit after running formatting
-steps. Skipping commit.}
-
-`);
-      return process.exit(1);
-    }
 
     console.log(chalk`
 Pre-Push Validation Succeeded

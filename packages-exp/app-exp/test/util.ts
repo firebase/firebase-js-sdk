@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseService } from '@firebase/app-types/private';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { ComponentType, Component } from '@firebase/component';
 
-export class TestService implements FirebaseService {
+export class TestService implements _FirebaseService {
   constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   get app(): FirebaseApp {
@@ -41,7 +40,8 @@ export function createTestComponent(
   const component = new Component(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     name as any,
-    container => new TestService(container.getProvider('app').getImmediate()),
+    container =>
+      new TestService(container.getProvider('app-exp').getImmediate()),
     type
   );
   component.setMultipleInstances(multiInstances);

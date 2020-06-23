@@ -20,7 +20,7 @@ import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
-import { getConfig, isDestFl } from './remote_config_service';
+import { getConfig } from './remote_config_service';
 import { FirebaseApp } from '@firebase/app-types';
 import '../../test/setup';
 
@@ -37,7 +37,6 @@ describe('Performance Monitoring > remote_config_service', () => {
   "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
   "fpr_log_transport_key":"pseudo-transport-key",\
   "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-  "fpr_log_transport_web_percent":"100.0",\
   "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
   "state":"UPDATE"}`;
   const PROJECT_ID = 'project1';
@@ -135,7 +134,6 @@ describe('Performance Monitoring > remote_config_service', () => {
         TRANSPORT_KEY
       );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -176,7 +174,6 @@ describe('Performance Monitoring > remote_config_service', () => {
         TRANSPORT_KEY
       );
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
       ).to.equal(NETWORK_SAMPLIG_RATE);
@@ -240,131 +237,38 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
 
-    it('marks event destination to cc if there is no template', async () => {
-      setup(
+    it('gets the config from RC even with deprecated transport flag', async () => {
+      // Expired local config.
+      const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
+      const STRINGIFIED_CUSTOM_CONFIG = `{"entries":{\
+        "fpr_vc_network_request_sampling_rate":"0.250000",\
+        "fpr_log_transport_web_percent":"100.0",\
+        "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+        "state":"UPDATE"}`;
+
+      const { storageGetItemStub: getItemStub } = setup(
         {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
+          expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+          config: STRINGIFIED_CUSTOM_CONFIG
         },
-        { reject: false, value: new Response('{"state":"NO_TEMPLATE"}') }
+        { reject: false, value: new Response(STRINGIFIED_CONFIG) }
       );
+
       await getConfig(IID);
 
-      // If no template, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
-    });
-
-    it('marks event destination to cc if instance state unspecified', async () => {
-      setup(
-        {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
-        },
-        {
-          reject: false,
-          value: new Response('{"state":"INSTANCE_STATE_UNSPECIFIED"}')
-        }
+      expect(getItemStub).to.be.calledOnce;
+      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+      expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).to.equal(
+        TRANSPORT_KEY
       );
-      await getConfig(IID);
-
-      // If instance state unspecified, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
-    });
-
-    it("marks event destination to cc if state doesn't exist", async () => {
-      setup(
-        {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
-        },
-        { reject: false, value: new Response('{}') }
+      expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
+      expect(
+        SettingsService.getInstance().networkRequestsSamplingRate
+      ).to.equal(NETWORK_SAMPLIG_RATE);
+      expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
+        TRACE_SAMPLING_RATE
       );
-      await getConfig(IID);
-
-      // If "state" doesn't exist, will send to cc.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
-    });
-
-    it('marks event destination to Fl if template exists but no rollout flag', async () => {
-      const CONFIG_WITHOUT_ROLLOUT_FLAG = `{"entries":{"fpr_enabled":"true",\
-    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
-    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
-    "state":"UPDATE"}`;
-      setup(
-        {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
-        },
-        { reject: false, value: new Response(CONFIG_WITHOUT_ROLLOUT_FLAG) }
-      );
-      await getConfig(IID);
-
-      // If template exists but no rollout flag, will send to Fl.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
-    });
-
-    it('marks event destination to cc when instance is outside of rollout range', async () => {
-      const CONFIG_WITH_ROLLOUT_FLAG_10 = `{"entries":{"fpr_enabled":"true",\
-    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
-    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-    "fpr_log_transport_web_percent":"10.0",\
-    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
-    "state":"UPDATE"}`;
-      setup(
-        {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
-        },
-        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_10) }
-      );
-      await getConfig(IID);
-
-      // If rollout flag exists, will send to cc when this instance is out of rollout scope.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.false;
-    });
-
-    it('marks event destination to Fl when instance is within rollout range', async () => {
-      const CONFIG_WITH_ROLLOUT_FLAG_40 = `{"entries":{"fpr_enabled":"true",\
-    "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
-    "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-    "fpr_log_transport_web_percent":"40.0",\
-    "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
-    "state":"UPDATE"}`;
-      setup(
-        {
-          // Expired local config.
-          expiry: '1556524895320',
-          config: NOT_VALID_CONFIG
-        },
-        { reject: false, value: new Response(CONFIG_WITH_ROLLOUT_FLAG_40) }
-      );
-      await getConfig(IID);
-
-      // If rollout flag exists, will send to Fl when this instance is within rollout scope.
-      expect(SettingsService.getInstance().shouldSendToFl).to.be.true;
-    });
-  });
-
-  describe('isDestFl', () => {
-    it('marks traffic to cc when rollout percentage is 0', () => {
-      const shouldSendToFl = isDestFl('abc', 0); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToFl).to.be.false;
-    });
-
-    it('marks traffic to Fl when rollout percentage is 100', () => {
-      const shouldSendToFl = isDestFl('abc', 100); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToFl).to.be.true;
-    });
-
-    it('marks traffic to Fl if hash percentage is lower than rollout percentage 50%', () => {
-      const shouldSendToFl = isDestFl('abc', 50); // Hash percentage of "abc" is 38%.
-      expect(shouldSendToFl).to.be.true;
     });
   });
 });

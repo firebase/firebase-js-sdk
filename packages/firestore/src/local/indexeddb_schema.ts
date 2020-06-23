@@ -28,7 +28,6 @@ import {
   EncodedResourcePath
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
-import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
@@ -231,8 +230,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
       DbRemoteDocument.store
     );
+    const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+      DbTargetGlobal.store
+    );
 
-    return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
+    return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
+      debugAssert(
+        !!metadata,
+        'Metadata should have been written during the version 3 migration'
+      );
       const writeSentinelKey = (
         path: ResourcePath
       ): PersistencePromise<void> => {
@@ -240,7 +246,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           new DbTargetDocument(
             0,
             encodeResourcePath(path),
-            currentSequenceNumber
+            metadata!.highestListenSequenceNumber!
           )
         );
       };
@@ -417,6 +423,8 @@ export class DbMutationQueue {
      *
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastStreamToken: string
   ) {}
@@ -475,7 +483,7 @@ export class DbMutationBatch {
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     * Mutations are serialized via toMutation().
      */
     public mutations: api.Write[]
   ) {}

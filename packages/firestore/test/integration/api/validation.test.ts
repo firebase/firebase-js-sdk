@@ -21,13 +21,12 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
-  ALT_PROJECT_ID,
   apiDescribe,
-  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 // tslint:disable:no-floating-promises
 
@@ -421,7 +420,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         new Date(),
         null,
         () => {},
-        new TestClass('foo')
+        new TestClass('foo'),
+        undefined
       ];
       const errorDescriptions = [
         '42',
@@ -472,6 +472,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
+      'must not contain field value transforms in arrays',
+      db => {
+        return expectWriteToFail(
+          db,
+          { 'array': [FieldValue.serverTimestamp()] },
+          'FieldValue.serverTimestamp() is not currently supported inside arrays'
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
       'must not contain directly nested arrays.',
       db => {
         return expectWriteToFail(
@@ -515,6 +527,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
     });
 
     validationIt(persistence, 'must not contain undefined.', db => {
+      // Note: This test uses the default setting for `ignoreUndefinedProperties`.
       return expectWriteToFail(
         db,
         { foo: undefined },
@@ -734,6 +747,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
+
+      expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).to.throw(
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: undefined'
+      );
     });
 
     validationIt(persistence, 'reject arrays', db => {
@@ -785,6 +803,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'Function FieldValue.increment() requires its first argument to ' +
           'be of type number, but it was: "foo"'
       );
+      expect(() =>
+        doc.set({ x: FieldValue.increment(undefined as any) })
+      ).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
+          'be of type number, but it was: undefined'
+      );
     });
 
     validationIt(persistence, 'reject more than one argument', db => {
@@ -802,11 +826,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        'Function "Query.limit()" requires its first argument to be a positive number, ' +
+        'Function Query.limit() requires its first argument to be a positive number, ' +
           'but it was: 0.'
       );
       expect(() => collection.limitToLast(-1)).to.throw(
-        'Function "Query.limitToLast()" requires its first argument to be a positive number, ' +
+        'Function Query.limitToLast() requires its first argument to be a positive number, ' +
           'but it was: -1.'
       );
     });
@@ -1348,6 +1372,16 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
       }
     );
+
+    validationIt(persistence, 'cannot pass undefined as a field value', db => {
+      const collection = db.collection('test');
+      expect(() => collection.where('foo', '==', undefined)).to.throw(
+        'Function Query.where() requires a valid third argument, but it was undefined.'
+      );
+      expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+        'Function Query.startAt() requires a valid first argument, but it was undefined.'
+      );
+    });
   });
 });
 

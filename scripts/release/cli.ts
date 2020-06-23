@@ -28,7 +28,7 @@ import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
 import { releaseType as releaseTypePrompt } from './utils/inquirer';
 import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
-import { projectRoot } from '../utils';
+import { bumpVersionForStaging } from './staging';
 
 const { bannerText } = require('./utils/banner');
 const prompt = createPromptModule();
@@ -83,63 +83,59 @@ const readFile = promisify(_readFile);
 
     if (releaseType === ReleaseType.Canary) {
       await runCanaryRelease();
-    } else if (releaseType === ReleaseType.Staging) {
-      const message = `
-        It looks like you are trying to do a staging release while the repo is not in the pre mode.
-        Do you mean to make a regular release?
-        To enter the pre mode, please run \`yarn changeset pre enter next\`.
-      `;
-      // Check if changeset is in the pre mode. Throw, if not.
-      const preFilePath = `${projectRoot}/.changeset/pre.json`;
-      if (!existsSync(preFilePath)) {
-        throw new Error(message);
-      } else {
-        const preState = JSON.parse(await readFile(preFilePath, 'utf8'));
-        if (preState.mode !== 'pre') {
-          throw new Error(message);
-        }
+    } else {
+      // Staging or Prod release
+
+      /**
+       * Bump versions for staging release
+       * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
+       */
+      if (releaseType === ReleaseType.Staging) {
+        await bumpVersionForStaging();
+      }
+
+      /**
+       * Users can pass --skipReinstall to skip the installation step
+       */
+      if (!argv.skipReinstall) {
+        /**
+         * Clean install dependencies
+         */
+        console.log('\r\nVerifying Build');
+        await cleanTree();
+        await reinstallDeps();
+      }
+
+      /**
+       * build packages
+       */
+      await buildPackages();
+
+      /**
+       * Users can pass --skipTests to skip the testing step
+       */
+      if (!argv.skipTests) {
+        await setupTestDeps();
+        await runTests();
+      }
+
+      /**
+       * Release new versions to NPM using changeset
+       * It will also create tags
+       */
+      await publish();
+
+      /**
+       * Changeset creats tags for staging releases as well,
+       * but we should only push tags to Github for prod releases
+       */
+      if (releaseType === ReleaseType.Production) {
+        /**
+         * Push release tags created by changeset in publish() to Github
+         */
+        await pushReleaseTagsToGithub();
       }
     }
-
-    /**
-     * Users can pass --skipReinstall to skip the installation step
-     */
-    if (!argv.skipReinstall) {
-      /**
-       * Clean install dependencies
-       */
-      console.log('\r\nVerifying Build');
-      await cleanTree();
-      await reinstallDeps();
-    }
-
-    /**
-     * build packages
-     */
-    await buildPackages();
-
-    /**
-     * Ensure all tests are passing
-     */
-
-    /**
-     * Users can pass --skipTests to skip the testing step
-     */
-    if (!argv.skipTests) {
-      await setupTestDeps();
-      await runTests();
-    }
-
-    /**
-     * Release new versions to NPM using changeset
-     * It will also create tags
-     */
-    await publish();
-
-    /**
-     * Push release tags created by changeset in publish() to Github
-     */
-    await pushReleaseTagsToGithub();
   } catch (err) {
     /**
      * Log any errors that happened during the process

@@ -47,8 +47,9 @@ export interface Observer<T> {
  * backend.
  */
 export class EventManager implements SyncEngineListener {
-  private queries = new ObjectMap<Query, QueryListenersInfo>(q =>
-    q.canonicalId()
+  private queries = new ObjectMap<Query, QueryListenersInfo>(
+    q => q.canonicalId(),
+    (l, r) => l.isEqual(r)
   );
 
   private onlineState = OnlineState.Unknown;

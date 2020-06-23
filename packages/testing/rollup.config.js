@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import pkg from './package.json';
-import replace from 'rollup-plugin-replace';
-import copy from 'rollup-plugin-copy-assets';
 import typescript from 'typescript';
 
 const plugins = [
@@ -34,13 +32,6 @@ const deps = Object.keys(
 export default {
   input: 'index.ts',
   output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [
-    ...plugins,
-    // Needed as we also use the *.proto files
-    copy({ assets: ['./src/protos'] }),
-    replace({
-      'process.env.FIRESTORE_EMULATOR_PROTO_ROOT': JSON.stringify('src/protos')
-    })
-  ],
+  plugins: [...plugins],
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 };

@@ -19,7 +19,7 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import {
   DocumentKeySet,
@@ -60,7 +60,6 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
-import { ByteString } from '../util/byte_string';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
@@ -180,8 +179,9 @@ export class LocalStore {
 
   /** Maps a target to its targetID. */
   // TODO(wuandy): Evaluate if TargetId can be part of Target.
-  private targetIdByTarget = new ObjectMap<Target, TargetId>(t =>
-    t.canonicalId()
+  private targetIdByTarget = new ObjectMap<Target, TargetId>(
+    t => canonifyTarget(t),
+    targetEquals
   );
 
   /**
@@ -378,11 +378,11 @@ export class LocalStore {
         const documentBuffer = this.remoteDocuments.newChangeBuffer({
           trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
         });
-        return this.mutationQueue
-          .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
-          .next(() =>
-            this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
-          )
+        return this.applyWriteToRemoteDocuments(
+          txn,
+          batchResult,
+          documentBuffer
+        )
           .next(() => documentBuffer.apply(txn))
           .next(() => this.mutationQueue.performConsistencyCheck(txn))
           .next(() => this.localDocuments.getDocuments(txn, affected));
@@ -429,32 +429,6 @@ export class LocalStore {
       'readonly',
       txn => {
         return this.mutationQueue.getHighestUnacknowledgedBatchId(txn);
-      }
-    );
-  }
-
-  /** Returns the last recorded stream token for the current user. */
-  getLastStreamToken(): Promise<ByteString> {
-    return this.persistence.runTransaction(
-      'Get last stream token',
-      'readonly',
-      txn => {
-        return this.mutationQueue.getLastStreamToken(txn);
-      }
-    );
-  }
-
-  /**
-   * Sets the stream token for the current user without acknowledging any
-   * mutation batch. This is usually only useful after a stream handshake or in
-   * response to an error that requires clearing the stream token.
-   */
-  setLastStreamToken(streamToken: ByteString): Promise<void> {
-    return this.persistence.runTransaction(
-      'Set last stream token',
-      'readwrite-primary',
-      txn => {
-        return this.mutationQueue.setLastStreamToken(txn, streamToken);
       }
     );
   }
@@ -831,7 +805,17 @@ export class LocalStore {
           });
       })
       .then(targetData => {
-        if (this.targetDataByTarget.get(targetData.targetId) === null) {
+        // If Multi-Tab is enabled, the existing target data may be newer than
+        // the in-memory data
+        const cachedTargetData = this.targetDataByTarget.get(
+          targetData.targetId
+        );
+        if (
+          cachedTargetData === null ||
+          targetData.snapshotVersion.compareTo(
+            cachedTargetData.snapshotVersion
+          ) > 0
+        ) {
           this.targetDataByTarget = this.targetDataByTarget.insert(
             targetData.targetId,
             targetData

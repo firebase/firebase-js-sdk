@@ -29,14 +29,22 @@ export interface Settings {
   timestampsInSnapshots?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
+  ignoreUndefinedProperties?: boolean;
 }
 
 export interface PersistenceSettings {
   synchronizeTabs?: boolean;
   experimentalTabSynchronization?: boolean;
+  experimentalForceOwningTab?: boolean;
 }
 
-export type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel =
+  | 'debug'
+  | 'error'
+  | 'silent'
+  | 'warn'
+  | 'info'
+  | 'verbose';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
