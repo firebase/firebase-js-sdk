@@ -93,7 +93,6 @@ export async function extractDependenciesAndSize(
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
-  //console.log(afterContent);
   const { code } = terser.minify(afterContent, {
     output: {
       comments: false
@@ -266,7 +265,6 @@ function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
 }
 
 function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
-  //console.log(exportSpecifier);
   // if property name is not null -> export is renamed
   if (exportSpecifier.propertyName) {
     return exportSpecifier.propertyName.escapedText.toString();

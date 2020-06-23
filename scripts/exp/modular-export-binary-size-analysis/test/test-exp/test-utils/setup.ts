@@ -14,4 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { LogLevel } from '/Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages-exp/dummy-exp/dist/index.esm2017.js';
+
+import { projectRoot } from '../../../../../release/utils';
+
+export function retrieveTestModuleDtsFile(): string {
+  const moduleLocation = `${projectRoot}/scripts/exp/modular-export-binary-size-analysis/test/test-exp`;
+  const packageJson = require(`${moduleLocation}/package.json`);
+  const TYPINGS: string = 'typings';
+
+  return `${moduleLocation}/${packageJson[TYPINGS]}`;
+}

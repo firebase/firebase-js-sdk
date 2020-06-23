@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import { restore } from 'sinon';
-import * as sinonChai from 'sinon-chai';
-
-use(sinonChai);
-
-afterEach(async () => {
-  restore();
-});
+module.exports = {
+  extends: '../../config/.eslintrc.js',
+  parserOptions: {
+    project: 'tsconfig.json',
+    // to make vscode-eslint work with monorepo
+    // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
+    tsconfigRootDir: __dirname
+  }
+};

@@ -23,10 +23,7 @@ import {
   MemberList,
   ExportData
 } from './analysis-helper';
-import {
-  mapWorkspaceToPackages,
-  mapPkgNameToPkgPath
-} from '../../release/utils/workspace';
+import { mapWorkspaceToPackages } from '../../release/utils/workspace';
 import { projectRoot } from '../../utils';
 import { getTsBuildInfoEmitOutputFilePath } from 'typescript';
 
@@ -129,7 +126,6 @@ async function main() {
   // retrieve All Modules Name
   const allModulesLocation = await mapWorkspaceToPackages([
     `${projectRoot}/packages-exp/*`
-    // `${projectRoot}/packages/*`
   ]);
   for (const moduleLocation of allModulesLocation) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
