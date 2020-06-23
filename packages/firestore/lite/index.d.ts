@@ -69,11 +69,19 @@ export function collection(
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
+  reference: CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<DocumentData>;
+export function collection(
   reference: DocumentReference,
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function doc(
   firestore: FirebaseFirestore,
+  documentPath: string
+): DocumentReference<DocumentData>;
+export function doc(
+  reference: DocumentReference<unknown>,
   documentPath: string
 ): DocumentReference<DocumentData>;
 export function doc<T>(
@@ -187,7 +195,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
-  readonly id: string;
+  readonly documentId: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
@@ -222,27 +230,43 @@ export type WhereFilterOp =
 export class Query<T = DocumentData> {
   protected constructor();
   readonly firestore: FirebaseFirestore;
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query<T>;
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: OrderByDirection
-  ): Query<T>;
-  limit(limit: number): Query<T>;
-  limitToLast(limit: number): Query<T>;
-  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAt(...fieldValues: any[]): Query<T>;
-  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAfter(...fieldValues: any[]): Query<T>;
-  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-  endBefore(...fieldValues: any[]): Query<T>;
-  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  endAt(...fieldValues: any[]): Query<T>;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
+
+export function where<T>(
+  query: Query<T>,
+  fieldPath: string | FieldPath,
+  opStr: WhereFilterOp,
+  value: any
+): Query<T>;
+export function orderBy<T>(
+  query: Query<T>,
+  fieldPath: string | FieldPath,
+  directionStr?: OrderByDirection
+): Query<T>;
+export function limit<T>(query: Query<T>, limit: number): Query<T>;
+export function limitToLast<T>(query: Query<T>, limit: number): Query<T>;
+export function startAt<T>(
+  query: Query<T>,
+  snapshot: DocumentSnapshot<any>
+): Query<T>;
+export function startAt<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+export function startAfter<T>(
+  query: Query<T>,
+  snapshot: DocumentSnapshot<any>
+): Query<T>;
+export function startAfter<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+export function endBefore<T>(
+  query: Query<T>,
+  snapshot: DocumentSnapshot<any>
+): Query<T>;
+export function endBefore<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+export function endAt<T>(
+  query: Query<T>,
+  snapshot: DocumentSnapshot<any>
+): Query<T>;
+export function endAt<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
 
 export class QuerySnapshot<T = DocumentData> {
   private constructor();
@@ -258,7 +282,7 @@ export class QuerySnapshot<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
-  readonly id: string;
+  readonly collectionId: string;
   readonly path: string;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
@@ -268,7 +292,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 export function addDoc<T>(
   reference: CollectionReference<T>,
