@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { readFile as _readFile, existsSync } from 'fs';
-import { promisify } from 'util';
 import { exec } from 'child-process-promise';
 import { createPromptModule } from 'inquirer';
 import { argv } from 'yargs';
@@ -24,7 +22,7 @@ import { argv } from 'yargs';
 import { runCanaryRelease } from './canary';
 import { ReleaseType } from './utils/enums';
 import { publish } from './utils/publish';
-import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
+import { pushReleaseTagsToGithub, cleanTree } from './utils/git';
 import { releaseType as releaseTypePrompt } from './utils/inquirer';
 import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
@@ -32,7 +30,6 @@ import { bumpVersionForStaging } from './staging';
 
 const { bannerText } = require('./utils/banner');
 const prompt = createPromptModule();
-const readFile = promisify(_readFile);
 
 (async () => {
   try {
