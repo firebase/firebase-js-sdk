@@ -26,6 +26,7 @@ import Listr from 'listr';
 import { readFile as _readFile } from 'fs';
 import { promisify } from 'util';
 import { exec, spawn } from 'child-process-promise';
+import { buildPackages } from './utils/yarn';
 
 const readFile = promisify(_readFile);
 
@@ -45,7 +46,7 @@ export async function runCanaryRelease(): Promise<void> {
    *
    * A user would be able to install a package canary as follows:
    *
-   * $ npm install @firebase/app@0.0.0-canary.0000000
+   * $ npm install @firebase/app@canary
    */
   const sha = await getCurrentSha();
   const updates = await getAllPackages();
@@ -65,6 +66,11 @@ export async function runCanaryRelease(): Promise<void> {
    * Update the package.json dependencies throughout the SDK
    */
   await updateWorkspaceVersions(versions, true);
+
+  /**
+   * build packages
+   */
+  await buildPackages();
 
   await publishToNpm(updates);
 }
