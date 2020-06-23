@@ -17,7 +17,7 @@
 
 import { Code, FirestoreError } from './error';
 
-/** List of JavaScript built-in members that cannot be reassigned. */
+/** List of JavaScript builtins that cannot be reassigned. */
 const RESERVED_READONLY_PROPS = ['length', 'name'];
 
 /**
@@ -51,9 +51,6 @@ export function makeConstructorPrivate<T extends Function>(
       (PublicConstructor as any)[staticProp] = (cls as any)[staticProp];
     }
   }
-
-  // Copy instance methods/members
-  Object.assign(PublicConstructor, cls);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return PublicConstructor as any;
