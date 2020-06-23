@@ -95,25 +95,6 @@ const browserBuilds = [
   }
 ];
 
-const reactNativeBuilds = [
-  {
-    input: 'dist/index.rn.esm2017.js',
-    output: { file: pkg['react-native'], format: 'es', sourcemap: true },
-    plugins: browserPlugins,
-    external: resolveBrowserExterns
-  },
-  {
-    input: 'dist/index.memory.rn.esm2017.js',
-    output: {
-      file: path.resolve('./memory', memoryPkg['react-native']),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: browserPlugins,
-    external: resolveBrowserExterns
-  }
-];
-
 const nodeBuilds = [
   {
     input: pkg['main-esm2017'],
@@ -135,4 +116,4 @@ const nodeBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...reactNativeBuilds, ...nodeBuilds];
+export default [...browserBuilds, ...nodeBuilds];
