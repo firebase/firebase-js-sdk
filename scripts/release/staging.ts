@@ -20,6 +20,7 @@ import { projectRoot as root } from '../utils';
 
 export async function bumpVersionForStaging() {
   await spawn('yarn', ['changeset', 'version', '--snapshot'], {
-    cwd: root
+    cwd: root,
+    stdio: 'inherit'
   });
 }
