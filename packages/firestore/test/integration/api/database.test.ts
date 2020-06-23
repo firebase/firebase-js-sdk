@@ -1370,7 +1370,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('requires the correct converter for Partial usage', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverter);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverter);
         await ref.set(new Post('walnut', 'author'));
         const batch = db.batch();
         expect(() =>
@@ -1383,7 +1386,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('WriteBatch.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         const batch = db.batch();
         batch.set(ref, { title: 'olive' }, { merge: true });
@@ -1396,7 +1402,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('WriteBatch.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         const batch = db.batch();
         batch.set(
@@ -1413,7 +1422,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('Transaction.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         await db.runTransaction(async tx => {
           tx.set(ref, { title: 'olive' }, { merge: true });
@@ -1426,7 +1438,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('Transaction.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         await db.runTransaction(async tx => {
           tx.set(
@@ -1443,7 +1458,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('DocumentReference.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         await ref.set({ title: 'olive' }, { merge: true });
         const doc = await ref.get();
@@ -1454,7 +1472,10 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('DocumentReference.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db.doc('postings/post1').withConverter(postConverterMerge);
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
         await ref.set(new Post('walnut', 'author'));
         await ref.set(
           { title: 'olive', author: 'writer' },
