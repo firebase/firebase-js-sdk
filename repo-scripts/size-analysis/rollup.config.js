@@ -18,6 +18,7 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
+import json from 'rollup-plugin-json';
 
 export default [
   {
@@ -32,7 +33,8 @@ export default [
             module: 'es2015'
           }
         }
-      })
+      }),
+      json()
     ]
   }
 ];
