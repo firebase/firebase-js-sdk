@@ -48,7 +48,7 @@ import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { PlatformSupport } from '../platform/platform';
+import { newSerializer } from '../platform/serializer';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -308,8 +308,7 @@ export class UserDataReader {
     private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
-    this.serializer =
-      serializer || PlatformSupport.getPlatform().newSerializer(databaseId);
+    this.serializer = serializer || newSerializer(databaseId);
   }
 
   /** Parse document data from a set() call. */
