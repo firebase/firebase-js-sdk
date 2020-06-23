@@ -29,7 +29,7 @@ import {
   Query
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
+import { isDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -958,7 +958,7 @@ export function toTarget(
   let result: api.Target;
   const target = targetData.target;
 
-  if (target.isDocumentQuery()) {
+  if (isDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
     result = { query: toQueryTarget(serializer, target) };

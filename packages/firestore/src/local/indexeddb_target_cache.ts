@@ -46,7 +46,7 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { SimpleDbStore } from './simple_db';
-import { Target } from '../core/target';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -252,7 +252,7 @@ export class IndexedDbTargetCache implements TargetCache {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = target.canonicalId();
+    const canonicalId = canonifyTarget(target);
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -265,7 +265,7 @@ export class IndexedDbTargetCache implements TargetCache {
           const found = this.serializer.fromDbTarget(value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          if (target.isEqual(found.target)) {
+          if (targetEquals(target, found.target)) {
             result = found;
             control.done();
           }
