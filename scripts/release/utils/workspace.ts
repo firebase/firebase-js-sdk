@@ -20,7 +20,7 @@ import { projectRoot as root } from '../../utils';
 
 import { DepGraph } from 'dependency-graph';
 import { promisify } from 'util';
-import { writeFile as _writeFile, existsSync } from 'fs';
+import { writeFile as _writeFile, existsSync, readFileSync } from 'fs';
 import clone from 'clone';
 
 const writeFile = promisify(_writeFile);
@@ -50,7 +50,7 @@ function mapPackagestoPkgJson(packagePaths: string[]) {
   return packagePaths
     .map(path => {
       try {
-        return require(`${path}/package.json`);
+        return JSON.parse(readFileSync(`${path}/package.json`, 'utf8'));
       } catch (err) {
         return null;
       }

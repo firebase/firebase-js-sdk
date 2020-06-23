@@ -24,3 +24,18 @@ export const releaseType = {
   choices: [ReleaseType.Staging, ReleaseType.Production],
   default: ReleaseType.Staging
 };
+
+export function validateVersions(versionMap: Map<string, [string, string]>) {
+  let message =
+    '\r\nAre you sure these are the versions you want to publish?\r\n';
+  for (const [pkgName, [originalVersion, updatedVersion]] of versionMap) {
+    message += `${pkgName} ${originalVersion} -> ${updatedVersion}\n`;
+  }
+
+  return {
+    type: 'confirm',
+    name: 'versionCheck',
+    message,
+    default: false
+  };
+}
