@@ -20,6 +20,7 @@ import { projectRoot as root } from '../../utils';
 
 export async function publish() {
   await spawn('yarn', ['changeset', 'publish'], {
-    cwd: root
+    cwd: root,
+    stdio: 'inherit'
   });
 }
