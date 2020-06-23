@@ -64,11 +64,16 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot): T;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<DocumentData>,
+    options: SnapshotOptions
+  ): T;
 }
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -90,7 +95,10 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirebaseFirestore,
+  // `experimentalForceOwningTab` setting, which only makes sense for
+  // non-multi-tab persistence.
+  setting?: { forceOwnership: boolean }
 ): Promise<void>;
 export function enableMultiTabIndexedDbPersistence(
   firestore: FirebaseFirestore
@@ -103,12 +111,25 @@ export function collection(
   firestore: FirebaseFirestore,
   collectionPath: string
 ): CollectionReference<DocumentData>;
+// This new method allows users to directly reference a subcollection, which is
+// already supported by the overload above.
+//
+// Before: collection(doc(collRef1, 'foo'), 'bar'))
+// After: collection(collRef1, 'foo/bar') - Matches collection(db, 'foo/bar')
+export function collection(
+  reference: CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<DocumentData>;
 export function collection(
   reference: DocumentReference,
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function doc(
   firestore: FirebaseFirestore,
+  documentPath: string
+): DocumentReference<DocumentData>;
+export function doc(
+  reference: DocumentReference<unknown>,
   documentPath: string
 ): DocumentReference<DocumentData>;
 export function doc<T>(
@@ -222,6 +243,9 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
+  // Added a 'type' property to ensure that CollectionReferences and
+  // DocumentReferences are not ducktype compatible.
+  readonly type = 'document';
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
@@ -245,7 +269,7 @@ export class DocumentSnapshot<T = DocumentData> {
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
-  data(): T;
+  data(options?: SnapshotOptions): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
@@ -262,28 +286,72 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
+  readonly type: 'collection' | 'query';
   readonly firestore: FirebaseFirestore;
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query<T>;
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: OrderByDirection
-  ): Query<T>;
-  limit(limit: number): Query<T>;
-  limitToLast(limit: number): Query<T>;
-  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAt(...fieldValues: any[]): Query<T>;
-  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAfter(...fieldValues: any[]): Query<T>;
-  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-  endBefore(...fieldValues: any[]): Query<T>;
-  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  endAt(...fieldValues: any[]): Query<T>;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
+
+// We changed the Query API to become tree-shakeable, which has major size
+// savings for users that don't use query filters or query cursors (at least
+// relative ot the size of the Lite SDK).
+//
+// Usage before:
+// const collRef = collection(db, 'foo');
+// const query1 = collRef.where(..).orderBy(...);
+// const query2 = query1.limit(1);
+//
+// Usage after:
+// const collRef = collection(db, 'foo');
+// const query1 = query(collRef, where(..), orderBy(...));
+// const query2 = query(query1, limit(1));
+//
+// Notes:
+// - We opted not to use the "standard" pattern of passing in the Query instance
+//   to the free-standing functions since users would have to build up their
+//   queries in reverse.
+// - QueryConstraint is its own type to prevent users from passing in other
+//   objects.
+
+export type QueryConstraintType =
+  | 'where'
+  | 'orderBy'
+  | 'limit'
+  | 'limitToLast'
+  | 'startAt'
+  | 'startAfter'
+  | 'endAt'
+  | 'endBefore';
+
+export class QueryConstraint {
+  private constructor();
+  readonly type: QueryConstraintType;
+}
+
+export function query<T>(
+  query: CollectionReference<T> | Query<T>,
+  ...constraints: QueryConstraint[]
+): Query<T>;
+
+export function where(
+  fieldPath: string | FieldPath,
+  opStr: WhereFilterOp,
+  value: any
+): QueryConstraint;
+export function orderBy(
+  fieldPath: string | FieldPath,
+  directionStr?: OrderByDirection
+): QueryConstraint;
+export function limit(limit: number): QueryConstraint;
+export function limitToLast(limit: number): QueryConstraint;
+export function startAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAt(...fieldValues: any[]): QueryConstraint;
+export function startAfter(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAfter(...fieldValues: any[]): QueryConstraint;
+export function endBefore(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endBefore(...fieldValues: any[]): QueryConstraint;
+export function endAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endAt(...fieldValues: any[]): QueryConstraint;
 
 export class QuerySnapshot<T = DocumentData> {
   private constructor();
@@ -310,6 +378,7 @@ export interface DocumentChange<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
+  readonly type = 'collection';
   readonly id: string;
   readonly path: string;
   withConverter<U>(
@@ -326,11 +395,11 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
-export function getQueryFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
-export function getQueryFromServer<T>(
+// Renamed back to from `getQuery` to `getDocs` as multiple code reviewers found
+// it confusing that `getQuery` takes a `query` and returns documents.
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>>;
 
@@ -372,28 +441,28 @@ export function onSnapshot<T>(
   options: SnapshotListenOptions,
   observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   options: SnapshotListenOptions,
   onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
@@ -402,28 +471,28 @@ export function onSnapshot<T>(
   options: SnapshotListenOptions,
   observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   options: SnapshotListenOptions,
   onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
@@ -487,6 +556,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore-exp': FirebaseFirestore;
   }
 }

@@ -45,11 +45,13 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(snapshot: QueryDocumentSnapshot): T;
 }
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -69,11 +71,19 @@ export function collection(
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
+  reference: CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<DocumentData>;
+export function collection(
   reference: DocumentReference,
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function doc(
   firestore: FirebaseFirestore,
+  documentPath: string
+): DocumentReference<DocumentData>;
+export function doc(
+  reference: DocumentReference<unknown>,
   documentPath: string
 ): DocumentReference<DocumentData>;
 export function doc<T>(
@@ -187,6 +197,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
+  readonly type = 'document';
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
@@ -221,28 +232,51 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
+  readonly type: 'collection' | 'query';
   readonly firestore: FirebaseFirestore;
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query<T>;
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: OrderByDirection
-  ): Query<T>;
-  limit(limit: number): Query<T>;
-  limitToLast(limit: number): Query<T>;
-  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAt(...fieldValues: any[]): Query<T>;
-  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAfter(...fieldValues: any[]): Query<T>;
-  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-  endBefore(...fieldValues: any[]): Query<T>;
-  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  endAt(...fieldValues: any[]): Query<T>;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
+
+export type QueryConstraintType =
+  | 'where'
+  | 'orderBy'
+  | 'limit'
+  | 'limitToLast'
+  | 'startAt'
+  | 'startAfter'
+  | 'endAt'
+  | 'endBefore';
+
+export class QueryConstraint {
+  private constructor();
+  readonly type: QueryConstraintType;
+}
+
+export function query<T>(
+  query: CollectionReference<T> | Query<T>,
+  ...constraints: QueryConstraint[]
+): Query<T>;
+
+export function where(
+  fieldPath: string | FieldPath,
+  opStr: WhereFilterOp,
+  value: any
+): QueryConstraint;
+export function orderBy(
+  fieldPath: string | FieldPath,
+  directionStr?: OrderByDirection
+): QueryConstraint;
+export function limit(limit: number): QueryConstraint;
+export function limitToLast(limit: number): QueryConstraint;
+export function startAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAt<T>(...fieldValues: any[]): QueryConstraint;
+export function startAfter(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAfter(...fieldValues: any[]): QueryConstraint;
+export function endBefore(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endBefore(...fieldValues: any[]): QueryConstraint;
+export function endAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endAt(...fieldValues: any[]): QueryConstraint;
 
 export class QuerySnapshot<T = DocumentData> {
   private constructor();
@@ -258,8 +292,10 @@ export class QuerySnapshot<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
+  readonly type = 'collection';
   readonly id: string;
   readonly path: string;
+
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
@@ -268,7 +304,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 export function addDoc<T>(
   reference: CollectionReference<T>,
