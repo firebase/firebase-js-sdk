@@ -109,7 +109,7 @@ const readFile = promisify(_readFile);
       /**
        * build packages
        */
-      await buildPackages();
+      // await buildPackages();
 
       /**
        * Users can pass --skipTests to skip the testing step
