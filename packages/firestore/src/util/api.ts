@@ -17,7 +17,7 @@
 
 import { Code, FirestoreError } from './error';
 
-/** List of JavaScript built-in members that cannot be reassigned. */
+/** List of JavaScript builtins that cannot be reassigned. */
 const RESERVED_READONLY_PROPS = ['length', 'name'];
 
 /**
