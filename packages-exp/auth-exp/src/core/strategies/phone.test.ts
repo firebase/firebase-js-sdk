@@ -34,7 +34,10 @@ import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import {
-    _verifyPhoneNumber, linkWithPhoneNumber, reauthenticateWithPhoneNumber, signInWithPhoneNumber
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  signInWithPhoneNumber
 } from './phone';
 
 use(chaiAsPromised);

@@ -25,16 +25,17 @@ import { AuthCredential } from '../credentials';
 import { _authCredentialFromTokenResponse } from '../credentials/inferred';
 import { UserImpl } from './user_impl';
 
-export class UserCredentialImpl<T extends externs.AuthCredential|null> implements UserCredential<T> {
+export class UserCredentialImpl<T extends externs.AuthCredential | null>
+  implements UserCredential<T> {
   constructor(
     public readonly user: User,
     public readonly credential: T,
     public readonly operationType: externs.OperationType
   ) {}
 
-  static async _fromIdTokenResponse<T extends externs.AuthCredential|null>(
+  static async _fromIdTokenResponse<T extends externs.AuthCredential | null>(
     auth: Auth,
-    credential: AuthCredential|null,
+    credential: AuthCredential | null,
     operationType: externs.OperationType,
     idTokenResponse: IdTokenResponse
   ): Promise<UserCredential<T>> {
@@ -50,7 +51,11 @@ export class UserCredentialImpl<T extends externs.AuthCredential|null> implement
     return userCred;
   }
 
-  static async _forOperation<T extends externs.AuthCredential|null>(user: User, operationType: externs.OperationType, response: PhoneOrOauthTokenResponse): Promise<UserCredentialImpl<T>> {
+  static async _forOperation<T extends externs.AuthCredential | null>(
+    user: User,
+    operationType: externs.OperationType,
+    response: PhoneOrOauthTokenResponse
+  ): Promise<UserCredentialImpl<T>> {
     // We're forced to make this cast since `response` is of indeterminate shape.
     const newCred = _authCredentialFromTokenResponse(response) as T;
     await user._updateTokensIfNecessary(response, /* reload */ true);

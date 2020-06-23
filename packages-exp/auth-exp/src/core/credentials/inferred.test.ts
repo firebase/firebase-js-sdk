@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import { ProviderId } from '@firebase/auth-types-exp';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
 import { _authCredentialFromTokenResponse } from './inferred';
 
- describe('src/core/credentials/inferred', () => {
+describe('src/core/credentials/inferred', () => {
   it('returns a phone credential if response conains correct fields', () => {
     const cred = _authCredentialFromTokenResponse({
       ...TEST_ID_TOKEN_RESPONSE,
@@ -35,7 +35,7 @@ import { _authCredentialFromTokenResponse } from './inferred';
 
   it('returns null if nothing matches', () => {
     const cred = _authCredentialFromTokenResponse({
-      ...TEST_ID_TOKEN_RESPONSE,
+      ...TEST_ID_TOKEN_RESPONSE
     });
 
     expect(cred).to.be.null;

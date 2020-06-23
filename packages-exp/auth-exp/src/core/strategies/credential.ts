@@ -27,7 +27,9 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
-export async function signInWithCredential<T extends externs.AuthCredential|null>(
+export async function signInWithCredential<
+  T extends externs.AuthCredential | null
+>(
   authExtern: externs.Auth,
   credentialExtern: externs.AuthCredential
 ): Promise<UserCredential<T>> {
@@ -45,7 +47,9 @@ export async function signInWithCredential<T extends externs.AuthCredential|null
   return userCredential;
 }
 
-export async function linkWithCredential<T extends externs.AuthCredential|null>(
+export async function linkWithCredential<
+  T extends externs.AuthCredential | null
+>(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
 ): Promise<UserCredential<T>> {
@@ -54,19 +58,23 @@ export async function linkWithCredential<T extends externs.AuthCredential|null>(
 
   await _assertLinkedStatus(false, user, credential.providerId);
 
-  return _link(user, credential._linkToIdToken(
-    user.auth,
-    await user.getIdToken(),
-  ));
+  return _link(
+    user,
+    credential._linkToIdToken(user.auth, await user.getIdToken())
+  );
 }
 
-export async function reauthenticateWithCredential<T extends externs.AuthCredential|null>(
+export async function reauthenticateWithCredential<
+  T extends externs.AuthCredential | null
+>(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
 ): Promise<externs.UserCredential<T>> {
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 
-  return _reauthenticate(user, credential._getReauthenticationResolver(user.auth));
+  return _reauthenticate(
+    user,
+    credential._getReauthenticationResolver(user.auth)
+  );
 }
-

@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { CompleteFn, ErrorFn, NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 /**
  * Supported providers
@@ -306,7 +312,9 @@ export class PhoneAuthProvider implements AuthProvider {
  */
 export interface ConfirmationResult {
   readonly verificationId: string;
-  confirm(verificationCode: string): Promise<UserCredential<PhoneAuthCredential>>;
+  confirm(
+    verificationCode: string
+  ): Promise<UserCredential<PhoneAuthCredential>>;
 }
 
 /**
@@ -380,7 +388,7 @@ export interface User extends UserInfo {
 /**
  * https://firebase.google.com/docs/reference/js/firebase.auth#usercredential
  */
-export interface UserCredential<T extends AuthCredential|null> {
+export interface UserCredential<T extends AuthCredential | null> {
   user: User;
   credential: T;
   operationType: OperationType;

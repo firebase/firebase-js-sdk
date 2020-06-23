@@ -30,8 +30,13 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import {
-    applyActionCode, checkActionCode, confirmPasswordReset, createUserWithEmailAndPassword,
-    sendPasswordResetEmail, signInWithEmailAndPassword, verifyPasswordResetCode
+  applyActionCode,
+  checkActionCode,
+  confirmPasswordReset,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);

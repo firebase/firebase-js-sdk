@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -48,53 +47,88 @@ describe('src/core/user/reauthenticate', () => {
   });
 
   it('should error if the idToken is missing', async () => {
-    await expect(_reauthenticate(user, Promise.resolve({
-      ...TEST_ID_TOKEN_RESPONSE,
-      idToken: undefined,
-    } as unknown as IdTokenResponse))).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(
+      _reauthenticate(
+        user,
+        Promise.resolve(({
+          ...TEST_ID_TOKEN_RESPONSE,
+          idToken: undefined
+        } as unknown) as IdTokenResponse)
+      )
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('should error if the token can not be parsed', async () => {
-    await expect(_reauthenticate(user, Promise.resolve({
-      ...TEST_ID_TOKEN_RESPONSE,
-      idToken: 'definitely-not-base-64',
-    }))).to.be.rejectedWith(FirebaseError, 'Firebase: An internal AuthError has occurred. (auth/internal-error).');
+    await expect(
+      _reauthenticate(
+        user,
+        Promise.resolve({
+          ...TEST_ID_TOKEN_RESPONSE,
+          idToken: 'definitely-not-base-64'
+        })
+      )
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
   });
 
   it('should throw a user mismatch error if uid is different', async () => {
-    await expect(_reauthenticate(user, Promise.resolve({
-      ...TEST_ID_TOKEN_RESPONSE,
-      idToken: makeJWT({sub: 'not-the-uid'}),
-    }))).to.be.rejectedWith(FirebaseError,'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).');
+    await expect(
+      _reauthenticate(
+        user,
+        Promise.resolve({
+          ...TEST_ID_TOKEN_RESPONSE,
+          idToken: makeJWT({ sub: 'not-the-uid' })
+        })
+      )
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
+    );
   });
 
   it('should switch a user deleted error to a mismatch error', async () => {
-    const rejection = Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_DELETED, {
-      appName: '',
-    }));
+    const rejection = Promise.reject(
+      AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_DELETED, {
+        appName: ''
+      })
+    );
 
-    await expect(_reauthenticate(user, rejection))
-        .to.be.rejectedWith(FirebaseError,'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).');
+    await expect(_reauthenticate(user, rejection)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
+    );
   });
 
   it('should not switch other errors to a mismatch error', async () => {
-    const rejection = Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-      appName: '',
-    }));
+    const rejection = Promise.reject(
+      AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+        appName: ''
+      })
+    );
 
-    await expect(_reauthenticate(user, rejection))
-        .to.be.rejectedWith(FirebaseError, 'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).');
+    await expect(_reauthenticate(user, rejection)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+    );
   });
 
   it('should return a valid user credential', async () => {
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{localId: 'uid'}]
+      users: [{ localId: 'uid' }]
     });
 
-    const cred = await _reauthenticate(user, Promise.resolve({
-      ...TEST_ID_TOKEN_RESPONSE,
-      idToken: makeJWT({sub: 'uid'}),
-    }));
+    const cred = await _reauthenticate(
+      user,
+      Promise.resolve({
+        ...TEST_ID_TOKEN_RESPONSE,
+        idToken: makeJWT({ sub: 'uid' })
+      })
+    );
 
     expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     expect(cred.credential).to.eq(null);
