@@ -25,7 +25,13 @@ export default [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: [
       typescriptPlugin({
-        typescript
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017',
+            module: 'es2015'
+          }
+        }
       })
     ]
   }

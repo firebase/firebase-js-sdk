@@ -24,7 +24,8 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0"
+    "rollup-plugin-typescript2": "0.27.0",
+    "@firebase/logger": "0.2.5"
   },
   "repository": {
     "directory": "packages/template",
