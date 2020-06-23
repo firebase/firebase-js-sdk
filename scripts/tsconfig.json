@@ -12,6 +12,7 @@
     "typeRoots": [
       "../node_modules/@types"
     ],
-    "allowJs": true
+    "allowJs": true,
+    "downlevelIteration": true
   }
 }
