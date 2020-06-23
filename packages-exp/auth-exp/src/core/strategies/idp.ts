@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OAuthCredential, OperationType } from '@firebase/auth-types-exp';
 
-import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
+import {
+  signInWithIdp,
+  SignInWithIdpRequest
+} from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
 import { _authCredentialFromTokenResponse } from '../credentials/inferred';
@@ -36,7 +39,9 @@ export interface IdpTaskParams {
   user?: User;
 }
 
-export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
+export type IdpTask = (
+  params: IdpTaskParams
+) => Promise<UserCredential<OAuthCredential>>;
 
 function paramsToRequest({
   requestUri,
@@ -55,34 +60,36 @@ function paramsToRequest({
   };
 }
 
-export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
+export async function _signIn(
+  params: IdpTaskParams
+): Promise<UserCredential<OAuthCredential>> {
   const request = paramsToRequest(params);
   const auth = params.auth;
 
   const response = await signInWithIdp(auth, request);
 
-  const credential = _authCredentialFromTokenResponse(response);
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    auth,
-    credential,
-    OperationType.SIGN_IN,
-    response
-  );
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse<
+    OAuthCredential
+  >(auth, null, OperationType.SIGN_IN, response);
 
   return userCredential;
 }
 
-export async function _reauth(params: IdpTaskParams): Promise<UserCredential> {
+export async function _reauth(
+  params: IdpTaskParams
+): Promise<UserCredential<OAuthCredential>> {
   const { auth, user } = params;
   assert(user, auth.name);
   const requestPromise = signInWithIdp(auth, paramsToRequest(params));
   return _reauthenticate(user, requestPromise);
 }
 
-export async function _link(params: IdpTaskParams): Promise<UserCredential> {
+export async function _link(
+  params: IdpTaskParams
+): Promise<UserCredential<OAuthCredential>> {
   const { auth, user } = params;
   assert(user, auth.name);
-  
+
   const request = paramsToRequest(params);
   request.idToken = await user.getIdToken();
 

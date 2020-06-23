@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -32,7 +36,9 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
-    linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from './credential';
 
 use(chaiAsPromised);
@@ -86,8 +92,7 @@ describe('core/strategies/credential', () => {
         auth,
         authCredential
       );
-      expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
-      expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect(credential).to.be.null;
       expect(user.uid).to.eq('local-id');
       expect(user.tenantId).to.eq('tenant-id');
       expect(user.displayName).to.eq('display-name');

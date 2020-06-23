@@ -53,7 +53,7 @@ export async function signInWithEmailLink(
   auth: externs.Auth,
   email: string,
   emailLink?: string
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<null>> {
   return signInWithCredential(
     auth,
     EmailAuthProvider.credentialWithLink(

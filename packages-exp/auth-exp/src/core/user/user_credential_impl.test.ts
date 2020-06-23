@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
@@ -82,7 +86,6 @@ describe('core/user/user_credential_impl', () => {
         OperationType.SIGN_IN,
         idTokenResponse
       );
-      expect(userCredential.credential).to.eq(credential);
       expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
       expect(userCredential.user.uid).to.eq('local-id');
     });
@@ -112,18 +115,24 @@ describe('core/user/user_credential_impl', () => {
     });
 
     it('gets a credential based on the response', async () => {
-      const cred = await UserCredentialImpl._forOperation(user, OperationType.REAUTHENTICATE, {
-        ...TEST_ID_TOKEN_RESPONSE,
-        temporaryProof: 'temporary-proof',
-        phoneNumber: 'phone-number'
-      });
+      const cred = await UserCredentialImpl._forOperation(
+        user,
+        OperationType.REAUTHENTICATE,
+        {
+          ...TEST_ID_TOKEN_RESPONSE,
+          temporaryProof: 'temporary-proof',
+          phoneNumber: 'phone-number'
+        }
+      );
 
       expect(cred.credential!.providerId).to.eq(ProviderId.PHONE);
       expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     });
 
     it('persists the user', async () => {
-      await UserCredentialImpl._forOperation(user, OperationType.LINK, {...TEST_ID_TOKEN_RESPONSE});
+      await UserCredentialImpl._forOperation(user, OperationType.LINK, {
+        ...TEST_ID_TOKEN_RESPONSE
+      });
       expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
     });
   });

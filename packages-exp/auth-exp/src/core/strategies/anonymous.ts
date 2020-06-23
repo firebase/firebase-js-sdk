@@ -16,6 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+
 import { Auth } from '../../model/auth';
 import { AnonymousProvider } from '../providers/anonymous';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -23,14 +24,14 @@ import { signInWithCredential } from './credential';
 
 export async function signInAnonymously(
   externAuth: externs.Auth
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<null>> {
   const auth = externAuth as Auth;
   const credential = AnonymousProvider.credential();
   if (auth.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl(
       auth.currentUser,
-      credential,
+      null,
       externs.OperationType.SIGN_IN
     );
   }

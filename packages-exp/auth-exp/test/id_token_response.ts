@@ -23,5 +23,5 @@ export const TEST_ID_TOKEN_RESPONSE: IdTokenResponse = {
   refreshToken: 'refresh-token',
   expiresIn: '1000',
   localId: 'uid',
-  kind: 'kind',
+  kind: 'kind'
 };

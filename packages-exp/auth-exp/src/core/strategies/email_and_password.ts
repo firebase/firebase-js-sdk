@@ -19,14 +19,14 @@ import * as externs from '@firebase/auth-types-exp';
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
+import { signUp } from '../../api/authentication/sign_up';
 import { Auth } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { assert } from '../util/assert';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { signUp } from '../../api/authentication/sign_up';
-import { assert } from '../util/assert';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
@@ -114,7 +114,7 @@ export async function createUserWithEmailAndPassword(
   authExtern: externs.Auth,
   email: string,
   password: string
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<null>> {
   const auth = authExtern as Auth;
 
   const response = await signUp(auth, {
@@ -123,7 +123,7 @@ export async function createUserWithEmailAndPassword(
     password
   });
 
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse<null>(
     auth,
     EmailAuthProvider.credential(email, password),
     externs.OperationType.SIGN_IN,
@@ -138,7 +138,7 @@ export function signInWithEmailAndPassword(
   auth: externs.Auth,
   email: string,
   password: string
-): Promise<externs.UserCredential> {
+): Promise<externs.UserCredential<null>> {
   return signInWithCredential(
     auth,
     EmailAuthProvider.credential(email, password)

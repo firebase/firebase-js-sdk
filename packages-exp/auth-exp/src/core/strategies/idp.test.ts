@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -45,14 +44,12 @@ describe('src/core/strategies/idb', () => {
     fetch.setUp();
 
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [
-        {localId: 'uid'}
-      ]
+      users: [{ localId: 'uid' }]
     });
 
     signInEndpoint = mockEndpoint(Endpoint.SIGN_IN_WITH_IDP, {
       ...TEST_ID_TOKEN_RESPONSE,
-      idToken: makeJWT({sub: 'uid'})
+      idToken: makeJWT({ sub: 'uid' })
     });
   });
 
@@ -68,7 +65,7 @@ describe('src/core/strategies/idb', () => {
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(signInEndpoint.calls[0].request).to.eql({
@@ -77,18 +74,18 @@ describe('src/core/strategies/idb', () => {
         postBody: 'post-body',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        returnSecureToken: true,
+        returnSecureToken: true
       });
     });
 
     it('returns a user credential with the signed in user', async () => {
-      const userCred= await idpTasks._signIn({
+      const userCred = await idpTasks._signIn({
         auth,
         requestUri: 'request-uri',
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -105,7 +102,7 @@ describe('src/core/strategies/idb', () => {
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(signInEndpoint.calls[0].request).to.eql({
@@ -114,19 +111,19 @@ describe('src/core/strategies/idb', () => {
         postBody: 'post-body',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        returnSecureToken: true,
+        returnSecureToken: true
       });
     });
 
     it('returns a user credential with the reauthed in user', async () => {
-      const userCred= await idpTasks._reauth({
+      const userCred = await idpTasks._reauth({
         auth,
         user,
         requestUri: 'request-uri',
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
@@ -144,7 +141,7 @@ describe('src/core/strategies/idb', () => {
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(signInEndpoint.calls[0].request).to.eql({
@@ -154,19 +151,19 @@ describe('src/core/strategies/idb', () => {
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
         returnSecureToken: true,
-        idToken: idTokenBeforeLink,
+        idToken: idTokenBeforeLink
       });
     });
 
     it('returns a user credential with the reauthed in user', async () => {
-      const userCred= await idpTasks._link({
+      const userCred = await idpTasks._link({
         auth,
         user,
         requestUri: 'request-uri',
         sessionId: 'session-id',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        postBody: 'post-body',
+        postBody: 'post-body'
       });
 
       expect(userCred.operationType).to.eq(OperationType.LINK);
