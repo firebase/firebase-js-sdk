@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { CompleteFn, ErrorFn, NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 /**
  * Supported providers
@@ -386,9 +380,9 @@ export interface User extends UserInfo {
 /**
  * https://firebase.google.com/docs/reference/js/firebase.auth#usercredential
  */
-export interface UserCredential {
+export interface UserCredential<T extends AuthCredential|null> {
   user: User;
-  credential: AuthCredential | null;
+  credential: T;
   operationType: OperationType;
 }
 
