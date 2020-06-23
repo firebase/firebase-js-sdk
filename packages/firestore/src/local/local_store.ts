@@ -96,10 +96,13 @@ export interface QueryResult {
 }
 
 /**
- * Base of local store implementations. This is mainly used to define fields
- * that are used by tree-shakeable free functions that implement optional
- * local store features.
+ * Base of implementations. This is mainly used to define fields that are used
+ * by tree-shakeable free functions that implement optional local store
+ * features.
  */
+// TODO(wuandy): Make LocalStore an interface instead and only expose the
+// interface to outside world, while allowing local store free functions access
+// internal fields.
 class LocalStoreBase {
   /**
    * The "local" view of all documents (layering mutationQueue on top of
@@ -578,7 +581,7 @@ export class LocalStore extends LocalStoreBase {
         // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
         // documents in advance in a single call.
         promises.push(
-          this.prepareApplyingDocuments(
+          this.populateDocumentChangeBuffer(
             txn,
             documentBuffer,
             remoteEvent.documentUpdates,
@@ -629,8 +632,8 @@ export class LocalStore extends LocalStoreBase {
   }
 
   /**
-   * Prepares document change buffer resulted from documents to be applied,
-   * returns the document changes resulting from applying those documents.
+   * Populates document change buffer with documents from backend or a bundle.
+   * Returns the document changes resulting from applying those documents.
    *
    * @param txn Transaction to use to read existing documents from storage.
    * @param documentBuffer Document buffer to collect the resulted changes to be
@@ -644,11 +647,13 @@ export class LocalStore extends LocalStoreBase {
    * Note: this function will use `documentVersions` if it is defined;
    * when it is not defined, resorts to `globalVersion`.
    */
-  prepareApplyingDocuments(
+  populateDocumentChangeBuffer(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer,
     documents: MaybeDocumentMap,
-    globalVersion: SnapshotVersion | undefined,
+    globalVersion: SnapshotVersion,
+    // TODO(wuandy): We could add `readTime` to MaybeDocument instead to remove
+    // this parameter.
     documentVersions: DocumentVersionMap | undefined
   ): PersistencePromise<MaybeDocumentMap> {
     let updatedKeys = documentKeySet();
@@ -657,13 +662,7 @@ export class LocalStore extends LocalStoreBase {
       let changedDocs = maybeDocumentMap();
       documents.forEach((key, doc) => {
         const existingDoc = existingDocs.get(key);
-        let docReadVersion: SnapshotVersion | null = null;
-        if (documentVersions) {
-          docReadVersion = documentVersions.get(key);
-        } else if (globalVersion) {
-          docReadVersion = globalVersion;
-        }
-        debugAssert(!!docReadVersion, 'Document read version must exist');
+        const docReadTime = documentVersions?.get(key) ?? globalVersion;
 
         // Note: The order of the steps below is important, since we want
         // to ensure that rejected limbo resolutions (which fabricate
@@ -676,7 +675,7 @@ export class LocalStore extends LocalStoreBase {
           // NoDocuments with SnapshotVersion.min() are used in manufactured
           // events. We remove these documents from cache since we lost
           // access.
-          documentBuffer.removeEntry(key, docReadVersion!);
+          documentBuffer.removeEntry(key, docReadTime);
           changedDocs = changedDocs.insert(key, doc);
         } else if (
           existingDoc == null ||
@@ -685,10 +684,10 @@ export class LocalStore extends LocalStoreBase {
             existingDoc.hasPendingWrites)
         ) {
           debugAssert(
-            !SnapshotVersion.min().isEqual(docReadVersion!),
+            !SnapshotVersion.min().isEqual(docReadTime),
             'Cannot add a document when the remote version is zero'
           );
-          documentBuffer.addEntry(doc, docReadVersion!);
+          documentBuffer.addEntry(doc, docReadTime);
           changedDocs = changedDocs.insert(key, doc);
         } else {
           logDebug(
@@ -1065,6 +1064,7 @@ export class LocalStore extends LocalStoreBase {
  */
 // PORTING NOTE: Web only.
 export class MultiTabLocalStore extends LocalStore {
+  persistence: IndexedDbPersistence;
   mutationQueue: IndexedDbMutationQueue;
   remoteDocuments: IndexedDbRemoteDocumentCache;
   protected targetCache: IndexedDbTargetCache;
@@ -1077,6 +1077,7 @@ export class MultiTabLocalStore extends LocalStore {
   ) {
     super(persistence, queryEngine, initialUser, serializer);
 
+    this.persistence = persistence;
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
@@ -1114,13 +1115,11 @@ export class MultiTabLocalStore extends LocalStore {
   }
 
   setNetworkEnabled(networkEnabled: boolean): void {
-    (this.persistence as IndexedDbPersistence).setNetworkEnabled(
-      networkEnabled
-    );
+    this.persistence.setNetworkEnabled(networkEnabled);
   }
 
   getActiveClients(): Promise<ClientId[]> {
-    return (this.persistence as IndexedDbPersistence).getActiveClients();
+    return this.persistence.getActiveClients();
   }
 
   getTarget(targetId: TargetId): Promise<Target | null> {
@@ -1232,11 +1231,11 @@ export function applyBundleDocuments(
     'readwrite-primary',
     txn => {
       return localStore
-        .prepareApplyingDocuments(
+        .populateDocumentChangeBuffer(
           txn,
           documentBuffer,
           documentMap,
-          undefined,
+          SnapshotVersion.min(),
           versionMap
         )
         .next(changedDocs => {
