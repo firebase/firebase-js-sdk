@@ -147,10 +147,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private receivedInitialUser: boolean = false;
 
   /**
-   * Counter used to detect if the token changed while a getToken request was
-   * outstanding.
+   * The last token received either via the token listener or the getToken()
+   * API.
    */
-  private tokenCounter = 0;
+  private lastToken: OAuthToken | null = null;
 
   /** The listener registered with setChangeListener(). */
   private changeListener: CredentialChangeListener | null = null;
@@ -160,16 +160,14 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private auth: FirebaseAuthInternal | null;
 
   constructor(authProvider: Provider<FirebaseAuthInternalName>) {
-    this.tokenListener = () => {
-      this.tokenCounter++;
+    this.tokenListener = token => {
       this.currentUser = this.getUser();
+      this.lastToken = token ? new OAuthToken(token, this.currentUser) : null;
       this.receivedInitialUser = true;
       if (this.changeListener) {
         this.changeListener(this.currentUser);
       }
     };
-
-    this.tokenCounter = 0;
 
     this.auth = authProvider.getImmediate({ optional: true });
 
@@ -199,10 +197,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       'getToken cannot be called after listener removed.'
     );
 
-    // Take note of the current value of the tokenCounter so that this method
-    // can fail (with an ABORTED error) if there is a token change while the
-    // request is outstanding.
-    const initialTokenCounter = this.tokenCounter;
     const forceRefresh = this.forceRefresh;
     this.forceRefresh = false;
 
@@ -210,27 +204,28 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       return Promise.resolve(null);
     }
 
+    this.lastToken = null;
     return this.auth.getToken(forceRefresh).then(tokenData => {
-      // Cancel the request since the token changed while the request was
-      // outstanding so the response is potentially for a previous user (which
-      // user, we can't be sure).
-      if (this.tokenCounter !== initialTokenCounter) {
+      if (this.lastToken) {
+        // If we received a new token while this callback was pending (via
+        // `this.tokenListener`), use the new token instead of the one received
+        // via `getToken()`.
         logDebug(
           'FirebaseCredentialsProvider',
-          'getToken aborted due to token change.'
+          'Re-using token from token listener.'
         );
-        return this.getToken();
-      } else {
-        if (tokenData) {
-          hardAssert(
-            typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
-          );
-          return new OAuthToken(tokenData.accessToken, this.currentUser);
-        } else {
-          return null;
-        }
+      } else if (tokenData) {
+        hardAssert(
+          typeof tokenData.accessToken === 'string',
+          'Invalid tokenData returned from getToken():' + tokenData
+        );
+        this.lastToken = new OAuthToken(
+          tokenData.accessToken,
+          this.currentUser
+        );
       }
+
+      return this.lastToken;
     });
   }
 
