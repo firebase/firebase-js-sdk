@@ -17,6 +17,9 @@
 
 import { Code, FirestoreError } from './error';
 
+/** List of JavaScript built-in members that cannot be reassigned. */
+const RESERVED_READONLY_PROPS = ['length', 'name'];
+
 /**
  * Helper function to prevent instantiation through the constructor.
  *
@@ -41,11 +44,15 @@ export function makeConstructorPrivate<T extends Function>(
     throw new FirestoreError(Code.INVALID_ARGUMENT, error);
   }
 
-  // Make sure instanceof checks work and all methods are exposed on the public
-  // constructor
-  PublicConstructor.prototype = cls.prototype;
+  // Copy static members and prototype
+  for (const staticProp of Object.getOwnPropertyNames(cls)) {
+    if (RESERVED_READONLY_PROPS.indexOf(staticProp) === -1) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (PublicConstructor as any)[staticProp] = (cls as any)[staticProp];
+    }
+  }
 
-  // Copy any static methods/members
+  // Copy instance methods/members
   Object.assign(PublicConstructor, cls);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
