@@ -98,7 +98,7 @@ export async function extractDependenciesAndSize(
     output: {
       comments: false
     },
-    mangle: false,
+    mangle: true,
     compress: false
   });
 

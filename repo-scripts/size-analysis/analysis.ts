@@ -44,12 +44,12 @@ function collectBinarySize(path: string) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS] && packageJson.name == DUMMYMODULE) {
+  if (packageJson[TYPINGS] && packageJson.name == FUNCTIONMODULE) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
     const publicApi = extractDeclarations(resolve(dtsFile));
-    console.log(publicApi);
+    //console.log(publicApi);
 
     if (!packageJson[BUNDLE]) {
       console.log('This module does not have bundle file!');
