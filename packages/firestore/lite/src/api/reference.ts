@@ -322,7 +322,7 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    new InternalQuery(ResourcePath.emptyPath(), collectionId),
     /* converter= */ null
   );
 }
