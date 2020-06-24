@@ -25,6 +25,7 @@ import * as fetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { _ENDPOINT, requestStsToken } from './token';
+import { HttpHeader } from '..';
 
 use(chaiAsPromised);
 
@@ -58,10 +59,12 @@ describe('requestStsToken', () => {
       'refresh_token': 'old-refresh-token'
     });
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/x-www-form-urlencoded'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
