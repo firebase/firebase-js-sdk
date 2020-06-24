@@ -20,10 +20,14 @@ import typescript from 'typescript';
 import pkg from './package.json';
 import json from 'rollup-plugin-json';
 
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
 export default [
   {
     input: 'index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
     plugins: [
       typescriptPlugin({
         typescript,
@@ -34,7 +38,10 @@ export default [
           }
         }
       }),
-      json()
-    ]
+      json({
+        preferConst: true
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

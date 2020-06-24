@@ -24,7 +24,7 @@ import {
   ExportData
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
-import { projectRoot } from '../scripts/release/utils';
+import { projectRoot } from '../../scripts/utils';
 import { getTsBuildInfoEmitOutputFilePath } from 'typescript';
 
 export const TYPINGS: string = 'typings';
@@ -58,7 +58,7 @@ function collectBinarySize(path: string) {
     //calculate binary size for every export and build a json report
     buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, map).then(json => {
       console.log(json);
-      //fs.writeFileSync(resolve(`${OUTPUTDIR}/${packageJson.name}/dependencies.json`), json);
+      fs.writeFileSync(resolve(`dependencies.json`), json);
     });
   }
 }
