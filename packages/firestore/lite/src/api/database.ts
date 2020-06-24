@@ -17,8 +17,8 @@
 
 import * as firestore from '../../';
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -42,12 +42,11 @@ import { Settings } from '../../';
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 
-// TODO(firestorelite): Depend on FirebaseService once #3112 is merged
-
 /**
  * The root reference to the Firestore Lite database.
  */
-export class Firestore implements firestore.FirebaseFirestore {
+export class Firestore
+  implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _databaseId: DatabaseId;
   private readonly _firebaseApp: FirebaseApp;
   private readonly _credentials: CredentialsProvider;
@@ -120,6 +119,10 @@ export class Firestore implements firestore.FirebaseFirestore {
 
     return new DatabaseId(app.options.projectId!);
   }
+
+  delete(): Promise<void> {
+    return terminate(this);
+  }
 }
 
 export function initializeFirestore(
@@ -141,7 +144,7 @@ export function getFirestore(app: FirebaseApp): Firestore {
 export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
-  // TODO(firestorelite): Call _removeServiceInstance when available
+  _removeServiceInstance(firestore.app, 'firestore/lite');
   const firestoreClient = cast(firestore, Firestore);
   return firestoreClient
     ._getDatastore()
