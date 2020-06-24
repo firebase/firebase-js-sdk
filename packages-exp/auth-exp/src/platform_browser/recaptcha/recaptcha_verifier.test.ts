@@ -29,7 +29,7 @@ import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { _JSLOAD_CALLBACK, MOCK_RECAPTCHA_LOADER } from './recaptcha_loader';
+import { _JSLOAD_CALLBACK, ReCaptchaLoader } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 import { RecaptchaVerifier } from './recaptcha_verifier';
 
@@ -41,6 +41,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   let container: HTMLElement;
   let verifier: RecaptchaVerifier;
   let parameters: Parameters;
+  let recaptchaLoader: ReCaptchaLoader;
 
   beforeEach(async () => {
     fetch.setUp();
@@ -54,6 +55,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     mockEndpoint(Endpoint.GET_RECAPTCHA_PARAM, {
       recaptchaSiteKey: 'recaptcha-key'
     });
+    recaptchaLoader = verifier._recaptchaLoader;
   });
 
   afterEach(() => {
@@ -64,7 +66,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   context('#render', () => {
     it('caches the promise if not completed and returns if called multiple times', () => {
       // This will force the loader to never return so the render promise never completes
-      sinon.stub(MOCK_RECAPTCHA_LOADER, 'load').returns(new Promise(() => {}));
+      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => {}));
       const renderPromise = verifier.render();
       expect(verifier.render()).to.eq(renderPromise);
     });
@@ -81,17 +83,15 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     });
 
     it('sets loads the recaptcha per the app language code', async () => {
-      sinon.spy(MOCK_RECAPTCHA_LOADER, 'load');
+      sinon.spy(recaptchaLoader, 'load');
       await verifier.render();
-      expect(MOCK_RECAPTCHA_LOADER.load).to.have.been.calledWith(auth, 'fr');
+      expect(recaptchaLoader.load).to.have.been.calledWith(auth, 'fr');
     });
 
     it('calls render on the underlying recaptcha widget', async () => {
       const widget = new MockReCaptcha(auth);
       sinon.spy(widget, 'render');
-      sinon
-        .stub(MOCK_RECAPTCHA_LOADER, 'load')
-        .returns(Promise.resolve(widget));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(widget));
       await verifier.render();
       expect(widget.render).to.have.been.calledWith(
         container.children[0],
@@ -100,7 +100,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     });
 
     it('in case of error, resets render promise', async () => {
-      sinon.stub(MOCK_RECAPTCHA_LOADER, 'load').returns(Promise.reject('nope'));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.reject('nope'));
       const promise = verifier.render();
       await expect(promise).to.be.rejectedWith('nope');
       expect(verifier.render()).not.to.eq(promise);
@@ -111,9 +111,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     let recaptcha: Recaptcha;
     beforeEach(() => {
       recaptcha = new MockReCaptcha(auth);
-      sinon
-        .stub(MOCK_RECAPTCHA_LOADER, 'load')
-        .returns(Promise.resolve(recaptcha));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
     });
 
     it('returns immediately if response is available', async () => {
@@ -161,9 +159,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   context('#reset', () => {
     it('calls reset on the underlying widget', async () => {
       const recaptcha = new MockReCaptcha(auth);
-      sinon
-        .stub(MOCK_RECAPTCHA_LOADER, 'load')
-        .returns(Promise.resolve(recaptcha));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
       sinon.spy(recaptcha, 'reset');
       await verifier.render();
       verifier._reset();

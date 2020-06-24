@@ -123,13 +123,10 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   }
 }
 
-class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
+export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
   async load(auth: Auth): Promise<Recaptcha> {
     return new MockReCaptcha(auth);
   }
 
   clearedOneInstance(): void {}
 }
-
-export const MOCK_RECAPTCHA_LOADER: ReCaptchaLoader = new MockReCaptchaLoaderImpl();
-export const RECAPTCHA_LOADER: ReCaptchaLoader = new ReCaptchaLoaderImpl();
