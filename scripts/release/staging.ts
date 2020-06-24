@@ -40,10 +40,19 @@ export async function bumpVersionForStaging(): Promise<
   const updatedPkgJsons: {
     name: string;
     version: string;
+    private: boolean;
   }[] = await Promise.all(packages.map(pkg => mapPkgNameToPkgJson(pkg)));
   const updatedVersions = new Map<string, [string, string]>();
 
-  for (const { name, version: updatedVersion } of updatedPkgJsons) {
+  for (const {
+    name,
+    version: updatedVersion,
+    private: isPrivate
+  } of updatedPkgJsons) {
+    if (isPrivate) {
+      continue;
+    }
+
     const originalVersion = originalVersions.get(name)!;
     if (updatedVersion && originalVersion !== updatedVersion) {
       updatedVersions.set(name, [originalVersion, updatedVersion]);
