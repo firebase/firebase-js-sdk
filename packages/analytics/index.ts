@@ -45,9 +45,7 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
-const NAMESPACE_EXPORTS = {
-  isSupported
-};
+
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
@@ -59,17 +57,17 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
           .getProvider('installations')
           .getImmediate();
 
-        validateBrowserContext();
+        validateCookieEnabled();
+        validateIndexedDBSupport();
 
         return factory(app, installations);
       },
       ComponentType.PUBLIC
-    )
-      .setServiceProps({
-        settings,
-        EventName
-      })
-      .setServiceProps(NAMESPACE_EXPORTS)
+    ).setServiceProps({
+      settings,
+      EventName,
+      isSupported
+    })
   );
 
   instance.INTERNAL.registerComponent(
@@ -110,30 +108,43 @@ declare module '@firebase/app-types' {
     analytics(): FirebaseAnalytics;
   }
 }
-function validateBrowserContext(): void {
-  if ('indexedDB' in window && indexedDB !== null && navigator.cookieEnabled) {
+/**
+ *
+ * This method checks whether cookie is enabled within current browser and throw
+ * AnalyticsError.COOKIE_NOT_ENABLED if not
+ */
+function validateCookieEnabled(): void {
+  if (!navigator || !navigator.cookieEnabled) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIE_NOT_ENABLED);
+  }
+}
+/**
+ * This method checks if indexedDB is supported by current browser and throws AnalyticsError.INDEXED_DB_UNSUPPORTED error if not.
+ *
+ * This method also validates browser context for indexedDB by opening a dummy indexedDB database and throws AnalyticsError.INVALID_INDEXED_DB_CONTEXT
+ * if errors occur during the database open operation.
+ */
+function validateIndexedDBSupport(): void {
+  if ('indexedDB' in window && indexedDB !== null) {
     try {
       let preExist: boolean = true;
       const DUMMYDBNAME =
-        'a-dummy-database-for-testing-browser-context-firebase';
+        'validate-browser-context-for-indexeddb-analytics-module';
       const request = window.indexedDB.open(DUMMYDBNAME);
       request.onsuccess = () => {
-        //console.log('successfully opend dummy indexedDB');
         request.result.close();
         // delete database only when it doesn't pre-exist
         if (!preExist) {
-          //console.log("deleting database");
           window.indexedDB.deleteDatabase(DUMMYDBNAME);
         }
       };
       request.onupgradeneeded = () => {
         preExist = false;
-        //console.log('database needs to be upgraded');
       };
 
       request.onerror = () => {
         throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-          errorInfo: request.error!.message
+          errorInfo: request.error?.message || ''
         });
       };
     } catch (error) {
@@ -145,9 +156,16 @@ function validateBrowserContext(): void {
     throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
 }
+
+/**
+ * this is a public static method provided to users that wraps two different checks:
+ * 1. check if IndexedDB is supported and if the current browser context is valid for using IndexedDB
+ * 2. check if cookie is enabled in current browser.
+ */
 function isSupported(): boolean {
   try {
-    validateBrowserContext();
+    validateCookieEnabled();
+    validateIndexedDBSupport();
     return true;
   } catch (e) {
     return false;

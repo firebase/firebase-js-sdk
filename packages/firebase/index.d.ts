@@ -5083,6 +5083,15 @@ declare namespace firebase.analytics {
     id?: string;
     name?: string;
   }
+
+  /**
+   * Returns true if current browser context supports initialization of analytics module
+   * (`firebase.analytics()`).
+   *
+   * Returns false otherwise.
+   *
+   *
+   */
   function isSupported(): boolean;
 }
 
