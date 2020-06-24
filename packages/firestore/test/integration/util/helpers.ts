@@ -17,52 +17,13 @@
 
 import * as firestore from '@firebase/firestore-types';
 import firebase from './firebase_export';
+import {
+  ALT_PROJECT_ID,
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from './settings';
 
 /* eslint-disable no-restricted-globals */
-
-/**
- * NOTE: These helpers are used by api/ tests and therefore may not have any
- * dependencies on src/ files.
- */
-// __karma__ is an untyped global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const __karma__: any;
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../../config/project.json');
-
-const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
-const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
-export const USE_EMULATOR = !!EMULATOR_PORT;
-
-const EMULATOR_FIRESTORE_SETTING = {
-  host: `localhost:${EMULATOR_PORT}`,
-  ssl: false
-};
-
-const PROD_FIRESTORE_SETTING = {
-  host: 'firestore.googleapis.com',
-  ssl: true
-};
-
-export const DEFAULT_SETTINGS = getDefaultSettings();
-
-// eslint-disable-next-line no-console
-console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
-
-function getDefaultSettings(): firestore.Settings {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.firestoreSettings) {
-    return karma.config.firestoreSettings;
-  } else {
-    return USE_EMULATOR ? EMULATOR_FIRESTORE_SETTING : PROD_FIRESTORE_SETTING;
-  }
-}
-
-export const DEFAULT_PROJECT_ID = USE_EMULATOR
-  ? EMULATOR_PROJECT_ID
-  : PROJECT_CONFIG.projectId;
-export const ALT_PROJECT_ID = 'test-db2';
 
 function isIeOrEdge(): boolean {
   if (!window.navigator) {

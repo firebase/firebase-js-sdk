@@ -84,12 +84,17 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { query } from './api_helpers';
+import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
+import {
+  JsonProtoSerializer,
+  toDocument,
+  toName,
+  toVersion
+} from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference, Firestore } from '../../src/api/database';
+import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
@@ -98,17 +103,15 @@ import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
-// A Firestore that can be used in DocumentReferences and UserDataWriter.
-const fakeFirestore: Firestore = {
-  ensureClientConfigured: () => {},
-  _databaseId: new DatabaseId('test-project')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
-
 export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
-  return new UserDataWriter(fakeFirestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(
+    new DatabaseId('test-project'),
+    /* timestampsInSnapshots= */ false,
+    'none',
+    key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
+  );
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
@@ -117,7 +120,7 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
     databaseId,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      ? new JsonProtoSerializer(databaseId, useProto3Json)
       : undefined
   );
 }
@@ -131,7 +134,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 export function ref(key: string, offset?: number): DocumentReference {
   return new DocumentReference(
     new DocumentKey(path(key, offset)),
-    fakeFirestore
+    FIRESTORE,
+    /* converter= */ null
   );
 }
 
@@ -239,7 +243,7 @@ export function patchMutation(
   // Replace '<DELETE>' from JSON with FieldValue
   forEach(json, (k, v) => {
     if (v === '<DELETE>') {
-      json[k] = new DeleteFieldValueImpl();
+      json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
   const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
@@ -414,12 +418,12 @@ export function bundledDocuments(
   const result = documents.map(d => {
     return {
       metadata: {
-        name: JSON_SERIALIZER.toName(d.key),
-        readTime: JSON_SERIALIZER.toVersion(d.version),
+        name: toName(JSON_SERIALIZER, d.key),
+        readTime: toVersion(JSON_SERIALIZER, d.version),
         exists: d instanceof Document
       },
       document:
-        d instanceof Document ? JSON_SERIALIZER.toDocument(d) : undefined
+        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
     };
   });
 
@@ -543,7 +547,7 @@ export function localViewChanges(
  * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
-  const base64 = PlatformSupport.getPlatform().btoa(value);
+  const base64 = encodeBase64(value);
   return ByteString.fromBase64String(base64);
 }
 
@@ -559,7 +563,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return PlatformSupport.getPlatform().atob(value ?? '');
+  return decodeBase64(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */

@@ -17,7 +17,12 @@
 
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
-import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  fromDocument,
+  fromName,
+  fromVersion,
+  JsonProtoSerializer
+} from '../remote/serializer';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
@@ -68,7 +73,7 @@ export class BundleConverter {
   constructor(private serializer: JsonProtoSerializer) {}
 
   toDocumentKey(name: string): DocumentKey {
-    return this.serializer.fromName(name);
+    return fromName(this.serializer, name);
   }
 
   /**
@@ -80,7 +85,7 @@ export class BundleConverter {
         !!bundledDoc.document,
         'Document is undefined when metadata.exist is true.'
       );
-      return this.serializer.fromDocument(bundledDoc.document!, false);
+      return fromDocument(this.serializer, bundledDoc.document!, false);
     } else {
       return new NoDocument(
         this.toDocumentKey(bundledDoc.metadata.name!),
@@ -90,6 +95,6 @@ export class BundleConverter {
   }
 
   toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
-    return this.serializer.fromVersion(time);
+    return fromVersion(time);
   }
 }

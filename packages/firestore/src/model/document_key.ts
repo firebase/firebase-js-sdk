@@ -50,8 +50,6 @@ export class DocumentKey {
     return this.path.toString();
   }
 
-  static EMPTY = new DocumentKey(new ResourcePath([]));
-
   static comparator(k1: DocumentKey, k2: DocumentKey): number {
     return ResourcePath.comparator(k1.path, k2.path);
   }

@@ -26,7 +26,6 @@ import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { decodeResourcePath } from './encoded_resource_path';
@@ -43,7 +42,11 @@ import {
   DbMutationQueue,
   DbMutationQueueKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbMutationBatch,
+  LocalSerializer,
+  toDbMutationBatch
+} from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -118,40 +121,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => empty);
   }
 
-  acknowledgeBatch(
-    transaction: PersistenceTransaction,
-    batch: MutationBatch,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // We can't store the resumeToken as a ByteString in IndexedDB, so we
-      // convert it to a Base64 string for storage.
-      metadata.lastStreamToken = streamToken.toBase64();
-
-      return mutationQueuesStore(transaction).put(metadata);
-    });
-  }
-
-  getLastStreamToken(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ByteString> {
-    return this.getMutationQueueMetadata(transaction).next<ByteString>(
-      metadata => ByteString.fromBase64String(metadata.lastStreamToken)
-    );
-  }
-
-  setLastStreamToken(
-    transaction: PersistenceTransaction,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // We can't store the resumeToken as a ByteString in IndexedDB, so we
-      // convert it to a Base64 string for storage.
-      metadata.lastStreamToken = streamToken.toBase64();
-      return mutationQueuesStore(transaction).put(metadata);
-    });
-  }
-
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
@@ -183,7 +152,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         baseMutations,
         mutations
       );
-      const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+      const dbBatch = toDbMutationBatch(this.serializer, this.userId, batch);
 
       const promises: Array<PersistencePromise<void>> = [];
       let collectionParents = new SortedSet<ResourcePath>((l, r) =>
@@ -228,7 +197,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             dbBatch.userId === this.userId,
             `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
           );
-          return this.serializer.fromDbMutationBatch(dbBatch);
+          return fromDbMutationBatch(this.serializer, dbBatch);
         }
         return null;
       });
@@ -279,7 +248,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               dbBatch.batchId >= nextBatchId,
               'Should have found mutation after ' + nextBatchId
             );
-            foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
+            foundBatch = fromDbMutationBatch(this.serializer, dbBatch);
           }
           control.done();
         }
@@ -317,7 +286,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return mutationsStore(transaction)
       .loadAll(DbMutationBatch.userMutationsIndex, range)
       .next(dbBatches =>
-        dbBatches.map(dbBatch => this.serializer.fromDbMutationBatch(dbBatch))
+        dbBatches.map(dbBatch => fromDbMutationBatch(this.serializer, dbBatch))
       );
   }
 
@@ -366,7 +335,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation));
+            results.push(fromDbMutationBatch(this.serializer, mutation));
           });
       })
       .next(() => results);
@@ -497,7 +466,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation));
+            results.push(fromDbMutationBatch(this.serializer, mutation));
           })
       );
     });

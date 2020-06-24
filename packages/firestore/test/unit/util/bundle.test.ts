@@ -14,13 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
 import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+
+use(chaiAsPromised);
 
 /**
  * Create a `ReadableStream` from a string.
@@ -34,7 +37,7 @@ export function byteStreamReaderFromString(
   bytesPerRead: number
 ): ReadableStreamReader<Uint8Array> {
   const data = new TextEncoder().encode(content);
-  return PlatformSupport.getPlatform().toByteStreamReader(data, bytesPerRead);
+  return toByteStreamReader(data, bytesPerRead);
 }
 
 function lengthPrefixedString(o: {}): string {

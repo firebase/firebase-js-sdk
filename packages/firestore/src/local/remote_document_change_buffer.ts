@@ -55,7 +55,10 @@ export abstract class RemoteDocumentChangeBuffer {
   protected changes: ObjectMap<
     DocumentKey,
     RemoteDocumentChange
-  > = new ObjectMap(key => key.toString());
+  > = new ObjectMap(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
 
   private changesApplied = false;
 

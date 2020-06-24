@@ -21,24 +21,9 @@ import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import { resolve } from 'path';
 import { Component, ComponentType } from '@firebase/component';
 
 export { database, firestore } from 'firebase';
-
-const PROTO_ROOT = resolve(
-  __dirname,
-  process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
-);
-const PROTO_FILE = resolve(
-  PROTO_ROOT,
-  'google/firestore/emulator/v1/firestore_emulator.proto'
-);
-const PKG_DEF = protoLoader.loadSync(PROTO_FILE, { includeDirs: [PROTO_ROOT] });
-const PROTOS = grpc.loadPackageDefinition(PKG_DEF);
-const EMULATOR = (PROTOS['google'] as any)['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
@@ -218,22 +203,24 @@ export function loadFirestoreRules(
     throw new Error('must provide rules to loadFirestoreRules');
   }
 
-  let client = new EMULATOR.FirestoreEmulator(
-    FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure()
-  );
   return new Promise((resolve, reject) => {
-    client.setSecurityRules(
+    request.put(
       {
-        project: `projects/${options.projectId}`,
-        rules: { files: [{ content: options.rules }] }
+        uri: `http://${FIRESTORE_ADDRESS}/emulator/v1/projects/${options.projectId}:securityRules`,
+        body: JSON.stringify({
+          rules: {
+            files: [{ content: options.rules }]
+          }
+        })
       },
-      // @ts-ignore Defined in protobuf.
-      (err: Error, resp) => {
+      (err, resp, body) => {
         if (err) {
           reject(err);
+        } else if (resp.statusCode !== 200) {
+          console.log('body', body);
+          reject(JSON.parse(body).error);
         } else {
-          resolve(resp);
+          resolve();
         }
       }
     );
@@ -250,26 +237,22 @@ export function clearFirestoreData(
     throw new Error('projectId not specified');
   }
 
-  let client = new EMULATOR.FirestoreEmulator(
-    FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure(),
-    {
-      // As with 'loadFirestoreRules', cap how much backoff gRPC will perform.
-      'grpc.initial_reconnect_backoff_ms': 100,
-      'grpc.max_reconnect_backoff_ms': 100
-    }
-  );
   return new Promise((resolve, reject) => {
-    client.clearData(
+    request.delete(
       {
-        database: `projects/${options.projectId}/databases/(default)`
+        uri: `http://${FIRESTORE_ADDRESS}/emulator/v1/projects/${options.projectId}/databases/(default)/documents`,
+        body: JSON.stringify({
+          database: `projects/${options.projectId}/databases/(default)`
+        })
       },
-      // @ts-ignore Defined in protobuf.
-      (err: Error, resp) => {
+      (err, resp, body) => {
         if (err) {
           reject(err);
+        } else if (resp.statusCode !== 200) {
+          console.log('body', body);
+          reject(JSON.parse(body).error);
         } else {
-          resolve(resp);
+          resolve();
         }
       }
     );

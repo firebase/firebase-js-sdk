@@ -79,7 +79,7 @@ export function debugCast<T>(
   obj: object,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor: { new (...args: any[]): T }
-): T {
+): T | never {
   debugAssert(
     obj instanceof constructor,
     `Expected type '${constructor.name}', but was '${obj.constructor.name}'`

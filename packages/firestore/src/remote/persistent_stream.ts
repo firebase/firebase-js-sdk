@@ -21,16 +21,27 @@ import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { hardAssert, debugAssert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { debugAssert, hardAssert } from '../util/assert';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 
-import { CancelablePromise } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
-import { JsonProtoSerializer } from './serializer';
+import {
+  fromBytes,
+  fromVersion,
+  fromWatchChange,
+  fromWriteResults,
+  getEncodedDatabaseId,
+  JsonProtoSerializer,
+  toBytes,
+  toListenRequestLabels,
+  toMutation,
+  toTarget,
+  versionFromListenResponse
+} from './serializer';
 import { WatchChange } from './watch_change';
 import { ByteString } from '../util/byte_string';
 
@@ -164,7 +175,7 @@ export abstract class PersistentStream<
    */
   private closeCount = 0;
 
-  private idleTimer: CancelablePromise<void> | null = null;
+  private idleTimer: DelayedOperation<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
@@ -565,10 +576,8 @@ export class PersistentListenStream extends PersistentStream<
     // A successful response means the stream is healthy
     this.backoff.reset();
 
-    const watchChange = this.serializer.fromWatchChange(watchChangeProto);
-    const snapshot = this.serializer.versionFromListenResponse(
-      watchChangeProto
-    );
+    const watchChange = fromWatchChange(this.serializer, watchChangeProto);
+    const snapshot = versionFromListenResponse(watchChangeProto);
     return this.listener!.onWatchChange(watchChange, snapshot);
   }
 
@@ -580,10 +589,10 @@ export class PersistentListenStream extends PersistentStream<
    */
   watch(targetData: TargetData): void {
     const request: ListenRequest = {};
-    request.database = this.serializer.encodedDatabaseId;
-    request.addTarget = this.serializer.toTarget(targetData);
+    request.database = getEncodedDatabaseId(this.serializer);
+    request.addTarget = toTarget(this.serializer, targetData);
 
-    const labels = this.serializer.toListenRequestLabels(targetData);
+    const labels = toListenRequestLabels(this.serializer, targetData);
     if (labels) {
       request.labels = labels;
     }
@@ -597,7 +606,7 @@ export class PersistentListenStream extends PersistentStream<
    */
   unwatch(targetId: TargetId): void {
     const request: ListenRequest = {};
-    request.database = this.serializer.encodedDatabaseId;
+    request.database = getEncodedDatabaseId(this.serializer);
     request.removeTarget = targetId;
     this.sendRequest(request);
   }
@@ -670,7 +679,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
+  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and
@@ -683,6 +692,7 @@ export class PersistentWriteStream extends PersistentStream<
   // Override of PersistentStream.start
   start(): void {
     this.handshakeComplete_ = false;
+    this.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
     super.start();
   }
 
@@ -707,7 +717,10 @@ export class PersistentWriteStream extends PersistentStream<
       !!responseProto.streamToken,
       'Got a write response without a stream token'
     );
-    this.lastStreamToken = this.serializer.fromBytes(responseProto.streamToken);
+    this.lastStreamToken = fromBytes(
+      this.serializer,
+      responseProto.streamToken
+    );
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
@@ -723,13 +736,11 @@ export class PersistentWriteStream extends PersistentStream<
       // the write itself might be causing an error we want to back off from.
       this.backoff.reset();
 
-      const results = this.serializer.fromWriteResults(
+      const results = fromWriteResults(
         responseProto.writeResults,
         responseProto.commitTime
       );
-      const commitVersion = this.serializer.fromVersion(
-        responseProto.commitTime!
-      );
+      const commitVersion = fromVersion(responseProto.commitTime!);
       return this.listener!.onMutationResult(commitVersion, results);
     }
   }
@@ -742,10 +753,14 @@ export class PersistentWriteStream extends PersistentStream<
   writeHandshake(): void {
     debugAssert(this.isOpen(), 'Writing handshake requires an opened stream');
     debugAssert(!this.handshakeComplete_, 'Handshake already completed');
+    debugAssert(
+      this.lastStreamToken.isEqual(ByteString.EMPTY_BYTE_STRING),
+      'Stream token should be empty during handshake'
+    );
     // TODO(dimond): Support stream resumption. We intentionally do not set the
     // stream token on the handshake, ignoring any stream token we might have.
     const request: WriteRequest = {};
-    request.database = this.serializer.encodedDatabaseId;
+    request.database = getEncodedDatabaseId(this.serializer);
     this.sendRequest(request);
   }
 
@@ -762,8 +777,8 @@ export class PersistentWriteStream extends PersistentStream<
     );
 
     const request: WriteRequest = {
-      streamToken: this.serializer.toBytes(this.lastStreamToken),
-      writes: mutations.map(mutation => this.serializer.toMutation(mutation))
+      streamToken: toBytes(this.serializer, this.lastStreamToken),
+      writes: mutations.map(mutation => toMutation(this.serializer, mutation))
     };
 
     this.sendRequest(request);
