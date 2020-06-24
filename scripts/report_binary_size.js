@@ -29,8 +29,7 @@ const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL;
 function generateReportForCDNScripts() {
   const reports = [];
   const firebaseRoot = resolve(__dirname, '../packages/firebase');
-  // console.log(__dirname); // /Users/xuechunhou/Desktop/Google/firebase-js-sdk/scripts
-  // console.log(firebaseRoot); // /Users/xuechunhou/Desktop/Google/firebase-js-sdk/packages/firebase
+
   const pkgJson = require(`${firebaseRoot}/package.json`);
 
   const special_files = [
@@ -46,7 +45,6 @@ function generateReportForCDNScripts() {
       component => `${firebaseRoot}/firebase-${component}.js`
     )
   ];
-  //console.log(files);
 
   for (const file of files) {
     const { size } = fs.statSync(file);
@@ -73,7 +71,7 @@ function generateReportForNPMPackages() {
   const packageInfo = JSON.parse(
     execSync('npx lerna ls --json --scope @firebase/*').toString()
   );
-  //console.log(packageInfo);
+
   for (const package of packageInfo) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
@@ -87,7 +85,7 @@ function generateReportForNPMPackages() {
     }
 
     const packageJson = require(packageJsonPath);
-    console.log(packageJson);
+
     for (const field of fields) {
       if (packageJson[field]) {
         const filePath = `${path}/${packageJson[field]}`;
