@@ -159,6 +159,8 @@ interface ContextSettings {
   readonly dataSource: UserDataSource;
   /** The name of the method the user called to create the ParseContext. */
   readonly methodName: string;
+  /** The document the user is attempting to modify, if that applies. */
+  readonly targetDoc?: DocumentKey;
   /**
    * A path within the object being parsed. This could be an empty path (in
    * which case the context represents the root of the data being parsed), or a
@@ -253,15 +255,11 @@ export class ParseContext {
   }
 
   createError(reason: string): Error {
-    const fieldDescription =
-      !this.path || this.path.isEmpty()
-        ? ''
-        : ` (found in field ${this.path.toString()})`;
-    return new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${this.settings.methodName}() called with invalid data. ` +
-        reason +
-        fieldDescription
+    return createError(
+      reason,
+      this.settings.methodName,
+      this.path,
+      this.settings.targetDoc
     );
   }
 
@@ -314,6 +312,7 @@ export class UserDataReader {
   /** Parse document data from a set() call. */
   parseSetData(
     methodName: string,
+    targetDoc: DocumentKey,
     input: unknown,
     options: firestore.SetOptions = {}
   ): ParsedSetData {
@@ -321,7 +320,8 @@ export class UserDataReader {
       options.merge || options.mergeFields
         ? UserDataSource.MergeSet
         : UserDataSource.Set,
-      methodName
+      methodName,
+      targetDoc
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
@@ -343,7 +343,8 @@ export class UserDataReader {
         } else if (typeof stringOrFieldPath === 'string') {
           fieldPath = fieldPathFromDotSeparatedString(
             methodName,
-            stringOrFieldPath
+            stringOrFieldPath,
+            targetDoc
           );
         } else {
           throw fail(
@@ -380,14 +381,22 @@ export class UserDataReader {
   }
 
   /** Parse update data from an update() call. */
-  parseUpdateData(methodName: string, input: unknown): ParsedUpdateData {
-    const context = this.createContext(UserDataSource.Update, methodName);
+  parseUpdateData(
+    methodName: string,
+    targetDoc: DocumentKey,
+    input: unknown
+  ): ParsedUpdateData {
+    const context = this.createContext(
+      UserDataSource.Update,
+      methodName,
+      targetDoc
+    );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const fieldMaskPaths: FieldPath[] = [];
     const updateData = new ObjectValueBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
-      const path = fieldPathFromDotSeparatedString(methodName, key);
+      const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
 
       const childContext = context.childContextForFieldPath(path);
       if (
@@ -416,12 +425,17 @@ export class UserDataReader {
   /** Parse update data from a list of field/value arguments. */
   parseUpdateVarargs(
     methodName: string,
+    targetDoc: DocumentKey,
     field: string | BaseFieldPath,
     value: unknown,
     moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
-    const context = this.createContext(UserDataSource.Update, methodName);
-    const keys = [fieldPathFromArgument(methodName, field)];
+    const context = this.createContext(
+      UserDataSource.Update,
+      methodName,
+      targetDoc
+    );
+    const keys = [fieldPathFromArgument(methodName, field, targetDoc)];
     const values = [value];
 
     if (moreFieldsAndValues.length % 2 !== 0) {
@@ -479,12 +493,14 @@ export class UserDataReader {
   /** Creates a new top-level parse context. */
   private createContext(
     dataSource: UserDataSource,
-    methodName: string
+    methodName: string,
+    targetDoc?: DocumentKey
   ): ParseContext {
     return new ParseContext(
       {
         dataSource,
         methodName,
+        targetDoc,
         path: FieldPath.emptyPath(),
         arrayElement: false
       },
@@ -749,7 +765,8 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | BaseFieldPath
+  path: string | BaseFieldPath,
+  targetDoc?: DocumentKey
 ): FieldPath {
   if (path instanceof BaseFieldPath) {
     return path._internalPath;
@@ -757,10 +774,7 @@ export function fieldPathFromArgument(
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
     const message = 'Field path arguments must be of type string or FieldPath.';
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${methodName}() called with invalid data. ${message}`
-    );
+    throw createError(message, methodName, undefined, targetDoc);
   }
 }
 
@@ -770,20 +784,47 @@ export function fieldPathFromArgument(
  * @param methodName The publicly visible method name
  * @param path The dot-separated string form of a field path which will be split
  * on dots.
+ * @param targetDoc The document against which the field path will be evaluated.
  */
 export function fieldPathFromDotSeparatedString(
   methodName: string,
-  path: string
+  path: string,
+  targetDoc?: DocumentKey
 ): FieldPath {
   try {
     return fromDotSeparatedString(path)._internalPath;
   } catch (e) {
     const message = errorMessage(e);
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${methodName}() called with invalid data. ${message}`
-    );
+    throw createError(message, methodName, undefined, targetDoc);
   }
+}
+
+function createError(
+  reason: string,
+  methodName: string,
+  path?: FieldPath,
+  targetDoc?: DocumentKey
+): Error {
+  const hasPath = path && !path.isEmpty();
+  const hasDocument = targetDoc !== undefined;
+
+  let description = '';
+  if (hasPath || hasDocument) {
+    description += ' (found';
+
+    if (hasPath) {
+      description += ` in field ${path}`;
+    }
+    if (hasDocument) {
+      description += ` in document ${targetDoc}`;
+    }
+    description += ')';
+  }
+
+  return new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    `Function ${methodName}() called with invalid data. ` + reason + description
+  );
 }
 
 /**
