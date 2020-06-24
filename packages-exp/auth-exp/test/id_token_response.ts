@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { IdTokenResponse } from '../src/model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../src/model/id_token';
 import { makeJWT } from './jwt';
 
 export const TEST_ID_TOKEN_RESPONSE: IdTokenResponse = {
@@ -23,5 +23,5 @@ export const TEST_ID_TOKEN_RESPONSE: IdTokenResponse = {
   refreshToken: 'refresh-token',
   expiresIn: '1000',
   localId: 'uid',
-  kind: 'kind'
+  kind: IdTokenResponseKind.CreateAuthUri
 };

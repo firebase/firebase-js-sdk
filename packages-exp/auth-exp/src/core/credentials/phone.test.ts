@@ -22,7 +22,7 @@ import { testAuth } from '../../../test/mock_auth';
 import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { PhoneAuthCredential } from '../credentials/phone';
 
 describe('core/credentials/phone', () => {
@@ -41,7 +41,7 @@ describe('core/credentials/phone', () => {
     const response: IdTokenResponse = {
       idToken: '',
       refreshToken: '',
-      kind: '',
+      kind: IdTokenResponseKind.CreateAuthUri,
       expiresIn: '10',
       localId: ''
     };
@@ -81,7 +81,7 @@ describe('core/credentials/phone', () => {
     const response: IdTokenResponse = {
       idToken: '',
       refreshToken: '',
-      kind: '',
+      kind: IdTokenResponseKind.CreateAuthUri,
       expiresIn: '10',
       localId: 'uid'
     };

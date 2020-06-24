@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { _fromIdTokenResponse } from './additional_user_info';
+
+import { ProviderId, UserProfile } from '@firebase/auth-types-exp';
+
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import {
-  UserProfile,
-  ProviderId
-} from '@firebase/auth-types-exp';
+import { _fromIdTokenResponse } from './additional_user_info';
+import { base64Encode } from '@firebase/util';
 
 describe('core/user/additional_user_info', () => {
   describe('_fromIdTokenResponse', () => {
@@ -48,8 +48,8 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.null;
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(username).to.be.undefined;
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for GithubAdditionalUserInfo', () => {
@@ -66,7 +66,7 @@ describe('core/user/additional_user_info', () => {
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for GoogleAdditionalUserInfo', () => {
@@ -82,8 +82,8 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
-        expect(username).to.be.null;
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(username).to.be.undefined;
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for TwitterAdditionalUserInfo', () => {
@@ -159,7 +159,7 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
 
@@ -176,22 +176,23 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
 
       it('for missing provider IDs in response but not in token', () => {
+        const idToken = 'algorithm.' + base64Encode(JSON.stringify({'firebase': {'sign_in_provider': 'facebook.com'}})) + '.signature';
         const {
           isNewUser,
           providerId,
           username,
           profile
         } = _fromIdTokenResponse(
-          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin })
+          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin , idToken})
         )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
     });
@@ -208,9 +209,9 @@ describe('core/user/additional_user_info', () => {
 function idTokenResponse(partial: Partial<IdTokenResponse>): IdTokenResponse {
   return {
     idToken: 'id-token',
-    refreshToken: "refresh-token",
-    expiresIn: "expires-in",
-    localId: "local-id",
+    refreshToken: 'refresh-token',
+    expiresIn: 'expires-in',
+    localId: 'local-id',
     kind: IdTokenResponseKind.CreateAuthUri,
     ...partial
   };
