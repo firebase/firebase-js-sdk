@@ -49,7 +49,7 @@ describe('core/strategies/signInWithCustomToken', () => {
     refreshToken: 'my-refresh-token',
     expiresIn: '1234',
     localId: serverUser.localId!,
-    kind: IdTokenResponseKind.CreateAuthUri,
+    kind: IdTokenResponseKind.CreateAuthUri
   };
 
   let auth: Auth;

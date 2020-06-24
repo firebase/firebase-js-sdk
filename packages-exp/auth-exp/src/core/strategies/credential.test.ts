@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -32,7 +36,9 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
-    linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from './credential';
 
 use(chaiAsPromised);

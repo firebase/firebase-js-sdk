@@ -34,7 +34,10 @@ import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import {
-    _verifyPhoneNumber, linkWithPhoneNumber, reauthenticateWithPhoneNumber, signInWithPhoneNumber
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  signInWithPhoneNumber
 } from './phone';
 
 use(chaiAsPromised);
@@ -84,7 +87,7 @@ describe('core/strategies/phone', () => {
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
-          kind: IdTokenResponseKind.CreateAuthUri,
+          kind: IdTokenResponseKind.CreateAuthUri
         };
 
         // This endpoint is called from within the callback, in

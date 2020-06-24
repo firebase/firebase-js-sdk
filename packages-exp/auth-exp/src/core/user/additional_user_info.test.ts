@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,9 +207,9 @@ describe('core/user/additional_user_info', () => {
 function idTokenResponse(partial: Partial<IdTokenResponse>): IdTokenResponse {
   return {
     idToken: 'id-token',
-    refreshToken: "refresh-token",
-    expiresIn: "expires-in",
-    localId: "local-id",
+    refreshToken: 'refresh-token',
+    expiresIn: 'expires-in',
+    localId: 'local-id',
     kind: IdTokenResponseKind.CreateAuthUri,
     ...partial
   };
