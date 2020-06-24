@@ -30,7 +30,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   LocalStore,
   LocalWriteResult,
-  newLocalStore, newMultiTabLocalStore
+  newLocalStore,
+  newMultiTabLocalStore
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
