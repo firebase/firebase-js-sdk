@@ -29,7 +29,7 @@ import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
 
@@ -197,7 +197,7 @@ describe('core/user/user_impl', () => {
       refreshToken: 'my-refresh-token',
       expiresIn: '1234',
       localId: 'local-id',
-      kind: 'my-kind'
+      kind: IdTokenResponseKind.CreateAuthUri
     };
 
     const serverUser: APIUserInfo = {
