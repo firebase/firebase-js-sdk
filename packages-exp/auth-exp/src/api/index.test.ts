@@ -30,7 +30,8 @@ import {
   _performApiRequest,
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
-  HttpMethod
+  HttpMethod,
+  HttpHeader
 } from './';
 import { ServerError } from './errors';
 
@@ -65,10 +66,25 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls.length).to.eq(1);
       expect(mock.calls[0].method).to.eq(HttpMethod.POST);
       expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].headers).to.eql({
-        'Content-Type': 'application/json',
-        'X-Client-Version': 'testSDK/0.0.0'
-      });
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+        'application/json'
+      );
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+        'testSDK/0.0.0'
+      );
+    });
+
+    it('should set the device language if available', async () => {
+      auth.languageCode = 'jp';
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      const response = await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      expect(response).to.eql(serverResponse);
+      expect(mock.calls[0].headers.get(HttpHeader.X_FIREBASE_LOCALE)).to.eq(
+        'jp'
+      );
     });
 
     it('should translate server errors to auth errors', async () => {
