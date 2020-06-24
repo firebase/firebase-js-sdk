@@ -155,11 +155,6 @@ export class Transaction {
     options: SetOptions
   ): Transaction;
   set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T | Partial<T>,
-    options?: SetOptions
-  ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
   update(
@@ -181,11 +176,6 @@ export class WriteBatch {
     options: SetOptions
   ): WriteBatch;
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T | Partial<T>,
-    options?: SetOptions
-  ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
   update(
@@ -227,7 +217,6 @@ export class DocumentReference<T = DocumentData> {
 
   set(data: Partial<T>, options: SetOptions): Promise<void>;
   set(data: T): Promise<void>;
-  set(data: T | Partial<T>, options?: SetOptions): Promise<void>;
 
   update(data: UpdateData): Promise<void>;
   update(

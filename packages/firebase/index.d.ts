@@ -8334,17 +8334,6 @@ declare namespace firebase.firestore {
     set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
     /**
-     * Writes to the document referred to by the provided `DocumentReference`.
-     * If the document does not exist yet, it will be created. If you pass
-     * `SetOptions`, the provided data can be merged into the existing document.
-     *
-     * @param documentRef A reference to the document to be set.
-     * @param data An object of the fields and values for the document.
-     * @param options An object to configure the set behavior.
-     * @return This `Transaction` instance. Used for chaining method calls.
-     */
-
-    /**
      * Updates fields in the document referred to by the provided
      * `DocumentReference`. The update will fail if applied to a document that
      * does not exist.
