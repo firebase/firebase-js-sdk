@@ -38,7 +38,8 @@ export interface Target {
   readonly endAt: Bound | null;
 }
 
-class TargetImpl implements Target {
+// Visible for testing
+export class TargetImpl implements Target {
   memoizedCanonicalId: string | null = null;
   constructor(
     readonly path: ResourcePath,

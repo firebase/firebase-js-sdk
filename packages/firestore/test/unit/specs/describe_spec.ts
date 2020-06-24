@@ -26,7 +26,7 @@ import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
 
 import * as stringify from 'json-stable-stringify';
-import { Target, targetEquals } from '../../../src/core/target';
+import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
@@ -240,7 +240,7 @@ export function describeSpec(
 
   if (!writeJSONFile) {
     describe(name, () => {
-      addEqualityMatcher({ equalsFn: targetEquals, forType: Target });
+      addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
       return builder();
     });
   } else {
