@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint } from '../';
+import { Endpoint, HttpHeader } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
@@ -59,10 +59,12 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
     expect(response.phoneSessionInfo.sessionInfo).to.eq('session-info');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
@@ -120,10 +122,12 @@ describe('api/account_management/enrollPhoneMfa', () => {
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
@@ -177,10 +181,12 @@ describe('api/account_management/withdrawMfa', () => {
     expect(response.idToken).to.eq('id-token');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
