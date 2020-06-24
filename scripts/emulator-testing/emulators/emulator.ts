@@ -24,10 +24,6 @@ import * as request from 'request';
 // @ts-ignore
 import * as tmp from 'tmp';
 
-// export interface ChildProcessPromise extends Promise<void> {
-//   childProcess: ChildProcess;
-// }
-
 export abstract class Emulator {
   binaryPath: string | null = null;
   emulator: ChildProcess | null = null;
