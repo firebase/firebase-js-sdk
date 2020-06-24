@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-const simpleGit = require('simple-git/promise');
-const { projectRoot: root } = require('../../utils');
+import simpleGit from 'simple-git/promise';
+import { projectRoot as root } from '../../utils';
+import { exec } from 'child-process-promise';
+import ora from 'ora';
 const git = simpleGit(root);
-const { exec } = require('child-process-promise');
-const ora = require('ora');
 
 export async function cleanTree() {
   const spinner = ora(' Cleaning git tree').start();
@@ -29,44 +29,6 @@ export async function cleanTree() {
   spinner.stopAndPersist({
     symbol: '✅'
   });
-}
-
-/**
- * Commits the current state of the repository and tags it with the appropriate
- * version changes.
- *
- * Returns the tagged commits
- */
-export async function commitAndTag(updatedVersions: {
-  [packageName: string]: string;
-}) {
-  await exec('git add */package.json yarn.lock');
-
-  let result = await exec(
-    `git commit -m "Publish firebase@${updatedVersions.firebase}"`
-  );
-
-  const tags: string[] = [];
-  await Promise.all(
-    Object.keys(updatedVersions)
-      .map(name => ({ name, version: updatedVersions[name] }))
-      .map(async ({ name, version }) => {
-        const tag = `${name}@${version}`;
-        const result = await exec(`git tag ${tag}`);
-        tags.push(tag);
-      })
-  );
-  return tags;
-}
-
-export async function pushUpdatesToGithub(tags: string[]) {
-  let { stdout: currentBranch, stderr } = await exec(
-    `git rev-parse --abbrev-ref HEAD`
-  );
-  currentBranch = currentBranch.trim();
-
-  await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
-  await exec(`git push origin ${tags.join(' ')} --no-verify`, { cwd: root });
 }
 
 export async function resetWorkingTree() {

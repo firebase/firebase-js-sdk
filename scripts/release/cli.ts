@@ -22,7 +22,7 @@ import { argv } from 'yargs';
 import { runCanaryRelease } from './canary';
 import { ReleaseType } from './utils/enums';
 import { publish } from './utils/publish';
-import { pushReleaseTagsToGithub, cleanTree } from './utils/git';
+import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
 import {
   releaseType as releaseTypePrompt,
   validateVersions
@@ -44,11 +44,11 @@ const prompt = createPromptModule();
     /**
      * If there are unstaged changes, error
      */
-    // if (await hasDiff()) {
-    //   throw new Error(
-    //     'You have unstaged changes, stash your changes before attempting to publish'
-    //   );
-    // }
+    if (await hasDiff()) {
+      throw new Error(
+        'You have unstaged changes, stash your changes before attempting to publish'
+      );
+    }
 
     /**
      * Log the user who will be publishing the packages
