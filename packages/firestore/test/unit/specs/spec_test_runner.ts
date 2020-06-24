@@ -277,7 +277,7 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    await this.queue.enqueue(async () => {
+    await this.queue.enqueueAndInitiateShutdown(async () => {
       if (this.started) {
         await this.doShutdown();
       }
