@@ -312,7 +312,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1, 1, 2]);
   });
 
-  it('Doesn not delay retryable operations that succeed', async () => {
+  it('Does not delay retryable operations that succeed', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {

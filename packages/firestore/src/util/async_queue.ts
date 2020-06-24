@@ -207,7 +207,7 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
-  // A list of retryable operations Retryable operation are run in order and
+  // A list of retryable operations. Retryable operations are run in order and
   // retried with backoff.
   private retryableOps: Array<() => Promise<void>> = [];
 
@@ -332,21 +332,33 @@ export class AsyncQueue {
    * reschedules with backoff.
    */
   private async retryNextOp(): Promise<void> {
-    const op = this.retryableOps.shift();
+    if (this.retryableOps.length === 0) {
+      return;
+    }
 
-    if (op) {
-      try {
-        await op();
-        this.backoff.reset();
-      } catch (e) {
-        if (isIndexedDbTransactionError(e)) {
-          logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
-          this.retryableOps.unshift(op);
-        } else {
-          throw e; // Failure will be handled by AsyncQueue
-        }
+    try {
+      await this.retryableOps[0]();
+      this.retryableOps.shift();
+      this.backoff.reset();
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+      } else {
+        throw e; // Failure will be handled by AsyncQueue
       }
+    }
 
+    if (this.retryableOps.length > 0) {
+      // If there are additional operations, we re-schedule `retryNextOp()`.
+      // This is necessary to run retryable operations that failed during
+      // their initial attempt since we don't know whether they are already
+      // enqueued. If, for example, `op1`, `op2`, `op3` are enqueued and `op1`
+      // needs to  be re-run, we will run `op1`, `op1`, `op2` using the
+      // already enqueued calls to `retryNextOp()`. `op3()` will then run in the
+      // call scheduled here.
+      // Since `backoffAndRun()` cancels an existing backoff and schedules a
+      // new backoff on every call, there is only ever a single additional
+      // operation in the queue.
       this.backoff.backoffAndRun(() => this.retryNextOp());
     }
   }
