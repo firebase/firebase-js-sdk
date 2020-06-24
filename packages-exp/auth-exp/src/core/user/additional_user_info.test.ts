@@ -21,6 +21,7 @@ import { ProviderId, UserProfile } from '@firebase/auth-types-exp';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _fromIdTokenResponse } from './additional_user_info';
+import { base64Encode } from '@firebase/util';
 
 describe('core/user/additional_user_info', () => {
   describe('_fromIdTokenResponse', () => {
@@ -158,7 +159,7 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
 
@@ -175,18 +176,19 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
 
       it('for missing provider IDs in response but not in token', () => {
+        const idToken = 'algorithm.' + base64Encode(JSON.stringify({'firebase': {'sign_in_provider': 'facebook.com'}})) + '.signature';
         const {
           isNewUser,
           providerId,
           username,
           profile
         } = _fromIdTokenResponse(
-          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin })
+          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin , idToken})
         )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
