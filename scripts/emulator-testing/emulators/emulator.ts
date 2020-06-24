@@ -24,9 +24,9 @@ import * as request from 'request';
 // @ts-ignore
 import * as tmp from 'tmp';
 
-export interface ChildProcessPromise extends Promise<void> {
-  childProcess: ChildProcess;
-}
+// export interface ChildProcessPromise extends Promise<void> {
+//   childProcess: ChildProcess;
+// }
 
 export abstract class Emulator {
   binaryPath: string | null = null;
@@ -72,9 +72,14 @@ export abstract class Emulator {
       if (!this.binaryPath) {
         throw new Error('You must call download() before setUp()');
       }
-      const promise: ChildProcessPromise = spawn(
+      const promise = spawn(
         'java',
-        ['-jar', path.basename(this.binaryPath), '--port', this.port],
+        [
+          '-jar',
+          path.basename(this.binaryPath),
+          '--port',
+          this.port.toString()
+        ],
         {
           cwd: path.dirname(this.binaryPath),
           stdio: 'inherit'
