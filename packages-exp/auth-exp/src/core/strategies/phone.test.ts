@@ -30,7 +30,7 @@ import * as fetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import {
@@ -87,7 +87,7 @@ describe('core/strategies/phone', () => {
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
-          kind: 'my-kind'
+          kind: IdTokenResponseKind.CreateAuthUri
         };
 
         // This endpoint is called from within the callback, in
@@ -163,7 +163,7 @@ describe('core/strategies/phone', () => {
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
-          kind: 'my-kind'
+          kind: IdTokenResponseKind.CreateAuthUri
         };
 
         // This endpoint is called from within the callback, in
@@ -227,7 +227,7 @@ describe('core/strategies/phone', () => {
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
-          kind: 'my-kind'
+          kind: IdTokenResponseKind.CreateAuthUri
         };
 
         // This endpoint is called from within the callback, in
@@ -261,7 +261,7 @@ describe('core/strategies/phone', () => {
           refreshToken: 'my-refresh-token',
           expiresIn: '1234',
           localId: 'uid',
-          kind: 'my-kind'
+          kind: IdTokenResponseKind.CreateAuthUri
         };
         // This endpoint is called from within the callback, in
         // signInWithCredential

@@ -33,7 +33,7 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import {
   linkWithCredential,
@@ -61,7 +61,7 @@ describe('core/strategies/credential', () => {
     refreshToken: 'my-refresh-token',
     expiresIn: '1234',
     localId: serverUser.localId!,
-    kind: 'my-kind'
+    kind: IdTokenResponseKind.CreateAuthUri
   };
 
   const authCredential = new MockAuthCredential(

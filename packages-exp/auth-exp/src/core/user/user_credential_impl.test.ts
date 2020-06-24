@@ -33,7 +33,7 @@ import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { UserCredentialImpl } from './user_credential_impl';
@@ -71,7 +71,7 @@ describe('core/user/user_credential_impl', () => {
       refreshToken: 'my-refresh-token',
       expiresIn: '1234',
       localId: serverUser.localId!,
-      kind: 'my-kind'
+      kind: IdTokenResponseKind.CreateAuthUri
     };
 
     const credential: AuthCredential = new MockAuthCredential(
