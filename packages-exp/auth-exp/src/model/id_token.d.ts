@@ -68,7 +68,7 @@ export interface IdTokenResponse {
 /**
  * The possible types of the `IdTokenResponse`
  */
-export enum IdTokenResponseKind {
+export const enum IdTokenResponseKind {
   CreateAuthUri = 'identitytoolkit#CreateAuthUriResponse',
   DeleteAccount = 'identitytoolkit#DeleteAccountResponse',
   DownloadAccount = 'identitytoolkit#DownloadAccountResponse',
