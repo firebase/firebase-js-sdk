@@ -16,7 +16,7 @@
  */
 
 import * as fs from 'fs';
-import { resolve } from 'path';
+import { resolve, basename } from 'path';
 import {
   extractDependenciesAndSize,
   extractDeclarations,
@@ -44,11 +44,12 @@ function collectBinarySize(path: string) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS] && packageJson.name == AUTHMODULE) {
+  if (packageJson[TYPINGS] && packageJson.name == DUMMYMODULE) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
     const publicApi = extractDeclarations(resolve(dtsFile));
+    console.log(publicApi);
 
     if (!packageJson[BUNDLE]) {
       console.log('This module does not have bundle file!');
@@ -58,7 +59,11 @@ function collectBinarySize(path: string) {
     //calculate binary size for every export and build a json report
     buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, map).then(json => {
       console.log(json);
-      fs.writeFileSync(resolve(`dependencies.json`), json);
+
+      fs.writeFileSync(
+        resolve(`${basename(packageJson.name)}-dependencies.json`),
+        json
+      );
     });
   }
 }

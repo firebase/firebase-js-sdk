@@ -74,7 +74,7 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-  //console.log(beforeContent);
+
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -93,6 +93,7 @@ export async function extractDependenciesAndSize(
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
+
   const { code } = terser.minify(afterContent, {
     output: {
       comments: false

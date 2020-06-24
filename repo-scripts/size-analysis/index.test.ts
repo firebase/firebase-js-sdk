@@ -38,6 +38,7 @@ describe('extractDeclarations', () => {
     testModuleDtsFile = retrieveTestModuleDtsFile();
 
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
+    console.log(extractDeclarations);
   });
   it('test basic variable extractions', () => {
     expect(extractedDeclarations.variables).to.include.members([
