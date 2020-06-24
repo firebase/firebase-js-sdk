@@ -74,6 +74,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -147,8 +148,9 @@ export interface SyncEngineListener {
 export class SyncEngine implements RemoteSyncer {
   protected syncEngineListener: SyncEngineListener | null = null;
 
-  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
-    q.canonicalId()
+  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
+    q => q.canonicalId(),
+    (l, r) => l.isEqual(r)
   );
   protected queriesByTarget = new Map<TargetId, Query[]>();
   /**
@@ -185,6 +187,7 @@ export class SyncEngine implements RemoteSyncer {
   constructor(
     protected localStore: LocalStore,
     protected remoteStore: RemoteStore,
+    protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     protected sharedClientState: SharedClientState,
     private currentUser: User,
@@ -390,7 +393,7 @@ export class SyncEngine implements RemoteSyncer {
   ): void {
     new TransactionRunner<T>(
       asyncQueue,
-      this.remoteStore,
+      this.datastore,
       updateFunction,
       deferred
     ).run();
@@ -523,18 +526,18 @@ export class SyncEngine implements RemoteSyncer {
 
     const batchId = mutationBatchResult.batch.batchId;
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught
-    // up), so we raise user callbacks first so that they consistently happen
-    // before listen events.
-    this.processUserCallback(batchId, /*error=*/ null);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.acknowledgeBatch(
         mutationBatchResult
       );
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught
+      // up), so we raise user callbacks first so that they consistently happen
+      // before listen events.
+      this.processUserCallback(batchId, /*error=*/ null);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -548,16 +551,16 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('rejectFailedWrite()');
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught up),
-    // so we raise user callbacks first so that they consistently happen before
-    // listen events.
-    this.processUserCallback(batchId, error);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.rejectBatch(batchId);
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught up),
+      // so we raise user callbacks first so that they consistently happen before
+      // listen events.
+      this.processUserCallback(batchId, error);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -862,6 +865,8 @@ export class SyncEngine implements RemoteSyncer {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {
+      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
       const result = await this.localStore.handleUserChange(user);
       this.currentUser = user;
 
@@ -877,8 +882,6 @@ export class SyncEngine implements RemoteSyncer {
       );
       await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
-
-    await this.remoteStore.handleCredentialChange();
   }
 
   enableNetwork(): Promise<void> {
@@ -924,6 +927,7 @@ export class MultiTabSyncEngine extends SyncEngine
   constructor(
     protected localStore: MultiTabLocalStore,
     remoteStore: RemoteStore,
+    datastore: Datastore,
     sharedClientState: SharedClientState,
     currentUser: User,
     maxConcurrentLimboResolutions: number
@@ -931,6 +935,7 @@ export class MultiTabSyncEngine extends SyncEngine
     super(
       localStore,
       remoteStore,
+      datastore,
       sharedClientState,
       currentUser,
       maxConcurrentLimboResolutions
@@ -1110,14 +1115,10 @@ export class MultiTabSyncEngine extends SyncEngine
       const queries = this.queriesByTarget.get(targetId);
 
       if (queries && queries.length !== 0) {
-        // For queries that have a local View, we need to update their state
-        // in LocalStore (as the resume token and the snapshot version
+        // For queries that have a local View, we fetch their current state
+        // from LocalStore (as the resume token and the snapshot version
         // might have changed) and reconcile their views with the persisted
         // state (the list of syncedDocuments may have gotten out of sync).
-        await this.localStore.releaseTarget(
-          targetId,
-          /*keepPersistedTargetData=*/ true
-        );
         targetData = await this.localStore.allocateTarget(
           queries[0].toTarget()
         );
@@ -1136,7 +1137,7 @@ export class MultiTabSyncEngine extends SyncEngine
       } else {
         debugAssert(
           transitionToPrimary,
-          'A secondary tab should never have an active target without an active query.'
+          'A secondary tab should never have an active view without an active target.'
         );
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.

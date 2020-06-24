@@ -17,7 +17,7 @@
 
 import { BrowserPollConnection } from './BrowserPollConnection';
 import { WebSocketConnection } from './WebSocketConnection';
-import { warn, each } from '../core/util/util';
+import { warn } from '../core/util/util';
 import { TransportConstructor } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
 

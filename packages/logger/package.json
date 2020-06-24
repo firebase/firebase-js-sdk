@@ -1,6 +1,6 @@
 {
   "name": "@firebase/logger",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",

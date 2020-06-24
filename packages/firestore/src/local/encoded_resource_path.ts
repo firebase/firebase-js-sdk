@@ -124,7 +124,7 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
       path.charAt(0) === escapeChar && path.charAt(1) === encodedSeparatorChar,
       'Non-empty path ' + path + ' had length 2'
     );
-    return ResourcePath.EMPTY_PATH;
+    return ResourcePath.emptyPath();
   }
 
   // Escape characters cannot exist past the second-to-last position in the

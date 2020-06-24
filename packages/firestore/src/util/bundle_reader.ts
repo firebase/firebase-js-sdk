@@ -20,8 +20,8 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
-import { PlatformSupport } from '../platform/platform';
 import { debugAssert } from './assert';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -70,9 +70,7 @@ export class BundleReader {
   private textDecoder = new TextDecoder('utf-8');
 
   static fromBundleSource(source: BundleSource): BundleReader {
-    return new BundleReader(
-      PlatformSupport.getPlatform().toByteStreamReader(source, BYTES_PER_READ)
-    );
+    return new BundleReader(toByteStreamReader(source, BYTES_PER_READ));
   }
 
   constructor(

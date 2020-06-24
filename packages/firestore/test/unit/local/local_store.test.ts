@@ -30,7 +30,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   LocalStore,
   LocalWriteResult,
-  MultiTabLocalStore
+  newLocalStore,
+  newMultiTabLocalStore
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -182,12 +183,7 @@ class LocalStoreTester {
             options.transformResult ? [options.transformResult] : null
           )
         ];
-        const write = MutationBatchResult.from(
-          batch,
-          ver,
-          mutationResults,
-          /*streamToken=*/ ByteString.EMPTY_BYTE_STRING
-        );
+        const write = MutationBatchResult.from(batch, ver, mutationResults);
 
         return this.localStore.acknowledgeBatch(write);
       })
@@ -401,7 +397,7 @@ describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
@@ -419,7 +415,7 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
@@ -445,7 +441,7 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
@@ -472,7 +468,7 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED

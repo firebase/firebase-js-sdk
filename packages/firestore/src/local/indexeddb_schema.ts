@@ -19,18 +19,23 @@ import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  EncodedResourcePath
+  EncodedResourcePath,
+  encodeResourcePath
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbMutationBatch,
+  fromDbTarget,
+  LocalSerializer,
+  toDbTarget
+} from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
@@ -211,7 +216,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
-                const batch = this.serializer.fromDbMutationBatch(dbBatch);
+                const batch = fromDbMutationBatch(this.serializer, dbBatch);
 
                 return removeMutationBatch(
                   txn,
@@ -333,8 +338,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   ): PersistencePromise<void> {
     const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
     return targetStore.iterate((key, originalDbTarget) => {
-      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
-      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      const originalTargetData = fromDbTarget(originalDbTarget);
+      const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
       return targetStore.put(updatedDbTarget);
     });
   }
@@ -432,6 +437,8 @@ export class DbMutationQueue {
      *
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastStreamToken: string
   ) {}
@@ -490,7 +497,7 @@ export class DbMutationBatch {
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     * Mutations are serialized via toMutation().
      */
     public mutations: api.Write[]
   ) {}

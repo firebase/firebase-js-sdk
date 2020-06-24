@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Logger, LogLevel } from '@firebase/logger';
+import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
-import { PlatformSupport } from '../platform/platform';
+import { formatJSON } from '../platform/format_json';
 
 export { LogLevel };
 
@@ -28,8 +28,8 @@ export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevel): void {
-  logClient.logLevel = newLevel;
+export function setLogLevel(newLevel: LogLevelString | LogLevel): void {
+  logClient.setLogLevel(newLevel);
 }
 
 export function logDebug(msg: string, ...obj: unknown[]): void {
@@ -46,6 +46,13 @@ export function logError(msg: string, ...obj: unknown[]): void {
   }
 }
 
+export function logWarn(msg: string, ...obj: unknown[]): void {
+  if (logClient.logLevel <= LogLevel.WARN) {
+    const args = obj.map(argToString);
+    logClient.warn(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
+  }
+}
+
 /**
  * Converts an additional log parameter to a string representation.
  */
@@ -53,9 +60,8 @@ function argToString(obj: unknown): string | unknown {
   if (typeof obj === 'string') {
     return obj;
   } else {
-    const platform = PlatformSupport.getPlatform();
     try {
-      return platform.formatJSON(obj);
+      return formatJSON(obj);
     } catch (e) {
       // Converting to JSON failed, just log the object directly
       return obj;
