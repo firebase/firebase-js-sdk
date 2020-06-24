@@ -21,7 +21,12 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore, MultiTabLocalStore } from '../local/local_store';
+import {
+  LocalStore,
+  MultiTabLocalStore,
+  newLocalStore,
+  newMultiTabLocalStore
+} from '../local/local_store';
 import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
@@ -126,7 +131,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return new LocalStore(
+    return newLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
@@ -212,7 +217,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return new MultiTabLocalStore(
+    return newMultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser

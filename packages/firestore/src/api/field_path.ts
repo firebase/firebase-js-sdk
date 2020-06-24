@@ -76,18 +76,14 @@ export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
     super(fieldNames);
   }
 
-  /**
-   * Internal Note: The backend doesn't technically support querying by
-   * document ID. Instead it queries by the entire document name (full path
-   * included), but in the cases we currently support documentId(), the net
-   * effect is the same.
-   */
-  private static readonly _DOCUMENT_ID = new FieldPath(
-    InternalFieldPath.keyField().canonicalString()
-  );
-
   static documentId(): FieldPath {
-    return FieldPath._DOCUMENT_ID;
+    /**
+     * Internal Note: The backend doesn't technically support querying by
+     * document ID. Instead it queries by the entire document name (full path
+     * included), but in the cases we currently support documentId(), the net
+     * effect is the same.
+     */
+    return new FieldPath(InternalFieldPath.keyField().canonicalString());
   }
 
   isEqual(other: firestore.FieldPath): boolean {

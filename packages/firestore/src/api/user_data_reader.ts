@@ -485,7 +485,7 @@ export class UserDataReader {
       {
         dataSource,
         methodName,
-        path: FieldPath.EMPTY_PATH,
+        path: FieldPath.emptyPath(),
         arrayElement: false
       },
       this.databaseId,
