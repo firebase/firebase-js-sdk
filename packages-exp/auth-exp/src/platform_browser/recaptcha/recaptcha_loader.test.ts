@@ -28,7 +28,10 @@ import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-    _JSLOAD_CALLBACK, MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl
+  _JSLOAD_CALLBACK,
+  MockReCaptchaLoaderImpl,
+  ReCaptchaLoader,
+  ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 

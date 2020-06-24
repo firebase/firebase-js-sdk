@@ -91,9 +91,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     it('calls render on the underlying recaptcha widget', async () => {
       const widget = new MockReCaptcha(auth);
       sinon.spy(widget, 'render');
-      sinon
-        .stub(recaptchaLoader, 'load')
-        .returns(Promise.resolve(widget));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(widget));
       await verifier.render();
       expect(widget.render).to.have.been.calledWith(
         container.children[0],
@@ -113,9 +111,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
     let recaptcha: Recaptcha;
     beforeEach(() => {
       recaptcha = new MockReCaptcha(auth);
-      sinon
-        .stub(recaptchaLoader, 'load')
-        .returns(Promise.resolve(recaptcha));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
     });
 
     it('returns immediately if response is available', async () => {
@@ -163,9 +159,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
   context('#reset', () => {
     it('calls reset on the underlying widget', async () => {
       const recaptcha = new MockReCaptcha(auth);
-      sinon
-        .stub(recaptchaLoader, 'load')
-        .returns(Promise.resolve(recaptcha));
+      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
       sinon.spy(recaptcha, 'reset');
       await verifier.render();
       verifier._reset();

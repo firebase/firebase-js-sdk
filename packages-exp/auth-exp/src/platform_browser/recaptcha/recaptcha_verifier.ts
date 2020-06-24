@@ -26,7 +26,11 @@ import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl } from './recaptcha_loader';
+import {
+  MockReCaptchaLoaderImpl,
+  ReCaptchaLoader,
+  ReCaptchaLoaderImpl
+} from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -189,7 +193,10 @@ export class RecaptchaVerifier
         container = guaranteedEmpty;
       }
 
-      this.widgetId = this.getAssertedRecaptcha().render(container, this.parameters);
+      this.widgetId = this.getAssertedRecaptcha().render(
+        container,
+        this.parameters
+      );
     }
 
     return this.widgetId;
