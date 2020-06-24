@@ -56,8 +56,15 @@ export async function unlink(
 /**
  * Internal-only link helper
  */
-export async function _link(user: User, linkAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl> {
-  return UserCredentialImpl._forOperation(user, externs.OperationType.LINK, await linkAction);
+export async function _link(
+  user: User,
+  linkAction: Promise<IdTokenResponse>
+): Promise<UserCredentialImpl> {
+  return UserCredentialImpl._forOperation(
+    user,
+    externs.OperationType.LINK,
+    await linkAction
+  );
 }
 
 export async function _assertLinkedStatus(

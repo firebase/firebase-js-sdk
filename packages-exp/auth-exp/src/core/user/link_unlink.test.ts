@@ -116,7 +116,9 @@ describe('core/user/link_unlink', () => {
           }
         ]);
 
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(
+          user.toPlainObject()
+        );
         expect(user.phoneNumber).to.be.null;
       });
 
@@ -151,7 +153,9 @@ describe('core/user/link_unlink', () => {
           }
         ]);
 
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(
+          user.toPlainObject()
+        );
       });
 
       it('calls the endpoint with the provider', async () => {
@@ -176,7 +180,7 @@ describe('core/user/link_unlink', () => {
       createdAt: 123,
       lastLoginAt: 456
     };
-    
+
     beforeEach(() => {
       getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [

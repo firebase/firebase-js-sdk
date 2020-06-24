@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 import { OperationType } from '@firebase/auth-types-exp';
 
 import {
-    signInWithIdp, SignInWithIdpRequest, SignInWithIdpResponse
+  signInWithIdp,
+  SignInWithIdpRequest,
+  SignInWithIdpResponse
 } from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
@@ -42,13 +44,15 @@ export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
 function callIdpSignIn(
   {
-  auth,
-  requestUri,
-  sessionId,
-  tenantId,
-  pendingToken,
-  postBody
-}: IdpTaskParams, idToken?: string): Promise<SignInWithIdpResponse> {
+    auth,
+    requestUri,
+    sessionId,
+    tenantId,
+    pendingToken,
+    postBody
+  }: IdpTaskParams,
+  idToken?: string
+): Promise<SignInWithIdpResponse> {
   const request: SignInWithIdpRequest = {
     requestUri,
     sessionId,

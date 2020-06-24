@@ -22,7 +22,7 @@ import { ProviderId } from '@firebase/auth-types-exp';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
 import { _authCredentialFromTokenResponse } from './from_token_response';
 
- describe('src/core/credentials/inferred', () => {
+describe('src/core/credentials/inferred', () => {
   it('returns a phone credential if response conains correct fields', () => {
     const cred = _authCredentialFromTokenResponse({
       ...TEST_ID_TOKEN_RESPONSE,
@@ -35,7 +35,7 @@ import { _authCredentialFromTokenResponse } from './from_token_response';
 
   it('returns null if nothing matches', () => {
     const cred = _authCredentialFromTokenResponse({
-      ...TEST_ID_TOKEN_RESPONSE,
+      ...TEST_ID_TOKEN_RESPONSE
     });
 
     expect(cred).to.be.null;

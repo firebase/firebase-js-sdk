@@ -49,7 +49,11 @@ export class UserCredentialImpl implements UserCredential {
     return userCred;
   }
 
-  static async _forOperation(user: User, operationType: externs.OperationType, response: PhoneOrOauthTokenResponse): Promise<UserCredentialImpl> {
+  static async _forOperation(
+    user: User,
+    operationType: externs.OperationType,
+    response: PhoneOrOauthTokenResponse
+  ): Promise<UserCredentialImpl> {
     const newCred = _authCredentialFromTokenResponse(response);
     await user._updateTokensIfNecessary(response, /* reload */ true);
     return new UserCredentialImpl(user, newCred, operationType);

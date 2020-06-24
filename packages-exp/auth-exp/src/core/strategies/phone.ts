@@ -27,7 +27,9 @@ import { AuthErrorCode } from '../errors';
 import { _assertLinkedStatus } from '../user/link_unlink';
 import { assert } from '../util/assert';
 import {
-    linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from './credential';
 
 interface OnConfirmationCallback {

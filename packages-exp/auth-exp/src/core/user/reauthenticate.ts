@@ -24,9 +24,12 @@ import { assert, fail } from '../util/assert';
 import { _parseToken } from './id_token_result';
 import { UserCredentialImpl } from './user_credential_impl';
 
-export async function _reauthenticate(user: User, reauthAction: Promise<IdTokenResponse>): Promise<UserCredentialImpl> {
+export async function _reauthenticate(
+  user: User,
+  reauthAction: Promise<IdTokenResponse>
+): Promise<UserCredentialImpl> {
   const appName = user.auth.name;
-  
+
   try {
     const response = await reauthAction;
     assert(response.idToken, appName, AuthErrorCode.INTERNAL_ERROR);
@@ -36,7 +39,11 @@ export async function _reauthenticate(user: User, reauthAction: Promise<IdTokenR
     const { sub: localId } = parsed;
     assert(user.uid === localId, appName, AuthErrorCode.USER_MISMATCH);
 
-    return UserCredentialImpl._forOperation(user, OperationType.REAUTHENTICATE, response);
+    return UserCredentialImpl._forOperation(
+      user,
+      OperationType.REAUTHENTICATE,
+      response
+    );
   } catch (e) {
     // Convert user deleted error into user mismatch
     if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {

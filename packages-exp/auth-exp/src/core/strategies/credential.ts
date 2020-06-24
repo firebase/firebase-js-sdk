@@ -54,10 +54,10 @@ export async function linkWithCredential(
 
   await _assertLinkedStatus(false, user, credential.providerId);
 
-  return _link(user, credential._linkToIdToken(
-    user.auth,
-    await user.getIdToken(),
-  ));
+  return _link(
+    user,
+    credential._linkToIdToken(user.auth, await user.getIdToken())
+  );
 }
 
 export async function reauthenticateWithCredential(
@@ -67,6 +67,8 @@ export async function reauthenticateWithCredential(
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 
-  return _reauthenticate(user, credential._getReauthenticationResolver(user.auth));
+  return _reauthenticate(
+    user,
+    credential._getReauthenticationResolver(user.auth)
+  );
 }
-
