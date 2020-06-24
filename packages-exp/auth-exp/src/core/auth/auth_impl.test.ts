@@ -37,6 +37,7 @@ import {
   DEFAULT_TOKEN_API_HOST,
   initializeAuth
 } from './auth_impl';
+import * as navigator from '../util/navigator';
 
 use(sinonChai);
 
@@ -120,6 +121,16 @@ describe('core/auth/auth_impl', () => {
         sinon.match.any,
         testUser(auth, 'test').toPlainObject()
       );
+    });
+  });
+
+  describe('#useDeviceLanguage', () => {
+    it('should update the language code', () => {
+      const mock = sinon.stub(navigator, '_getUserLanguage');
+      mock.callsFake(() => 'jp');
+      expect(auth.languageCode).to.be.null;
+      auth.useDeviceLanguage();
+      expect(auth.languageCode).to.eq('jp');
     });
   });
 
