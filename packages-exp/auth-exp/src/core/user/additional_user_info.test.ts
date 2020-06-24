@@ -181,14 +181,21 @@ describe('core/user/additional_user_info', () => {
       });
 
       it('for missing provider IDs in response but not in token', () => {
-        const idToken = 'algorithm.' + base64Encode(JSON.stringify({'firebase': {'sign_in_provider': 'facebook.com'}})) + '.signature';
+        const idToken =
+          'algorithm.' +
+          base64Encode(
+            JSON.stringify({
+              'firebase': { 'sign_in_provider': 'facebook.com' }
+            })
+          ) +
+          '.signature';
         const {
           isNewUser,
           providerId,
           username,
           profile
         } = _fromIdTokenResponse(
-          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin , idToken})
+          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin, idToken })
         )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
