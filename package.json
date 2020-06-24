@@ -29,7 +29,7 @@
     "link:packages": "lerna exec --scope @firebase/* --scope firebase --scope rxfire -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
-    "release": "node scripts/release/cli.js",
+    "release": "ts-node-script scripts/release/cli.ts",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --concurrency 4 --stream test",
     "test:ci": "lerna run --concurrency 4 --stream test:ci",
