@@ -105,7 +105,7 @@ export {
   updatePassword
 } from './core/user/account_info';
 export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
-export { unlink } from './core/user/unlink';
+export { unlink } from './core/user/link_unlink';
 
 export { RecaptchaVerifier } from './platform_browser/recaptcha/recaptcha_verifier';
 

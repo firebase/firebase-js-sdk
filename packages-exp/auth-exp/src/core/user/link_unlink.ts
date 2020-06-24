@@ -18,10 +18,17 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
+import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
-import { _assertLinkedStatus } from '../strategies/credential';
+import { AuthErrorCode } from '../errors';
+import { assert } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
+import { _reloadWithoutSaving } from './reload';
+import { UserCredentialImpl } from './user_credential_impl';
 
+/**
+ *  This is the externally visible unlink function
+ */
 export async function unlink(
   userExtern: externs.User,
   providerId: externs.ProviderId
@@ -44,4 +51,33 @@ export async function unlink(
 
   await user.auth._persistUserIfCurrent(user);
   return user;
+}
+
+/**
+ * Internal-only link helper
+ */
+export async function _link(
+  user: User,
+  linkAction: Promise<IdTokenResponse>
+): Promise<UserCredentialImpl> {
+  return UserCredentialImpl._forOperation(
+    user,
+    externs.OperationType.LINK,
+    await linkAction
+  );
+}
+
+export async function _assertLinkedStatus(
+  expected: boolean,
+  user: User,
+  provider: externs.ProviderId
+): Promise<void> {
+  await _reloadWithoutSaving(user);
+  const providerIds = providerDataAsNames(user.providerData);
+
+  const code =
+    expected === false
+      ? AuthErrorCode.PROVIDER_ALREADY_LINKED
+      : AuthErrorCode.NO_SUCH_PROVIDER;
+  assert(providerIds.has(provider) === expected, user.auth.name, code);
 }
