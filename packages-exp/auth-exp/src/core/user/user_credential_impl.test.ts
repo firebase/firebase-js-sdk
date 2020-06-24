@@ -27,15 +27,16 @@ import {
 } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
+import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
+import { testAuth, TestAuth, testUser } from '../../../test/mock_auth';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { UserCredentialImpl } from './user_credential_impl';
+import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
+import { UserCredentialImpl } from './user_credential_impl';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -53,7 +54,7 @@ describe('core/user/user_credential_impl', () => {
     lastLoginAt: 456
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -103,6 +104,37 @@ describe('core/user/user_credential_impl', () => {
         idTokenResponse
       );
       expect(cb).not.to.have.been.called;
+    });
+  });
+
+  describe('forOperation', () => {
+    let user: User;
+
+    beforeEach(async () => {
+      user = testUser(auth, 'uid', 'email', true);
+      await auth.updateCurrentUser(user);
+    });
+
+    it('gets a credential based on the response', async () => {
+      const cred = await UserCredentialImpl._forOperation(
+        user,
+        OperationType.REAUTHENTICATE,
+        {
+          ...TEST_ID_TOKEN_RESPONSE,
+          temporaryProof: 'temporary-proof',
+          phoneNumber: 'phone-number'
+        }
+      );
+
+      expect(cred.credential!.providerId).to.eq(ProviderId.PHONE);
+      expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
+    });
+
+    it('persists the user', async () => {
+      await UserCredentialImpl._forOperation(user, OperationType.LINK, {
+        ...TEST_ID_TOKEN_RESPONSE
+      });
+      expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
     });
   });
 });
