@@ -31,13 +31,10 @@
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
                 "validateExactNumberOfArgs",
-                "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
@@ -45,22 +42,18 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 26906
+        "sizeInBytes": 20773
     },
     "CollectionReference": {
         "dependencies": {
@@ -242,7 +235,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97991
+        "sizeInBytes": 97894
     },
     "DocumentReference": {
         "dependencies": {
@@ -252,10 +245,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -265,41 +255,29 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24655
+        "sizeInBytes": 16449
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -384,7 +362,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 37604
+        "sizeInBytes": 37505
     },
     "FieldPath": {
         "dependencies": {
@@ -397,7 +375,6 @@
                 "formatJSON",
                 "formatPlural",
                 "hardAssert",
-                "invalidClassError",
                 "isPlainObject",
                 "loadProtos",
                 "logDebug",
@@ -425,9 +402,7 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "FieldPath",
-                "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -435,13 +410,12 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24748
+        "sizeInBytes": 22816
     },
     "FieldValue": {
         "dependencies": {
@@ -451,10 +425,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -464,26 +435,15 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldValue",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -491,14 +451,13 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "SerializableFieldValue",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24247
+        "sizeInBytes": 16041
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -508,10 +467,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -521,39 +477,27 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24154
+        "sizeInBytes": 15948
     },
     "GeoPoint": {
         "dependencies": {
@@ -565,7 +509,6 @@
                 "formatJSON",
                 "formatPlural",
                 "hardAssert",
-                "invalidClassError",
                 "isPlainObject",
                 "loadProtos",
                 "logDebug",
@@ -582,21 +525,15 @@
                 "tryGetCustomObjectType",
                 "validateArgType",
                 "validateExactNumberOfArgs",
-                "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
@@ -604,13 +541,12 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 25247
+        "sizeInBytes": 18837
     },
     "Query": {
         "dependencies": {
@@ -778,7 +714,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87202
+        "sizeInBytes": 87105
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -863,7 +799,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 37609
+        "sizeInBytes": 37510
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -873,10 +809,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -886,26 +819,15 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
@@ -913,13 +835,12 @@
                 "JsonProtoSerializer",
                 "OAuthToken",
                 "QuerySnapshot",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24388
+        "sizeInBytes": 16182
     },
     "Timestamp": {
         "dependencies": {
@@ -929,10 +850,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -942,40 +860,28 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "Timestamp",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 25690
+        "sizeInBytes": 17484
     },
     "Transaction": {
         "dependencies": {
@@ -1112,7 +1018,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 68364
+        "sizeInBytes": 68267
     },
     "WriteBatch": {
         "dependencies": {
@@ -1224,7 +1130,6 @@
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
                 "Document",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -1265,7 +1170,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72158
+        "sizeInBytes": 71350
     },
     "addDoc": {
         "dependencies": {
@@ -1474,7 +1379,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 108269
+        "sizeInBytes": 108172
     },
     "arrayRemove": {
         "dependencies": {
@@ -1543,7 +1448,6 @@
                 "validateArgType",
                 "validateAtLeastNumberOfArgs",
                 "validateExactNumberOfArgs",
-                "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -1552,7 +1456,6 @@
             "classes": [
                 "ArrayRemoveFieldValueImpl",
                 "ArrayRemoveTransformOperation",
-                "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
@@ -1561,10 +1464,7 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "DocumentKeyReference",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
@@ -1584,7 +1484,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44182
+        "sizeInBytes": 40675
     },
     "arrayUnion": {
         "dependencies": {
@@ -1653,7 +1553,6 @@
                 "validateArgType",
                 "validateAtLeastNumberOfArgs",
                 "validateExactNumberOfArgs",
-                "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -1662,7 +1561,6 @@
             "classes": [
                 "ArrayUnionFieldValueImpl",
                 "ArrayUnionTransformOperation",
-                "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
@@ -1671,10 +1569,7 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "DocumentKeyReference",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
@@ -1694,7 +1589,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44190
+        "sizeInBytes": 40683
     },
     "collection": {
         "dependencies": {
@@ -1878,7 +1773,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98619
+        "sizeInBytes": 98522
     },
     "collectionGroup": {
         "dependencies": {
@@ -2060,7 +1955,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98050
+        "sizeInBytes": 97954
     },
     "deleteDoc": {
         "dependencies": {
@@ -2079,13 +1974,11 @@
                 "encodeBase64",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "hardAssert",
-                "invalidClassError",
                 "invokeCommitRpc",
                 "isArray",
                 "isDouble",
@@ -2093,7 +1986,6 @@
                 "isMapValue",
                 "isNegativeZero",
                 "isNumber",
-                "isPlainObject",
                 "isServerTimestamp",
                 "loadProtos",
                 "logDebug",
@@ -2110,7 +2002,6 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
                 "serverTimestamp",
@@ -2126,19 +2017,13 @@
                 "toResourceName",
                 "toTimestamp",
                 "toVersion",
-                "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription",
                 "valueEquals"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "DatabaseId",
@@ -2148,11 +2033,9 @@
                 "Deferred",
                 "DeleteMutation",
                 "Document",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
@@ -2180,7 +2063,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53665
+        "sizeInBytes": 49685
     },
     "deleteField": {
         "dependencies": {
@@ -2191,10 +2074,7 @@
                 "deleteField",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -2204,27 +2084,16 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
@@ -2233,14 +2102,13 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "SerializableFieldValue",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 25321
+        "sizeInBytes": 17115
     },
     "doc": {
         "dependencies": {
@@ -2426,7 +2294,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99440
+        "sizeInBytes": 99343
     },
     "documentId": {
         "dependencies": {
@@ -2440,7 +2308,6 @@
                 "formatJSON",
                 "formatPlural",
                 "hardAssert",
-                "invalidClassError",
                 "isPlainObject",
                 "loadProtos",
                 "logDebug",
@@ -2468,9 +2335,7 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "FieldPath",
-                "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -2478,13 +2343,12 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24798
+        "sizeInBytes": 22866
     },
     "getDoc": {
         "dependencies": {
@@ -2601,7 +2465,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 46997
+        "sizeInBytes": 46898
     },
     "getFirestore": {
         "dependencies": {
@@ -2611,11 +2475,8 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "getFirestore",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -2625,39 +2486,27 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24233
+        "sizeInBytes": 16027
     },
     "getQuery": {
         "dependencies": {
@@ -2848,7 +2697,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 93121
+        "sizeInBytes": 93024
     },
     "increment": {
         "dependencies": {
@@ -2917,14 +2766,12 @@
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
                 "validateExactNumberOfArgs",
-                "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
@@ -2933,10 +2780,7 @@
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
                 "DocumentKeyReference",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
@@ -2958,7 +2802,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44121
+        "sizeInBytes": 40614
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2968,11 +2812,8 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
                 "initializeFirestore",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -2982,39 +2823,27 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
-                "registerFirestore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "registerFirestore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24319
+        "sizeInBytes": 16113
     },
     "parent": {
         "dependencies": {
@@ -3197,7 +3026,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98334
+        "sizeInBytes": 98237
     },
     "queryEqual": {
         "dependencies": {
@@ -3366,7 +3195,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87406
+        "sizeInBytes": 87309
     },
     "refEqual": {
         "dependencies": {
@@ -3549,7 +3378,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98276
+        "sizeInBytes": 98179
     },
     "runTransaction": {
         "dependencies": {
@@ -3729,7 +3558,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 90952
+        "sizeInBytes": 90855
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3739,10 +3568,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -3752,28 +3578,17 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
                 "serverTimestamp",
-                "serverTimestamp$1",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "serverTimestamp$1"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
@@ -3783,7 +3598,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampFieldValueImpl",
                 "ServerTimestampTransform",
@@ -3792,7 +3606,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 26107
+        "sizeInBytes": 17901
     },
     "setDoc": {
         "dependencies": {
@@ -3904,7 +3718,6 @@
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
                 "Document",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -3943,7 +3756,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70457
+        "sizeInBytes": 69649
     },
     "setLogLevel": {
         "dependencies": {
@@ -3953,10 +3766,7 @@
                 "debugAssert",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -3966,40 +3776,28 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
-                "setLogLevel",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "setLogLevel"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24198
+        "sizeInBytes": 15992
     },
     "snapshotEqual": {
         "dependencies": {
@@ -4170,7 +3968,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88139
+        "sizeInBytes": 88042
     },
     "terminate": {
         "dependencies": {
@@ -4182,10 +3980,7 @@
                 "debugCast",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -4195,41 +3990,29 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
                 "terminate",
-                "terminateDatastore",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateNamedArrayAtLeastNumberOfElements",
-                "validateType",
-                "valueDescription"
+                "terminateDatastore"
             ],
             "classes": [
-                "BaseFieldPath",
-                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKey",
-                "FieldPath",
-                "FieldPath$1",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
-                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 24991
+        "sizeInBytes": 16785
     },
     "updateDoc": {
         "dependencies": {
@@ -4340,7 +4123,6 @@
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
                 "Document",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -4380,7 +4162,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70548
+        "sizeInBytes": 69740
     },
     "writeBatch": {
         "dependencies": {
@@ -4493,7 +4275,6 @@
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
                 "Document",
-                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -4534,6 +4315,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72238
+        "sizeInBytes": 71430
     }
 }

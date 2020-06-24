@@ -38,7 +38,7 @@ function specWithCachedDocs(...docs: Document[]): SpecBuilder {
 
 describeSpec('Queries:', [], () => {
   specTest('Collection Group query', [], () => {
-    const cgQuery = new Query(ResourcePath.EMPTY_PATH, 'cg');
+    const cgQuery = new Query(ResourcePath.emptyPath(), 'cg');
     const cgQueryWithFilter = cgQuery.addFilter(filter('val', '==', 1));
     const docs = [
       doc('cg/1', 1000, { val: 1 }),
@@ -61,7 +61,7 @@ describeSpec('Queries:', [], () => {
   });
 
   specTest('Collection Group query with mutations', [], () => {
-    const cgQuery = new Query(ResourcePath.EMPTY_PATH, 'cg');
+    const cgQuery = new Query(ResourcePath.emptyPath(), 'cg');
     const cgQueryWithFilter = cgQuery.addFilter(filter('val', '==', 1));
     const cachedDocs = [
       doc('cg/1', 1000, { val: 1 }),
