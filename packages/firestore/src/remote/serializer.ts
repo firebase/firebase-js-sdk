@@ -348,7 +348,7 @@ function fromQueryPath(name: string): ResourcePath {
   // ability to read the v1beta1 form for compatibility with queries persisted
   // in the local target cache.
   if (resourceName.length === 4) {
-    return ResourcePath.EMPTY_PATH;
+    return ResourcePath.emptyPath();
   }
   return extractLocalPathFromResourceName(resourceName);
 }
