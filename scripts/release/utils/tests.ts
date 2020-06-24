@@ -18,11 +18,15 @@
 import { spawn } from 'child-process-promise';
 import { projectRoot as root } from '../../utils';
 
-export async function runTests(): Promise<void> {
-  await spawn('yarn', ['test'], {
-    cwd: root,
-    stdio: 'inherit'
-  });
+export async function runTests() {
+  try {
+    await spawn('yarn', ['test:release'], {
+      cwd: root,
+      stdio: 'inherit'
+    });
+  } catch (err) {
+    throw err;
+  }
 }
 
 export async function setupTestDeps(): Promise<void> {
