@@ -28,10 +28,7 @@ import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-  _JSLOAD_CALLBACK,
-  MOCK_RECAPTCHA_LOADER,
-  ReCaptchaLoader,
-  ReCaptchaLoaderImpl
+    _JSLOAD_CALLBACK, MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 
@@ -52,7 +49,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
   describe('MockLoader', () => {
     it('returns a MockRecaptcha instance', async () => {
-      expect(await MOCK_RECAPTCHA_LOADER.load(auth)).to.be.instanceOf(
+      expect(await new MockReCaptchaLoaderImpl().load(auth)).to.be.instanceOf(
         MockReCaptcha
       );
     });

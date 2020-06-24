@@ -22,15 +22,11 @@ import { initializeAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
+import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import {
-  MOCK_RECAPTCHA_LOADER,
-  RECAPTCHA_LOADER,
-  ReCaptchaLoader
-} from './recaptcha_loader';
-import { ApplicationVerifier } from '../../model/application_verifier';
+import { MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl } from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -53,7 +49,7 @@ export class RecaptchaVerifier
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
 
-  private readonly recaptchaLoader: ReCaptchaLoader;
+  readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
 
   constructor(
@@ -75,9 +71,9 @@ export class RecaptchaVerifier
     this.container = container;
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
 
-    this.recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting
-      ? MOCK_RECAPTCHA_LOADER
-      : RECAPTCHA_LOADER;
+    this._recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting
+      ? new MockReCaptchaLoaderImpl()
+      : new ReCaptchaLoaderImpl();
 
     this.validateStartingState();
     // TODO: Figure out if sdk version is needed
@@ -86,7 +82,7 @@ export class RecaptchaVerifier
   async verify(): Promise<string> {
     this.assertNotDestroyed();
     const id = await this.render();
-    const recaptcha = this.assertedRecaptcha;
+    const recaptcha = this.getAssertedRecaptcha();
 
     const response = recaptcha.getResponse(id);
     if (response) {
@@ -134,14 +130,14 @@ export class RecaptchaVerifier
   _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
-      this.assertedRecaptcha.reset(this.widgetId);
+      this.getAssertedRecaptcha().reset(this.widgetId);
     }
   }
 
   clear(): void {
     this.assertNotDestroyed();
     this.destroyed = true;
-    this.recaptchaLoader.clearedOneInstance();
+    this._recaptchaLoader.clearedOneInstance();
     if (!this.isInvisible) {
       this.container.childNodes.forEach(node => {
         this.container.removeChild(node);
@@ -193,7 +189,7 @@ export class RecaptchaVerifier
         container = guaranteedEmpty;
       }
 
-      this.widgetId = this.assertedRecaptcha.render(container, this.parameters);
+      this.widgetId = this.getAssertedRecaptcha().render(container, this.parameters);
     }
 
     return this.widgetId;
@@ -203,7 +199,7 @@ export class RecaptchaVerifier
     assert(_isHttpOrHttps() && !isWorker(), this.appName);
 
     await domReady();
-    this.recaptcha = await this.recaptchaLoader.load(
+    this.recaptcha = await this._recaptchaLoader.load(
       this.auth,
       this.auth.languageCode || undefined
     );
@@ -213,7 +209,7 @@ export class RecaptchaVerifier
     this.parameters.sitekey = siteKey;
   }
 
-  private get assertedRecaptcha(): Recaptcha {
+  private getAssertedRecaptcha(): Recaptcha {
     assert(this.recaptcha, this.appName);
     return this.recaptcha;
   }
