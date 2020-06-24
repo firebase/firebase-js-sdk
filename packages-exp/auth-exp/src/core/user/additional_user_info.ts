@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import { _parseToken } from './id_token_result';
  * Parse the `AdditionalUserInfo` from the ID token response.
  */
 export function _fromIdTokenResponse(
-  idTokenResponse: IdTokenResponse,
+  idTokenResponse: IdTokenResponse
 ): AdditionalUserInfo | null {
   const { providerId } = idTokenResponse;
   const profile = idTokenResponse.rawUserInfo
@@ -68,18 +68,14 @@ export function _fromIdTokenResponse(
     case ProviderId.ANONYMOUS:
       return new GenericAdditionalUserInfo(isNewUser, null);
     default:
-      return new FederatedAdditionalUserInfo(
-        isNewUser,
-        providerId,
-        profile
-      );
+      return new FederatedAdditionalUserInfo(isNewUser, providerId, profile);
   }
 }
 
 class GenericAdditionalUserInfo implements AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
-    readonly providerId: ProviderId | null,
+    readonly providerId: ProviderId | null
   ) {}
 }
 
@@ -87,7 +83,7 @@ class FederatedAdditionalUserInfo extends GenericAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
     providerId: ProviderId,
-    readonly profile: UserProfile,
+    readonly profile: UserProfile
   ) {
     super(isNewUser, providerId);
   }
@@ -98,7 +94,7 @@ class FederatedAdditionalUserInfoWithUsername extends FederatedAdditionalUserInf
     isNewUser: boolean,
     providerId: ProviderId,
     profile: UserProfile,
-    readonly username: string | null,
+    readonly username: string | null
   ) {
     super(isNewUser, providerId, profile);
   }
