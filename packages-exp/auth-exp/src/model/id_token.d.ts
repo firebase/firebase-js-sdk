@@ -46,21 +46,43 @@ export interface ParsedIdToken {
  * IdToken as returned by the API
  */
 export interface IdTokenResponse {
-  providerId?: ProviderId;
-  idToken: IdToken;
-  refreshToken: string;
   expiresIn: string;
+  idToken: IdToken;
   localId: string;
+  providerId?: ProviderId;
+  refreshToken: string;
 
   // MFA-specific fields
-  mfaPendingCredential?: string;
   mfaInfo?: APIMFAInfo[];
+  mfaPendingCredential?: string;
+
+  // Used in AdditionalUserInfo
+  displayName?: string | null;
   isNewUser?: boolean;
+  kind: IdTokenResponseKind;
+  photoUrl?: string | null;
   rawUserInfo?: string;
   screenName?: string | null;
-  displayName?: string | null;
-  photoUrl?: string | null;
-  kind: string;
+}
+
+/**
+ * The possible types of the `IdTokenResponse`
+ */
+export enum IdTokenResponseKind {
+  CreateAuthUri = 'identitytoolkit#CreateAuthUriResponse',
+  DeleteAccount = 'identitytoolkit#DeleteAccountResponse',
+  DownloadAccount = 'identitytoolkit#DownloadAccountResponse',
+  EmailLinkSignin = 'identitytoolkit#EmailLinkSigninResponse',
+  GetAccountInfo = 'identitytoolkit#GetAccountInfoResponse',
+  GetOobConfirmationCode = 'identitytoolkit#GetOobConfirmationCodeResponse',
+  GetRecaptchaParam = 'identitytoolkit#GetRecaptchaParamResponse',
+  ResetPassword = 'identitytoolkit#ResetPasswordResponse',
+  SetAccountInfo = 'identitytoolkit#SetAccountInfoResponse',
+  SignupNewUser = 'identitytoolkit#SignupNewUserResponse',
+  UploadAccount = 'identitytoolkit#UploadAccountResponse',
+  VerifyAssertion = 'identitytoolkit#VerifyAssertionResponse',
+  VerifyCustomToken = 'identitytoolkit#VerifyCustomTokenResponse',
+  VerifyPassword = 'identitytoolkit#VerifyPasswordResponse'
 }
 
 /**
