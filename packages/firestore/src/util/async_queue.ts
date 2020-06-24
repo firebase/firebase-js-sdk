@@ -207,9 +207,9 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
-  // The last retryable operation. Retryable operation are run in order and
+  // A list of retryable operations Retryable operation are run in order and
   // retried with backoff.
-  private retryableTail: Promise<void> = Promise.resolve();
+  private retryableOps: Array<() => Promise<void>> = [];
 
   // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.
@@ -323,32 +323,32 @@ export class AsyncQueue {
    * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
-    this.verifyNotFailed();
+    this.retryableOps.push(op);
+    this.enqueueAndForget(() => this.retryNextOp());
+  }
 
-    if (this._isShuttingDown) {
-      return;
-    }
+  /**
+   * Runs the next operation from the retryable queue. If the operation fails,
+   * reschedules with backoff.
+   */
+  private async retryNextOp(): Promise<void> {
+    const op = this.retryableOps.shift();
 
-    this.retryableTail = this.retryableTail.then(() => {
-      const deferred = new Deferred<void>();
-      const retryingOp = async (): Promise<void> => {
-        try {
-          await op();
-          deferred.resolve();
-          this.backoff.reset();
-        } catch (e) {
-          if (isIndexedDbTransactionError(e)) {
-            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
-            this.backoff.backoffAndRun(retryingOp);
-          } else {
-            deferred.resolve();
-            throw e; // Failure will be handled by AsyncQueue
-          }
+    if (op) {
+      try {
+        await op();
+        this.backoff.reset();
+      } catch (e) {
+        if (isIndexedDbTransactionError(e)) {
+          logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+          this.retryableOps.unshift(op);
+        } else {
+          throw e; // Failure will be handled by AsyncQueue
         }
-      };
-      this.enqueueAndForget(retryingOp);
-      return deferred.promise;
-    });
+      }
+
+      this.backoff.backoffAndRun(() => this.retryNextOp());
+    }
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {

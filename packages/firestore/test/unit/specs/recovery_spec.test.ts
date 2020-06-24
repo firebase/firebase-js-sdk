@@ -787,6 +787,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectActiveTargets({ query })
           // We are now user 2
           .expectEvents(query, { removed: [doc1], fromCache: true })
+          .runTimer(TimerId.AsyncQueueRetry)
           // We are now user 1
           .expectEvents(query, {
             added: [doc1],
