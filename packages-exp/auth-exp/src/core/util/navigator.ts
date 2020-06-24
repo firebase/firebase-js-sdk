@@ -36,10 +36,12 @@ interface StandardNavigator extends Navigator {
 /**
  * Determine whether the browser is working online
  */
-export function _isOnline(): boolean {
+export function _isOnline(
+  navigatorOnline: NavigatorOnLine = navigator
+): boolean {
   if (
-    navigator &&
-    typeof navigator.onLine === 'boolean' &&
+    navigatorOnline &&
+    typeof navigatorOnline.onLine === 'boolean' &&
     // Apply only for traditional web apps and Chrome extensions.
     // This is especially true for Cordova apps which have unreliable
     // navigator.onLine behavior unless cordova-plugin-network-information is
@@ -47,10 +49,27 @@ export function _isOnline(): boolean {
     // defines navigator.connection.
     (_isHttpOrHttps() ||
       isBrowserExtension() ||
-      typeof (navigator as StandardNavigator).connection !== 'undefined')
+      typeof (navigatorOnline as StandardNavigator).connection !== 'undefined')
   ) {
-    return navigator.onLine;
+    return navigatorOnline.onLine;
   }
   // If we can't determine the state, assume it is online.
   return true;
+}
+
+export function _getUserLanguage(
+  navigatorLanguage: NavigatorLanguage = navigator
+): string | null {
+  if (!navigatorLanguage) {
+    return null;
+  }
+  return (
+    // Most reliable, but only supported in Chrome/Firefox.
+    (navigatorLanguage.languages && navigatorLanguage.languages[0]) ||
+    // Supported in most browsers, but returns the language of the browser
+    // UI, not the language set in browser settings.
+    navigatorLanguage.language ||
+    // Couldn't determine language.
+    null
+  );
 }

@@ -16,11 +16,12 @@
  */
 
 import { SinonStub, stub } from 'sinon';
+import { HttpHeader } from '../src/api';
 
 export interface Call {
   request?: object | string;
   method?: string;
-  headers?: HeadersInit;
+  headers: Headers;
 }
 
 export interface Route {
@@ -46,16 +47,16 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   // Bang-assertion is fine since we check for routes.has() above
   const { response, status, calls } = routes.get(input)!;
 
+  const headers = new Headers(request?.headers);
   const requestBody =
-    request?.body &&
-    (request?.headers as any)?.['Content-Type'] === 'application/json'
+    request?.body && headers.get(HttpHeader.CONTENT_TYPE) === 'application/json'
       ? JSON.parse(request.body as string)
       : request?.body;
 
   calls.push({
     request: requestBody,
     method: request?.method,
-    headers: request?.headers
+    headers
   });
 
   const blob = new Blob([JSON.stringify(response)]);

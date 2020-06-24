@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint } from '../';
+import { Endpoint, HttpHeader } from '../';
 import { mockEndpoint } from '../../../test/api/helper';
 import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
@@ -66,10 +66,12 @@ describe('api/authentication/signInWithPassword', () => {
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
@@ -121,10 +123,12 @@ describe('api/authentication/sendEmailVerification', () => {
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
@@ -176,10 +180,12 @@ describe('api/authentication/sendPasswordResetEmail', () => {
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
@@ -231,10 +237,12 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
     expect(response.email).to.eq('test@foo.com');
     expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers).to.eql({
-      'Content-Type': 'application/json',
-      'X-Client-Version': 'testSDK/0.0.0'
-    });
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
   });
 
   it('should handle errors', async () => {
