@@ -132,10 +132,12 @@ export class PersistentConnection extends ServerActions {
   /**
    * @implements {ServerActions}
    * @param repoInfo_ Data about the namespace we are connecting to
+   * @param applicationId_ The Firebase App ID for this project
    * @param onDataUpdate_ A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
+    private applicationId_: string,
     private onDataUpdate_: (
       a: string,
       b: unknown,
@@ -782,6 +784,7 @@ export class PersistentConnection extends ServerActions {
             connection = new Connection(
               connId,
               self.repoInfo_,
+              self.applicationId_,
               onDataMessage,
               onReady,
               onDisconnect,

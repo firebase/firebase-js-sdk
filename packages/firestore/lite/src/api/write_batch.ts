@@ -42,13 +42,7 @@ export class WriteBatch implements firestore.WriteBatch {
   private _committed = false;
 
   constructor(private readonly _firestore: Firestore) {
-    // Kick off configuring the client, which freezes the settings.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    _firestore._ensureClientConfigured();
-    this._dataReader = newUserDataReader(
-      _firestore._databaseId,
-      _firestore._settings!
-    );
+    this._dataReader = newUserDataReader(_firestore);
   }
 
   set<T>(documentRef: firestore.DocumentReference<T>, value: T): WriteBatch;
@@ -143,7 +137,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this._committed = true;
     if (this._mutations.length > 0) {
       return this._firestore
-        ._ensureClientConfigured()
+        ._getDatastore()
         .then(datastore => invokeCommitRpc(datastore, this._mutations));
     }
 

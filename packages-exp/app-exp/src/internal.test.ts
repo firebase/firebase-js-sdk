@@ -25,7 +25,9 @@ import {
   _addOrOverwriteComponent,
   _registerComponent,
   _components,
-  _clearComponents
+  _clearComponents,
+  _getProvider,
+  _removeServiceInstance
 } from './internal';
 import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 
@@ -40,9 +42,10 @@ describe('Internal API tests', () => {
     for (const app of getApps()) {
       deleteApp(app).catch(() => {});
     }
+    _clearComponents();
   });
 
-  describe('addComponent', () => {
+  describe('_addComponent', () => {
     it('registers component with App', () => {
       const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
@@ -67,7 +70,7 @@ describe('Internal API tests', () => {
     });
   });
 
-  describe('addOrOverwriteComponent', () => {
+  describe('_addOrOverwriteComponent', () => {
     it('registers component with App', () => {
       const app = initializeApp({}) as _FirebaseAppInternal;
       const testComp = createTestComponent('test');
@@ -93,11 +96,7 @@ describe('Internal API tests', () => {
     });
   });
 
-  describe('registerComponent', () => {
-    afterEach(() => {
-      _clearComponents();
-    });
-
+  describe('_registerComponent', () => {
     it('caches a component and registers it with all Apps', () => {
       const app1 = initializeApp({}) as _FirebaseAppInternal;
       const app2 = initializeApp({}, 'app2') as _FirebaseAppInternal;
@@ -128,6 +127,35 @@ describe('Internal API tests', () => {
       expect(_components.get('test')).to.equal(testComp1);
       expect(_registerComponent(testComp2)).to.be.false;
       expect(_components.get('test')).to.equal(testComp1);
+    });
+  });
+
+  describe('_getProvider', () => {
+    it('gets provider for a service', () => {
+      const app1 = initializeApp({}) as _FirebaseAppInternal;
+      const testComp = createTestComponent('test');
+      _registerComponent(testComp);
+
+      const provider = _getProvider(app1, 'test');
+      expect(provider.getComponent()).to.equal(testComp);
+    });
+  });
+
+  describe('_removeServiceInstance', () => {
+    it('removes a service instance', () => {
+      const app1 = initializeApp({}) as _FirebaseAppInternal;
+      const testComp = createTestComponent('test');
+      _registerComponent(testComp);
+      const provider = app1.container.getProvider('test');
+
+      // instantiate a service instance
+      const instance1 = provider.getImmediate();
+      _removeServiceInstance(app1, 'test');
+
+      // should get a new instance since the previous instance has been removed
+      const instance2 = provider.getImmediate();
+
+      expect(instance1).to.not.equal(instance2);
     });
   });
 });

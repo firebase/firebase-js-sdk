@@ -37,12 +37,18 @@ import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
-import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  JsonProtoSerializer,
+  toBytes,
+  toNumber,
+  toResourceName,
+  toTimestamp
+} from '../remote/serializer';
 import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { PlatformSupport } from '../platform/platform';
+import { newSerializer } from '../platform/serializer';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -63,9 +69,9 @@ export interface UntypedFirestoreDataConverter<T> {
  */
 export class DocumentKeyReference<T> {
   constructor(
-    public readonly _databaseId: DatabaseId,
-    public readonly _key: DocumentKey,
-    public readonly _converter?: UntypedFirestoreDataConverter<T>
+    readonly _databaseId: DatabaseId,
+    readonly _key: DocumentKey,
+    readonly _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 }
 
@@ -300,8 +306,7 @@ export class UserDataReader {
     private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
-    this.serializer =
-      serializer || PlatformSupport.getPlatform().newSerializer(databaseId);
+    this.serializer = serializer || newSerializer(databaseId);
   }
 
   /** Parse document data from a set() call. */
@@ -496,7 +501,7 @@ export class UserDataReader {
         dataSource,
         methodName,
         targetDoc,
-        path: FieldPath.EMPTY_PATH,
+        path: FieldPath.emptyPath(),
         arrayElement: false
       },
       this.databaseId,
@@ -639,7 +644,7 @@ function parseSentinelFieldValue(
       `${value._methodName}() can only be used with update() and set()`
     );
   }
-  if (context.path === null) {
+  if (!context.path) {
     throw context.createError(
       `${value._methodName}() is not currently supported inside arrays`
     );
@@ -663,14 +668,16 @@ function parseScalarValue(
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
-    return context.serializer.toNumber(value);
+    return toNumber(context.serializer, value);
   } else if (typeof value === 'boolean') {
     return { booleanValue: value };
   } else if (typeof value === 'string') {
     return { stringValue: value };
   } else if (value instanceof Date) {
     const timestamp = Timestamp.fromDate(value);
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof Timestamp) {
     // Firestore backend truncates precision down to microseconds. To ensure
     // offline mode works the same with regards to truncation, perform the
@@ -679,7 +686,9 @@ function parseScalarValue(
       value.seconds,
       Math.floor(value.nanoseconds / 1000) * 1000
     );
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof GeoPoint) {
     return {
       geoPointValue: {
@@ -688,7 +697,7 @@ function parseScalarValue(
       }
     };
   } else if (value instanceof Blob) {
-    return { bytesValue: context.serializer.toBytes(value) };
+    return { bytesValue: toBytes(context.serializer, value) };
   } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
@@ -700,9 +709,9 @@ function parseScalarValue(
       );
     }
     return {
-      referenceValue: context.serializer.toResourceName(
-        value._key.path,
-        value._databaseId
+      referenceValue: toResourceName(
+        value._databaseId || context.databaseId,
+        value._key.path
       )
     };
   } else if (value === undefined && context.ignoreUndefinedProperties) {

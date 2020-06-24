@@ -20,7 +20,6 @@ import { DatabaseInfo } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
@@ -75,6 +74,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
+import { DocumentLike, WindowLike } from '../util/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -191,9 +191,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  private readonly document: Document | null;
-  private readonly window: Window | null;
-
   // Technically `simpleDb` should be `| undefined` because it is
   // initialized asynchronously by start(), but that would be more misleading
   // than useful.
@@ -239,9 +236,10 @@ export class IndexedDbPersistence implements Persistence {
 
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
-    platform: Platform,
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
+    private readonly window: WindowLike | null,
+    private readonly document: DocumentLike | null,
     serializer: JsonProtoSerializer,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
@@ -261,7 +259,6 @@ export class IndexedDbPersistence implements Persistence {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
-    this.document = platform.document;
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -271,9 +268,8 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
-    this.window = platform.window;
-    if (platform.window && platform.window.localStorage) {
-      this.webStorage = platform.window.localStorage;
+    if (this.window && this.window.localStorage) {
+      this.webStorage = this.window.localStorage;
     } else {
       this.webStorage = null;
       if (forceOwningTab === false) {

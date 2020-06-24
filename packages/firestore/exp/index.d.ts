@@ -286,6 +286,7 @@ export class Query<T = DocumentData> {
 }
 
 export class QuerySnapshot<T = DocumentData> {
+  private constructor();
   readonly query: Query<T>;
   readonly docs: Array<QueryDocumentSnapshot<T>>;
   readonly metadata: SnapshotMetadata;
@@ -308,6 +309,7 @@ export interface DocumentChange<T = DocumentData> {
 }
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
+  private constructor();
   readonly id: string;
   readonly path: string;
   withConverter<U>(
@@ -448,14 +450,14 @@ export class FieldPath {
 
 export function documentId(): FieldPath;
 
-export function refEqual(
-  l: DocumentReference | CollectionReference,
-  r: DocumentReference | CollectionReference
+export function refEqual<T>(
+  left: DocumentReference<T> | CollectionReference<T>,
+  right: DocumentReference<T> | CollectionReference<T>
 ): boolean;
-export function queryEqual(l: Query, r: Query): boolean;
-export function snapshotEqual(
-  l: DocumentSnapshot | QuerySnapshot,
-  r: DocumentSnapshot | QuerySnapshot
+export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export function snapshotEqual<T>(
+  left: DocumentSnapshot<T> | QuerySnapshot<T>,
+  right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
 export type FirestoreErrorCode =

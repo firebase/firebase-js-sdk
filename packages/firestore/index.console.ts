@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import './src/platform_browser/browser_init';
+// TODO(mrschmidt): Once imported into Google3, fix
+// third_party/javascript/firebase/src/packages/firestore/tools/console.build.js
 
 export { Firestore, FirestoreDatabase } from './src/api/database';
 export {
@@ -25,7 +26,7 @@ export {
   PublicQuerySnapshot as QuerySnapshot,
   PublicFieldValue as FieldValue,
   PublicBlob as Blob
-} from './src/platform/config';
+} from './src/config';
 export { GeoPoint } from './src/api/geo_point';
 export { FirstPartyCredentialsSettings } from './src/api/credentials';
 export { FieldPath } from './src/api/field_path';

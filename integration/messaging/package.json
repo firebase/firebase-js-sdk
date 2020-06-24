@@ -4,15 +4,15 @@
   "version": "0.2.1",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
-    "test": "echo 'Tests disabled due to flakiness'",
+    "test": "mocha --exit",
     "test:manual": "mocha --exit"
   },
   "dependencies": {
-    "firebase": "7.15.0"
+    "firebase": "7.15.4"
   },
   "devDependencies": {
     "chai": "4.2.0",
-    "chromedriver": "80.0.2",
+    "chromedriver": "^83.0.0",
     "express": "4.17.1",
     "geckodriver": "1.19.1",
     "mocha": "7.1.2",

@@ -20,8 +20,8 @@ import { Code, FirestoreError } from './error';
 import { logDebug, logError } from './log';
 import { Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
-import { PlatformSupport } from '../platform/platform';
 import { isIndexedDbTransactionError } from '../local/simple_db';
+import { getWindow } from '../platform/dom';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -238,7 +238,7 @@ export class AsyncQueue {
   private visibilityHandler = (): void => this.backoff.skipBackoff();
 
   constructor() {
-    const window = PlatformSupport.getPlatform().window;
+    const window = getWindow();
     if (window && typeof window.addEventListener === 'function') {
       window.addEventListener('visibilitychange', this.visibilityHandler);
     }
@@ -293,7 +293,7 @@ export class AsyncQueue {
     this.verifyNotFailed();
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
-      const window = PlatformSupport.getPlatform().window;
+      const window = getWindow();
       if (window) {
         window.removeEventListener('visibilitychange', this.visibilityHandler);
       }

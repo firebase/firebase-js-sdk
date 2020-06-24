@@ -7,7 +7,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "dependencies": {
-    "firebase": "7.15.0"
+    "firebase": "7.15.4"
   },
   "devDependencies": {
     "@babel/core": "7.9.6",
