@@ -39,9 +39,7 @@ import { isConsoleMessage } from '../helpers/is-console-message';
 export class WindowController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
   private swRegistration?: ServiceWorkerRegistration;
-  private onMessageCallback: NextFn<object> | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private onMessageObserver: any = null;
+  private onMessageCallback: NextFn<object> | Observer<object> | null = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -134,17 +132,11 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
    * message.
    * @return The unsubscribe function for the observer.
    */
-  // TODO: Simplify this to only accept a function and not an Observer.
   onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
-    if (typeof nextOrObserver === 'function') {
-      this.onMessageCallback = nextOrObserver;
-    } else {
-      this.onMessageObserver = nextOrObserver;
-    }
+    this.onMessageCallback = nextOrObserver;
 
     return () => {
       this.onMessageCallback = null;
-      this.onMessageObserver = null;
     };
   }
 
@@ -198,12 +190,20 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
 
     const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
 
-    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
+    if (
+      this.onMessageCallback &&
+      typeof this.onMessageCallback === 'function' &&
+      type === MessageType.PUSH_RECEIVED
+    ) {
       this.onMessageCallback(payload);
     }
 
-    if (this.onMessageObserver && type === MessageType.PUSH_RECEIVED) {
-      this.onMessageObserver.next(payload);
+    if (
+      this.onMessageCallback &&
+      typeof this.onMessageCallback !== 'function' &&
+      type === MessageType.PUSH_RECEIVED
+    ) {
+      this.onMessageCallback.next(payload);
     }
 
     const { data } = payload;

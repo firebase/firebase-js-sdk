@@ -16,13 +16,11 @@
  */
 
 const expect = require('chai').expect;
-const assert = require('chai').assert;
 const testServer = require('./utils/test-server');
 const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const getReceivedBackgroundMessages = require('./utils/getReceivedBackgroundMessages');
-const getReceivedForegroundMessages = require('./utils/getReceivedForegroundMessages');
 const openNewTab = require('./utils/openNewTab');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
@@ -33,12 +31,9 @@ const FIELD_FROM = 'from';
 const FIELD_COLLAPSE_KEY = 'collapse_key';
 const FIELD_DATA = 'data';
 const FIELD_NOTIFICATION = 'notification';
-const FIELD_IS_OBSERVER_HANDLED = 'isObserverHandled';
 
 // 4 minutes. The fact that the flow includes making a request to the Send Service, storing/retrieving form indexedDb asynchronously makes these test units to have a execution time variance. Therefore, allowing these units to have a longer time to work is crucial.
 const TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 240000;
-
-const TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 120000;
 
 // 1 minute. Wait for object store to be created and received message to be stored in idb. This waiting time MUST be longer than the wait time for adding to db in the sw.
 const WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS = 60000;
@@ -124,115 +119,6 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         checkMessageReceived(
           await getReceivedBackgroundMessages(globalWebDriver),
           /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ getTestDataPayload()
-        );
-      });
-
-      it('Foreground app can receive a {} empty message in onMessage', async function() {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
-
-        await globalWebDriver.get(
-          `${testServer.serverAddress}/${TEST_DOMAIN}/`
-        );
-
-        let token = await retrieveToken(globalWebDriver);
-        checkSendResponse(
-          await sendMessage({
-            to: token
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ null
-        );
-      });
-
-      it('Foreground app can receive a {"notification"} message in onMessage', async function() {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
-
-        await globalWebDriver.get(
-          `${testServer.serverAddress}/${TEST_DOMAIN}/`
-        );
-
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
-          /* expectedDataPayload= */ null
-        );
-      });
-
-      it('Foreground app can receive a {"data"} message in onMessage', async function() {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
-
-        await globalWebDriver.get(
-          `${testServer.serverAddress}/${TEST_DOMAIN}/`
-        );
-
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            data: getTestDataPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ getTestDataPayload()
-        );
-      });
-
-      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function() {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
-
-        await globalWebDriver.get(
-          `${testServer.serverAddress}/${TEST_DOMAIN}/`
-        );
-
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            data: getTestDataPayload(),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
           /* expectedDataPayload= */ getTestDataPayload()
         );
       });
