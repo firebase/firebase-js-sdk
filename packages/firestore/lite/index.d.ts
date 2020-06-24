@@ -195,7 +195,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
-  readonly documentId: string;
+  readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
@@ -234,39 +234,44 @@ export class Query<T = DocumentData> {
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
+export type QueryConstraint = {};
+
+export function query<T>(
+  query: CollectionReference<T> | Query<T>,
+  ...constraints: QueryConstraint[]
+): Query<T>;
+
 export function where<T>(
-  query: Query<T>,
   fieldPath: string | FieldPath,
   opStr: WhereFilterOp,
   value: any
-): Query<T>;
+): QueryConstraint;
 export function orderBy<T>(
-  query: Query<T>,
   fieldPath: string | FieldPath,
   directionStr?: OrderByDirection
-): Query<T>;
-export function limit<T>(query: Query<T>, limit: number): Query<T>;
-export function limitToLast<T>(query: Query<T>, limit: number): Query<T>;
+): QueryConstraint;
+export function limit<T>(limit: number): QueryConstraint;
+export function limitToLast<T>(limit: number): QueryConstraint;
 export function startAt<T>(
   query: Query<T>,
   snapshot: DocumentSnapshot<any>
-): Query<T>;
-export function startAt<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+): QueryConstraint;
+export function startAt<T>(...fieldValues: any[]): QueryConstraint;
 export function startAfter<T>(
   query: Query<T>,
   snapshot: DocumentSnapshot<any>
-): Query<T>;
-export function startAfter<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+): QueryConstraint;
+export function startAfter<T>(...fieldValues: any[]): QueryConstraint;
 export function endBefore<T>(
   query: Query<T>,
   snapshot: DocumentSnapshot<any>
-): Query<T>;
-export function endBefore<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+): QueryConstraint;
+export function endBefore<T>(...fieldValues: any[]): QueryConstraint;
+export function endAt<T>(snapshot: DocumentSnapshot<any>): QueryConstraint;
 export function endAt<T>(
   query: Query<T>,
-  snapshot: DocumentSnapshot<any>
-): Query<T>;
-export function endAt<T>(query: Query<T>, ...fieldValues: any[]): Query<T>;
+  ...fieldValues: any[]
+): QueryConstraint;
 
 export class QuerySnapshot<T = DocumentData> {
   private constructor();
