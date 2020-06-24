@@ -26,7 +26,7 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { signInWithCustomToken } from './custom_token';
 
 use(chaiAsPromised);
@@ -49,7 +49,7 @@ describe('core/strategies/signInWithCustomToken', () => {
     refreshToken: 'my-refresh-token',
     expiresIn: '1234',
     localId: serverUser.localId!,
-    kind: 'my-kind'
+    kind: IdTokenResponseKind.CreateAuthUri,
   };
 
   let auth: Auth;

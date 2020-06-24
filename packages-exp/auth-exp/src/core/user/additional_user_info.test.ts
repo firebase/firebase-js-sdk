@@ -16,12 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { _fromIdTokenResponse } from './additional_user_info';
+
+import { ProviderId, UserProfile } from '@firebase/auth-types-exp';
+
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import {
-  UserProfile,
-  ProviderId
-} from '@firebase/auth-types-exp';
+import { _fromIdTokenResponse } from './additional_user_info';
 
 describe('core/user/additional_user_info', () => {
   describe('_fromIdTokenResponse', () => {
@@ -48,8 +47,8 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.null;
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(username).to.be.undefined;
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for GithubAdditionalUserInfo', () => {
@@ -66,7 +65,7 @@ describe('core/user/additional_user_info', () => {
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for GoogleAdditionalUserInfo', () => {
@@ -82,8 +81,8 @@ describe('core/user/additional_user_info', () => {
         } = _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
-        expect(username).to.be.null;
-        expect(profile).to.eq(userProfileWithLogin);
+        expect(username).to.be.undefined;
+        expect(profile).to.eql(userProfileWithLogin);
       });
 
       it('for TwitterAdditionalUserInfo', () => {
@@ -191,7 +190,7 @@ describe('core/user/additional_user_info', () => {
         )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.null;
+        expect(username).to.be.undefined;
         expect(profile).to.eq(profile);
       });
     });

@@ -20,11 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
@@ -33,7 +29,7 @@ import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { IdTokenResponse } from '../../model/id_token';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { UserCredentialImpl } from './user_credential_impl';
@@ -71,7 +67,7 @@ describe('core/user/user_credential_impl', () => {
       refreshToken: 'my-refresh-token',
       expiresIn: '1234',
       localId: serverUser.localId!,
-      kind: 'my-kind'
+      kind: IdTokenResponseKind.CreateAuthUri
     };
 
     const credential: AuthCredential = new MockAuthCredential(
