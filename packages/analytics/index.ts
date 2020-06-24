@@ -64,11 +64,12 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         return factory(app, installations);
       },
       ComponentType.PUBLIC
-    ).setServiceProps({
-      settings,
-      EventName,
-      NAMESPACE_EXPORTS
-    })
+    )
+      .setServiceProps({
+        settings,
+        EventName
+      })
+      .setServiceProps(NAMESPACE_EXPORTS)
   );
 
   instance.INTERNAL.registerComponent(
