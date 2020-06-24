@@ -17,10 +17,12 @@
 
 import { OperationType } from '@firebase/auth-types-exp';
 
-import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
+import {
+    signInWithIdp, SignInWithIdpRequest, SignInWithIdpResponse
+} from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
-import { _authCredentialFromTokenResponse } from '../credentials/inferred';
+import { _authCredentialFromTokenResponse } from '../credentials/from_token_response';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -38,14 +40,16 @@ export interface IdpTaskParams {
 
 export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
-function paramsToRequest({
+function callIdpSignIn(
+  {
+  auth,
   requestUri,
   sessionId,
   tenantId,
   pendingToken,
   postBody
-}: IdpTaskParams): SignInWithIdpRequest {
-  return {
+}: IdpTaskParams, idToken?: string): Promise<SignInWithIdpResponse> {
+  const request: SignInWithIdpRequest = {
     requestUri,
     sessionId,
     postBody: postBody || null,
@@ -53,13 +57,18 @@ function paramsToRequest({
     pendingToken,
     returnSecureToken: true
   };
+
+  if (idToken) {
+    request.idToken = idToken;
+  }
+
+  return signInWithIdp(auth, request);
 }
 
 export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
-  const request = paramsToRequest(params);
   const auth = params.auth;
 
-  const response = await signInWithIdp(auth, request);
+  const response = await callIdpSignIn(params);
 
   const credential = _authCredentialFromTokenResponse(response);
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -75,16 +84,14 @@ export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
 export async function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
-  const requestPromise = signInWithIdp(auth, paramsToRequest(params));
+  const requestPromise = callIdpSignIn(params);
   return _reauthenticate(user, requestPromise);
 }
 
 export async function _link(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
-  
-  const request = paramsToRequest(params);
-  request.idToken = await user.getIdToken();
+  const idToken = await user.getIdToken();
 
-  return _linkUser(user, signInWithIdp(auth, request));
+  return _linkUser(user, callIdpSignIn(params, idToken));
 }

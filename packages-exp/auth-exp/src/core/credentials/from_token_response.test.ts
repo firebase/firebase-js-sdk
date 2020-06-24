@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2020 Google LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { ProviderId } from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
-import { _authCredentialFromTokenResponse } from './inferred';
+import { _authCredentialFromTokenResponse } from './from_token_response';
 
  describe('src/core/credentials/inferred', () => {
   it('returns a phone credential if response conains correct fields', () => {

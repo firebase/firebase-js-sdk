@@ -22,7 +22,7 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
-import { _authCredentialFromTokenResponse } from '../credentials/inferred';
+import { _authCredentialFromTokenResponse } from '../credentials/from_token_response';
 import { UserImpl } from './user_impl';
 
 export class UserCredentialImpl implements UserCredential {
