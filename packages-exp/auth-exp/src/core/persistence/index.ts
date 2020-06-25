@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+
 export enum PersistenceType {
   SESSION = 'SESSION',
   LOCAL = 'LOCAL',
@@ -39,4 +41,15 @@ export interface Persistence {
   set(key: string, value: PersistenceValue): Promise<void>;
   get<T extends PersistenceValue>(key: string): Promise<T | null>;
   remove(key: string): Promise<void>;
+}
+
+/**
+ * We can't directly export all of the different types of persistence as
+ * constants: this would cause tree-shaking libraries to keep all of the
+ * various persistence classes in the bundle, even if they're not used, since
+ * the system can't prove those constructors don't side-effect. Instead, we
+ * use this lightweight shim.
+ */
+export interface PersistenceInstantiator extends externs.Persistence {
+  _getInstance(): Persistence;
 }

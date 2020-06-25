@@ -17,12 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 class BrowserPersistence implements Persistence {
   type: PersistenceType = PersistenceType.LOCAL;
@@ -56,9 +51,28 @@ class BrowserPersistence implements Persistence {
   }
 }
 
-export const browserLocalPersistence: externs.Persistence = new BrowserPersistence(
-  localStorage
-);
-export const browserSessionPersistence: externs.Persistence = new BrowserPersistence(
-  sessionStorage
-);
+class BrowserLocalPersistence {
+  static type: 'LOCAL' = 'LOCAL';
+  static instance: Persistence|null = null;
+  static _getInstance(): Persistence {
+    if (!this.instance) {
+      this.instance = new BrowserPersistence(localStorage);
+    }
+    return this.instance;
+  }
+}
+
+class BrowserSessionPersistence {
+  static type: 'SESSION' = 'SESSION';
+  static instance: Persistence|null = null;
+  static _getInstance(): Persistence {
+    if (!this.instance) {
+      this.instance = new BrowserPersistence(sessionStorage);
+    }
+    return this.instance;
+  }
+}
+
+export const browserLocalPersistence: externs.Persistence = BrowserLocalPersistence;
+
+export const browserSessionPersistence: externs.Persistence = BrowserSessionPersistence;

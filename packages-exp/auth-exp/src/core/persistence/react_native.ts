@@ -17,12 +17,7 @@
 
 import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 /**
  * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
@@ -56,5 +51,9 @@ export class ReactNativePersistence implements Persistence {
 
   async remove(key: string): Promise<void> {
     await this.storage.removeItem(key);
+  }
+
+  _getInstance(): Persistence {
+    return this;
   }
 }
