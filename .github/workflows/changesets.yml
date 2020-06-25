@@ -1,0 +1,25 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  release:
+    name: Changeset Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Setup Node.js 12.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 12.x
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Check if any Changeset file exists
+        run: yarn changeset status --since=master

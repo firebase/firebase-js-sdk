@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,8 @@
  * limitations under the License.
  */
 
-const { spawn } = require('child-process-promise');
-const { projectRoot: root } = require('../../utils');
-const ora = require('ora');
-
-exports.runTests = async () => {
-  try {
-    await spawn('yarn', ['test:release'], {
-      cwd: root,
-      stdio: 'inherit'
-    });
-  } catch (err) {
-    throw err;
-  }
-};
-
-exports.setupTestDeps = async () => {
-  await spawn('yarn', ['test:setup'], { stdio: 'inherit' });
-};
+export enum ReleaseType {
+  Canary = 'Canary',
+  Staging = 'Staging',
+  Production = 'Production'
+}
