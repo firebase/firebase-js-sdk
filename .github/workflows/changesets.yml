@@ -25,4 +25,4 @@ jobs:
         run: yarn
 
       - name: Check if any Changeset file exists
-        run: yarn changeset status --since=master
+        run: yarn changeset status --since=origin/master
