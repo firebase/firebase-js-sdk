@@ -486,11 +486,11 @@ function genericMutationTests(
           return expect(
             setDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => setDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -540,11 +540,11 @@ function genericMutationTests(
           return expect(
             updateDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -564,7 +564,7 @@ describe('addDoc()', () => {
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
       expect(() => addDoc(collRef, { val: undefined })).to.throw(
-        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+        /Function addDoc\(\) called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
       );
     });
   });

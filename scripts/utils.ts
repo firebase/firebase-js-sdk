@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-const { dirname, resolve } = require('path');
-const simpleGit = require('simple-git/promise');
-const { exec } = require('child-process-promise');
+import { dirname, resolve } from 'path';
+import simpleGit from 'simple-git/promise';
+import { exec } from 'child-process-promise';
 
-const projectRoot = dirname(resolve(__dirname, '../package.json'));
-exports.projectRoot = projectRoot;
+export const projectRoot = dirname(resolve(__dirname, '../package.json'));
 
-async function getChangedFiles() {
+export async function getChangedFiles(): Promise<string[]> {
   console.log(projectRoot);
   const git = simpleGit(projectRoot);
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
@@ -30,10 +29,11 @@ async function getChangedFiles() {
 
   return changedFiles;
 }
-exports.getChangedFiles = getChangedFiles;
 
-async function getChangedPackages(changedFiles) {
-  const changedPackages = new Set();
+export async function getChangedPackages(
+  changedFiles: string[]
+): Promise<string[]> {
+  const changedPackages = new Set<string>();
   const files = changedFiles || (await getChangedFiles());
   for (const filename of files) {
     // Check for changed files inside package dirs.
@@ -49,9 +49,8 @@ async function getChangedPackages(changedFiles) {
   }
   return Array.from(changedPackages.values());
 }
-exports.getChangedPackages = getChangedPackages;
 
-exports.getPackageInfo = async function(
+export async function getPackageInfo(
   { includePrivate } = { includePrivate: true }
 ) {
   const packageInfo = JSON.parse(
@@ -59,4 +58,4 @@ exports.getPackageInfo = async function(
   );
 
   return packageInfo;
-};
+}
