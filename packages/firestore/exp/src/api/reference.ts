@@ -30,6 +30,7 @@ import {
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import { DocumentReference } from '../../../lite/src/api/reference';
+import { Document } from '../../../src/model/document';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -37,7 +38,47 @@ export function getDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return firestore._getFirestoreClient().then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(firestoreClient, ref);
+    const viewSnapshot = await getDocViaSnapshotListener(
+      firestoreClient,
+      ref._key
+    );
+    return convertToDocSnapshot(firestore, ref, viewSnapshot);
+  });
+}
+
+// TODO(firestorexp): Make sure we don't include Datastore/RemoteStore in builds
+// that only include `getDocFromCache`.
+export function getDocFromCache<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
+  const firestore = cast<Firestore>(ref.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const doc = await firestoreClient.getDocumentFromLocalCache(ref._key);
+    return new DocumentSnapshot(
+      firestore,
+      ref._key,
+      doc,
+      ref._converter,
+      new SnapshotMetadata(
+        doc instanceof Document ? doc.hasLocalMutations : false,
+        /* fromCache= */ true
+      )
+    );
+  });
+}
+
+export function getDocFromServer<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
+  const firestore = cast<Firestore>(ref.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const viewSnapshot = await getDocViaSnapshotListener(
+      firestoreClient,
+      ref._key,
+      { source: 'server' }
+    );
     return convertToDocSnapshot(firestore, ref, viewSnapshot);
   });
 }
