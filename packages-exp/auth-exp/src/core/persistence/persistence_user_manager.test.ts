@@ -59,7 +59,9 @@ describe('core/persistence/persistence_user_manager', () => {
   describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
       const manager = await PersistenceUserManager.create(auth, []);
-      expect(manager.persistence).to.eq((inMemoryPersistence as PersistenceInstantiator)._getInstance());
+      expect(manager.persistence).to.eq(
+        (inMemoryPersistence as PersistenceInstantiator)._getInstance()
+      );
     });
 
     it('searches in order for a user', async () => {

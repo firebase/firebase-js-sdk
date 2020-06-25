@@ -17,7 +17,11 @@
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { PersistedBlob, Persistence, PersistenceInstantiator } from '../persistence';
+import {
+  PersistedBlob,
+  Persistence,
+  PersistenceInstantiator
+} from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { inMemoryPersistence } from './in_memory';
 

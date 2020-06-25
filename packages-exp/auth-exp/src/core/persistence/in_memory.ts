@@ -21,7 +21,7 @@ import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 export class InMemoryPersistence implements Persistence {
   static type: 'NONE' = 'NONE';
-  static instance: InMemoryPersistence|null = null;
+  static instance: InMemoryPersistence | null = null;
   readonly type = PersistenceType.NONE;
   storage: {
     [key: string]: PersistenceValue;

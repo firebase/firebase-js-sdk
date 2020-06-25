@@ -33,7 +33,10 @@ import { PersistenceUserManager } from '../persistence/persistence_user_manager'
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -52,7 +55,9 @@ describe('core/auth/auth_impl', () => {
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
   beforeEach(() => {
-    persistenceStub = sinon.stub((inMemoryPersistence as PersistenceInstantiator)._getInstance());
+    persistenceStub = sinon.stub(
+      (inMemoryPersistence as PersistenceInstantiator)._getInstance()
+    );
     auth = initializeAuth(FAKE_APP, {
       persistence: inMemoryPersistence
     }) as Auth;
@@ -106,7 +111,9 @@ describe('core/auth/auth_impl', () => {
   describe('#setPersistence', () => {
     it('swaps underlying persistence', async () => {
       const newPersistence = browserLocalPersistence;
-      const newStub = sinon.stub((newPersistence as PersistenceInstantiator)._getInstance());
+      const newStub = sinon.stub(
+        (newPersistence as PersistenceInstantiator)._getInstance()
+      );
       persistenceStub.get.returns(
         Promise.resolve(testUser(auth, 'test').toPlainObject())
       );
@@ -305,7 +312,10 @@ describe('core/auth/initializeAuth', () => {
 
     it('pulls the user from storage', async () => {
       sinon
-        .stub((inMemoryPersistence as PersistenceInstantiator)._getInstance(), 'get')
+        .stub(
+          (inMemoryPersistence as PersistenceInstantiator)._getInstance(),
+          'get'
+        )
         .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
@@ -318,7 +328,7 @@ describe('core/auth/initializeAuth', () => {
       ]);
       expect(createManagerStub).to.have.been.calledWith(auth, [
         (inMemoryPersistence as PersistenceInstantiator)._getInstance(),
-        (browserLocalPersistence as PersistenceInstantiator)._getInstance(),
+        (browserLocalPersistence as PersistenceInstantiator)._getInstance()
       ]);
     });
 
