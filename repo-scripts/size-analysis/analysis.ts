@@ -16,7 +16,7 @@
  */
 
 import * as fs from 'fs';
-import { resolve, basename, dirname } from 'path';
+import { resolve, basename } from 'path';
 import {
   extractDependenciesAndSize,
   extractDeclarations,
@@ -32,9 +32,13 @@ const BUNDLE: string = 'esm2017';
 
 /**
  * Support Command Line Options
- * -- module(optional) : can be left unspecified which results in running analysis on all exp modules
+ * -- inputModule (optional) : can be left unspecified which results in running analysis on all exp modules
  *            can specify one to many module names seperated by space.
- *            eg: --module "@firebase/functions-exp" "firebase/auth-exp"
+ *            eg: --inputModule "@firebase/functions-exp" "firebase/auth-exp"
+ *
+ * -- inputDtsFile (optional) : adhoc support. Specify a path to dts file. Must enable -- inputBundleFile if this flag is specified.
+ *
+ * -- inputBundleFile (optional): adhoc support. Specify a path to bundle file. Must enable -- inputDtsFile if this flag is specified.
  *
  * --output(required): output directory or file where reports will be generated.
  *          specify a directory if multiple modules are analyzed
@@ -43,11 +47,21 @@ const BUNDLE: string = 'esm2017';
  */
 const argv = yargs
   .options({
-    module: {
+    inputModule: {
       type: 'array',
-      alias: 'm',
+      alias: 'im',
       desc:
-        'The name of the module(s) to be analyzed. example: --module "@firebase/functions-exp" "firebase/auth-exp"'
+        'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions-exp" "firebase/auth-exp"'
+    },
+    inputDtsFile: {
+      type: 'string',
+      alias: 'if',
+      desc: 'support for adhoc analysis. requires a path to dts file'
+    },
+    inputBundleFile: {
+      type: 'string',
+      alias: 'ib',
+      desc: 'support for adhoc analysis. requires a path to a bundle file'
     },
     output: {
       type: 'string',
@@ -82,75 +96,19 @@ function collectBinarySize(path: string) {
     const map: Map<string, string> = buildMap(publicApi);
 
     // where report is generated and written to designated location
-    buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, map)
+    buildJsonReport(publicApi, `${path}/${packageJson[BUNDLE]}`, map)
       .then(json => {
-        writeReportToFile(json, packageJson);
+        if (!argv.inputModule || argv.inputModule.length > 1) {
+          const fileName = `${basename(packageJson.name)}-dependencies.json`;
+          const directoryPath = resolve(argv.output);
+          writeReportToDirectory(json, fileName, directoryPath);
+        } else {
+          writeReportToFile(json, resolve(argv.output));
+        }
       })
       .catch(error => {
         console.log(error);
       });
-  }
-}
-
-/**
- *
- * This functions writes generated json report(s) to designated location
- */
-function writeReportToFile(json: string, packageJson): void {
-  const resolvedOutputPath = resolve(`${argv.output}`);
-  if (!argv.module || argv.module.length > 1) {
-    if (fs.existsSync(resolvedOutputPath)) {
-      // output path should be a directory, if multiple modules are analyzed
-      if (fs.lstatSync(resolvedOutputPath).isDirectory()) {
-        fs.writeFileSync(
-          `${resolvedOutputPath}/${basename(
-            packageJson.name
-          )}-dependencies.json`,
-          json
-        );
-      } else {
-        console.log(json);
-        console.log(
-          'as multiple modules are analysized, an output directory is required, but a file path given'
-        );
-      }
-    } else {
-      fs.mkdir(resolvedOutputPath, { recursive: true }, error => {
-        if (error) {
-          console.log(json);
-          console.log(`errors on creating output directory: ${error}`);
-        } else {
-          fs.writeFileSync(
-            `${resolvedOutputPath}/${basename(
-              packageJson.name
-            )}-dependencies.json`,
-            json
-          );
-        }
-      });
-    }
-  }
-  // if only one module is analyzed, output path should be a path to file.
-  else {
-    if (fs.existsSync(resolvedOutputPath)) {
-      if (fs.lstatSync(resolvedOutputPath).isFile()) {
-        fs.writeFileSync(`${resolvedOutputPath}`, json);
-      } else {
-        console.log(json);
-        console.log(
-          'as only one module is analysized, an output file is required, but a directory path given'
-        );
-      }
-    } else {
-      fs.mkdir(dirname(resolvedOutputPath), { recursive: true }, error => {
-        if (error) {
-          console.log(json);
-          console.log(`errors on creating output directory: ${error}`);
-        } else {
-          fs.writeFileSync(`${resolvedOutputPath}`, json);
-        }
-      });
-    }
   }
 }
 
@@ -199,7 +157,7 @@ function traverseDirs(
  *
  * This functions builds the final json report for the module.
  */
-async function buildJson(
+async function buildJsonReport(
   publicApi: MemberList,
   jsFile: string,
   map: Map<string, string>
@@ -222,31 +180,91 @@ async function buildJson(
 }
 
 /**
+ *
+ * This functions writes generated json report(s) to a file
+ */
+function writeReportToFile(report: string, outputFile: string): void {
+  if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
+    console.log('an output file is required but a directory given');
+    return;
+  }
+  fs.writeFileSync(outputFile, report);
+}
+/**
+ *
+ * This functions writes generated json report(s) to a file of given directory
+ */
+function writeReportToDirectory(
+  report: string,
+  fileName: string,
+  directoryPath: string
+): void {
+  if (
+    fs.existsSync(directoryPath) &&
+    !fs.lstatSync(directoryPath).isDirectory()
+  ) {
+    console.log('an output directory is required but a file given');
+    return;
+  }
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath);
+  }
+  fs.writeFileSync(`${directoryPath}/${fileName}`, report);
+}
+
+function generateReportForAdhocRun(dtsFile: string, bundleFile: string): void {
+  const resolvedDtsFile = resolve(dtsFile);
+  const resolvedBundleFile = resolve(bundleFile);
+  if (!fs.existsSync(resolvedDtsFile) || !fs.existsSync(resolvedBundleFile)) {
+    console.log('Input dts file or bundle file does not exist!');
+    return;
+  }
+  const publicAPI = extractDeclarations(resolvedDtsFile);
+  const map: Map<string, string> = buildMap(publicAPI);
+  buildJsonReport(publicAPI, bundleFile, map)
+    .then(json => {
+      writeReportToFile(json, resolve(argv.output));
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}
+
+function generateReportForModule(moduleLocations: string[]): void {
+  for (const moduleLocation of moduleLocations) {
+    // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
+    // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
+    traverseDirs(moduleLocation, collectBinarySize, 0, 1);
+  }
+}
+
+/**
  * Entry Point of the Tool.
  * Checks whether --module flag is specified; run analysis on all modules if not.
  *
  */
 async function main() {
-  // retrieve All Module Names
-  let allModulesLocation = await mapWorkspaceToPackages([
-    `${projectRoot}/packages-exp/*`
-  ]);
-
-  if (argv.module) {
-    allModulesLocation = allModulesLocation.filter(path => {
-      try {
-        const json = require(`${path}/package.json`);
-        return argv.module.includes(json.name);
-      } catch (err) {
-        return null;
-      }
-    });
-  }
-
-  for (const moduleLocation of allModulesLocation) {
-    // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
-    // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(moduleLocation, collectBinarySize, 0, 1);
+  // check if it's an adhoc run
+  if (argv.inputDtsFile && argv.inputBundleFile) {
+    generateReportForAdhocRun(argv.inputDtsFile, argv.inputBundleFile);
+  } else if (!argv.inputDtsFile && !argv.inputBundleFile) {
+    // retrieve All Module Names
+    let allModulesLocation = await mapWorkspaceToPackages([
+      `${projectRoot}/packages-exp/*`
+    ]);
+    if (argv.inputModule) {
+      allModulesLocation = allModulesLocation.filter(path => {
+        try {
+          const json = require(`${path}/package.json`);
+          return argv.inputModule.includes(json.name);
+        } catch (err) {
+          return null;
+        }
+      });
+    }
+    generateReportForModule(allModulesLocation);
+  } else {
+    console.log('Invalid command flag combinations!');
   }
 }
 
