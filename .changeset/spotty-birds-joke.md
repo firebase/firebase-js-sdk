@@ -1,5 +1,5 @@
 ---
-"@firebase/storage": patch,
+"@firebase/storage": patch
 "firebase": patch
 ---
 
