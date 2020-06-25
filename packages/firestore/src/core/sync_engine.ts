@@ -211,54 +211,9 @@ export interface SyncEngine extends RemoteSyncer {
    */
   registerPendingWritesCallback(callback: Deferred<void>): Promise<void>;
 
-  /**
-   * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
-   * if there are any.
-   */
-  triggerPendingWritesCallbacks(batchId: BatchId): void;
-
-  /** Reject all outstanding callbacks waiting for pending writes to complete. */
-  rejectOutstandingPendingWritesCallbacks(errorMessage: string): void;
-
-  addMutationCallback(batchId: BatchId, callback: Deferred<void>): void;
-
-  /**
-   * Resolves or rejects the user callback for the given batch and then discards
-   * it.
-   */
-  processUserCallback(batchId: BatchId, error: Error | null): void;
-
-  removeAndCleanupTarget(targetId: number, error: Error | null): void;
-
-  removeLimboTarget(key: DocumentKey): void;
-
-  updateTrackedLimbos(
-    targetId: TargetId,
-    limboChanges: LimboDocumentChange[]
-  ): void;
-
-  trackLimboChange(limboChange: AddedLimboDocument): void;
-
-  /**
-   * Starts listens for documents in limbo that are enqueued for resolution,
-   * subject to a maximum number of concurrent resolutions.
-   *
-   * Without bounding the number of concurrent resolutions, the server can fail
-   * with "resource exhausted" errors which can lead to pathological client
-   * behavior as seen in https://github.com/firebase/firebase-js-sdk/issues/2683.
-   */
-  pumpEnqueuedLimboResolutions(): void;
-
   activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId>;
 
   enqueuedLimboDocumentResolutions(): DocumentKey[];
-
-  emitNewSnapsAndNotifyLocalStore(
-    changes: MaybeDocumentMap,
-    remoteEvent?: RemoteEvent
-  ): Promise<void>;
-
-  assertSubscribed(fnName: string): void;
 
   handleCredentialChange(user: User): Promise<void>;
 
@@ -691,7 +646,11 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  triggerPendingWritesCallbacks(batchId: BatchId): void {
+  /**
+   * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
+   * if there are any.
+   */
+  private triggerPendingWritesCallbacks(batchId: BatchId): void {
     (this.pendingWritesCallbacks.get(batchId) || []).forEach(callback => {
       callback.resolve();
     });
@@ -699,7 +658,8 @@ class SyncEngineImpl implements SyncEngine {
     this.pendingWritesCallbacks.delete(batchId);
   }
 
-  rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
+  /** Reject all outstanding callbacks waiting for pending writes to complete. */
+  private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
     this.pendingWritesCallbacks.forEach(callbacks => {
       callbacks.forEach(callback => {
         callback.reject(new FirestoreError(Code.CANCELLED, errorMessage));
@@ -709,7 +669,10 @@ class SyncEngineImpl implements SyncEngine {
     this.pendingWritesCallbacks.clear();
   }
 
-  addMutationCallback(batchId: BatchId, callback: Deferred<void>): void {
+  private addMutationCallback(
+    batchId: BatchId,
+    callback: Deferred<void>
+  ): void {
     let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
     if (!newCallbacks) {
       newCallbacks = new SortedMap<BatchId, Deferred<void>>(
@@ -720,7 +683,11 @@ class SyncEngineImpl implements SyncEngine {
     this.mutationUserCallbacks[this.currentUser.toKey()] = newCallbacks;
   }
 
-  processUserCallback(batchId: BatchId, error: Error | null): void {
+  /**
+   * Resolves or rejects the user callback for the given batch and then discards
+   * it.
+   */
+  protected processUserCallback(batchId: BatchId, error: Error | null): void {
     let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
 
     // NOTE: Mutations restored from persistence won't have callbacks, so it's
@@ -743,7 +710,10 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  removeAndCleanupTarget(targetId: number, error: Error | null = null): void {
+  protected removeAndCleanupTarget(
+    targetId: number,
+    error: Error | null = null
+  ): void {
     this.sharedClientState.removeLocalQueryTarget(targetId);
 
     debugAssert(
@@ -773,7 +743,7 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  removeLimboTarget(key: DocumentKey): void {
+  private removeLimboTarget(key: DocumentKey): void {
     // It's possible that the target already got removed because the query failed. In that case,
     // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
     const limboTargetId = this.activeLimboTargetsByKey.get(key);
@@ -788,7 +758,7 @@ class SyncEngineImpl implements SyncEngine {
     this.pumpEnqueuedLimboResolutions();
   }
 
-  updateTrackedLimbos(
+  protected updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
   ): void {
@@ -812,7 +782,7 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  trackLimboChange(limboChange: AddedLimboDocument): void {
+  private trackLimboChange(limboChange: AddedLimboDocument): void {
     const key = limboChange.key;
     if (!this.activeLimboTargetsByKey.get(key)) {
       logDebug(LOG_TAG, 'New document in limbo: ' + key);
@@ -821,7 +791,15 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  pumpEnqueuedLimboResolutions(): void {
+  /**
+   * Starts listens for documents in limbo that are enqueued for resolution,
+   * subject to a maximum number of concurrent resolutions.
+   *
+   * Without bounding the number of concurrent resolutions, the server can fail
+   * with "resource exhausted" errors which can lead to pathological client
+   * behavior as seen in https://github.com/firebase/firebase-js-sdk/issues/2683.
+   */
+  private pumpEnqueuedLimboResolutions(): void {
     while (
       this.enqueuedLimboResolutions.length > 0 &&
       this.activeLimboTargetsByKey.size < this.maxConcurrentLimboResolutions
@@ -857,7 +835,7 @@ class SyncEngineImpl implements SyncEngine {
     return this.enqueuedLimboResolutions;
   }
 
-  async emitNewSnapsAndNotifyLocalStore(
+  protected async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
@@ -921,7 +899,7 @@ class SyncEngineImpl implements SyncEngine {
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
   }
 
-  assertSubscribed(fnName: string): void {
+  protected assertSubscribed(fnName: string): void {
     debugAssert(
       this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
@@ -1006,41 +984,7 @@ export function newSyncEngine(
 export interface MultiTabSyncEngine
   extends SharedClientStateSyncer,
     SyncEngine {
-  /**
-   * Reconcile the list of synced documents in an existing view with those
-   * from persistence.
-   */
-  synchronizeViewAndComputeSnapshot(queryView: QueryView): Promise<ViewChange>;
-
   applyPrimaryState(isPrimary: boolean): Promise<void>;
-
-  resetLimboDocuments(): void;
-
-  /**
-   * Reconcile the query views of the provided query targets with the state from
-   * persistence. Raises snapshots for any changes that affect the local
-   * client and returns the updated state of all target's query data.
-   *
-   * @param targets the list of targets with views that need to be recomputed
-   * @param transitionToPrimary `true` iff the tab transitions from a secondary
-   * tab to a primary tab
-   */
-  synchronizeQueryViewsAndRaiseSnapshots(
-    targets: TargetId[],
-    transitionToPrimary: boolean
-  ): Promise<TargetData[]>;
-
-  /**
-   * Creates a `Query` object from the specified `Target`. There is no way to
-   * obtain the original `Query`, so we synthesize a `Query` from the `Target`
-   * object.
-   *
-   * The synthesized result might be different from the original `Query`, but
-   * since the synthesized `Query` should return the same results as the
-   * original one (only the presentation of results might differ), the potential
-   * difference will not cause issues.
-   */
-  synthesizeTargetToQuery(target: Target): Query;
 }
 
 /**
@@ -1090,7 +1034,11 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     return super.disableNetwork();
   }
 
-  async synchronizeViewAndComputeSnapshot(
+  /**
+   * Reconcile the list of synced documents in an existing view with those
+   * from persistence.
+   */
+  private async synchronizeViewAndComputeSnapshot(
     queryView: QueryView
   ): Promise<ViewChange> {
     const queryResult = await this.localStore.executeQuery(
@@ -1214,7 +1162,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     }
   }
 
-  resetLimboDocuments(): void {
+  private resetLimboDocuments(): void {
     this.activeLimboResolutionsByTarget.forEach((_, targetId) => {
       this.remoteStore.unlisten(targetId);
     });
@@ -1225,7 +1173,16 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     );
   }
 
-  async synchronizeQueryViewsAndRaiseSnapshots(
+  /**
+   * Reconcile the query views of the provided query targets with the state from
+   * persistence. Raises snapshots for any changes that affect the local
+   * client and returns the updated state of all target's query data.
+   *
+   * @param targets the list of targets with views that need to be recomputed
+   * @param transitionToPrimary `true` iff the tab transitions from a secondary
+   * tab to a primary tab
+   */
+  private async synchronizeQueryViewsAndRaiseSnapshots(
     targets: TargetId[],
     transitionToPrimary: boolean
   ): Promise<TargetData[]> {
@@ -1279,7 +1236,17 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     return activeQueries;
   }
 
-  synthesizeTargetToQuery(target: Target): Query {
+  /**
+   * Creates a `Query` object from the specified `Target`. There is no way to
+   * obtain the original `Query`, so we synthesize a `Query` from the `Target`
+   * object.
+   *
+   * The synthesized result might be different from the original `Query`, but
+   * since the synthesized `Query` should return the same results as the
+   * original one (only the presentation of results might differ), the potential
+   * difference will not cause issues.
+   */
+  private synthesizeTargetToQuery(target: Target): Query {
     return new Query(
       target.path,
       target.collectionGroup,
