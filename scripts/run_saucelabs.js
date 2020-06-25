@@ -36,10 +36,12 @@ const { configFiles } = yargs
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
-  : glob
-      .sync(`{packages,integration}/*/karma.conf.js`)
-      // Automated tests in integration/firestore are currently disabled.
-      .filter(name => !name.includes('integration/firestore'));
+  : glob.sync(`{packages,integration}/*/karma.conf.js`).filter(
+      name =>
+        // Automated tests in integration/firestore and are currently disabled.
+        !name.includes('integration/firestore') &&
+        !name.includes('integration/messaging')
+    );
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
