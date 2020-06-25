@@ -1208,42 +1208,29 @@ export class DocumentReference<T = firestore.DocumentData>
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot<T>> {
     validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
     validateGetOptions('DocumentReference.get', options);
-    return new Promise(
-      (resolve: Resolver<firestore.DocumentSnapshot<T>>, reject: Rejecter) => {
-        if (options && options.source === 'cache') {
-          this.firestore
-            .ensureClientConfigured()
-            .getDocumentFromLocalCache(this._key)
-            .then(doc => {
-              resolve(
-                new DocumentSnapshot(
-                  this.firestore,
-                  this._key,
-                  doc,
-                  /*fromCache=*/ true,
-                  doc instanceof Document ? doc.hasLocalMutations : false,
-                  this._converter
-                )
-              );
-            }, reject);
-        } else {
-          getDocViaSnapshotListener(
-            this._firestoreClient,
-            this,
-            async snapshot => {
-              const viewSnapshot = await snapshot;
-              resolve(
-                viewSnapshot
-                  ? this._convertToDocSnapshot(viewSnapshot)
-                  : undefined
-              );
-            },
-            reject,
-            options
-          );
-        }
-      }
-    );
+
+    if (options && options.source === 'cache') {
+      return this.firestore
+        .ensureClientConfigured()
+        .getDocumentFromLocalCache(this._key)
+        .then(
+          doc =>
+            new DocumentSnapshot(
+              this.firestore,
+              this._key,
+              doc,
+              /*fromCache=*/ true,
+              doc instanceof Document ? doc.hasLocalMutations : false,
+              this._converter
+            )
+        );
+    } else {
+      return getDocViaSnapshotListener(
+        this._firestoreClient,
+        this,
+        options
+      ).then(snapshot => this._convertToDocSnapshot(snapshot));
+    }
   }
 
   withConverter<U>(
@@ -1315,10 +1302,9 @@ function addDocSnapshotListener<T>(
 export function getDocViaSnapshotListener<T>(
   firestoreClient: FirestoreClient,
   ref: DocumentKeyReference<T>,
-  resolve: Resolver<ViewSnapshot>,
-  reject: Rejecter,
   options?: firestore.GetOptions
-): void {
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
   const unlisten = addDocSnapshotListener(
     firestoreClient,
     ref,
@@ -1341,7 +1327,7 @@ export function getDocViaSnapshotListener<T>(
           // the server so we can deliver that even when you're
           // offline 2) Actually reject the Promise in the online case
           // if the document doesn't exist.
-          reject(
+          result.reject(
             new FirestoreError(
               Code.UNAVAILABLE,
               'Failed to get document because the client is ' + 'offline.'
@@ -1353,7 +1339,7 @@ export function getDocViaSnapshotListener<T>(
           options &&
           options.source === 'server'
         ) {
-          reject(
+          result.reject(
             new FirestoreError(
               Code.UNAVAILABLE,
               'Failed to get document from server. (However, this ' +
@@ -1363,12 +1349,13 @@ export function getDocViaSnapshotListener<T>(
             )
           );
         } else {
-          resolve(snap);
+          result.resolve(snap);
         }
       },
-      error: reject
+      error: e => result.reject(e)
     }
   );
+  return result.promise;
 }
 
 export class SnapshotMetadata implements firestore.SnapshotMetadata {

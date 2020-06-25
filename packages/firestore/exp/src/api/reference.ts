@@ -24,7 +24,6 @@ import { DocumentKeyReference } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot } from './snapshot';
-import { Rejecter, Resolver } from '../../../src/util/promise';
 import {
   getDocViaSnapshotListener,
   SnapshotMetadata
@@ -38,23 +37,8 @@ export function getDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return firestore._getFirestoreClient().then(async firestoreClient => {
-    return new Promise(
-      (resolve: Resolver<firestore.DocumentSnapshot<T>>, reject: Rejecter) => {
-        getDocViaSnapshotListener(
-          firestoreClient,
-          ref,
-          async snapshot => {
-            const viewSnapshot = await snapshot;
-            resolve(
-              viewSnapshot
-                ? convertToDocSnapshot(firestore, ref, viewSnapshot)
-                : undefined
-            );
-          },
-          reject
-        );
-      }
-    );
+    const viewSnapshot = await getDocViaSnapshotListener(firestoreClient, ref);
+    return convertToDocSnapshot(firestore, ref, viewSnapshot);
   });
 }
 
