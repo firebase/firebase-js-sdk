@@ -1,0 +1,416 @@
+{
+    "Apple": {
+        "dependencies": {
+            "functions": [],
+            "classes": [
+                "Apple"
+            ],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 943
+    },
+    "Student": {
+        "dependencies": {
+            "functions": [],
+            "classes": [
+                "Student"
+            ],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 947
+    },
+    "bar": {
+        "dependencies": {
+            "functions": [
+                "bar",
+                "bar1"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 995
+    },
+    "bar1": {
+        "dependencies": {
+            "functions": [
+                "bar1"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 967
+    },
+    "bar2": {
+        "dependencies": {
+            "functions": [
+                "bar",
+                "bar1",
+                "bar2"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 1049
+    },
+    "boo": {
+        "dependencies": {
+            "functions": [
+                "boo"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 965
+    },
+    "far": {
+        "dependencies": {
+            "functions": [
+                "far"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 968
+    },
+    "far1": {
+        "dependencies": {
+            "functions": [
+                "far1"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 970
+    },
+    "far3": {
+        "dependencies": {
+            "functions": [
+                "far3"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 970
+    },
+    "foo": {
+        "dependencies": {
+            "functions": [
+                "foo",
+                "foo1"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "f1",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 999
+    },
+    "foo1": {
+        "dependencies": {
+            "functions": [
+                "foo1"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "f1",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 971
+    },
+    "foo2": {
+        "dependencies": {
+            "functions": [
+                "foo2"
+            ],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "f1",
+                "f2",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 990
+    },
+    "SDK_VERSION": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "SDK_VERSION",
+                "defaultLogLevel",
+                "levelStringToEnum",
+                "version"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 985
+    },
+    "VAR": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "VAR",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 949
+    },
+    "f1": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "f1",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 943
+    },
+    "f2": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "f2",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 943
+    },
+    "fooo": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "fooo",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 948
+    },
+    "var2": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum",
+                "var2"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 938
+    },
+    "var3": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum",
+                "var3"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 964
+    },
+    "BUG": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 928
+    },
+    "LogLevel": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 933
+    },
+    "LogLevel1": {
+        "dependencies": {
+            "functions": [],
+            "classes": [],
+            "variables": [
+                "ConsoleMethod",
+                "defaultLogLevel",
+                "levelStringToEnum"
+            ],
+            "enums": [
+                "BUG",
+                "LogLevel",
+                "LogLevel1"
+            ]
+        },
+        "sizeInBytes": 934
+    }
+}
