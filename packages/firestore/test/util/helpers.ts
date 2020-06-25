@@ -87,11 +87,19 @@ import { SortedSet } from '../../src/util/sorted_set';
 import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  toDocument,
+  toName,
+  toVersion
+} from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
+import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
+import { BundledDocuments } from '../../src/core/bundle';
+import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
@@ -398,6 +406,44 @@ export function docUpdateRemoteEvent(
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
+}
+
+export class TestBundledDocuments {
+  constructor(public documents: BundledDocuments) {}
+}
+
+export function bundledDocuments(
+  documents: MaybeDocument[]
+): TestBundledDocuments {
+  const result = documents.map(d => {
+    return {
+      metadata: {
+        name: toName(JSON_SERIALIZER, d.key),
+        readTime: toVersion(JSON_SERIALIZER, d.version),
+        exists: d instanceof Document
+      },
+      document:
+        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
+    };
+  });
+
+  return new TestBundledDocuments(result);
+}
+
+export function bundleMetadata(
+  id: string,
+  createTime: TestSnapshotVersion,
+  version = 1,
+  totalDocuments = 1,
+  totalBytes = 1000
+): BundleMetadata {
+  return {
+    id,
+    createTime: { seconds: createTime, nanos: 0 },
+    version,
+    totalDocuments,
+    totalBytes
+  };
 }
 
 export function updateMapping(

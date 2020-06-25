@@ -39,7 +39,7 @@ import { Bundle, NamedQuery } from '../core/bundle';
 export class IndexedDbBundleCache implements BundleCache {
   constructor(private serializer: LocalSerializer) {}
 
-  getBundle(
+  getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
   ): PersistencePromise<Bundle | undefined> {

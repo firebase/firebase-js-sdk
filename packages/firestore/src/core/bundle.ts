@@ -17,6 +17,17 @@
 
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
+import {
+  fromDocument,
+  fromName,
+  fromVersion,
+  JsonProtoSerializer
+} from '../remote/serializer';
+import * as bundleProto from '../protos/firestore_bundle_proto';
+import * as api from '../protos/firestore_proto_api';
+import { DocumentKey } from '../model/document_key';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { debugAssert } from '../util/assert';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -39,4 +50,51 @@ export interface NamedQuery {
   readonly query: Query;
   /** The time at which the results for this query were read. */
   readonly readTime: SnapshotVersion;
+}
+
+/**
+ * Represents a bundled document, including the metadata and the document
+ * itself, if it exists.
+ */
+interface BundledDocument {
+  metadata: bundleProto.BundledDocumentMetadata;
+  document: api.Document | undefined;
+}
+
+/**
+ * An array of `BundledDocument`.
+ */
+export type BundledDocuments = BundledDocument[];
+
+/**
+ * Helper to convert objects from bundles to model objects in the SDK.
+ */
+export class BundleConverter {
+  constructor(private serializer: JsonProtoSerializer) {}
+
+  toDocumentKey(name: string): DocumentKey {
+    return fromName(this.serializer, name);
+  }
+
+  /**
+   * Converts a BundleDocument to a MaybeDocument.
+   */
+  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
+    if (bundledDoc.metadata.exists) {
+      debugAssert(
+        !!bundledDoc.document,
+        'Document is undefined when metadata.exist is true.'
+      );
+      return fromDocument(this.serializer, bundledDoc.document!, false);
+    } else {
+      return new NoDocument(
+        this.toDocumentKey(bundledDoc.metadata.name!),
+        this.toSnapshotVersion(bundledDoc.metadata.readTime!)
+      );
+    }
+  }
+
+  toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
+    return fromVersion(time);
+  }
 }

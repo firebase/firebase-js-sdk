@@ -49,6 +49,7 @@ import {
 import { newConnectivityMonitor } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -96,7 +97,10 @@ export class MemoryComponentProvider implements ComponentProvider {
   remoteStore!: RemoteStore;
   eventManager!: EventManager;
 
+  serializer!: JsonProtoSerializer;
+
   async initialize(cfg: ComponentConfiguration): Promise<void> {
+    this.serializer = newSerializer(cfg.databaseInfo.databaseId);
     this.sharedClientState = this.createSharedClientState(cfg);
     this.persistence = this.createPersistence(cfg);
     await this.persistence.start();
@@ -134,7 +138,8 @@ export class MemoryComponentProvider implements ComponentProvider {
     return newLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      cfg.initialUser
+      cfg.initialUser,
+      this.serializer
     );
   }
 
@@ -145,8 +150,7 @@ export class MemoryComponentProvider implements ComponentProvider {
         MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
       );
     }
-    const serializer = newSerializer(cfg.databaseInfo.databaseId);
-    return new MemoryPersistence(MemoryEagerDelegate.factory, serializer);
+    return new MemoryPersistence(MemoryEagerDelegate.factory, this.serializer);
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
@@ -221,7 +225,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     return newMultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      cfg.initialUser
+      cfg.initialUser,
+      this.serializer
     );
   }
 
@@ -257,7 +262,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       cfg.databaseInfo
     );
-    const serializer = newSerializer(cfg.databaseInfo.databaseId);
     return new IndexedDbPersistence(
       cfg.persistenceSettings.synchronizeTabs,
       persistenceKey,
@@ -266,7 +270,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       cfg.asyncQueue,
       getWindow(),
       getDocument(),
-      serializer,
+      this.serializer,
       this.sharedClientState,
       cfg.persistenceSettings.forceOwningTab
     );

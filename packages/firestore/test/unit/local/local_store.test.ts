@@ -28,8 +28,11 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  applyBundleDocuments,
+  hasNewerBundle,
   LocalStore,
   LocalWriteResult,
+  saveBundle,
   newLocalStore,
   newMultiTabLocalStore
 } from '../../../src/local/local_store';
@@ -75,15 +78,21 @@ import {
   patchMutation,
   path,
   setMutation,
+  bundledDocuments,
+  TestBundledDocuments,
   TestSnapshotVersion,
   transformMutation,
   unknownDoc,
-  version
+  version,
+  bundleMetadata
 } from '../../util/helpers';
 
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
+import { BundledDocuments } from '../../../src/core/bundle';
+import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { BundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -112,7 +121,12 @@ class LocalStoreTester {
   }
 
   after(
-    op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
+    op:
+      | Mutation
+      | Mutation[]
+      | RemoteEvent
+      | LocalViewChanges
+      | TestBundledDocuments
   ): LocalStoreTester {
     if (op instanceof Mutation) {
       return this.afterMutations([op]);
@@ -120,8 +134,10 @@ class LocalStoreTester {
       return this.afterMutations(op);
     } else if (op instanceof LocalViewChanges) {
       return this.afterViewChanges(op);
-    } else {
+    } else if (op instanceof RemoteEvent) {
       return this.afterRemoteEvent(op);
+    } else {
+      return this.afterBundleDocuments(op.documents);
     }
   }
 
@@ -148,6 +164,17 @@ class LocalStoreTester {
       .then(() => {
         return this.localStore.applyRemoteEvent(remoteEvent);
       })
+      .then((result: MaybeDocumentMap) => {
+        this.lastChanges = result;
+      });
+    return this;
+  }
+
+  afterBundleDocuments(documents: BundledDocuments): LocalStoreTester {
+    this.prepareNextStep();
+
+    this.promiseChain = this.promiseChain
+      .then(() => applyBundleDocuments(this.localStore, documents))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -383,6 +410,25 @@ class LocalStoreTester {
     return this;
   }
 
+  toHaveNewerBundle(
+    metadata: BundleMetadata,
+    expected: boolean
+  ): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return hasNewerBundle(this.localStore, metadata).then(actual => {
+        expect(actual).to.equal(expected);
+      });
+    });
+    return this;
+  }
+
+  afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() =>
+      saveBundle(this.localStore, metadata)
+    );
+    return this;
+  }
+
   finish(): Promise<void> {
     return this.promiseChain;
   }
@@ -400,7 +446,8 @@ describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
     const localStore = newLocalStore(
       persistence,
       queryEngine,
-      User.UNAUTHENTICATED
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
     );
     return { queryEngine, persistence, localStore };
   }
@@ -418,7 +465,8 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
     const localStore = newLocalStore(
       persistence,
       queryEngine,
-      User.UNAUTHENTICATED
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
     );
     return { queryEngine, persistence, localStore };
   }
@@ -444,7 +492,8 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
     const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
-      User.UNAUTHENTICATED
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
     );
     await localStore.start();
     return { queryEngine, persistence, localStore };
@@ -471,7 +520,8 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
     const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
-      User.UNAUTHENTICATED
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
     );
     await localStore.start();
     return { queryEngine, persistence, localStore };
@@ -1479,6 +1529,128 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles saving bundled documents', () => {
+    return expectLocalStore()
+      .after(
+        bundledDocuments([
+          doc('foo/bar', 1, { sum: 1337 }),
+          deletedDoc('foo/bar1', 1)
+        ])
+      )
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1337 }),
+        deletedDoc('foo/bar1', 1)
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1337 }))
+      .toContain(deletedDoc('foo/bar1', 1))
+      .finish();
+  });
+
+  it('handles saving bundled documents with newer existing version', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .after(docAddedRemoteEvent(doc('foo/bar', 2, { sum: 1337 }), [2]))
+      .toContain(doc('foo/bar', 2, { sum: 1337 }))
+      .after(
+        bundledDocuments([
+          doc('foo/bar', 1, { sum: 1336 }),
+          deletedDoc('foo/bar1', 1)
+        ])
+      )
+      .toReturnChanged(deletedDoc('foo/bar1', 1))
+      .toContain(doc('foo/bar', 2, { sum: 1337 }))
+      .toContain(deletedDoc('foo/bar1', 1))
+      .finish();
+  });
+
+  it('handles saving bundled documents with older existing version', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { val: 'to-delete' }), [2]))
+      .toContain(doc('foo/bar', 1, { val: 'to-delete' }))
+      .after(
+        bundledDocuments([
+          doc('foo/new', 1, { sum: 1336 }),
+          deletedDoc('foo/bar', 2)
+        ])
+      )
+      .toReturnChanged(
+        doc('foo/new', 1, { sum: 1336 }),
+        deletedDoc('foo/bar', 2)
+      )
+      .toContain(doc('foo/new', 1, { sum: 1336 }))
+      .toContain(deletedDoc('foo/bar', 2))
+      .finish();
+  });
+
+  it('handles saving bundled documents with same existing version should not overwrite', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { val: 'old' }), [2]))
+      .toContain(doc('foo/bar', 1, { val: 'old' }))
+      .after(bundledDocuments([doc('foo/bar', 1, { val: 'new' })]))
+      .toReturnChanged()
+      .toContain(doc('foo/bar', 1, { val: 'old' }))
+      .finish();
+  });
+
+  it('handles MergeMutation with Transform -> BundledDocuments', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .afterMutations([
+        patchMutation('foo/bar', {}, Precondition.none()),
+        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
+      ])
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
+      .after(bundledDocuments([doc('foo/bar', 1, { sum: 1337 })]))
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles PatchMutation with Transform -> BundledDocuments', () => {
+    // Note: see comments in `handles PatchMutation with Transform -> RemoteEvent`.
+    // The behavior for this and remote event is the same.
+
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .afterMutations([
+        patchMutation('foo/bar', {}),
+        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
+      ])
+      .toReturnChanged(deletedDoc('foo/bar', 0))
+      .toNotContain('foo/bar')
+      .after(bundledDocuments([doc('foo/bar', 1, { sum: 1337 })]))
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles saving and checking bundle metadata', () => {
+    return expectLocalStore()
+      .toHaveNewerBundle(bundleMetadata('test', 2), false)
+      .afterSavingBundle(bundleMetadata('test', 2))
+      .toHaveNewerBundle(bundleMetadata('test', 1), true)
       .finish();
   });
 
