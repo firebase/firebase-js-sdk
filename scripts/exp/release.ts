@@ -15,20 +15,21 @@
  * limitations under the License.
  */
 
-const { spawn, exec } = require('child-process-promise');
-const ora = require('ora');
-const { projectRoot } = require('../utils');
-const simpleGit = require('simple-git/promise');
-const git = simpleGit(projectRoot);
-const { mapWorkspaceToPackages } = require('../release/utils/workspace');
-const { inc } = require('semver');
-const { readFile: _readFile, writeFile: _writeFile } = require('fs');
-const { promisify } = require('util');
+import { spawn, exec } from 'child-process-promise';
+import ora from 'ora';
+import { projectRoot } from '../utils';
+import simpleGit from 'simple-git/promise';
+
+import { mapWorkspaceToPackages } from '../release/utils/workspace';
+import { inc } from 'semver';
+import { readFile as _readFile, writeFile as _writeFile } from 'fs';
+import { promisify } from 'util';
+import chalk from 'chalk';
+import Listr from 'listr';
+
 const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
-const chalk = require('chalk');
-const Listr = require('listr');
-
+const git = simpleGit(projectRoot);
 const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
 
 async function publishExpPackages() {
@@ -73,7 +74,7 @@ async function publishExpPackages() {
      * reset the working tree to recover package names with -exp in the package.json files,
      * then bump patch version of firebase-exp (the umbrella package) only
      */
-    const firebaseExpVersion = new Map();
+    const firebaseExpVersion = new Map<string, string>();
     firebaseExpVersion.set(
       FIREBASE_UMBRELLA_PACKAGE_NAME,
       versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
@@ -86,7 +87,7 @@ async function publishExpPackages() {
     /**
      * push to github
      */
-    await commitAndPush(versions);
+    // await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
@@ -117,7 +118,7 @@ async function runTests() {
   });
 }
 
-async function updatePackageNamesAndVersions(packagePaths) {
+async function updatePackageNamesAndVersions(packagePaths: string[]) {
   // get package name -> next version mapping
   const versions = new Map();
   for (const path of packagePaths) {
@@ -145,7 +146,7 @@ async function updatePackageNamesAndVersions(packagePaths) {
   return versions;
 }
 
-async function publishToNpm(packagePaths) {
+async function publishToNpm(packagePaths: string[]) {
   const taskArray = await Promise.all(
     packagePaths.map(async pp => {
       const { version, name } = await readPackageJson(pp);
@@ -165,12 +166,15 @@ async function publishToNpm(packagePaths) {
   return tasks.run();
 }
 
-async function publishPackage(packagePath) {
-  const args = ['publish', '--access', 'public', '--tag', 'exp'];
+async function publishPackage(packagePath: string) {
+  const args = ['publish', '--dry-run', '--access', 'public', '--tag', 'exp'];
   await spawn('npm', args, { cwd: packagePath });
 }
 
-async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
+async function resetWorkingTreeAndBumpVersions(
+  packagePaths: string[],
+  versions: Map<string, string>
+) {
   console.log('Resetting working tree');
   await git.checkout('.');
 
@@ -182,9 +186,17 @@ async function resetWorkingTreeAndBumpVersions(packagePaths, versions) {
 }
 
 async function updatePackageJsons(
-  packagePaths,
-  versions,
-  { removeExpInName, updateVersions, makePublic }
+  packagePaths: string[],
+  versions: Map<string, string>,
+  {
+    removeExpInName,
+    updateVersions,
+    makePublic
+  }: {
+    removeExpInName: boolean;
+    updateVersions: boolean;
+    makePublic: boolean;
+  }
 ) {
   for (const path of packagePaths) {
     const packageJsonPath = `${path}/package.json`;
@@ -210,7 +222,7 @@ async function updatePackageJsons(
       // update dep version and remove -exp in dep names
       // don't care about devDependencies because they are irrelavant when using the package
       const dependencies = packageJson.dependencies || {};
-      const newDependenciesObj = {};
+      const newDependenciesObj: { [key: string]: string } = {};
       for (const d of Object.keys(dependencies)) {
         const dNextVersion = versions.get(d);
         const nameWithoutExp = removeExpInPackageName(d);
@@ -237,7 +249,7 @@ async function updatePackageJsons(
   }
 }
 
-async function commitAndPush(versions) {
+async function commitAndPush(versions: Map<string, string>) {
   await exec('git add */package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
@@ -255,7 +267,7 @@ async function commitAndPush(versions) {
   });
 }
 
-function removeExpInPackageName(name) {
+function removeExpInPackageName(name: string) {
   const regex = /^(.*firebase.*)-exp(.*)$/g;
 
   const captures = regex.exec(name);
@@ -266,7 +278,7 @@ function removeExpInPackageName(name) {
   return `${captures[1]}${captures[2]}`;
 }
 
-async function readPackageJson(packagePath) {
+async function readPackageJson(packagePath: string) {
   /**
    * Can't require here because require caches the file
    * in memory, so it may not contain the updates that are made by e.g. git commands
