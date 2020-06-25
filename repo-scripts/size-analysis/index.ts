@@ -16,7 +16,6 @@
  */
 import { LogLevel } from '@firebase/logger';
 import { license } from './package.json';
-import { basename } from 'path';
 // wildcard export
 export * from './src/bar';
 // named export
@@ -74,11 +73,6 @@ export function basicFuncExportEnumDependencies(): BasicEnumExport {
 
 export function basicFuncExternalDependencies(): LogLevel {
   return LogLevel.WARN;
-}
-
-export function basicFuncBuiltInModulesDependencies(): string {
-  const filePath: string = 'dummy/path/to/dummy/file';
-  return basename(filePath);
 }
 
 // re-export from firebase external module

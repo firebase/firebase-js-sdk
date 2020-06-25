@@ -18,8 +18,7 @@
 export * from './bar';
 
 export * from './foo';
-// import { SDK_VERSION } from './bar';
-// import { far } from './far';
+
 export { far1, far, far3 } from './far';
 export const VAR = 'variable';
 export let var2: string;
@@ -55,7 +54,5 @@ export type LogLevel2 =
   | 'warn'
   | 'info'
   | 'verbose';
-
-// far(SDK_VERSION);
 
 export { LogLevel } from '@firebase/logger';
