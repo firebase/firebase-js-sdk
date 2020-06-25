@@ -26,6 +26,7 @@ import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
+import { AuthErrorCode } from '../errors';
 
 export interface UserParameters {
   uid: string;
@@ -195,6 +196,8 @@ export class UserImpl implements User {
   ): Promise<User> {
     const stsTokenManager = new StsTokenManager();
     stsTokenManager.updateFromServerResponse(idTokenResponse);
+
+    assert(idTokenResponse.localId, auth.name, AuthErrorCode.INTERNAL_ERROR);
 
     // Initialize the Firebase Auth user.
     const user = new UserImpl({

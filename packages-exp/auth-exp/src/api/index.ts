@@ -28,6 +28,7 @@ import {
   ServerErrorMap
 } from './errors';
 import { fail } from '../core/util/assert';
+import { IdTokenMfaResponse } from './authentication/mfa';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -156,10 +157,10 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
     request,
     customErrorMap
   );
-  if (serverResponse.mfaPendingCredential) {
+  if ('mfaPendingCredential' in serverResponse) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
       appName: auth.name,
-      serverResponse
+      serverResponse: serverResponse as IdTokenMfaResponse
     });
   }
 

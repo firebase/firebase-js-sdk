@@ -16,15 +16,14 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 
+import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+import { _handleMfaErrors } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
-import { _parseToken } from '../user/id_token_result';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
-import { _reloadWithoutSaving } from '../user/reload';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
 export async function signInWithCredential(
@@ -33,12 +32,17 @@ export async function signInWithCredential(
 ): Promise<UserCredential> {
   const auth = authExtern as Auth;
   const credential = credentialExtern as AuthCredential;
-  // TODO: handle mfa by wrapping with callApiWithMfaContext
-  const response = await credential._getIdTokenResponse(auth);
+  const operationType = OperationType.SIGN_IN;
+  const response = await _handleMfaErrors(
+    auth,
+    operationType,
+    credential._getIdTokenResponse(auth),
+    credential
+  );
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     auth,
     credential,
-    OperationType.SIGN_IN,
+    operationType,
     response
   );
   await auth.updateCurrentUser(userCredential.user);
@@ -56,7 +60,8 @@ export async function linkWithCredential(
 
   return _link(
     user,
-    credential._linkToIdToken(user.auth, await user.getIdToken())
+    credential._linkToIdToken(user.auth, await user.getIdToken()),
+    credential
   );
 }
 
@@ -69,6 +74,7 @@ export async function reauthenticateWithCredential(
 
   return _reauthenticate(
     user,
-    credential._getReauthenticationResolver(user.auth)
+    credential._getReauthenticationResolver(user.auth),
+    credential
   );
 }

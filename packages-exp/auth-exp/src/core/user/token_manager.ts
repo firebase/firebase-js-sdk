@@ -51,7 +51,7 @@ export class StsTokenManager {
     refreshToken,
     expiresIn: expiresInSec
   }: IdTokenResponse): void {
-    this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec);
+    this.updateTokensAndExpiration(idToken, refreshToken, expiresInSec || null);
   }
 
   async getToken(auth: Auth, forceRefresh = false): Promise<Tokens | null> {
@@ -112,9 +112,9 @@ export class StsTokenManager {
   ): void {
     this.refreshToken = refreshToken;
     this.accessToken = accessToken;
-    this.expirationTime = expiresInSec
-      ? Date.now() + Number(expiresInSec) * 1000
-      : null;
+    if (expiresInSec) {
+      this.expirationTime = Date.now() + Number(expiresInSec) * 1000;
+    }
   }
 
   static fromPlainObject(

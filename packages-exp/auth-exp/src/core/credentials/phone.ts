@@ -43,21 +43,21 @@ export class PhoneAuthCredential
   constructor(private readonly params: PhoneAuthCredentialParameters) {}
 
   _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
-    return signInWithPhoneNumber(auth, this.makeVerificationRequest());
+    return signInWithPhoneNumber(auth, this._makeVerificationRequest());
   }
 
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
-      ...this.makeVerificationRequest()
+      ...this._makeVerificationRequest()
     });
   }
 
   _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
-    return verifyPhoneNumberForExisting(auth, this.makeVerificationRequest());
+    return verifyPhoneNumberForExisting(auth, this._makeVerificationRequest());
   }
 
-  private makeVerificationRequest(): SignInWithPhoneNumberRequest {
+  _makeVerificationRequest(): SignInWithPhoneNumberRequest {
     const {
       temporaryProof,
       phoneNumber,

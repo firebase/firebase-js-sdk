@@ -46,20 +46,16 @@ export interface ParsedIdToken {
  * IdToken as returned by the API
  */
 export interface IdTokenResponse {
-  expiresIn: string;
   idToken: IdToken;
-  localId: string;
-  providerId?: ProviderId;
   refreshToken: string;
-
-  // MFA-specific fields
-  mfaInfo?: APIMFAInfo[];
-  mfaPendingCredential?: string;
+  expiresIn?: string;
+  localId?: string;
+  providerId?: ProviderId;
 
   // Used in AdditionalUserInfo
   displayName?: string | null;
   isNewUser?: boolean;
-  kind: IdTokenResponseKind;
+  kind?: IdTokenResponseKind;
   photoUrl?: string | null;
   rawUserInfo?: string;
   screenName?: string | null;
@@ -83,14 +79,4 @@ export const enum IdTokenResponseKind {
   VerifyAssertion = 'identitytoolkit#VerifyAssertionResponse',
   VerifyCustomToken = 'identitytoolkit#VerifyCustomTokenResponse',
   VerifyPassword = 'identitytoolkit#VerifyPasswordResponse'
-}
-
-/**
- * MFA Info as returned by the API
- */
-export interface APIMFAInfo {
-  phoneInfo?: string;
-  mfaEnrollmentId?: string;
-  displayName?: string;
-  enrolledAt?: number;
 }

@@ -18,8 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
+import { _handleMfaErrors } from '../../mfa/mfa_error';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
+import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
@@ -58,13 +60,18 @@ export async function unlink(
  */
 export async function _link(
   user: User,
-  linkAction: Promise<IdTokenResponse>
+  linkAction: Promise<IdTokenResponse>,
+  credential?: AuthCredential
 ): Promise<UserCredentialImpl> {
-  return UserCredentialImpl._forOperation(
-    user,
-    externs.OperationType.LINK,
-    await linkAction
+  const operationType = externs.OperationType.LINK;
+  const response = await _handleMfaErrors(
+    user.auth,
+    operationType,
+    linkAction,
+    credential,
+    user
   );
+  return UserCredentialImpl._forOperation(user, operationType, response);
 }
 
 export async function _assertLinkedStatus(

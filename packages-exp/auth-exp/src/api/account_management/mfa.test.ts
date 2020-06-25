@@ -26,7 +26,11 @@ import { testAuth } from '../../../test/mock_auth';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
-import { enrollPhoneMfa, startEnrollPhoneMfa, withdrawMfa } from './mfa';
+import {
+  finalizeEnrollPhoneMfa,
+  startEnrollPhoneMfa,
+  withdrawMfa
+} from './mfa';
 
 use(chaiAsPromised);
 
@@ -57,7 +61,10 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
 
     const response = await startEnrollPhoneMfa(auth, request);
     expect(response.phoneSessionInfo.sessionInfo).to.eq('session-info');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -88,12 +95,16 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
   });
 });
 
-describe('api/account_management/enrollPhoneMfa', () => {
+describe('api/account_management/finalizeEnrollPhoneMfa', () => {
   const request = {
+    idToken: 'id-token',
     phoneVerificationInfo: {
       temporaryProof: 'temporary-proof',
       phoneNumber: 'phone-number',
@@ -117,10 +128,13 @@ describe('api/account_management/enrollPhoneMfa', () => {
       idToken: 'id-token'
     });
 
-    const response = await enrollPhoneMfa(auth, request);
+    const response = await finalizeEnrollPhoneMfa(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -147,11 +161,14 @@ describe('api/account_management/enrollPhoneMfa', () => {
       400
     );
 
-    await expect(enrollPhoneMfa(auth, request)).to.be.rejectedWith(
+    await expect(finalizeEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The verification ID used to create the phone auth credential is invalid. (auth/invalid-verification-id).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
   });
 });
 
@@ -179,7 +196,10 @@ describe('api/account_management/withdrawMfa', () => {
     const response = await withdrawMfa(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -210,6 +230,9 @@ describe('api/account_management/withdrawMfa', () => {
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({
+      tenantId: null,
+      ...request
+    });
   });
 });

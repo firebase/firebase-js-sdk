@@ -20,7 +20,8 @@ import {
   ErrorFn,
   NextFn,
   Observer,
-  Unsubscribe
+  Unsubscribe,
+  FirebaseError
 } from '@firebase/util';
 
 /**
@@ -94,6 +95,18 @@ export interface ParsedToken {
  * TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway?
  */
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
+
+/**
+ * https://firebase.google.com/docs/reference/js/firebase.auth.AuthError
+ */
+export interface AuthError extends FirebaseError {
+  readonly appName: string;
+
+  readonly credential?: AuthCredential;
+  readonly email?: string;
+  readonly phoneNumber?: string;
+  readonly tenantid?: string;
+}
 
 /**
  * https://firebase.google.com/docs/reference/js/firebase.auth.AuthSettings
@@ -319,7 +332,14 @@ export interface ConfirmationResult {
  * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorassertion
  */
 export interface MultiFactorAssertion {
-  readonly factorId: string;
+  readonly factorId: ProviderId;
+}
+
+/**
+ * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorerror
+ */
+export interface MultiFactorError extends AuthError {
+  readonly operationType: OperationType;
 }
 
 /**
@@ -329,7 +349,17 @@ export interface MultiFactorInfo {
   readonly uid: string;
   readonly displayName?: string | null;
   readonly enrollmentTime: string;
-  readonly factorId: string;
+  readonly factorId: ProviderId;
+}
+
+/**
+ * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorresolver
+ */
+export abstract class MultiFactorResolver {
+  auth: Auth;
+  hints: MultiFactorInfo[];
+  session: MultiFactorSession;
+  resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
 }
 
 /**
@@ -351,12 +381,27 @@ export interface MultiFactorUser {
 }
 
 /**
+ * https://firebase.google.com/docs/reference/js/firebase.auth.phonemultifactorassertion
+ */
+export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
+
+/**
+ * https://firebase.google.com/docs/reference/js/firebase.auth.phonemultifactorgenerator
+ */
+export abstract class PhoneMultiFactorGenerator {
+  static FACTOR_ID: ProviderId;
+  static assertion(
+    phoneAuthCredential: PhoneAuthCredential
+  ): PhoneMultiFactorAssertion;
+}
+
+/**
  * https://firebase.google.com/docs/reference/js/firebase.auth#phoneinfooptions
  */
 export interface PhoneInfoOptions {
   phoneNumber: string;
-  // session?: MultiFactorSession;
-  // multiFactorHint?: MultiFactorInfo;
+  session?: MultiFactorSession;
+  multiFactorHint?: MultiFactorInfo;
 }
 
 export interface ReactNativeAsyncStorage {
@@ -372,7 +417,6 @@ export interface User extends UserInfo {
   readonly emailVerified: boolean;
   readonly isAnonymous: boolean;
   readonly metadata: UserMetadata;
-  /* readonly multiFactor: MultiFactorUser; */
   readonly providerData: UserInfo[];
   readonly refreshToken: string;
   readonly tenantId: string | null;
