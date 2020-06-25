@@ -16,7 +16,7 @@
  */
 
 import * as fs from 'fs';
-import { resolve, basename } from 'path';
+import { resolve, basename, dirname } from 'path';
 import {
   extractDependenciesAndSize,
   extractDeclarations,
@@ -25,15 +25,28 @@ import {
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
-import { getTsBuildInfoEmitOutputFilePath } from 'typescript';
+import * as yargs from 'yargs';
 
 export const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
-const OUTPUTDIR: string = './dependencies';
-const DUMMYMODULE: string = '@firebase/dummy-exp';
-const FUNCTIONMODULE: string = '@firebase/functions-exp';
-const APPMODULE: string = '@firebase/app-exp';
-const AUTHMODULE: string = '@firebase/auth-exp';
+
+const argv = yargs
+  .options({
+    module: {
+      type: 'array',
+      alias: 'm',
+      desc:
+        'the name of the module(s) to be ran the tool on. example: --modules "@firebase/functions-exp", "firebase/auth-exp"'
+    },
+    output: {
+      type: 'string',
+      alias: 'o',
+      demandOption: true,
+      desc:
+        'The location to write the JSON output to, a directory path if multiple modules are specified; a file path if one module is specified'
+    }
+  })
+  .help().argv;
 
 function collectBinarySize(path: string) {
   const packageJsonPath = `${path}/package.json`;
@@ -44,12 +57,11 @@ function collectBinarySize(path: string) {
   const packageJson = require(packageJsonPath);
 
   // to exclude <modules>-types modules
-  if (packageJson[TYPINGS] && packageJson.name == FUNCTIONMODULE) {
+  if (packageJson[TYPINGS]) {
     const dtsFile = `${path}/${packageJson[TYPINGS]}`;
     // extract all export declarations
 
     const publicApi = extractDeclarations(resolve(dtsFile));
-    //console.log(publicApi);
 
     if (!packageJson[BUNDLE]) {
       console.log('This module does not have bundle file!');
@@ -57,14 +69,68 @@ function collectBinarySize(path: string) {
     }
     const map: Map<string, string> = buildMap(publicApi);
     //calculate binary size for every export and build a json report
-    buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, map).then(json => {
-      console.log(json);
-
-      fs.writeFileSync(
-        resolve(`${basename(packageJson.name)}-dependencies.json`),
-        json
-      );
-    });
+    buildJson(publicApi, `${path}/${packageJson[BUNDLE]}`, map)
+      .then(json => {
+        const resolvedOutputPath = resolve(`${argv.output}`);
+        if (!argv.module || argv.module.length > 1) {
+          if (fs.existsSync(resolvedOutputPath)) {
+            if (fs.lstatSync(resolvedOutputPath).isDirectory()) {
+              fs.writeFileSync(
+                `${resolvedOutputPath}/${basename(
+                  packageJson.name
+                )}-dependencies.json`,
+                json
+              );
+            } else {
+              console.log(
+                'as multiple modules are analysized, an output directory is required, but a file path given'
+              );
+              console.log(json);
+            }
+          } else {
+            fs.mkdir(resolvedOutputPath, { recursive: true }, error => {
+              if (error) {
+                console.log(`errors on creating output directory: ${error}`);
+                console.log(json);
+              } else {
+                fs.writeFileSync(
+                  `${resolvedOutputPath}/${basename(
+                    packageJson.name
+                  )}-dependencies.json`,
+                  json
+                );
+              }
+            });
+          }
+        } else {
+          if (fs.existsSync(resolvedOutputPath)) {
+            if (fs.lstatSync(resolvedOutputPath).isFile()) {
+              fs.writeFileSync(`${resolvedOutputPath}`, json);
+            } else {
+              console.log(
+                'as only one module is analysized, an output file is required, but a directory path given'
+              );
+              console.log(json);
+            }
+          } else {
+            fs.mkdir(
+              dirname(resolvedOutputPath),
+              { recursive: true },
+              error => {
+                if (error) {
+                  console.log(`errors on creating output directory: ${error}`);
+                  console.log(json);
+                } else {
+                  fs.writeFileSync(`${resolvedOutputPath}`, json);
+                }
+              }
+            );
+          }
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 }
 function buildMap(api: MemberList): Map<string, string> {
@@ -116,7 +182,6 @@ async function buildJson(
   for (const exp of publicApi.functions) {
     result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
   }
-  //console.log(publicApi.variables);
   for (const exp of publicApi.variables) {
     result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
   }
@@ -129,9 +194,21 @@ async function buildJson(
 
 async function main() {
   // retrieve All Modules Name
-  const allModulesLocation = await mapWorkspaceToPackages([
+  let allModulesLocation = await mapWorkspaceToPackages([
     `${projectRoot}/packages-exp/*`
   ]);
+
+  if (argv.module) {
+    allModulesLocation = allModulesLocation.filter(path => {
+      try {
+        const json = require(`${path}/package.json`);
+        return argv.module.includes(json.name);
+      } catch (err) {
+        return null;
+      }
+    });
+  }
+
   for (const moduleLocation of allModulesLocation) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
