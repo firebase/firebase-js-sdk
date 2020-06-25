@@ -67,6 +67,7 @@ export class WriteBatch implements firestore.WriteBatch {
 
     const parsed = this._dataReader.parseSetData(
       'WriteBatch.set',
+      ref._key,
       convertedValue,
       options
     );
@@ -103,6 +104,7 @@ export class WriteBatch implements firestore.WriteBatch {
     ) {
       parsed = this._dataReader.parseUpdateVarargs(
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -110,6 +112,7 @@ export class WriteBatch implements firestore.WriteBatch {
     } else {
       parsed = this._dataReader.parseUpdateData(
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData
       );
     }

@@ -17,10 +17,11 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import path from 'path';
 
 import { resolveNodeExterns } from './rollup.shared';
 
-import pkg from './package.json';
+import pkg from './exp/package.json';
 
 const defaultPlugins = [
   typescriptPlugin({
@@ -38,7 +39,7 @@ const nodeBuilds = [
   {
     input: './exp/index.node.ts',
     output: {
-      file: pkg.exp,
+      file: path.resolve('./exp', pkg.main),
       format: 'es'
     },
     plugins: defaultPlugins,
