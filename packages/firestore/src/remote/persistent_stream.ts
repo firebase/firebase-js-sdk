@@ -30,20 +30,17 @@ import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import {
-  fromBytes,
   fromVersion,
   fromWatchChange,
   fromWriteResults,
   getEncodedDatabaseId,
   JsonProtoSerializer,
-  toBytes,
   toListenRequestLabels,
   toMutation,
   toTarget,
   versionFromListenResponse
 } from './serializer';
 import { WatchChange } from './watch_change';
-import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -679,7 +676,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
+  private lastStreamToken: string | Uint8Array | undefined;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and
@@ -692,7 +689,7 @@ export class PersistentWriteStream extends PersistentStream<
   // Override of PersistentStream.start
   start(): void {
     this.handshakeComplete_ = false;
-    this.lastStreamToken = ByteString.EMPTY_BYTE_STRING;
+    this.lastStreamToken = undefined;
     super.start();
   }
 
@@ -717,10 +714,7 @@ export class PersistentWriteStream extends PersistentStream<
       !!responseProto.streamToken,
       'Got a write response without a stream token'
     );
-    this.lastStreamToken = fromBytes(
-      this.serializer,
-      responseProto.streamToken
-    );
+    this.lastStreamToken = responseProto.streamToken;
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
@@ -754,7 +748,7 @@ export class PersistentWriteStream extends PersistentStream<
     debugAssert(this.isOpen(), 'Writing handshake requires an opened stream');
     debugAssert(!this.handshakeComplete_, 'Handshake already completed');
     debugAssert(
-      this.lastStreamToken.isEqual(ByteString.EMPTY_BYTE_STRING),
+      !this.lastStreamToken,
       'Stream token should be empty during handshake'
     );
     // TODO(dimond): Support stream resumption. We intentionally do not set the
@@ -772,12 +766,12 @@ export class PersistentWriteStream extends PersistentStream<
       'Handshake must be complete before writing mutations'
     );
     debugAssert(
-      this.lastStreamToken.approximateByteSize() > 0,
+      !!this.lastStreamToken,
       'Trying to write mutation without a token'
     );
 
     const request: WriteRequest = {
-      streamToken: toBytes(this.serializer, this.lastStreamToken),
+      streamToken: this.lastStreamToken,
       writes: mutations.map(mutation => toMutation(this.serializer, mutation))
     };
 

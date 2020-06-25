@@ -78,6 +78,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -85,6 +86,7 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -144,6 +146,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -154,6 +157,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -242,7 +246,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97991
+        "sizeInBytes": 98075
     },
     "DocumentReference": {
         "dependencies": {
@@ -632,7 +636,6 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
@@ -778,7 +781,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87202
+        "sizeInBytes": 86447
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1285,6 +1288,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1293,6 +1297,7 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -1358,6 +1363,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1370,6 +1376,7 @@
                 "registerFirestore",
                 "serverTimestamp",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -1474,7 +1481,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 108269
+        "sizeInBytes": 108353
     },
     "arrayRemove": {
         "dependencies": {
@@ -1712,6 +1719,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1720,6 +1728,7 @@
                 "collection",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -1779,6 +1788,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1789,6 +1799,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -1878,7 +1889,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98619
+        "sizeInBytes": 98703
     },
     "collectionGroup": {
         "dependencies": {
@@ -1896,6 +1907,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1904,6 +1916,7 @@
                 "collectionGroup",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -1963,6 +1976,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1973,6 +1987,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -2060,7 +2075,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98050
+        "sizeInBytes": 98134
     },
     "deleteDoc": {
         "dependencies": {
@@ -2258,6 +2273,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -2265,6 +2281,7 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -2325,6 +2342,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -2336,6 +2354,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -2426,7 +2445,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99440
+        "sizeInBytes": 99524
     },
     "documentId": {
         "dependencies": {
@@ -2679,7 +2698,6 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
@@ -2848,7 +2866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 93121
+        "sizeInBytes": 92366
     },
     "increment": {
         "dependencies": {
@@ -3032,6 +3050,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -3039,6 +3058,7 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -3098,6 +3118,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parent",
                 "parseArray",
@@ -3109,6 +3130,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -3197,7 +3219,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98334
+        "sizeInBytes": 98418
     },
     "queryEqual": {
         "dependencies": {
@@ -3219,7 +3241,6 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
@@ -3366,7 +3387,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87406
+        "sizeInBytes": 86651
     },
     "refEqual": {
         "dependencies": {
@@ -3384,6 +3405,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -3391,6 +3413,7 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
@@ -3450,6 +3473,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -3461,6 +3485,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -3549,7 +3574,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98276
+        "sizeInBytes": 98360
     },
     "runTransaction": {
         "dependencies": {
@@ -4021,7 +4046,6 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
@@ -4170,7 +4194,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88139
+        "sizeInBytes": 87384
     },
     "terminate": {
         "dependencies": {
