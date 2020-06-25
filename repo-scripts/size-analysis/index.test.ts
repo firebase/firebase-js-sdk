@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { extractDeclarations, MemberList } from './analysis-helper';
 
 import { projectRoot } from '../../scripts/utils';
-import mlog from 'mocha-logger';
 
 function retrieveTestModuleDtsFile(): string {
   const moduleLocation = `${projectRoot}/repo-scripts/size-analysis`;
@@ -38,7 +37,6 @@ describe('extractDeclarations', () => {
     testModuleDtsFile = retrieveTestModuleDtsFile();
 
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
-    console.log(extractDeclarations);
   });
   it('test basic variable extractions', () => {
     expect(extractedDeclarations.variables).to.include.members([
