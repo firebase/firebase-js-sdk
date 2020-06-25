@@ -211,8 +211,10 @@ export interface SyncEngine extends RemoteSyncer {
    */
   registerPendingWritesCallback(callback: Deferred<void>): Promise<void>;
 
+  // Visible for testing
   activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId>;
 
+  // Visible for testing
   enqueuedLimboDocumentResolutions(): DocumentKey[];
 
   handleCredentialChange(user: User): Promise<void>;
@@ -977,7 +979,7 @@ export function newSyncEngine(
 }
 
 /**
- * An extension of SyncEngine that also include SharedClientStateSyncer for
+ * An extension of SyncEngine that also includes SharedClientStateSyncer for
  * Multi-Tab synchronization.
  */
 // PORTING NOTE: Web only
