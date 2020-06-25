@@ -1372,14 +1372,16 @@ apiDescribe('Database', (persistence: boolean) => {
       return withTestDb(persistence, async db => {
         const ref = db
           .collection('posts')
-          .doc()
+          .doc('some-post')
           .withConverter(postConverter);
         await ref.set(new Post('walnut', 'author'));
         const batch = db.batch();
         expect(() =>
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
-          'Function toFirestore() in WriteBatch.set() called with invalid data. Unsupported field value: undefined (found in field author)'
+          'Function toFirestore() in WriteBatch.set() called with invalid ' +
+            'data. Unsupported field value: undefined (found in field author ' +
+            'in document posts/some-post)'
         );
       });
     });
