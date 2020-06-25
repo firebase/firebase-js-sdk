@@ -711,7 +711,7 @@ class LocalStoreImpl implements LocalStore {
       let changedDocs = maybeDocumentMap();
       documents.forEach((key, doc) => {
         const existingDoc = existingDocs.get(key);
-        const docReadTime = documentVersions?.get(key) ?? globalVersion;
+        const docReadTime = documentVersions?.get(key) || globalVersion;
 
         // Note: The order of the steps below is important, since we want
         // to ensure that rejected limbo resolutions (which fabricate

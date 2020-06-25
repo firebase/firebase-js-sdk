@@ -54,7 +54,7 @@ export interface NamedQuery {
 
 /**
  * Represents a bundled document, including the metadata and the document
- * itself, if exists.
+ * itself, if it exists.
  */
 interface BundledDocument {
   metadata: bundleProto.BundledDocumentMetadata;
@@ -77,7 +77,7 @@ export class BundleConverter {
   }
 
   /**
-   * Converts a [metadata, document] pair to a MaybeDocument.
+   * Converts a BundleDocument to a MaybeDocument.
    */
   toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
     if (bundledDoc.metadata.exists) {
