@@ -488,6 +488,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore-exp': FirebaseFirestore;
   }
 }

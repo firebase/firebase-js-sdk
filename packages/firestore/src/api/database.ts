@@ -1130,7 +1130,7 @@ export class DocumentReference<T = firestore.DocumentData>
     let options: firestore.SnapshotListenOptions = {
       includeMetadataChanges: false
     };
-    let observer: PartialObserver<firestore.DocumentSnapshot<T>>;
+    let observer: PartialObserver<ViewSnapshot>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -1154,9 +1154,18 @@ export class DocumentReference<T = firestore.DocumentData>
     };
 
     if (isPartialObserver(args[currArg])) {
-      observer = args[currArg] as PartialObserver<
+      const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
+      observer = {
+        next: snapshot => {
+          if (userObserver.next) {
+            userObserver.next(this._convertToDocSnapshot(snapshot));
+          }
+        },
+        error: userObserver.error,
+        complete: userObserver.complete
+      };
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -1177,58 +1186,23 @@ export class DocumentReference<T = firestore.DocumentData>
         args[currArg + 2]
       );
       observer = {
-        next: args[currArg] as NextFn<firestore.DocumentSnapshot<T>>,
+        next: snapshot => {
+          if (args[currArg]) {
+            (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
+              this._convertToDocSnapshot(snapshot)
+            );
+          }
+        },
         error: args[currArg + 1] as ErrorFn,
         complete: args[currArg + 2] as CompleteFn
       };
     }
-    return this.onSnapshotInternal(internalOptions, observer);
-  }
-
-  private onSnapshotInternal(
-    options: ListenOptions,
-    observer: PartialObserver<firestore.DocumentSnapshot<T>>
-  ): Unsubscribe {
-    let errHandler = (err: Error): void => {
-      console.error('Uncaught Error in onSnapshot:', err);
-    };
-    if (observer.error) {
-      errHandler = observer.error.bind(observer);
-    }
-
-    const asyncObserver = new AsyncObserver<ViewSnapshot>({
-      next: snapshot => {
-        if (observer.next) {
-          debugAssert(
-            snapshot.docs.size <= 1,
-            'Too many documents returned on a document query'
-          );
-          const doc = snapshot.docs.get(this._key);
-
-          observer.next(
-            new DocumentSnapshot(
-              this.firestore,
-              this._key,
-              doc,
-              snapshot.fromCache,
-              snapshot.hasPendingWrites,
-              this._converter
-            )
-          );
-        }
-      },
-      error: errHandler
-    });
-    const internalListener = this._firestoreClient.listen(
-      InternalQuery.atPath(this._key.path),
-      asyncObserver,
-      options
+    return addDocSnapshotListener(
+      this._firestoreClient,
+      this,
+      internalOptions,
+      observer
     );
-
-    return () => {
-      asyncObserver.mute();
-      this._firestoreClient.unlisten(internalListener);
-    };
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot<T>> {
@@ -1253,62 +1227,21 @@ export class DocumentReference<T = firestore.DocumentData>
               );
             }, reject);
         } else {
-          this.getViaSnapshotListener(resolve, reject, options);
+          getDocViaSnapshotListener(
+            this._firestoreClient,
+            this,
+            async snapshot => {
+              const viewSnapshot = await snapshot;
+              resolve(
+                viewSnapshot
+                  ? this._convertToDocSnapshot(viewSnapshot)
+                  : undefined
+              );
+            },
+            reject,
+            options
+          );
         }
-      }
-    );
-  }
-
-  private getViaSnapshotListener(
-    resolve: Resolver<firestore.DocumentSnapshot<T>>,
-    reject: Rejecter,
-    options?: firestore.GetOptions
-  ): void {
-    const unlisten = this.onSnapshotInternal(
-      {
-        includeMetadataChanges: true,
-        waitForSyncWhenOnline: true
-      },
-      {
-        next: (snap: firestore.DocumentSnapshot<T>) => {
-          // Remove query first before passing event to user to avoid
-          // user actions affecting the now stale query.
-          unlisten();
-
-          if (!snap.exists && snap.metadata.fromCache) {
-            // TODO(dimond): If we're online and the document doesn't
-            // exist then we resolve with a doc.exists set to false. If
-            // we're offline however, we reject the Promise in this
-            // case. Two options: 1) Cache the negative response from
-            // the server so we can deliver that even when you're
-            // offline 2) Actually reject the Promise in the online case
-            // if the document doesn't exist.
-            reject(
-              new FirestoreError(
-                Code.UNAVAILABLE,
-                'Failed to get document because the client is ' + 'offline.'
-              )
-            );
-          } else if (
-            snap.exists &&
-            snap.metadata.fromCache &&
-            options &&
-            options.source === 'server'
-          ) {
-            reject(
-              new FirestoreError(
-                Code.UNAVAILABLE,
-                'Failed to get document from server. (However, this ' +
-                  'document does exist in the local cache. Run again ' +
-                  'without setting source to "server" to ' +
-                  'retrieve the cached document.)'
-              )
-            );
-          } else {
-            resolve(snap);
-          }
-        },
-        error: reject
       }
     );
   }
@@ -1318,9 +1251,127 @@ export class DocumentReference<T = firestore.DocumentData>
   ): firestore.DocumentReference<U> {
     return new DocumentReference<U>(this._key, this.firestore, converter);
   }
+
+  /**
+   * Converts a ViewSnapshot that contains the current document to a
+   * DocumentSnapshot.
+   */
+  private _convertToDocSnapshot(snapshot: ViewSnapshot): DocumentSnapshot<T> {
+    debugAssert(
+      snapshot.docs.size <= 1,
+      'Too many documents returned on a document query'
+    );
+    const doc = snapshot.docs.get(this._key);
+
+    return new DocumentSnapshot(
+      this.firestore,
+      this._key,
+      doc,
+      snapshot.fromCache,
+      snapshot.hasPendingWrites,
+      this._converter
+    );
+  }
 }
 
-class SnapshotMetadata implements firestore.SnapshotMetadata {
+/** Registers an internal snapshot listener for `ref`. */
+function addDocSnapshotListener<T>(
+  firestoreClient: FirestoreClient,
+  ref: DocumentKeyReference<T>,
+  options: ListenOptions,
+  observer: PartialObserver<ViewSnapshot>
+): Unsubscribe {
+  let errHandler = (err: Error): void => {
+    console.error('Uncaught Error in onSnapshot:', err);
+  };
+  if (observer.error) {
+    errHandler = observer.error.bind(observer);
+  }
+
+  const asyncObserver = new AsyncObserver<ViewSnapshot>({
+    next: snapshot => {
+      if (observer.next) {
+        observer.next(snapshot);
+      }
+    },
+    error: errHandler
+  });
+  const internalListener = firestoreClient.listen(
+    InternalQuery.atPath(ref._key.path),
+    asyncObserver,
+    options
+  );
+
+  return () => {
+    asyncObserver.mute();
+    firestoreClient.unlisten(internalListener);
+  };
+}
+
+/**
+ * Retrieves a latency-compensated document from the backend via a
+ * SnapshotListener.
+ */
+export function getDocViaSnapshotListener<T>(
+  firestoreClient: FirestoreClient,
+  ref: DocumentKeyReference<T>,
+  resolve: Resolver<ViewSnapshot>,
+  reject: Rejecter,
+  options?: firestore.GetOptions
+): void {
+  const unlisten = addDocSnapshotListener(
+    firestoreClient,
+    ref,
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: (snap: ViewSnapshot) => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        const exists = snap.docs.has(ref._key);
+        if (!exists && snap.fromCache) {
+          // TODO(dimond): If we're online and the document doesn't
+          // exist then we resolve with a doc.exists set to false. If
+          // we're offline however, we reject the Promise in this
+          // case. Two options: 1) Cache the negative response from
+          // the server so we can deliver that even when you're
+          // offline 2) Actually reject the Promise in the online case
+          // if the document doesn't exist.
+          reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document because the client is ' + 'offline.'
+            )
+          );
+        } else if (
+          exists &&
+          snap.fromCache &&
+          options &&
+          options.source === 'server'
+        ) {
+          reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from server. (However, this ' +
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
+            )
+          );
+        } else {
+          resolve(snap);
+        }
+      },
+      error: reject
+    }
+  );
+}
+
+export class SnapshotMetadata implements firestore.SnapshotMetadata {
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
