@@ -21,9 +21,6 @@ import * as fs from 'fs';
 import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
-import { TYPINGS } from './analysis';
-import { request } from 'express';
-
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 
@@ -183,7 +180,7 @@ export function extractDeclarations(
           });
           filterAllBy(reExportsMember, actualExports);
         }
-        // concatename reExport MemberList with MemberList of the dts file
+        // concatenate re-exported MemberList with MemberList of the dts file
         declarations.functions.push(...reExportsMember.functions);
         declarations.variables.push(...reExportsMember.variables);
         declarations.classes.push(...reExportsMember.classes);
@@ -205,7 +202,9 @@ export function extractDeclarations(
 
   return declarations;
 }
-
+/**
+ * To Make sure symbols of every category are unique.
+ */
 function dedup(memberList: MemberList): MemberList {
   const classesSet: Set<string> = new Set(memberList.classes);
   memberList.classes = Array.from(classesSet);
@@ -221,6 +220,7 @@ function dedup(memberList: MemberList): MemberList {
 
   return memberList;
 }
+
 function mapSymbolToType(
   map: Map<string, string>,
   memberList: MemberList
@@ -261,6 +261,7 @@ function mapSymbolToType(
   });
   return newMemberList;
 }
+
 function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
   return reExportedSymbols.includes(symbol);
 }
@@ -273,6 +274,7 @@ function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
 
   return exportSpecifier.name.escapedText.toString();
 }
+
 function filterAllBy(memberList: MemberList, keep: string[]) {
   memberList.functions = memberList.functions.filter(each =>
     isReExported(each, keep)
@@ -292,6 +294,7 @@ function replaceAll(memberList: MemberList, original: string, current: string) {
   memberList.functions = replaceWith(memberList.functions, original, current);
   memberList.enums = replaceWith(memberList.enums, original, current);
 }
+
 function replaceWith(
   arr: string[],
   original: string,
@@ -307,6 +310,7 @@ function replaceWith(
   }
   return rv;
 }
+
 function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
   return exportSpecifier.propertyName != null;
 }
