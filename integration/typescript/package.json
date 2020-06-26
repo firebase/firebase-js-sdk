@@ -6,10 +6,8 @@
     "test": "karma start --single-run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
-  "dependencies": {
-    "firebase": "7.14.6"
-  },
   "devDependencies": {
+    "firebase": "7.15.5",
     "@babel/core": "7.9.6",
     "@babel/preset-env": "7.9.6",
     "@types/chai": "4.2.11",

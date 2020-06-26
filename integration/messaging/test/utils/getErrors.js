@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,13 @@
 
 module.exports = async webdriver => {
   console.log('Getting errors...');
+
+  await webdriver.wait(() => {
+    return webdriver.executeScript(() => {
+      return !!window.__test;
+    });
+  });
+
   return webdriver.executeScript(() => {
     return window.__test.errors;
   });

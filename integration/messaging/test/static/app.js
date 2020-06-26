@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-const EIGHT_DAYS_IN_MS = 8 * 86400000;
 
 /**
  * This class just wraps the expected behavior or a demo app that will
@@ -36,40 +34,49 @@ class DemoApp {
     this._triggerDeleteToken = this.triggerDeleteToken;
     this._triggerGetToken = this.triggerGetToken;
     this._triggerTimeForward = this.triggerTimeForward;
+    this._clearInstanceForTest = this.clearInstanceForTest;
+    this.appendMessage = this.appendMessage;
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
     this._messaging = firebase.messaging();
 
-    if (options.applicationKey) {
-      this._messaging.usePublicVapidKey(options.applicationKey);
+    if (options.vapidKey) {
+      console.debug('VapidKey is provided to the test app. ');
+      this._messaging.usePublicVapidKey(options.vapidKey);
+    } else {
+      console.debug('VapidKey is not specified. Skip setting it');
     }
 
     if (options.swReg) {
+      console.debug('ServiceWorker is provided to the test app');
       this._messaging.useServiceWorker(options.swReg);
+    } else {
+      console.debug(
+        'ServiceWorker is not specified. The default ServiceWorker will be used.'
+      );
     }
 
-    this._messaging.onMessage(payload => {
-      console.log(`Message received: `, payload);
-      this._messages.push(payload);
+    this._messaging.onMessage(message => {
+      this.appendMessage(message);
     });
 
-    // Initializa state of token
-    this._messaging
-      .requestPermission()
-      .then(() => this._messaging.getToken())
-      .then(
-        token => {
-          console.log('getToken() worked: ', token);
-          this._token = token;
-        },
-        err => {
-          console.log('getToken() failed: ', err.message, err.stack);
-          this._errors.push(err);
-          this._token = null;
-        }
-      );
+    this._messaging.getToken().then(
+      token => {
+        console.log('Test app getToken() succeed. Token: ', token);
+        this._token = token;
+      },
+      err => {
+        console.log('Test app getToken() failed: ', err.message, err.stack);
+        this._errors.push(err);
+        this._token = null;
+      }
+    );
+  }
+
+  appendMessage(payload) {
+    this._messages.push(payload);
   }
 
   async triggerDeleteToken(token) {
@@ -95,8 +102,13 @@ class DemoApp {
     return this._token;
   }
 
-  async triggerTimeForward() {
+  triggerTimeForward() {
     this._clock.tick(EIGHT_DAYS_IN_MS);
+  }
+
+  clearInstanceForTest() {
+    this._errors = [];
+    this._messages = [];
   }
 
   get token() {

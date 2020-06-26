@@ -21,6 +21,7 @@ export interface TransportConstructor {
   new (
     connId: string,
     repoInfo: RepoInfo,
+    applicationId?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ): Transport;
@@ -85,13 +86,4 @@ export abstract class Transport {
   abstract markConnectionHealthy(): void;
 
   abstract markConnectionHealthy(): void;
-}
-
-export interface TransportConstructor {
-  new (
-    connId: string,
-    RepoInfo,
-    transportSessionId?: string,
-    lastSessionId?: string
-  );
 }

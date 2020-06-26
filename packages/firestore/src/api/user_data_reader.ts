@@ -37,15 +37,18 @@ import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
-import { JsonProtoSerializer } from '../remote/serializer';
-import { Blob } from './blob';
 import {
-  FieldPath as ExternalFieldPath,
-  fromDotSeparatedString
-} from './field_path';
+  JsonProtoSerializer,
+  toBytes,
+  toNumber,
+  toResourceName,
+  toTimestamp
+} from '../remote/serializer';
+import { Blob } from './blob';
+import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { PlatformSupport } from '../platform/platform';
+import { newSerializer } from '../platform/serializer';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -66,9 +69,9 @@ export interface UntypedFirestoreDataConverter<T> {
  */
 export class DocumentKeyReference<T> {
   constructor(
-    public readonly _databaseId: DatabaseId,
-    public readonly _key: DocumentKey,
-    public readonly _converter?: UntypedFirestoreDataConverter<T>
+    readonly _databaseId: DatabaseId,
+    readonly _key: DocumentKey,
+    readonly _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 }
 
@@ -156,6 +159,8 @@ interface ContextSettings {
   readonly dataSource: UserDataSource;
   /** The name of the method the user called to create the ParseContext. */
   readonly methodName: string;
+  /** The document the user is attempting to modify, if that applies. */
+  readonly targetDoc?: DocumentKey;
   /**
    * A path within the object being parsed. This could be an empty path (in
    * which case the context represents the root of the data being parsed), or a
@@ -250,15 +255,11 @@ export class ParseContext {
   }
 
   createError(reason: string): Error {
-    const fieldDescription =
-      !this.path || this.path.isEmpty()
-        ? ''
-        : ` (found in field ${this.path.toString()})`;
-    return new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${this.settings.methodName}() called with invalid data. ` +
-        reason +
-        fieldDescription
+    return createError(
+      reason,
+      this.settings.methodName,
+      this.path,
+      this.settings.targetDoc
     );
   }
 
@@ -305,51 +306,45 @@ export class UserDataReader {
     private readonly ignoreUndefinedProperties: boolean,
     serializer?: JsonProtoSerializer
   ) {
-    this.serializer =
-      serializer || PlatformSupport.getPlatform().newSerializer(databaseId);
+    this.serializer = serializer || newSerializer(databaseId);
   }
 
-  /** Parse document data from a non-merge set() call. */
-  parseSetData(methodName: string, input: unknown): ParsedSetData {
-    const context = this.createContext(UserDataSource.Set, methodName);
+  /** Parse document data from a set() call. */
+  parseSetData(
+    methodName: string,
+    targetDoc: DocumentKey,
+    input: unknown,
+    options: firestore.SetOptions = {}
+  ): ParsedSetData {
+    const context = this.createContext(
+      options.merge || options.mergeFields
+        ? UserDataSource.MergeSet
+        : UserDataSource.Set,
+      methodName,
+      targetDoc
+    );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
 
-    return new ParsedSetData(
-      new ObjectValue(updateData),
-      /* fieldMask= */ null,
-      context.fieldTransforms
-    );
-  }
-
-  /** Parse document data from a set() call with '{merge:true}'. */
-  parseMergeData(
-    methodName: string,
-    input: unknown,
-    fieldPaths?: Array<string | firestore.FieldPath>
-  ): ParsedSetData {
-    const context = this.createContext(UserDataSource.MergeSet, methodName);
-    validatePlainObject('Data must be an object, but it was:', context, input);
-    const updateData = parseObject(input, context);
-
-    let fieldMask: FieldMask;
+    let fieldMask: FieldMask | null;
     let fieldTransforms: FieldTransform[];
 
-    if (!fieldPaths) {
+    if (options.merge) {
       fieldMask = new FieldMask(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
-    } else {
+    } else if (options.mergeFields) {
       const validatedFieldPaths: FieldPath[] = [];
 
-      for (const stringOrFieldPath of fieldPaths) {
+      for (const stringOrFieldPath of options.mergeFields) {
         let fieldPath: FieldPath;
 
-        if (stringOrFieldPath instanceof ExternalFieldPath) {
+        if (stringOrFieldPath instanceof BaseFieldPath) {
           fieldPath = stringOrFieldPath._internalPath;
         } else if (typeof stringOrFieldPath === 'string') {
           fieldPath = fieldPathFromDotSeparatedString(
             methodName,
-            stringOrFieldPath
+            stringOrFieldPath,
+            targetDoc
           );
         } else {
           throw fail(
@@ -371,9 +366,13 @@ export class UserDataReader {
 
       fieldMask = new FieldMask(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
-        fieldMask.covers(transform.field)
+        fieldMask!.covers(transform.field)
       );
+    } else {
+      fieldMask = null;
+      fieldTransforms = context.fieldTransforms;
     }
+
     return new ParsedSetData(
       new ObjectValue(updateData),
       fieldMask,
@@ -382,14 +381,22 @@ export class UserDataReader {
   }
 
   /** Parse update data from an update() call. */
-  parseUpdateData(methodName: string, input: unknown): ParsedUpdateData {
-    const context = this.createContext(UserDataSource.Update, methodName);
+  parseUpdateData(
+    methodName: string,
+    targetDoc: DocumentKey,
+    input: unknown
+  ): ParsedUpdateData {
+    const context = this.createContext(
+      UserDataSource.Update,
+      methodName,
+      targetDoc
+    );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const fieldMaskPaths: FieldPath[] = [];
     const updateData = new ObjectValueBuilder();
     forEach(input as Dict<unknown>, (key, value) => {
-      const path = fieldPathFromDotSeparatedString(methodName, key);
+      const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
 
       const childContext = context.childContextForFieldPath(path);
       if (
@@ -418,12 +425,17 @@ export class UserDataReader {
   /** Parse update data from a list of field/value arguments. */
   parseUpdateVarargs(
     methodName: string,
-    field: string | ExternalFieldPath,
+    targetDoc: DocumentKey,
+    field: string | BaseFieldPath,
     value: unknown,
     moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
-    const context = this.createContext(UserDataSource.Update, methodName);
-    const keys = [fieldPathFromArgument(methodName, field)];
+    const context = this.createContext(
+      UserDataSource.Update,
+      methodName,
+      targetDoc
+    );
+    const keys = [fieldPathFromArgument(methodName, field, targetDoc)];
     const values = [value];
 
     if (moreFieldsAndValues.length % 2 !== 0) {
@@ -438,7 +450,7 @@ export class UserDataReader {
       keys.push(
         fieldPathFromArgument(
           methodName,
-          moreFieldsAndValues[i] as string | ExternalFieldPath
+          moreFieldsAndValues[i] as string | BaseFieldPath
         )
       );
       values.push(moreFieldsAndValues[i + 1]);
@@ -481,13 +493,15 @@ export class UserDataReader {
   /** Creates a new top-level parse context. */
   private createContext(
     dataSource: UserDataSource,
-    methodName: string
+    methodName: string,
+    targetDoc?: DocumentKey
   ): ParseContext {
     return new ParseContext(
       {
         dataSource,
         methodName,
-        path: FieldPath.EMPTY_PATH,
+        targetDoc,
+        path: FieldPath.emptyPath(),
         arrayElement: false
       },
       this.databaseId,
@@ -630,7 +644,7 @@ function parseSentinelFieldValue(
       `${value._methodName}() can only be used with update() and set()`
     );
   }
-  if (context.path === null) {
+  if (!context.path) {
     throw context.createError(
       `${value._methodName}() is not currently supported inside arrays`
     );
@@ -654,14 +668,16 @@ function parseScalarValue(
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
-    return context.serializer.toNumber(value);
+    return toNumber(context.serializer, value);
   } else if (typeof value === 'boolean') {
     return { booleanValue: value };
   } else if (typeof value === 'string') {
     return { stringValue: value };
   } else if (value instanceof Date) {
     const timestamp = Timestamp.fromDate(value);
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof Timestamp) {
     // Firestore backend truncates precision down to microseconds. To ensure
     // offline mode works the same with regards to truncation, perform the
@@ -670,7 +686,9 @@ function parseScalarValue(
       value.seconds,
       Math.floor(value.nanoseconds / 1000) * 1000
     );
-    return { timestampValue: context.serializer.toTimestamp(timestamp) };
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof GeoPoint) {
     return {
       geoPointValue: {
@@ -679,7 +697,7 @@ function parseScalarValue(
       }
     };
   } else if (value instanceof Blob) {
-    return { bytesValue: context.serializer.toBytes(value) };
+    return { bytesValue: toBytes(context.serializer, value) };
   } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
@@ -691,9 +709,9 @@ function parseScalarValue(
       );
     }
     return {
-      referenceValue: context.serializer.toResourceName(
-        value._key.path,
-        value._databaseId
+      referenceValue: toResourceName(
+        value._databaseId || context.databaseId,
+        value._key.path
       )
     };
   } else if (value === undefined && context.ignoreUndefinedProperties) {
@@ -747,18 +765,16 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | ExternalFieldPath
+  path: string | BaseFieldPath,
+  targetDoc?: DocumentKey
 ): FieldPath {
-  if (path instanceof ExternalFieldPath) {
+  if (path instanceof BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
     const message = 'Field path arguments must be of type string or FieldPath.';
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${methodName}() called with invalid data. ${message}`
-    );
+    throw createError(message, methodName, undefined, targetDoc);
   }
 }
 
@@ -768,20 +784,47 @@ export function fieldPathFromArgument(
  * @param methodName The publicly visible method name
  * @param path The dot-separated string form of a field path which will be split
  * on dots.
+ * @param targetDoc The document against which the field path will be evaluated.
  */
-function fieldPathFromDotSeparatedString(
+export function fieldPathFromDotSeparatedString(
   methodName: string,
-  path: string
+  path: string,
+  targetDoc?: DocumentKey
 ): FieldPath {
   try {
     return fromDotSeparatedString(path)._internalPath;
   } catch (e) {
     const message = errorMessage(e);
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${methodName}() called with invalid data. ${message}`
-    );
+    throw createError(message, methodName, undefined, targetDoc);
   }
+}
+
+function createError(
+  reason: string,
+  methodName: string,
+  path?: FieldPath,
+  targetDoc?: DocumentKey
+): Error {
+  const hasPath = path && !path.isEmpty();
+  const hasDocument = targetDoc !== undefined;
+
+  let description = '';
+  if (hasPath || hasDocument) {
+    description += ' (found';
+
+    if (hasPath) {
+      description += ` in field ${path}`;
+    }
+    if (hasDocument) {
+      description += ` in document ${targetDoc}`;
+    }
+    description += ')';
+  }
+
+  return new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    `Function ${methodName}() called with invalid data. ` + reason + description
+  );
 }
 
 /**

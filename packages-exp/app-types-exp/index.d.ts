@@ -116,9 +116,15 @@ export interface _FirebaseService {
   delete(): Promise<void>;
 }
 
+export interface VersionService {
+  library: string;
+  version: string;
+}
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-exp': FirebaseApp;
+    'app-version': VersionService;
     'platform-logger': PlatformLoggerService;
   }
 }
