@@ -95,16 +95,13 @@ export class Transaction implements firestore.Transaction {
     options?: firestore.SetOptions
   ): Transaction {
     const ref = validateReference(documentRef, this._firestore);
-    const [convertedValue] = applyFirestoreDataConverter(
-      ref._converter,
-      value,
-      'Transaction.set'
-    );
+    const convertedValue = applyFirestoreDataConverter(ref._converter, value);
     const parsed = this._dataReader.parseSetData(
       'Transaction.set',
       ref._key,
       convertedValue,
-      options
+      options,
+      ref._converter !== null
     );
     this._transaction.set(ref._key, parsed);
     return this;

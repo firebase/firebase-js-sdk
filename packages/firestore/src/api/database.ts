@@ -744,17 +744,17 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'Transaction.set',
       options
     );
     const parsed = this._firestore._dataReader.parseSetData(
-      functionName,
+      'Transaction.set',
       ref._key,
       convertedValue,
-      options
+      options,
+      ref._converter !== null
     );
     this._transaction.set(ref._key, parsed);
     return this;
@@ -851,17 +851,17 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'WriteBatch.set',
       options
     );
     const parsed = this._firestore._dataReader.parseSetData(
-      functionName,
+      'WriteBatch.set',
       ref._key,
       convertedValue,
-      options
+      options,
+      ref._converter !== null
     );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
@@ -1051,17 +1051,17 @@ export class DocumentReference<T = firestore.DocumentData>
   set(value: T | Partial<T>, options?: firestore.SetOptions): Promise<void> {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       this._converter,
       value,
-      'DocumentReference.set',
       options
     );
     const parsed = this.firestore._dataReader.parseSetData(
-      functionName,
+      'DocumentReference.set',
       this._key,
       convertedValue,
-      options
+      options,
+      this._converter !== null
     );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
@@ -2597,9 +2597,8 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
   value: T,
-  functionName: string,
   options?: firestore.SetOptions
-): [firestore.DocumentData, string] {
+): firestore.DocumentData {
   let convertedValue;
   if (converter) {
     if (options && (options.merge || options.mergeFields)) {
@@ -2610,11 +2609,10 @@ export function applyFirestoreDataConverter<T>(
     } else {
       convertedValue = converter.toFirestore(value);
     }
-    functionName = 'toFirestore() in ' + functionName;
   } else {
     convertedValue = value as firestore.DocumentData;
   }
-  return [convertedValue, functionName];
+  return convertedValue;
 }
 
 function contains(obj: object, key: string): obj is { key: unknown } {

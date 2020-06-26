@@ -173,6 +173,11 @@ interface ContextSettings {
    * If not set, elements are treated as if they were outside of arrays.
    */
   readonly arrayElement?: boolean;
+  /**
+   * Whether or not a converter was specified in this context. If set, error
+   * messages will reference the converter when invalid data is provided.
+   */
+  readonly hasConverter?: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -259,7 +264,8 @@ export class ParseContext {
       reason,
       this.settings.methodName,
       this.path,
-      this.settings.targetDoc
+      this.settings.targetDoc,
+      this.settings.hasConverter
     );
   }
 
@@ -314,14 +320,16 @@ export class UserDataReader {
     methodName: string,
     targetDoc: DocumentKey,
     input: unknown,
-    options: firestore.SetOptions = {}
+    options: firestore.SetOptions = {},
+    hasConverter: boolean
   ): ParsedSetData {
     const context = this.createContext(
       options.merge || options.mergeFields
         ? UserDataSource.MergeSet
         : UserDataSource.Set,
       methodName,
-      targetDoc
+      targetDoc,
+      hasConverter
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
@@ -494,7 +502,8 @@ export class UserDataReader {
   private createContext(
     dataSource: UserDataSource,
     methodName: string,
-    targetDoc?: DocumentKey
+    targetDoc?: DocumentKey,
+    hasConverter = false
   ): ParseContext {
     return new ParseContext(
       {
@@ -502,7 +511,8 @@ export class UserDataReader {
         methodName,
         targetDoc,
         path: FieldPath.emptyPath(),
-        arrayElement: false
+        arrayElement: false,
+        hasConverter
       },
       this.databaseId,
       this.serializer,
@@ -803,10 +813,16 @@ function createError(
   reason: string,
   methodName: string,
   path?: FieldPath,
-  targetDoc?: DocumentKey
+  targetDoc?: DocumentKey,
+  hasConverter = false
 ): Error {
   const hasPath = path && !path.isEmpty();
   const hasDocument = targetDoc !== undefined;
+  let message = `Function ${methodName}() called with invalid data`;
+  if (hasConverter) {
+    message += ' (via `toFirestore()`)';
+  }
+  message += '. ';
 
   let description = '';
   if (hasPath || hasDocument) {
@@ -823,7 +839,7 @@ function createError(
 
   return new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `Function ${methodName}() called with invalid data. ` + reason + description
+    message + reason + description
   );
 }
 

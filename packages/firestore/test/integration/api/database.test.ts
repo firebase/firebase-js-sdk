@@ -1379,9 +1379,9 @@ apiDescribe('Database', (persistence: boolean) => {
         expect(() =>
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
-          'Function toFirestore() in WriteBatch.set() called with invalid ' +
-            'data. Unsupported field value: undefined (found in field author ' +
-            'in document posts/some-post)'
+          'Function WriteBatch.set() called with invalid ' +
+            'data (via `toFirestore()`). Unsupported field value: undefined ' +
+            '(found in field author in document posts/some-post)'
         );
       });
     });
