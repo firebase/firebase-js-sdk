@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import {
   changesFromSnapshot,
   DocumentSnapshot,
-  Firestore,
   QueryDocumentSnapshot
 } from '../../../src/api/database';
 import { Query } from '../../../src/core/query';
