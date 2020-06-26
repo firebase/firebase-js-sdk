@@ -59,6 +59,10 @@ export { setLogLevel } from '../src/util/log';
 
 export { Blob } from '../src/api/blob';
 
+export { writeBatch } from './src/api/write_batch';
+
+export { WriteBatch } from '../lite/src/api/write_batch';
+
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
