@@ -47,13 +47,7 @@ export class Transaction implements firestore.Transaction {
     private readonly _firestore: Firestore,
     private readonly _transaction: InternalTransaction
   ) {
-    // Kick off configuring the client, which freezes the settings.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    _firestore._ensureClientConfigured();
-    this._dataReader = newUserDataReader(
-      _firestore._databaseId,
-      _firestore._settings!
-    );
+    this._dataReader = newUserDataReader(_firestore);
   }
 
   get<T>(
@@ -101,14 +95,12 @@ export class Transaction implements firestore.Transaction {
     options?: firestore.SetOptions
   ): Transaction {
     const ref = validateReference(documentRef, this._firestore);
-    const [convertedValue] = applyFirestoreDataConverter(
-      ref._converter,
-      value,
-      'Transaction.set'
-    );
+    const convertedValue = applyFirestoreDataConverter(ref._converter, value);
     const parsed = this._dataReader.parseSetData(
       'Transaction.set',
+      ref._key,
       convertedValue,
+      ref._converter !== null,
       options
     );
     this._transaction.set(ref._key, parsed);
@@ -140,6 +132,7 @@ export class Transaction implements firestore.Transaction {
     ) {
       parsed = this._dataReader.parseUpdateVarargs(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -147,6 +140,7 @@ export class Transaction implements firestore.Transaction {
     } else {
       parsed = this._dataReader.parseUpdateData(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData
       );
     }
@@ -167,7 +161,7 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient._ensureClientConfigured().then(async datastore => {
+  return firestoreClient._getDatastore().then(async datastore => {
     const deferred = new Deferred<T>();
     new TransactionRunner<T>(
       new AsyncQueue(),

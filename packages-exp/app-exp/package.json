@@ -33,9 +33,9 @@
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.0.800",
-    "@firebase/util": "0.2.48",
+    "@firebase/util": "0.2.50",
     "@firebase/logger": "0.2.5",
-    "@firebase/component": "0.1.13",
+    "@firebase/component": "0.1.15",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",

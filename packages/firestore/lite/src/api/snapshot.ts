@@ -18,7 +18,7 @@
 import * as firestore from '../../index';
 
 import { Firestore } from './database';
-import { DocumentReference } from './reference';
+import { DocumentReference, queryEqual } from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -26,6 +26,7 @@ import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { FieldPath as InternalFieldPath } from '../../../src/model/path';
 import { fieldPathFromDotSeparatedString } from '../../../src/api/user_data_reader';
+import { arrayEquals } from '../../../src/util/misc';
 
 export class DocumentSnapshot<T = firestore.DocumentData>
   implements firestore.DocumentSnapshot<T> {
@@ -35,10 +36,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   // - No support for SnapshotOptions.
 
   constructor(
-    private _firestore: Firestore,
-    private _key: DocumentKey,
-    private _document: Document | null,
-    private _converter: firestore.FirestoreDataConverter<T> | null
+    public _firestore: Firestore,
+    public _key: DocumentKey,
+    public _document: Document | null,
+    public _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   get id(): string {
@@ -107,6 +108,56 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   data(): T {
     return super.data() as T;
   }
+}
+
+export class QuerySnapshot<T = firestore.DocumentData>
+  implements firestore.QuerySnapshot<T> {
+  constructor(
+    readonly query: firestore.Query<T>,
+    readonly _docs: Array<QueryDocumentSnapshot<T>>
+  ) {}
+
+  get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
+    return [...this._docs];
+  }
+
+  get size(): number {
+    return this.docs.length;
+  }
+
+  get empty(): boolean {
+    return this.docs.length === 0;
+  }
+
+  forEach(
+    callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
+    thisArg?: unknown
+  ): void {
+    this._docs.forEach(callback, thisArg);
+  }
+}
+
+export function snapshotEqual<T>(
+  left: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>,
+  right: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>
+): boolean {
+  if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
+    return (
+      left._firestore === right._firestore &&
+      left._key.isEqual(right._key) &&
+      (left._document === null
+        ? right._document === null
+        : left._document.isEqual(right._document)) &&
+      left._converter === right._converter
+    );
+  } else if (left instanceof QuerySnapshot && right instanceof QuerySnapshot) {
+    return (
+      queryEqual(left.query, right.query) &&
+      arrayEquals(left.docs, right.docs, snapshotEqual)
+    );
+  }
+
+  return false;
 }
 
 /**

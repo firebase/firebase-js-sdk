@@ -29,6 +29,7 @@ import {
 } from '../src/api/database';
 import {
   withTestCollection,
+  withTestCollectionAndInitialData,
   withTestDb,
   withTestDbSettings,
   withTestDoc,
@@ -44,7 +45,11 @@ import {
   deleteDoc,
   setDoc,
   addDoc,
-  updateDoc
+  updateDoc,
+  refEqual,
+  queryEqual,
+  collectionGroup,
+  getQuery
 } from '../src/api/reference';
 import { FieldPath } from '../src/api/field_path';
 import {
@@ -54,6 +59,7 @@ import {
 import { writeBatch } from '../src/api/write_batch';
 import { runTransaction } from '../src/api/transaction';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { snapshotEqual } from '../src/api/snapshot';
 import {
   FieldValue,
   deleteField,
@@ -480,11 +486,11 @@ function genericMutationTests(
           return expect(
             setDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => setDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -534,11 +540,11 @@ function genericMutationTests(
           return expect(
             updateDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -558,7 +564,7 @@ describe('addDoc()', () => {
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
       expect(() => addDoc(collRef, { val: undefined })).to.throw(
-        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+        /Function addDoc\(\) called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
       );
     });
   });
@@ -609,7 +615,6 @@ describe('DocumentSnapshot', () => {
   });
 });
 
-// TODO(firestorelite): Add converter tests
 describe('deleteDoc()', () => {
   it('can delete a non-existing document', () => {
     return withTestDoc(docRef => deleteDoc(docRef));
@@ -663,6 +668,381 @@ describe('FieldValue', () => {
       await updateDoc(docRef, 'val', deleteField());
       const snap = await getDoc(docRef);
       expect(snap.data()).to.deep.equal({});
+    });
+  });
+});
+
+describe('Query', () => {
+  function verifyResults(
+    actual: firestore.QuerySnapshot<firestore.DocumentData>,
+    ...expected: firestore.DocumentData[]
+  ): void {
+    expect(actual.empty).to.equal(expected.length === 0);
+    expect(actual.size).to.equal(expected.length);
+
+    for (let i = 0; i < expected.length; ++i) {
+      expect(actual.docs[i].data()).to.deep.equal(expected[i]);
+    }
+  }
+
+  it('supports default query', () => {
+    return withTestCollectionAndInitialData([{ foo: 1 }], async collRef => {
+      const result = await getQuery(collRef);
+      verifyResults(result, { foo: 1 });
+    });
+  });
+
+  it('supports empty results', () => {
+    return withTestCollectionAndInitialData([], async collRef => {
+      const result = await getQuery(collRef);
+      verifyResults(result);
+    });
+  });
+
+  it('supports filtered query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.where('foo', '==', 1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports filtered query (with FieldPath)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.where(new FieldPath('foo'), '==', 1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports ordered query (with default order)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 }, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports ordered query (with asc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo', 'asc');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 }, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports ordered query (with desc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo', 'desc');
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 }, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports limit query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').limit(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports limitToLast query', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').limitToLast(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 }, { foo: 3 });
+      }
+    );
+  });
+
+  it('supports startAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').startAt(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports startAfter', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').startAfter(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports endAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').endAt(1);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports endBefore', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query = collRef.orderBy('foo').endBefore(2);
+        const result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+      }
+    );
+  });
+
+  it('supports pagination', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        let query = collRef.orderBy('foo').limit(1);
+        let result = await getQuery(query);
+        verifyResults(result, { foo: 1 });
+
+        // Pass the document snapshot from the previous result
+        query = query.startAfter(result.docs[0]);
+        result = await getQuery(query);
+        verifyResults(result, { foo: 2 });
+      }
+    );
+  });
+
+  it('supports collection groups', () => {
+    return withTestCollection(async collRef => {
+      const collectionGroupId = `${collRef.id}group`;
+
+      const fooDoc = doc(
+        collRef.firestore,
+        `${collRef.id}/foo/${collectionGroupId}/doc1`
+      );
+      const barDoc = doc(
+        collRef.firestore,
+        `${collRef.id}/bar/baz/boo/${collectionGroupId}/doc2`
+      );
+      await setDoc(fooDoc, { foo: 1 });
+      await setDoc(barDoc, { bar: 1 });
+
+      const query = collectionGroup(collRef.firestore, collectionGroupId);
+      const result = await getQuery(query);
+
+      verifyResults(result, { bar: 1 }, { foo: 1 });
+    });
+  });
+
+  it('validates collection groups', () => {
+    return withTestDb(firestore => {
+      expect(() => collectionGroup(firestore, '')).to.throw(
+        'Function collectionGroup() requires its first argument to be of type non-empty string, but it was: ""'
+      );
+      expect(() => collectionGroup(firestore, '/')).to.throw(
+        "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
+      );
+    });
+  });
+});
+
+describe('equality', () => {
+  it('for collection references', () => {
+    return withTestDb(firestore => {
+      const coll1a = collection(firestore, 'a');
+      const coll1b = parent(doc(firestore, 'a/b'));
+      const coll2 = collection(firestore, 'c');
+
+      expect(refEqual(coll1a, coll1b)).to.be.true;
+      expect(refEqual(coll1a, coll2)).to.be.false;
+
+      const coll1c = collection(firestore, 'a').withConverter({
+        toFirestore: data => data as firestore.DocumentData,
+        fromFirestore: snap => snap.data()
+      });
+      expect(refEqual(coll1a, coll1c)).to.be.false;
+
+      expect(refEqual(coll1a, doc(firestore, 'a/b'))).to.be.false;
+    });
+  });
+
+  it('for document references', () => {
+    return withTestDb(firestore => {
+      const doc1a = doc(firestore, 'a/b');
+      const doc1b = doc(collection(firestore, 'a'), 'b');
+      const doc2 = doc(firestore, 'a/c');
+
+      expect(refEqual(doc1a, doc1b)).to.be.true;
+      expect(refEqual(doc1a, doc2)).to.be.false;
+
+      const doc1c = collection(firestore, 'a').withConverter({
+        toFirestore: data => data as firestore.DocumentData,
+        fromFirestore: snap => snap.data()
+      });
+      expect(refEqual(doc1a, doc1c)).to.be.false;
+
+      expect(refEqual(doc1a, collection(firestore, 'a'))).to.be.false;
+    });
+  });
+
+  it('for queries', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query1a = collRef.orderBy('foo');
+        const query1b = collRef.orderBy('foo', 'asc');
+        const query2 = collRef.orderBy('foo', 'desc');
+        // TODO(firestorelite): Should we allow `collectionRef(collRef, 'a/b')?
+        const query3 = collection(doc(collRef, 'a'), 'b').orderBy('foo');
+
+        expect(queryEqual(query1a, query1b)).to.be.true;
+        expect(queryEqual(query1a, query2)).to.be.false;
+        expect(queryEqual(query1a, query3)).to.be.false;
+      }
+    );
+  });
+
+  it('for query snapshots', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const query1a = collRef.limit(10);
+        const query1b = collRef.limit(10);
+        const query2 = collRef.limit(100);
+
+        const snap1a = await getQuery(query1a);
+        const snap1b = await getQuery(query1b);
+        const snap2 = await getQuery(query2);
+
+        expect(snapshotEqual(snap1a, snap1b)).to.be.true;
+        expect(snapshotEqual(snap1a, snap2)).to.be.false;
+
+        // Re-run the query with an additional result.
+        await addDoc(collRef, { foo: 3 });
+        const snap1c = await getQuery(query1a);
+        expect(snapshotEqual(snap1a, snap1c)).to.be.false;
+      }
+    );
+  });
+
+  it('for document snapshots', () => {
+    return withTestCollectionAndInitialData(
+      [{ foo: 1 }, { foo: 2 }],
+      async collRef => {
+        const snap1a = await getQuery(collRef);
+        const snap1b = await getQuery(collRef);
+        expect(snapshotEqual(snap1a.docs[0], snap1b.docs[0])).to.be.true;
+        expect(snapshotEqual(snap1a.docs[0], snap1a.docs[0])).to.be.true;
+
+        // Modify the document and obtain the snapshot again.
+        await updateDoc(snap1a.docs[0].ref, { foo: 3 });
+        const snap3 = await getQuery(collRef);
+        expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).to.be.false;
+      }
+    );
+  });
+});
+
+describe('withConverter() support', () => {
+  class Post {
+    constructor(readonly title: string, readonly author: string) {}
+    byline(): string {
+      return this.title + ', by ' + this.author;
+    }
+  }
+
+  const postConverter = {
+    toFirestore(post: Post): firestore.DocumentData {
+      return { title: post.title, author: post.author };
+    },
+    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+      const data = snapshot.data();
+      return new Post(data.title, data.author);
+    }
+  };
+
+  it('for DocumentReference.withConverter()', () => {
+    return withTestDoc(async docRef => {
+      docRef = docRef.withConverter(postConverter);
+      await setDoc(docRef, new Post('post', 'author'));
+      const postData = await getDoc(docRef);
+      const post = postData.data();
+      expect(post).to.not.equal(undefined);
+      expect(post!.byline()).to.equal('post, by author');
+    });
+  });
+
+  it('for CollectionReference.withConverter()', () => {
+    return withTestCollection(async coll => {
+      coll = coll.withConverter(postConverter);
+      const docRef = await addDoc(coll, new Post('post', 'author'));
+      const postData = await getDoc(docRef);
+      const post = postData.data();
+      expect(post).to.not.equal(undefined);
+      expect(post!.byline()).to.equal('post, by author');
+    });
+  });
+
+  it('for Query.withConverter()', () => {
+    return withTestCollection(async coll => {
+      coll = coll.withConverter(postConverter);
+      await setDoc(doc(coll, 'post1'), new Post('post1', 'author1'));
+      const posts = await getQuery(coll);
+      expect(posts.size).to.equal(1);
+      expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+    });
+  });
+
+  it('drops the converter when calling parent() with a CollectionReference', () => {
+    return withTestDb(async db => {
+      const coll = collection(db, 'root/doc/parent').withConverter(
+        postConverter
+      );
+      const untypedDoc = parent(coll)!;
+      expect(refEqual(untypedDoc, doc(db, 'root/doc'))).to.be.true;
+    });
+  });
+
+  it('checks converter when comparing with isEqual()', () => {
+    return withTestDb(async db => {
+      const postConverter2 = { ...postConverter };
+
+      const postsCollection = collection(db, 'users/user1/posts').withConverter(
+        postConverter
+      );
+      const postsCollection2 = collection(
+        db,
+        'users/user1/posts'
+      ).withConverter(postConverter2);
+      expect(refEqual(postsCollection, postsCollection2)).to.be.false;
+
+      const docRef = doc(db, 'some/doc').withConverter(postConverter);
+      const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
+      expect(refEqual(docRef, docRef2)).to.be.false;
     });
   });
 });

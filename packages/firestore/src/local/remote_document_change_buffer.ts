@@ -45,7 +45,10 @@ export abstract class RemoteDocumentChangeBuffer {
   protected changes: ObjectMap<
     DocumentKey,
     MaybeDocument | null
-  > = new ObjectMap(key => key.toString());
+  > = new ObjectMap(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
 
   // The read time to use for all added documents in this change buffer.
   private _readTime: SnapshotVersion | undefined;
