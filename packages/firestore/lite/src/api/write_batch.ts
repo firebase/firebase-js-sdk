@@ -59,7 +59,11 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
-    const convertedValue = applyFirestoreDataConverter(ref._converter, value);
+    const convertedValue = applyFirestoreDataConverter(
+      ref._converter,
+      value,
+      options
+    );
     const parsed = this._dataReader.parseSetData(
       'WriteBatch.set',
       ref._key,

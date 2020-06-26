@@ -28,6 +28,9 @@ import {
   terminate
 } from '../src/api/database';
 import {
+  Post,
+  postConverter,
+  postConverterMerge,
   withTestCollection,
   withTestCollectionAndInitialData,
   withTestDb,
@@ -477,6 +480,30 @@ function genericMutationTests(
           bar: 2,
           baz: { foobar: 3 }
         });
+      });
+    });
+
+    it('supports partials with merge', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { merge: true });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
+      });
+    });
+
+    it('supports partials with mergeFields', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { mergeFields: ['title'] });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
       });
     });
 
@@ -970,52 +997,6 @@ describe('equality', () => {
 });
 
 describe('withConverter() support', () => {
-  class Post {
-    constructor(readonly title: string, readonly author: string) {}
-    byline(): string {
-      return this.title + ', by ' + this.author;
-    }
-  }
-
-  const postConverter = {
-    toFirestore(post: Post): firestore.DocumentData {
-      return { title: post.title, author: post.author };
-    },
-    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
-      const data = snapshot.data();
-      return new Post(data.title, data.author);
-    }
-  };
-
-  const postConverterMerge = {
-    toFirestore(
-      post: Partial<Post>,
-      options?: firestore.SetOptions
-    ): firestore.DocumentData {
-      if (
-        options &&
-        ((options as { merge: true }).merge ||
-          (options as { mergeFields: Array<string | number> }).mergeFields)
-      ) {
-        expect(post).to.not.be.an.instanceof(Post);
-      } else {
-        expect(post).to.be.an.instanceof(Post);
-      }
-      const result: firestore.DocumentData = {};
-      if (post.title) {
-        result.title = post.title;
-      }
-      if (post.author) {
-        result.author = post.author;
-      }
-      return result;
-    },
-    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
-      const data = snapshot.data();
-      return new Post(data.title, data.author);
-    }
-  };
-
   it('for DocumentReference.withConverter()', () => {
     return withTestDoc(async docRef => {
       docRef = docRef.withConverter(postConverter);
@@ -1089,98 +1070,6 @@ describe('withConverter() support', () => {
           '(via `toFirestore()`). Unsupported field value: undefined ' +
           '(found in field author in document posts/post)'
       );
-    });
-  });
-
-  it('WriteBatch.set() supports partials with merge', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      const batch = writeBatch(db);
-      batch.set(ref, { title: 'olive' }, { merge: true });
-      await batch.commit();
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
-    });
-  });
-
-  it('WriteBatch.set() supports partials with mergeFields', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      const batch = writeBatch(db);
-      batch.set(ref, { title: 'olive' }, { merge: true });
-      await batch.commit();
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
-    });
-  });
-
-  it('Transaction.set() supports partials with merge', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      await runTransaction(db, async tx => {
-        tx.set(
-          ref,
-          { title: 'olive', author: 'person' },
-          { mergeFields: ['title'] }
-        );
-      });
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
-    });
-  });
-
-  it('Transaction.set() supports partials with mergeFields', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      await runTransaction(db, async tx => {
-        tx.set(
-          ref,
-          { title: 'olive', author: 'person' },
-          { mergeFields: ['title'] }
-        );
-      });
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
-    });
-  });
-
-  it('DocumentReference.set() supports partials with merge', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      await setDoc(ref, { title: 'olive' }, { merge: true });
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
-    });
-  });
-
-  it('DocumentReference.set() supports partials with mergeFields', async () => {
-    return withTestDb(async db => {
-      const coll = collection(db, 'posts');
-      const ref = doc(coll, 'post').withConverter(postConverterMerge);
-      await setDoc(ref, new Post('walnut', 'author'));
-      await setDoc(
-        ref,
-        { title: 'olive', author: 'writer' },
-        { mergeFields: ['title'] }
-      );
-      const postDoc = await getDoc(ref);
-      expect(postDoc.get('title')).to.equal('olive');
-      expect(postDoc.get('author')).to.equal('author');
     });
   });
 });
