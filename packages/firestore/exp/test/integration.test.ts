@@ -25,7 +25,11 @@ import {
   initializeFirestore
 } from '../src/api/database';
 import { withTestDoc } from './helpers';
-import { getDoc } from '../src/api/reference';
+import {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer
+} from '../src/api/reference';
 
 use(chaiAsPromised);
 
@@ -54,6 +58,28 @@ describe('getDoc()', () => {
   it('can get a non-existing document', () => {
     return withTestDoc(async docRef => {
       const docSnap = await getDoc(docRef);
+      expect(docSnap.metadata.fromCache).to.be.false;
+      expect(docSnap.metadata.hasPendingWrites).to.be.false;
+      expect(docSnap.data()).to.be.undefined;
+      expect(docSnap.exists()).to.be.false;
+    });
+  });
+});
+
+describe('getDocFromCache()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      await expect(getDocFromCache(docRef)).to.eventually.be.rejectedWith(
+        /Failed to get document from cache./
+      );
+    });
+  });
+});
+
+describe('getDocFromServer()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      const docSnap = await getDocFromServer(docRef);
       expect(docSnap.metadata.fromCache).to.be.false;
       expect(docSnap.metadata.hasPendingWrites).to.be.false;
       expect(docSnap.data()).to.be.undefined;
