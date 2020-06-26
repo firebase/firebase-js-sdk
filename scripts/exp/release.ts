@@ -44,11 +44,6 @@ async function publishExpPackages() {
      */
     await buildPackages();
 
-    /**
-     * run tests
-     */
-    await runTests();
-
     // path to exp packages
     const packagePaths = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
