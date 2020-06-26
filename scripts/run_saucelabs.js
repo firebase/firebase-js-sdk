@@ -38,11 +38,8 @@ const testFiles = configFiles.length
   ? configFiles
   : glob
       .sync(`{packages,integration}/*/karma.conf.js`)
-      .filter(
-        name =>
-          !name.includes('integration/firestore') &&
-          !name.includes('integration/messaging')
-      );
+      // Automated tests in integration/firestore are currently disabled.
+      .filter(name => !name.includes('integration/firestore'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
