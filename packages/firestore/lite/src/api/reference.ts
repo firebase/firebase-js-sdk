@@ -462,8 +462,8 @@ export function setDoc<T>(
     'setDoc',
     ref._key,
     convertedValue,
-    options,
-    ref._converter !== null
+    ref._converter !== null,
+    options
   );
 
   return ref.firestore
@@ -552,8 +552,8 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    {},
-    docRef._converter !== null
+    docRef._converter !== null,
+    {}
   );
 
   return collRef.firestore

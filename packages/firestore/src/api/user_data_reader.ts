@@ -174,7 +174,7 @@ interface ContextSettings {
    */
   readonly arrayElement?: boolean;
   /**
-   * Whether or not a converter was specified in this context. If set, error
+   * Whether or not a converter was specified in this context. If true, error
    * messages will reference the converter when invalid data is provided.
    */
   readonly hasConverter?: boolean;
@@ -263,9 +263,9 @@ export class ParseContext {
     return createError(
       reason,
       this.settings.methodName,
+      this.settings.hasConverter || false,
       this.path,
-      this.settings.targetDoc,
-      this.settings.hasConverter
+      this.settings.targetDoc
     );
   }
 
@@ -320,8 +320,8 @@ export class UserDataReader {
     methodName: string,
     targetDoc: DocumentKey,
     input: unknown,
-    options: firestore.SetOptions = {},
-    hasConverter: boolean
+    hasConverter: boolean,
+    options: firestore.SetOptions = {}
   ): ParsedSetData {
     const context = this.createContext(
       options.merge || options.mergeFields
@@ -784,7 +784,13 @@ export function fieldPathFromArgument(
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
     const message = 'Field path arguments must be of type string or FieldPath.';
-    throw createError(message, methodName, undefined, targetDoc);
+    throw createError(
+      message,
+      methodName,
+      /* hasConverter= */ false,
+      /* path= */ undefined,
+      targetDoc
+    );
   }
 }
 
@@ -805,16 +811,22 @@ export function fieldPathFromDotSeparatedString(
     return fromDotSeparatedString(path)._internalPath;
   } catch (e) {
     const message = errorMessage(e);
-    throw createError(message, methodName, undefined, targetDoc);
+    throw createError(
+      message,
+      methodName,
+      /* hasConverter= */ false,
+      /* path= */ undefined,
+      targetDoc
+    );
   }
 }
 
 function createError(
   reason: string,
   methodName: string,
+  hasConverter: boolean,
   path?: FieldPath,
-  targetDoc?: DocumentKey,
-  hasConverter = false
+  targetDoc?: DocumentKey
 ): Error {
   const hasPath = path && !path.isEmpty();
   const hasDocument = targetDoc !== undefined;

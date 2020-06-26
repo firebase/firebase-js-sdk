@@ -65,8 +65,8 @@ export class WriteBatch implements firestore.WriteBatch {
       'WriteBatch.set',
       ref._key,
       convertedValue,
-      options,
-      ref._converter !== null
+      ref._converter !== null,
+      options
     );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())

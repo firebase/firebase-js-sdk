@@ -100,8 +100,8 @@ export class Transaction implements firestore.Transaction {
       'Transaction.set',
       ref._key,
       convertedValue,
-      options,
-      ref._converter !== null
+      ref._converter !== null,
+      options
     );
     this._transaction.set(ref._key, parsed);
     return this;

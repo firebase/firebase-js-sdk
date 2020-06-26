@@ -753,8 +753,8 @@ export class Transaction implements firestore.Transaction {
       'Transaction.set',
       ref._key,
       convertedValue,
-      options,
-      ref._converter !== null
+      ref._converter !== null,
+      options
     );
     this._transaction.set(ref._key, parsed);
     return this;
@@ -860,8 +860,8 @@ export class WriteBatch implements firestore.WriteBatch {
       'WriteBatch.set',
       ref._key,
       convertedValue,
-      options,
-      ref._converter !== null
+      ref._converter !== null,
+      options
     );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.none())
@@ -1060,8 +1060,8 @@ export class DocumentReference<T = firestore.DocumentData>
       'DocumentReference.set',
       this._key,
       convertedValue,
-      options,
-      this._converter !== null
+      this._converter !== null,
+      options
     );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.none())
