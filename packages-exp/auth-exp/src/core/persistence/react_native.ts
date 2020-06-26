@@ -17,7 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
+import {
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 /**
  * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
@@ -57,27 +62,29 @@ export class ReactNativePersistence implements Persistence {
 
   /**
    * Creates a "new"-able subclass on the fly that has an empty constructor.
-   * 
+   *
    * In the _getInstance() implementation (see src/core/persistence/index.ts),
    * we expect each "externs.Persistence" object passed to us by the user to
    * be able to be instantiated (as a class) using "new". That function also
    * expects the constructor to be empty. Since ReactNativeStorage requires the
-   * underlying storage layer, we need to be able to create subclasses 
+   * underlying storage layer, we need to be able to create subclasses
    * (closures, esentially) that have the storage layer but empty constructor.
-   * 
+   *
    * Modern JavaScript does allow anonymous classes to be created as
    * first-class objects. This would be much cleaner, but unfortunately that
    * syntax prevents rollup from tree-shaking. For that reason, we need to fall
    * back to the old-school prototype-based classing (using functions); this
    * implementation will be tree-shaken by rollup.
    */
-  static createFromUnderlyingStorage(storage: externs.ReactNativeAsyncStorage): externs.Persistence {
+  static createFromUnderlyingStorage(
+    storage: externs.ReactNativeAsyncStorage
+  ): externs.Persistence {
     function instantiator(this: ReactNativePersistence): void {
       this.storage = storage;
     }
 
     instantiator.prototype = ReactNativePersistence.prototype;
-    const afterCast = instantiator as unknown as {type: 'LOCAL'};
+    const afterCast = (instantiator as unknown) as { type: 'LOCAL' };
     afterCast.type = 'LOCAL';
 
     return afterCast;

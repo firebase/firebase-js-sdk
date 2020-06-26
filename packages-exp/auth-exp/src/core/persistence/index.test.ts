@@ -21,7 +21,6 @@ import { _getInstance } from './';
 
 describe('src/core/persistence/index', () => {
   context('_getInstance', () => {
-
     // All tests define their own classes since the Class object is used in the
     // global map.
 
@@ -33,7 +32,7 @@ describe('src/core/persistence/index', () => {
           classInstantiated = true;
         }
       }
-  
+
       _getInstance(Persistence);
       expect(classInstantiated).to.be.true;
     });
