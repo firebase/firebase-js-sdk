@@ -1212,7 +1212,7 @@ export class DocumentReference<T = firestore.DocumentData>
     }
     return addDocSnapshotListener(
       this._firestoreClient,
-      this,
+      this._key,
       internalOptions,
       observer
     );
@@ -1240,7 +1240,7 @@ export class DocumentReference<T = firestore.DocumentData>
     } else {
       return getDocViaSnapshotListener(
         this._firestoreClient,
-        this,
+        this._key,
         options
       ).then(snapshot => this._convertToDocSnapshot(snapshot));
     }
@@ -1275,9 +1275,9 @@ export class DocumentReference<T = firestore.DocumentData>
 }
 
 /** Registers an internal snapshot listener for `ref`. */
-function addDocSnapshotListener<T>(
+function addDocSnapshotListener(
   firestoreClient: FirestoreClient,
-  ref: DocumentKeyReference<T>,
+  key: DocumentKey,
   options: ListenOptions,
   observer: PartialObserver<ViewSnapshot>
 ): Unsubscribe {
@@ -1297,7 +1297,7 @@ function addDocSnapshotListener<T>(
     error: errHandler
   });
   const internalListener = firestoreClient.listen(
-    InternalQuery.atPath(ref._key.path),
+    InternalQuery.atPath(key.path),
     asyncObserver,
     options
   );
@@ -1312,15 +1312,15 @@ function addDocSnapshotListener<T>(
  * Retrieves a latency-compensated document from the backend via a
  * SnapshotListener.
  */
-export function getDocViaSnapshotListener<T>(
+export function getDocViaSnapshotListener(
   firestoreClient: FirestoreClient,
-  ref: DocumentKeyReference<T>,
+  key: DocumentKey,
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
   const unlisten = addDocSnapshotListener(
     firestoreClient,
-    ref,
+    key,
     {
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
@@ -1331,7 +1331,7 @@ export function getDocViaSnapshotListener<T>(
         // user actions affecting the now stale query.
         unlisten();
 
-        const exists = snap.docs.has(ref._key);
+        const exists = snap.docs.has(key);
         if (!exists && snap.fromCache) {
           // TODO(dimond): If we're online and the document doesn't
           // exist then we resolve with a doc.exists set to false. If
