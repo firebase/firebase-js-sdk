@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-// TODO(firestorexp): Replace with actual implementation
-
-export function foo(): string {
-  return bar();
-}
-
-export function bar(): string {
-  return 'bar';
+export enum ReleaseType {
+  Canary = 'Canary',
+  Staging = 'Staging',
+  Production = 'Production'
 }

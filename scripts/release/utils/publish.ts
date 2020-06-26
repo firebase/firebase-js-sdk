@@ -15,21 +15,12 @@
  * limitations under the License.
  */
 
-export { FieldPath, documentId } from '../lite/src/api/field_path';
+import { spawn } from 'child-process-promise';
+import { projectRoot as root } from '../../utils';
 
-export {
-  FieldValue,
-  deleteField,
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp
-} from '../lite/src/api/field_value';
-
-export { setLogLevel } from '../src/util/log';
-
-export { Blob } from '../src/api/blob';
-
-export { GeoPoint } from '../src/api/geo_point';
-
-export { Timestamp } from '../src/api/timestamp';
+export async function publish() {
+  await spawn('yarn', ['changeset', 'publish'], {
+    cwd: root,
+    stdio: 'inherit'
+  });
+}

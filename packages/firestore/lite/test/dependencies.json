@@ -71,6 +71,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -78,12 +79,14 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -137,6 +140,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -147,6 +151,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -235,7 +240,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97894
+        "sizeInBytes": 98292
     },
     "DocumentReference": {
         "dependencies": {
@@ -286,6 +291,7 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -362,7 +368,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 37505
+        "sizeInBytes": 37900
     },
     "FieldPath": {
         "dependencies": {
@@ -568,12 +574,12 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -714,7 +720,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87105
+        "sizeInBytes": 86664
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -723,6 +729,7 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -799,7 +806,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 37510
+        "sizeInBytes": 37905
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -893,6 +900,7 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -1018,7 +1026,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 68267
+        "sizeInBytes": 68608
     },
     "WriteBatch": {
         "dependencies": {
@@ -1031,6 +1039,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -1170,7 +1179,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 71350
+        "sizeInBytes": 71691
     },
     "addDoc": {
         "dependencies": {
@@ -1190,6 +1199,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1198,12 +1208,14 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -1263,6 +1275,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1275,6 +1288,7 @@
                 "registerFirestore",
                 "serverTimestamp",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -1379,7 +1393,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 108172
+        "sizeInBytes": 108582
     },
     "arrayRemove": {
         "dependencies": {
@@ -1391,7 +1405,9 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
+                "createSentinelChildContext",
                 "debugAssert",
                 "decodeBase64",
                 "encodeBase64",
@@ -1484,7 +1500,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40675
+        "sizeInBytes": 41130
     },
     "arrayUnion": {
         "dependencies": {
@@ -1496,7 +1512,9 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
+                "createSentinelChildContext",
                 "debugAssert",
                 "decodeBase64",
                 "encodeBase64",
@@ -1589,7 +1607,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40683
+        "sizeInBytes": 41138
     },
     "collection": {
         "dependencies": {
@@ -1607,6 +1625,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1615,12 +1634,14 @@
                 "collection",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -1674,6 +1695,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1684,6 +1706,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -1773,7 +1796,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98522
+        "sizeInBytes": 98920
     },
     "collectionGroup": {
         "dependencies": {
@@ -1791,6 +1814,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -1799,12 +1823,14 @@
                 "collectionGroup",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -1858,6 +1884,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -1868,6 +1895,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -1955,7 +1983,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97954
+        "sizeInBytes": 98352
     },
     "deleteDoc": {
         "dependencies": {
@@ -2126,6 +2154,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -2133,12 +2162,14 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -2193,6 +2224,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -2204,6 +2236,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -2294,7 +2327,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99343
+        "sizeInBytes": 99741
     },
     "documentId": {
         "dependencies": {
@@ -2360,6 +2393,7 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -2465,7 +2499,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 46898
+        "sizeInBytes": 47293
     },
     "getFirestore": {
         "dependencies": {
@@ -2528,12 +2562,12 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -2697,7 +2731,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 93024
+        "sizeInBytes": 92583
     },
     "increment": {
         "dependencies": {
@@ -2707,7 +2741,9 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
+                "createError",
                 "createMetadata",
+                "createSentinelChildContext",
                 "debugAssert",
                 "decodeBase64",
                 "encodeBase64",
@@ -2802,7 +2838,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40614
+        "sizeInBytes": 41088
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2861,6 +2897,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -2868,12 +2905,14 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -2927,6 +2966,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parent",
                 "parseArray",
@@ -2938,6 +2978,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -3026,7 +3067,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98237
+        "sizeInBytes": 98635
     },
     "queryEqual": {
         "dependencies": {
@@ -3048,12 +3089,12 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -3195,7 +3236,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87309
+        "sizeInBytes": 86868
     },
     "refEqual": {
         "dependencies": {
@@ -3213,6 +3254,7 @@
                 "canonifyByteString",
                 "canonifyGeoPoint",
                 "canonifyMap",
+                "canonifyOrderBy",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -3220,12 +3262,14 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
+                "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -3279,6 +3323,7 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "orderByEquals",
                 "ordinal",
                 "parseArray",
                 "parseData",
@@ -3290,6 +3335,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
                 "timestampEquals",
@@ -3378,7 +3424,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98179
+        "sizeInBytes": 98577
     },
     "runTransaction": {
         "dependencies": {
@@ -3392,6 +3438,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -3558,7 +3605,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 90855
+        "sizeInBytes": 91143
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3619,6 +3666,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -3756,7 +3804,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69649
+        "sizeInBytes": 69972
     },
     "setLogLevel": {
         "dependencies": {
@@ -3819,12 +3867,12 @@
                 "cast",
                 "compareArrays",
                 "compareBlobs",
-                "compareDocumentsByField",
                 "compareGeoPoints",
                 "compareMaps",
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "decodeBase64",
@@ -3968,7 +4016,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88042
+        "sizeInBytes": 87601
     },
     "terminate": {
         "dependencies": {
@@ -4024,6 +4072,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -4162,7 +4211,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69740
+        "sizeInBytes": 70072
     },
     "writeBatch": {
         "dependencies": {
@@ -4175,6 +4224,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "createError",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
@@ -4315,6 +4365,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 71430
+        "sizeInBytes": 71771
     }
 }
