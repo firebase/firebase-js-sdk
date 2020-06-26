@@ -19,16 +19,15 @@ import { spawn } from 'child-process-promise';
 import * as path from 'path';
 
 import { DatabaseEmulator } from './emulators/database-emulator';
-import { ChildProcessPromise } from './emulators/emulator';
 
-function runTest(port: number, namespace: string): ChildProcessPromise {
+function runTest(port: number, namespace: string) {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/database'),
     env: Object.assign({}, process.env, {
       RTDB_EMULATOR_PORT: port,
       RTDB_EMULATOR_NAMESPACE: namespace
     }),
-    stdio: 'inherit'
+    stdio: 'inherit' as const
   };
   return spawn('yarn', ['test:all'], options);
 }

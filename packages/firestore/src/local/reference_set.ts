@@ -20,6 +20,7 @@ import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
+import { ResourcePath } from '../model/path';
 
 /**
  * A collection of references to a document from some kind of numbered entity
@@ -77,7 +78,7 @@ export class ReferenceSet {
    * removed.
    */
   removeReferencesForId(id: TargetId | BatchId): DocumentKey[] {
-    const emptyKey = DocumentKey.EMPTY;
+    const emptyKey = new DocumentKey(new ResourcePath([]));
     const startRef = new DocReference(emptyKey, id);
     const endRef = new DocReference(emptyKey, id + 1);
     const keys: DocumentKey[] = [];
@@ -98,7 +99,7 @@ export class ReferenceSet {
   }
 
   referencesForId(id: TargetId | BatchId): DocumentKeySet {
-    const emptyKey = DocumentKey.EMPTY;
+    const emptyKey = new DocumentKey(new ResourcePath([]));
     const startRef = new DocReference(emptyKey, id);
     const endRef = new DocReference(emptyKey, id + 1);
     let keys = documentKeySet();

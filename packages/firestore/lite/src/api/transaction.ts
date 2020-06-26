@@ -102,6 +102,7 @@ export class Transaction implements firestore.Transaction {
     );
     const parsed = this._dataReader.parseSetData(
       'Transaction.set',
+      ref._key,
       convertedValue,
       options
     );
@@ -134,6 +135,7 @@ export class Transaction implements firestore.Transaction {
     ) {
       parsed = this._dataReader.parseUpdateVarargs(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -141,6 +143,7 @@ export class Transaction implements firestore.Transaction {
     } else {
       parsed = this._dataReader.parseUpdateData(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData
       );
     }

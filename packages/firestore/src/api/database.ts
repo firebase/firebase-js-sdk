@@ -613,7 +613,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
     this.ensureClientConfigured();
     return new Query(
-      new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+      new InternalQuery(ResourcePath.emptyPath(), collectionId),
       this,
       /* converter= */ null
     );
@@ -745,6 +745,7 @@ export class Transaction implements firestore.Transaction {
     );
     const parsed = this._firestore._dataReader.parseSetData(
       functionName,
+      ref._key,
       convertedValue,
       options
     );
@@ -783,6 +784,7 @@ export class Transaction implements firestore.Transaction {
       );
       parsed = this._firestore._dataReader.parseUpdateVarargs(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -796,6 +798,7 @@ export class Transaction implements firestore.Transaction {
       );
       parsed = this._firestore._dataReader.parseUpdateData(
         'Transaction.update',
+        ref._key,
         fieldOrUpdateData
       );
     }
@@ -842,6 +845,7 @@ export class WriteBatch implements firestore.WriteBatch {
     );
     const parsed = this._firestore._dataReader.parseSetData(
       functionName,
+      ref._key,
       convertedValue,
       options
     );
@@ -884,6 +888,7 @@ export class WriteBatch implements firestore.WriteBatch {
       );
       parsed = this._firestore._dataReader.parseUpdateVarargs(
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -897,6 +902,7 @@ export class WriteBatch implements firestore.WriteBatch {
       );
       parsed = this._firestore._dataReader.parseUpdateData(
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData
       );
     }
@@ -1040,6 +1046,7 @@ export class DocumentReference<T = firestore.DocumentData>
     );
     const parsed = this.firestore._dataReader.parseSetData(
       functionName,
+      this._key,
       convertedValue,
       options
     );
@@ -1068,6 +1075,7 @@ export class DocumentReference<T = firestore.DocumentData>
       validateAtLeastNumberOfArgs('DocumentReference.update', arguments, 2);
       parsed = this.firestore._dataReader.parseUpdateVarargs(
         'DocumentReference.update',
+        this._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
@@ -1076,6 +1084,7 @@ export class DocumentReference<T = firestore.DocumentData>
       validateExactNumberOfArgs('DocumentReference.update', arguments, 1);
       parsed = this.firestore._dataReader.parseUpdateData(
         'DocumentReference.update',
+        this._key,
         fieldOrUpdateData
       );
     }
@@ -1382,7 +1391,9 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     if (this._document) {
       const value = this._document
         .data()
-        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
+        .field(
+          fieldPathFromArgument('DocumentSnapshot.get', fieldPath, this._key)
+        );
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,

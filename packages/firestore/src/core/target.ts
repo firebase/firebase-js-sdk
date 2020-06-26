@@ -18,7 +18,16 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, boundEquals, canonifyBound, Filter, OrderBy } from './query';
+import {
+  Bound,
+  boundEquals,
+  canonifyBound,
+  canonifyOrderBy,
+  Filter,
+  OrderBy,
+  orderByEquals,
+  stringifyOrderBy
+} from './query';
 import { debugCast } from '../util/assert';
 
 /**
@@ -91,7 +100,7 @@ export function canonifyTarget(target: Target): string {
     canonicalId += '|f:';
     canonicalId += targetImpl.filters.map(f => f.canonicalId()).join(',');
     canonicalId += '|ob:';
-    canonicalId += targetImpl.orderBy.map(o => o.canonicalId()).join(',');
+    canonicalId += targetImpl.orderBy.map(o => canonifyOrderBy(o)).join(',');
 
     if (!isNullOrUndefined(targetImpl.limit)) {
       canonicalId += '|l:';
@@ -122,7 +131,9 @@ export function stringifyTarget(target: Target): string {
     str += ', limit: ' + target.limit;
   }
   if (target.orderBy.length > 0) {
-    str += `, orderBy: [${target.orderBy.join(', ')}]`;
+    str += `, orderBy: [${target.orderBy
+      .map(o => stringifyOrderBy(o))
+      .join(', ')}]`;
   }
   if (target.startAt) {
     str += ', startAt: ' + canonifyBound(target.startAt);
@@ -143,7 +154,7 @@ export function targetEquals(left: Target, right: Target): boolean {
   }
 
   for (let i = 0; i < left.orderBy.length; i++) {
-    if (!left.orderBy[i].isEqual(right.orderBy[i])) {
+    if (!orderByEquals(left.orderBy[i], right.orderBy[i])) {
       return false;
     }
   }
