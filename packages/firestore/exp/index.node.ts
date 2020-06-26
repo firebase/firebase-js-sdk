@@ -15,4 +15,21 @@
  * limitations under the License.
  */
 
-// TODO(firestorexp): Export API
+export { FieldPath, documentId } from '../lite/src/api/field_path';
+
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from '../lite/src/api/field_value';
+
+export { setLogLevel } from '../src/util/log';
+
+export { Blob } from '../src/api/blob';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Timestamp } from '../src/api/timestamp';

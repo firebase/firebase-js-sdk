@@ -66,7 +66,7 @@ export interface StringLike {
 }
 
 export interface ErrorData {
-  [key: string]: StringLike | undefined;
+  [key: string]: unknown;
 }
 
 export interface FirebaseError extends Error, ErrorData {
@@ -148,7 +148,7 @@ export class ErrorFactory<
 function replaceTemplate(template: string, data: ErrorData): string {
   return template.replace(PATTERN, (_, key) => {
     const value = data[key];
-    return value != null ? value.toString() : `<${key}?>`;
+    return value != null ? String(value) : `<${key}?>`;
   });
 }
 

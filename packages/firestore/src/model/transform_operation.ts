@@ -19,13 +19,13 @@ import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { debugAssert } from '../util/assert';
-import { JsonProtoSerializer } from '../remote/serializer';
+import { JsonProtoSerializer, toDouble, toInteger } from '../remote/serializer';
 import {
-  valueEquals,
   isArray,
   isInteger,
   isNumber,
-  normalizeNumber
+  normalizeNumber,
+  valueEquals
 } from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
@@ -209,9 +209,9 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     const baseValue = this.computeBaseValue(previousValue);
     const sum = this.asNumber(baseValue) + this.asNumber(this.operand);
     if (isInteger(baseValue) && isInteger(this.operand)) {
-      return this.serializer.toInteger(sum);
+      return toInteger(sum);
     } else {
-      return this.serializer.toDouble(sum);
+      return toDouble(this.serializer, sum);
     }
   }
 

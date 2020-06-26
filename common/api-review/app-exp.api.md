@@ -58,6 +58,9 @@ export function _registerComponent(component: Component): boolean;
 // @public
 export function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void;
 
+// @internal (undocumented)
+export function _removeServiceInstance<T extends Name>(app: FirebaseApp, name: T, instanceIdentifier?: string): void;
+
 // @public
 export const SDK_VERSION: string;
 
