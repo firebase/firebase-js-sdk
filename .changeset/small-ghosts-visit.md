@@ -1,4 +1,5 @@
 ---
+"firebase": patch
 "@firebase/firestore": patch
 ---
 
