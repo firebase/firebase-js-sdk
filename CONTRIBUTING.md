@@ -97,9 +97,39 @@ Before you start working on a larger contribution, you should get in touch with 
     ```
 
 * In GitHub, send a pull request to `firebase-js-sdk:master`.
+* Add changeset. See [Adding changeset to PR](#adding-changeset-to-pr)
 * All pull requests must be reviewed by a member of the Firebase JS SDK team, who will merge it when/if they feel it is good to go.
 
 That's it! Thank you for your contribution!
+
+#### Adding changeset to PR
+Every PR that would trigger a release should include a changeset file. To make
+this process easy, a message will be sent to every PR with a link that you can
+click to add changeset files in the Github UI directly.
+[Example message](https://github.com/firebase/firebase-js-sdk/pull/3284#issuecomment-649718617).
+
+#### What to include in the changset file
+
+You should include the version bump for your package as well as the description
+for the change. Valid version bump types are `patch`, `minor` and `major`.
+Please always include the `firebase` package with the same version bump type as
+your package. This is to ensure that the version of the `firebase` package will
+be bumped correctly. For example,
+
+```
+---
+"@firebase/storage": minor
+"firebase": minor
+---
+
+This is a test.
+```
+
+#### Multiple changeset files
+
+If your PR touches multiple SDKs or addresses multiple issues that require
+different version bump or different description, you can create multiple
+changeset files in the PR.
 
 ## <a name="docs"></a> Updating Documentation
 
