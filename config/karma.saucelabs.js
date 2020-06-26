@@ -31,11 +31,11 @@ if (!testConfigFile) {
  */
 const browserMap = {
   // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest')
+  // Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
   // Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
   // Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
   // Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
-  // IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
 
   // Mobile
   // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
@@ -51,14 +51,14 @@ const packageConfigs = {
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
   },
   // Firestore has large number of IE test failures, need to spend time to fix.
-  firestore: {
-    browsers: [
-      'Chrome_Windows',
-      'Firefox_Windows',
-      'Edge_Windows',
-      'Safari_macOS'
-    ]
-  },
+  // firestore: {
+  //   browsers: [
+  //     'Chrome_Windows',
+  //     'Firefox_Windows',
+  //     'Edge_Windows',
+  //     'Safari_macOS'
+  //   ]
+  // },
   // Installations has IE errors related to `idb` library that need to be figured out.
   installations: {
     browsers: [
@@ -220,7 +220,7 @@ module.exports = function(config) {
       maxLogLines: 5,
       suppressErrorSummary: false,
       suppressFailed: false,
-      suppressPassed: false,
+      suppressPassed: true,
       suppressSkipped: true,
       showSpecTiming: true,
       failFast: false
