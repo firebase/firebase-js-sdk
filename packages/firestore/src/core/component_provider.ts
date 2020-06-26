@@ -21,13 +21,22 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore, MultiTabLocalStore } from '../local/local_store';
-import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
+import {
+  LocalStore,
+  MultiTabLocalStore,
+  newLocalStore,
+  newMultiTabLocalStore
+} from '../local/local_store';
+import {
+  MultiTabSyncEngine,
+  newMultiTabSyncEngine,
+  newSyncEngine,
+  SyncEngine
+} from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseInfo } from './database_info';
-import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
@@ -42,6 +51,9 @@ import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
+import { newConnectivityMonitor } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
+import { getDocument, getWindow } from '../platform/dom';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -51,7 +63,6 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
-  platform: Platform;
   datastore: Datastore;
   clientId: ClientId;
   initialUser: User;
@@ -125,7 +136,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return new LocalStore(
+    return newLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
@@ -152,7 +163,7 @@ export class MemoryComponentProvider implements ComponentProvider {
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      cfg.platform.newConnectivityMonitor()
+      newConnectivityMonitor()
     );
   }
 
@@ -161,7 +172,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return new SyncEngine(
+    return newSyncEngine(
       this.localStore,
       this.remoteStore,
       cfg.datastore,
@@ -211,7 +222,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return new MultiTabLocalStore(
+    return newMultiTabLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
@@ -219,7 +230,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = new MultiTabSyncEngine(
+    const syncEngine = newMultiTabSyncEngine(
       this.localStore,
       this.remoteStore,
       cfg.datastore,
@@ -250,14 +261,15 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       cfg.databaseInfo
     );
-    const serializer = cfg.platform.newSerializer(cfg.databaseInfo.databaseId);
+    const serializer = newSerializer(cfg.databaseInfo.databaseId);
     return new IndexedDbPersistence(
       cfg.persistenceSettings.synchronizeTabs,
       persistenceKey,
       cfg.clientId,
-      cfg.platform,
       LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
       cfg.asyncQueue,
+      getWindow(),
+      getDocument(),
       serializer,
       this.sharedClientState,
       cfg.persistenceSettings.forceOwningTab
@@ -269,7 +281,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       cfg.persistenceSettings.durable &&
       cfg.persistenceSettings.synchronizeTabs
     ) {
-      if (!WebStorageSharedClientState.isAvailable(cfg.platform)) {
+      const window = getWindow();
+      if (!WebStorageSharedClientState.isAvailable(window)) {
         throw new FirestoreError(
           Code.UNIMPLEMENTED,
           'IndexedDB persistence is only available on platforms that support LocalStorage.'
@@ -279,8 +292,8 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
         cfg.databaseInfo
       );
       return new WebStorageSharedClientState(
+        window,
         cfg.asyncQueue,
-        cfg.platform,
         persistenceKey,
         cfg.clientId,
         cfg.initialUser

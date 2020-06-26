@@ -50,6 +50,7 @@ export interface FirestoreDataConverter<T> {
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -140,10 +141,11 @@ export class Transaction {
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
@@ -160,10 +162,11 @@ export class Transaction {
 export class WriteBatch {
   private constructor();
 
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
@@ -243,6 +246,7 @@ export class Query<T = DocumentData> {
 }
 
 export class QuerySnapshot<T = DocumentData> {
+  private constructor();
   readonly query: Query<T>;
   readonly docs: Array<QueryDocumentSnapshot<T>>;
   readonly size: number;
@@ -254,6 +258,7 @@ export class QuerySnapshot<T = DocumentData> {
 }
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
+  private constructor();
   readonly id: string;
   readonly path: string;
   withConverter<U>(
@@ -269,7 +274,7 @@ export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
-): Promise<DocumentSnapshot<T>>;
+): Promise<DocumentReference<T>>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T
@@ -280,15 +285,16 @@ export function setDoc<T>(
   options: SetOptions
 ): Promise<void>;
 export function updateDoc(
-  reference: DocumentReference,
+  reference: DocumentReference<unknown>,
   data: UpdateData
 ): Promise<void>;
 export function updateDoc(
+  reference: DocumentReference<unknown>,
   field: string | FieldPath,
   value: any,
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
-export function deleteDoc(reference: DocumentReference): Promise<void>;
+export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 export class FieldValue {
   private constructor();
@@ -308,14 +314,14 @@ export class FieldPath {
 
 export function documentId(): FieldPath;
 
-export function refEqual(
-  l: DocumentReference | CollectionReference,
-  r: DocumentReference | CollectionReference
+export function refEqual<T>(
+  left: DocumentReference<T> | CollectionReference<T>,
+  right: DocumentReference<T> | CollectionReference<T>
 ): boolean;
-export function queryEqual(l: Query, r: Query): boolean;
-export function snapshotEqual(
-  l: DocumentSnapshot | QuerySnapshot,
-  r: DocumentSnapshot | QuerySnapshot
+export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export function snapshotEqual<T>(
+  left: DocumentSnapshot<T> | QuerySnapshot<T>,
+  right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
 export type FirestoreErrorCode =

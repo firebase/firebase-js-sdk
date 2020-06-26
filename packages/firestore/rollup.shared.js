@@ -24,6 +24,22 @@ import { removeAsserts } from './scripts/remove-asserts';
 
 import pkg from './package.json';
 
+/**
+ * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
+ * references to platform-specific files with implementations for the provided
+ * target platform.
+ */
+export function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
+}
+
 const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );

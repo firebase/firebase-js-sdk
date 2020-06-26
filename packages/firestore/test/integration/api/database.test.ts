@@ -25,13 +25,13 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  DEFAULT_SETTINGS,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
+import { DEFAULT_SETTINGS } from '../util/settings';
 
 // tslint:disable:no-floating-promises
 
@@ -1296,6 +1296,34 @@ apiDescribe('Database', (persistence: boolean) => {
       }
     };
 
+    const postConverterMerge = {
+      toFirestore(
+        post: Partial<Post>,
+        options?: firestore.SetOptions
+      ): firestore.DocumentData {
+        if (options && (options.merge || options.mergeFields)) {
+          expect(post).to.not.be.an.instanceof(Post);
+        } else {
+          expect(post).to.be.an.instanceof(Post);
+        }
+        const result: firestore.DocumentData = {};
+        if (post.title) {
+          result.title = post.title;
+        }
+        if (post.author) {
+          result.author = post.author;
+        }
+        return result;
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot,
+        options: firestore.SnapshotOptions
+      ): Post {
+        const data = snapshot.data();
+        return new Post(data.title, data.author);
+      }
+    };
+
     it('for DocumentReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
@@ -1340,6 +1368,127 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('requires the correct converter for Partial usage', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc('some-post')
+          .withConverter(postConverter);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        expect(() =>
+          batch.set(ref, { title: 'olive' }, { merge: true })
+        ).to.throw(
+          'Function WriteBatch.set() called with invalid ' +
+            'data (via `toFirestore()`). Unsupported field value: undefined ' +
+            '(found in field author in document posts/some-post)'
+        );
+      });
+    });
+
+    it('WriteBatch.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        batch.set(ref, { title: 'olive' }, { merge: true });
+        await batch.commit();
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('WriteBatch.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        batch.set(
+          ref,
+          { title: 'olive', author: 'writer' },
+          { mergeFields: ['title'] }
+        );
+        await batch.commit();
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('Transaction.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await db.runTransaction(async tx => {
+          tx.set(ref, { title: 'olive' }, { merge: true });
+        });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('Transaction.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await db.runTransaction(async tx => {
+          tx.set(
+            ref,
+            { title: 'olive', author: 'person' },
+            { mergeFields: ['title'] }
+          );
+        });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('DocumentReference.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await ref.set({ title: 'olive' }, { merge: true });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('DocumentReference.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await ref.set(
+          { title: 'olive', author: 'writer' },
+          { mergeFields: ['title'] }
+        );
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
     it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
       return withTestDb(persistence, async db => {
         const docRef = db.doc('some/doc').withConverter({
@@ -1372,6 +1521,24 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const usersCollection = postsCollection.parent;
         expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+      });
+    });
+
+    it('checks converter when comparing with isEqual()', () => {
+      return withTestDb(persistence, async db => {
+        const postConverter2 = { ...postConverter };
+
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+        const postsCollection2 = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter2);
+        expect(postsCollection.isEqual(postsCollection2)).to.be.false;
+
+        const docRef = db.doc('some/doc').withConverter(postConverter);
+        const docRef2 = db.doc('some/doc').withConverter(postConverter2);
+        expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
   });

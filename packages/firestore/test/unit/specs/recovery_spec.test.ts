@@ -721,29 +721,80 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         { foo: 'a' },
         { hasLocalMutations: true }
       );
-      return spec()
-        .changeUser('user1')
-        .userSets('collection/key1', { foo: 'a' })
-        .userListens(query)
-        .expectEvents(query, {
-          added: [doc1],
-          fromCache: true,
-          hasPendingWrites: true
-        })
-        .failDatabaseTransactions('Handle user change')
-        .changeUser('user2')
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectEvents(query, { removed: [doc1], fromCache: true })
-        .failDatabaseTransactions('Handle user change')
-        .changeUser('user1')
-        .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectEvents(query, {
-          added: [doc1],
-          fromCache: true,
-          hasPendingWrites: true
-        });
+      return (
+        spec()
+          .changeUser('user1')
+          .userSets('collection/key1', { foo: 'a' })
+          .userListens(query)
+          .expectEvents(query, {
+            added: [doc1],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+          .failDatabaseTransactions('Handle user change')
+          .changeUser('user2')
+          // The network is offline due to the failed user change
+          .expectActiveTargets()
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets({ query })
+          .expectEvents(query, { removed: [doc1], fromCache: true })
+          .failDatabaseTransactions('Handle user change')
+          .changeUser('user1')
+          // The network is offline due to the failed user change
+          .expectActiveTargets()
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets({ query })
+          .expectEvents(query, {
+            added: [doc1],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Multiple user changes during transaction failure (with recovery)',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc(
+        'collection/key1',
+        0,
+        { foo: 'a' },
+        { hasLocalMutations: true }
+      );
+      return (
+        spec()
+          .changeUser('user1')
+          .userSets('collection/key1', { foo: 'a' })
+          .userListens(query)
+          .expectEvents(query, {
+            added: [doc1],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+          // Change the user to user2 and back to user1 while IndexedDB is failed
+          .failDatabaseTransactions('Handle user change')
+          .changeUser('user2')
+          // The network is offline due to the failed user change
+          .expectActiveTargets()
+          .changeUser('user1')
+          .recoverDatabase()
+          .runTimer(TimerId.AsyncQueueRetry)
+          .expectActiveTargets({ query })
+          // We are now user 2
+          .expectEvents(query, { removed: [doc1], fromCache: true })
+          .runTimer(TimerId.AsyncQueueRetry)
+          // We are now user 1
+          .expectEvents(query, {
+            added: [doc1],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+      );
     }
   );
 
