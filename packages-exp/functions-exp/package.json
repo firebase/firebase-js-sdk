@@ -51,11 +51,11 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.14",
+    "@firebase/component": "0.1.15",
     "@firebase/functions-types-exp": "0.0.800",
-    "@firebase/messaging": "0.6.18",
+    "@firebase/messaging": "0.6.19",
     "@firebase/messaging-types": "0.4.5",
-    "@firebase/util": "0.2.49",
+    "@firebase/util": "0.2.50",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.11.1"
   },

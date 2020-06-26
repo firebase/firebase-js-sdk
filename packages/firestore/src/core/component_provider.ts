@@ -27,7 +27,12 @@ import {
   newLocalStore,
   newMultiTabLocalStore
 } from '../local/local_store';
-import { MultiTabSyncEngine, SyncEngine } from './sync_engine';
+import {
+  MultiTabSyncEngine,
+  newMultiTabSyncEngine,
+  newSyncEngine,
+  SyncEngine
+} from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
@@ -167,7 +172,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return new SyncEngine(
+    return newSyncEngine(
       this.localStore,
       this.remoteStore,
       cfg.datastore,
@@ -225,7 +230,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = new MultiTabSyncEngine(
+    const syncEngine = newMultiTabSyncEngine(
       this.localStore,
       this.remoteStore,
       cfg.datastore,
