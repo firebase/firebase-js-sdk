@@ -120,6 +120,7 @@ export function getQueryFromCache<T>(
     );
   });
 }
+
 export function getQueryFromServer<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {

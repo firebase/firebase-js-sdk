@@ -124,7 +124,7 @@ describe('getQueryFromServer()', () => {
 function validateEmptySnapshot(
   querySnap: QuerySnapshot<firestore.DocumentData>,
   fromCache: boolean
-) {
+): void {
   expect(querySnap.metadata.fromCache).to.equal(fromCache);
   expect(querySnap.metadata.hasPendingWrites).to.be.false;
   expect(querySnap.empty).to.be.true;
