@@ -56,7 +56,6 @@
   "components": [
     "app",
     "dummy",
-    "functions",
-    "auth"
+    "functions"
   ]
 }

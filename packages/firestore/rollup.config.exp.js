@@ -47,19 +47,6 @@ const nodeBuilds = [
     treeshake: {
       tryCatchDeoptimization: false
     }
-  },
-
-  {
-    input: './exp/src/api/foobar.ts',
-    output: {
-      file: './dist/exp/foobar.js',
-      format: 'es'
-    },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
   }
 ];
 
