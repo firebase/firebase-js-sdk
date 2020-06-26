@@ -17,7 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
+import {
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 // There are two different browser persistence types: local and session.
 // Both have the same implementation but use a different underlying storage
@@ -43,12 +48,19 @@ function isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
   }
 }
 
-function set(this: BrowserPersistenceClass, key: string, value: PersistenceValue): Promise<void> {
+function set(
+  this: BrowserPersistenceClass,
+  key: string,
+  value: PersistenceValue
+): Promise<void> {
   this.storage.setItem(key, JSON.stringify(value));
   return Promise.resolve();
 }
 
-function get<T extends PersistenceValue>(this: BrowserPersistenceClass, key: string): Promise<T | null> {
+function get<T extends PersistenceValue>(
+  this: BrowserPersistenceClass,
+  key: string
+): Promise<T | null> {
   const json = this.storage.getItem(key);
   return Promise.resolve(json ? JSON.parse(json) : null);
 }
