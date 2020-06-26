@@ -53,7 +53,7 @@ function convertToDocSnapshot<T>(
 ): DocumentSnapshot<T> {
   debugAssert(
     snapshot.docs.size <= 1,
-    'Too many documents returned on a document query'
+    'Too many documents returned on a single document query'
   );
   const doc = snapshot.docs.get(ref._key);
 
