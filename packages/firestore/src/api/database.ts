@@ -727,8 +727,14 @@ export class Transaction implements firestore.Transaction {
   }
 
   set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: firestore.SetOptions
+  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+  set<T>(
     documentRef: firestore.DocumentReference<T>,
-    value: T,
+    value: T | Partial<T>,
     options?: firestore.SetOptions
   ): Transaction {
     validateBetweenNumberOfArgs('Transaction.set', arguments, 2, 3);
@@ -738,15 +744,16 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'Transaction.set'
+      options
     );
     const parsed = this._firestore._dataReader.parseSetData(
-      functionName,
+      'Transaction.set',
       ref._key,
       convertedValue,
+      ref._converter !== null,
       options
     );
     this._transaction.set(ref._key, parsed);
@@ -826,8 +833,14 @@ export class WriteBatch implements firestore.WriteBatch {
   constructor(private _firestore: Firestore) {}
 
   set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: firestore.SetOptions
+  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<T>(
     documentRef: firestore.DocumentReference<T>,
-    value: T,
+    value: T | Partial<T>,
     options?: firestore.SetOptions
   ): WriteBatch {
     validateBetweenNumberOfArgs('WriteBatch.set', arguments, 2, 3);
@@ -838,15 +851,16 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'WriteBatch.set'
+      options
     );
     const parsed = this._firestore._dataReader.parseSetData(
-      functionName,
+      'WriteBatch.set',
       ref._key,
       convertedValue,
+      ref._converter !== null,
       options
     );
     this._mutations = this._mutations.concat(
@@ -1032,22 +1046,21 @@ export class DocumentReference<T = firestore.DocumentData>
     );
   }
 
-  set(
-    value: firestore.DocumentData,
-    options?: firestore.SetOptions
-  ): Promise<void>;
-  set(value: T, options?: firestore.SetOptions): Promise<void> {
+  set(value: Partial<T>, options: firestore.SetOptions): Promise<void>;
+  set(value: T): Promise<void>;
+  set(value: T | Partial<T>, options?: firestore.SetOptions): Promise<void> {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
-    const [convertedValue, functionName] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       this._converter,
       value,
-      'DocumentReference.set'
+      options
     );
     const parsed = this.firestore._dataReader.parseSetData(
-      functionName,
+      'DocumentReference.set',
       this._key,
       convertedValue,
+      this._converter !== null,
       options
     );
     return this._firestoreClient.write(
@@ -1130,7 +1143,7 @@ export class DocumentReference<T = firestore.DocumentData>
     let options: firestore.SnapshotListenOptions = {
       includeMetadataChanges: false
     };
-    let observer: PartialObserver<firestore.DocumentSnapshot<T>>;
+    let observer: PartialObserver<ViewSnapshot>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -1154,9 +1167,18 @@ export class DocumentReference<T = firestore.DocumentData>
     };
 
     if (isPartialObserver(args[currArg])) {
-      observer = args[currArg] as PartialObserver<
+      const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
+      observer = {
+        next: snapshot => {
+          if (userObserver.next) {
+            userObserver.next(this._convertToDocSnapshot(snapshot));
+          }
+        },
+        error: userObserver.error,
+        complete: userObserver.complete
+      };
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -1177,140 +1199,51 @@ export class DocumentReference<T = firestore.DocumentData>
         args[currArg + 2]
       );
       observer = {
-        next: args[currArg] as NextFn<firestore.DocumentSnapshot<T>>,
+        next: snapshot => {
+          if (args[currArg]) {
+            (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
+              this._convertToDocSnapshot(snapshot)
+            );
+          }
+        },
         error: args[currArg + 1] as ErrorFn,
         complete: args[currArg + 2] as CompleteFn
       };
     }
-    return this.onSnapshotInternal(internalOptions, observer);
-  }
-
-  private onSnapshotInternal(
-    options: ListenOptions,
-    observer: PartialObserver<firestore.DocumentSnapshot<T>>
-  ): Unsubscribe {
-    let errHandler = (err: Error): void => {
-      console.error('Uncaught Error in onSnapshot:', err);
-    };
-    if (observer.error) {
-      errHandler = observer.error.bind(observer);
-    }
-
-    const asyncObserver = new AsyncObserver<ViewSnapshot>({
-      next: snapshot => {
-        if (observer.next) {
-          debugAssert(
-            snapshot.docs.size <= 1,
-            'Too many documents returned on a document query'
-          );
-          const doc = snapshot.docs.get(this._key);
-
-          observer.next(
-            new DocumentSnapshot(
-              this.firestore,
-              this._key,
-              doc,
-              snapshot.fromCache,
-              snapshot.hasPendingWrites,
-              this._converter
-            )
-          );
-        }
-      },
-      error: errHandler
-    });
-    const internalListener = this._firestoreClient.listen(
-      InternalQuery.atPath(this._key.path),
-      asyncObserver,
-      options
+    return addDocSnapshotListener(
+      this._firestoreClient,
+      this._key,
+      internalOptions,
+      observer
     );
-
-    return () => {
-      asyncObserver.mute();
-      this._firestoreClient.unlisten(internalListener);
-    };
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot<T>> {
     validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
     validateGetOptions('DocumentReference.get', options);
-    return new Promise(
-      (resolve: Resolver<firestore.DocumentSnapshot<T>>, reject: Rejecter) => {
-        if (options && options.source === 'cache') {
-          this.firestore
-            .ensureClientConfigured()
-            .getDocumentFromLocalCache(this._key)
-            .then(doc => {
-              resolve(
-                new DocumentSnapshot(
-                  this.firestore,
-                  this._key,
-                  doc,
-                  /*fromCache=*/ true,
-                  doc instanceof Document ? doc.hasLocalMutations : false,
-                  this._converter
-                )
-              );
-            }, reject);
-        } else {
-          this.getViaSnapshotListener(resolve, reject, options);
-        }
-      }
-    );
-  }
 
-  private getViaSnapshotListener(
-    resolve: Resolver<firestore.DocumentSnapshot<T>>,
-    reject: Rejecter,
-    options?: firestore.GetOptions
-  ): void {
-    const unlisten = this.onSnapshotInternal(
-      {
-        includeMetadataChanges: true,
-        waitForSyncWhenOnline: true
-      },
-      {
-        next: (snap: firestore.DocumentSnapshot<T>) => {
-          // Remove query first before passing event to user to avoid
-          // user actions affecting the now stale query.
-          unlisten();
-
-          if (!snap.exists && snap.metadata.fromCache) {
-            // TODO(dimond): If we're online and the document doesn't
-            // exist then we resolve with a doc.exists set to false. If
-            // we're offline however, we reject the Promise in this
-            // case. Two options: 1) Cache the negative response from
-            // the server so we can deliver that even when you're
-            // offline 2) Actually reject the Promise in the online case
-            // if the document doesn't exist.
-            reject(
-              new FirestoreError(
-                Code.UNAVAILABLE,
-                'Failed to get document because the client is ' + 'offline.'
-              )
-            );
-          } else if (
-            snap.exists &&
-            snap.metadata.fromCache &&
-            options &&
-            options.source === 'server'
-          ) {
-            reject(
-              new FirestoreError(
-                Code.UNAVAILABLE,
-                'Failed to get document from server. (However, this ' +
-                  'document does exist in the local cache. Run again ' +
-                  'without setting source to "server" to ' +
-                  'retrieve the cached document.)'
-              )
-            );
-          } else {
-            resolve(snap);
-          }
-        },
-        error: reject
-      }
-    );
+    if (options && options.source === 'cache') {
+      return this.firestore
+        .ensureClientConfigured()
+        .getDocumentFromLocalCache(this._key)
+        .then(
+          doc =>
+            new DocumentSnapshot(
+              this.firestore,
+              this._key,
+              doc,
+              /*fromCache=*/ true,
+              doc instanceof Document ? doc.hasLocalMutations : false,
+              this._converter
+            )
+        );
+    } else {
+      return getDocViaSnapshotListener(
+        this._firestoreClient,
+        this._key,
+        options
+      ).then(snapshot => this._convertToDocSnapshot(snapshot));
+    }
   }
 
   withConverter<U>(
@@ -1318,9 +1251,127 @@ export class DocumentReference<T = firestore.DocumentData>
   ): firestore.DocumentReference<U> {
     return new DocumentReference<U>(this._key, this.firestore, converter);
   }
+
+  /**
+   * Converts a ViewSnapshot that contains the current document to a
+   * DocumentSnapshot.
+   */
+  private _convertToDocSnapshot(snapshot: ViewSnapshot): DocumentSnapshot<T> {
+    debugAssert(
+      snapshot.docs.size <= 1,
+      'Too many documents returned on a document query'
+    );
+    const doc = snapshot.docs.get(this._key);
+
+    return new DocumentSnapshot(
+      this.firestore,
+      this._key,
+      doc,
+      snapshot.fromCache,
+      snapshot.hasPendingWrites,
+      this._converter
+    );
+  }
 }
 
-class SnapshotMetadata implements firestore.SnapshotMetadata {
+/** Registers an internal snapshot listener for `ref`. */
+function addDocSnapshotListener(
+  firestoreClient: FirestoreClient,
+  key: DocumentKey,
+  options: ListenOptions,
+  observer: PartialObserver<ViewSnapshot>
+): Unsubscribe {
+  let errHandler = (err: Error): void => {
+    console.error('Uncaught Error in onSnapshot:', err);
+  };
+  if (observer.error) {
+    errHandler = observer.error.bind(observer);
+  }
+
+  const asyncObserver = new AsyncObserver<ViewSnapshot>({
+    next: snapshot => {
+      if (observer.next) {
+        observer.next(snapshot);
+      }
+    },
+    error: errHandler
+  });
+  const internalListener = firestoreClient.listen(
+    InternalQuery.atPath(key.path),
+    asyncObserver,
+    options
+  );
+
+  return () => {
+    asyncObserver.mute();
+    firestoreClient.unlisten(internalListener);
+  };
+}
+
+/**
+ * Retrieves a latency-compensated document from the backend via a
+ * SnapshotListener.
+ */
+export function getDocViaSnapshotListener(
+  firestoreClient: FirestoreClient,
+  key: DocumentKey,
+  options?: firestore.GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = addDocSnapshotListener(
+    firestoreClient,
+    key,
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: (snap: ViewSnapshot) => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        const exists = snap.docs.has(key);
+        if (!exists && snap.fromCache) {
+          // TODO(dimond): If we're online and the document doesn't
+          // exist then we resolve with a doc.exists set to false. If
+          // we're offline however, we reject the Promise in this
+          // case. Two options: 1) Cache the negative response from
+          // the server so we can deliver that even when you're
+          // offline 2) Actually reject the Promise in the online case
+          // if the document doesn't exist.
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document because the client is ' + 'offline.'
+            )
+          );
+        } else if (
+          exists &&
+          snap.fromCache &&
+          options &&
+          options.source === 'server'
+        ) {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from server. (However, this ' +
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
+            )
+          );
+        } else {
+          result.resolve(snap);
+        }
+      },
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
+}
+
+export class SnapshotMetadata implements firestore.SnapshotMetadata {
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
@@ -2584,16 +2635,22 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
   value: T,
-  functionName: string
-): [firestore.DocumentData, string] {
+  options?: firestore.SetOptions
+): firestore.DocumentData {
   let convertedValue;
   if (converter) {
-    convertedValue = converter.toFirestore(value);
-    functionName = 'toFirestore() in ' + functionName;
+    if (options && (options.merge || options.mergeFields)) {
+      // Cast to `any` in order to satisfy the union type constraint on
+      // toFirestore().
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      convertedValue = (converter as any).toFirestore(value, options);
+    } else {
+      convertedValue = converter.toFirestore(value);
+    }
   } else {
     convertedValue = value as firestore.DocumentData;
   }
-  return [convertedValue, functionName];
+  return convertedValue;
 }
 
 function contains(obj: object, key: string): obj is { key: unknown } {

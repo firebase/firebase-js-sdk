@@ -456,16 +456,13 @@ export function setDoc<T>(
 ): Promise<void> {
   const ref = cast(reference, DocumentReference);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    ref._converter,
-    data,
-    'setDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(ref._converter, data);
   const dataReader = newUserDataReader(ref.firestore);
   const parsed = dataReader.parseSetData(
     'setDoc',
     ref._key,
     convertedValue,
+    ref._converter !== null,
     options
   );
 
@@ -548,14 +545,16 @@ export function addDoc<T>(
   const collRef = cast(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    collRef._converter,
-    data,
-    'addDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', docRef._key, convertedValue);
+  const parsed = dataReader.parseSetData(
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    docRef._converter !== null,
+    {}
+  );
 
   return collRef.firestore
     ._getDatastore()
