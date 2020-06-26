@@ -15,7 +15,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "yarn type-check && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "yarn build && node ../../scripts/run_tests_in_ci.js",
     "type-check": "tsc -p . --noEmit",
     "prepare": "yarn build"
   },
