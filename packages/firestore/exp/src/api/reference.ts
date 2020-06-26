@@ -39,7 +39,6 @@ import {
   DocumentReference,
   newUserDataReader
 } from '../../../lite/src/api/reference';
-import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { FieldPath } from '../../../lite/src/api/field_path';
 
