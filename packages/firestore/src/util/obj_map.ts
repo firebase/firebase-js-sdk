@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-import { Equatable } from './misc';
 import { forEach, isEmpty } from './obj';
 
 type Entry<K, V> = [K, V];
 
 /**
- * A map implementation that uses objects as keys. Objects must implement the
- * Equatable interface and must be immutable. Entries in the map are stored
- * together with the key being produced from the mapKeyFn. This map
+ * A map implementation that uses objects as keys. Objects must have an
+ * associated equals function and must be immutable. Entries in the map are
+ * stored together with the key being produced from the mapKeyFn. This map
  * automatically handles collisions of keys.
  */
-export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
+export class ObjectMap<KeyType, ValueType> {
   /**
    * The inner map for a key -> value pair. Due to the possibility of
    * collisions we keep a list of entries that we do a linear search through
@@ -37,7 +36,10 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
     [canonicalId: string]: Array<Entry<KeyType, ValueType>>;
   } = {};
 
-  constructor(private mapKeyFn: (key: KeyType) => string) {}
+  constructor(
+    private mapKeyFn: (key: KeyType) => string,
+    private equalsFn: (l: KeyType, r: KeyType) => boolean
+  ) {}
 
   /** Get a value for this key, or undefined if it does not exist. */
   get(key: KeyType): ValueType | undefined {
@@ -47,7 +49,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return undefined;
     }
     for (const [otherKey, value] of matches) {
-      if (otherKey.isEqual(key)) {
+      if (this.equalsFn(otherKey, key)) {
         return value;
       }
     }
@@ -67,7 +69,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return;
     }
     for (let i = 0; i < matches.length; i++) {
-      if (matches[i][0].isEqual(key)) {
+      if (this.equalsFn(matches[i][0], key)) {
         matches[i] = [key, value];
         return;
       }
@@ -85,7 +87,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return false;
     }
     for (let i = 0; i < matches.length; i++) {
-      if (matches[i][0].isEqual(key)) {
+      if (this.equalsFn(matches[i][0], key)) {
         if (matches.length === 1) {
           delete this.inner[id];
         } else {

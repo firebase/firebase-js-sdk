@@ -20,8 +20,8 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
-import { ByteStreamReader, PlatformSupport } from '../platform/platform';
 import { debugAssert } from './assert';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -39,6 +39,19 @@ export class SizedBundleElement {
   }
 }
 
+export type BundleSource =
+  | ReadableStream<Uint8Array>
+  | ArrayBuffer
+  | Uint8Array;
+
+/**
+ * When applicable, how many bytes to read from the underlying data source
+ * each time.
+ *
+ * Not applicable for ReadableStreams.
+ */
+const BYTES_PER_READ = 10240;
+
 /**
  * A class representing a bundle.
  *
@@ -48,8 +61,6 @@ export class SizedBundleElement {
 export class BundleReader {
   /** Cached bundle metadata. */
   private metadata: Deferred<BundleMetadata> = new Deferred<BundleMetadata>();
-  /** The reader to read from underlying binary bundle data source. */
-  private reader: ByteStreamReader;
   /**
    * Internal buffer to hold bundle content, accumulating incomplete element
    * content.
@@ -58,16 +69,14 @@ export class BundleReader {
   /** The decoder used to parse binary data into strings. */
   private textDecoder = new TextDecoder('utf-8');
 
-  constructor(
-    private bundleStream:
-      | ReadableStream<Uint8Array | ArrayBuffer>
-      | Uint8Array
-      | ArrayBuffer
-  ) {
-    this.reader = PlatformSupport.getPlatform().toByteStreamReader(
-      bundleStream
-    );
+  static fromBundleSource(source: BundleSource): BundleReader {
+    return new BundleReader(toByteStreamReader(source, BYTES_PER_READ));
+  }
 
+  constructor(
+    /** The reader to read from underlying binary bundle data source. */
+    private reader: ReadableStreamReader<Uint8Array>
+  ) {
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
       element => {
@@ -198,8 +207,8 @@ export class BundleReader {
 
   private raiseError(message: string): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.reader.cancel('Invalid bundle format.');
-    throw new Error(message);
+    this.reader.cancel();
+    throw new Error(`Invalid bundle format: ${message}`);
   }
 
   /**

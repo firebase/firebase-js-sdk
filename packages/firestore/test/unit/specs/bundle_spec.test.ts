@@ -28,6 +28,7 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
+import { toVersion } from '../../../src/remote/serializer';
 
 interface TestBundleDocument {
   key: DocumentKey;
@@ -40,20 +41,20 @@ function bundleWithDocument(testDoc: TestBundleDocument): string {
   const builder = new TestBundleBuilder(TEST_DATABASE_ID);
   builder.addDocumentMetadata(
     testDoc.key,
-    JSON_SERIALIZER.toVersion(version(testDoc.readTime)),
+    toVersion(JSON_SERIALIZER, version(testDoc.readTime)),
     !!testDoc.createTime
   );
   if (testDoc.createTime) {
     builder.addDocument(
       testDoc.key,
-      JSON_SERIALIZER.toVersion(version(testDoc.createTime)),
-      JSON_SERIALIZER.toVersion(version(testDoc.updateTime!)),
+      toVersion(JSON_SERIALIZER, version(testDoc.createTime)),
+      toVersion(JSON_SERIALIZER, version(testDoc.updateTime!)),
       testDoc.content!
     );
   }
   return builder.build(
     'test-bundle',
-    JSON_SERIALIZER.toVersion(version(testDoc.readTime))
+    toVersion(JSON_SERIALIZER, version(testDoc.readTime))
   );
 }
 

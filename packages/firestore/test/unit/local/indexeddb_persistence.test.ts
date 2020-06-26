@@ -60,13 +60,11 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
-import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -75,11 +73,19 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+import {
+  fromDbTarget,
+  toDbRemoteDocument,
+  toDbTarget,
+  toDbTimestampKey
+} from '../../../src/local/local_serializer';
+import { canonifyTarget } from '../../../src/core/target';
+import { FakeDocument, testDocument } from '../../util/test_platform';
+import { getWindow } from '../../../src/platform/dom';
 
 use(chaiAsPromised);
 
 /* eslint-disable no-restricted-globals */
-
 function withDb(
   schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
@@ -116,50 +122,53 @@ function withDb(
 async function withUnstartedCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
-    useProto3Json: true
-  });
+  const serializer = new JsonProtoSerializer(
+    TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
 
   const queue = new AsyncQueue();
-  const platform = new TestPlatform(
-    PlatformSupport.getPlatform(),
-    new SharedFakeWebStorage()
-  );
+  const document = testDocument();
   const persistence = new MockIndexedDbPersistence(
     multiClient,
     TEST_PERSISTENCE_PREFIX,
     clientId,
-    platform,
     LruParams.DEFAULT,
     queue,
+    getWindow(),
+    document,
     serializer,
-    MOCK_SEQUENCE_NUMBER_SYNCER
+    MOCK_SEQUENCE_NUMBER_SYNCER,
+    forceOwningTab
   );
 
-  await fn(persistence, platform, queue);
+  await fn(persistence, document, queue);
 }
 
 function withCustomPersistence(
   clientId: ClientId,
   multiClient: boolean,
+  forceOwningTab: boolean,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
   return withUnstartedCustomPersistence(
     clientId,
     multiClient,
-    async (persistence, platform, queue) => {
+    forceOwningTab,
+    async (persistence, document, queue) => {
       await persistence.start();
-      await fn(persistence, platform, queue);
+      await fn(persistence, document, queue);
       await persistence.shutdown();
     }
   );
@@ -169,22 +178,48 @@ async function withPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ false,
+    fn
+  );
 }
 
 async function withMultiClientPersistence(
   clientId: ClientId,
   fn: (
     persistence: MockIndexedDbPersistence,
-    platform: TestPlatform,
+    document: FakeDocument,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ true,
+    /* forceOwningTab= */ false,
+    fn
+  );
+}
+
+async function withForcedPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    document: FakeDocument,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    /* multiClient= */ false,
+    /* forceOwningTab= */ true,
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -206,7 +241,8 @@ function addDocs(
   );
   return PersistencePromise.forEach(keys, (key: string) => {
     const remoteDoc = doc(key, version, { data: 'foo' });
-    const dbRemoteDoc = TEST_SERIALIZER.toDbRemoteDocument(
+    const dbRemoteDoc = toDbRemoteDocument(
+      TEST_SERIALIZER,
       remoteDoc,
       remoteDoc.version
     );
@@ -550,7 +586,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       ];
       const dbRemoteDocs = docs.map(doc => ({
         dbKey: doc.key.path.toArray(),
-        dbDoc: TEST_SERIALIZER.toDbRemoteDocument(doc, doc.version)
+        dbDoc: toDbRemoteDocument(TEST_SERIALIZER, doc, doc.version)
       }));
       // V5 stores doesn't exist
       const sdb = new SimpleDb(db);
@@ -618,7 +654,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               promises.push(
                 remoteDocumentStore.put(
                   document.key.path.toArray(),
-                  serializer.toDbRemoteDocument(document, document.version)
+                  toDbRemoteDocument(serializer, document, document.version)
                 )
               );
               if (i % 2 === 1) {
@@ -719,7 +755,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
             return remoteDocumentStore.put(
               remoteDoc.key.path.toArray(),
-              TEST_SERIALIZER.toDbRemoteDocument(remoteDoc, remoteDoc.version)
+              toDbRemoteDocument(TEST_SERIALIZER, remoteDoc, remoteDoc.version)
             );
           });
         });
@@ -767,10 +803,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           /* sequenceNumber= */ 1
         );
 
-        const serializedData = TEST_SERIALIZER.toDbTarget(initialTargetData);
+        const serializedData = toDbTarget(TEST_SERIALIZER, initialTargetData);
         serializedData.canonicalId = 'invalid_canonical_id';
 
-        return targetsStore.put(TEST_SERIALIZER.toDbTarget(initialTargetData));
+        return targetsStore.put(toDbTarget(TEST_SERIALIZER, initialTargetData));
       });
     });
 
@@ -779,8 +815,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
         return targetsStore.iterate((key, value) => {
-          const targetData = TEST_SERIALIZER.fromDbTarget(value).target;
-          const expectedCanonicalId = targetData.canonicalId();
+          const targetData = fromDbTarget(value).target;
+          const expectedCanonicalId = canonifyTarget(targetData);
 
           const actualCanonicalId = value.canonicalId;
           expect(actualCanonicalId).to.equal(expectedCanonicalId);
@@ -819,7 +855,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return PersistencePromise.forEach(existingDocPaths, (path: string) => {
           const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
 
-          const dbRemoteDoc = TEST_SERIALIZER.toDbRemoteDocument(
+          const dbRemoteDoc = toDbRemoteDocument(
+            TEST_SERIALIZER,
             remoteDoc,
             remoteDoc.version
           );
@@ -860,7 +897,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           .next(() => {
             // Verify that we can get recent changes in a collection filtered by
             // read time.
-            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const lastReadTime = toDbTimestampKey(version(1));
             const range = IDBKeyRange.lowerBound(
               [['coll2'], lastReadTime],
               true
@@ -893,7 +930,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               DbRemoteDocument
             >(DbRemoteDocument.store);
 
-            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const lastReadTime = toDbTimestampKey(version(1));
             const range = IDBKeyRange.lowerBound(
               [['coll'], lastReadTime],
               true
@@ -927,7 +964,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               DbRemoteDocument
             >(DbRemoteDocument.store);
 
-            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const lastReadTime = toDbTimestampKey(version(1));
             const range = IDBKeyRange.lowerBound(lastReadTime, true);
             return remoteDocumentStore
               .loadAll(DbRemoteDocument.readTimeIndex, range)
@@ -1071,8 +1108,8 @@ describe('IndexedDb: canActAsPrimary', () => {
     it(testName, () => {
       return withMultiClientPersistence(
         'thatClient',
-        async (thatPersistence, thatPlatform, thatQueue) => {
-          thatPlatform.raiseVisibilityEvent(thatVisibility);
+        async (thatPersistence, thatDocument, thatQueue) => {
+          thatDocument.raiseVisibilityEvent(thatVisibility);
           thatPersistence.setNetworkEnabled(thatNetwork);
           await thatQueue.drain();
 
@@ -1082,8 +1119,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
           await withMultiClientPersistence(
             'thisClient',
-            async (thisPersistence, thisPlatform, thisQueue) => {
-              thisPlatform.raiseVisibilityEvent(thisVisibility);
+            async (thisPersistence, thisDocument, thisQueue) => {
+              thisDocument.raiseVisibilityEvent(thisVisibility);
               thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
 
@@ -1102,8 +1139,8 @@ describe('IndexedDb: canActAsPrimary', () => {
   }
 
   it('is eligible when only client', () => {
-    return withPersistence('clientA', async (persistence, platform, queue) => {
-      platform.raiseVisibilityEvent('hidden');
+    return withPersistence('clientA', async (persistence, document, queue) => {
+      document.raiseVisibilityEvent('hidden');
       persistence.setNetworkEnabled(false);
       await queue.drain();
 
@@ -1131,6 +1168,18 @@ describe('IndexedDb: canActAsPrimary', () => {
       expect(await getCurrentLeaseOwner()).to.not.be.null;
     });
   });
+
+  it('obtains lease if forceOwningTab is set', () => {
+    return withPersistence('clientA', async clientA => {
+      await withForcedPersistence('clientB', async () => {
+        return expect(
+          clientA.runTransaction('tx', 'readwrite-primary', () =>
+            PersistencePromise.resolve()
+          )
+        ).to.be.eventually.rejected;
+      });
+    });
+  });
 });
 
 describe('IndexedDb: allowTabSynchronization', () => {
@@ -1147,6 +1196,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await expect(db.start()).to.eventually.be.rejectedWith(
@@ -1161,6 +1211,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ true,
+      /* forceOwningTab= */ false,
       async db => {
         db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
         await db.start();
@@ -1173,6 +1224,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
     await withUnstartedCustomPersistence(
       'clientA',
       /* multiClient= */ false,
+      /* forceOwningTab= */ false,
       async db1 => {
         db1.injectFailures = ['getHighestListenSequenceNumber'];
         await expect(db1.start()).to.eventually.be.rejectedWith(
@@ -1185,7 +1237,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
   it('ignores intermittent IndexedDbTransactionError during lease refresh', async () => {
     await withPersistence('clientA', async (db, _, queue) => {
       db.injectFailures = ['updateClientMetadataAndTryBecomePrimary'];
-      await queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+      await queue.runAllDelayedOperationsUntil(TimerId.ClientMetadataRefresh);
       await queue.enqueue(() => {
         db.injectFailures = [];
         return db.runTransaction('check success', 'readwrite-primary', () =>

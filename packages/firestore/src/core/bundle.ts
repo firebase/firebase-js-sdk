@@ -16,16 +16,24 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
-import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  fromDocument,
+  fromName,
+  fromVersion,
+  JsonProtoSerializer
+} from '../remote/serializer';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
-import { LocalStore } from '../local/local_store';
+import {
+  applyBundleDocuments,
+  LocalStore,
+  saveNamedQuery
+} from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
 import { MaybeDocumentMap } from '../model/collections';
 import { Deferred } from '../util/promise';
@@ -37,7 +45,10 @@ import { BundleMetadata } from '../protos/firestore_bundle_proto';
 export interface Bundle {
   readonly id: string;
   readonly version: number;
-  // When the saved bundle is built from the server SDKs.
+  /**
+   * Set to the snapshot version of the bundle if created by the Server SDKs.
+   * Otherwise set to SnapshotVersion.MIN.
+   */
   readonly createTime: SnapshotVersion;
 }
 
@@ -47,38 +58,54 @@ export interface Bundle {
 export interface NamedQuery {
   readonly name: string;
   readonly query: Query;
-  // When the results for this query are read to the saved bundle.
+  /** The time at which the results for this query were read. */
   readonly readTime: SnapshotVersion;
 }
 
-export type BundledDocuments = Array<
-  [bundleProto.BundledDocumentMetadata, api.Document | undefined]
->;
+/**
+ * Represents a bundled document, including the metadata and the document
+ * itself, if it exists.
+ */
+interface BundledDocument {
+  metadata: bundleProto.BundledDocumentMetadata;
+  document: api.Document | undefined;
+}
 
+/**
+ * An array of `BundledDocument`.
+ */
+export type BundledDocuments = BundledDocument[];
+
+/**
+ * Helper to convert objects from bundles to model objects in the SDK.
+ */
 export class BundleConverter {
   constructor(private serializer: JsonProtoSerializer) {}
 
   toDocumentKey(name: string): DocumentKey {
-    return this.serializer.fromName(name);
+    return fromName(this.serializer, name);
   }
 
-  toMaybeDocument(
-    metadata: bundleProto.BundledDocumentMetadata,
-    doc: api.Document | undefined
-  ): MaybeDocument {
-    if (metadata.exists) {
-      debugAssert(!!doc, 'Document is undefined when metadata.exist is true.');
-      return this.serializer.fromDocument(doc!, false);
+  /**
+   * Converts a BundleDocument to a MaybeDocument.
+   */
+  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
+    if (bundledDoc.metadata.exists) {
+      debugAssert(
+        !!bundledDoc.document,
+        'Document is undefined when metadata.exist is true.'
+      );
+      return fromDocument(this.serializer, bundledDoc.document!, false);
     } else {
       return new NoDocument(
-        this.toDocumentKey(metadata.name!),
-        this.toSnapshotVersion(metadata.readTime!)
+        this.toDocumentKey(bundledDoc.metadata.name!),
+        this.toSnapshotVersion(bundledDoc.metadata.readTime!)
       );
     }
   }
 
   toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
-    return this.serializer.fromVersion(time);
+    return fromVersion(time);
   }
 }
 
@@ -260,7 +287,10 @@ export class BundleLoader {
       if (element.payload.documentMetadata.exists) {
         this.unpairedDocumentMetadata = element.payload.documentMetadata;
       } else {
-        this.documents.push([element.payload.documentMetadata, undefined]);
+        this.documents.push({
+          metadata: element.payload.documentMetadata,
+          document: undefined
+        });
         this.documentsIncrement += 1;
       }
     }
@@ -270,10 +300,10 @@ export class BundleLoader {
         !!this.unpairedDocumentMetadata,
         'Unexpected document when no pairing metadata is found'
       );
-      this.documents.push([
-        this.unpairedDocumentMetadata!,
-        element.payload.document
-      ]);
+      this.documents.push({
+        metadata: this.unpairedDocumentMetadata!,
+        document: element.payload.document
+      });
       this.documentsIncrement += 1;
       this.unpairedDocumentMetadata = null;
     }
@@ -291,12 +321,12 @@ export class BundleLoader {
     }
 
     for (const q of this.queries) {
-      await this.localStore.saveNamedQuery(q);
+      await saveNamedQuery(this.localStore, q);
     }
 
     let changedDocs;
     if (this.documents.length > 0) {
-      changedDocs = await this.localStore.applyBundledDocuments(this.documents);
+      changedDocs = await applyBundleDocuments(this.localStore, this.documents);
     }
 
     this.progress.bytesLoaded += this.bytesIncrement;

@@ -23,7 +23,6 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { Platform } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -36,7 +35,7 @@ import {
   Observer,
   QueryListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, loadBundle } from './sync_engine';
 import { View } from './view';
 
 import { SharedClientState } from '../local/shared_client_state';
@@ -51,6 +50,9 @@ import {
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTaskImpl } from './bundle';
+import { newConnection } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -68,6 +70,7 @@ export type PersistenceSettings =
       readonly durable: true;
       readonly cacheSizeBytes: number;
       readonly synchronizeTabs: boolean;
+      readonly forceOwningTab: boolean;
     };
 
 /**
@@ -95,7 +98,6 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
 
   constructor(
-    private platform: Platform,
     private databaseInfo: DatabaseInfo,
     private credentials: CredentialsProvider,
     /**
@@ -181,9 +183,9 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueRetryable(() => {
-          return this.handleCredentialChange(user);
-        });
+        this.asyncQueue.enqueueRetryable(() =>
+          this.remoteStore.handleCredentialChange(user)
+        );
       }
     });
 
@@ -237,16 +239,13 @@ export class FirestoreClient {
       // Datastore (without duplicating the initializing logic once per
       // provider).
 
-      const connection = await this.platform.loadConnection(this.databaseInfo);
-      const serializer = this.platform.newSerializer(
-        this.databaseInfo.databaseId
-      );
+      const connection = await newConnection(this.databaseInfo);
+      const serializer = newSerializer(this.databaseInfo.databaseId);
       const datastore = newDatastore(connection, this.credentials, serializer);
 
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        platform: this.platform,
         datastore,
         clientId: this.clientId,
         initialUser: user,
@@ -339,13 +338,6 @@ export class FirestoreClient {
         'The client has already been terminated.'
       );
     }
-  }
-
-  private handleCredentialChange(user: User): Promise<void> {
-    this.asyncQueue.verifyOperationInProgress();
-
-    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
-    return this.syncEngine.handleCredentialChange(user);
   }
 
   /** Disables the network connection. Pending operations will not complete. */
@@ -526,20 +518,20 @@ export class FirestoreClient {
   }
 
   loadBundle(
-    data: ReadableStream<ArrayBuffer> | ArrayBuffer | string
+    data: ReadableStream<Uint8Array> | ArrayBuffer | string
   ): LoadBundleTask {
     this.verifyNotTerminated();
 
-    let content: ReadableStream<ArrayBuffer> | ArrayBuffer;
+    let content: ReadableStream<Uint8Array> | ArrayBuffer;
     if (typeof data === 'string') {
       content = new TextEncoder().encode(data);
     } else {
       content = data;
     }
-    const reader = new BundleReader(content);
+    const reader = new BundleReader(toByteStreamReader(content));
     const task = new LoadBundleTaskImpl();
     this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.loadBundle(reader, task);
+      return loadBundle(this.syncEngine, reader, task);
     });
 
     return task;

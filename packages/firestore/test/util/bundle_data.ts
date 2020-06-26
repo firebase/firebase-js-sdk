@@ -21,9 +21,9 @@ import {
 import { DatabaseId } from '../../src/core/database_info';
 import * as api from '../../src/protos/firestore_proto_api';
 import { Value } from '../../src/protos/firestore_proto_api';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { PlatformSupport } from '../../src/platform/platform';
+import { JsonProtoSerializer, toName } from '../../src/remote/serializer';
 import { DocumentKey } from '../../src/model/document_key';
+import { newSerializer } from '../../src/platform/serializer';
 
 function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
@@ -35,7 +35,7 @@ export class TestBundleBuilder {
   readonly elements: BundleElement[] = [];
   private serializer: JsonProtoSerializer;
   constructor(private databaseId: DatabaseId) {
-    this.serializer = PlatformSupport.getPlatform().newSerializer(databaseId);
+    this.serializer = newSerializer(databaseId);
   }
 
   addDocumentMetadata(
@@ -45,7 +45,7 @@ export class TestBundleBuilder {
   ): TestBundleBuilder {
     this.elements.push({
       documentMetadata: {
-        name: this.serializer.toName(docKey),
+        name: toName(this.serializer, docKey),
         readTime,
         exists
       }
@@ -60,7 +60,7 @@ export class TestBundleBuilder {
   ): TestBundleBuilder {
     this.elements.push({
       document: {
-        name: this.serializer.toName(docKey),
+        name: toName(this.serializer, docKey),
         createTime,
         updateTime,
         fields

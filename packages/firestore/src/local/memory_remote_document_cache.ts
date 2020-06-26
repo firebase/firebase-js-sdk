@@ -200,11 +200,11 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     ): PersistencePromise<void> {
       const promises: Array<PersistencePromise<void>> = [];
       this.changes.forEach((key, doc) => {
-        if (doc && doc.maybeDoc) {
+        if (doc && doc.maybeDocument) {
           promises.push(
             this.documentCache.addEntry(
               transaction,
-              doc.maybeDoc!,
+              doc.maybeDocument!,
               this.getReadTime(key)
             )
           );

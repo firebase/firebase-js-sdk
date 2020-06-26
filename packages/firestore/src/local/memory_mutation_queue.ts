@@ -23,7 +23,6 @@ import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
@@ -43,12 +42,6 @@ export class MemoryMutationQueue implements MutationQueue {
   /** Next value to use when assigning sequential IDs to each mutation batch. */
   private nextBatchId: BatchId = 1;
 
-  /** The last received stream token from the server, used to acknowledge which
-   * responses the client has processed. Stream tokens are opaque checkpoint
-   * markers whose only real value is their inclusion in the next request.
-   */
-  private lastStreamToken: ByteString = ByteString.EMPTY_BYTE_STRING;
-
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
@@ -59,46 +52,6 @@ export class MemoryMutationQueue implements MutationQueue {
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
-  }
-
-  acknowledgeBatch(
-    transaction: PersistenceTransaction,
-    batch: MutationBatch,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    const batchId = batch.batchId;
-    const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
-    hardAssert(
-      batchIndex === 0,
-      'Can only acknowledge the first batch in the mutation queue'
-    );
-
-    // Verify that the batch in the queue is the one to be acknowledged.
-    const check = this.mutationQueue[batchIndex];
-    debugAssert(
-      batchId === check.batchId,
-      'Queue ordering failure: expected batch ' +
-        batchId +
-        ', got batch ' +
-        check.batchId
-    );
-
-    this.lastStreamToken = streamToken;
-    return PersistencePromise.resolve();
-  }
-
-  getLastStreamToken(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ByteString> {
-    return PersistencePromise.resolve(this.lastStreamToken);
-  }
-
-  setLastStreamToken(
-    transaction: PersistenceTransaction,
-    streamToken: ByteString
-  ): PersistencePromise<void> {
-    this.lastStreamToken = streamToken;
-    return PersistencePromise.resolve();
   }
 
   addMutationBatch(

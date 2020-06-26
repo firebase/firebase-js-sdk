@@ -28,13 +28,14 @@ export interface BundleCache {
    * Gets a saved `Bundle` for a given `bundleId`, returns undefined if
    * no bundles are found under the given id.
    */
-  getBundle(
+  getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
   ): PersistencePromise<Bundle | undefined>;
 
   /**
-   * Saves a `BundleMetadata` from a bundle into local storage, using its id as the persistent key.
+   * Saves a `BundleMetadata` from a bundle into local storage, using its id as
+   * the persistent key.
    */
   saveBundleMetadata(
     transaction: PersistenceTransaction,
