@@ -462,7 +462,8 @@ export function setDoc<T>(
     'setDoc',
     ref._key,
     convertedValue,
-    options
+    options,
+    ref._converter !== null
   );
 
   return ref.firestore

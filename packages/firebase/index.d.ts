@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  DocumentData,
-  QueryDocumentSnapshot,
-  SetOptions
-} from '@firebase/firestore-types';
-
 /**
  * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
