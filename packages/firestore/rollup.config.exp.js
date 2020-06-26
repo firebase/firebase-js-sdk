@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
+import json from 'rollup-plugin-json';
+import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
 
-import { resolveNodeExterns } from './rollup.shared';
+import { generateAliasConfig, resolveNodeExterns } from './rollup.shared';
 
 import pkg from './exp/package.json';
 
 const defaultPlugins = [
+  alias(generateAliasConfig('node')),
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -32,7 +35,8 @@ const defaultPlugins = [
       }
     },
     clean: true
-  })
+  }),
+  json({ preferConst: true })
 ];
 
 const nodeBuilds = [
