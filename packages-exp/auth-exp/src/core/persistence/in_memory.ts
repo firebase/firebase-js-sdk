@@ -21,11 +21,8 @@ import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 export class InMemoryPersistence implements Persistence {
   static type: 'NONE' = 'NONE';
-  static instance: InMemoryPersistence | null = null;
   readonly type = PersistenceType.NONE;
-  storage: {
-    [key: string]: PersistenceValue;
-  } = {};
+  storage: Record<string, PersistenceValue> = {};
 
   async isAvailable(): Promise<boolean> {
     return true;
@@ -42,14 +39,6 @@ export class InMemoryPersistence implements Persistence {
 
   async remove(key: string): Promise<void> {
     delete this.storage[key];
-  }
-
-  static _getInstance(): Persistence {
-    if (!this.instance) {
-      this.instance = new InMemoryPersistence();
-    }
-
-    return this.instance;
   }
 }
 

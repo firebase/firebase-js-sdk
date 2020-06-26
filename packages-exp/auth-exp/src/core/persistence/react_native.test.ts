@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
 import { testUser } from '../../../test/mock_auth';
-import { PersistedBlob, PersistenceType } from './';
+import { _getInstance, PersistedBlob, PersistenceType } from './';
 import { ReactNativePersistence } from './react_native';
 
 /**
@@ -48,7 +48,7 @@ class FakeAsyncStorage implements ReactNativeAsyncStorage {
 
 describe('core/persistence/react', () => {
   const fakeAsyncStorage = new FakeAsyncStorage();
-  const persistence = new ReactNativePersistence(fakeAsyncStorage);
+  const persistence = _getInstance(ReactNativePersistence.createFromUnderlyingStorage(fakeAsyncStorage));
 
   beforeEach(() => {
     fakeAsyncStorage.clear();

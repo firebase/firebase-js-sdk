@@ -26,17 +26,14 @@ import { FirebaseError } from '@firebase/util';
 import { testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { Persistence, PersistenceInstantiator } from '../persistence';
+import { _getInstance, Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -56,7 +53,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(() => {
     persistenceStub = sinon.stub(
-      (inMemoryPersistence as PersistenceInstantiator)._getInstance()
+      _getInstance(inMemoryPersistence)
     );
     auth = initializeAuth(FAKE_APP, {
       persistence: inMemoryPersistence
@@ -112,7 +109,7 @@ describe('core/auth/auth_impl', () => {
     it('swaps underlying persistence', async () => {
       const newPersistence = browserLocalPersistence;
       const newStub = sinon.stub(
-        (newPersistence as PersistenceInstantiator)._getInstance()
+        _getInstance(newPersistence)
       );
       persistenceStub.get.returns(
         Promise.resolve(testUser(auth, 'test').toPlainObject())
@@ -306,14 +303,14 @@ describe('core/auth/initializeAuth', () => {
     it('converts single persistence to array', async () => {
       const auth = await initAndWait(inMemoryPersistence);
       expect(createManagerStub).to.have.been.calledWith(auth, [
-        (inMemoryPersistence as PersistenceInstantiator)._getInstance()
+        _getInstance(inMemoryPersistence)
       ]);
     });
 
     it('pulls the user from storage', async () => {
       sinon
         .stub(
-          (inMemoryPersistence as PersistenceInstantiator)._getInstance(),
+          _getInstance(inMemoryPersistence),
           'get'
         )
         .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
@@ -327,8 +324,8 @@ describe('core/auth/initializeAuth', () => {
         browserLocalPersistence
       ]);
       expect(createManagerStub).to.have.been.calledWith(auth, [
-        (inMemoryPersistence as PersistenceInstantiator)._getInstance(),
-        (browserLocalPersistence as PersistenceInstantiator)._getInstance()
+        _getInstance(inMemoryPersistence),
+        _getInstance(browserLocalPersistence)
       ]);
     });
 

@@ -18,11 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-  PersistedBlob,
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+    PersistedBlob, Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
 } from './';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
@@ -137,7 +133,6 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
 
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
-  static instance: IndexedDBLocalPersistence | null = null;
 
   type = PersistenceType.LOCAL;
   db?: IDBDatabase;
@@ -177,14 +172,6 @@ class IndexedDBLocalPersistence implements Persistence {
   async remove(key: string): Promise<void> {
     const db = await this.initialize();
     return deleteObject(db, key);
-  }
-
-  static _getInstance(): Persistence {
-    if (!this.instance) {
-      this.instance = new IndexedDBLocalPersistence();
-    }
-
-    return this.instance;
   }
 }
 

@@ -119,3 +119,4 @@ export async function deleteUser(user: externs.User): Promise<void> {
 export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
 export { getMultiFactorResolver } from './mfa/mfa_resolver';
 export { multiFactor } from './mfa/mfa_user';
+export { ReactNativePersistence } from './core/persistence/react_native';

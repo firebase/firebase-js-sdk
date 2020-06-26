@@ -47,9 +47,22 @@ export interface Persistence {
  * We can't directly export all of the different types of persistence as
  * constants: this would cause tree-shaking libraries to keep all of the
  * various persistence classes in the bundle, even if they're not used, since
- * the system can't prove those constructors don't side-effect. Instead, we
- * use this lightweight shim.
+ * the system can't prove those constructors don't side-effect. Instead, the
+ * persistence classes themselves all have a static method called _getInstance()
+ * which does the instantiation.
  */
 export interface PersistenceInstantiator extends externs.Persistence {
-  _getInstance(): Persistence;
+  new (): Persistence;
+}
+
+const persistenceCache: Map<externs.Persistence, Persistence> = new Map();
+
+export function _getInstance(cls: externs.Persistence): Persistence {
+  if (persistenceCache.has(cls)) {
+    return persistenceCache.get(cls)!;
+  }
+
+  const persistence = new (cls as PersistenceInstantiator)();
+  persistenceCache.set(cls, persistence);
+  return persistence;
 }

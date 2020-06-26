@@ -19,19 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { Persistence, PersistenceInstantiator } from '../persistence';
+import { _getInstance, Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
 import { _getUserLanguage } from '../util/navigator';
@@ -101,10 +95,9 @@ export class AuthImpl implements Auth {
     return this.updateCurrentUser(null);
   }
 
-  setPersistence(persistenceExtern: externs.Persistence): Promise<void> {
-    const persistence = persistenceExtern as PersistenceInstantiator;
+  setPersistence(persistence: externs.Persistence): Promise<void> {
     return this.queue(async () => {
-      await this.assertedPersistence.setPersistence(persistence._getInstance());
+      await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
   }
 
@@ -219,9 +212,7 @@ export function initializeAuth(
   const hierarchy = (Array.isArray(persistence)
     ? persistence
     : [persistence]
-  ).map(p => {
-    return (p as PersistenceInstantiator)._getInstance();
-  });
+  ).map(_getInstance);
   const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
