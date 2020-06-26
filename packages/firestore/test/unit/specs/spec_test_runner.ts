@@ -410,18 +410,12 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
 
+    this.queryListeners.delete(query);
+
     const deferred = new Deferred<void>();
     await this.queue.enqueueRetryable(async () => {
       try {
         await this.eventManager.unlisten(eventEmitter!);
-        const currentEventEmitter = this.queryListeners.get(query);
-        // Before removing the listener, verify that the query hasn't been
-        // relistened to in between retry events. We only remove the listener
-        // if the current event emitter still matches the event emitter at the
-        // time of the unlisten.
-        if (currentEventEmitter === eventEmitter) {
-          this.queryListeners.delete(query);
-        }
       } catch (e) {
         expect(this.persistence.injectFailures).contains('Release target');
         throw e;
