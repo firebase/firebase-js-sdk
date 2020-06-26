@@ -145,7 +145,96 @@ export interface SyncEngineListener {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export class SyncEngine implements RemoteSyncer {
+export interface SyncEngine extends RemoteSyncer {
+  isPrimaryClient: boolean;
+
+  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
+  subscribe(syncEngineListener: SyncEngineListener): void;
+
+  /**
+   * Initiates the new listen, resolves promise when listen enqueued to the
+   * server. All the subsequent view snapshots or errors are sent to the
+   * subscribed handlers. Returns the initial snapshot.
+   */
+  listen(query: Query): Promise<ViewSnapshot>;
+
+  /** Stops listening to the query. */
+  unlisten(query: Query): Promise<void>;
+
+  /**
+   * Initiates the write of local mutation batch which involves adding the
+   * writes to the mutation queue, notifying the remote store about new
+   * mutations and raising events for any changes this write caused.
+   *
+   * The promise returned by this call is resolved when the above steps
+   * have completed, *not* when the write was acked by the backend. The
+   * userCallback is resolved once the write was acked/rejected by the
+   * backend (or failed locally for any other reason).
+   */
+  write(batch: Mutation[], userCallback: Deferred<void>): Promise<void>;
+
+  /**
+   * Takes an updateFunction in which a set of reads and writes can be performed
+   * atomically. In the updateFunction, the client can read and write values
+   * using the supplied transaction object. After the updateFunction, all
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after all retries, then the transaction will be rejected.
+   *
+   * The transaction object passed to the updateFunction contains methods for
+   * accessing documents and collections. Unlike other datastore access, data
+   * accessed with the transaction will not reflect local changes that have not
+   * been committed. For this reason, it is required that all reads are
+   * performed before any writes. Transactions must be performed while online.
+   *
+   * The Deferred input is resolved when the transaction is fully committed.
+   */
+  runTransaction<T>(
+    asyncQueue: AsyncQueue,
+    updateFunction: (transaction: Transaction) => Promise<T>,
+    deferred: Deferred<T>
+  ): void;
+
+  /**
+   * Applies an OnlineState change to the sync engine and notifies any views of
+   * the change.
+   */
+  applyOnlineStateChange(
+    onlineState: OnlineState,
+    source: OnlineStateSource
+  ): void;
+
+  /**
+   * Registers a user callback that resolves when all pending mutations at the moment of calling
+   * are acknowledged .
+   */
+  registerPendingWritesCallback(callback: Deferred<void>): Promise<void>;
+
+  // Visible for testing
+  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId>;
+
+  // Visible for testing
+  enqueuedLimboDocumentResolutions(): DocumentKey[];
+
+  handleCredentialChange(user: User): Promise<void>;
+
+  enableNetwork(): Promise<void>;
+
+  disableNetwork(): Promise<void>;
+
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
+}
+
+/**
+ * An implementation of `SyncEngine` coordinating with other parts of SDK.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
+ */
+class SyncEngineImpl implements SyncEngine {
   protected syncEngineListener: SyncEngineListener | null = null;
 
   protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
@@ -198,7 +287,6 @@ export class SyncEngine implements RemoteSyncer {
     return true;
   }
 
-  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
   subscribe(syncEngineListener: SyncEngineListener): void {
     debugAssert(
       syncEngineListener !== null,
@@ -212,11 +300,6 @@ export class SyncEngine implements RemoteSyncer {
     this.syncEngineListener = syncEngineListener;
   }
 
-  /**
-   * Initiates the new listen, resolves promise when listen enqueued to the
-   * server. All the subsequent view snapshots or errors are sent to the
-   * subscribed handlers. Returns the initial snapshot.
-   */
   async listen(query: Query): Promise<ViewSnapshot> {
     this.assertSubscribed('listen()');
 
@@ -295,7 +378,6 @@ export class SyncEngine implements RemoteSyncer {
     return viewChange.snapshot!;
   }
 
-  /** Stops listening to the query. */
   async unlisten(query: Query): Promise<void> {
     this.assertSubscribed('unlisten()');
 
@@ -342,16 +424,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Initiates the write of local mutation batch which involves adding the
-   * writes to the mutation queue, notifying the remote store about new
-   * mutations and raising events for any changes this write caused.
-   *
-   * The promise returned by this call is resolved when the above steps
-   * have completed, *not* when the write was acked by the backend. The
-   * userCallback is resolved once the write was acked/rejected by the
-   * backend (or failed locally for any other reason).
-   */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
 
@@ -369,23 +441,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Takes an updateFunction in which a set of reads and writes can be performed
-   * atomically. In the updateFunction, the client can read and write values
-   * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If a retryable error occurs (ex: some other
-   * client has changed any of the data referenced), then the updateFunction
-   * will be called again after a backoff. If the updateFunction still fails
-   * after all retries, then the transaction will be rejected.
-   *
-   * The transaction object passed to the updateFunction contains methods for
-   * accessing documents and collections. Unlike other datastore access, data
-   * accessed with the transaction will not reflect local changes that have not
-   * been committed. For this reason, it is required that all reads are
-   * performed before any writes. Transactions must be performed while online.
-   *
-   * The Deferred input is resolved when the transaction is fully committed.
-   */
   runTransaction<T>(
     asyncQueue: AsyncQueue,
     updateFunction: (transaction: Transaction) => Promise<T>,
@@ -442,10 +497,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Applies an OnlineState change to the sync engine and notifies any views of
-   * the change.
-   */
   applyOnlineStateChange(
     onlineState: OnlineState,
     source: OnlineStateSource
@@ -568,10 +619,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Registers a user callback that resolves when all pending mutations at the moment of calling
-   * are acknowledged .
-   */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
       logDebug(
@@ -865,6 +912,8 @@ export class SyncEngine implements RemoteSyncer {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {
+      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
       const result = await this.localStore.handleUserChange(user);
       this.currentUser = user;
 
@@ -880,8 +929,6 @@ export class SyncEngine implements RemoteSyncer {
       );
       await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
-
-    await this.remoteStore.handleCredentialChange();
   }
 
   enableNetwork(): Promise<void> {
@@ -912,13 +959,46 @@ export class SyncEngine implements RemoteSyncer {
   }
 }
 
+export function newSyncEngine(
+  localStore: LocalStore,
+  remoteStore: RemoteStore,
+  datastore: Datastore,
+  // PORTING NOTE: Manages state synchronization in multi-tab environments.
+  sharedClientState: SharedClientState,
+  currentUser: User,
+  maxConcurrentLimboResolutions: number
+): SyncEngine {
+  return new SyncEngineImpl(
+    localStore,
+    remoteStore,
+    datastore,
+    sharedClientState,
+    currentUser,
+    maxConcurrentLimboResolutions
+  );
+}
+
 /**
- * An implementation of SyncEngine that implement SharedClientStateSyncer for
+ * An extension of SyncEngine that also includes SharedClientStateSyncer for
  * Multi-Tab synchronization.
  */
 // PORTING NOTE: Web only
-export class MultiTabSyncEngine extends SyncEngine
-  implements SharedClientStateSyncer {
+export interface MultiTabSyncEngine
+  extends SharedClientStateSyncer,
+    SyncEngine {
+  applyPrimaryState(isPrimary: boolean): Promise<void>;
+}
+
+/**
+ * An implementation of `SyncEngineImpl` providing multi-tab synchronization on
+ * top of `SyncEngineImpl`.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
+ */
+class MultiTabSyncEngineImpl extends SyncEngineImpl {
   // The primary state is set to `true` or `false` immediately after Firestore
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
@@ -1272,4 +1352,22 @@ export class MultiTabSyncEngine extends SyncEngine
         .catch(ignoreIfPrimaryLeaseLoss);
     }
   }
+}
+
+export function newMultiTabSyncEngine(
+  localStore: MultiTabLocalStore,
+  remoteStore: RemoteStore,
+  datastore: Datastore,
+  sharedClientState: SharedClientState,
+  currentUser: User,
+  maxConcurrentLimboResolutions: number
+): MultiTabSyncEngine {
+  return new MultiTabSyncEngineImpl(
+    localStore,
+    remoteStore,
+    datastore,
+    sharedClientState,
+    currentUser,
+    maxConcurrentLimboResolutions
+  );
 }

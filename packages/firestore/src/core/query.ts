@@ -286,7 +286,7 @@ export class Query {
   docComparator(d1: Document, d2: Document): number {
     let comparedOnKeyField = false;
     for (const orderBy of this.orderBy) {
-      const comp = orderBy.compare(d1, d2);
+      const comp = compareDocs(orderBy, d1, d2);
       if (comp !== 0) {
         return comp;
       }
@@ -708,41 +708,39 @@ export function boundEquals(left: Bound | null, right: Bound | null): boolean {
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
 export class OrderBy {
-  readonly dir: Direction;
-  private readonly isKeyOrderBy: boolean;
+  constructor(
+    readonly field: FieldPath,
+    readonly dir: Direction = Direction.ASCENDING
+  ) {}
+}
 
-  constructor(readonly field: FieldPath, dir?: Direction) {
-    if (dir === undefined) {
-      dir = Direction.ASCENDING;
-    }
-    this.dir = dir;
-    this.isKeyOrderBy = field.isKeyField();
+export function compareDocs(
+  orderBy: OrderBy,
+  d1: Document,
+  d2: Document
+): number {
+  const comparison = orderBy.field.isKeyField()
+    ? DocumentKey.comparator(d1.key, d2.key)
+    : compareDocumentsByField(orderBy.field, d1, d2);
+  switch (orderBy.dir) {
+    case Direction.ASCENDING:
+      return comparison;
+    case Direction.DESCENDING:
+      return -1 * comparison;
+    default:
+      return fail('Unknown direction: ' + orderBy.dir);
   }
+}
 
-  compare(d1: Document, d2: Document): number {
-    const comparison = this.isKeyOrderBy
-      ? DocumentKey.comparator(d1.key, d2.key)
-      : compareDocumentsByField(this.field, d1, d2);
-    switch (this.dir) {
-      case Direction.ASCENDING:
-        return comparison;
-      case Direction.DESCENDING:
-        return -1 * comparison;
-      default:
-        return fail('Unknown direction: ' + this.dir);
-    }
-  }
+export function canonifyOrderBy(orderBy: OrderBy): string {
+  // TODO(b/29183165): Make this collision robust.
+  return orderBy.field.canonicalString() + orderBy.dir;
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Make this collision robust.
-    return this.field.canonicalString() + this.dir.toString();
-  }
+export function stringifyOrderBy(orderBy: OrderBy): string {
+  return `${orderBy.field.canonicalString()} (${orderBy.dir})`;
+}
 
-  toString(): string {
-    return `${this.field.canonicalString()} (${this.dir})`;
-  }
-
-  isEqual(other: OrderBy): boolean {
-    return this.dir === other.dir && this.field.isEqual(other.field);
-  }
+export function orderByEquals(left: OrderBy, right: OrderBy): boolean {
+  return left.dir === right.dir && left.field.isEqual(right.field);
 }

@@ -25,8 +25,11 @@ import {
   canonifyFieldFilter,
   FieldFilter,
   fieldFilterEquals,
+  stringifyFieldFilter,
   OrderBy,
-  stringifyFieldFilter
+  orderByEquals,
+  stringifyOrderBy,
+  canonifyOrderBy
 } from './query';
 import { debugCast } from '../util/assert';
 
@@ -105,7 +108,7 @@ export function canonifyTarget(target: Target): string {
       .map(f => canonifyFieldFilter(f))
       .join(',');
     canonicalId += '|ob:';
-    canonicalId += targetImpl.orderBy.map(o => o.canonicalId()).join(',');
+    canonicalId += targetImpl.orderBy.map(o => canonifyOrderBy(o)).join(',');
 
     if (!isNullOrUndefined(targetImpl.limit)) {
       canonicalId += '|l:';
@@ -138,7 +141,9 @@ export function stringifyTarget(target: Target): string {
     str += ', limit: ' + target.limit;
   }
   if (target.orderBy.length > 0) {
-    str += `, orderBy: [${target.orderBy.join(', ')}]`;
+    str += `, orderBy: [${target.orderBy
+      .map(o => stringifyOrderBy(o))
+      .join(', ')}]`;
   }
   if (target.startAt) {
     str += ', startAt: ' + canonifyBound(target.startAt);
@@ -159,7 +164,7 @@ export function targetEquals(left: Target, right: Target): boolean {
   }
 
   for (let i = 0; i < left.orderBy.length; i++) {
-    if (!left.orderBy[i].isEqual(right.orderBy[i])) {
+    if (!orderByEquals(left.orderBy[i], right.orderBy[i])) {
       return false;
     }
   }

@@ -179,9 +179,9 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueRetryable(() => {
-          return this.handleCredentialChange(user);
-        });
+        this.asyncQueue.enqueueRetryable(() =>
+          this.remoteStore.handleCredentialChange(user)
+        );
       }
     });
 
@@ -334,13 +334,6 @@ export class FirestoreClient {
         'The client has already been terminated.'
       );
     }
-  }
-
-  private handleCredentialChange(user: User): Promise<void> {
-    this.asyncQueue.verifyOperationInProgress();
-
-    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
-    return this.syncEngine.handleCredentialChange(user);
   }
 
   /** Disables the network connection. Pending operations will not complete. */

@@ -234,7 +234,9 @@ export class ResourcePath extends BasePath<ResourcePath> {
     return new ResourcePath(segments);
   }
 
-  static EMPTY_PATH = new ResourcePath([]);
+  static emptyPath(): ResourcePath {
+    return new ResourcePath([]);
+  }
 }
 
 const identifierRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
@@ -357,5 +359,7 @@ export class FieldPath extends BasePath<FieldPath> {
     return new FieldPath(segments);
   }
 
-  static EMPTY_PATH = new FieldPath([]);
+  static emptyPath(): FieldPath {
+    return new FieldPath([]);
+  }
 }

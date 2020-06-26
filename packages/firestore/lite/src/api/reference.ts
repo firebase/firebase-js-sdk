@@ -322,7 +322,7 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    new InternalQuery(ResourcePath.emptyPath(), collectionId),
     /* converter= */ null
   );
 }
@@ -462,7 +462,12 @@ export function setDoc<T>(
     'setDoc'
   );
   const dataReader = newUserDataReader(ref.firestore);
-  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+  const parsed = dataReader.parseSetData(
+    'setDoc',
+    ref._key,
+    convertedValue,
+    options
+  );
 
   return ref.firestore
     ._getDatastore()
@@ -500,12 +505,17 @@ export function updateDoc(
   ) {
     parsed = dataReader.parseUpdateVarargs(
       'updateDoc',
+      ref._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+    parsed = dataReader.parseUpdateData(
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData
+    );
   }
 
   return ref.firestore
@@ -545,7 +555,7 @@ export function addDoc<T>(
   );
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+  const parsed = dataReader.parseSetData('addDoc', docRef._key, convertedValue);
 
   return collRef.firestore
     ._getDatastore()

@@ -69,6 +69,7 @@ export interface FirestoreDataConverter<T> {
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(

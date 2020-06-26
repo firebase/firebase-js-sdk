@@ -15,34 +15,20 @@
  * limitations under the License.
  */
 
-const { spawn } = require('child-process-promise');
-const { projectRoot: root } = require('../../utils');
-const ora = require('ora');
+import { spawn } from 'child-process-promise';
+import { projectRoot as root } from '../../utils';
 
-exports.reinstallDeps = async () => {
+export async function runTests() {
   try {
-    const spinner = ora(' Reinstalling Dependencies').start();
-    await spawn('yarn', {
-      cwd: root
-    });
-    spinner.stopAndPersist({
-      symbol: '✅'
+    await spawn('yarn', ['test:release'], {
+      cwd: root,
+      stdio: 'inherit'
     });
   } catch (err) {
     throw err;
   }
-};
+}
 
-exports.buildPackages = async () => {
-  try {
-    const spinner = ora(' Building Packages').start();
-    await spawn('yarn', ['build:release'], {
-      cwd: root
-    });
-    spinner.stopAndPersist({
-      symbol: '✅'
-    });
-  } catch (err) {
-    throw err;
-  }
-};
+export async function setupTestDeps(): Promise<void> {
+  await spawn('yarn', ['test:setup'], { stdio: 'inherit' });
+}
