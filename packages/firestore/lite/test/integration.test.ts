@@ -1085,8 +1085,9 @@ describe('withConverter() support', () => {
       expect(() =>
         batch.set(ref, { title: 'olive' }, { merge: true })
       ).to.throw(
-        'Function WriteBatch.set() called with invalid data. Unsupported ' +
-          'field value: undefined (found in field author in document posts/post)'
+        'Function WriteBatch.set() called with invalid data ' +
+          '(via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/post)'
       );
     });
   });

@@ -161,10 +161,7 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return (cast(
-      documentRef,
-      DocumentReference
-    ) as unknown) as DocumentReference<T>;
+    return cast(documentRef, DocumentReference) as DocumentReference<T>;
   }
 }
 
