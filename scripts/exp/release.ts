@@ -111,13 +111,6 @@ async function buildPackages() {
   });
 }
 
-async function runTests() {
-  await spawn('yarn', ['test:exp'], {
-    cwd: projectRoot,
-    stdio: 'inherit'
-  });
-}
-
 async function updatePackageNamesAndVersions(packagePaths: string[]) {
   // get package name -> next version mapping
   const versions = new Map();
