@@ -7859,8 +7859,8 @@ declare namespace firebase.firestore {
     /**
      * Called by the Firestore SDK to convert a custom model object of type T
      * into a plain Javascript object (suitable for writing directly to the
-     * Firestore database). To use set() with `merge` and `mergeFields`,
-     * toFirestore() must be defined with `Partial<T>`.
+     * Firestore database). To use `set()` with `merge` and `mergeFields`,
+     * `toFirestore()` must be defined with `Partial<T>`.
      */
     toFirestore(modelObject: T): DocumentData;
     toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
