@@ -60,7 +60,6 @@ export class WriteBatch implements firestore.WriteBatch {
     const ref = validateReference(documentRef, this._firestore);
 
     const convertedValue = applyFirestoreDataConverter(ref._converter, value);
-
     const parsed = this._dataReader.parseSetData(
       'WriteBatch.set',
       ref._key,
@@ -162,7 +161,10 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return cast(documentRef, DocumentReference) as DocumentReference<T>;
+    return (cast(
+      documentRef,
+      DocumentReference
+    ) as unknown) as DocumentReference<T>;
   }
 }
 
