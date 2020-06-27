@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as firestore from '../';
+
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -30,7 +32,14 @@ import {
   withTestDbSettings,
   withTestCollection
 } from './helpers';
-import { getDoc } from '../src/api/reference';
+import {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer
+} from '../src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
 import {
   DEFAULT_PROJECT_ID,
@@ -44,7 +53,7 @@ import {
   setDoc,
   updateDoc
 } from '../../lite/src/api/reference';
-import * as firestore from '../../lite';
+import { QuerySnapshot } from '../src/api/snapshot';
 
 use(chaiAsPromised);
 
@@ -77,6 +86,55 @@ describe('getDoc()', () => {
       expect(docSnap.metadata.hasPendingWrites).to.be.false;
       expect(docSnap.data()).to.be.undefined;
       expect(docSnap.exists()).to.be.false;
+    });
+  });
+});
+
+describe('getDocFromCache()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      await expect(getDocFromCache(docRef)).to.eventually.be.rejectedWith(
+        /Failed to get document from cache./
+      );
+    });
+  });
+});
+
+describe('getDocFromServer()', () => {
+  it('can get a non-existing document', () => {
+    return withTestDoc(async docRef => {
+      const docSnap = await getDocFromServer(docRef);
+      expect(docSnap.metadata.fromCache).to.be.false;
+      expect(docSnap.metadata.hasPendingWrites).to.be.false;
+      expect(docSnap.data()).to.be.undefined;
+      expect(docSnap.exists()).to.be.false;
+    });
+  });
+});
+
+describe('getQuery()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQuery(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ false);
+    });
+  });
+});
+
+describe('getQueryFromCache()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQueryFromCache(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ true);
+    });
+  });
+});
+
+describe('getQueryFromServer()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQueryFromServer(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ false);
     });
   });
 });
@@ -260,3 +318,16 @@ describe('addDoc()', () => {
     });
   });
 });
+
+function validateEmptySnapshot(
+  querySnap: QuerySnapshot<firestore.DocumentData>,
+  fromCache: boolean
+): void {
+  expect(querySnap.metadata.fromCache).to.equal(fromCache);
+  expect(querySnap.metadata.hasPendingWrites).to.be.false;
+  expect(querySnap.empty).to.be.true;
+  expect(querySnap.size).to.equal(0);
+  expect(querySnap.docs).to.be.empty;
+  expect(querySnap.docChanges()).to.be.empty;
+  expect(querySnap.docChanges({ includeMetadataChanges: true })).to.be.empty;
+}

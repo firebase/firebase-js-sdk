@@ -26,9 +26,10 @@ import {
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentSnapshot } from './snapshot';
+import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
+  getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
   SnapshotMetadata
 } from '../../../src/api/database';
@@ -37,10 +38,12 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  newUserDataReader
+  newUserDataReader,
+  Query
 } from '../../../lite/src/api/reference';
+import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { FieldPath } from '../../../lite/src/api/field_path';
+import { FieldPath } from '../../../src/api/field_path';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -48,8 +51,105 @@ export function getDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return firestore._getFirestoreClient().then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(firestoreClient, ref);
+    const viewSnapshot = await getDocViaSnapshotListener(
+      firestoreClient,
+      ref._key
+    );
     return convertToDocSnapshot(firestore, ref, viewSnapshot);
+  });
+}
+
+// TODO(firestorexp): Make sure we don't include Datastore/RemoteStore in builds
+// that only include `getDocFromCache`.
+export function getDocFromCache<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
+  const firestore = cast<Firestore>(ref.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const doc = await firestoreClient.getDocumentFromLocalCache(ref._key);
+    return new DocumentSnapshot(
+      firestore,
+      ref._key,
+      doc,
+      new SnapshotMetadata(
+        doc instanceof Document ? doc.hasLocalMutations : false,
+        /* fromCache= */ true
+      ),
+      ref._converter
+    );
+  });
+}
+
+export function getDocFromServer<T>(
+  reference: firestore.DocumentReference<T>
+): Promise<firestore.DocumentSnapshot<T>> {
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
+  const firestore = cast<Firestore>(ref.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const viewSnapshot = await getDocViaSnapshotListener(
+      firestoreClient,
+      ref._key,
+      { source: 'server' }
+    );
+    return convertToDocSnapshot(firestore, ref, viewSnapshot);
+  });
+}
+
+export function getQuery<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await getDocsViaSnapshotListener(
+      firestoreClient,
+      internalQuery._query
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    );
+  });
+}
+
+export function getQueryFromCache<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await firestoreClient.getDocumentsFromLocalCache(
+      internalQuery._query
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, /* fromCache= */ true)
+    );
+  });
+}
+
+export function getQueryFromServer<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await getDocsViaSnapshotListener(
+      firestoreClient,
+      internalQuery._query,
+      { source: 'server' }
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    );
   });
 }
 
@@ -70,16 +170,17 @@ export function setDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
 
-  const [convertedValue] = applyFirestoreDataConverter(
+  const convertedValue = applyFirestoreDataConverter(
     ref._converter,
     data,
-    'setDoc'
+    options
   );
   const dataReader = newUserDataReader(firestore);
   const parsed = dataReader.parseSetData(
     'setDoc',
     ref._key,
     convertedValue,
+    ref._converter !== null,
     options
   );
 
@@ -159,14 +260,15 @@ export function addDoc<T>(
   const firestore = cast(collRef, Firestore);
   const docRef = doc(collRef);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    collRef._converter,
-    data,
-    'addDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', docRef._key, convertedValue);
+  const parsed = dataReader.parseSetData(
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    collRef._converter !== null
+  );
 
   return firestore
     ._getFirestoreClient()
@@ -197,7 +299,7 @@ function convertToDocSnapshot<T>(
     firestore,
     ref._key,
     doc,
-    ref._converter,
-    new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),
+    ref._converter
   );
 }

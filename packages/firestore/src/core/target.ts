@@ -37,31 +37,28 @@ import { debugCast } from '../util/assert';
  * maps to a single WatchTarget in RemoteStore and a single TargetData entry
  * in persistence.
  */
-export class Target {
-  protected constructor(
-    readonly path: ResourcePath,
-    readonly collectionGroup: string | null,
-    readonly orderBy: OrderBy[],
-    readonly filters: Filter[],
-    readonly limit: number | null,
-    readonly startAt: Bound | null,
-    readonly endAt: Bound | null
-  ) {}
+export interface Target {
+  readonly path: ResourcePath;
+  readonly collectionGroup: string | null;
+  readonly orderBy: OrderBy[];
+  readonly filters: Filter[];
+  readonly limit: number | null;
+  readonly startAt: Bound | null;
+  readonly endAt: Bound | null;
 }
 
-class TargetImpl extends Target {
+// Visible for testing
+export class TargetImpl implements Target {
   memoizedCanonicalId: string | null = null;
   constructor(
-    path: ResourcePath,
-    collectionGroup: string | null = null,
-    orderBy: OrderBy[] = [],
-    filters: Filter[] = [],
-    limit: number | null = null,
-    startAt: Bound | null = null,
-    endAt: Bound | null = null
-  ) {
-    super(path, collectionGroup, orderBy, filters, limit, startAt, endAt);
-  }
+    readonly path: ResourcePath,
+    readonly collectionGroup: string | null = null,
+    readonly orderBy: OrderBy[] = [],
+    readonly filters: Filter[] = [],
+    readonly limit: number | null = null,
+    readonly startAt: Bound | null = null,
+    readonly endAt: Bound | null = null
+  ) {}
 }
 
 /**
