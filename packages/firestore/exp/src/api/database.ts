@@ -113,8 +113,8 @@ export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
-  const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient
+  const firestoreImpl = cast(firestore, Firestore);
+  return firestoreImpl
     ._getFirestoreClient()
     .then(firestoreClient => firestoreClient.terminate());
 }
