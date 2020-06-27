@@ -26,6 +26,7 @@ import {
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
 import { collection } from '../../lite/src/api/reference';
+import { setDoc } from '../src/api/reference';
 import { AutoId } from '../../src/util/misc';
 
 let appCount = 0;
@@ -62,4 +63,15 @@ export function withTestDoc(
   fn: (doc: firestore.DocumentReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(db => fn(doc(collection(db, 'test-collection'))));
+}
+
+export function withTestDocAndInitialData(
+  data: firestore.DocumentData,
+  fn: (doc: firestore.DocumentReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(async db => {
+    const ref = doc(collection(db, 'test-collection'));
+    await setDoc(ref, data);
+    return fn(ref);
+  });
 }
