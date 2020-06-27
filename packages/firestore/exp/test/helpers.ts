@@ -45,18 +45,18 @@ export async function withTestDbSettings(
   return fn(firestore);
 }
 
+export function withTestDb(
+  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
+): Promise<void> {
+  return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
+}
+
 export function withTestCollection(
   fn: (collRef: firestore.CollectionReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(db => {
     return fn(collection(db, AutoId.newId()));
   });
-}
-
-export function withTestDb(
-  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
-): Promise<void> {
-  return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
 
 export function withTestDoc(
