@@ -25,10 +25,15 @@ export { FieldPath, documentId } from '../lite/src/api/field_path';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
 
 export { SnapshotMetadata } from '../src/api/database';
 
