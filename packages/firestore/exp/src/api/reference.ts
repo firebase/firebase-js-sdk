@@ -23,13 +23,14 @@ import { Firestore } from './database';
 import { DocumentKeyReference } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentSnapshot } from './snapshot';
+import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
+  getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
   SnapshotMetadata
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import { DocumentReference } from '../../../lite/src/api/reference';
+import { DocumentReference, Query } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 
 export function getDoc<T>(
@@ -59,11 +60,11 @@ export function getDocFromCache<T>(
       firestore,
       ref._key,
       doc,
-      ref._converter,
       new SnapshotMetadata(
         doc instanceof Document ? doc.hasLocalMutations : false,
         /* fromCache= */ true
-      )
+      ),
+      ref._converter
     );
   });
 }
@@ -80,6 +81,63 @@ export function getDocFromServer<T>(
       { source: 'server' }
     );
     return convertToDocSnapshot(firestore, ref, viewSnapshot);
+  });
+}
+
+export function getQuery<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await getDocsViaSnapshotListener(
+      firestoreClient,
+      internalQuery._query
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    );
+  });
+}
+
+export function getQueryFromCache<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await firestoreClient.getDocumentsFromLocalCache(
+      internalQuery._query
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, /* fromCache= */ true)
+    );
+  });
+}
+
+export function getQueryFromServer<T>(
+  query: firestore.Query<T>
+): Promise<QuerySnapshot<T>> {
+  const internalQuery = cast<Query<T>>(query, Query);
+  const firestore = cast<Firestore>(query.firestore, Firestore);
+  return firestore._getFirestoreClient().then(async firestoreClient => {
+    const snapshot = await getDocsViaSnapshotListener(
+      firestoreClient,
+      internalQuery._query,
+      { source: 'server' }
+    );
+    return new QuerySnapshot(
+      firestore,
+      internalQuery,
+      snapshot,
+      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    );
   });
 }
 
@@ -102,7 +160,7 @@ function convertToDocSnapshot<T>(
     firestore,
     ref._key,
     doc,
-    ref._converter,
-    new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
+    new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),
+    ref._converter
   );
 }
