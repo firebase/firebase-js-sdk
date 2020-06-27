@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as firestore from '../';
+
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -24,12 +26,16 @@ import {
   getFirestore,
   initializeFirestore
 } from '../src/api/database';
-import { withTestDoc } from './helpers';
+import { withTestCollection, withTestDoc } from './helpers';
 import {
   getDoc,
   getDocFromCache,
-  getDocFromServer
+  getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer
 } from '../src/api/reference';
+import { QuerySnapshot } from '../src/api/snapshot';
 
 use(chaiAsPromised);
 
@@ -87,3 +93,43 @@ describe('getDocFromServer()', () => {
     });
   });
 });
+
+describe('getQuery()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQuery(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ false);
+    });
+  });
+});
+
+describe('getQueryFromCache()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQueryFromCache(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ true);
+    });
+  });
+});
+
+describe('getQueryFromServer()', () => {
+  it('can query a non-existing collection', () => {
+    return withTestCollection(async collRef => {
+      const querySnap = await getQueryFromServer(collRef);
+      validateEmptySnapshot(querySnap, /* fromCache= */ false);
+    });
+  });
+});
+
+function validateEmptySnapshot(
+  querySnap: QuerySnapshot<firestore.DocumentData>,
+  fromCache: boolean
+): void {
+  expect(querySnap.metadata.fromCache).to.equal(fromCache);
+  expect(querySnap.metadata.hasPendingWrites).to.be.false;
+  expect(querySnap.empty).to.be.true;
+  expect(querySnap.size).to.equal(0);
+  expect(querySnap.docs).to.be.empty;
+  expect(querySnap.docChanges()).to.be.empty;
+  expect(querySnap.docChanges({ includeMetadataChanges: true })).to.be.empty;
+}
