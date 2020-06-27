@@ -58,6 +58,10 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  */
 export interface UntypedFirestoreDataConverter<T> {
   toFirestore(modelObject: T): firestore.DocumentData;
+  toFirestore(
+    modelObject: Partial<T>,
+    options: firestore.SetOptions
+  ): firestore.DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
