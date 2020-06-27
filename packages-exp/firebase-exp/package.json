@@ -49,7 +49,7 @@
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "gulp-concat": "2.6.1",
-    "typescript": "3.7.5"
+    "typescript": "3.9.5"
   },
   "components": [
     "app"
