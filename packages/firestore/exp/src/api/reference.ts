@@ -20,18 +20,30 @@
 import * as firestore from '../../index';
 
 import { Firestore } from './database';
-import { DocumentKeyReference } from '../../../src/api/user_data_reader';
+import {
+  DocumentKeyReference,
+  ParsedUpdateData
+} from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
+  applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
   SnapshotMetadata
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import { DocumentReference, Query } from '../../../lite/src/api/reference';
+import {
+  CollectionReference,
+  doc,
+  DocumentReference,
+  newUserDataReader,
+  Query
+} from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import { FieldPath } from '../../../src/api/field_path';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -139,6 +151,133 @@ export function getQueryFromServer<T>(
       new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
     );
   });
+}
+
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: Partial<T>,
+  options: firestore.SetOptions
+): Promise<void>;
+export function setDoc<T>(
+  reference: firestore.DocumentReference<T>,
+  data: T,
+  options?: firestore.SetOptions
+): Promise<void> {
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
+  const firestore = cast(ref.firestore, Firestore);
+
+  const convertedValue = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    options
+  );
+  const dataReader = newUserDataReader(firestore);
+  const parsed = dataReader.parseSetData(
+    'setDoc',
+    ref._key,
+    convertedValue,
+    ref._converter !== null,
+    options
+  );
+
+  return firestore
+    ._getFirestoreClient()
+    .then(firestoreClient =>
+      firestoreClient.write(parsed.toMutations(ref._key, Precondition.none()))
+    );
+}
+
+export function updateDoc(
+  reference: firestore.DocumentReference<unknown>,
+  data: firestore.UpdateData
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference<unknown>,
+  field: string | firestore.FieldPath,
+  value: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void>;
+export function updateDoc(
+  reference: firestore.DocumentReference<unknown>,
+  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  value?: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void> {
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
+  const firestore = cast(ref.firestore, Firestore);
+  const dataReader = newUserDataReader(firestore);
+
+  let parsed: ParsedUpdateData;
+  if (
+    typeof fieldOrUpdateData === 'string' ||
+    fieldOrUpdateData instanceof FieldPath
+  ) {
+    parsed = dataReader.parseUpdateVarargs(
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData,
+      value,
+      moreFieldsAndValues
+    );
+  } else {
+    parsed = dataReader.parseUpdateData(
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData
+    );
+  }
+
+  return firestore
+    ._getFirestoreClient()
+    .then(firestoreClient =>
+      firestoreClient.write(
+        parsed.toMutations(ref._key, Precondition.exists(true))
+      )
+    );
+}
+
+export function deleteDoc(
+  reference: firestore.DocumentReference
+): Promise<void> {
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
+  const firestore = cast(ref.firestore, Firestore);
+  return firestore
+    ._getFirestoreClient()
+    .then(firestoreClient =>
+      firestoreClient.write([new DeleteMutation(ref._key, Precondition.none())])
+    );
+}
+
+export function addDoc<T>(
+  reference: firestore.CollectionReference<T>,
+  data: T
+): Promise<firestore.DocumentReference<T>> {
+  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
+  const firestore = cast(collRef, Firestore);
+  const docRef = doc(collRef);
+
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
+
+  const dataReader = newUserDataReader(collRef.firestore);
+  const parsed = dataReader.parseSetData(
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    collRef._converter !== null
+  );
+
+  return firestore
+    ._getFirestoreClient()
+    .then(firestoreClient =>
+      firestoreClient.write(
+        parsed.toMutations(docRef._key, Precondition.exists(false))
+      )
+    )
+    .then(() => docRef);
 }
 
 /**
